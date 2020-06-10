@@ -16,7 +16,17 @@ namespace cdsp {
 
     class Complex2HackRF {
     public:
+        Complex2HackRF() {
+            
+        }
+
         Complex2HackRF(stream<complex_t>* in, int bufferSize) : output(bufferSize * 2) {
+            _input = in;
+            _bufferSize = bufferSize;
+        }
+
+        void init(stream<complex_t>* in, int bufferSize) {
+            output.init(bufferSize * 2);
             _input = in;
             _bufferSize = bufferSize;
         }
@@ -48,7 +58,17 @@ namespace cdsp {
 
     class HackRF2Complex {
     public:
+        HackRF2Complex() {
+            
+        }
+
         HackRF2Complex(stream<complex_t>* out, int bufferSize) : input(bufferSize * 2) {
+            _output = out;
+            _bufferSize = bufferSize;
+        }
+
+        void init(stream<complex_t>* out, int bufferSize) {
+            input.init(bufferSize * 2);
             _output = out;
             _bufferSize = bufferSize;
         }
@@ -81,7 +101,18 @@ namespace cdsp {
 
     class HackRFSink {
     public:
+        HackRFSink() {
+
+        }
+
         HackRFSink(hackrf_device* dev, int bufferSize, stream<complex_t>* input) : gen(input, bufferSize) {
+            _input = input;
+            _dev = dev;
+            gen.start();
+        }
+
+        void init(hackrf_device* dev, int bufferSize, stream<complex_t>* input) {
+            gen.init(input, bufferSize);
             _input = input;
             _dev = dev;
             gen.start();
@@ -116,7 +147,18 @@ namespace cdsp {
 
     class HackRFSource {
     public:
+        HackRFSource() {
+
+        }
+
         HackRFSource(hackrf_device* dev, int bufferSize) : output(bufferSize * 2), gen(&output, bufferSize) {
+            _dev = dev;
+            gen.start();
+        }
+
+        void init(hackrf_device* dev, int bufferSize) {
+            output.init(bufferSize * 2);
+            gen.init(&output, bufferSize);
             _dev = dev;
             gen.start();
         }

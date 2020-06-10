@@ -6,6 +6,10 @@
 namespace cdsp {
     class Multiplier {
     public:
+        Multiplier() {
+            
+        }
+
         Multiplier(stream<complex_t>* a, stream<complex_t>* b, int bufferSize) : output(bufferSize * 2) {
             _a = a;
             _b = b;

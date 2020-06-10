@@ -31,3 +31,7 @@ find_package(FFTW3f CONFIG REQUIRED)
 target_link_libraries(sdrpp PRIVATE FFTW3::fftw3f)
 find_package(FFTW3l CONFIG REQUIRED)
 target_link_libraries(sdrpp PRIVATE FFTW3::fftw3l)
+
+# PortAudio
+find_package(portaudio CONFIG REQUIRED)
+target_link_libraries(sdrpp PRIVATE portaudio portaudio_static)

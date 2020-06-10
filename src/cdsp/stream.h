@@ -7,12 +7,22 @@ namespace cdsp {
     template <class T>
     class stream {
     public:
+        stream() {
+
+        }
+
         stream(int size) {
             _buffer = new T[size];
             this->size = size;
             writec = 0;
             readc = size - 1;
-            //printf("Stream init\n");
+        }
+
+        void init(int size) {
+            _buffer = new T[size];
+            this->size = size;
+            writec = 0;
+            readc = size - 1;
         }
 
         void read(T* data, int len) {

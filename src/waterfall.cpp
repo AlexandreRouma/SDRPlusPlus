@@ -30,13 +30,16 @@ namespace ImGui {
         glGenTextures(1, &textureId);
     }
 
-    void drawFFT(ImGuiWindow* window, int width, int height, ImVec2 pos, std::vector<float>& data) {
+    void WaterFall::drawFFT(ImGuiWindow* window, int width, int height, ImVec2 pos) {
         float lineHeight = (float)(height - 20 - 30) / 7.0f;
         char buf[100];
+        int fftWidth = width - 50;
 
+        // Vertical scale
         for (int i = 0; i < 8; i++) {
             sprintf(buf, "%d", -i * 10);
-            window->DrawList->AddText(ImVec2(pos.x + 7, pos.y + (i * lineHeight) + 2), IM_COL32( 255, 255, 255, 255 ), buf);
+            ImVec2 txtSz = ImGui::CalcTextSize(buf);
+            window->DrawList->AddText(ImVec2(pos.x + 30 - txtSz.x, pos.y + (i * lineHeight) + 2), IM_COL32( 255, 255, 255, 255 ), buf);
             if (i == 7) {
                 window->DrawList->AddLine(ImVec2(pos.x + 40, pos.y + (i * lineHeight) + 10),
                                         ImVec2(pos.x + width - 10, pos.y + (i * lineHeight) + 10),
@@ -48,13 +51,36 @@ namespace ImGui {
                                     IM_COL32( 70, 70, 70, 255 ), 1.0f);
         }
 
-        int fftWidth = width - 50;
+        // Horizontal scale
+        float start = ceilf((centerFrequency - (bandWidth / 2)) / range) * range;
+        float end = centerFrequency + (bandWidth / 2);
+        float offsetStart = start - (centerFrequency - (bandWidth / 2));
+        float pixelOffset = (offsetStart * fftWidth) / bandWidth;
+        float pixelWidth = (range * fftWidth) / bandWidth;
+        int count = 0;
+        for (; start < end; start += range) {
+            window->DrawList->AddLine(ImVec2(pos.x + pixelOffset + (pixelWidth * count) + 40, pos.y + 10),
+                                    ImVec2(pos.x + pixelOffset + (pixelWidth * count) + 40, pos.y + (7 * lineHeight) + 10), 
+                                    IM_COL32( 70, 70, 70, 255 ), 1.0f);
 
-        int dataCount = data.size();
+            window->DrawList->AddLine(ImVec2(pos.x + pixelOffset + (pixelWidth * count) + 40, pos.y + (7 * lineHeight) + 10),
+                                    ImVec2(pos.x + pixelOffset + (pixelWidth * count) + 40, pos.y + (7 * lineHeight) + 20), 
+                                    IM_COL32( 255, 255, 255, 255 ), 1.0f);
+
+            sprintf(buf, "%.1fM", start / 1000000.0f);
+
+            ImVec2 txtSz = ImGui::CalcTextSize(buf);
+
+            window->DrawList->AddText(ImVec2(pos.x + pixelOffset + (pixelWidth * count) + 40 - (txtSz.x / 2.0f), pos.y + (7 * lineHeight) + 25), IM_COL32( 255, 255, 255, 255 ), buf);
+
+            count++;
+        }
+
+        int dataCount = fftBuffer[0].size();
         float multiplier = (float)dataCount / (float)fftWidth;
         for (int i = 1; i < fftWidth; i++) {
-            float a = (data[(int)((float)(i - 1) * multiplier)] / 10.0f) * lineHeight;
-            float b = (data[(int)((float)i * multiplier)] / 10.0f) * lineHeight;
+            float a = (fftBuffer[0][(int)((float)(i - 1) * multiplier)] / 10.0f) * lineHeight;
+            float b = (fftBuffer[0][(int)((float)i * multiplier)] / 10.0f) * lineHeight;
             window->DrawList->AddLine(ImVec2(pos.x + i + 39, pos.y - a), 
                                     ImVec2(pos.x + i + 40, pos.y - b), 
                                     IM_COL32( 0, 255, 255, 255 ), 1.0f);
@@ -69,6 +95,12 @@ namespace ImGui {
         //                          IM_COL32( 0, 255, 255, 255 ), 1.0f);
 
         window->DrawList->AddLine(ImVec2(pos.x + 40, pos.y + 10), ImVec2(pos.x + 40, pos.y + (7 * lineHeight) + 10), IM_COL32( 255, 255, 255, 255 ), 1.0f);
+
+        ImVec2 mPos = ImGui::GetMousePos();
+        window->DrawList->AddRectFilled(ImVec2(mPos.x - 20, pos.y + 1), ImVec2(mPos.x + 20, pos.y + (7 * lineHeight) + 10), IM_COL32( 255, 255, 255, 50 ));
+        window->DrawList->AddLine(ImVec2(mPos.x, pos.y + 1), ImVec2(mPos.x, pos.y + (7 * lineHeight) + 10), IM_COL32( 255, 0, 0, 255 ), 1.0f);
+
+        
     }
 
     uint32_t mapColor(float val) {
@@ -161,7 +193,7 @@ namespace ImGui {
         if (fftBuffer.size() > height - 302) {
             fftBuffer.resize(height - 302);
         }
-        drawFFT(window, width, 300, vMin, fftBuffer[0]);
+        drawFFT(window, width, 300, vMin);
         drawWaterfall(window, width - 2, height - 302, ImVec2(vMin.x + 1, vMin.y + 301));
         buf_mtx.unlock();
     }

@@ -14,7 +14,17 @@ namespace cdsp {
 
     class RawFileSource {
     public:
+        RawFileSource() {
+            
+        }
+
         RawFileSource(std::string path, int bufferSize) : output(bufferSize * 2) {
+            _bufferSize = bufferSize;
+            _file = std::ifstream(path.c_str(), std::ios::in | std::ios::binary);
+        }
+
+        void init(std::string path, int bufferSize) {
+            output.init(bufferSize * 2);
             _bufferSize = bufferSize;
             _file = std::ifstream(path.c_str(), std::ios::in | std::ios::binary);
         }
@@ -50,7 +60,17 @@ namespace cdsp {
 
     class RawFileSink {
     public:
+        RawFileSink() {
+            
+        }
+
         RawFileSink(std::string path, stream<float>* in, int bufferSize) {
+            _bufferSize = bufferSize;
+            _input = in;
+            _file = std::ofstream(path.c_str(), std::ios::out | std::ios::binary);
+        }
+
+        void init(std::string path, stream<float>* in, int bufferSize) {
             _bufferSize = bufferSize;
             _input = in;
             _file = std::ofstream(path.c_str(), std::ios::out | std::ios::binary);

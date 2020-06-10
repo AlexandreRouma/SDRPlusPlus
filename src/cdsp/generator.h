@@ -6,7 +6,18 @@
 namespace cdsp {
     class SineSource {
     public:
+        SineSource() {
+            
+        }
+
         SineSource(float frequency, long sampleRate, int bufferSize) : output(bufferSize * 2) {
+            _bufferSize = bufferSize;
+            _phasorSpeed = (2 * 3.1415926535) / (sampleRate / frequency);
+            _phase = 0;
+        }
+
+        void init(float frequency, long sampleRate, int bufferSize) {
+            output.init(bufferSize * 2);
             _bufferSize = bufferSize;
             _phasorSpeed = (2 * 3.1415926535) / (sampleRate / frequency);
             _phase = 0;
@@ -39,7 +50,16 @@ namespace cdsp {
 
     class RandomSource {
     public:
+        RandomSource() {
+            
+        }
+
         RandomSource(float frequency, long sampleRate, int bufferSize) : output(bufferSize * 2) {
+            _bufferSize = bufferSize;
+        }
+
+        void init(float frequency, long sampleRate, int bufferSize) {
+            output.init(bufferSize * 2);
             _bufferSize = bufferSize;
         }
 
@@ -66,7 +86,18 @@ namespace cdsp {
 
     class ComplexSineSource {
     public:
+        ComplexSineSource() {
+            
+        }
+
         ComplexSineSource(float frequency, long sampleRate, int bufferSize) : output(bufferSize * 2) {
+            _bufferSize = bufferSize;
+            _phasorSpeed = (2 * 3.1415926535) / (sampleRate / frequency);
+            _phase = 0;
+        }
+
+        void init(float frequency, long sampleRate, int bufferSize) {
+            output.init(bufferSize * 2);
             _bufferSize = bufferSize;
             _phasorSpeed = (2 * 3.1415926535) / (sampleRate / frequency);
             _phase = 0;

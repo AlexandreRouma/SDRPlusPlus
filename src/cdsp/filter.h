@@ -7,7 +7,20 @@
 namespace cdsp {
     class FIRFilter {
     public:
+        FIRFilter() {
+            
+        }
+
         FIRFilter(stream<complex_t>* input, std::vector<float> taps, int bufferSize) : output(bufferSize * 2) {
+            _in = input;
+            _bufferSize = bufferSize;
+            _tapCount = taps.size();
+            delayBuf = new complex_t[_tapCount];
+            _taps = taps;
+        }
+
+        void init(stream<complex_t>* input, std::vector<float> taps, int bufferSize) {
+            output.init(bufferSize * 2);
             _in = input;
             _bufferSize = bufferSize;
             _tapCount = taps.size();
@@ -66,9 +79,21 @@ namespace cdsp {
 
     class DCBiasRemover {
     public:
+        DCBiasRemover() {
+            
+        }
+
         DCBiasRemover(stream<complex_t>* input, int bufferSize) : output(bufferSize * 2) {
             _in = input;
             _bufferSize = bufferSize;
+            bypass = false;
+        }
+
+        void init(stream<complex_t>* input, int bufferSize) {
+            output.init(bufferSize * 2);
+            _in = input;
+            _bufferSize = bufferSize;
+            bypass = false;
         }
 
         void start() {
@@ -76,6 +101,7 @@ namespace cdsp {
         }
 
         stream<complex_t> output;
+        bool bypass;
 
     private:
         static void _worker(DCBiasRemover* _this) {
@@ -84,6 +110,10 @@ namespace cdsp {
             float qbias = 0.0f;
             while (true) {
                 _this->_in->read(buf, _this->_bufferSize);
+                if (_this->bypass) {
+                    _this->output.write(buf, _this->_bufferSize);
+                    continue;
+                }
                 for (int i = 0; i < _this->_bufferSize; i++) {
                     ibias += buf[i].i;
                     qbias += buf[i].q;
@@ -101,5 +131,46 @@ namespace cdsp {
         stream<complex_t>* _in;
         int _bufferSize;
         std::thread _workerThread;
+    };
+
+    class HandlerSink {
+    public:
+        HandlerSink() {
+            
+        }
+
+        HandlerSink(stream<complex_t>* input, complex_t* buffer, int bufferSize, void handler(complex_t*)) {
+            _in = input;
+            _bufferSize = bufferSize;
+            _buffer = buffer;
+            _handler = handler;
+        }
+
+        void init(stream<complex_t>* input, complex_t* buffer, int bufferSize, void handler(complex_t*)) {
+            _in = input;
+            _bufferSize = bufferSize;
+            _buffer = buffer;
+            _handler = handler;
+        }
+
+        void start() {
+            _workerThread = std::thread(_worker, this);
+        }
+
+        bool bypass;
+
+    private:
+        static void _worker(HandlerSink* _this) {
+            while (true) {
+                _this->_in->read(_this->_buffer, _this->_bufferSize);
+                _this->_handler(_this->_buffer);
+            }
+        }
+
+        stream<complex_t>* _in;
+        int _bufferSize;
+        complex_t* _buffer;
+        std::thread _workerThread;
+        void (*_handler)(complex_t*);
     };
 };

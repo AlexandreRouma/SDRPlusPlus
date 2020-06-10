@@ -7,7 +7,19 @@
 namespace cdsp {
     class FMDemodulator {
     public:
+        FMDemodulator() {
+            
+        }
+
         FMDemodulator(stream<complex_t>* in, float deviation, long sampleRate, int bufferSize) : output(bufferSize * 2) {
+            _input = in;
+            _bufferSize = bufferSize;
+            _phase = 0.0f;
+            _phasorSpeed = (2 * 3.1415926535) / (sampleRate / deviation);
+        }
+
+        void init(stream<complex_t>* in, float deviation, long sampleRate, int bufferSize) {
+            output.init(bufferSize * 2);
             _input = in;
             _bufferSize = bufferSize;
             _phase = 0.0f;

@@ -11,20 +11,22 @@
 #include <cdsp/math.h>
 #include <waterfall.h>
 #include <fftw3.h>
+#include <signal_path.h>
 
 std::thread worker;
-
 std::mutex fft_mtx;
 ImGui::WaterFall wtf;
-
 hackrf_device* dev;
+fftwf_complex *fft_in, *fft_out;
+fftwf_plan p;
+
+bool dcbias = true;
 
 void windowInit() {
     int fftSize = 8192;
-    //cdsp::complex_t* iqdata = new cdsp::complex_t[fftSize * 2];
-
-    fftwf_complex *fft_in, *fft_out;
-    fftwf_plan p;
+    wtf.bandWidth = 8000000;
+    wtf.range = 500000;
+    
     fft_in = (fftwf_complex*) fftw_malloc(sizeof(fftw_complex) * fftSize);
     fft_out = (fftwf_complex*) fftw_malloc(sizeof(fftw_complex) * fftSize);
     p = fftwf_plan_dft_1d(fftSize, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
@@ -60,8 +62,6 @@ void windowInit() {
         dec.start();
         mul.start();
 
-        float val_a, val_b, val_c;
-
         while (true) {
             mul.output.read((cdsp::complex_t*)fft_in, fftSize);
 
@@ -74,6 +74,8 @@ void windowInit() {
             for (int i = 5; i < fftSize; i++) {
                 data[i] = (data[i - 3] + data[i - 2] + data[i - 1] + data[i]) / 4.0f;
             }
+
+            bias.bypass = !dcbias;
 
             wtf.pushFFT(data, fftSize);
             data.clear();
@@ -90,6 +92,7 @@ int _freq = 98000;
 void drawWindow() {
     if (freq != _freq) {
         _freq = freq;
+        wtf.centerFrequency = freq * 1000;
         hackrf_set_freq(dev, freq * 1000);
     }
 
@@ -148,6 +151,7 @@ void drawWindow() {
         ImGui::Columns(1, "EndRadioModeColumns", false);
 
         ImGui::InputInt("Frequency (kHz)", &freq);
+        ImGui::Checkbox("DC Bias Removal", &dcbias);
 
         ImGui::EndGroup();
     }
