@@ -70,7 +70,7 @@ int main() {
         glfwGetWindowSize(window, &wwidth, &wheight);
         ImGui::SetNextWindowPos(ImVec2(0, 0));
         ImGui::SetNextWindowSize(ImVec2(wwidth, wheight));
-        ImGui::Begin("", NULL, WINDOW_FLAGS);
+        ImGui::Begin("Main", NULL, WINDOW_FLAGS);
 
         drawWindow();
 

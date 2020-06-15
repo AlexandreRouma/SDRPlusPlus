@@ -13,6 +13,8 @@ namespace cdsp {
 
         stream(int size) {
             _buffer = new T[size];
+            _stopReader = false;
+            _stopWriter = false;
             this->size = size;
             writec = 0;
             readc = size - 1;
@@ -20,15 +22,27 @@ namespace cdsp {
 
         void init(int size) {
             _buffer = new T[size];
+            _stopReader = false;
+            _stopWriter = false;
             this->size = size;
             writec = 0;
             readc = size - 1;
         }
 
-        void read(T* data, int len) {
+        int read(T* data, int len) {
             int dataRead = 0;
             while (dataRead < len) {
                 int canRead = waitUntilReadable();
+                if (canRead < 0) {
+                    if (_stopReader) {
+                        printf("Stop reader set");
+                    }
+                    else {
+                        printf("Stop not set");
+                    }
+                    clearReadStop();
+                    return -1;
+                }
                 int toRead = std::min(canRead, len - dataRead);
 
                 int len1 = (toRead >= (size - readc) ? (size - readc) : (toRead));
@@ -45,10 +59,14 @@ namespace cdsp {
             }
         }
 
-        void readAndSkip(T* data, int len, int skip) {
+        int readAndSkip(T* data, int len, int skip) {
             int dataRead = 0;
             while (dataRead < len) {
                 int canRead = waitUntilReadable();
+                if (canRead < 0) {
+                    clearReadStop();
+                    return -1;
+                }
                 int toRead = std::min(canRead, len - dataRead);
 
                 int len1 = (toRead >= (size - readc) ? (size - readc) : (toRead));
@@ -85,7 +103,10 @@ namespace cdsp {
                 return canRead;
             }
             std::unique_lock<std::mutex> lck(writec_mtx);
-            canReadVar.wait(lck, [=](){ return (this->readable(false) > 0); });
+            canReadVar.wait(lck, [=](){ return ((this->readable(false) > 0) || this->getReadStop()); });
+            if (this->getReadStop()) {
+                return -1;
+            }
             return this->readable(false);
         }
 
@@ -100,10 +121,14 @@ namespace cdsp {
             return readable - 1;
         }
 
-        void write(T* data, int len) {
+        int write(T* data, int len) {
             int dataWrite = 0;
             while (dataWrite < len) {
                 int canWrite = waitUntilWriteable();
+                if (canWrite < 0) {
+                    clearWriteStop();
+                    return -1;
+                }
                 int toWrite = std::min(canWrite, len - dataWrite);
 
                 int len1 = (toWrite >= (size - writec) ? (size - writec) : (toWrite));
@@ -118,6 +143,7 @@ namespace cdsp {
                 writec_mtx.unlock();
                 canReadVar.notify_one();
             }
+            return len;
         }
 
         int waitUntilWriteable() {
@@ -126,7 +152,10 @@ namespace cdsp {
                 return canWrite;
             }
             std::unique_lock<std::mutex> lck(readc_mtx);
-            canWriteVar.wait(lck, [=](){ return (this->writeable(false) > 0); });
+            canWriteVar.wait(lck, [=](){ return ((this->writeable(false) > 0) || this->getWriteStop()); });
+            if (this->getWriteStop()) {
+                return -1;
+            }
             return this->writeable(false);
         }
 
@@ -141,11 +170,39 @@ namespace cdsp {
             return writeable - 1;
         }
 
+        void stopReader() {
+            _stopReader = true;
+            canReadVar.notify_one();
+        }
+
+        void stopWriter() {
+            _stopWriter = true;
+            canWriteVar.notify_one();
+        }
+
+        bool getReadStop() {
+            return _stopReader;
+        }
+
+        bool getWriteStop() {
+            return _stopWriter;
+        }
+
+        void clearReadStop() {
+            _stopReader = false;
+        }
+
+        void clearWriteStop() {
+            _stopWriter = false;
+        }
+
     private:
         T* _buffer;
         int size;
         int readc;
         int writec;
+        bool _stopReader;
+        bool _stopWriter;
         std::mutex readc_mtx;
         std::mutex writec_mtx;
         std::condition_variable canReadVar;

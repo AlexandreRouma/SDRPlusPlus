@@ -10,7 +10,7 @@ namespace ImGui {
     public:
         WaterFall();
 
-        void draw();
+        void draw(float* vfo);
         void pushFFT(std::vector<float> data, int n);
 
         float centerFrequency;
@@ -19,14 +19,14 @@ namespace ImGui {
 
     private:
         void drawWaterfall(ImGuiWindow* window, int width, int height, ImVec2 pos);
-        void drawFFT(ImGuiWindow* window, int width, int height, ImVec2 pos);
+        void drawFFT(ImGuiWindow* window, int width, int height, ImVec2 pos, float* vfo);
 
         std::vector<std::vector<float>> fftBuffer;
         bool newSamples;
         std::mutex buf_mtx;
         GLuint textureId;
         uint8_t* pixelBuffer;
-
+        float* fftDrawBuffer;
         
     };
 };

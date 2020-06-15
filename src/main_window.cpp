@@ -19,81 +19,100 @@ ImGui::WaterFall wtf;
 hackrf_device* dev;
 fftwf_complex *fft_in, *fft_out;
 fftwf_plan p;
+float* tempData;
+
+int fftSize = 8192 * 8;
 
 bool dcbias = true;
 
+cdsp::HackRFSource src;
+SignalPath sigPath;
+std::vector<float> _data;
+std::vector<float> fftTaps;
+void fftHandler(cdsp::complex_t* samples) {
+    fftwf_execute(p);
+    int half = fftSize / 2;
+
+    for (int i = 0; i < half; i++) {
+        _data.push_back(log10(std::abs(std::complex<float>(fft_out[half + i][0], fft_out[half + i][1])) / (float)fftSize) * 10.0f);
+    }
+    for (int i = 0; i < half; i++) {
+        _data.push_back(log10(std::abs(std::complex<float>(fft_out[i][0], fft_out[i][1])) / (float)fftSize) * 10.0f);
+    }
+
+    for (int i = 5; i < fftSize; i++) {
+        _data[i] = (_data[i - 4]  + _data[i - 3] + _data[i - 2] + _data[i - 1] + _data[i]) / 5.0f;
+    }
+
+    wtf.pushFFT(_data, fftSize);
+    _data.clear();
+}
+
 void windowInit() {
-    int fftSize = 8192;
-    wtf.bandWidth = 8000000;
+    int sampleRate = 2000000;
+    wtf.bandWidth = sampleRate;
     wtf.range = 500000;
+    wtf.centerFrequency = 90500000;
+    printf("fft taps: %d\n", fftTaps.size());
     
-    fft_in = (fftwf_complex*) fftw_malloc(sizeof(fftw_complex) * fftSize);
-    fft_out = (fftwf_complex*) fftw_malloc(sizeof(fftw_complex) * fftSize);
+    fft_in = (fftwf_complex*) fftw_malloc(sizeof(fftwf_complex) * fftSize);
+    fft_out = (fftwf_complex*) fftw_malloc(sizeof(fftwf_complex) * fftSize);
     p = fftwf_plan_dft_1d(fftSize, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
 
-    worker = std::thread([=]() {
-        std::vector<float> data;
-        printf("Starting DSP Thread!\n");
+    printf("Starting DSP Thread!\n");
 
-        hackrf_init();
-        hackrf_device_list_t* list = hackrf_device_list();
-        
-        int err = hackrf_device_list_open(list, 0, &dev);
-        if (err != 0) {
-            printf("Error while opening HackRF: %d\n", err);
-            return -1;
-        }
-        hackrf_set_freq(dev, 98000000);
-        //hackrf_set_txvga_gain(dev, 10);
-        hackrf_set_amp_enable(dev, 0);
-        hackrf_set_lna_gain(dev, 24);
-        hackrf_set_vga_gain(dev, 20);
-        hackrf_set_sample_rate(dev, 8000000);
+    hackrf_init();
+    hackrf_device_list_t* list = hackrf_device_list();
+    
+    int err = hackrf_device_list_open(list, 0, &dev);
+    if (err != 0) {
+        printf("Error while opening HackRF: %d\n", err);
+        return;
+    }
+    hackrf_set_freq(dev, 90500000);
+    //hackrf_set_txvga_gain(dev, 10);
+    hackrf_set_amp_enable(dev, 1);
+    hackrf_set_lna_gain(dev, 24);
+    hackrf_set_vga_gain(dev, 20);
+    hackrf_set_baseband_filter_bandwidth(dev, sampleRate);
+    hackrf_set_sample_rate(dev, sampleRate);
 
-        cdsp::HackRFSource src(dev, 64000);
-        cdsp::DCBiasRemover bias(&src.output, 64000);
-        cdsp::ComplexSineSource sinsrc(4000000.0f, 8000000, 64000);
-        cdsp::BlockDecimator dec(&bias.output, 566603 - fftSize, fftSize);
-        cdsp::Multiplier mul(&dec.output, &sinsrc.output, fftSize);
-        
-        src.start();
-        bias.start();
-        sinsrc.start();
-        dec.start();
-        mul.start();
+    src.init(dev, 64000);
 
-        while (true) {
-            mul.output.read((cdsp::complex_t*)fft_in, fftSize);
-
-            fftwf_execute(p);
-
-            for (int i = 0; i < fftSize ; i++) {
-                data.push_back(log10(std::abs(std::complex<float>(fft_out[i][0], fft_out[i][1])) / (float)fftSize) * 10.0f);
-            }
-
-            for (int i = 5; i < fftSize; i++) {
-                data[i] = (data[i - 3] + data[i - 2] + data[i - 1] + data[i]) / 4.0f;
-            }
-
-            bias.bypass = !dcbias;
-
-            wtf.pushFFT(data, fftSize);
-            data.clear();
-        }
-    });
+    sigPath.init(sampleRate, 20, fftSize, &src.output, (cdsp::complex_t*)fft_in, fftHandler);
+    sigPath.start();
 }
 
 int Current = 0;
 bool showExample = false;
 
-int freq = 98000;
-int _freq = 98000;
+int freq = 90500;
+int _freq = 90500;
+
+bool state = false;
+bool mulstate = true;
+
+float vfoFreq = 92000000.0f;
+float lastVfoFreq = 92000000.0f;
+
+float volume = 1.0f;
+float lastVolume = 1.0f;
 
 void drawWindow() {
     if (freq != _freq) {
         _freq = freq;
         wtf.centerFrequency = freq * 1000;
         hackrf_set_freq(dev, freq * 1000);
+    }
+
+    if (vfoFreq != lastVfoFreq) {
+        lastVfoFreq = vfoFreq;
+        sigPath.setVFOFrequency(vfoFreq - (freq * 1000));
+    }
+
+    if (volume != lastVolume) {
+        lastVolume = volume;
+        sigPath.setVolume(volume);
     }
 
 
@@ -130,7 +149,16 @@ void drawWindow() {
 
     if (ImGui::CollapsingHeader("Source")) {
         
-        ImGui::Combo("Source", &Current, "HackRF One\0RTL-SDR");
+        //ImGui::Combo("Source", &Current, "HackRF One\0RTL-SDR");
+        ImGui::SliderFloat("Volume", &volume, 0.0f, 1.0f);
+        if (ImGui::Button("Start") && !state) {
+            state = true;
+            src.start();
+        }
+        if (ImGui::Button("Stop") && state) {
+            state = false;
+            src.stop();
+        }
     }
 
     if (ImGui::CollapsingHeader("Radio")) {
@@ -165,6 +193,13 @@ void drawWindow() {
     if(ImGui::CollapsingHeader("Debug")) {
         ImGui::Text("Frame time: %.3f ms/frame", 1000.0f / ImGui::GetIO().Framerate);
         ImGui::Text("Framerate: %.1f FPS", ImGui::GetIO().Framerate);
+
+        if (ImGui::Button("FM demod")) {
+            sigPath.setDemodulator(SignalPath::DEMOD_FM);
+        }
+        if (ImGui::Button("AM demod")) {
+            sigPath.setDemodulator(SignalPath::DEMOD_AM);
+        }
     }
 
     ImGui::EndChild();
@@ -173,6 +208,6 @@ void drawWindow() {
     ImGui::NextColumn();
 
     ImGui::BeginChild("Waterfall");
-    wtf.draw();    
+    wtf.draw(&vfoFreq);    
     ImGui::EndChild();
 }

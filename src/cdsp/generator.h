@@ -92,19 +92,41 @@ namespace cdsp {
 
         ComplexSineSource(float frequency, long sampleRate, int bufferSize) : output(bufferSize * 2) {
             _bufferSize = bufferSize;
+            _sampleRate = sampleRate;
             _phasorSpeed = (2 * 3.1415926535) / (sampleRate / frequency);
             _phase = 0;
+            running = false;
         }
 
         void init(float frequency, long sampleRate, int bufferSize) {
             output.init(bufferSize * 2);
+            _sampleRate = sampleRate;
             _bufferSize = bufferSize;
             _phasorSpeed = (2 * 3.1415926535) / (sampleRate / frequency);
             _phase = 0;
+            running = false;
         }
 
         void start() {
+            if (running) {
+                return;
+            }
             _workerThread = std::thread(_worker, this);
+            running = true;
+        }
+
+        void stop() {
+            if (!running) {
+                return;
+            }
+            output.stopWriter();
+            _workerThread.join();
+            output.clearWriteStop();
+            running = false;
+        }
+
+        void setFrequency(float frequency) {
+            _phasorSpeed = (2 * 3.1415926535) / (_sampleRate / frequency);
         }
 
         stream<complex_t> output;
@@ -119,13 +141,16 @@ namespace cdsp {
                     outBuf[i].q = cos(_this->_phase);
                 }
                 _this->_phase = fmodf(_this->_phase, 2.0f * 3.1415926535);
-                _this->output.write(outBuf, _this->_bufferSize);
+                if (_this->output.write(outBuf, _this->_bufferSize) < 0) { break; };
             }
+            delete[] outBuf;
         }
 
         int _bufferSize;
         float _phasorSpeed;
         float _phase;
+        long _sampleRate;
         std::thread _workerThread;
+        bool running;
     };
 };

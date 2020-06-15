@@ -19,7 +19,17 @@ const float COLOR_MAP[][3] = {
     {0x00, 0x00, 0x20}
 };
 
+bool isInArea(ImVec2 pos, ImVec2 min, ImVec2 max) {
+    return (pos.x >= min.x && pos.y >= min.y && pos.x < max.x && pos.y < max.y);
+}
+
 namespace ImGui {
+
+    uint32_t* img = NULL;
+    int lastW = 0;
+    int lastH = 0;
+
+
     WaterFall::WaterFall() {
         std::vector<float> base;
         for (int i = 0; i < 1024; i++) {
@@ -30,17 +40,19 @@ namespace ImGui {
         glGenTextures(1, &textureId);
     }
 
-    void WaterFall::drawFFT(ImGuiWindow* window, int width, int height, ImVec2 pos) {
-        float lineHeight = (float)(height - 20 - 30) / 7.0f;
+    void WaterFall::drawFFT(ImGuiWindow* window, int width, int height, ImVec2 pos, float* vfo) {
+        float lines = 6.0f;
+        int w = width - 10;
+        float lineHeight = (float)(height - 20 - 30) / lines;
         char buf[100];
         int fftWidth = width - 50;
 
         // Vertical scale
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < (lines + 1); i++) {
             sprintf(buf, "%d", -i * 10);
             ImVec2 txtSz = ImGui::CalcTextSize(buf);
             window->DrawList->AddText(ImVec2(pos.x + 30 - txtSz.x, pos.y + (i * lineHeight) + 2), IM_COL32( 255, 255, 255, 255 ), buf);
-            if (i == 7) {
+            if (i == lines) { // Last line
                 window->DrawList->AddLine(ImVec2(pos.x + 40, pos.y + (i * lineHeight) + 10),
                                         ImVec2(pos.x + width - 10, pos.y + (i * lineHeight) + 10),
                                         IM_COL32( 255, 255, 255, 255 ), 1.0f);
@@ -60,24 +72,30 @@ namespace ImGui {
         int count = 0;
         for (; start < end; start += range) {
             window->DrawList->AddLine(ImVec2(pos.x + pixelOffset + (pixelWidth * count) + 40, pos.y + 10),
-                                    ImVec2(pos.x + pixelOffset + (pixelWidth * count) + 40, pos.y + (7 * lineHeight) + 10), 
+                                    ImVec2(pos.x + pixelOffset + (pixelWidth * count) + 40, pos.y + (lines * lineHeight) + 10), 
                                     IM_COL32( 70, 70, 70, 255 ), 1.0f);
 
-            window->DrawList->AddLine(ImVec2(pos.x + pixelOffset + (pixelWidth * count) + 40, pos.y + (7 * lineHeight) + 10),
-                                    ImVec2(pos.x + pixelOffset + (pixelWidth * count) + 40, pos.y + (7 * lineHeight) + 20), 
+            window->DrawList->AddLine(ImVec2(pos.x + pixelOffset + (pixelWidth * count) + 40, pos.y + (lines * lineHeight) + 10),
+                                    ImVec2(pos.x + pixelOffset + (pixelWidth * count) + 40, pos.y + (lines * lineHeight) + 20), 
                                     IM_COL32( 255, 255, 255, 255 ), 1.0f);
 
             sprintf(buf, "%.1fM", start / 1000000.0f);
 
             ImVec2 txtSz = ImGui::CalcTextSize(buf);
 
-            window->DrawList->AddText(ImVec2(pos.x + pixelOffset + (pixelWidth * count) + 40 - (txtSz.x / 2.0f), pos.y + (7 * lineHeight) + 25), IM_COL32( 255, 255, 255, 255 ), buf);
+            window->DrawList->AddText(ImVec2(pos.x + pixelOffset + (pixelWidth * count) + 40 - (txtSz.x / 2.0f), pos.y + (lines * lineHeight) + 25), IM_COL32( 255, 255, 255, 255 ), buf);
 
             count++;
         }
 
         int dataCount = fftBuffer[0].size();
         float multiplier = (float)dataCount / (float)fftWidth;
+        if (lastW != w) {
+            if (fftDrawBuffer != NULL) {
+                delete[] fftDrawBuffer;
+            }
+            fftDrawBuffer = new float[fftWidth];
+        }
         for (int i = 1; i < fftWidth; i++) {
             float a = (fftBuffer[0][(int)((float)(i - 1) * multiplier)] / 10.0f) * lineHeight;
             float b = (fftBuffer[0][(int)((float)i * multiplier)] / 10.0f) * lineHeight;
@@ -86,7 +104,7 @@ namespace ImGui {
                                     IM_COL32( 0, 255, 255, 255 ), 1.0f);
 
             window->DrawList->AddLine(ImVec2(pos.x + i + 39, pos.y - a), 
-                                    ImVec2(pos.x + i + 39, pos.y + (7.0f * lineHeight) + 9), 
+                                    ImVec2(pos.x + i + 39, pos.y + (lines * lineHeight) + 9), 
                                     IM_COL32( 0, 255, 255, 50 ), 1.0f);
         }
 
@@ -94,17 +112,24 @@ namespace ImGui {
         //                          ImVec2(pos.x + (i * spacing) + 40, pos.y - b), 
         //                          IM_COL32( 0, 255, 255, 255 ), 1.0f);
 
-        window->DrawList->AddLine(ImVec2(pos.x + 40, pos.y + 10), ImVec2(pos.x + 40, pos.y + (7 * lineHeight) + 10), IM_COL32( 255, 255, 255, 255 ), 1.0f);
+        window->DrawList->AddLine(ImVec2(pos.x + 40, pos.y + 10), ImVec2(pos.x + 40, pos.y + (lines * lineHeight) + 10), IM_COL32( 255, 255, 255, 255 ), 1.0f);
 
         ImVec2 mPos = ImGui::GetMousePos();
-        window->DrawList->AddRectFilled(ImVec2(mPos.x - 20, pos.y + 1), ImVec2(mPos.x + 20, pos.y + (7 * lineHeight) + 10), IM_COL32( 255, 255, 255, 50 ));
-        window->DrawList->AddLine(ImVec2(mPos.x, pos.y + 1), ImVec2(mPos.x, pos.y + (7 * lineHeight) + 10), IM_COL32( 255, 0, 0, 255 ), 1.0f);
+        // window->DrawList->AddRectFilled(ImVec2(mPos.x - 20, pos.y + 11), ImVec2(mPos.x + 20, pos.y + (lines * lineHeight) + 10), IM_COL32( 255, 255, 255, 50 ));
+        // window->DrawList->AddLine(ImVec2(mPos.x, pos.y + 11), ImVec2(mPos.x, pos.y + (lines * lineHeight) + 10), IM_COL32( 255, 0, 0, 255 ), 1.0f);
 
-        
+        float vfoPos = (((*vfo - centerFrequency) + (bandWidth / 2.0f)) / bandWidth) * (float)fftWidth + 40;
+
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && isInArea(mPos, ImVec2(pos.x + 40, pos.y + 10), ImVec2(pos.x + fftWidth + 40, pos.y + (lines * lineHeight) + 10))) {
+            *vfo = (((((mPos.x - pos.x) - 40) / (float)fftWidth) * bandWidth) - (bandWidth / 2.0f)) + centerFrequency;
+            //*vfo = roundf(*vfo / 100000.0f) * 100000.0f;
+        }
+        window->DrawList->AddRectFilled(ImVec2(pos.x + vfoPos - 20, pos.y + 11), ImVec2(pos.x + vfoPos + 20, pos.y + (lines * lineHeight) + 10), IM_COL32( 255, 255, 255, 50 ));
+        window->DrawList->AddLine(ImVec2(pos.x + vfoPos, pos.y + 11), ImVec2(pos.x + vfoPos, pos.y + (lines * lineHeight) + 10), IM_COL32( 255, 0, 0, 255 ), 1.0f);
     }
 
     uint32_t mapColor(float val) {
-        float mapped = MAP_VAL(-50.0f, 0.0f, 0, 12, val);
+        float mapped = MAP_VAL(-50.0f, -15.0f, 0, 12, val);
         mapped = std::max<float>(mapped, 0.0f);
         mapped = std::min<float>(mapped, 12.0f);
         int floored = floorf(mapped);
@@ -119,10 +144,6 @@ namespace ImGui {
         return ((uint32_t)255 << 24) | ((uint32_t)b << 16) | ((uint32_t)g << 8) | (uint32_t)r;
     }
 
-    uint32_t* img = NULL;
-    int lastW = 0;
-    int lastH = 0;
-
     void WaterFall::drawWaterfall(ImGuiWindow* window, int width, int height, ImVec2 pos) {
         int w = width - 10;
         int h = height;
@@ -131,6 +152,7 @@ namespace ImGui {
         bool newSize = false;
 
         if (lastW != w || lastH != h) {
+            
             newSize = true;
             lastW = w;
             lastH = h;
@@ -175,7 +197,7 @@ namespace ImGui {
         window->DrawList->AddImage((void*)(intptr_t)textureId, ImVec2(pos.x + 40, pos.y), ImVec2(pos.x + w, pos.y + h));
     }
 
-    void WaterFall::draw() {
+    void WaterFall::draw(float* vfo) {
         ImGuiWindow* window = GetCurrentWindow();
         ImVec2 vMin = ImGui::GetWindowContentRegionMin();
         ImVec2 vMax = ImGui::GetWindowContentRegionMax();
@@ -190,10 +212,10 @@ namespace ImGui {
         window->DrawList->AddLine(ImVec2(vMin.x, vMin.y + 300), ImVec2(vMin.x + width, vMin.y + 300), IM_COL32( 50, 50, 50, 255 ), 1.0f);
 
         buf_mtx.lock();
-        if (fftBuffer.size() > height - 302) {
+        if (fftBuffer.size() > height) {
             fftBuffer.resize(height - 302);
         }
-        drawFFT(window, width, 300, vMin);
+        drawFFT(window, width, 300, vMin, vfo);
         drawWaterfall(window, width - 2, height - 302, ImVec2(vMin.x + 1, vMin.y + 301));
         buf_mtx.unlock();
     }
@@ -202,6 +224,7 @@ namespace ImGui {
         buf_mtx.lock();
         fftBuffer.insert(fftBuffer.begin(), data);
         newSamples = true;
+        fftDrawBuffer = NULL;
         buf_mtx.unlock();
     }
 };

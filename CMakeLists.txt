@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.9)
 project(sdrpp)
 
 # Compiler config
-set(CMAKE_CXX_FLAGS "-O2")
+set(CMAKE_CXX_FLAGS "-OFast /std:c++17")
 
 # HackRF
 include_directories(sdrpp "C:/Program Files/PothosSDR/include/libhackrf/")
