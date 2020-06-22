@@ -1,6 +1,6 @@
 #pragma once
 
-namespace cdsp {
+namespace dsp {
     struct complex_t {
         float q;
         float i;

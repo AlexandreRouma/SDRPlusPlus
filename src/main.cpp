@@ -7,6 +7,7 @@
 #include <main_window.h>
 #include <styles.h>
 
+
 #ifdef _WIN32
 #include <Windows.h>
 #endif

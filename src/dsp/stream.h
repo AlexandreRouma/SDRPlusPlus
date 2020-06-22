@@ -3,7 +3,9 @@
 #include <algorithm>
 #include <math.h>
 
-namespace cdsp {
+#define STREAM_BUF_SZ   1000000
+
+namespace dsp {
     template <class T>
     class stream {
     public:
@@ -11,20 +13,22 @@ namespace cdsp {
 
         }
 
-        stream(int size) {
+        stream(int maxLatency) {
+            size = STREAM_BUF_SZ;
             _buffer = new T[size];
             _stopReader = false;
             _stopWriter = false;
-            this->size = size;
+            this->maxLatency = maxLatency;
             writec = 0;
             readc = size - 1;
         }
 
-        void init(int size) {
+        void init(int maxLatency) {
+            size = STREAM_BUF_SZ;
             _buffer = new T[size];
             _stopReader = false;
             _stopWriter = false;
-            this->size = size;
+            this->maxLatency = maxLatency;
             writec = 0;
             readc = size - 1;
         }
@@ -57,6 +61,7 @@ namespace cdsp {
                 readc_mtx.unlock();
                 canWriteVar.notify_one();
             }
+            return len;
         }
 
         int readAndSkip(T* data, int len, int skip) {
@@ -95,6 +100,7 @@ namespace cdsp {
                 readc_mtx.unlock();
                 canWriteVar.notify_one();
             }
+            return len;
         }
 
         int waitUntilReadable() {
@@ -167,7 +173,7 @@ namespace cdsp {
             if (_rc < writec) {
                 writeable = (this->size + writeable);
             }
-            return writeable - 1;
+            return std::min<float>(writeable - 1, maxLatency - readable(false) - 1);
         }
 
         void stopReader() {
@@ -196,11 +202,16 @@ namespace cdsp {
             _stopWriter = false;
         }
 
+        void setMaxLatency(int maxLatency) {
+            this->maxLatency = maxLatency;
+        }
+
     private:
         T* _buffer;
         int size;
         int readc;
         int writec;
+        int maxLatency;
         bool _stopReader;
         bool _stopWriter;
         std::mutex readc_mtx;

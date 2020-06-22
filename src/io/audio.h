@@ -1,18 +1,18 @@
 #pragma once
 #include <thread>
-#include <cdsp/stream.h>
-#include <cdsp/types.h>
+#include <dsp/stream.h>
+#include <dsp/types.h>
 #include <fstream>
 #include <portaudio.h>
 
-namespace cdsp {
+namespace io {
     class AudioSink {
     public:
         AudioSink() {
             
         }
 
-        AudioSink(stream<float>* in, int bufferSize) {
+        AudioSink(dsp::stream<float>* in, int bufferSize) {
             _bufferSize = bufferSize;
             _input = in;
             buffer = new float[_bufferSize * 2];
@@ -20,7 +20,7 @@ namespace cdsp {
             Pa_Initialize();
         }
 
-        void init(stream<float>* in, int bufferSize) {
+        void init(dsp::stream<float>* in, int bufferSize) {
             _bufferSize = bufferSize;
             _input = in;
             buffer = new float[_bufferSize * 2];
@@ -67,7 +67,7 @@ namespace cdsp {
         }
 
         int _bufferSize;
-        stream<float>* _input;
+        dsp::stream<float>* _input;
         float* buffer;
         float _volume;
         PaStream *stream;

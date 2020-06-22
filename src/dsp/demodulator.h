@@ -1,13 +1,17 @@
 #pragma once
 #include <thread>
-#include <cdsp/stream.h>
-#include <cdsp/types.h>
+#include <dsp/stream.h>
+#include <dsp/types.h>
+
+/*
+    TODO:
+        - Add a sample rate ajustment function to all demodulators
+*/
 
 #define FAST_ATAN2_COEF1 3.1415926535f / 4.0f
 #define FAST_ATAN2_COEF2 3.0f * FAST_ATAN2_COEF1
 
-inline float fast_arctan2(float y, float x)
-{
+inline float fast_arctan2(float y, float x) {
    float abs_y = fabs(y)+1e-10;
    float r, angle;
    if (x>=0)
@@ -26,26 +30,26 @@ inline float fast_arctan2(float y, float x)
    return angle;
 }
 
-namespace cdsp {
+namespace dsp {
     class FMDemodulator {
     public:
         FMDemodulator() {
             
         }
 
-        FMDemodulator(stream<complex_t>* in, float deviation, long sampleRate, int bufferSize) : output(bufferSize * 2) {
+        FMDemodulator(stream<complex_t>* in, float deviation, long sampleRate, int blockSize) : output(blockSize * 2) {
             running = false;
             _input = in;
-            _bufferSize = bufferSize;
+            _blockSize = blockSize;
             _phase = 0.0f;
             _phasorSpeed = (2 * 3.1415926535) / (sampleRate / deviation);
         }
 
-        void init(stream<complex_t>* in, float deviation, long sampleRate, int bufferSize) {
-            output.init(bufferSize * 2);
+        void init(stream<complex_t>* in, float deviation, long sampleRate, int blockSize) {
+            output.init(blockSize * 2);
             running = false;
             _input = in;
-            _bufferSize = bufferSize;
+            _blockSize = blockSize;
             _phase = 0.0f;
             _phasorSpeed = (2 * 3.1415926535) / (sampleRate / deviation);
         }
@@ -70,17 +74,25 @@ namespace cdsp {
             output.clearWriteStop();
         }
 
+        void setBlockSize(int blockSize) {
+            if (running) {
+                return;
+            }
+            _blockSize = blockSize;
+            output.setMaxLatency(_blockSize * 2);
+        }
+
         stream<float> output;
 
     private:
         static void _worker(FMDemodulator* _this) {
-            complex_t* inBuf = new complex_t[_this->_bufferSize];
-            float* outBuf = new float[_this->_bufferSize];
+            complex_t* inBuf = new complex_t[_this->_blockSize];
+            float* outBuf = new float[_this->_blockSize];
             float diff = 0;
             float currentPhase = 0;
             while (true) {
-                if (_this->_input->read(inBuf, _this->_bufferSize) < 0) { return; };
-                for (int i = 0; i < _this->_bufferSize; i++) {
+                if (_this->_input->read(inBuf, _this->_blockSize) < 0) { return; };
+                for (int i = 0; i < _this->_blockSize; i++) {
                     currentPhase = fast_arctan2(inBuf[i].i, inBuf[i].q);
                     diff = currentPhase - _this->_phase;
                     if (diff > 3.1415926535f)        { diff -= 2 * 3.1415926535f; }
@@ -88,13 +100,13 @@ namespace cdsp {
                     outBuf[i] = diff / _this->_phasorSpeed;
                     _this->_phase = currentPhase;
                 }
-                if (_this->output.write(outBuf, _this->_bufferSize) < 0) { return; };
+                if (_this->output.write(outBuf, _this->_blockSize) < 0) { return; };
             }
         }
 
         stream<complex_t>* _input;
         bool running;
-        int _bufferSize;
+        int _blockSize;
         float _phase;
         float _phasorSpeed;
         std::thread _workerThread;
@@ -107,17 +119,17 @@ namespace cdsp {
             
         }
 
-        AMDemodulator(stream<complex_t>* in, int bufferSize) : output(bufferSize * 2) {
+        AMDemodulator(stream<complex_t>* in, int blockSize) : output(blockSize * 2) {
             running = false;
             _input = in;
-            _bufferSize = bufferSize;
+            _blockSize = blockSize;
         }
 
-        void init(stream<complex_t>* in, int bufferSize) {
-            output.init(bufferSize * 2);
+        void init(stream<complex_t>* in, int blockSize) {
+            output.init(blockSize * 2);
             running = false;
             _input = in;
-            _bufferSize = bufferSize;
+            _blockSize = blockSize;
         }
 
         void start() {
@@ -140,18 +152,26 @@ namespace cdsp {
             output.clearWriteStop();
         }
 
+        void setBlockSize(int blockSize) {
+            if (running) {
+                return;
+            }
+            _blockSize = blockSize;
+            output.setMaxLatency(_blockSize * 2);
+        }
+
         stream<float> output;
 
     private:
         static void _worker(AMDemodulator* _this) {
-            complex_t* inBuf = new complex_t[_this->_bufferSize];
-            float* outBuf = new float[_this->_bufferSize];
+            complex_t* inBuf = new complex_t[_this->_blockSize];
+            float* outBuf = new float[_this->_blockSize];
             float min, max, amp;
             while (true) {
-                if (_this->_input->read(inBuf, _this->_bufferSize) < 0) { return; };
+                if (_this->_input->read(inBuf, _this->_blockSize) < 0) { break; };
                 min = INFINITY;
                 max = 0.0f;
-                for (int i = 0; i < _this->_bufferSize; i++) {
+                for (int i = 0; i < _this->_blockSize; i++) {
                     outBuf[i] = sqrt((inBuf[i].i*inBuf[i].i) + (inBuf[i].q*inBuf[i].q));
                     if (outBuf[i] < min) {
                         min = outBuf[i];
@@ -161,16 +181,18 @@ namespace cdsp {
                     }
                 }
                 amp = (max - min);
-                for (int i = 0; i < _this->_bufferSize; i++) {
+                for (int i = 0; i < _this->_blockSize; i++) {
                     outBuf[i] = (outBuf[i] - min) / (max - min);
                 }
-                if (_this->output.write(outBuf, _this->_bufferSize) < 0) { return; };
+                if (_this->output.write(outBuf, _this->_blockSize) < 0) { break; };
             }
+            delete[] inBuf;
+            delete[] outBuf;
         }
 
         stream<complex_t>* _input;
         bool running;
-        int _bufferSize;
+        int _blockSize;
         std::thread _workerThread;
     };
 };

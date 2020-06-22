@@ -1,16 +1,19 @@
 #pragma once
-#include <cdsp/filter.h>
-#include <cdsp/resampling.h>
-#include <cdsp/generator.h>
-#include <cdsp/math.h>
-#include <cdsp/demodulation.h>
-#include <cdsp/audio.h>
-#include <vfo.h>
+#include <dsp/filter.h>
+#include <dsp/resampling.h>
+#include <dsp/source.h>
+#include <dsp/math.h>
+#include <dsp/demodulator.h>
+#include <dsp/routing.h>
+#include <dsp/sink.h>
+#include <dsp/correction.h>
+#include <dsp/vfo.h>
+#include <io/audio.h>
 
 class SignalPath {
 public:
     SignalPath();
-    void init(uint64_t sampleRate, int fftRate, int fftSize, cdsp::stream<cdsp::complex_t>* input, cdsp::complex_t* fftBuffer, void fftHandler(cdsp::complex_t*));
+    void init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream<dsp::complex_t>* input, dsp::complex_t* fftBuffer, void fftHandler(dsp::complex_t*));
     void start();
     void setSampleRate(float sampleRate);
     void setDCBiasCorrection(bool enabled);
@@ -28,22 +31,26 @@ public:
     };
 
 private:
-    cdsp::DCBiasRemover dcBiasRemover;
-    cdsp::Splitter split;
+    dsp::DCBiasRemover dcBiasRemover;
+    dsp::Splitter split;
 
     // FFT
-    cdsp::BlockDecimator fftBlockDec;
-    cdsp::HandlerSink fftHandlerSink;
+    dsp::BlockDecimator fftBlockDec;
+    dsp::HandlerSink fftHandlerSink;
 
     // VFO
-    VFO mainVFO;
+    dsp::VFO mainVFO;
 
-    cdsp::FMDemodulator demod;
-    cdsp::AMDemodulator amDemod;
+    // Demodulators
+    dsp::FMDemodulator demod;
+    dsp::AMDemodulator amDemod;
 
-    //cdsp::FloatDecimatingFIRFilter audioDecFilt;
-    cdsp::FractionalResampler audioResamp;
-    cdsp::AudioSink audio;
+    // Audio output
+    dsp::FloatResampler audioResamp;
+    io::AudioSink audio;
+
+    // DEBUG
+    dsp::NullSink ns;
 
     float sampleRate;
     float fftRate;

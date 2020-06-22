@@ -1,22 +1,20 @@
 #include <main_window.h>
 #include <imgui_plot.h>
-#include <hackrf.h>
-#include <cdsp/hackrf.h>
-#include <cdsp/resampling.h>
-#include <cdsp/demodulation.h>
-#include <cdsp/filter.h>
+#include <dsp/resampling.h>
+#include <dsp/demodulator.h>
+#include <dsp/filter.h>
 #include <thread>
 #include <complex>
-#include <cdsp/generator.h>
-#include <cdsp/math.h>
+#include <dsp/source.h>
+#include <dsp/math.h>
 #include <waterfall.h>
 #include <fftw3.h>
 #include <signal_path.h>
+#include <io/soapy.h>
 
 std::thread worker;
 std::mutex fft_mtx;
 ImGui::WaterFall wtf;
-hackrf_device* dev;
 fftwf_complex *fft_in, *fft_out;
 fftwf_plan p;
 float* tempData;
@@ -25,11 +23,13 @@ int fftSize = 8192 * 8;
 
 bool dcbias = true;
 
-cdsp::HackRFSource src;
+io::SoapyWrapper soapy;
+
+//dsp::HackRFSource src;
 SignalPath sigPath;
 std::vector<float> _data;
 std::vector<float> fftTaps;
-void fftHandler(cdsp::complex_t* samples) {
+void fftHandler(dsp::complex_t* samples) {
     fftwf_execute(p);
     int half = fftSize / 2;
 
@@ -61,29 +61,34 @@ void windowInit() {
 
     printf("Starting DSP Thread!\n");
 
-    hackrf_init();
-    hackrf_device_list_t* list = hackrf_device_list();
+    // hackrf_init();
+    // hackrf_device_list_t* list = hackrf_device_list();
     
-    int err = hackrf_device_list_open(list, 0, &dev);
-    if (err != 0) {
-        printf("Error while opening HackRF: %d\n", err);
-        return;
-    }
-    hackrf_set_freq(dev, 90500000);
-    //hackrf_set_txvga_gain(dev, 10);
-    hackrf_set_amp_enable(dev, 1);
-    hackrf_set_lna_gain(dev, 24);
-    hackrf_set_vga_gain(dev, 20);
-    hackrf_set_baseband_filter_bandwidth(dev, sampleRate);
-    hackrf_set_sample_rate(dev, sampleRate);
+    // int err = hackrf_device_list_open(list, 0, &dev);
+    // if (err != 0) {
+    //     printf("Error while opening HackRF: %d\n", err);
+    //     return;
+    // }
+    // hackrf_set_freq(dev, 90500000);
+    // //hackrf_set_txvga_gain(dev, 10);
+    // hackrf_set_amp_enable(dev, 1);
+    // hackrf_set_lna_gain(dev, 24);
+    // hackrf_set_vga_gain(dev, 20);
+    // hackrf_set_baseband_filter_bandwidth(dev, sampleRate);
+    // hackrf_set_sample_rate(dev, sampleRate);
 
-    src.init(dev, 64000);
+    //src.init(dev, 64000);
 
-    sigPath.init(sampleRate, 20, fftSize, &src.output, (cdsp::complex_t*)fft_in, fftHandler);
+    sigPath.init(sampleRate, 20, fftSize, &soapy.output, (dsp::complex_t*)fft_in, fftHandler);
     sigPath.start();
 }
 
-int Current = 0;
+int devId = 0;
+int _devId = -1;
+
+int srId = 0;
+int _srId = -1;
+
 bool showExample = false;
 
 int freq = 90500;
@@ -102,7 +107,8 @@ void drawWindow() {
     if (freq != _freq) {
         _freq = freq;
         wtf.centerFrequency = freq * 1000;
-        hackrf_set_freq(dev, freq * 1000);
+        soapy.setFrequency(freq * 1000);
+        //hackrf_set_freq(dev, freq * 1000);
     }
 
     if (vfoFreq != lastVfoFreq) {
@@ -113,6 +119,15 @@ void drawWindow() {
     if (volume != lastVolume) {
         lastVolume = volume;
         sigPath.setVolume(volume);
+    }
+
+    if (devId != _devId) {
+        _devId = devId;
+        soapy.setDevice(soapy.devList[devId]);
+    }
+
+    if (srId != _srId) {
+        soapy.setSampleRate(soapy.sampleRates[srId]);
     }
 
 
@@ -148,16 +163,22 @@ void drawWindow() {
     ImGui::BeginChild("Left Column");
 
     if (ImGui::CollapsingHeader("Source")) {
-        
-        //ImGui::Combo("Source", &Current, "HackRF One\0RTL-SDR");
-        ImGui::SliderFloat("Volume", &volume, 0.0f, 1.0f);
+        ImGui::PushItemWidth(ImGui::GetWindowSize().x);
+        ImGui::Combo("##_0_", &devId, soapy.txtDevList.c_str());
+        ImGui::Combo("##_1_", &srId, soapy.txtSampleRateList.c_str());
+
+        ImGui::SliderFloat("##_2_", &volume, 0.0f, 1.0f, "");
         if (ImGui::Button("Start") && !state) {
             state = true;
-            src.start();
+            soapy.start();
         }
+        ImGui::SameLine();
         if (ImGui::Button("Stop") && state) {
             state = false;
-            src.stop();
+            soapy.stop();
+        }
+        if (ImGui::Button("Refresh")) {
+            soapy.refresh();
         }
     }
 
