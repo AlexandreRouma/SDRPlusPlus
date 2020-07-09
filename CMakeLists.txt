@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.9)
 project(sdrpp)
 
+set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+
 # Compiler config
 set(CMAKE_CXX_FLAGS "-O2 /std:c++17")
 

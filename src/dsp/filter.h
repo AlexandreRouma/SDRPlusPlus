@@ -31,8 +31,8 @@ namespace dsp {
             
         }
 
-        DecimatingFIRFilter(stream<complex_t>* input, std::vector<float> taps, int blockSize, float decim) : output(blockSize * 2) {
-            output.init(blockSize * 2);
+        DecimatingFIRFilter(stream<complex_t>* input, std::vector<float> taps, int blockSize, float decim) {
+            output.init((blockSize * 2) / decim);
             _in = input;
             _blockSize = blockSize;
             _tapCount = taps.size();
@@ -54,7 +54,7 @@ namespace dsp {
         }
 
         void init(stream<complex_t>* input, std::vector<float>& taps, int blockSize, float decim) {
-            output.init(blockSize * 2);
+            output.init((blockSize * 2) / decim);
             _in = input;
             _blockSize = blockSize;
             _tapCount = taps.size();
@@ -107,6 +107,8 @@ namespace dsp {
             delayBuf = new complex_t[_tapCount];
             for (int i = 0; i < _tapCount; i++) {
                 _taps[i] = taps[i];
+                delayBuf[i].i = 0;
+                delayBuf[i].q = 0;
             }
         }
 
@@ -201,8 +203,8 @@ namespace dsp {
             
         }
 
-        FloatDecimatingFIRFilter(stream<float>* input, std::vector<float> taps, int blockSize, float decim) : output(blockSize * 2) {
-            output.init(blockSize * 2);
+        FloatDecimatingFIRFilter(stream<float>* input, std::vector<float> taps, int blockSize, float decim) {
+            output.init((blockSize * 2) / decim);
             _in = input;
             _blockSize = blockSize;
             _tapCount = taps.size();
@@ -223,7 +225,7 @@ namespace dsp {
         }
 
         void init(stream<float>* input, std::vector<float>& taps, int blockSize, float decim) {
-            output.init(blockSize * 2);
+            output.init((blockSize * 2) / decim);
             _in = input;
             _blockSize = blockSize;
             _tapCount = taps.size();
@@ -274,6 +276,7 @@ namespace dsp {
             delayBuf = new float[_tapCount];
             for (int i = 0; i < _tapCount; i++) {
                 _taps[i] = taps[i];
+                delayBuf[i] = 0;
             }
         }
 

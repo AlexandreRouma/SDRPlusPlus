@@ -26,7 +26,25 @@ namespace dsp {
         }
 
         void start() {
+            if (running) {
+                return;
+            }
             _workerThread = std::thread(_worker, this);
+            running = true;
+        }
+
+        void stop() {
+            if (!running) {
+                return;
+            }
+            _in->stopReader();
+            output_a.stopWriter();
+            output_b.stopWriter();
+            _workerThread.join();
+            _in->clearReadStop();
+            output_a.clearWriteStop();
+            output_b.clearWriteStop();
+            running = false;
         }
 
         stream<complex_t> output_a;
@@ -36,14 +54,16 @@ namespace dsp {
         static void _worker(Splitter* _this) {
             complex_t* buf = new complex_t[_this->_bufferSize];
             while (true) {
-                _this->_in->read(buf, _this->_bufferSize);
-                _this->output_a.write(buf, _this->_bufferSize);
-                _this->output_b.write(buf, _this->_bufferSize);
+                if (_this->_in->read(buf, _this->_bufferSize) < 0) { break; };
+                if (_this->output_a.write(buf, _this->_bufferSize) < 0) { break; };
+                if (_this->output_b.write(buf, _this->_bufferSize) < 0) { break; };
             }
+            delete[] buf;
         }
 
         stream<complex_t>* _in;
         int _bufferSize;
         std::thread _workerThread;
+        bool running = false;
     };
 };

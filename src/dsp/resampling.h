@@ -5,6 +5,8 @@
 #include <dsp/types.h>
 #include <numeric>
 
+#include <Windows.h>
+
 
 namespace dsp {
     template <class T>
@@ -21,7 +23,7 @@ namespace dsp {
         }
 
         void init(stream<T>* in, float interpolation, int blockSize) {
-            output.init(blockSize * 2);
+            output.init(blockSize * 2 * interpolation);
             _input = in;
             _interpolation = interpolation;
             _blockSize = blockSize;
@@ -194,6 +196,9 @@ namespace dsp {
         }
 
         void start() {
+            if (running) {
+                return;
+            }
             if (_interp != 1) {
                 interp.start();
             }
@@ -202,6 +207,9 @@ namespace dsp {
         }
 
         void stop() {
+            if (!running) {
+                return;
+            }
             interp.stop();
             decim.stop();
             running = false;
@@ -323,6 +331,9 @@ namespace dsp {
         }
 
         void start() {
+            if (running) {
+                return;
+            }
             if (_interp != 1) {
                 interp.start();
             }
@@ -331,8 +342,12 @@ namespace dsp {
         }
 
         void stop() {
+            if (!running) {
+                return;
+            }
             interp.stop();
-            decim.stop();
+            //decim.stop();
+            Sleep(200);
             running = false;
         }
 

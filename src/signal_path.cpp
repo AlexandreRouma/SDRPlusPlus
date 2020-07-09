@@ -49,31 +49,31 @@ void SignalPath::setDemodulator(int demId) {
     audioResamp.stop();
 
     // Stop current demodulator
-    if (_demod == DEMOD_FM) {
-        printf("Stopping FM demodulator\n");
-        demod.stop();
-    }
-    else if (_demod == DEMOD_AM) {
-        printf("Stopping AM demodulator\n");
-        amDemod.stop();
-    }
-    _demod = demId;
+    // if (_demod == DEMOD_FM) {
+    //     printf("Stopping FM demodulator\n");
+    //     demod.stop();
+    // }
+    // else if (_demod == DEMOD_AM) {
+    //     printf("Stopping AM demodulator\n");
+    //     amDemod.stop();
+    // }
+    // _demod = demId;
 
-    // Set input of the audio resampler
-    if (demId == DEMOD_FM) {
-        printf("Starting FM demodulator\n");
-        mainVFO.setOutputSampleRate(200000, 200000);
-        audioResamp.setInput(&demod.output);
-        audioResamp.setInputSampleRate(200000, 800);
-        demod.start();
-    }
-    else if (demId == DEMOD_AM) {
-        printf("Starting AM demodulator\n");
-        mainVFO.setOutputSampleRate(12500, 12500);
-        audioResamp.setInput(&amDemod.output);
-        audioResamp.setInputSampleRate(12500, 50);
-        amDemod.start();
-    }
+    // // Set input of the audio resampler
+    // if (demId == DEMOD_FM) {
+    //     printf("Starting FM demodulator\n");
+    //     // mainVFO.setOutputSampleRate(200000, 200000);
+    //     // audioResamp.setInput(&demod.output);
+    //     // audioResamp.setInputSampleRate(200000, 800);
+    //     demod.start();
+    // }
+    // else if (demId == DEMOD_AM) {
+    //     printf("Starting AM demodulator\n");
+    //     mainVFO.setOutputSampleRate(12500, 12500);
+    //     audioResamp.setInput(&amDemod.output);
+    //     audioResamp.setInputSampleRate(12500, 50);
+    //     amDemod.start();
+    // }
 
     audioResamp.start();
 }

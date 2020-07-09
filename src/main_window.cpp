@@ -49,7 +49,7 @@ void fftHandler(dsp::complex_t* samples) {
 }
 
 void windowInit() {
-    int sampleRate = 2000000;
+    int sampleRate = 8000000;
     wtf.bandWidth = sampleRate;
     wtf.range = 500000;
     wtf.centerFrequency = 90500000;

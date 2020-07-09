@@ -33,7 +33,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
 
     // Create window with graphics context
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "SDR++ v0.1.0", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "SDR++ v0.1.0 (Built at " __TIME__ ", " __DATE__ ")", NULL, NULL);
     if (window == NULL)
         return 1;
     glfwMakeContextCurrent(window);
