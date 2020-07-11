@@ -25,7 +25,6 @@ bool dcbias = true;
 
 io::SoapyWrapper soapy;
 
-//dsp::HackRFSource src;
 SignalPath sigPath;
 std::vector<float> _data;
 std::vector<float> fftTaps;
@@ -50,9 +49,9 @@ void fftHandler(dsp::complex_t* samples) {
 
 void windowInit() {
     int sampleRate = 8000000;
-    wtf.bandWidth = sampleRate;
-    wtf.range = 500000;
-    wtf.centerFrequency = 90500000;
+    wtf.setBandwidth(sampleRate);
+    //wtf.range = 500000;
+    wtf.setCenterFrequency(90500000);
     printf("fft taps: %d\n", fftTaps.size());
     
     fft_in = (fftwf_complex*) fftw_malloc(sizeof(fftwf_complex) * fftSize);
@@ -60,24 +59,6 @@ void windowInit() {
     p = fftwf_plan_dft_1d(fftSize, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
 
     printf("Starting DSP Thread!\n");
-
-    // hackrf_init();
-    // hackrf_device_list_t* list = hackrf_device_list();
-    
-    // int err = hackrf_device_list_open(list, 0, &dev);
-    // if (err != 0) {
-    //     printf("Error while opening HackRF: %d\n", err);
-    //     return;
-    // }
-    // hackrf_set_freq(dev, 90500000);
-    // //hackrf_set_txvga_gain(dev, 10);
-    // hackrf_set_amp_enable(dev, 1);
-    // hackrf_set_lna_gain(dev, 24);
-    // hackrf_set_vga_gain(dev, 20);
-    // hackrf_set_baseband_filter_bandwidth(dev, sampleRate);
-    // hackrf_set_sample_rate(dev, sampleRate);
-
-    //src.init(dev, 64000);
 
     sigPath.init(sampleRate, 20, fftSize, &soapy.output, (dsp::complex_t*)fft_in, fftHandler);
     sigPath.start();
@@ -94,6 +75,8 @@ bool showExample = false;
 int freq = 90500;
 int _freq = 90500;
 
+int demod = 0;
+
 bool state = false;
 bool mulstate = true;
 
@@ -103,12 +86,17 @@ float lastVfoFreq = 92000000.0f;
 float volume = 1.0f;
 float lastVolume = 1.0f;
 
+float fftMin = -70.0f;
+float fftMax = 0.0f;
+
+float offset = 0.0f;
+float bw = 8000000.0f;
+
 void drawWindow() {
     if (freq != _freq) {
         _freq = freq;
-        wtf.centerFrequency = freq * 1000;
+        wtf.setCenterFrequency(freq * 1000);
         soapy.setFrequency(freq * 1000);
-        //hackrf_set_freq(dev, freq * 1000);
     }
 
     if (vfoFreq != lastVfoFreq) {
@@ -186,17 +174,17 @@ void drawWindow() {
         ImGui::BeginGroup();
 
         ImGui::Columns(4, "RadioModeColumns", false);
-        ImGui::RadioButton("NFM", false);
-        ImGui::RadioButton("WFM", true);
+        if (ImGui::RadioButton("NFM", demod == 0) && demod != 0) { demod = 0; };
+        if (ImGui::RadioButton("WFM", demod == 1) && demod != 1) { sigPath.setDemodulator(SignalPath::DEMOD_FM); demod = 1; };
         ImGui::NextColumn();
-        ImGui::RadioButton("AM", false);
-        ImGui::RadioButton("DSB", false);
+        if (ImGui::RadioButton("AM", demod == 2) && demod != 2) { sigPath.setDemodulator(SignalPath::DEMOD_AM); demod = 2; };
+        if (ImGui::RadioButton("DSB", demod == 3) && demod != 3) { demod = 3; };
         ImGui::NextColumn();
-        ImGui::RadioButton("USB", false);
-        ImGui::RadioButton("CW", false);
+        if (ImGui::RadioButton("USB", demod == 4) && demod != 4) { demod = 4; };
+        if (ImGui::RadioButton("CW", demod == 5) && demod != 5) { demod = 5; };
         ImGui::NextColumn();
-        ImGui::RadioButton("LSB", false);
-        ImGui::RadioButton("RAW", false);
+        if (ImGui::RadioButton("LSB", demod == 6) && demod != 6) { demod = 6; };
+        if (ImGui::RadioButton("RAW", demod == 7) && demod != 7) { demod = 7; };
         ImGui::Columns(1, "EndRadioModeColumns", false);
 
         ImGui::InputInt("Frequency (kHz)", &freq);
@@ -215,13 +203,29 @@ void drawWindow() {
         ImGui::Text("Frame time: %.3f ms/frame", 1000.0f / ImGui::GetIO().Framerate);
         ImGui::Text("Framerate: %.1f FPS", ImGui::GetIO().Framerate);
 
-        if (ImGui::Button("FM demod")) {
-            sigPath.setDemodulator(SignalPath::DEMOD_FM);
+        ImGui::SliderFloat("##_3_", &fftMax, 0.0f, -100.0f, "");
+        ImGui::SliderFloat("##_4_", &fftMin, 0.0f, -100.0f, "");
+
+        if (ImGui::Button("Auto Range")) {
+            printf("Auto ranging...\n");
+            wtf.autoRange();
         }
-        if (ImGui::Button("AM demod")) {
-            sigPath.setDemodulator(SignalPath::DEMOD_AM);
-        }
+
+        ImGui::SliderFloat("##_5_", &offset, -4000000.0f, 4000000.0f, "");
+        ImGui::SliderFloat("##_6_", &bw, 1.0f, 8000000.0f, "");
+
+        wtf.setViewOffset(offset);
+        wtf.setViewBandwidth(bw);
+
+        wtf.setFFTMin(fftMin);
+        wtf.setFFTMax(fftMax);
+        wtf.setWaterfallMin(fftMin);
+        wtf.setWaterfallMax(fftMax);
     }
+
+    ImVec2 delta = ImGui::GetMouseDragDelta();
+    ImGui::ResetMouseDragDelta();
+    //printf("%f %f\n", delta.x, delta.y);
 
     ImGui::EndChild();
 
@@ -229,6 +233,6 @@ void drawWindow() {
     ImGui::NextColumn();
 
     ImGui::BeginChild("Waterfall");
-    wtf.draw(&vfoFreq);    
+    wtf.draw();    
     ImGui::EndChild();
 }

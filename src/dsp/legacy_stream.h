@@ -38,7 +38,6 @@ namespace dsp {
             while (dataRead < len) {
                 int canRead = waitUntilReadable();
                 if (canRead < 0) {
-                    printf("Reader stopped\n");
                     clearReadStop();
                     return -1;
                 }
@@ -65,7 +64,6 @@ namespace dsp {
             while (dataRead < len) {
                 int canRead = waitUntilReadable();
                 if (canRead < 0) {
-                    printf("reader stopped (read and skip)\n");
                     clearReadStop();
                     return -1;
                 }
@@ -129,7 +127,6 @@ namespace dsp {
             while (dataWrite < len) {
                 int canWrite = waitUntilWriteable();
                 if (canWrite < 0) {
-                    printf("Writer stopped\n");
                     clearWriteStop();
                     return -1;
                 }

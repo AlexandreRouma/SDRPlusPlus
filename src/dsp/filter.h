@@ -100,7 +100,6 @@ namespace dsp {
                 return;
             }
             _tapCount = taps.size();
-            printf("[%d]\n", _tapCount);
             delete[] _taps;
             delete[] delayBuf;
             _taps = new float[_tapCount];
@@ -316,7 +315,7 @@ namespace dsp {
             int delaySize = (_this->_tapCount - 1) * sizeof(float);
 
             int blockSize = _this->_blockSize;
-            int outBufferLength = outputSize * sizeof(complex_t);
+            int outBufferLength = outputSize * sizeof(float);
             int tapCount = _this->_tapCount;
             int decim = _this->_decim;
             float* delayBuf = _this->delayBuf;

@@ -346,8 +346,7 @@ namespace dsp {
                 return;
             }
             interp.stop();
-            //decim.stop();
-            Sleep(200);
+            decim.stop();
             running = false;
         }
 

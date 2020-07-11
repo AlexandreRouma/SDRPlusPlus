@@ -39,7 +39,6 @@ namespace dsp {
             lo.start();
             mixer.start();
             if (_interp != 1) {
-                printf("UH OH INTERPOLATOR STARTED :/\n");
                 interp.start();
             }
             decim.start();
