@@ -402,12 +402,12 @@ void drawWindow() {
     ImGui::NewLine();
 
     ImGui::Text("Max");
-    ImGui::VSliderFloat("##_8_", ImVec2(20.0f, 150.0f), &fftMax, -100.0f, 0.0f, "");
+    ImGui::VSliderFloat("##_8_", ImVec2(20.0f, 150.0f), &fftMax, 0.0f, -100.0f, "");
 
     ImGui::NewLine();
 
     ImGui::Text("Min");
-    ImGui::VSliderFloat("##_9_", ImVec2(20.0f, 150.0f), &fftMin, -100.0f, 0.0f, "");
+    ImGui::VSliderFloat("##_9_", ImVec2(20.0f, 150.0f), &fftMin, 0.0f, -100.0f, "");
 
     if (bw != lastBW) {
         lastBW = bw;

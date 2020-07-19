@@ -1,4 +1,5 @@
 # SDR++, The bloat-free SDR software.
+![Screenshot](https://i.imgur.com/LjcjyNC.png)
 SDR++ is a cross-platform and open source SDR software with the aim of being bloat free and simple to use.
 
 ## Current Features
@@ -25,6 +26,7 @@ SDR++ is a cross-platform and open source SDR software with the aim of being blo
 * other small customisation options
 * Save waterfall and demod settings between sessions
 * "Hide sidebar" option
+* Input filter bandwidth option
 
 ## Known issues (please check before reporting)
 * Random crashes (yikes)
