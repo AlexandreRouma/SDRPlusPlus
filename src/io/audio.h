@@ -39,7 +39,7 @@ namespace io {
             outputParams.hostApiSpecificStreamInfo = NULL;
             outputParams.device = Pa_GetDefaultOutputDevice();
             outputParams.suggestedLatency = Pa_GetDeviceInfo(outputParams.device)->defaultLowOutputLatency;
-            PaError err = Pa_OpenStream(&stream, NULL, &outputParams, 40000.0f, 320, paClipOff, _callback, this);
+            PaError err = Pa_OpenStream(&stream, NULL, &outputParams, 48000.0f, 64, paClipOff, _callback, this);
             printf("%s\n", Pa_GetErrorText(err));
             err = Pa_StartStream(stream);
             printf("%s\n", Pa_GetErrorText(err));
@@ -47,6 +47,12 @@ namespace io {
 
         void stop() {
             Pa_CloseStream(stream);
+        }
+
+        void setBlockSize(int blockSize) {
+            stop();
+            _bufferSize = blockSize;
+            start();
         }
 
     private:
@@ -58,10 +64,16 @@ namespace io {
             AudioSink* _this = (AudioSink*)userData;
             float* outbuf = (float*)output;
             _this->_input->read(_this->buffer, frameCount);
+            
             float vol = powf(_this->_volume, 2);
             for (int i = 0; i < frameCount; i++) {
+
+                
                 outbuf[(i * 2) + 0] = _this->buffer[i] * vol;
                 outbuf[(i * 2) + 1] = _this->buffer[i] * vol;
+
+
+
             }
             return 0;
         }

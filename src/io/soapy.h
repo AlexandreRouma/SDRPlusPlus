@@ -66,6 +66,7 @@ namespace io {
             if (running) {
                 return;
             }
+            _sampleRate = sampleRate;
             dev->setSampleRate(SOAPY_SDR_RX, 0, sampleRate);
         }
 
@@ -86,12 +87,17 @@ namespace io {
 
     private:
         static void _worker(SoapyWrapper* _this) {
-            dsp::complex_t* buf = new dsp::complex_t[32000];
+            int blockSize = _this->_sampleRate / 200.0f;
+            dsp::complex_t* buf = new dsp::complex_t[blockSize];
             int flags = 0;
             long long timeMs = 0;
+            
             while (_this->running) {
-                _this->dev->readStream(_this->_stream, (void**)&buf, 32000, flags, timeMs);
-                _this->output.write(buf, 32000);
+                int res = _this->dev->readStream(_this->_stream, (void**)&buf, blockSize, flags, timeMs);
+                if (res < 1) {
+                    continue;
+                } 
+                _this->output.write(buf, res);
             }
             printf("Read worker terminated\n");
             delete[] buf;
@@ -102,5 +108,6 @@ namespace io {
         SoapySDR::Stream* _stream;
         std::thread _workerThread;
         bool running = false;
+        float _sampleRate = 0;
     };
 };

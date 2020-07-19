@@ -9,7 +9,7 @@ void setImguiStyle(ImGuiIO& io) {
     ImGui::GetStyle().PopupRounding = 0.0f;
     ImGui::GetStyle().ScrollbarRounding = 0.0f;
 
-    io.Fonts->AddFontFromFileTTF("../res/fonts/Roboto-Medium.ttf", 16.0f);
+    io.Fonts->AddFontFromFileTTF("res/fonts/Roboto-Medium.ttf", 16.0f);
 
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsLight();

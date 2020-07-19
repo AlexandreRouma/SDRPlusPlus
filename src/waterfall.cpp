@@ -19,6 +19,15 @@ float COLOR_MAP[][3] = {
 };
 
 void doZoom(int offset, int width, int outWidth, std::vector<float> data, float* out) {
+    // NOTE: REMOVE THAT SHIT, IT'S JUST A HACKY FIX
+    
+    if (offset < 0) {
+        offset = 0;
+    }
+    if (width > 65535) {
+        width = 65535;
+    }
+
     float factor = (float)width / (float)outWidth;
     for (int i = 0; i < outWidth; i++) {
         out[i] = data[offset + ((float)i * factor)];
@@ -26,6 +35,8 @@ void doZoom(int offset, int width, int outWidth, std::vector<float> data, float*
 }
 
 float freq_ranges[] = {
+        10.0f, 20.0f, 25.0f, 50.0f,
+        100.0f, 200.0f, 250.0f, 500.0f,
         1000.0f, 2000.0f, 2500.0f, 5000.0f,
         10000.0f, 20000.0f, 25000.0f, 50000.0f,
         100000.0f, 200000.0f, 250000.0f, 500000.0f,
@@ -34,11 +45,12 @@ float freq_ranges[] = {
 };
 
 float findBestFreqRange(float bandwidth) {
-    for (int i = 0; i < 15; i++) {
-        if (bandwidth / freq_ranges[i] < 15.0f) {
+    for (int i = 0; i < 28; i++) {
+        if (bandwidth / freq_ranges[i] < 25.0f) {
             return freq_ranges[i];
         }
     }
+    return 50000000.0f;
 }
 
 void printAndScale(float freq, char* buf) {
@@ -147,8 +159,8 @@ namespace ImGui {
                                     ImVec2(widgetPos.x + dataWidth + 50, widgetPos.y + fftHeight + 10),
                                     IM_COL32(255, 255, 255, 255), 1.0f);
         // Y Axis
-        window->DrawList->AddLine(ImVec2(widgetPos.x + 50, widgetPos.y + 10), 
-                                    ImVec2(widgetPos.x + 50, widgetPos.y + fftHeight + 10),
+        window->DrawList->AddLine(ImVec2(widgetPos.x + 50, widgetPos.y + 9), 
+                                    ImVec2(widgetPos.x + 50, widgetPos.y + fftHeight + 9),
                                     IM_COL32(255, 255, 255, 255), 1.0f);
 
         
@@ -161,6 +173,98 @@ namespace ImGui {
         }
         window->DrawList->AddImage((void*)(intptr_t)textureId, ImVec2(widgetPos.x + 50, widgetPos.y + fftHeight + 51),
                                 ImVec2(widgetPos.x + 50 + dataWidth, widgetPos.y + fftHeight + 51 + waterfallHeight));
+    }
+
+    void WaterFall::drawVFO() {
+        float width = (vfoBandwidth / viewBandwidth) * (float)dataWidth;
+        int center = (((vfoOffset - viewOffset) / (viewBandwidth / 2.0f)) + 1.0f) * ((float)dataWidth / 2.0f);
+        int left;
+        int right;
+
+        ImVec2 mousePos = ImGui::GetMousePos();
+        ImVec2 drag = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
+        ImVec2 dragOrigin(mousePos.x - drag.x, mousePos.y - drag.y);
+
+        bool freqDrag = ImGui::IsMouseDragging(ImGuiMouseButton_Left) && IS_IN_AREA(dragOrigin, freqAreaMin, freqAreaMax);
+
+        if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && IS_IN_AREA(mousePos, fftAreaMin, fftAreaMax) && !freqDrag) {
+            int refCenter = mousePos.x - (widgetPos.x + 50);
+            if (refCenter >= 0 && refCenter < dataWidth && mousePos.y > widgetPos.y && mousePos.y < (widgetPos.y + widgetSize.y)) {
+                vfoOffset = ((((float)refCenter / ((float)dataWidth / 2.0f)) - 1.0f) * (viewBandwidth / 2.0f)) + viewOffset;
+                center = refCenter;
+            }
+            vfoFreqChanged = true;
+        }
+        
+        // if (vfoRef == REF_CENTER) {
+        //     left = center - (width / 2.0f) + 1;
+        //     right = center + (width / 2.0f) + 1;
+        // }
+        // if (vfoRef == REF_LOWER) {
+        //     left = center;
+        //     right = center + width + 1;
+        // }
+        // if (vfoRef == REF_UPPER) {
+        //     left = center;
+        //     right = center - width + 1;
+        // }
+
+        if (freqDrag) {
+            float deltax = drag.x - lastDrag;
+            lastDrag = drag.x;
+            float viewDelta = deltax * (viewBandwidth / (float)dataWidth);
+
+            viewOffset -= viewDelta;
+
+            if (viewOffset + (viewBandwidth / 2.0f) > wholeBandwidth / 2.0f) {
+                float freqOffset = (viewOffset + (viewBandwidth / 2.0f)) - (wholeBandwidth / 2.0f);
+                viewOffset = (wholeBandwidth / 2.0f) - (viewBandwidth / 2.0f);
+                centerFreq += freqOffset;
+                centerFreqMoved = true;
+            }
+            if (viewOffset - (viewBandwidth / 2.0f) < -(wholeBandwidth / 2.0f)) {
+                float freqOffset = (viewOffset - (viewBandwidth / 2.0f)) + (wholeBandwidth / 2.0f);
+                viewOffset = (viewBandwidth / 2.0f) - (wholeBandwidth / 2.0f);
+                centerFreq += freqOffset;
+                centerFreqMoved = true;
+            }
+
+            lowerFreq = (centerFreq + viewOffset) - (viewBandwidth / 2.0f);
+            upperFreq = (centerFreq + viewOffset) + (viewBandwidth / 2.0f);
+            updateWaterfallFb();
+        }
+        else {
+            lastDrag = 0;
+        }
+
+        left = center - (width / 2.0f) + 1;
+        right = center + (width / 2.0f) + 1;
+        
+        if ((left < 0 && right < 0) || (left >= dataWidth && right >= dataWidth)) {
+            return;
+        }
+        left = std::clamp<int>(left, 0, dataWidth - 1);
+        right = std::clamp<int>(right, 0, dataWidth - 1);
+        window->DrawList->AddRectFilled(ImVec2(widgetPos.x + 50 + left, widgetPos.y + 10), 
+                                        ImVec2(widgetPos.x + 50 + right, widgetPos.y + fftHeight + 10), IM_COL32(255, 255, 255, 50));
+        if (center >= 0 && center < dataWidth) {
+            if (vfoRef == REF_CENTER) {
+                window->DrawList->AddLine(ImVec2(widgetPos.x + 50 + center, widgetPos.y + 9), 
+                                    ImVec2(widgetPos.x + 50 + center, widgetPos.y + fftHeight + 9),
+                                    IM_COL32(255, 0, 0, 255), 1.0f);
+            }
+            else if (vfoRef == REF_LOWER) {
+                window->DrawList->AddLine(ImVec2(widgetPos.x + 50 + left, widgetPos.y + 9), 
+                                    ImVec2(widgetPos.x + 50 + left, widgetPos.y + fftHeight + 9),
+                                    IM_COL32(255, 0, 0, 255), 1.0f);
+            }
+            else if (vfoRef == REF_UPPER) {
+                window->DrawList->AddLine(ImVec2(widgetPos.x + 50 + right, widgetPos.y + 9), 
+                                    ImVec2(widgetPos.x + 50 + right, widgetPos.y + fftHeight + 9),
+                                    IM_COL32(255, 0, 0, 255), 1.0f);
+            }
+            
+        }
     }
 
     void WaterFall::updateWaterfallFb() {
@@ -197,7 +301,6 @@ namespace ImGui {
     }
 
     void WaterFall::onResize() {
-        printf("Resized\n");
         dataWidth = widgetSize.x - 60.0f;
         waterfallHeight = widgetSize.y - fftHeight - 52;
         delete[] latestFFT;
@@ -207,6 +310,14 @@ namespace ImGui {
         for (int i = 0; i < dataWidth; i++) {
             latestFFT[i] = -1000.0f; // Hide everything
         }
+
+        fftAreaMin = ImVec2(widgetPos.x + 50, widgetPos.y + 9);
+        fftAreaMax = ImVec2(widgetPos.x + dataWidth + 50, widgetPos.y + fftHeight + 10);
+        freqAreaMin = ImVec2(widgetPos.x + 50, widgetPos.y + fftHeight + 11);
+        freqAreaMax = ImVec2(widgetPos.x + dataWidth + 50, widgetPos.y + fftHeight + 50);
+
+        printf("Resized: %d %d\n", dataWidth, waterfallHeight);
+
         updateWaterfallFb();
     }
 
@@ -230,11 +341,14 @@ namespace ImGui {
             onResize();
         }
 
+        window->DrawList->AddRectFilled(widgetPos, widgetEndPos, IM_COL32( 0, 0, 0, 255 ));
         window->DrawList->AddRect(widgetPos, widgetEndPos, IM_COL32( 50, 50, 50, 255 ));
         window->DrawList->AddLine(ImVec2(widgetPos.x, widgetPos.y + fftHeight + 50), ImVec2(widgetPos.x + widgetSize.x, widgetPos.y + fftHeight + 50), IM_COL32(50, 50, 50, 255), 1.0f);
 
         drawFFT();
         drawWaterfall();
+        drawVFO();
+
         buf_mtx.unlock();
     }
 
@@ -243,6 +357,7 @@ namespace ImGui {
         float offsetRatio = viewOffset / (wholeBandwidth / 2.0f);
         int drawDataSize = (viewBandwidth / wholeBandwidth) * data.size();
         int drawDataStart = (((float)data.size() / 2.0f) * (offsetRatio + 1)) - (drawDataSize / 2);
+        
         doZoom(drawDataStart, drawDataSize, dataWidth, data, latestFFT);
         rawFFTs.insert(rawFFTs.begin(), data);
         if (rawFFTs.size() > waterfallHeight + 300) {
@@ -255,7 +370,7 @@ namespace ImGui {
         for (int j = 0; j < dataWidth; j++) {
             pixel = (std::clamp<float>(latestFFT[j], waterfallMin, waterfallMax) - waterfallMin) / dataRange;
             int id = (int)(pixel * (WATERFALL_RESOLUTION - 1));
-            waterfallFb[j] = waterfallPallet[(int)(pixel * (WATERFALL_RESOLUTION - 1))];
+            waterfallFb[j] = waterfallPallet[id];
         }
         waterfallUpdate = true;
         buf_mtx.unlock();
@@ -290,6 +405,8 @@ namespace ImGui {
 
     void WaterFall::setCenterFrequency(float freq) {
         centerFreq = freq;
+        lowerFreq = (centerFreq + viewOffset) - (viewBandwidth / 2.0f);
+        upperFreq = (centerFreq + viewOffset) + (viewBandwidth / 2.0f);
     }
 
     float WaterFall::getCenterFrequency() {
@@ -322,6 +439,13 @@ namespace ImGui {
         return vfoBandwidth;
     }
 
+    void WaterFall::setVFOReference(int ref) {
+        if (ref < 0 || ref >= _REF_COUNT) {
+            return;
+        }
+        vfoRef = ref;
+    }
+
     void WaterFall::setViewBandwidth(float bandWidth) {
         if (bandWidth == viewBandwidth) {
             return;
@@ -341,17 +465,28 @@ namespace ImGui {
         updateWaterfallFb();
     }
 
+    float WaterFall::getViewBandwidth() {
+        return viewBandwidth;
+    }
+
     void WaterFall::setViewOffset(float offset) {
         if (offset == viewOffset) {
             return;
         }
-        if (abs(offset) + (viewBandwidth / 2.0f) > (wholeBandwidth / 2.0f)) {
-            return;
+        if (offset - (viewBandwidth / 2.0f) < -(wholeBandwidth / 2.0f)) {
+            offset = (viewBandwidth / 2.0f) - (wholeBandwidth / 2.0f);
+        }
+        if (offset + (viewBandwidth / 2.0f) > (wholeBandwidth / 2.0f)) {
+            offset = (wholeBandwidth / 2.0f) - (viewBandwidth / 2.0f);
         }
         viewOffset = offset;
         lowerFreq = (centerFreq + viewOffset) - (viewBandwidth / 2.0f);
         upperFreq = (centerFreq + viewOffset) + (viewBandwidth / 2.0f);
         updateWaterfallFb();
+    }
+
+    float WaterFall::getViewOffset() {
+        return viewOffset;
     }
     
     void WaterFall::setFFTMin(float min) {

@@ -4,6 +4,7 @@
 #include <vector>
 #include <mutex>
 #include <GL/glew.h>
+#include <imutils.h>
 
 #define WATERFALL_RESOLUTION    1000000
 
@@ -30,8 +31,13 @@ namespace ImGui {
         void setVFOBandwidth(float bandwidth);
         float getVFOBandwidth();
 
+        void setVFOReference(int ref);
+
         void setViewBandwidth(float bandWidth);
+        float getViewBandwidth();
+
         void setViewOffset(float offset);
+        float getViewOffset();
 
         void setFFTMin(float min);
         float getFFTMin();
@@ -50,10 +56,21 @@ namespace ImGui {
 
         void autoRange();
 
+        bool centerFreqMoved = false;
+        bool vfoFreqChanged = false;
+
+        enum {
+            REF_LOWER,
+            REF_CENTER,
+            REF_UPPER,
+            _REF_COUNT
+        };
+
 
     private:
         void drawWaterfall();
         void drawFFT();
+        void drawVFO();
         void onPositionChange();
         void onResize();
         void updateWaterfallFb();
@@ -69,6 +86,13 @@ namespace ImGui {
 
         ImVec2 lastWidgetPos;
         ImVec2 lastWidgetSize;
+
+        ImVec2 fftAreaMin;
+        ImVec2 fftAreaMax;
+        ImVec2 freqAreaMin;
+        ImVec2 freqAreaMax;
+        ImVec2 waterfallAreaMin;
+        ImVec2 waterfallAreaMax;
 
         ImGuiWindow* window;
 
@@ -86,6 +110,10 @@ namespace ImGui {
         float lowerFreq;
         float upperFreq;
         float range;
+
+        float lastDrag;
+
+        int vfoRef = REF_CENTER;
 
         // Absolute values
         float centerFreq;

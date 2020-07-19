@@ -47,6 +47,15 @@ namespace dsp {
             running = false;
         }
 
+        void setBlockSize(int blockSize) {
+            if (running) {
+                return;
+            }
+            _bufferSize = blockSize;
+            output_a.setMaxLatency(blockSize * 2);
+            output_b.setMaxLatency(blockSize * 2);
+        }
+
         stream<complex_t> output_a;
         stream<complex_t> output_b;
 

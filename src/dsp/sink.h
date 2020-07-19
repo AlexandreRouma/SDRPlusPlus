@@ -26,7 +26,21 @@ namespace dsp {
         }
 
         void start() {
+            if (running) {
+                return;
+            }
             _workerThread = std::thread(_worker, this);
+            running = true;
+        }
+
+        void stop() {
+            if (!running) {
+                return;
+            }
+            _in->stopReader();
+            _workerThread.join();
+            _in->clearReadStop();
+            running = false;
         }
 
         bool bypass;
@@ -34,7 +48,7 @@ namespace dsp {
     private:
         static void _worker(HandlerSink* _this) {
             while (true) {
-                _this->_in->read(_this->_buffer, _this->_bufferSize);
+                if (_this->_in->read(_this->_buffer, _this->_bufferSize) < 0) { break; };
                 _this->_handler(_this->_buffer);
             }
         }
@@ -44,6 +58,7 @@ namespace dsp {
         complex_t* _buffer;
         std::thread _workerThread;
         void (*_handler)(complex_t*);
+        bool running = false;
     };
 
     class NullSink {

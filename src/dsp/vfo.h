@@ -15,112 +15,54 @@ namespace dsp {
             _input = in;
             _outputSampleRate = outputSampleRate;
             _inputSampleRate = inputSampleRate;
-            int _gcd = std::gcd((int)inputSampleRate, (int)outputSampleRate);
-            _interp = outputSampleRate / _gcd;
-            _decim = inputSampleRate / _gcd;
             _bandWidth = bandWidth;
             _blockSize = blockSize;
-            output = &decim.output;
-
-            dsp::BlackmanWindow(_taps, inputSampleRate * _interp, bandWidth / 2.0f, bandWidth / 2.0f);
+            output = &resamp.output;
 
             lo.init(offset, inputSampleRate, blockSize);
             mixer.init(in, &lo.output, blockSize);
-            interp.init(&mixer.output, _interp, blockSize);
-            if (_interp == 1) {
-                decim.init(&mixer.output, _taps, blockSize, _decim);
-            }
-            else {
-                decim.init(&interp.output, _taps, blockSize * _interp, _decim);
-            }
+            resamp.init(&mixer.output, inputSampleRate, outputSampleRate, blockSize, _bandWidth * 0.8f, _bandWidth);
         }
 
         void start() {
             lo.start();
             mixer.start();
-            if (_interp != 1) {
-                interp.start();
-            }
-            decim.start();
+            resamp.start();
         }
 
-        void stop() {
+        void stop(bool resampler = true) {
             lo.stop();
             mixer.stop();
-            interp.stop();
-            decim.stop();
+            if (resampler) { resamp.stop(); };
         }
 
         void setInputSampleRate(float inputSampleRate, int blockSize = -1) {
-            interp.stop();
-            decim.stop();
+            lo.stop();
+            lo.setSampleRate(inputSampleRate);
 
             _inputSampleRate = inputSampleRate;
-            int _gcd = std::gcd((int)inputSampleRate, (int)_outputSampleRate);
-            _interp = _outputSampleRate / _gcd;
-            _decim = inputSampleRate / _gcd;
 
-            dsp::BlackmanWindow(_taps, inputSampleRate * _interp, _bandWidth / 2.0f, _bandWidth / 2.0f);
-
-            interp.setInterpolation(_interp);
-            decim.setDecimation(_decim);
             if (blockSize > 0) {
-                lo.stop();
-                mixer.stop();
                 _blockSize = blockSize;
+                mixer.stop();
                 lo.setBlockSize(_blockSize);
                 mixer.setBlockSize(_blockSize);
-                interp.setBlockSize(_blockSize);
-                lo.start();
                 mixer.start();
             }
-            decim.setBlockSize(_blockSize * _interp);
-
-            if (_interp == 1) {
-                decim.setInput(&mixer.output);
-            }
-            else {
-                decim.setInput(&interp.output);
-                interp.start();
-            }
-            decim.start();
+            resamp.setInputSampleRate(inputSampleRate, _blockSize, _bandWidth * 0.8f, _bandWidth);
+            lo.start();
         }
 
         void setOutputSampleRate(float outputSampleRate, float bandWidth = -1) {
-            interp.stop();
-            decim.stop();
-
             if (bandWidth > 0) {
                 _bandWidth = bandWidth;
             }
-            
-            _outputSampleRate = outputSampleRate;
-            int _gcd = std::gcd((int)_inputSampleRate, (int)outputSampleRate);
-            _interp = outputSampleRate / _gcd;
-            _decim = _inputSampleRate / _gcd;
-
-            dsp::BlackmanWindow(_taps, _inputSampleRate * _interp, _bandWidth / 2.0f, _bandWidth / 2.0f);
-            decim.setTaps(_taps);
-
-            interp.setInterpolation(_interp);
-            decim.setDecimation(_decim);
-            decim.setBlockSize(_blockSize * _interp);
-
-            if (_interp == 1) {
-                decim.setInput(&mixer.output);
-            }
-            else {
-                decim.setInput(&interp.output);
-                interp.start();
-            }
-            decim.start();
+            resamp.setOutputSampleRate(outputSampleRate, _bandWidth * 0.8f, _bandWidth);
         }
 
         void setBandwidth(float bandWidth) {
-            decim.stop();
-            dsp::BlackmanWindow(_taps, _inputSampleRate * _interp, _bandWidth / 2.0f, _bandWidth / 2.0f);
-            decim.setTaps(_taps);
-            decim.start();
+            _bandWidth = bandWidth;
+            resamp.setFilterParams(_bandWidth * 0.8f, _bandWidth);
         }
 
         void setOffset(float offset) {
@@ -128,13 +70,16 @@ namespace dsp {
         }
 
         void setBlockSize(int blockSize) {
-            stop();
+            stop(false);
             _blockSize = blockSize;
             lo.setBlockSize(_blockSize);
             mixer.setBlockSize(_blockSize);
-            interp.setBlockSize(_blockSize);
-            decim.setBlockSize(_blockSize * _interp);
+            resamp.setBlockSize(_blockSize);
             start();
+        }
+
+        int getOutputBlockSize() {
+            return resamp.getOutputBlockSize();
         }
 
         stream<complex_t>* output;
@@ -142,13 +87,9 @@ namespace dsp {
     private:
         SineSource lo;
         Multiplier mixer;
-        Interpolator<complex_t> interp;
-        DecimatingFIRFilter decim;
+        FIRResampler resamp;
         stream<complex_t>* _input;
 
-        std::vector<float> _taps;
-        int _interp;
-        int _decim;
         float _outputSampleRate;
         float _inputSampleRate;
         float _bandWidth;

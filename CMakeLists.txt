@@ -45,3 +45,6 @@ target_link_libraries(sdrpp PRIVATE FFTW3::fftw3l)
 # PortAudio
 find_package(portaudio CONFIG REQUIRED)
 target_link_libraries(sdrpp PRIVATE portaudio portaudio_static)
+
+
+# cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/Users/Alex/vcpkg/scripts/buildsystems/vcpkg.cmake" -G "Visual Studio 15 2017 Win64"

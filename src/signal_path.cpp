@@ -26,11 +26,47 @@ void SignalPath::init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream
 
     demod.init(mainVFO.output, 100000, 200000, 800);
     amDemod.init(mainVFO.output, 50);
+    ssbDemod.init(mainVFO.output, 6000, 3000, 22);
     
-    audioResamp.init(&demod.output, 200000, 40000, 20000, 800);
-    audio.init(audioResamp.output, 160);
+    audioResamp.init(&demod.output, 200000, 48000, 800);
+    audio.init(&audioResamp.output, 16);
+}
 
-    ns.init(mainVFO.output, 800);
+
+dsp::DCBiasRemover dcBiasRemover;
+    dsp::Splitter split;
+    dsp::BlockDecimator fftBlockDec;
+    dsp::HandlerSink fftHandlerSink;
+    dsp::VFO mainVFO;
+    dsp::FMDemodulator demod;
+    dsp::AMDemodulator amDemod;
+    dsp::FloatResampler audioResamp;
+    io::AudioSink audio;
+
+void SignalPath::setSampleRate(float sampleRate) {
+    dcBiasRemover.stop();
+    split.stop();
+    fftBlockDec.stop();
+    fftHandlerSink.stop();
+
+    demod.stop();
+    amDemod.stop();
+    audioResamp.stop();
+
+    int inputBlockSize = sampleRate / 200.0f;
+
+    dcBiasRemover.setBlockSize(inputBlockSize);
+    split.setBlockSize(inputBlockSize);
+    fftBlockDec.setSkip((sampleRate / fftRate) - fftSize);
+    mainVFO.setInputSampleRate(sampleRate, inputBlockSize);
+
+    // // Reset the modulator and audio systems
+    setDemodulator(_demod);
+
+    fftHandlerSink.start();
+    fftBlockDec.start();
+    split.start();
+    dcBiasRemover.start();
 }
 
 void SignalPath::setVFOFrequency(long frequency) {
@@ -53,9 +89,21 @@ void SignalPath::setDemodulator(int demId) {
         printf("Stopping FM demodulator\n");
         demod.stop();
     }
+    else if (_demod == DEMOD_NFM) {
+        printf("Stopping NFM demodulator\n");
+        demod.stop();
+    }
     else if (_demod == DEMOD_AM) {
         printf("Stopping AM demodulator\n");
         amDemod.stop();
+    }
+    else if (_demod == DEMOD_USB) {
+        printf("Stopping USB demodulator\n");
+        ssbDemod.stop();
+    }
+    else if (_demod == DEMOD_LSB) {
+        printf("Stopping LSB demodulator\n");
+        ssbDemod.stop();
     }
     _demod = demId;
 
@@ -63,16 +111,48 @@ void SignalPath::setDemodulator(int demId) {
     if (demId == DEMOD_FM) {
         printf("Starting FM demodulator\n");
         mainVFO.setOutputSampleRate(200000, 200000);
+        demod.setBlockSize(mainVFO.getOutputBlockSize());
+        demod.setSampleRate(200000);
+        demod.setDeviation(100000);
         audioResamp.setInput(&demod.output);
-        audioResamp.setInputSampleRate(200000, 800);
+        audioResamp.setInputSampleRate(200000, mainVFO.getOutputBlockSize());
+        demod.start();
+    }
+    if (demId == DEMOD_NFM) {
+        printf("Starting NFM demodulator\n");
+        mainVFO.setOutputSampleRate(12500, 12500);
+        demod.setBlockSize(mainVFO.getOutputBlockSize());
+        demod.setSampleRate(12500);
+        demod.setDeviation(6250);
+        audioResamp.setInput(&demod.output);
+        audioResamp.setInputSampleRate(12500, mainVFO.getOutputBlockSize());
         demod.start();
     }
     else if (demId == DEMOD_AM) {
         printf("Starting AM demodulator\n");
         mainVFO.setOutputSampleRate(12500, 12500);
+        amDemod.setBlockSize(mainVFO.getOutputBlockSize());
         audioResamp.setInput(&amDemod.output);
-        audioResamp.setInputSampleRate(12500, 50);
+        audioResamp.setInputSampleRate(12500, mainVFO.getOutputBlockSize());
         amDemod.start();
+    }
+    else if (demId == DEMOD_USB) {
+        printf("Starting USB demodulator\n");
+        mainVFO.setOutputSampleRate(6000, 3000);
+        ssbDemod.setBlockSize(mainVFO.getOutputBlockSize());
+        ssbDemod.setMode(dsp::SSBDemod::MODE_USB);
+        audioResamp.setInput(&ssbDemod.output);
+        audioResamp.setInputSampleRate(6000, mainVFO.getOutputBlockSize());
+        ssbDemod.start();
+    }
+    else if (demId == DEMOD_LSB) {
+        printf("Starting LSB demodulator\n");
+        mainVFO.setOutputSampleRate(6000, 3000);
+        ssbDemod.setBlockSize(mainVFO.getOutputBlockSize());
+        ssbDemod.setMode(dsp::SSBDemod::MODE_LSB);
+        audioResamp.setInput(&ssbDemod.output);
+        audioResamp.setInputSampleRate(6000, mainVFO.getOutputBlockSize());
+        ssbDemod.start();
     }
 
     audioResamp.start();

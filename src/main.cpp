@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 #include <main_window.h>
 #include <styles.h>
+#include <icons.h>
 
 
 #ifdef _WIN32
@@ -57,6 +58,9 @@ int main() {
     setImguiStyle(io);
 
     windowInit();
+
+    printf("Loading icons...\n");
+    icons::load();
 
     // Main loop
     while (!glfwWindowShouldClose(window)) {

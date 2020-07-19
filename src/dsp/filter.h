@@ -10,8 +10,17 @@
 namespace dsp {
     inline void BlackmanWindow(std::vector<float>& taps, float sampleRate, float cutoff, float transWidth) {
         taps.clear();
+
         float fc = cutoff / sampleRate;
+        if (fc > 1.0f) {
+            fc = 1.0f;
+        }
+
         int _M = 4.0f / (transWidth / sampleRate);
+        if (_M < 4) {
+            _M = 4;
+        }
+
         if (_M % 2 == 0) { _M++; }
         float M = _M;
         float sum = 0.0f;
@@ -131,7 +140,11 @@ namespace dsp {
                 return;
             }
             _blockSize = blockSize;
-            output.setMaxLatency((_blockSize * 2) / _decim);
+            output.setMaxLatency(getOutputBlockSize() * 2);
+        }
+
+        int getOutputBlockSize() {
+            return _blockSize / _decim;
         }
 
         stream<complex_t> output;
@@ -300,6 +313,10 @@ namespace dsp {
             }
             _blockSize = blockSize;
             output.setMaxLatency((_blockSize * 2) / _decim);
+        }
+
+        int getOutputBlockSize() {
+            return _blockSize / _decim;
         }
 
         stream<float> output;

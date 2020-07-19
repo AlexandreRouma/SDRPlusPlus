@@ -26,7 +26,10 @@ public:
 
     enum {
         DEMOD_FM,
+        DEMOD_NFM,
         DEMOD_AM,
+        DEMOD_USB,
+        DEMOD_LSB,
         _DEMOD_COUNT
     };
 
@@ -44,13 +47,11 @@ private:
     // Demodulators
     dsp::FMDemodulator demod;
     dsp::AMDemodulator amDemod;
+    dsp::SSBDemod ssbDemod;
 
     // Audio output
-    dsp::FloatResampler audioResamp;
+    dsp::FloatFIRResampler audioResamp;
     io::AudioSink audio;
-
-    // DEBUG
-    dsp::NullSink ns;
 
     float sampleRate;
     float fftRate;

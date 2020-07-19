@@ -14,6 +14,7 @@ namespace dsp {
         SineSource(float frequency, long sampleRate, int blockSize) : output(blockSize * 2) {
             _blockSize = blockSize;
             _sampleRate = sampleRate;
+            _frequency = frequency;
             _phasorSpeed = (2 * 3.1415926535) / (sampleRate / frequency);
             _phase = 0;
         }
@@ -22,6 +23,7 @@ namespace dsp {
             output.init(blockSize * 2);
             _sampleRate = sampleRate;
             _blockSize = blockSize;
+            _frequency = frequency;
             _phasorSpeed = (2 * 3.1415926535) / (sampleRate / frequency);
             _phase = 0;
         }
@@ -53,6 +55,12 @@ namespace dsp {
                 return;
             }
             _blockSize = blockSize;
+            output.setMaxLatency(blockSize * 2);
+        }
+
+        void setSampleRate(float sampleRate) {
+            _sampleRate = sampleRate;
+            _phasorSpeed = (2 * 3.1415926535) / (sampleRate / _frequency);
         }
 
         stream<complex_t> output;
@@ -76,6 +84,7 @@ namespace dsp {
         float _phasorSpeed;
         float _phase;
         long _sampleRate;
+        float _frequency;
         std::thread _workerThread;
         bool running = false;
     };

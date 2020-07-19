@@ -25,7 +25,31 @@ namespace dsp {
         }
 
         void start() {
+            if (running) {
+                return;
+            }
             _workerThread = std::thread(_worker, this);
+            running = true;
+        }
+
+        void stop() {
+            if (!running) {
+                return;
+            }
+            _in->stopReader();
+            output.stopWriter();
+            _workerThread.join();
+            _in->clearReadStop();
+            output.clearWriteStop();
+            running = false;
+        }
+
+        void setBlockSize(int blockSize) {
+            if (running) {
+                return;
+            }
+            _bufferSize = blockSize;
+            output.setMaxLatency(blockSize * 2);
         }
 
         stream<complex_t> output;
@@ -37,9 +61,9 @@ namespace dsp {
             float ibias = 0.0f;
             float qbias = 0.0f;
             while (true) {
-                _this->_in->read(buf, _this->_bufferSize);
+                if (_this->_in->read(buf, _this->_bufferSize) < 0) { break; };
                 if (_this->bypass) {
-                    _this->output.write(buf, _this->_bufferSize);
+                    if (_this->output.write(buf, _this->_bufferSize) < 0) { break; };
                     continue;
                 }
                 for (int i = 0; i < _this->_bufferSize; i++) {
@@ -52,12 +76,14 @@ namespace dsp {
                     buf[i].i -= ibias;
                     buf[i].q -= qbias;
                 }
-                _this->output.write(buf, _this->_bufferSize);
+                if (_this->output.write(buf, _this->_bufferSize) < 0) { break; };
             }
+            delete[] buf;
         }
 
         stream<complex_t>* _in;
         int _bufferSize;
         std::thread _workerThread;
+        bool running = false;
     };
 };
