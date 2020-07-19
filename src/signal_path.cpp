@@ -161,3 +161,7 @@ void SignalPath::start() {
     audioResamp.start();
     audio.start();
 }
+
+void SignalPath::setDCBiasCorrection(bool enabled) {
+    dcBiasRemover.bypass = !enabled;
+}

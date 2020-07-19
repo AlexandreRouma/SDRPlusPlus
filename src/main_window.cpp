@@ -21,6 +21,8 @@ FrequencySelect fSel;
 fftwf_complex *fft_in, *fft_out;
 fftwf_plan p;
 float* tempData;
+float* uiGains;
+char buf[1024];
 
 int fftSize = 8192 * 8;
 
@@ -66,6 +68,8 @@ void windowInit() {
 
     sigPath.init(sampleRate, 20, fftSize, &soapy.output, (dsp::complex_t*)fft_in, fftHandler);
     sigPath.start();
+
+    uiGains = new float[1];
 }
 
 int devId = 0;
@@ -79,7 +83,7 @@ bool showExample = false;
 long freq = 90500000;
 long _freq = 90500000;
 
-int demod = 0;
+int demod = 1;
 
 bool state = false;
 bool mulstate = true;
@@ -220,6 +224,17 @@ void drawWindow() {
     if (devId != _devId) {
         _devId = devId;
         soapy.setDevice(soapy.devList[devId]);
+        srId = 0;
+        _srId = -1;
+        soapy.setSampleRate(soapy.sampleRates[0]);
+        if (soapy.gainList.size() == 0) {
+            return;
+        }
+        delete[] uiGains;
+        uiGains = new float[soapy.gainList.size()];
+        for (int i = 0; i < soapy.gainList.size(); i++) {
+            uiGains[i] = soapy.currentGains[i];
+        }
     }
 
     if (srId != _srId) {
@@ -269,11 +284,6 @@ void drawWindow() {
 
     fSel.draw();
 
-    ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 8);
-    ImGui::SameLine(ImGui::GetWindowWidth() - 40);
-    ImGui::Image(icons::LOGO, ImVec2(30, 30));
-
-
     ImGui::Columns(3, "WindowColumns", false);
     ImVec2 winSize = ImGui::GetWindowSize();
     ImGui::SetColumnWidth(0, 300);
@@ -287,16 +297,33 @@ void drawWindow() {
         ImGui::PushItemWidth(ImGui::GetWindowSize().x);
         ImGui::Combo("##_0_", &devId, soapy.txtDevList.c_str());
 
+        ImGui::PopItemWidth();
         if (!playing) {
             ImGui::Combo("##_1_", &srId, soapy.txtSampleRateList.c_str());
         }
         else {
             ImGui::Text("%s Samples/s", soapy.txtSampleRateList.c_str());
         }
-        
 
+        ImGui::SameLine();
         if (ImGui::Button("Refresh")) {
             soapy.refresh();
+        }
+
+        for (int i = 0; i < soapy.gainList.size(); i++) {
+            ImGui::Text("%s gain", soapy.gainList[i].c_str());
+            ImGui::SameLine();
+            sprintf(buf, "##_gain_slide_%d_", i);
+            ImGui::SliderFloat(buf, &uiGains[i], soapy.gainRanges[i].minimum(), soapy.gainRanges[i].maximum());
+
+            // float step = soapy.gainRanges[i].step();
+            // printf("%f\n", step);
+
+            // uiGains[i] = roundf(uiGains[i] / soapy.gainRanges[i].step()) * soapy.gainRanges[i].step();
+
+            if (uiGains[i] != soapy.currentGains[i]) {
+                soapy.setGain(i, uiGains[i]);
+            }
         }
     }
 
@@ -370,7 +397,7 @@ void drawWindow() {
     ImGui::NextColumn();
 
     ImGui::Text("Zoom");
-    ImGui::VSliderFloat("##_7_", ImVec2(20.0f, 150.0f), &bw, 1000.0f, sampleRate, "");
+    ImGui::VSliderFloat("##_7_", ImVec2(20.0f, 150.0f), &bw, sampleRate, 1000.0f, "");
 
     ImGui::NewLine();
 

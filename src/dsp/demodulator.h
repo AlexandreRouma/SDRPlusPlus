@@ -196,9 +196,9 @@ namespace dsp {
                         max = outBuf[i];
                     }
                 }
-                amp = (max - min);
+                amp = (max - min) / 2.0f;
                 for (int i = 0; i < _this->_blockSize; i++) {
-                    outBuf[i] = (outBuf[i] - min) / (max - min);
+                    outBuf[i] = (outBuf[i] - min - amp) / amp;
                 }
                 if (_this->output.write(outBuf, _this->_blockSize) < 0) { break; };
             }

@@ -20,7 +20,19 @@ SDR++ is a cross-platform and open source SDR software with the aim of being blo
 * Recording
 * Light theme (I know you weirdos exist lol)
 * Waterfall color scheme editor
-* 
+* Switchable fft size
+* Bias-T enable/disable
+* other small customisation options
+* Save waterfall and demod settings between sessions
+* "Hide sidebar" option
+
+## Known issues (please check before reporting)
+* Random crashes (yikes)
+* Gains aren't stepped
+* The default gains might contain a bogus value before being adjusted
+* Clicks in the audio
+* In some cases, it takes a long time to select a device (RTL-SDR in perticular)
+* Min and Max buttons can get unachievable values (eg. min > max or min = max);
 
 # Building on Windows
 ## Requirements

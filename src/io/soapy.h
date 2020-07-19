@@ -9,6 +9,7 @@ namespace io {
     public:
         SoapyWrapper() {
             output.init(64000);
+            currentGains = new float[1];
             refresh();
             setDevice(devList[0]);
         }
@@ -60,6 +61,18 @@ namespace io {
                 txtSampleRateList += std::to_string((int)sampleRates[i]);
                 txtSampleRateList += '\0';
             }
+
+            gainList = dev->listGains(SOAPY_SDR_RX, 0);
+            gainRanges.clear();
+            if (gainList.size() == 0) {
+                return;
+            }
+            delete[] currentGains;
+            currentGains = new float[gainList.size()];
+            for (int i = 0; i < gainList.size(); i++) {
+                gainRanges.push_back(dev->getGainRange(SOAPY_SDR_RX, 0, gainList[i]));
+                currentGains[i] = dev->getGain(SOAPY_SDR_RX, 0, gainList[i]);
+            }
         }
 
         void setSampleRate(float sampleRate) {
@@ -74,6 +87,11 @@ namespace io {
             dev->setFrequency(SOAPY_SDR_RX, 0, freq);
         }
 
+        void setGain(int gainId, float gain) {
+            currentGains[gainId] = gain;
+            dev->setGain(SOAPY_SDR_RX, 0, gainList[gainId], gain);
+        }
+
         bool isRunning() {
             return running;
         }
@@ -82,6 +100,10 @@ namespace io {
         std::string txtDevList;
         std::vector<double> sampleRates;
         std::string txtSampleRateList;
+
+        std::vector<std::string> gainList;
+        std::vector<SoapySDR::Range> gainRanges;
+        float* currentGains;
 
         dsp::stream<dsp::complex_t> output;
 

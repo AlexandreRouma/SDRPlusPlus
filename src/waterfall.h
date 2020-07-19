@@ -100,6 +100,11 @@ namespace ImGui {
 
         std::mutex buf_mtx;
 
+        float vRange;
+
+        int maxVSteps;
+        int maxHSteps;
+
         int dataWidth;          // Width of the FFT and waterfall
         int fftHeight;          // Height of the fft graph
         int waterfallHeight;    // Height of the waterfall

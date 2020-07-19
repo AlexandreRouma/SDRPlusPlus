@@ -35,6 +35,7 @@ void doZoom(int offset, int width, int outWidth, std::vector<float> data, float*
 }
 
 float freq_ranges[] = {
+        1.0f, 2.0f, 2.5f, 5.0f,
         10.0f, 20.0f, 25.0f, 50.0f,
         100.0f, 200.0f, 250.0f, 500.0f,
         1000.0f, 2000.0f, 2500.0f, 5000.0f,
@@ -44,9 +45,9 @@ float freq_ranges[] = {
         10000000.0f, 20000000.0f, 25000000.0f, 50000000.0f
 };
 
-float findBestFreqRange(float bandwidth) {
-    for (int i = 0; i < 28; i++) {
-        if (bandwidth / freq_ranges[i] < 25.0f) {
+float findBestRange(float bandwidth, int maxSteps) {
+    for (int i = 0; i < 32; i++) {
+        if (bandwidth / freq_ranges[i] < (float)maxSteps) {
             return freq_ranges[i];
         }
     }
@@ -104,14 +105,14 @@ namespace ImGui {
 
     void WaterFall::drawFFT() {
         // Calculate scaling factor
-        float startLine = floorf(fftMax / 10.0f) * 10.0f;
+        float startLine = floorf(fftMax / vRange) * vRange;
         float vertRange = fftMax - fftMin;
         float scaleFactor = fftHeight / vertRange;
         char buf[100];
         
 
         // Vertical scale
-        for (float line = startLine; line > fftMin; line -= 10.0f) {
+        for (float line = startLine; line > fftMin; line -= vRange) {
             float yPos = widgetPos.y + fftHeight + 10 - ((line - fftMin) * scaleFactor);
             window->DrawList->AddLine(ImVec2(widgetPos.x + 50, roundf(yPos)), 
                                     ImVec2(widgetPos.x + dataWidth + 50, roundf(yPos)),
@@ -177,7 +178,7 @@ namespace ImGui {
 
     void WaterFall::drawVFO() {
         float width = (vfoBandwidth / viewBandwidth) * (float)dataWidth;
-        int center = (((vfoOffset - viewOffset) / (viewBandwidth / 2.0f)) + 1.0f) * ((float)dataWidth / 2.0f);
+        int center = roundf((((vfoOffset - viewOffset) / (viewBandwidth / 2.0f)) + 1.0f) * ((float)dataWidth / 2.0f));
         int left;
         int right;
 
@@ -315,6 +316,13 @@ namespace ImGui {
         fftAreaMax = ImVec2(widgetPos.x + dataWidth + 50, widgetPos.y + fftHeight + 10);
         freqAreaMin = ImVec2(widgetPos.x + 50, widgetPos.y + fftHeight + 11);
         freqAreaMax = ImVec2(widgetPos.x + dataWidth + 50, widgetPos.y + fftHeight + 50);
+
+        maxHSteps = dataWidth / 50;
+        maxVSteps = fftHeight / 15;
+
+        range = findBestRange(viewBandwidth, maxHSteps);
+        vRange = findBestRange(fftMax - fftMin, maxVSteps);
+        vRange = 10.0f;
 
         printf("Resized: %d %d\n", dataWidth, waterfallHeight);
 
@@ -461,7 +469,7 @@ namespace ImGui {
         viewBandwidth = bandWidth;
         lowerFreq = (centerFreq + viewOffset) - (viewBandwidth / 2.0f);
         upperFreq = (centerFreq + viewOffset) + (viewBandwidth / 2.0f);
-        range = findBestFreqRange(bandWidth);
+        range = findBestRange(bandWidth, maxHSteps);
         updateWaterfallFb();
     }
 
@@ -491,6 +499,7 @@ namespace ImGui {
     
     void WaterFall::setFFTMin(float min) {
         fftMin = min;
+        vRange = findBestRange(fftMax - fftMin, maxVSteps);
     }
 
     float WaterFall::getFFTMin() {
@@ -499,6 +508,7 @@ namespace ImGui {
 
     void WaterFall::setFFTMax(float max) {
         fftMax = max;
+        vRange = findBestRange(fftMax - fftMin, maxVSteps);
     }
 
     float WaterFall::getFFTMax() {
