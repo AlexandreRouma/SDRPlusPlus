@@ -24,8 +24,6 @@ float* tempData;
 
 int fftSize = 8192 * 8;
 
-bool dcbias = true;
-
 io::SoapyWrapper soapy;
 
 SignalPath sigPath;
@@ -103,6 +101,9 @@ float lastBW = -1.0f;
 int sampleRate = 1000000;
 
 bool playing = false;
+
+bool dcbias = false;
+bool _dcbias = false;
 
 void setVFO(float freq) {
     float currentOff =  wtf.getVFOOfset();
@@ -230,6 +231,11 @@ void drawWindow() {
         wtf.setViewBandwidth(sampleRate);
         sigPath.setSampleRate(sampleRate);
         bw = sampleRate;
+    }
+
+    if (dcbias != _dcbias) {
+        _dcbias = dcbias;
+        sigPath.setDCBiasCorrection(dcbias);
     }
 
     ImVec2 vMin = ImGui::GetWindowContentRegionMin();

@@ -12,6 +12,15 @@ SDR++ is a cross-platform and open source SDR software with the aim of being blo
 * Multi-VFO
 * Plugins
 * Digital demodulators and decoders
+* Quick replay (replay last n seconds, cool if you missed a short signal)
+
+## Small things to add
+* Switchable bandwidth for demodulators
+* Switchable audio output device and sample rate
+* Recording
+* Light theme (I know you weirdos exist lol)
+* Waterfall color scheme editor
+* 
 
 # Building on Windows
 ## Requirements
