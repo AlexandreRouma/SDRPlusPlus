@@ -1,20 +1,20 @@
-## SDR++, The bloat-free SDR software.
+# SDR++, The bloat-free SDR software.
 SDR++ is a cross-platform and open source SDR software with the aim of being bloat free and simple to use.
 
-# Current Features
+## Current Features
 * Uses SoapySDR for wide hardware support
 * Hardware accelerated graphics (OpenGL + ImGui)
 * SIMD accelerated DSP (parts of the DSP are still missing)
 * Cross-platform
 * Full waterfall update when possible. Makes browsing signals easier and more pleasant
 
-# Comming soon
+## Comming soon
 * Multi-VFO
 * Plugins
 * Digital demodulators and decoders
 
-## Building on Windows
-# Requirements
+# Building on Windows
+## Requirements
 * cmake
 * vcpkg (for the packages listed below)
 * fftw3
@@ -30,12 +30,12 @@ cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/Users/Alex/vcpkg/scripts/buildsystems/vcpkg.
 cmake --build . --config Release
 ```
 
-## Building on Linux
+# Building on Linux
 comming soon :)
 
-## Building on OSX
+# Building on OSX
 comming soon as well :)
 
-## Contributing
+# Contributing
 Feel free to issue pull request and report bugs via the github issues.
 I will soon publish a contributing.md listing the code style to use.
