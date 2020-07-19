@@ -32,17 +32,6 @@ void SignalPath::init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream
     audio.init(&audioResamp.output, 16);
 }
 
-
-dsp::DCBiasRemover dcBiasRemover;
-    dsp::Splitter split;
-    dsp::BlockDecimator fftBlockDec;
-    dsp::HandlerSink fftHandlerSink;
-    dsp::VFO mainVFO;
-    dsp::FMDemodulator demod;
-    dsp::AMDemodulator amDemod;
-    dsp::FloatResampler audioResamp;
-    io::AudioSink audio;
-
 void SignalPath::setSampleRate(float sampleRate) {
     dcBiasRemover.stop();
     split.stop();

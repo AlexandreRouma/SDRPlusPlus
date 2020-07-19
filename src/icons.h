@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 
 namespace icons {
+    extern ImTextureID LOGO;
     extern ImTextureID PLAY;
     extern ImTextureID STOP;
     extern ImTextureID PLAY_RAW;

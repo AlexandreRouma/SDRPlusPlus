@@ -211,13 +211,6 @@ void drawWindow() {
         fSel.setFrequency(wtf.getCenterFrequency() + wtf.getVFOOfset());
     }
 
-    // vfoFreq = wtf.getVFOOfset() + freq;
-
-    // if (vfoFreq != lastVfoFreq) {
-    //     lastVfoFreq = vfoFreq;
-    //     sigPath.setVFOFrequency(vfoFreq - freq);
-    // }
-
     if (volume != lastVolume) {
         lastVolume = volume;
         sigPath.setVolume(volume);
@@ -238,26 +231,6 @@ void drawWindow() {
         sigPath.setSampleRate(sampleRate);
         bw = sampleRate;
     }
-
-
-    // if (ImGui::BeginMenuBar())
-    // {
-    //     if (ImGui::BeginMenu("File"))
-    //     {
-    //         ImGui::EndMenu();
-    //     }
-    //     if (ImGui::BeginMenu("Edit"))
-    //     {
-    //         ImGui::MenuItem("Show Example Window", "", &showExample);
-    //         ImGui::EndMenu();
-    //     }
-    //     ImGui::EndMenuBar();
-    // }
-
-    if (showExample) {
-        ImGui::ShowDemoWindow();
-    }
-
 
     ImVec2 vMin = ImGui::GetWindowContentRegionMin();
     ImVec2 vMax = ImGui::GetWindowContentRegionMax();
@@ -290,12 +263,16 @@ void drawWindow() {
 
     fSel.draw();
 
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 8);
+    ImGui::SameLine(ImGui::GetWindowWidth() - 40);
+    ImGui::Image(icons::LOGO, ImVec2(30, 30));
+
 
     ImGui::Columns(3, "WindowColumns", false);
     ImVec2 winSize = ImGui::GetWindowSize();
     ImGui::SetColumnWidth(0, 300);
-    ImGui::SetColumnWidth(1, winSize.x - 300 - 50);
-    ImGui::SetColumnWidth(2, 50);
+    ImGui::SetColumnWidth(1, winSize.x - 300 - 60);
+    ImGui::SetColumnWidth(2, 60);
 
     // Left Column
     ImGui::BeginChild("Left Column");
@@ -303,7 +280,14 @@ void drawWindow() {
     if (ImGui::CollapsingHeader("Source")) {
         ImGui::PushItemWidth(ImGui::GetWindowSize().x);
         ImGui::Combo("##_0_", &devId, soapy.txtDevList.c_str());
-        ImGui::Combo("##_1_", &srId, soapy.txtSampleRateList.c_str());
+
+        if (!playing) {
+            ImGui::Combo("##_1_", &srId, soapy.txtSampleRateList.c_str());
+        }
+        else {
+            ImGui::Text("%s Samples/s", soapy.txtSampleRateList.c_str());
+        }
+        
 
         if (ImGui::Button("Refresh")) {
             soapy.refresh();
@@ -380,22 +364,25 @@ void drawWindow() {
     ImGui::NextColumn();
 
     ImGui::Text("Zoom");
-    ImGui::NewLine();
     ImGui::VSliderFloat("##_7_", ImVec2(20.0f, 150.0f), &bw, 1000.0f, sampleRate, "");
 
-    ImGui::Text("Max");
     ImGui::NewLine();
+
+    ImGui::Text("Max");
     ImGui::VSliderFloat("##_8_", ImVec2(20.0f, 150.0f), &fftMax, -100.0f, 0.0f, "");
 
-    ImGui::Text("Min");
     ImGui::NewLine();
+
+    ImGui::Text("Min");
     ImGui::VSliderFloat("##_9_", ImVec2(20.0f, 150.0f), &fftMin, -100.0f, 0.0f, "");
 
     if (bw != lastBW) {
         lastBW = bw;
-        wtf.setViewOffset(wtf.getVFOOfset());
         wtf.setViewBandwidth(bw);
+        wtf.setViewOffset(wtf.getVFOOfset());
     }
+
+    
 
     wtf.setFFTMin(fftMin);
     wtf.setFFTMax(fftMax);

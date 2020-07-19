@@ -4,6 +4,7 @@
 #include <imgui/stb_image.h>
 
 namespace icons {
+    ImTextureID LOGO;
     ImTextureID PLAY;
     ImTextureID STOP;
     ImTextureID PLAY_RAW;
@@ -24,6 +25,7 @@ namespace icons {
     }
 
     void load() {
+        LOGO = (ImTextureID)loadTexture("res/icons/logo.png");
         PLAY_RAW = (ImTextureID)loadTexture("res/icons/play_raw.png");
         STOP_RAW = (ImTextureID)loadTexture("res/icons/stop_raw.png");
     }

@@ -6,11 +6,6 @@ set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 # Compiler config
 set(CMAKE_CXX_FLAGS "-O2 /std:c++17")
 
-# HackRF
-include_directories(sdrpp "C:/Program Files/PothosSDR/include/libhackrf/")
-link_directories(sdrpp "C:/Program Files/PothosSDR/lib/")
-link_libraries(hackrf)
-
 # Volk
 include_directories(sdrpp "C:/Program Files/PothosSDR/include/volk/")
 link_libraries(volk)

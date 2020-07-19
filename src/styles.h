@@ -13,8 +13,4 @@ void setImguiStyle(ImGuiIO& io) {
 
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsLight();
-
-    //ImGui::GetStyle().Colors[ImGuiCol_Header] = ImVec4(0.235f, 0.235f, 0.235f, 1.0f);
-    //ImGui::GetStyle().Colors[ImGuiCol_HeaderHovered] = ImVec4(0.235f, 0.235f, 0.235f, 1.0f);
-    //ImGui::GetStyle().Colors[ImGuiCol_HeaderActive] = ImVec4(0.235f, 0.235f, 0.235f, 1.0f);
 }
