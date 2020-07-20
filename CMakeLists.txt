@@ -12,16 +12,12 @@ else()
     link_libraries(pthread)
     link_libraries(GL)
     link_libraries(GLEW)
-
-    # GLFW3
     link_libraries(glfw)
-
-    # FFTW3
     link_libraries(fftw3)
     link_libraries(fftw3f)
-
-    # PortAudio
     link_libraries(portaudio)
+    link_libraries(X11)
+    link_libraries(Xxf86vm)
 endif (MSVC)
 
 link_libraries(volk)

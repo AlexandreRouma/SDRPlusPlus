@@ -309,50 +309,54 @@ namespace dsp {
         static void _worker(FIRResampler* _this) {
             complex_t* inBuf = new complex_t[_this->_blockSize];
             complex_t* outBuf = new complex_t[_this->outputBlockSize];
-
+            
+            int inCount = _this->_blockSize;
             int outCount = _this->outputBlockSize;
-
-            printf("%d %d\n", _this->_blockSize, _this->outputBlockSize);
             
             float* taps = _this->_taps.data(); 
             int tapCount = _this->_taps.size();
             complex_t* delayBuf = new complex_t[tapCount];
 
-            complex_t* delayStart = &inBuf[_this->_blockSize - tapCount];
+            complex_t* delayStart = &inBuf[std::max<int>(inCount - tapCount, 0)];
             int delaySize = tapCount * sizeof(complex_t);
+            complex_t* delayBufEnd = &delayBuf[std::max<int>(tapCount - inCount, 0)];
+            int moveSize = (tapCount - inCount) * sizeof(complex_t);
+            int inSize = inCount * sizeof(complex_t);
 
             int interp = _this->_interp;
             int decim = _this->_decim;
 
             float correction = (float)sqrt((float)interp);
+
+            printf("Resamp: %d %d", inCount, _this->outputBlockSize);
             
-            int afterInterp = _this->_blockSize * interp;
+            int afterInterp = inCount * interp;
             int outIndex = 0;
-
-            complex_t val;
-
             while (true) {
-                if (_this->_input->read(inBuf, _this->_blockSize) < 0) { break; };
+                if (_this->_input->read(inBuf, inCount) < 0) { break; };
                 for (int i = 0; outIndex < outCount; i += decim) {
-                    outBuf[outIndex].q = 0;
                     outBuf[outIndex].i = 0;
+                    outBuf[outIndex].q = 0;
                     for (int j = 0; j < tapCount; j++) {
                         if ((i - j) % interp != 0) {
                             continue;
                         }
-                        val = GET_FROM_RIGHT_BUF(inBuf, delayBuf, tapCount, (i - j) / interp);
-                        outBuf[outIndex].i += val.i * taps[j] * correction;
-                        outBuf[outIndex].q += val.q * taps[j] * correction;
+                        outBuf[outIndex].i += GET_FROM_RIGHT_BUF(inBuf, delayBuf, tapCount, (i - j) / interp).i * taps[j] * correction;
+                        outBuf[outIndex].q += GET_FROM_RIGHT_BUF(inBuf, delayBuf, tapCount, (i - j) / interp).q * taps[j] * correction;
                     }
                     outIndex++;
                 }
                 outIndex = 0;
-                memcpy(delayBuf, delayStart, delaySize);
+                if (tapCount > inCount) {
+                    memmove(delayBuf, delayBufEnd, moveSize);
+                    memcpy(delayBufEnd, delayStart, inSize);
+                }
+                else {
+                    memcpy(delayBuf, delayStart, delaySize);
+                }
+                
                 if (_this->output.write(outBuf, _this->outputBlockSize) < 0) { break; };
             }
-
-            printf("DEBUG: %d\n", delaySize);
-
             delete[] inBuf;
             delete[] outBuf;
             delete[] delayBuf;
@@ -499,27 +503,31 @@ namespace dsp {
         static void _worker(FloatFIRResampler* _this) {
             float* inBuf = new float[_this->_blockSize];
             float* outBuf = new float[_this->outputBlockSize];
-
+            
+            int inCount = _this->_blockSize;
             int outCount = _this->outputBlockSize;
             
             float* taps = _this->_taps.data(); 
             int tapCount = _this->_taps.size();
             float* delayBuf = new float[tapCount];
 
-            float* delayStart = &inBuf[_this->_blockSize - tapCount];
+            float* delayStart = &inBuf[std::max<int>(inCount - tapCount, 0)];
             int delaySize = tapCount * sizeof(float);
+            float* delayBufEnd = &delayBuf[std::max<int>(tapCount - inCount, 0)];
+            int moveSize = (tapCount - inCount) * sizeof(float);
+            int inSize = inCount * sizeof(float);
 
             int interp = _this->_interp;
             int decim = _this->_decim;
 
             float correction = (float)sqrt((float)interp);
 
-            printf("FloatResamp: %d %d", _this->_blockSize, _this->outputBlockSize);
+            printf("FloatResamp: %d %d", inCount, _this->outputBlockSize);
             
-            int afterInterp = _this->_blockSize * interp;
+            int afterInterp = inCount * interp;
             int outIndex = 0;
             while (true) {
-                if (_this->_input->read(inBuf, _this->_blockSize) < 0) { break; };
+                if (_this->_input->read(inBuf, inCount) < 0) { break; };
                 for (int i = 0; outIndex < outCount; i += decim) {
                     outBuf[outIndex] = 0;
                     for (int j = 0; j < tapCount; j++) {
@@ -531,7 +539,14 @@ namespace dsp {
                     outIndex++;
                 }
                 outIndex = 0;
-                memcpy(delayBuf, delayStart, delaySize);
+                if (tapCount > inCount) {
+                    memmove(delayBuf, delayBufEnd, moveSize);
+                    memcpy(delayBufEnd, delayStart, inSize);
+                }
+                else {
+                    memcpy(delayBuf, delayStart, delaySize);
+                }
+                
                 if (_this->output.write(outBuf, _this->outputBlockSize) < 0) { break; };
             }
             delete[] inBuf;
@@ -551,13 +566,4 @@ namespace dsp {
         int _blockSize;
         bool running = false;
     };
-
-
-
-
-
-
-
-    
-    
 };
