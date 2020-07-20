@@ -29,7 +29,7 @@ void SignalPath::init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream
     ssbDemod.init(mainVFO.output, 6000, 3000, 22);
     
     audioResamp.init(&demod.output, 200000, 48000, 800);
-    audio.init(&audioResamp.output, 16);
+    audio.init(&audioResamp.output, 64);
 }
 
 void SignalPath::setSampleRate(float sampleRate) {

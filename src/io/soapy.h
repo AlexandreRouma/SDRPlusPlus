@@ -43,6 +43,10 @@ namespace io {
             
             devList = SoapySDR::Device::enumerate();
             txtDevList = "";
+            if (devList.size() == 0) {
+                txtDevList += '\0';
+                return;
+            }
             for (int i = 0; i < devList.size(); i++) {
                 txtDevList += devList[i]["label"];
                 txtDevList += '\0';

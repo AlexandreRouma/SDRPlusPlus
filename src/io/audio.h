@@ -39,7 +39,7 @@ namespace io {
             outputParams.hostApiSpecificStreamInfo = NULL;
             outputParams.device = Pa_GetDefaultOutputDevice();
             outputParams.suggestedLatency = Pa_GetDeviceInfo(outputParams.device)->defaultLowOutputLatency;
-            PaError err = Pa_OpenStream(&stream, NULL, &outputParams, 48000.0f, 64, paClipOff, _callback, this);
+            PaError err = Pa_OpenStream(&stream, NULL, &outputParams, 48000.0f, _bufferSize, paClipOff, _callback, this);
             printf("%s\n", Pa_GetErrorText(err));
             err = Pa_StartStream(stream);
             printf("%s\n", Pa_GetErrorText(err));
@@ -67,13 +67,8 @@ namespace io {
             
             float vol = powf(_this->_volume, 2);
             for (int i = 0; i < frameCount; i++) {
-
-                
                 outbuf[(i * 2) + 0] = _this->buffer[i] * vol;
                 outbuf[(i * 2) + 1] = _this->buffer[i] * vol;
-
-
-
             }
             return 0;
         }
