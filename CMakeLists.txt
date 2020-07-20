@@ -7,7 +7,21 @@ if (MSVC)
     include_directories(sdrpp "C:/Program Files/PothosSDR/include/volk/")
     include_directories(sdrpp "C:/Program Files/PothosSDR/include/")
 else()
-    set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
+    set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -fsanitize=address")
+    include_directories(sdrpp "/usr/include/volk")
+    link_libraries(pthread)
+    link_libraries(GL)
+    link_libraries(GLEW)
+
+    # GLFW3
+    link_libraries(glfw)
+
+    # FFTW3
+    link_libraries(fftw3)
+    link_libraries(fftw3f)
+
+    # PortAudio
+    link_libraries(portaudio)
 endif (MSVC)
 
 link_libraries(volk)
@@ -38,19 +52,6 @@ if (MSVC)
     # PortAudio
     find_package(portaudio CONFIG REQUIRED)
     target_link_libraries(sdrpp PRIVATE portaudio portaudio_static)
-else()
-    # Glew
-    link_libraries(glew)
-
-    # GLFW3
-    link_libraries(glfw)
-
-    # FFTW3
-    link_libraries(fftw)
-    link_libraries(fftwf)
-
-    # PortAudio
-    link_libraries(portaudio)
 endif (MSVC)
 
 

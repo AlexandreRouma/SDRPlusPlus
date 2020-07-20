@@ -388,6 +388,8 @@ namespace ImGui {
         for (int i = 0; i < WATERFALL_RESOLUTION; i++) {
             int lowerId = floorf(((float)i / (float)WATERFALL_RESOLUTION) * colorCount);
             int upperId = ceilf(((float)i / (float)WATERFALL_RESOLUTION) * colorCount);
+            lowerId = std::clamp<int>(lowerId, 0, colorCount - 1);
+            upperId = std::clamp<int>(upperId, 0, colorCount - 1);
             float ratio = (((float)i / (float)WATERFALL_RESOLUTION) * colorCount) - lowerId;
             float r = (colors[lowerId][0] * (1.0f - ratio)) + (colors[upperId][0] * (ratio));
             float g = (colors[lowerId][1] * (1.0f - ratio)) + (colors[upperId][1] * (ratio));

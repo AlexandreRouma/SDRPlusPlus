@@ -2,6 +2,7 @@
 #include <condition_variable>
 #include <algorithm>
 #include <math.h>
+#include <string.h>
 
 #define STREAM_BUF_SZ   1000000
 
