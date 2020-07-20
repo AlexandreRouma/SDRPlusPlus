@@ -60,8 +60,8 @@ void windowInit() {
     fSel.init();
     fSel.setFrequency(90500000);
     
-    fft_in = (fftwf_complex*) fftw_malloc(sizeof(fftwf_complex) * fftSize);
-    fft_out = (fftwf_complex*) fftw_malloc(sizeof(fftwf_complex) * fftSize);
+    fft_in = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * fftSize);
+    fft_out = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * fftSize);
     p = fftwf_plan_dft_1d(fftSize, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
 
     printf("Starting DSP Thread!\n");
