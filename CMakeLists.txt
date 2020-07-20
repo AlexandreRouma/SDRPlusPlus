@@ -12,9 +12,11 @@ else()
     link_libraries(pthread)
     link_libraries(GL)
     link_libraries(GLEW)
+	link_libraries(X11)
+	link_libraries(Xxf86vm)
 
     # GLFW3
-    link_libraries(glfw)
+    link_libraries(glfw3)
 
     # FFTW3
     link_libraries(fftw3)
