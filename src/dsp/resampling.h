@@ -320,7 +320,7 @@ namespace dsp {
             complex_t* delayStart = &inBuf[std::max<int>(inCount - tapCount, 0)];
             int delaySize = tapCount * sizeof(complex_t);
             complex_t* delayBufEnd = &delayBuf[std::max<int>(tapCount - inCount, 0)];
-            int moveSize = (tapCount - inCount) * sizeof(complex_t);
+            int moveSize = std::min<int>(inCount, tapCount - inCount) * sizeof(complex_t);
             int inSize = inCount * sizeof(complex_t);
 
             int interp = _this->_interp;
@@ -514,7 +514,7 @@ namespace dsp {
             float* delayStart = &inBuf[std::max<int>(inCount - tapCount, 0)];
             int delaySize = tapCount * sizeof(float);
             float* delayBufEnd = &delayBuf[std::max<int>(tapCount - inCount, 0)];
-            int moveSize = (tapCount - inCount) * sizeof(float);
+            int moveSize = std::min<int>(inCount, tapCount - inCount) * sizeof(float);
             int inSize = inCount * sizeof(float);
 
             int interp = _this->_interp;
