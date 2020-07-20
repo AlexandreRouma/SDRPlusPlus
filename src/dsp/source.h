@@ -73,8 +73,8 @@ namespace dsp {
                     _this->_phase += _this->_phasorSpeed;
                     outBuf[i].i = sin(_this->_phase);
                     outBuf[i].q = cos(_this->_phase);
+                    _this->_phase = fmodf(_this->_phase, 2.0f * 3.1415926535); // TODO: Get a more efficient generator
                 }
-                _this->_phase = fmodf(_this->_phase, 2.0f * 3.1415926535);
                 if (_this->output.write(outBuf, _this->_blockSize) < 0) { break; };
             }
             delete[] outBuf;

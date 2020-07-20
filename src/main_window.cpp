@@ -302,7 +302,7 @@ void drawWindow() {
             ImGui::Combo("##_1_", &srId, soapy.txtSampleRateList.c_str());
         }
         else {
-            ImGui::Text("%s Samples/s", soapy.txtSampleRateList.c_str());
+            ImGui::Text("%.0f Samples/s", soapy.sampleRates[srId]);
         }
 
         ImGui::SameLine();
