@@ -46,7 +46,8 @@ void SignalPath::setSampleRate(float sampleRate) {
 
     dcBiasRemover.setBlockSize(inputBlockSize);
     split.setBlockSize(inputBlockSize);
-    fftBlockDec.setSkip((sampleRate / fftRate) - fftSize);
+    int skip = (sampleRate / fftRate) - fftSize;
+    fftBlockDec.setSkip(skip);
     mainVFO.setInputSampleRate(sampleRate, inputBlockSize);
 
     // // Reset the modulator and audio systems

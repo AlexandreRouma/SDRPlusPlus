@@ -148,9 +148,6 @@ namespace dsp {
             if (running) {
                 return;
             }
-            if (blockSize < 1 ) {
-                return;
-            }
             _blockSize = blockSize;
             output.setMaxLatency(blockSize * 2);
         }
@@ -158,9 +155,6 @@ namespace dsp {
         void setSkip(int skip) {
             if (running) {
                 return;
-            }
-            if (skip < 0 ) {
-                skip = 0;
             }
             _skip = skip;
         }
@@ -170,9 +164,20 @@ namespace dsp {
     private:
         static void _worker(BlockDecimator* _this) {
             complex_t* buf = new complex_t[_this->_blockSize];
+            bool delay = _this->_skip < 0;
+
+            int readCount = std::min<int>(_this->_blockSize + _this->_skip, _this->_blockSize);
+            int skip = std::max<int>(_this->_skip, 0);
+            int delaySize = (-_this->_skip) * sizeof(complex_t);
+
+            complex_t* start = &buf[std::max<int>(-_this->_skip, 0)];
+            complex_t* delayStart = &buf[_this->_blockSize + _this->_skip];
+
             while (true) {
-                int read = _this->_input->readAndSkip(buf, _this->_blockSize, _this->_skip);
-                if (read < 0) { break; };
+                if (delay) {
+                    memmove(buf, delayStart, delaySize);
+                }
+                if (_this->_input->readAndSkip(start, readCount, skip) < 0) { break; };
                 if (_this->output.write(buf, _this->_blockSize) < 0) { break; };
             }
             delete[] buf;
