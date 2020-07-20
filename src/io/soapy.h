@@ -11,6 +11,9 @@ namespace io {
             output.init(64000);
             currentGains = new float[1];
             refresh();
+            if (devList.size() == 0) {
+                return;
+            }
             setDevice(devList[0]);
         }
 
