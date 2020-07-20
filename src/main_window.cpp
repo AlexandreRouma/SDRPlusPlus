@@ -237,7 +237,7 @@ void drawWindow() {
         }
     }
 
-    if (srId != _srId) {
+    if (srId != _srId && soapy.devList.size() > 0) {
         _srId = srId;
         sampleRate = soapy.sampleRates[srId];
         printf("Setting sample rate to %f\n", (float)soapy.sampleRates[srId]);
