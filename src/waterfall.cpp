@@ -372,7 +372,7 @@ namespace ImGui {
             rawFFTs.resize(waterfallHeight);
         }
 
-        memcpy(&waterfallFb[dataWidth], waterfallFb, dataWidth * (waterfallHeight - 1) * sizeof(uint32_t));
+        memmove(&waterfallFb[dataWidth], waterfallFb, dataWidth * (waterfallHeight - 1) * sizeof(uint32_t));
         float pixel;
         float dataRange = waterfallMax - waterfallMin;
         for (int j = 0; j < dataWidth; j++) {
