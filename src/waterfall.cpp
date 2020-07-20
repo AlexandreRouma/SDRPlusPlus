@@ -308,6 +308,7 @@ namespace ImGui {
         delete[] waterfallFb;
         latestFFT = new float[dataWidth];
         waterfallFb = new uint32_t[dataWidth * waterfallHeight];
+        memset(waterfallFb, 0, dataWidth * waterfallHeight * sizeof(uint32_t));
         for (int i = 0; i < dataWidth; i++) {
             latestFFT[i] = -1000.0f; // Hide everything
         }
