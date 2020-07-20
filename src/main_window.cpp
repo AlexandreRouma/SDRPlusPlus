@@ -267,7 +267,7 @@ void drawWindow() {
         }
     }
     else {
-        if (ImGui::ImageButton(icons::PLAY_RAW, ImVec2(30, 30))) {
+        if (ImGui::ImageButton(icons::PLAY_RAW, ImVec2(30, 30)) && soapy.devList.size() > 0) {
             soapy.start();
             soapy.setFrequency(wtf.getCenterFrequency());
             playing = true;
