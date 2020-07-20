@@ -221,7 +221,7 @@ void drawWindow() {
         sigPath.setVolume(volume);
     }
 
-    if (devId != _devId) {
+    if (devId != _devId && soapy.devList.size() > 0) {
         _devId = devId;
         soapy.setDevice(soapy.devList[devId]);
         srId = 0;
