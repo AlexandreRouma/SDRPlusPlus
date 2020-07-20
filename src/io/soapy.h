@@ -18,6 +18,9 @@ namespace io {
         }
 
         void start() {
+            if (devList.size() == 0) {
+                return;
+            }
             if (running) {
                 return;
             }
