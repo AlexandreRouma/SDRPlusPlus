@@ -4,6 +4,7 @@
 #include <dsp/types.h>
 #include <fstream>
 #include <portaudio.h>
+#include <spdlog/spdlog.h>
 
 namespace io {
     class AudioSink {
@@ -40,9 +41,16 @@ namespace io {
             outputParams.device = Pa_GetDefaultOutputDevice();
             outputParams.suggestedLatency = Pa_GetDeviceInfo(outputParams.device)->defaultLowOutputLatency;
             PaError err = Pa_OpenStream(&stream, NULL, &outputParams, 48000.0f, _bufferSize, paClipOff, _callback, this);
-            printf("%s\n", Pa_GetErrorText(err));
+            if (err != 0) {
+                spdlog::error("Error while opening audio stream: ({0}) => {1}", err, Pa_GetErrorText(err));
+                return;
+            }
             err = Pa_StartStream(stream);
-            printf("%s\n", Pa_GetErrorText(err));
+            if (err != 0) {
+                spdlog::error("Error while starting audio stream: ({0}) => {1}", err, Pa_GetErrorText(err));
+                return;
+            }
+            spdlog::info("Audio device open.");
         }
 
         void stop() {

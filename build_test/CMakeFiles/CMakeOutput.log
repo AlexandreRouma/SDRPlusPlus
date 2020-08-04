@@ -1,0 +1,467 @@
+The system is: Windows - 10.0.18362 - AMD64
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler:  
+Build flags: 
+Id flags:  
+
+The output was:
+0
+Microsoft (R) Build Engine version 15.8.169+g1ccb72aefa for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Build started 04/08/2020 16:54:58.
+Project "D:\Documents\Code\sdrpp\build_test\CMakeFiles\3.12.1\CompilerIdC\CompilerIdC.vcxproj" on node 1 (default targets).
+PrepareForBuild:
+  Creating directory "Debug\".
+  Creating directory "Debug\CompilerIdC.tlog\".
+InitializeBuildStatus:
+  Creating "Debug\CompilerIdC.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+VcpkgTripletSelection:
+  Using triplet "x64-windows" from "C:\Users\Alex\vcpkg\installed\x64-windows\"
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\HostX86\x64\CL.exe /c /I"C:\Users\Alex\vcpkg\installed\x64-windows\include" /nologo /W0 /WX- /diagnostics:classic /Od /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Debug\\" /Fd"Debug\vc141.pdb" /Gd /TC /FC /errorReport:queue CMakeCCompilerId.c
+  CMakeCCompilerId.c
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\HostX86\x64\link.exe /ERRORREPORT:QUEUE /OUT:".\CompilerIdC.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:"C:\Users\Alex\vcpkg\installed\x64-windows\debug\lib" /LIBPATH:"C:\Users\Alex\vcpkg\installed\x64-windows\debug\lib\manual-link" kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib "C:\Users\Alex\vcpkg\installed\x64-windows\debug\lib\*.lib" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:".\CompilerIdC.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\CompilerIdC.lib" /MACHINE:X64 Debug\CMakeCCompilerId.obj
+  CompilerIdC.vcxproj -> D:\Documents\Code\sdrpp\build_test\CMakeFiles\3.12.1\CompilerIdC\.\CompilerIdC.exe
+AppLocalFromInstalled:
+  C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -noprofile -File "C:\Users\Alex\vcpkg\scripts\buildsystems\msbuild\applocal.ps1" "D:\Documents\Code\sdrpp\build_test\CMakeFiles\3.12.1\CompilerIdC\.\CompilerIdC.exe" "C:\Users\Alex\vcpkg\installed\x64-windows\debug\bin" "Debug\CompilerIdC.tlog\CompilerIdC.write.1u.tlog" "Debug\vcpkg.applocal.log"
+PostBuildEvent:
+  for %%i in (cl.exe) do @echo CMAKE_C_COMPILER=%%~$PATH:i
+  :VCEnd
+  CMAKE_C_COMPILER=C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\Hostx86\x64\cl.exe
+FinalizeBuildStatus:
+  Deleting file "Debug\CompilerIdC.tlog\unsuccessfulbuild".
+  Touching "Debug\CompilerIdC.tlog\CompilerIdC.lastbuildstate".
+Done Building Project "D:\Documents\Code\sdrpp\build_test\CMakeFiles\3.12.1\CompilerIdC\CompilerIdC.vcxproj" (default targets).
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:02.86
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CompilerIdC.exe"
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CompilerIdC.vcxproj"
+
+The C compiler identification is MSVC, found in "D:/Documents/Code/sdrpp/build_test/CMakeFiles/3.12.1/CompilerIdC/CompilerIdC.exe"
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+Compiler:  
+Build flags: 
+Id flags:  
+
+The output was:
+0
+Microsoft (R) Build Engine version 15.8.169+g1ccb72aefa for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Build started 04/08/2020 16:55:01.
+Project "D:\Documents\Code\sdrpp\build_test\CMakeFiles\3.12.1\CompilerIdCXX\CompilerIdCXX.vcxproj" on node 1 (default targets).
+PrepareForBuild:
+  Creating directory "Debug\".
+  Creating directory "Debug\CompilerIdCXX.tlog\".
+InitializeBuildStatus:
+  Creating "Debug\CompilerIdCXX.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+VcpkgTripletSelection:
+  Using triplet "x64-windows" from "C:\Users\Alex\vcpkg\installed\x64-windows\"
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\HostX86\x64\CL.exe /c /I"C:\Users\Alex\vcpkg\installed\x64-windows\include" /nologo /W0 /WX- /diagnostics:classic /Od /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Debug\\" /Fd"Debug\vc141.pdb" /Gd /TP /FC /errorReport:queue CMakeCXXCompilerId.cpp
+  CMakeCXXCompilerId.cpp
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\HostX86\x64\link.exe /ERRORREPORT:QUEUE /OUT:".\CompilerIdCXX.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:"C:\Users\Alex\vcpkg\installed\x64-windows\debug\lib" /LIBPATH:"C:\Users\Alex\vcpkg\installed\x64-windows\debug\lib\manual-link" kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib "C:\Users\Alex\vcpkg\installed\x64-windows\debug\lib\*.lib" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:".\CompilerIdCXX.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\CompilerIdCXX.lib" /MACHINE:X64 Debug\CMakeCXXCompilerId.obj
+  CompilerIdCXX.vcxproj -> D:\Documents\Code\sdrpp\build_test\CMakeFiles\3.12.1\CompilerIdCXX\.\CompilerIdCXX.exe
+AppLocalFromInstalled:
+  C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -noprofile -File "C:\Users\Alex\vcpkg\scripts\buildsystems\msbuild\applocal.ps1" "D:\Documents\Code\sdrpp\build_test\CMakeFiles\3.12.1\CompilerIdCXX\.\CompilerIdCXX.exe" "C:\Users\Alex\vcpkg\installed\x64-windows\debug\bin" "Debug\CompilerIdCXX.tlog\CompilerIdCXX.write.1u.tlog" "Debug\vcpkg.applocal.log"
+PostBuildEvent:
+  for %%i in (cl.exe) do @echo CMAKE_CXX_COMPILER=%%~$PATH:i
+  :VCEnd
+  CMAKE_CXX_COMPILER=C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\Hostx86\x64\cl.exe
+FinalizeBuildStatus:
+  Deleting file "Debug\CompilerIdCXX.tlog\unsuccessfulbuild".
+  Touching "Debug\CompilerIdCXX.tlog\CompilerIdCXX.lastbuildstate".
+Done Building Project "D:\Documents\Code\sdrpp\build_test\CMakeFiles\3.12.1\CompilerIdCXX\CompilerIdCXX.vcxproj" (default targets).
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:02.48
+
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.exe"
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.vcxproj"
+
+The CXX compiler identification is MSVC, found in "D:/Documents/Code/sdrpp/build_test/CMakeFiles/3.12.1/CompilerIdCXX/CompilerIdCXX.exe"
+
+Determining if the C compiler works passed with the following output:
+Change Dir: D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp
+
+Run Build Command:"C:/Program Files (x86)/Microsoft Visual Studio/2017/Enterprise/MSBuild/15.0/Bin/MSBuild.exe" "cmTC_17f24.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=15.0"
+Microsoft (R) Build Engine version 15.8.169+g1ccb72aefa for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Build started 04/08/2020 16:55:04.
+Project "D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\cmTC_17f24.vcxproj" on node 1 (default targets).
+PrepareForBuild:
+  Creating directory "cmTC_17f24.dir\Debug\".
+  Creating directory "D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\Debug\".
+  Creating directory "cmTC_17f24.dir\Debug\cmTC_17f24.tlog\".
+InitializeBuildStatus:
+  Creating "cmTC_17f24.dir\Debug\cmTC_17f24.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+VcpkgTripletSelection:
+  Not using Vcpkg because VcpkgEnabled is "false"
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\HostX86\x64\CL.exe /c /Zi /W3 /WX- /diagnostics:classic /Od /Ob0 /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_17f24.dir\Debug\\" /Fd"cmTC_17f24.dir\Debug\vc141.pdb" /Gd /TC /FC /errorReport:queue D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\testCCompiler.c
+  Microsoft (R) C/C++ Optimizing Compiler Version 19.15.26730 for x64
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  
+  testCCompiler.c
+  cl /c /Zi /W3 /WX- /diagnostics:classic /Od /Ob0 /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_17f24.dir\Debug\\" /Fd"cmTC_17f24.dir\Debug\vc141.pdb" /Gd /TC /FC /errorReport:queue D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\testCCompiler.c
+  
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\HostX86\x64\link.exe /ERRORREPORT:QUEUE /OUT:"D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\Debug\cmTC_17f24.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp/Debug/cmTC_17f24.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp/Debug/cmTC_17f24.lib" /MACHINE:X64  /machine:x64 cmTC_17f24.dir\Debug\testCCompiler.obj
+  cmTC_17f24.vcxproj -> D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\Debug\cmTC_17f24.exe
+PostBuildEvent:
+  setlocal
+  powershell -noprofile -executionpolicy Bypass -file C:/Users/Alex/vcpkg/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp/Debug/cmTC_17f24.exe -installedDir C:/Users/Alex/vcpkg/installed/x64-windows/debug/bin -OutVariable out
+  if %errorlevel% neq 0 goto :cmEnd
+  :cmEnd
+  endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+  :cmErrorLevel
+  exit /b %1
+  :cmDone
+  if %errorlevel% neq 0 goto :VCEnd
+  :VCEnd
+FinalizeBuildStatus:
+  Deleting file "cmTC_17f24.dir\Debug\cmTC_17f24.tlog\unsuccessfulbuild".
+  Touching "cmTC_17f24.dir\Debug\cmTC_17f24.tlog\cmTC_17f24.lastbuildstate".
+Done Building Project "D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\cmTC_17f24.vcxproj" (default targets).
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:02.83
+
+
+Detecting C compiler ABI info compiled with the following output:
+Change Dir: D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp
+
+Run Build Command:"C:/Program Files (x86)/Microsoft Visual Studio/2017/Enterprise/MSBuild/15.0/Bin/MSBuild.exe" "cmTC_e02e3.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=15.0"
+Microsoft (R) Build Engine version 15.8.169+g1ccb72aefa for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Build started 04/08/2020 16:55:07.
+Project "D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\cmTC_e02e3.vcxproj" on node 1 (default targets).
+PrepareForBuild:
+  Creating directory "cmTC_e02e3.dir\Debug\".
+  Creating directory "D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\Debug\".
+  Creating directory "cmTC_e02e3.dir\Debug\cmTC_e02e3.tlog\".
+InitializeBuildStatus:
+  Creating "cmTC_e02e3.dir\Debug\cmTC_e02e3.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+VcpkgTripletSelection:
+  Not using Vcpkg because VcpkgEnabled is "false"
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\HostX86\x64\CL.exe /c /Zi /W3 /WX- /diagnostics:classic /Od /Ob0 /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_e02e3.dir\Debug\\" /Fd"cmTC_e02e3.dir\Debug\vc141.pdb" /Gd /TC /FC /errorReport:queue "C:\Program Files\CMake\share\cmake-3.12\Modules\CMakeCCompilerABI.c"
+  Microsoft (R) C/C++ Optimizing Compiler Version 19.15.26730 for x64
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  
+  CMakeCCompilerABI.c
+  cl /c /Zi /W3 /WX- /diagnostics:classic /Od /Ob0 /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_e02e3.dir\Debug\\" /Fd"cmTC_e02e3.dir\Debug\vc141.pdb" /Gd /TC /FC /errorReport:queue "C:\Program Files\CMake\share\cmake-3.12\Modules\CMakeCCompilerABI.c"
+  
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\HostX86\x64\link.exe /ERRORREPORT:QUEUE /OUT:"D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\Debug\cmTC_e02e3.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp/Debug/cmTC_e02e3.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp/Debug/cmTC_e02e3.lib" /MACHINE:X64  /machine:x64 cmTC_e02e3.dir\Debug\CMakeCCompilerABI.obj
+  cmTC_e02e3.vcxproj -> D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\Debug\cmTC_e02e3.exe
+PostBuildEvent:
+  setlocal
+  powershell -noprofile -executionpolicy Bypass -file C:/Users/Alex/vcpkg/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp/Debug/cmTC_e02e3.exe -installedDir C:/Users/Alex/vcpkg/installed/x64-windows/debug/bin -OutVariable out
+  if %errorlevel% neq 0 goto :cmEnd
+  :cmEnd
+  endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+  :cmErrorLevel
+  exit /b %1
+  :cmDone
+  if %errorlevel% neq 0 goto :VCEnd
+  :VCEnd
+FinalizeBuildStatus:
+  Deleting file "cmTC_e02e3.dir\Debug\cmTC_e02e3.tlog\unsuccessfulbuild".
+  Touching "cmTC_e02e3.dir\Debug\cmTC_e02e3.tlog\cmTC_e02e3.lastbuildstate".
+Done Building Project "D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\cmTC_e02e3.vcxproj" (default targets).
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:02.41
+
+
+
+
+Detecting C [] compiler features compiled with the following output:
+Change Dir: D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp
+
+Run Build Command:"C:/Program Files (x86)/Microsoft Visual Studio/2017/Enterprise/MSBuild/15.0/Bin/MSBuild.exe" "cmTC_67477.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=15.0"
+Microsoft (R) Build Engine version 15.8.169+g1ccb72aefa for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Build started 04/08/2020 16:55:10.
+Project "D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\cmTC_67477.vcxproj" on node 1 (default targets).
+PrepareForBuild:
+  Creating directory "cmTC_67477.dir\Debug\".
+  Creating directory "D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\Debug\".
+  Creating directory "cmTC_67477.dir\Debug\cmTC_67477.tlog\".
+InitializeBuildStatus:
+  Creating "cmTC_67477.dir\Debug\cmTC_67477.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+VcpkgTripletSelection:
+  Not using Vcpkg because VcpkgEnabled is "false"
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\HostX86\x64\CL.exe /c /Zi /W3 /WX- /diagnostics:classic /Od /Ob0 /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_67477.dir\Debug\\" /Fd"cmTC_67477.dir\Debug\vc141.pdb" /Gd /TC /FC /errorReport:queue D:\Documents\Code\sdrpp\build_test\CMakeFiles\feature_tests.c
+  Microsoft (R) C/C++ Optimizing Compiler Version 19.15.26730 for x64
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  
+  feature_tests.c
+  cl /c /Zi /W3 /WX- /diagnostics:classic /Od /Ob0 /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_67477.dir\Debug\\" /Fd"cmTC_67477.dir\Debug\vc141.pdb" /Gd /TC /FC /errorReport:queue D:\Documents\Code\sdrpp\build_test\CMakeFiles\feature_tests.c
+  
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\HostX86\x64\link.exe /ERRORREPORT:QUEUE /OUT:"D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\Debug\cmTC_67477.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp/Debug/cmTC_67477.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp/Debug/cmTC_67477.lib" /MACHINE:X64  /machine:x64 cmTC_67477.dir\Debug\feature_tests.obj
+  cmTC_67477.vcxproj -> D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\Debug\cmTC_67477.exe
+PostBuildEvent:
+  setlocal
+  powershell -noprofile -executionpolicy Bypass -file C:/Users/Alex/vcpkg/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp/Debug/cmTC_67477.exe -installedDir C:/Users/Alex/vcpkg/installed/x64-windows/debug/bin -OutVariable out
+  if %errorlevel% neq 0 goto :cmEnd
+  :cmEnd
+  endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+  :cmErrorLevel
+  exit /b %1
+  :cmDone
+  if %errorlevel% neq 0 goto :VCEnd
+  :VCEnd
+FinalizeBuildStatus:
+  Deleting file "cmTC_67477.dir\Debug\cmTC_67477.tlog\unsuccessfulbuild".
+  Touching "cmTC_67477.dir\Debug\cmTC_67477.tlog\cmTC_67477.lastbuildstate".
+Done Building Project "D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\cmTC_67477.vcxproj" (default targets).
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:02.42
+
+
+    Feature record: C_FEATURE:1c_function_prototypes
+    Feature record: C_FEATURE:1c_variadic_macros
+Determining if the CXX compiler works passed with the following output:
+Change Dir: D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp
+
+Run Build Command:"C:/Program Files (x86)/Microsoft Visual Studio/2017/Enterprise/MSBuild/15.0/Bin/MSBuild.exe" "cmTC_62738.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=15.0"
+Microsoft (R) Build Engine version 15.8.169+g1ccb72aefa for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Build started 04/08/2020 16:55:13.
+Project "D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\cmTC_62738.vcxproj" on node 1 (default targets).
+PrepareForBuild:
+  Creating directory "cmTC_62738.dir\Debug\".
+  Creating directory "D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\Debug\".
+  Creating directory "cmTC_62738.dir\Debug\cmTC_62738.tlog\".
+InitializeBuildStatus:
+  Creating "cmTC_62738.dir\Debug\cmTC_62738.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+VcpkgTripletSelection:
+  Not using Vcpkg because VcpkgEnabled is "false"
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\HostX86\x64\CL.exe /c /Zi /W3 /WX- /diagnostics:classic /Od /Ob0 /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_62738.dir\Debug\\" /Fd"cmTC_62738.dir\Debug\vc141.pdb" /Gd /TP /FC /errorReport:queue D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\testCXXCompiler.cxx
+  Microsoft (R) C/C++ Optimizing Compiler Version 19.15.26730 for x64
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  
+  testCXXCompiler.cxx
+  cl /c /Zi /W3 /WX- /diagnostics:classic /Od /Ob0 /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_62738.dir\Debug\\" /Fd"cmTC_62738.dir\Debug\vc141.pdb" /Gd /TP /FC /errorReport:queue D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\testCXXCompiler.cxx
+  
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\HostX86\x64\link.exe /ERRORREPORT:QUEUE /OUT:"D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\Debug\cmTC_62738.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp/Debug/cmTC_62738.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp/Debug/cmTC_62738.lib" /MACHINE:X64  /machine:x64 cmTC_62738.dir\Debug\testCXXCompiler.obj
+  cmTC_62738.vcxproj -> D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\Debug\cmTC_62738.exe
+PostBuildEvent:
+  setlocal
+  powershell -noprofile -executionpolicy Bypass -file C:/Users/Alex/vcpkg/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp/Debug/cmTC_62738.exe -installedDir C:/Users/Alex/vcpkg/installed/x64-windows/debug/bin -OutVariable out
+  if %errorlevel% neq 0 goto :cmEnd
+  :cmEnd
+  endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+  :cmErrorLevel
+  exit /b %1
+  :cmDone
+  if %errorlevel% neq 0 goto :VCEnd
+  :VCEnd
+FinalizeBuildStatus:
+  Deleting file "cmTC_62738.dir\Debug\cmTC_62738.tlog\unsuccessfulbuild".
+  Touching "cmTC_62738.dir\Debug\cmTC_62738.tlog\cmTC_62738.lastbuildstate".
+Done Building Project "D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\cmTC_62738.vcxproj" (default targets).
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:02.42
+
+
+Detecting CXX compiler ABI info compiled with the following output:
+Change Dir: D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp
+
+Run Build Command:"C:/Program Files (x86)/Microsoft Visual Studio/2017/Enterprise/MSBuild/15.0/Bin/MSBuild.exe" "cmTC_0e3de.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=15.0"
+Microsoft (R) Build Engine version 15.8.169+g1ccb72aefa for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Build started 04/08/2020 16:55:16.
+Project "D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\cmTC_0e3de.vcxproj" on node 1 (default targets).
+PrepareForBuild:
+  Creating directory "cmTC_0e3de.dir\Debug\".
+  Creating directory "D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\Debug\".
+  Creating directory "cmTC_0e3de.dir\Debug\cmTC_0e3de.tlog\".
+InitializeBuildStatus:
+  Creating "cmTC_0e3de.dir\Debug\cmTC_0e3de.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+VcpkgTripletSelection:
+  Not using Vcpkg because VcpkgEnabled is "false"
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\HostX86\x64\CL.exe /c /Zi /W3 /WX- /diagnostics:classic /Od /Ob0 /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_0e3de.dir\Debug\\" /Fd"cmTC_0e3de.dir\Debug\vc141.pdb" /Gd /TP /FC /errorReport:queue "C:\Program Files\CMake\share\cmake-3.12\Modules\CMakeCXXCompilerABI.cpp"
+  Microsoft (R) C/C++ Optimizing Compiler Version 19.15.26730 for x64
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  
+  CMakeCXXCompilerABI.cpp
+  cl /c /Zi /W3 /WX- /diagnostics:classic /Od /Ob0 /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_0e3de.dir\Debug\\" /Fd"cmTC_0e3de.dir\Debug\vc141.pdb" /Gd /TP /FC /errorReport:queue "C:\Program Files\CMake\share\cmake-3.12\Modules\CMakeCXXCompilerABI.cpp"
+  
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\HostX86\x64\link.exe /ERRORREPORT:QUEUE /OUT:"D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\Debug\cmTC_0e3de.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp/Debug/cmTC_0e3de.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp/Debug/cmTC_0e3de.lib" /MACHINE:X64  /machine:x64 cmTC_0e3de.dir\Debug\CMakeCXXCompilerABI.obj
+  cmTC_0e3de.vcxproj -> D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\Debug\cmTC_0e3de.exe
+PostBuildEvent:
+  setlocal
+  powershell -noprofile -executionpolicy Bypass -file C:/Users/Alex/vcpkg/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp/Debug/cmTC_0e3de.exe -installedDir C:/Users/Alex/vcpkg/installed/x64-windows/debug/bin -OutVariable out
+  if %errorlevel% neq 0 goto :cmEnd
+  :cmEnd
+  endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+  :cmErrorLevel
+  exit /b %1
+  :cmDone
+  if %errorlevel% neq 0 goto :VCEnd
+  :VCEnd
+FinalizeBuildStatus:
+  Deleting file "cmTC_0e3de.dir\Debug\cmTC_0e3de.tlog\unsuccessfulbuild".
+  Touching "cmTC_0e3de.dir\Debug\cmTC_0e3de.tlog\cmTC_0e3de.lastbuildstate".
+Done Building Project "D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\cmTC_0e3de.vcxproj" (default targets).
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:02.54
+
+
+
+
+Detecting CXX [] compiler features compiled with the following output:
+Change Dir: D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp
+
+Run Build Command:"C:/Program Files (x86)/Microsoft Visual Studio/2017/Enterprise/MSBuild/15.0/Bin/MSBuild.exe" "cmTC_3354c.vcxproj" "/p:Configuration=Debug" "/p:VisualStudioVersion=15.0"
+Microsoft (R) Build Engine version 15.8.169+g1ccb72aefa for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Build started 04/08/2020 16:55:19.
+Project "D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\cmTC_3354c.vcxproj" on node 1 (default targets).
+PrepareForBuild:
+  Creating directory "cmTC_3354c.dir\Debug\".
+  Creating directory "D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\Debug\".
+  Creating directory "cmTC_3354c.dir\Debug\cmTC_3354c.tlog\".
+InitializeBuildStatus:
+  Creating "cmTC_3354c.dir\Debug\cmTC_3354c.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+VcpkgTripletSelection:
+  Not using Vcpkg because VcpkgEnabled is "false"
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\HostX86\x64\CL.exe /c /Zi /W3 /WX- /diagnostics:classic /Od /Ob0 /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_3354c.dir\Debug\\" /Fd"cmTC_3354c.dir\Debug\vc141.pdb" /Gd /TP /FC /errorReport:queue D:\Documents\Code\sdrpp\build_test\CMakeFiles\feature_tests.cxx
+  Microsoft (R) C/C++ Optimizing Compiler Version 19.15.26730 for x64
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  
+  feature_tests.cxx
+  cl /c /Zi /W3 /WX- /diagnostics:classic /Od /Ob0 /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_3354c.dir\Debug\\" /Fd"cmTC_3354c.dir\Debug\vc141.pdb" /Gd /TP /FC /errorReport:queue D:\Documents\Code\sdrpp\build_test\CMakeFiles\feature_tests.cxx
+  
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.15.26726\bin\HostX86\x64\link.exe /ERRORREPORT:QUEUE /OUT:"D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\Debug\cmTC_3354c.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp/Debug/cmTC_3354c.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp/Debug/cmTC_3354c.lib" /MACHINE:X64  /machine:x64 cmTC_3354c.dir\Debug\feature_tests.obj
+  cmTC_3354c.vcxproj -> D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\Debug\cmTC_3354c.exe
+PostBuildEvent:
+  setlocal
+  powershell -noprofile -executionpolicy Bypass -file C:/Users/Alex/vcpkg/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary D:/Documents/Code/sdrpp/build_test/CMakeFiles/CMakeTmp/Debug/cmTC_3354c.exe -installedDir C:/Users/Alex/vcpkg/installed/x64-windows/debug/bin -OutVariable out
+  if %errorlevel% neq 0 goto :cmEnd
+  :cmEnd
+  endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+  :cmErrorLevel
+  exit /b %1
+  :cmDone
+  if %errorlevel% neq 0 goto :VCEnd
+  :VCEnd
+FinalizeBuildStatus:
+  Deleting file "cmTC_3354c.dir\Debug\cmTC_3354c.tlog\unsuccessfulbuild".
+  Touching "cmTC_3354c.dir\Debug\cmTC_3354c.tlog\cmTC_3354c.lastbuildstate".
+Done Building Project "D:\Documents\Code\sdrpp\build_test\CMakeFiles\CMakeTmp\cmTC_3354c.vcxproj" (default targets).
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:02.49
+
+
+    Feature record: CXX_FEATURE:1cxx_aggregate_default_initializers
+    Feature record: CXX_FEATURE:1cxx_alias_templates
+    Feature record: CXX_FEATURE:1cxx_alignas
+    Feature record: CXX_FEATURE:1cxx_alignof
+    Feature record: CXX_FEATURE:1cxx_attributes
+    Feature record: CXX_FEATURE:1cxx_attribute_deprecated
+    Feature record: CXX_FEATURE:1cxx_auto_type
+    Feature record: CXX_FEATURE:1cxx_binary_literals
+    Feature record: CXX_FEATURE:1cxx_constexpr
+    Feature record: CXX_FEATURE:1cxx_contextual_conversions
+    Feature record: CXX_FEATURE:1cxx_decltype
+    Feature record: CXX_FEATURE:1cxx_decltype_auto
+    Feature record: CXX_FEATURE:1cxx_decltype_incomplete_return_types
+    Feature record: CXX_FEATURE:1cxx_default_function_template_args
+    Feature record: CXX_FEATURE:1cxx_defaulted_functions
+    Feature record: CXX_FEATURE:1cxx_defaulted_move_initializers
+    Feature record: CXX_FEATURE:1cxx_delegating_constructors
+    Feature record: CXX_FEATURE:1cxx_deleted_functions
+    Feature record: CXX_FEATURE:1cxx_digit_separators
+    Feature record: CXX_FEATURE:1cxx_enum_forward_declarations
+    Feature record: CXX_FEATURE:1cxx_explicit_conversions
+    Feature record: CXX_FEATURE:1cxx_extended_friend_declarations
+    Feature record: CXX_FEATURE:1cxx_extern_templates
+    Feature record: CXX_FEATURE:1cxx_final
+    Feature record: CXX_FEATURE:1cxx_func_identifier
+    Feature record: CXX_FEATURE:1cxx_generalized_initializers
+    Feature record: CXX_FEATURE:1cxx_generic_lambdas
+    Feature record: CXX_FEATURE:1cxx_inheriting_constructors
+    Feature record: CXX_FEATURE:1cxx_inline_namespaces
+    Feature record: CXX_FEATURE:1cxx_lambdas
+    Feature record: CXX_FEATURE:1cxx_lambda_init_captures
+    Feature record: CXX_FEATURE:1cxx_local_type_template_args
+    Feature record: CXX_FEATURE:1cxx_long_long_type
+    Feature record: CXX_FEATURE:1cxx_noexcept
+    Feature record: CXX_FEATURE:1cxx_nonstatic_member_init
+    Feature record: CXX_FEATURE:1cxx_nullptr
+    Feature record: CXX_FEATURE:1cxx_override
+    Feature record: CXX_FEATURE:1cxx_range_for
+    Feature record: CXX_FEATURE:1cxx_raw_string_literals
+    Feature record: CXX_FEATURE:1cxx_reference_qualified_functions
+    Feature record: CXX_FEATURE:1cxx_return_type_deduction
+    Feature record: CXX_FEATURE:1cxx_right_angle_brackets
+    Feature record: CXX_FEATURE:1cxx_rvalue_references
+    Feature record: CXX_FEATURE:1cxx_sizeof_member
+    Feature record: CXX_FEATURE:1cxx_static_assert
+    Feature record: CXX_FEATURE:1cxx_strong_enums
+    Feature record: CXX_FEATURE:1cxx_template_template_parameters
+    Feature record: CXX_FEATURE:1cxx_thread_local
+    Feature record: CXX_FEATURE:1cxx_trailing_return_types
+    Feature record: CXX_FEATURE:1cxx_unicode_literals
+    Feature record: CXX_FEATURE:1cxx_uniform_initialization
+    Feature record: CXX_FEATURE:1cxx_unrestricted_unions
+    Feature record: CXX_FEATURE:1cxx_user_literals
+    Feature record: CXX_FEATURE:1cxx_variable_templates
+    Feature record: CXX_FEATURE:1cxx_variadic_macros
+    Feature record: CXX_FEATURE:1cxx_variadic_templates

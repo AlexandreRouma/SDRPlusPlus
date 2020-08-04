@@ -298,7 +298,7 @@ namespace ImGui {
     }
 
     void WaterFall::onPositionChange() {
-        printf("Pos changed\n");
+        // Nothing to see here...
     }
 
     void WaterFall::onResize() {
@@ -324,8 +324,6 @@ namespace ImGui {
         range = findBestRange(viewBandwidth, maxHSteps);
         vRange = findBestRange(fftMax - fftMin, maxVSteps);
         vRange = 10.0f;
-
-        printf("Resized: %d %d\n", dataWidth, waterfallHeight);
 
         updateWaterfallFb();
     }

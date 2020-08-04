@@ -144,7 +144,6 @@ namespace dsp {
         }
 
         void setBlockSize(int blockSize) {
-            printf("%d\n", blockSize);
             if (running) {
                 return;
             }
@@ -243,8 +242,6 @@ namespace dsp {
             _interp = _outputSampleRate / _gcd;
             _decim = inputSampleRate / _gcd;
 
-            printf("FIRResampler.setInputSampleRate(): %d %d\n", _interp, _decim);
-
             float cutoff = std::min<float>(_outputSampleRate / 2.0f, _inputSampleRate / 2.0f);
             if (passBand > 0.0f && transWidth > 0.0f) {
                 dsp::BlackmanWindow(_taps, _inputSampleRate * _interp, passBand, transWidth);
@@ -269,8 +266,6 @@ namespace dsp {
             _decim = _inputSampleRate / _gcd;
             outputBlockSize = (_blockSize * _interp) / _decim;
             output.setMaxLatency(outputBlockSize * 2);
-
-            printf("FIRResampler.setOutputSampleRate(): %d %d\n", _interp, _decim);
 
             float cutoff = std::min<float>(_outputSampleRate / 2.0f, _inputSampleRate / 2.0f);
             if (passBand > 0.0f && transWidth > 0.0f) {
@@ -332,12 +327,10 @@ namespace dsp {
             int decim = _this->_decim;
 
             float correction = (float)sqrt((float)interp);
-
-            printf("Resamp: %d %d", inCount, _this->outputBlockSize);
             
             int afterInterp = inCount * interp;
             int outIndex = 0;
-            while (true) {q
+            while (true) {
                 if (_this->_input->read(inBuf, inCount) < 0) { break; };
                 for (int i = 0; outIndex < outCount; i += decim) {
                     outBuf[outIndex].i = 0;
@@ -437,8 +430,6 @@ namespace dsp {
             _interp = _outputSampleRate / _gcd;
             _decim = inputSampleRate / _gcd;
 
-            printf("FloatFIRResampler.setInputSampleRate(): %d %d\n", _interp, _decim);
-
             float cutoff = std::min<float>(_outputSampleRate / 2.0f, _inputSampleRate / 2.0f);
             if (passBand > 0.0f && transWidth > 0.0f) {
                 dsp::BlackmanWindow(_taps, _inputSampleRate * _interp, passBand, transWidth);
@@ -463,8 +454,6 @@ namespace dsp {
             _decim = _inputSampleRate / _gcd;
             outputBlockSize = (_blockSize * _interp) / _decim;
             output.setMaxLatency(outputBlockSize * 2);
-
-            printf("FloatResampler.setOutputSampleRate(): %d %d\n", _interp, _decim);
 
             float cutoff = std::min<float>(_outputSampleRate / 2.0f, _inputSampleRate / 2.0f);
             if (passBand > 0.0f && transWidth > 0.0f) {
@@ -526,8 +515,6 @@ namespace dsp {
             int decim = _this->_decim;
 
             float correction = (float)sqrt((float)interp);
-
-            printf("FloatResamp: %d %d", inCount, _this->outputBlockSize);
             
             int afterInterp = inCount * interp;
             int outIndex = 0;

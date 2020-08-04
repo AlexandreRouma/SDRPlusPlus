@@ -8,20 +8,23 @@
 #include <styles.h>
 #include <icons.h>
 #include <version.h>
-
+#include <spdlog/spdlog.h>
+#include <bandplan.h>
 
 #ifdef _WIN32
 #include <Windows.h>
 #endif
 
 static void glfw_error_callback(int error, const char* description) {
-    fprintf(stderr, "Glfw Error %d: %s\n", error, description);
+    spdlog::error("Glfw Error {0}: {1}", error, description);
 }
 
 int main() {
 #ifdef _WIN32
     //FreeConsole();
 #endif
+
+    spdlog::info("SDR++ v" VERSION_STR);
 
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);
@@ -42,7 +45,7 @@ int main() {
     glfwSwapInterval(1); // Enable vsync
 
     if (glewInit() != GLEW_OK) {
-        fprintf(stderr, "Failed to initialize OpenGL loader!\n");
+        spdlog::error("Failed to initialize OpenGL loader!");
         return 1;
     }
 
@@ -60,8 +63,13 @@ int main() {
 
     windowInit();
 
-    printf("Loading icons...\n");
+    spdlog::info("Loading icons");
     icons::load();
+
+    spdlog::info("Loading band plans");
+    bandplan::loadFromDir("../bandplans");
+
+    spdlog::info("Ready.");
 
     // Main loop
     while (!glfwWindowShouldClose(window)) {

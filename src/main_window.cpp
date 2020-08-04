@@ -13,6 +13,8 @@
 #include <signal_path.h>
 #include <io/soapy.h>
 #include <icons.h>
+#include <bandplan.h>
+#include <watcher.h>
 
 std::thread worker;
 std::mutex fft_mtx;
@@ -64,50 +66,26 @@ void windowInit() {
     fft_out = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * fftSize);
     p = fftwf_plan_dft_1d(fftSize, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
 
-    printf("Starting DSP Thread!\n");
-
     sigPath.init(sampleRate, 20, fftSize, &soapy.output, (dsp::complex_t*)fft_in, fftHandler);
     sigPath.start();
 
     uiGains = new float[1];
 }
 
-int devId = 0;
-int _devId = -1;
-
-int srId = 0;
-int _srId = -1;
-
-bool showExample = false;
-
-long freq = 90500000;
-long _freq = 90500000;
-
+watcher<int> devId(0, true);
+watcher<int> srId(0, true);
+watcher<int> bandplanId(0);
+watcher<long> freq(90500000L);
 int demod = 1;
-
-bool state = false;
-bool mulstate = true;
-
-float vfoFreq = 92000000.0f;
-float lastVfoFreq = 92000000.0f;
-
-float volume = 1.0f;
-float lastVolume = 1.0f;
-
+watcher<float> vfoFreq(92000000.0f);
+watcher<float> volume(1.0f);
 float fftMin = -70.0f;
 float fftMax = 0.0f;
-
-float offset = 0.0f;
-float lastOffset = -1.0f;
-float bw = 8000000.0f;
-float lastBW = -1.0f;
-
+watcher<float> offset(0.0f, true);
+watcher<float> bw(8000000.0f, true);
 int sampleRate = 1000000;
-
 bool playing = false;
-
-bool dcbias = false;
-bool _dcbias = false;
+watcher<bool> dcbias(false, false);
 
 void setVFO(float freq) {
     float currentOff =  wtf.getVFOOfset();
@@ -216,17 +194,14 @@ void drawWindow() {
         fSel.setFrequency(wtf.getCenterFrequency() + wtf.getVFOOfset());
     }
 
-    if (volume != lastVolume) {
-        lastVolume = volume;
-        sigPath.setVolume(volume);
+    if (volume.changed()) {
+        sigPath.setVolume(volume.val);
     }
 
-    if (devId != _devId && soapy.devList.size() > 0) {
-        _devId = devId;
-        soapy.setDevice(soapy.devList[devId]);
-        srId = 0;
-        _srId = -1;
-        soapy.setSampleRate(soapy.sampleRates[0]);
+    if (devId.changed() && soapy.devList.size() > 0) {
+        spdlog::info("Changed input device: {0}", devId.val);
+        soapy.setDevice(soapy.devList[devId.val]);
+        srId.markAsChanged();
         if (soapy.gainList.size() == 0) {
             return;
         }
@@ -237,20 +212,22 @@ void drawWindow() {
         }
     }
 
-    if (srId != _srId && soapy.devList.size() > 0) {
-        _srId = srId;
-        sampleRate = soapy.sampleRates[srId];
-        printf("Setting sample rate to %f\n", (float)soapy.sampleRates[srId]);
+    if (srId.changed() && soapy.devList.size() > 0) {
+        spdlog::info("Changed sample rate: {0}", srId.val);
+        sampleRate = soapy.sampleRates[srId.val];
         soapy.setSampleRate(sampleRate);
         wtf.setBandwidth(sampleRate);
         wtf.setViewBandwidth(sampleRate);
         sigPath.setSampleRate(sampleRate);
-        bw = sampleRate;
+        bw.val = sampleRate;
     }
 
-    if (dcbias != _dcbias) {
-        _dcbias = dcbias;
-        sigPath.setDCBiasCorrection(dcbias);
+    if (dcbias.changed()) {
+        sigPath.setDCBiasCorrection(dcbias.val);
+    }
+
+    if (bandplanId.changed()) {
+        spdlog::info("BANDPLAN CHANGED!!!!");
     }
 
     ImVec2 vMin = ImGui::GetWindowContentRegionMin();
@@ -278,7 +255,7 @@ void drawWindow() {
 
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
     ImGui::SetNextItemWidth(200);
-    ImGui::SliderFloat("##_2_", &volume, 0.0f, 1.0f, "");
+    ImGui::SliderFloat("##_2_", &volume.val, 0.0f, 1.0f, "");
 
     ImGui::SameLine();
 
@@ -295,14 +272,14 @@ void drawWindow() {
 
     if (ImGui::CollapsingHeader("Source")) {
         ImGui::PushItemWidth(ImGui::GetWindowSize().x);
-        ImGui::Combo("##_0_", &devId, soapy.txtDevList.c_str());
-
+        ImGui::Combo("##_0_", &devId.val, soapy.txtDevList.c_str());
         ImGui::PopItemWidth();
+
         if (!playing) {
-            ImGui::Combo("##_1_", &srId, soapy.txtSampleRateList.c_str());
+            ImGui::Combo("##_1_", &srId.val, soapy.txtSampleRateList.c_str());
         }
         else {
-            ImGui::Text("%.0f Samples/s", soapy.sampleRates[srId]);
+            ImGui::Text("%.0f Samples/s", soapy.sampleRates[srId.val]);
         }
 
         ImGui::SameLine();
@@ -315,11 +292,6 @@ void drawWindow() {
             ImGui::SameLine();
             sprintf(buf, "##_gain_slide_%d_", i);
             ImGui::SliderFloat(buf, &uiGains[i], soapy.gainRanges[i].minimum(), soapy.gainRanges[i].maximum());
-
-            // float step = soapy.gainRanges[i].step();
-            // printf("%f\n", step);
-
-            // uiGains[i] = roundf(uiGains[i] / soapy.gainRanges[i].step()) * soapy.gainRanges[i].step();
 
             if (uiGains[i] != soapy.currentGains[i]) {
                 soapy.setGain(i, uiGains[i]);
@@ -369,12 +341,18 @@ void drawWindow() {
         ImGui::Columns(1, "EndRadioModeColumns", false);
 
         //ImGui::InputInt("Frequency (kHz)", &freq);
-        ImGui::Checkbox("DC Bias Removal", &dcbias);
+        ImGui::Checkbox("DC Bias Removal", &dcbias.val);
 
         ImGui::EndGroup();
     }
 
     ImGui::CollapsingHeader("Audio");
+
+    if (ImGui::CollapsingHeader("Band Plan")) {
+        ImGui::PushItemWidth(ImGui::GetWindowSize().x);
+        ImGui::Combo("##_4_", &bandplanId.val, bandplan::bandplanNameTxt.c_str());
+        ImGui::PopItemWidth();
+    } 
 
     ImGui::CollapsingHeader("Display");
 
@@ -397,7 +375,7 @@ void drawWindow() {
     ImGui::NextColumn();
 
     ImGui::Text("Zoom");
-    ImGui::VSliderFloat("##_7_", ImVec2(20.0f, 150.0f), &bw, sampleRate, 1000.0f, "");
+    ImGui::VSliderFloat("##_7_", ImVec2(20.0f, 150.0f), &bw.val, sampleRate, 1000.0f, "");
 
     ImGui::NewLine();
 
@@ -409,13 +387,10 @@ void drawWindow() {
     ImGui::Text("Min");
     ImGui::VSliderFloat("##_9_", ImVec2(20.0f, 150.0f), &fftMin, 0.0f, -100.0f, "");
 
-    if (bw != lastBW) {
-        lastBW = bw;
-        wtf.setViewBandwidth(bw);
+    if (bw.changed()) {
+        wtf.setViewBandwidth(bw.val);
         wtf.setViewOffset(wtf.getVFOOfset());
     }
-
-    
 
     wtf.setFFTMin(fftMin);
     wtf.setFFTMax(fftMax);

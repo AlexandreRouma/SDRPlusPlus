@@ -1,13 +1,16 @@
 #include <string>
 #include <SoapySDR/Device.hpp>
 #include <SoapySDR/Modules.hpp>
+#include <SoapySDR/Logger.hpp>
 #include <dsp/stream.h>
 #include <dsp/types.h>
+#include <spdlog/spdlog.h>
 
 namespace io {
     class SoapyWrapper {
     public:
         SoapyWrapper() {
+            SoapySDR::registerLogHandler(_logHandler);
             output.init(64000);
             currentGains = new float[1];
             refresh();
@@ -131,8 +134,19 @@ namespace io {
                 } 
                 _this->output.write(buf, res);
             }
-            printf("Read worker terminated\n");
             delete[] buf;
+        }
+
+        static void _logHandler(const SoapySDRLogLevel lvl, const char* message) {
+            if (lvl == SOAPY_SDR_FATAL || lvl == SOAPY_SDR_CRITICAL || lvl == SOAPY_SDR_ERROR) {
+                spdlog::error(message);
+            }
+            else if (lvl == SOAPY_SDR_WARNING) {
+                spdlog::warn(message);
+            }
+            else if (lvl == SOAPY_SDR_NOTICE | SOAPY_SDR_INFO) {
+                spdlog::info(message);
+            }
         }
 
         SoapySDR::Kwargs args;
