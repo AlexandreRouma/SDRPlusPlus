@@ -337,7 +337,7 @@ namespace dsp {
             
             int afterInterp = inCount * interp;
             int outIndex = 0;
-            while (true) {
+            while (true) {q
                 if (_this->_input->read(inBuf, inCount) < 0) { break; };
                 for (int i = 0; outIndex < outCount; i += decim) {
                     outBuf[outIndex].i = 0;
