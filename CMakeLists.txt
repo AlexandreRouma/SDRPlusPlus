@@ -50,5 +50,10 @@ if (MSVC)
     target_link_libraries(sdrpp PRIVATE portaudio portaudio_static)
 endif (MSVC)
 
+# # Copy resource directories
+# if (!MSVC)
+#     add_custom_command(TARGET sdrpp POST_BUILD COMMAND cmake -E copy_directory ${CMAKE_SOURCE_DIR}/res ${CMAKE_BINARY_DIR}/res)
+#     add_custom_command(TARGET sdrpp POST_BUILD COMMAND cmake -E copy_directory ${CMAKE_SOURCE_DIR}/bandplans ${CMAKE_BINARY_DIR}/bandplans)
+# endif (MSVC)
 
 # cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/Users/Alex/vcpkg/scripts/buildsystems/vcpkg.cmake" -G "Visual Studio 15 2017 Win64"

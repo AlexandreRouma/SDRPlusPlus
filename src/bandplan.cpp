@@ -66,6 +66,14 @@ namespace bandplan {
     }
 
     void loadFromDir(std::string path) {
+        if (!std::filesystem::exists(path)) {
+            spdlog::error("Band Plan directory does not exist");
+            return;
+        }
+        if (!std::filesystem::is_directory(path)) {
+            spdlog::error("Band Plan directory isn't a directory...");
+            return;
+        }
         bandplans.clear();
         for (const auto & file : std::filesystem::directory_iterator(path)) {
             std::string path = file.path().generic_string();

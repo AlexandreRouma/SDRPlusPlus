@@ -46,12 +46,17 @@ SDR++ is a cross-platform and open source SDR software with the aim of being blo
 * glew
 * PothosSDR (for libvolk and SoapySDR)
 
+## The build
 ```
 mkdir build
 cd build
 cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/Users/Alex/vcpkg/scripts/buildsystems/vcpkg.cmake" -G "Visual Studio 15 2017 Win64"
 cmake --build . --config Release
 ```
+
+## Copying over needed directories
+The last step of the build process is copying the `bandplans` and `res` directories to the output directory.
+If you followed the steps above, it should be `build/Release`.
 
 # Building on Linux
 comming soon :)
