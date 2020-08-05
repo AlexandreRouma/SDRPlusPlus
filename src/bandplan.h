@@ -3,6 +3,9 @@
 #include <fstream>
 #include <spdlog/spdlog.h>
 #include <filesystem>
+#include <sstream>
+#include <iomanip>
+#include <imgui/imgui.h>
 
 using nlohmann::json;
 
@@ -28,11 +31,21 @@ namespace bandplan {
 
     void to_json(json& j, const BandPlan_t& b);
     void from_json(const json& j, BandPlan_t& b);
+
+    struct BandPlanColor_t {
+        uint32_t colorValue;
+        uint32_t transColorValue;
+    };
+
+    void to_json(json& j, const BandPlanColor_t& ct);
+    void from_json(const json& j, BandPlanColor_t& ct);
     
     void loadBandPlan(std::string path);
     void loadFromDir(std::string path);
+    void loadColorTable(std::string path);
 
     extern std::map<std::string, BandPlan_t> bandplans;
     extern std::vector<std::string> bandplanNames;
     extern std::string bandplanNameTxt;
+    extern std::map<std::string, BandPlanColor_t> colorTable;
 };

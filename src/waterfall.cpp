@@ -289,6 +289,65 @@ namespace ImGui {
         waterfallUpdate = true;
     }
 
+    void WaterFall::drawBandPlan() {
+        int count = bandplan->bands.size();
+        float horizScale = (float)dataWidth / viewBandwidth;
+        float start, end, center, aPos, bPos, cPos, width;
+        ImVec2 txtSz;
+        bool startVis, endVis;
+        uint32_t color, colorTrans;
+        for (int i = 0; i < count; i++) {
+            start = bandplan->bands[i].start;
+            end = bandplan->bands[i].end;
+            if (start < lowerFreq && end < lowerFreq) {
+                continue;
+            }
+            if (start > upperFreq && end > upperFreq) {
+                continue;
+            }
+            startVis = (start > lowerFreq);
+            endVis = (end < upperFreq);
+            start = std::clamp<float>(start, lowerFreq, upperFreq);
+            end = std::clamp<float>(end, lowerFreq, upperFreq);
+            center = (start + end) / 2.0f;
+            aPos = widgetPos.x + 50 + ((start - lowerFreq) * horizScale);
+            bPos = widgetPos.x + 50 + ((end - lowerFreq) * horizScale);
+            cPos = widgetPos.x + 50 + ((center - lowerFreq) * horizScale);
+            width = bPos - aPos;
+            txtSz = ImGui::CalcTextSize(bandplan->bands[i].name.c_str());
+            if (bandplan::colorTable.find(bandplan->bands[i].type.c_str()) != bandplan::colorTable.end()) {
+                color = bandplan::colorTable[bandplan->bands[i].type].colorValue;
+                colorTrans = bandplan::colorTable[bandplan->bands[i].type].transColorValue;
+            }
+            else {
+                color = IM_COL32(255, 255, 255, 255);
+                colorTrans = IM_COL32(255, 255, 255, 100);
+            }
+            if (aPos <= widgetPos.x + 50) {
+                aPos = widgetPos.x + 51;
+            }
+            if (bPos <= widgetPos.x + 50) {
+                bPos = widgetPos.x + 51;
+            }
+            if (width >= 1.0f) {
+                window->DrawList->AddRectFilled(ImVec2(roundf(aPos), widgetPos.y + fftHeight - 25), 
+                                        ImVec2(roundf(bPos), widgetPos.y + fftHeight + 10), colorTrans);
+                if (startVis) {
+                    window->DrawList->AddLine(ImVec2(roundf(aPos), widgetPos.y + fftHeight - 26), 
+                                        ImVec2(roundf(aPos), widgetPos.y + fftHeight + 9), color);
+                }
+                if (endVis) {
+                    window->DrawList->AddLine(ImVec2(roundf(bPos), widgetPos.y + fftHeight - 26), 
+                                        ImVec2(roundf(bPos), widgetPos.y + fftHeight + 9), color);
+                }
+            }
+            if (txtSz.x <= width) {
+                window->DrawList->AddText(ImVec2(cPos - (txtSz.x / 2.0f), widgetPos.y + fftHeight - 17), 
+                                    IM_COL32(255, 255, 255, 255), bandplan->bands[i].name.c_str());
+            }
+        }
+    }
+
     void WaterFall::updateWaterfallTexture() {
         glBindTexture(GL_TEXTURE_2D, textureId);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -355,6 +414,9 @@ namespace ImGui {
         drawFFT();
         drawWaterfall();
         drawVFO();
+        if (bandplan != NULL) {
+            drawBandPlan();
+        }
 
         buf_mtx.unlock();
     }

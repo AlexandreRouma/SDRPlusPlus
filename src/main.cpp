@@ -69,6 +69,9 @@ int main() {
     spdlog::info("Loading band plans");
     bandplan::loadFromDir("bandplans");
 
+    spdlog::info("Loading band plans color table");
+    bandplan::loadColorTable("band_colors.json");
+
     spdlog::info("Ready.");
 
     // Main loop

@@ -4,6 +4,7 @@ namespace bandplan {
     std::map<std::string, BandPlan_t> bandplans;
     std::vector<std::string> bandplanNames;
     std::string bandplanNameTxt;
+    std::map<std::string, BandPlanColor_t> colorTable;
 
     void generateTxt() {
         bandplanNameTxt = "";
@@ -49,6 +50,24 @@ namespace bandplan {
         j.at("bands").get_to(b.bands);
     }
 
+    void to_json(json& j, const BandPlanColor_t& ct) {
+        spdlog::error("ImGui color to JSON not implemented!!!");
+    }
+    
+    void from_json(const json& j, BandPlanColor_t& ct) {
+        std::string col = j.get<std::string>();
+        if (col[0] != '#' || !std::all_of(col.begin() + 1, col.end(), ::isxdigit)) {
+            return;
+        }
+        uint8_t r, g, b, a;
+        r = std::stoi(col.substr(1, 2), NULL, 16);
+        g = std::stoi(col.substr(3, 2), NULL, 16);
+        b = std::stoi(col.substr(5, 2), NULL, 16);
+        a = std::stoi(col.substr(7, 2), NULL, 16);
+        ct.colorValue = IM_COL32(r, g, b, a);
+        ct.transColorValue = IM_COL32(r, g, b, 100);
+    }
+
     void loadBandPlan(std::string path) {
         std::ifstream file(path.c_str());
         json data;
@@ -82,5 +101,22 @@ namespace bandplan {
             }
             loadBandPlan(path);
         }
+    }
+
+    void loadColorTable(std::string path) {
+        if (!std::filesystem::exists(path)) {
+            spdlog::error("Band Plan Color Table file does not exist");
+            return;
+        }
+        if (!std::filesystem::is_regular_file(path)) {
+            spdlog::error("Band Plan Color Table file isn't a file...");
+            return;
+        }
+        std::ifstream file(path.c_str());
+        json data;
+        data << file;
+        file.close();
+
+        colorTable = data.get<std::map<std::string, BandPlanColor_t>>();
     }
 };

@@ -74,7 +74,7 @@ void windowInit() {
 
 watcher<int> devId(0, true);
 watcher<int> srId(0, true);
-watcher<int> bandplanId(0);
+watcher<int> bandplanId(0, true);
 watcher<long> freq(90500000L);
 int demod = 1;
 watcher<float> vfoFreq(92000000.0f);
@@ -86,6 +86,7 @@ watcher<float> bw(8000000.0f, true);
 int sampleRate = 1000000;
 bool playing = false;
 watcher<bool> dcbias(false, false);
+watcher<bool> bandPlanEnabled(true, false);
 
 void setVFO(float freq) {
     float currentOff =  wtf.getVFOOfset();
@@ -226,8 +227,12 @@ void drawWindow() {
         sigPath.setDCBiasCorrection(dcbias.val);
     }
 
-    if (bandplanId.changed()) {
-        spdlog::info("BANDPLAN CHANGED!!!!");
+    if (bandplanId.changed() && bandPlanEnabled.val) {
+        wtf.bandplan = &bandplan::bandplans[bandplan::bandplanNames[bandplanId.val]];
+    }
+
+    if (bandPlanEnabled.changed()) {
+        wtf.bandplan = bandPlanEnabled.val ? &bandplan::bandplans[bandplan::bandplanNames[bandplanId.val]] : NULL;
     }
 
     ImVec2 vMin = ImGui::GetWindowContentRegionMin();
@@ -352,6 +357,10 @@ void drawWindow() {
         ImGui::PushItemWidth(ImGui::GetWindowSize().x);
         ImGui::Combo("##_4_", &bandplanId.val, bandplan::bandplanNameTxt.c_str());
         ImGui::PopItemWidth();
+        ImGui::Checkbox("Enabled", &bandPlanEnabled.val);
+        bandplan::BandPlan_t plan = bandplan::bandplans[bandplan::bandplanNames[bandplanId.val]];
+        ImGui::Text("Country: %s (%s)", plan.countryName, plan.countryCode);
+        ImGui::Text("Author: %s", plan.authorName);
     } 
 
     ImGui::CollapsingHeader("Display");

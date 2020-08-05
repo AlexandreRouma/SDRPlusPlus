@@ -5,6 +5,7 @@
 #include <mutex>
 #include <GL/glew.h>
 #include <imutils.h>
+#include <bandplan.h>
 
 #define WATERFALL_RESOLUTION    1000000
 
@@ -58,6 +59,8 @@ namespace ImGui {
 
         bool centerFreqMoved = false;
         bool vfoFreqChanged = false;
+        bool bandplanEnabled = false;
+        bandplan::BandPlan_t* bandplan = NULL;
 
         enum {
             REF_LOWER,
@@ -71,6 +74,7 @@ namespace ImGui {
         void drawWaterfall();
         void drawFFT();
         void drawVFO();
+        void drawBandPlan();
         void onPositionChange();
         void onResize();
         void updateWaterfallFb();
