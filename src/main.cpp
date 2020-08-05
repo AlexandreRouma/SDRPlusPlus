@@ -66,8 +66,8 @@ int main() {
     spdlog::info("Loading icons");
     icons::load();
 
-    //spdlog::info("Loading band plans");
-    //bandplan::loadFromDir("../bandplans");
+    spdlog::info("Loading band plans");
+    bandplan::loadFromDir("../bandplans");
 
     spdlog::info("Ready.");
 
