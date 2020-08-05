@@ -71,3 +71,6 @@ I will soon publish a contributing.md listing the code style to use.
 # Credits
 * [SoapySDR (PothosWare)](https://github.com/pothosware/SoapySDR)
 * [ImGui (ocornut)](https://github.com/ocornut/imgui)
+* [spdlog (gabime)](https://github.com/gabime/spdlog)
+* [json (nlohmann)](https://github.com/nlohmann/json)
+* [portaudio (PortAudio community)](http://www.portaudio.com/)
