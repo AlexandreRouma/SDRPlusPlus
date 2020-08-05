@@ -79,3 +79,5 @@ I will soon publish a contributing.md listing the code style to use.
 ## Contributors
 * [aosync](https://github.com/aosync)
 * [Benjamin Kyd](https://github.com/benkyd)
+* [Tobias Mädel](https://github.com/Manawyrm)
+* [Raov #2531](https://github.com/Manawyrm)
