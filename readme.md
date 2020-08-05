@@ -69,8 +69,13 @@ Feel free to issue pull request and report bugs via the github issues.
 I will soon publish a contributing.md listing the code style to use.
 
 # Credits
+## Libaries used
 * [SoapySDR (PothosWare)](https://github.com/pothosware/SoapySDR)
 * [ImGui (ocornut)](https://github.com/ocornut/imgui)
 * [spdlog (gabime)](https://github.com/gabime/spdlog)
 * [json (nlohmann)](https://github.com/nlohmann/json)
 * [portaudio (PortAudio community)](http://www.portaudio.com/)
+
+## Contributors
+* [aosync](https://github.com/aosync)
+* [Benjamin Kyd](https://github.com/benkyd)
