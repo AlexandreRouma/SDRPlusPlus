@@ -67,3 +67,7 @@ comming soon as well :)
 # Contributing
 Feel free to issue pull request and report bugs via the github issues.
 I will soon publish a contributing.md listing the code style to use.
+
+# Credits
+* [SoapySDR (PothosWare)](https://github.com/pothosware/SoapySDR)
+* [ImGui (ocornut)](https://github.com/ocornut/imgui)
