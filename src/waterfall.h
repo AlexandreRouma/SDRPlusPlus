@@ -6,6 +6,7 @@
 #include <GL/glew.h>
 #include <imutils.h>
 #include <bandplan.h>
+#include <algorithm>
 
 #define WATERFALL_RESOLUTION    1000000
 

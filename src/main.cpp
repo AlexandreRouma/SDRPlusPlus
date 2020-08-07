@@ -10,6 +10,7 @@
 #include <version.h>
 #include <spdlog/spdlog.h>
 #include <bandplan.h>
+#include <module.h>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -71,6 +72,11 @@ int main() {
 
     spdlog::info("Loading band plans color table");
     bandplan::loadColorTable("band_colors.json");
+
+    spdlog::info("Loading test module");
+    //mod::loadModule("../modules/demo/build/Release/demo.dll", "Demo Module 1");
+    //mod::loadModule("../modules/demo/build/Release/demo.dll", "Demo Module 2");
+    //mod::loadModule("../modules/demo/build/Release/demo.dll", "Demo Module 3");
 
     spdlog::info("Ready.");
 

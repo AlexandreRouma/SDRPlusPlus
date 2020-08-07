@@ -1,6 +1,4 @@
 #include <waterfall.h>
-#include <algorithm>
-
 
 float COLOR_MAP[][3] = {
     {0x00, 0x00, 0x20},
@@ -20,7 +18,6 @@ float COLOR_MAP[][3] = {
 
 void doZoom(int offset, int width, int outWidth, std::vector<float> data, float* out) {
     // NOTE: REMOVE THAT SHIT, IT'S JUST A HACKY FIX
-    
     if (offset < 0) {
         offset = 0;
     }
