@@ -14,15 +14,13 @@
 #define FAST_ATAN2_COEF2 3.0f * FAST_ATAN2_COEF1
 
 inline float fast_arctan2(float y, float x) {
-   float abs_y = fabs(y)+1e-10;
+   float abs_y = fabs(y) + (1e-10);
    float r, angle;
-   if (x>=0)
-   {
+   if (x>=0) {
       r = (x - abs_y) / (x + abs_y);
       angle = FAST_ATAN2_COEF1 - FAST_ATAN2_COEF1 * r;
    }
-   else
-   {
+   else {
       r = (x + abs_y) / (abs_y - x);
       angle = FAST_ATAN2_COEF2 - FAST_ATAN2_COEF1 * r;
    }

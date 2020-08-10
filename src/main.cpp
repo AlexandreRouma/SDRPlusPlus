@@ -78,6 +78,8 @@ int main() {
     //mod::loadModule("../modules/demo/build/Release/demo.dll", "Demo Module 2");
     //mod::loadModule("../modules/demo/build/Release/demo.dll", "Demo Module 3");
 
+    
+
     spdlog::info("Ready.");
 
     // Main loop

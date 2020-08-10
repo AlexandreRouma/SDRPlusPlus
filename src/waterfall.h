@@ -12,6 +12,41 @@
 
 namespace ImGui {
 
+    class WaterfallVFO {
+    public:
+        void setOffset(float offset);
+        void setCenterOffset(float offset);
+        void setBandwidth(float bw);
+        void setReference(int ref);
+        void updateDrawingVars(float viewBandwidth, float dataWidth, float viewOffset, ImVec2 widgetPos, int fftHeight);
+        void draw(ImGuiWindow* window, bool selected);
+
+        enum {
+            REF_LOWER,
+            REF_CENTER,
+            REF_UPPER,
+            _REF_COUNT
+        };
+
+        float generalOffset;
+        float centerOffset;
+        float lowerOffset;
+        float upperOffset;
+        float bandwidth;
+        int reference = REF_CENTER;
+
+        ImVec2 rectMin;
+        ImVec2 rectMax;
+        ImVec2 lineMin;
+        ImVec2 lineMax;
+
+        bool centerOffsetChanged = false;
+        bool lowerOffsetChanged = false;
+        bool upperOffsetChanged = false;
+        bool redrawRequired = true;
+        bool lineVisible = true;
+    };
+
     class WaterFall {
     public:
         WaterFall();
@@ -26,14 +61,6 @@ namespace ImGui {
 
         void setBandwidth(float bandWidth);
         float getBandwidth();
-
-        void setVFOOffset(float offset);
-        float getVFOOfset();
-
-        void setVFOBandwidth(float bandwidth);
-        float getVFOBandwidth();
-
-        void setVFOReference(int ref);
 
         void setViewBandwidth(float bandWidth);
         float getViewBandwidth();
@@ -63,6 +90,9 @@ namespace ImGui {
         bool bandplanEnabled = false;
         bandplan::BandPlan_t* bandplan = NULL;
 
+        std::map<std::string, WaterfallVFO*> vfos;
+        std::string selectedVFO;
+
         enum {
             REF_LOWER,
             REF_CENTER,
@@ -74,12 +104,14 @@ namespace ImGui {
     private:
         void drawWaterfall();
         void drawFFT();
-        void drawVFO();
+        void drawVFOs();
         void drawBandPlan();
+        void processInputs();
         void onPositionChange();
         void onResize();
         void updateWaterfallFb();
         void updateWaterfallTexture();
+        void updateAllVFOs();
 
         bool waterfallUpdate = false;
 
@@ -128,10 +160,6 @@ namespace ImGui {
         // Absolute values
         float centerFreq;
         float wholeBandwidth;
-
-        // VFO
-        float vfoOffset;
-        float vfoBandwidth;
 
         // Ranges
         float fftMin;
