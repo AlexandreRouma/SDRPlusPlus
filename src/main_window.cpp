@@ -36,24 +36,12 @@ void fftHandler(dsp::complex_t* samples) {
     _data.clear();
 }
 
+dsp::NullSink sink;
+
 void windowInit() {
     int sampleRate = 8000000;
     wtf.setBandwidth(sampleRate);
     wtf.setCenterFrequency(90500000);
-    // wtf.setVFOBandwidth(200000);
-    // wtf.setVFOOffset(0);
-
-    wtf.vfos["Radio"] = new ImGui::WaterfallVFO;
-    wtf.vfos["Radio"]->setReference(ImGui::WaterfallVFO::REF_CENTER);
-    wtf.vfos["Radio"]->setBandwidth(200000);
-    wtf.vfos["Radio"]->setOffset(0);
-
-    wtf.vfos["Radio 2"] = new ImGui::WaterfallVFO;
-    wtf.vfos["Radio 2"]->setReference(ImGui::WaterfallVFO::REF_CENTER);
-    wtf.vfos["Radio 2"]->setBandwidth(200000);
-    wtf.vfos["Radio 2"]->setOffset(300000);
-
-    wtf.selectedVFO = "Radio";
 
     fSel.init();
     fSel.setFrequency(90500000);
@@ -64,6 +52,8 @@ void windowInit() {
 
     sigPath.init(sampleRate, 20, fftSize, &soapy.output, (dsp::complex_t*)fft_in, fftHandler);
     sigPath.start();
+
+    vfoman::init(&wtf, &sigPath);
 
     uiGains = new float[1];
 }
@@ -83,12 +73,8 @@ int sampleRate = 1000000;
 bool playing = false;
 watcher<bool> dcbias(false, false);
 watcher<bool> bandPlanEnabled(true, false);
-bool selectedVFOChanged = false;
 
 void setVFO(float freq) {
-    if (wtf.selectedVFO == "") {
-        return;
-    }
     ImGui::WaterfallVFO* vfo = wtf.vfos[wtf.selectedVFO];
 
     float currentOff =  vfo->centerOffset;
@@ -112,8 +98,7 @@ void setVFO(float freq) {
 
     // VFO still fints in the view
     if (vfoBottom > viewBottom && vfoTop < viewTop) {
-        sigPath.setVFOFrequency(newVFO);
-        vfo->setCenterOffset(newVFO);
+        vfoman::setCenterOffset(wtf.selectedVFO, newVFO);
         return;
     }
 
@@ -121,8 +106,7 @@ void setVFO(float freq) {
     if (vfoBottom < bottom) {
         wtf.setViewOffset((BW / 2.0f) - (viewBW / 2.0f));
         float newVFOOffset = (BW / 2.0f) - (vfoBW / 2.0f) - (viewBW / 10.0f);
-        sigPath.setVFOFrequency(newVFOOffset);
-        vfo->setCenterOffset(newVFOOffset);
+        vfoman::setCenterOffset(wtf.selectedVFO, newVFOOffset);
         wtf.setCenterFrequency(freq - newVFOOffset);
         soapy.setFrequency(freq - newVFOOffset);
         return;
@@ -132,8 +116,7 @@ void setVFO(float freq) {
     if (vfoTop > top) {
         wtf.setViewOffset((viewBW / 2.0f) - (BW / 2.0f));
         float newVFOOffset = (vfoBW / 2.0f) - (BW / 2.0f) + (viewBW / 10.0f);
-        sigPath.setVFOFrequency(newVFOOffset);
-        vfo->setCenterOffset(newVFOOffset);
+        vfoman::setCenterOffset(wtf.selectedVFO, newVFOOffset);
         wtf.setCenterFrequency(freq - newVFOOffset);
         soapy.setFrequency(freq - newVFOOffset);
         return;
@@ -146,16 +129,14 @@ void setVFO(float freq) {
         float newViewTop = newViewOff + (viewBW / 2.0f);
 
         if (newViewBottom > bottom) {
-            vfo->setCenterOffset(newVFO);
             wtf.setViewOffset(newViewOff);
-            sigPath.setVFOFrequency(newVFO);
+            vfoman::setCenterOffset(wtf.selectedVFO, newVFO);
             return;
         }
 
         wtf.setViewOffset((BW / 2.0f) - (viewBW / 2.0f));
         float newVFOOffset = (BW / 2.0f) - (vfoBW / 2.0f) - (viewBW / 10.0f);
-        sigPath.setVFOFrequency(newVFOOffset);
-        vfo->setCenterOffset(newVFOOffset);
+        vfoman::setCenterOffset(wtf.selectedVFO, newVFOOffset);
         wtf.setCenterFrequency(freq - newVFOOffset);
         soapy.setFrequency(freq - newVFOOffset);
     }
@@ -165,47 +146,49 @@ void setVFO(float freq) {
         float newViewTop = newViewOff + (viewBW / 2.0f);
 
         if (newViewTop < top) {
-            vfo->setCenterOffset(newVFO);
             wtf.setViewOffset(newViewOff);
-            sigPath.setVFOFrequency(newVFO);
+            vfoman::setCenterOffset(wtf.selectedVFO, newVFO);
             return;
         }
 
         wtf.setViewOffset((viewBW / 2.0f) - (BW / 2.0f));
         float newVFOOffset = (vfoBW / 2.0f) - (BW / 2.0f) + (viewBW / 10.0f);
-        sigPath.setVFOFrequency(newVFOOffset);
-        vfo->setCenterOffset(newVFOOffset);
+        vfoman::setCenterOffset(wtf.selectedVFO, newVFOOffset);
         wtf.setCenterFrequency(freq - newVFOOffset);
         soapy.setFrequency(freq - newVFOOffset);
     }
 }
 
 void drawWindow() {
+    if (wtf.selectedVFO == "" && wtf.vfos.size() > 0) {
+        wtf.selectFirstVFO();
+    }
+
     ImGui::WaterfallVFO* vfo = wtf.vfos[wtf.selectedVFO];
 
-    if (selectedVFOChanged) {
-        selectedVFOChanged = false;
+    if (vfo->centerOffsetChanged) {
+        fSel.setFrequency(wtf.getCenterFrequency() + vfo->generalOffset);
+    }
+
+    vfoman::updateFromWaterfall();
+
+    if (wtf.selectedVFOChanged) {
+        wtf.selectedVFOChanged = false;
         fSel.setFrequency(vfo->generalOffset + wtf.getCenterFrequency());
     }
 
     if (fSel.frequencyChanged) {
         fSel.frequencyChanged = false;
         setVFO(fSel.frequency);
+        vfo->centerOffsetChanged = false;
+        vfo->lowerOffsetChanged = false;
+        vfo->upperOffsetChanged = false;
     }
 
     if (wtf.centerFreqMoved) {
         wtf.centerFreqMoved = false;
         soapy.setFrequency(wtf.getCenterFrequency());
         fSel.setFrequency(wtf.getCenterFrequency() + vfo->generalOffset);
-    }
-    if (wtf.vfoFreqChanged) {
-        wtf.vfoFreqChanged = false;
-        sigPath.setVFOFrequency(vfo->centerOffset);
-        fSel.setFrequency(wtf.getCenterFrequency() + vfo->generalOffset);
-    }
-
-    if (volume.changed()) {
-        sigPath.setVolume(volume.val);
     }
 
     if (devId.changed() && soapy.devList.size() > 0) {
@@ -320,52 +303,6 @@ void drawWindow() {
             mod = mod::modules[mod::moduleNames[i]];
             mod._DRAW_MENU_(mod.ctx);
         }
-    } 
-
-    if (ImGui::CollapsingHeader("Radio")) {
-        ImGui::BeginGroup();
-
-        ImGui::Columns(4, "RadioModeColumns", false);
-        if (ImGui::RadioButton("NFM", demod == 0) && demod != 0) { 
-            sigPath.setDemodulator(SignalPath::DEMOD_NFM); demod = 0; 
-            vfo->setBandwidth(12500); 
-            vfo->setReference(ImGui::WaterFall::REF_CENTER);
-        }
-        if (ImGui::RadioButton("WFM", demod == 1) && demod != 1) { 
-            sigPath.setDemodulator(SignalPath::DEMOD_FM); 
-            demod = 1; 
-            vfo->setBandwidth(200000);
-            vfo->setReference(ImGui::WaterFall::REF_CENTER);
-        }
-        ImGui::NextColumn();
-        if (ImGui::RadioButton("AM", demod == 2) && demod != 2) { 
-            sigPath.setDemodulator(SignalPath::DEMOD_AM); 
-            demod = 2; 
-            vfo->setBandwidth(12500);
-            vfo->setReference(ImGui::WaterFall::REF_CENTER);
-        }
-        if (ImGui::RadioButton("DSB", demod == 3) && demod != 3) { demod = 3; };
-        ImGui::NextColumn();
-        if (ImGui::RadioButton("USB", demod == 4) && demod != 4) { 
-            sigPath.setDemodulator(SignalPath::DEMOD_USB); 
-            demod = 4; 
-            vfo->setBandwidth(3000);
-            vfo->setReference(ImGui::WaterFall::REF_LOWER);
-        }
-        if (ImGui::RadioButton("CW", demod == 5) && demod != 5) { demod = 5; };
-        ImGui::NextColumn();
-        if (ImGui::RadioButton("LSB", demod == 6) && demod != 6) {
-            sigPath.setDemodulator(SignalPath::DEMOD_LSB);
-            demod = 6;
-            vfo->setBandwidth(3000);
-            vfo->setReference(ImGui::WaterFall::REF_UPPER);
-        }
-        if (ImGui::RadioButton("RAW", demod == 7) && demod != 7) { demod = 7; };
-        ImGui::Columns(1, "EndRadioModeColumns", false);
-
-        ImGui::Checkbox("DC Bias Removal", &dcbias.val);
-
-        ImGui::EndGroup();
     }
 
     ImGui::CollapsingHeader("Audio");
@@ -388,16 +325,6 @@ void drawWindow() {
         ImGui::Text("Frame time: %.3f ms/frame", 1000.0f / ImGui::GetIO().Framerate);
         ImGui::Text("Framerate: %.1f FPS", ImGui::GetIO().Framerate);
         ImGui::Text("Center Frequency: %.1f FPS", wtf.getCenterFrequency());
-
-        if (ImGui::Button("Radio##__sdsd__")) {
-            wtf.selectedVFO = "Radio";
-            selectedVFOChanged = true;
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Radio 2")) {
-            wtf.selectedVFO = "Radio 2";
-            selectedVFOChanged = true;
-        }
     }
 
     ImGui::EndChild();

@@ -9,6 +9,8 @@
 #include <dsp/correction.h>
 #include <dsp/vfo.h>
 #include <io/audio.h>
+#include <map>
+#include <module.h>
 
 class SignalPath {
 public:
@@ -18,22 +20,15 @@ public:
     void setSampleRate(float sampleRate);
     void setDCBiasCorrection(bool enabled);
     void setFFTRate(float rate);
-
-    void setVFOFrequency(long frequency);
-    void setVolume(float volume);
-
-    void setDemodulator(int demod);
-
-    enum {
-        DEMOD_FM,
-        DEMOD_NFM,
-        DEMOD_AM,
-        DEMOD_USB,
-        DEMOD_LSB,
-        _DEMOD_COUNT
-    };
+    dsp::VFO* addVFO(std::string name, float outSampleRate, float bandwidth, float offset);
+    void removeVFO(std::string name);
 
 private:
+    struct VFO_t {
+        dsp::stream<dsp::complex_t>* inputStream;
+        dsp::VFO* vfo;
+    };
+
     dsp::DCBiasRemover dcBiasRemover;
     dsp::Splitter split;
 
@@ -42,19 +37,11 @@ private:
     dsp::HandlerSink fftHandlerSink;
 
     // VFO
-    dsp::VFO mainVFO;
-
-    // Demodulators
-    dsp::FMDemodulator demod;
-    dsp::AMDemodulator amDemod;
-    dsp::SSBDemod ssbDemod;
-
-    // Audio output
-    dsp::FloatFIRResampler audioResamp;
-    io::AudioSink audio;
+    dsp::DynamicSplitter dynSplit;
+    std::map<std::string, VFO_t> vfos;
 
     float sampleRate;
     float fftRate;
     int fftSize;
-    int _demod;
+    int inputBlockSize;
 };

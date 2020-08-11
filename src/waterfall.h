@@ -85,6 +85,8 @@ namespace ImGui {
 
         void autoRange();
 
+        void selectFirstVFO();
+
         bool centerFreqMoved = false;
         bool vfoFreqChanged = false;
         bool bandplanEnabled = false;
@@ -92,6 +94,7 @@ namespace ImGui {
 
         std::map<std::string, WaterfallVFO*> vfos;
         std::string selectedVFO;
+        bool selectedVFOChanged = false;
 
         enum {
             REF_LOWER,

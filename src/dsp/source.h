@@ -3,6 +3,7 @@
 #include <dsp/stream.h>
 #include <dsp/types.h>
 #include <volk.h>
+#include <spdlog/spdlog.h>
 
 namespace dsp {
     class SineSource {

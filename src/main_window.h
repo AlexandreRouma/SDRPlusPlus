@@ -22,6 +22,7 @@
 #include <bandplan.h>
 #include <watcher.h>
 #include <module.h>
+#include <vfo_manager.h>
 
 #define WINDOW_FLAGS    ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground
 

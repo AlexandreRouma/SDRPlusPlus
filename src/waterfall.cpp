@@ -183,28 +183,51 @@ namespace ImGui {
         }
     }
 
+    void WaterFall::selectFirstVFO() {
+        for (auto const& [name, vfo] : vfos) {
+            selectedVFO = name;
+            return;
+        }
+    }
+
     void WaterFall::processInputs() {
+        WaterfallVFO* vfo = vfos[selectedVFO];
         ImVec2 mousePos = ImGui::GetMousePos();
         ImVec2 drag = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
         ImVec2 dragOrigin(mousePos.x - drag.x, mousePos.y - drag.y);
+        bool draging = ImGui::IsMouseDragging(ImGuiMouseButton_Left);
+        bool mouseInFreq = IS_IN_AREA(dragOrigin, freqAreaMin, freqAreaMax);
+        bool mouseInFFT = IS_IN_AREA(dragOrigin, fftAreaMin, fftAreaMax);
 
+        // If mouse was clicked on a VFO, select VFO and return
+        // If mouse was clicked but not on a VFO, move selected VFO to position
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-            spdlog::info("Clicked!");
+            for (auto const& [name, _vfo] : vfos) {
+                if (name == selectedVFO) {
+                    continue;
+                }
+                if (IS_IN_AREA(mousePos, _vfo->rectMin, _vfo->rectMax)) {
+                    selectedVFO = name;
+                    selectedVFOChanged = true;
+                    return;
+                }
+            }
+            int refCenter = mousePos.x - (widgetPos.x + 50);
+            if (refCenter >= 0 && refCenter < dataWidth && mousePos.y > widgetPos.y && mousePos.y < (widgetPos.y + widgetSize.y)) {
+                vfo->setOffset(((((float)refCenter / ((float)dataWidth / 2.0f)) - 1.0f) * (viewBandwidth / 2.0f)) + viewOffset);
+            }
         }
 
-        bool freqDrag = ImGui::IsMouseDragging(ImGuiMouseButton_Left) && IS_IN_AREA(dragOrigin, freqAreaMin, freqAreaMax);
+        // Draging VFO
+        if (draging && mouseInFFT) {
+            int refCenter = mousePos.x - (widgetPos.x + 50);
+            if (refCenter >= 0 && refCenter < dataWidth && mousePos.y > widgetPos.y && mousePos.y < (widgetPos.y + widgetSize.y)) {
+                vfo->setOffset(((((float)refCenter / ((float)dataWidth / 2.0f)) - 1.0f) * (viewBandwidth / 2.0f)) + viewOffset);
+            }
+        } 
 
-        // TODO: Process VFO drag
-
-        // if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && IS_IN_AREA(mousePos, fftAreaMin, fftAreaMax) && !freqDrag) {
-        //     int refCenter = mousePos.x - (widgetPos.x + 50);
-        //     if (refCenter >= 0 && refCenter < dataWidth && mousePos.y > widgetPos.y && mousePos.y < (widgetPos.y + widgetSize.y)) {
-        //         vfoOffset = ((((float)refCenter / ((float)dataWidth / 2.0f)) - 1.0f) * (viewBandwidth / 2.0f)) + viewOffset;
-        //     }
-        //     vfoFreqChanged = true;
-        // }
-
-        if (freqDrag) {
+        // Dragon frequency scale
+        if (draging && mouseInFreq) {
             float deltax = drag.x - lastDrag;
             lastDrag = drag.x;
             float viewDelta = deltax * (viewBandwidth / (float)dataWidth);

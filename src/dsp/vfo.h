@@ -3,6 +3,7 @@
 #include <dsp/math.h>
 #include <dsp/resampling.h>
 #include <dsp/filter.h>
+#include <spdlog/spdlog.h>
 
 namespace dsp {
     class VFO {
