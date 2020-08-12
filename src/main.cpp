@@ -73,14 +73,6 @@ int main() {
     spdlog::info("Loading band plans color table");
     bandplan::loadColorTable("band_colors.json");
 
-    spdlog::info("Loading test module");
-    mod::initAPI();
-    mod::loadModule("../modules/radio/build/Release/radio.dll", "Radio 1");
-    mod::loadModule("../modules/radio/build/Release/radio.dll", "Radio 2");
-    //mod::loadModule("../modules/demo/build/Release/demo.dll", "Demo Module 2");
-    //mod::loadModule("../modules/demo/build/Release/demo.dll", "Demo Module 3");
-
-
     spdlog::info("Ready.");
 
     // Main loop

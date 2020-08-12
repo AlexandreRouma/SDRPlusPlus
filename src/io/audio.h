@@ -27,6 +27,16 @@ namespace io {
             buffer = new float[_bufferSize * 2];
             _volume = 1.0f;
             Pa_Initialize();
+
+            devTxtList = "";
+            int devCount = Pa_GetDeviceCount();
+            const PaDeviceInfo *deviceInfo;
+            for(int i = 0; i < devCount; i++) {
+                deviceInfo = Pa_GetDeviceInfo(i);
+                devTxtList += deviceInfo->name;
+                devTxtList += '\0';
+            }
+            devIndex = Pa_GetDefaultOutputDevice();
         }
 
         void setVolume(float volume) {
@@ -34,11 +44,14 @@ namespace io {
         }
 
         void start() {
+            if (running) {
+                return;
+            }
             PaStreamParameters outputParams;
             outputParams.channelCount = 2;
             outputParams.sampleFormat = paFloat32;
             outputParams.hostApiSpecificStreamInfo = NULL;
-            outputParams.device = Pa_GetDefaultOutputDevice();
+            outputParams.device = devIndex;
             outputParams.suggestedLatency = Pa_GetDeviceInfo(outputParams.device)->defaultLowOutputLatency;
             PaError err = Pa_OpenStream(&stream, NULL, &outputParams, 48000.0f, _bufferSize, paClipOff, _callback, this);
             if (err != 0) {
@@ -51,17 +64,40 @@ namespace io {
                 return;
             }
             spdlog::info("Audio device open.");
+            running = true;
         }
 
         void stop() {
+            if (!running) {
+                return;
+            }
+            Pa_StopStream(stream);
             Pa_CloseStream(stream);
+            running = false;
         }
 
         void setBlockSize(int blockSize) {
-            stop();
+            if (running) {
+                return;
+            }
             _bufferSize = blockSize;
-            start();
         }
+
+        void setDevice(int id) {
+            if (devIndex == id) {
+                return;
+            }
+            if (running) {
+                return;
+            }
+            devIndex = id;
+        }
+
+        int getDeviceId() {
+            return devIndex;
+        }
+
+        std::string devTxtList;
 
     private:
         static int _callback(const void *input,
@@ -81,10 +117,12 @@ namespace io {
             return 0;
         }
 
+        int devIndex;
         int _bufferSize;
         dsp::stream<float>* _input;
         float* buffer;
         float _volume;
         PaStream *stream;
+        bool running = false;
     };
 };

@@ -25,6 +25,10 @@ public:
 
     void setDemodulator(int demod);
 
+    void DEBUG_TEST();
+
+    io::AudioSink audio;
+
     enum {
         DEMOD_FM,
         DEMOD_NFM,
@@ -44,7 +48,6 @@ private:
 
     // Audio output
     dsp::FloatFIRResampler audioResamp;
-    io::AudioSink audio;
 
     std::string vfoName;
 

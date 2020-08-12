@@ -56,6 +56,10 @@ void windowInit() {
     vfoman::init(&wtf, &sigPath);
 
     uiGains = new float[1];
+
+    spdlog::info("Loading modules");
+    mod::initAPI(&wtf);
+    mod::loadFromList("module_list.json");
 }
 
 watcher<int> devId(0, true);
@@ -64,7 +68,8 @@ watcher<int> bandplanId(0, true);
 watcher<long> freq(90500000L);
 int demod = 1;
 watcher<float> vfoFreq(92000000.0f);
-watcher<float> volume(1.0f);
+float dummyVolume = 1.0f;
+float* volume = &dummyVolume;
 float fftMin = -70.0f;
 float fftMax = 0.0f;
 watcher<float> offset(0.0f, true);
@@ -175,6 +180,7 @@ void drawWindow() {
     if (wtf.selectedVFOChanged) {
         wtf.selectedVFOChanged = false;
         fSel.setFrequency(vfo->generalOffset + wtf.getCenterFrequency());
+        mod::broadcastEvent(mod::EVENT_SELECTED_VFO_CHANGED);
     }
 
     if (fSel.frequencyChanged) {
@@ -233,6 +239,13 @@ void drawWindow() {
     int width = vMax.x - vMin.x;
     int height = vMax.y - vMin.y;
 
+    int modCount = mod::moduleNames.size();
+    mod::Module_t mod;
+    for (int i = 0; i < modCount; i++) {
+        mod = mod::modules[mod::moduleNames[i]];
+        mod._NEW_FRAME_(mod.ctx);
+    }
+
     // To Bar
     if (playing) {
         if (ImGui::ImageButton(icons::STOP_RAW, ImVec2(30, 30))) {
@@ -252,7 +265,7 @@ void drawWindow() {
 
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
     ImGui::SetNextItemWidth(200);
-    ImGui::SliderFloat("##_2_", &volume.val, 0.0f, 1.0f, "");
+    ImGui::SliderFloat("##_2_", volume, 0.0f, 1.0f, "");
 
     ImGui::SameLine();
 
@@ -296,8 +309,6 @@ void drawWindow() {
         }
     }
 
-    int modCount = mod::moduleNames.size();
-    mod::Module_t mod;
     for (int i = 0; i < modCount; i++) {
         if (ImGui::CollapsingHeader(mod::moduleNames[i].c_str())) {
             mod = mod::modules[mod::moduleNames[i]];
@@ -360,4 +371,12 @@ void drawWindow() {
     wtf.setFFTMax(fftMax);
     wtf.setWaterfallMin(fftMin);
     wtf.setWaterfallMax(fftMax);
+}
+
+void bindVolumeVariable(float* vol) {
+    volume = vol;
+}
+
+void unbindVolumeVariable() {
+    volume = &dummyVolume;
 }

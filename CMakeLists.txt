@@ -18,7 +18,7 @@ else()
     link_libraries(portaudio)
     link_libraries(X11)
     link_libraries(Xxf86vm)
-    link_libraries(DL)
+    link_libraries(dl)
 endif (MSVC)
 
 link_libraries(volk)

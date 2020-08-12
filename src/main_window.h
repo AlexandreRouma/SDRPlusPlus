@@ -28,3 +28,5 @@
 
 void windowInit();
 void drawWindow();
+void bindVolumeVariable(float* vol);
+void unbindVolumeVariable();

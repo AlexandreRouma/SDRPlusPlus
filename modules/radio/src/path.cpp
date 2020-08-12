@@ -112,3 +112,8 @@ void SigPath::start() {
     audioResamp.start();
     audio.start();
 }
+
+void SigPath::DEBUG_TEST() {
+    audio.stop();
+    audio.start();
+}

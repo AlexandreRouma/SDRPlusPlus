@@ -649,15 +649,8 @@ namespace ImGui {
             return;
         }
         reference = ref;
-        if (reference == REF_CENTER) {
-            setOffset(centerOffset);
-        }
-        else if (reference == REF_LOWER) {
-            setOffset(lowerOffset);
-        }
-        else if (reference == REF_UPPER) {
-            setOffset(upperOffset);
-        }
+        setOffset(generalOffset);
+        
     }
 
     void WaterfallVFO::updateDrawingVars(float viewBandwidth, float dataWidth, float viewOffset, ImVec2 widgetPos, int fftHeight) {

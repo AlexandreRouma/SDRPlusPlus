@@ -81,3 +81,4 @@ I will soon publish a contributing.md listing the code style to use.
 * [Benjamin Kyd](https://github.com/benkyd)
 * [Tobias Mädel](https://github.com/Manawyrm)
 * [Raov](https://twitter.com/raov_birbtog)
+* [SignalsEverywhere](https://signalseverywhere.com/)
