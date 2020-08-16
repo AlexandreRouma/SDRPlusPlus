@@ -1,6 +1,7 @@
 #include <module.h>
 #include <vfo_manager.h>
 #include <main_window.h>
+#include <audio.h>
 
 namespace mod {
     API_t API;
@@ -14,6 +15,8 @@ namespace mod {
 
     void initAPI(ImGui::WaterFall* wtf) {
         _wtf = wtf;
+
+        // VFO Manager
         API.registerVFO = vfoman::create;
         API.setVFOOffset = vfoman::setOffset;
         API.setVFOCenterOffset = vfoman::setCenterOffset;
@@ -22,9 +25,23 @@ namespace mod {
         API.getVFOOutputBlockSize = vfoman::getOutputBlockSize;
         API.setVFOReference = vfoman::setReference;
         API.removeVFO = vfoman::remove;
+
+        // GUI
         API.getSelectedVFOName = api_getSelectedVFOName;
         API.bindVolumeVariable = bindVolumeVariable;
         API.unbindVolumeVariable = unbindVolumeVariable;
+
+        // Audio
+        API.registerMonoStream = audio::registerMonoStream;
+        API.registerStereoStream = audio::registerStereoStream;
+        API.startStream = audio::startStream;
+        API.stopStream = audio::stopStream;
+        API.removeStream = audio::removeStream;
+        API.bindToStreamMono = audio::bindToStreamMono;
+        API.bindToStreamStereo = audio::bindToStreamStereo;
+        API.setBlockSize = audio::setBlockSize;
+        API.unbindFromStreamMono = audio::unbindFromStreamMono;
+        API.unbindFromStreamStereo = audio::unbindFromStreamStereo;
     }
 
     void loadModule(std::string path, std::string name) {

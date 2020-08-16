@@ -37,7 +37,7 @@ private:
     dsp::HandlerSink fftHandlerSink;
 
     // VFO
-    dsp::DynamicSplitter dynSplit;
+    dsp::DynamicSplitter<dsp::complex_t> dynSplit;
     std::map<std::string, VFO_t> vfos;
 
     float sampleRate;

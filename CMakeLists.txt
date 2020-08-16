@@ -29,6 +29,12 @@ include_directories(sdrpp "src/")
 include_directories(sdrpp "src/imgui")
 file(GLOB SRC "src/*.cpp")
 file(GLOB IMGUI "src/imgui/*.cpp")
+
+# If on windows, set the executable icon
+if (MSVC)
+    set(SRC ${SRC} "win32/resources.rc")
+endif (MSVC)
+
 add_executable(sdrpp ${SRC} ${IMGUI})
 
 if (MSVC)

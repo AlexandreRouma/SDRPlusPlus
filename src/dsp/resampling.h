@@ -312,9 +312,17 @@ namespace dsp {
             
             int inCount = _this->_blockSize;
             int outCount = _this->outputBlockSize;
-            
-            float* taps = _this->_taps.data(); 
+
+            int interp = _this->_interp;
+            int decim = _this->_decim;
+            float correction = interp;//(float)sqrt((float)interp);
+
             int tapCount = _this->_taps.size();
+            float* taps = new float[tapCount];
+            for (int i = 0; i < tapCount; i++) {
+                taps[i] = _this->_taps[i] * correction;
+            }
+            
             complex_t* delayBuf = new complex_t[tapCount];
 
             complex_t* delayStart = &inBuf[std::max<int>(inCount - tapCount, 0)];
@@ -322,11 +330,6 @@ namespace dsp {
             complex_t* delayBufEnd = &delayBuf[std::max<int>(tapCount - inCount, 0)];
             int moveSize = std::min<int>(inCount, tapCount - inCount) * sizeof(complex_t);
             int inSize = inCount * sizeof(complex_t);
-
-            int interp = _this->_interp;
-            int decim = _this->_decim;
-
-            float correction = (float)sqrt((float)interp);
             
             int afterInterp = inCount * interp;
             int outIndex = 0;
@@ -335,12 +338,9 @@ namespace dsp {
                 for (int i = 0; outIndex < outCount; i += decim) {
                     outBuf[outIndex].i = 0;
                     outBuf[outIndex].q = 0;
-                    for (int j = 0; j < tapCount; j++) {
-                        if ((i - j) % interp != 0) {
-                            continue;
-                        }
-                        outBuf[outIndex].i += GET_FROM_RIGHT_BUF(inBuf, delayBuf, tapCount, (i - j) / interp).i * taps[j] * correction;
-                        outBuf[outIndex].q += GET_FROM_RIGHT_BUF(inBuf, delayBuf, tapCount, (i - j) / interp).q * taps[j] * correction;
+                    for (int j = i % interp; j < tapCount; j += interp) {
+                        outBuf[outIndex].i += GET_FROM_RIGHT_BUF(inBuf, delayBuf, tapCount, (i - j) / interp).i * taps[j];
+                        outBuf[outIndex].q += GET_FROM_RIGHT_BUF(inBuf, delayBuf, tapCount, (i - j) / interp).q * taps[j];
                     }
                     outIndex++;
                 }
@@ -358,6 +358,7 @@ namespace dsp {
             delete[] inBuf;
             delete[] outBuf;
             delete[] delayBuf;
+            delete[] taps;
         }
 
         std::thread _workerThread;
@@ -500,9 +501,17 @@ namespace dsp {
             
             int inCount = _this->_blockSize;
             int outCount = _this->outputBlockSize;
+
+            int interp = _this->_interp;
+            int decim = _this->_decim;
+            float correction = interp;//(float)sqrt((float)interp);
             
-            float* taps = _this->_taps.data(); 
             int tapCount = _this->_taps.size();
+            float* taps = new float[tapCount];
+            for (int i = 0; i < tapCount; i++) {
+                taps[i] = _this->_taps[i] * correction;
+            }
+
             float* delayBuf = new float[tapCount];
 
             float* delayStart = &inBuf[std::max<int>(inCount - tapCount, 0)];
@@ -510,26 +519,23 @@ namespace dsp {
             float* delayBufEnd = &delayBuf[std::max<int>(tapCount - inCount, 0)];
             int moveSize = std::min<int>(inCount, tapCount - inCount) * sizeof(float);
             int inSize = inCount * sizeof(float);
-
-            int interp = _this->_interp;
-            int decim = _this->_decim;
-
-            float correction = (float)sqrt((float)interp);
             
             int afterInterp = inCount * interp;
             int outIndex = 0;
             while (true) {
                 if (_this->_input->read(inBuf, inCount) < 0) { break; };
+
+
                 for (int i = 0; outIndex < outCount; i += decim) {
                     outBuf[outIndex] = 0;
-                    for (int j = 0; j < tapCount; j++) {
-                        if ((i - j) % interp != 0) {
-                            continue;
-                        }
-                        outBuf[outIndex] += GET_FROM_RIGHT_BUF(inBuf, delayBuf, tapCount, (i - j) / interp) * taps[j] * correction;
+                    for (int j = (i % interp); j < tapCount; j += interp) {
+                        outBuf[outIndex] += GET_FROM_RIGHT_BUF(inBuf, delayBuf, tapCount, (i - j) / interp) * taps[j];
                     }
                     outIndex++;
                 }
+
+
+                
                 outIndex = 0;
                 if (tapCount > inCount) {
                     memmove(delayBuf, delayBufEnd, moveSize);

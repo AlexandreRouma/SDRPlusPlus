@@ -25,7 +25,9 @@ namespace icons {
     }
 
     void load() {
-        LOGO = (ImTextureID)loadTexture("res/icons/logo.png");
+        LOGO = (ImTextureID)loadTexture("res/icons/sdrpp.png");
+        PLAY = (ImTextureID)loadTexture("res/icons/play.png");
+        STOP = (ImTextureID)loadTexture("res/icons/stop.png");
         PLAY_RAW = (ImTextureID)loadTexture("res/icons/play_raw.png");
         STOP_RAW = (ImTextureID)loadTexture("res/icons/stop_raw.png");
     }

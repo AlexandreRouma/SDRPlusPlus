@@ -4,6 +4,14 @@ SigPath::SigPath() {
     
 }
 
+int SigPath::sampleRateChangeHandler(void* ctx, float sampleRate) {
+    SigPath* _this = (SigPath*)ctx;
+    _this->audioResamp.stop();
+    _this->audioResamp.setOutputSampleRate(sampleRate, sampleRate / 2.0f, sampleRate / 2.0f);
+    _this->audioResamp.start();
+    return _this->audioResamp.getOutputBlockSize();
+}
+
 void SigPath::init(std::string vfoName, uint64_t sampleRate, int blockSize, dsp::stream<dsp::complex_t>* input) {
     this->sampleRate = sampleRate;
     this->blockSize = blockSize;
@@ -18,7 +26,8 @@ void SigPath::init(std::string vfoName, uint64_t sampleRate, int blockSize, dsp:
     ssbDemod.init(input, 6000, 3000, 22);
     
     audioResamp.init(&demod.output, 200000, 48000, 800);
-    audio.init(&audioResamp.output, 64);
+    API->registerMonoStream(&audioResamp.output, vfoName, vfoName, sampleRateChangeHandler, this);
+    API->setBlockSize(vfoName, audioResamp.getOutputBlockSize());
 }
 
 void SigPath::setSampleRate(float sampleRate) {
@@ -26,10 +35,6 @@ void SigPath::setSampleRate(float sampleRate) {
 
     // Reset the demodulator and audio systems
     setDemodulator(_demod);
-}
-
-void SigPath::setVolume(float volume) {
-    audio.setVolume(volume);
 }
 
 void SigPath::setDemodulator(int demId) {
@@ -64,7 +69,7 @@ void SigPath::setDemodulator(int demId) {
         demod.setSampleRate(200000);
         demod.setDeviation(100000);
         audioResamp.setInput(&demod.output);
-        audioResamp.setInputSampleRate(200000, API->getVFOOutputBlockSize(vfoName));
+        audioResamp.setInputSampleRate(200000, API->getVFOOutputBlockSize(vfoName), 15000, 15000);
         demod.start();
     }
     if (demId == DEMOD_NFM) {
@@ -110,10 +115,5 @@ void SigPath::updateBlockSize() {
 void SigPath::start() {
     demod.start();
     audioResamp.start();
-    audio.start();
-}
-
-void SigPath::DEBUG_TEST() {
-    audio.stop();
-    audio.start();
+    API->startStream(vfoName);
 }

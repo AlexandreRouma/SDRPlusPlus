@@ -19,15 +19,10 @@ public:
     void setSampleRate(float sampleRate);
 
     void setVFOFrequency(long frequency);
-    void setVolume(float volume);
 
     void updateBlockSize();
 
     void setDemodulator(int demod);
-
-    void DEBUG_TEST();
-
-    io::AudioSink audio;
 
     enum {
         DEMOD_FM,
@@ -39,6 +34,8 @@ public:
     };
 
 private:
+    static int sampleRateChangeHandler(void* ctx, float sampleRate);
+    
     dsp::stream<dsp::complex_t> input;
 
     // Demodulators

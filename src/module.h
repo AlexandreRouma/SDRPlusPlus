@@ -29,9 +29,21 @@ namespace mod {
         int (*getVFOOutputBlockSize)(std::string name);
         void (*setVFOReference)(std::string name, int ref);
         void (*removeVFO)(std::string name);
+        
         std::string (*getSelectedVFOName)(void);
         void (*bindVolumeVariable)(float* vol);
         void (*unbindVolumeVariable)(void);
+
+        float (*registerMonoStream)(dsp::stream<float>* stream, std::string name, std::string vfoName, int (*sampleRateChangeHandler)(void* ctx, float sampleRate), void* ctx);
+        float (*registerStereoStream)(dsp::stream<dsp::StereoFloat_t>* stream, std::string name, std::string vfoName, int (*sampleRateChangeHandler)(void* ctx, float sampleRate), void* ctx);
+        void (*startStream)(std::string name);
+        void (*stopStream)(std::string name);
+        void (*removeStream)(std::string name);
+        dsp::stream<float>* (*bindToStreamMono)(std::string name, void (*streamRemovedHandler)(void* ctx), void (*sampleRateChangeHandler)(void* ctx, float sampleRate, int blockSize), void* ctx);
+        dsp::stream<dsp::StereoFloat_t>* (*bindToStreamStereo)(std::string name, void (*streamRemovedHandler)(void* ctx), void (*sampleRateChangeHandler)(void* ctx, float sampleRate, int blockSize), void* ctx);
+        void (*setBlockSize)(std::string name, int blockSize);
+        void (*unbindFromStreamMono)(std::string name, dsp::stream<float>* stream);
+        void (*unbindFromStreamStereo)(std::string name, dsp::stream<dsp::StereoFloat_t>* stream);
 
         enum {
             REF_LOWER,

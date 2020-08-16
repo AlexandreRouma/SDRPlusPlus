@@ -195,13 +195,19 @@ namespace ImGui {
         ImVec2 mousePos = ImGui::GetMousePos();
         ImVec2 drag = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
         ImVec2 dragOrigin(mousePos.x - drag.x, mousePos.y - drag.y);
-        bool draging = ImGui::IsMouseDragging(ImGuiMouseButton_Left);
+
+        bool mouseHovered, mouseHeld;
+        bool mouseClicked = ImGui::ButtonBehavior(ImRect(fftAreaMin, fftAreaMax), ImGuiID("WaterfallID"), &mouseHovered, &mouseHeld, 
+                                                ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_PressedOnClick);
+        
+        bool draging = ImGui::IsMouseDragging(ImGuiMouseButton_Left) && ImGui::IsWindowFocused();
         bool mouseInFreq = IS_IN_AREA(dragOrigin, freqAreaMin, freqAreaMax);
         bool mouseInFFT = IS_IN_AREA(dragOrigin, fftAreaMin, fftAreaMax);
+        
 
         // If mouse was clicked on a VFO, select VFO and return
         // If mouse was clicked but not on a VFO, move selected VFO to position
-        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+        if (mouseClicked) {
             for (auto const& [name, _vfo] : vfos) {
                 if (name == selectedVFO) {
                     continue;
@@ -264,9 +270,11 @@ namespace ImGui {
         float* tempData = new float[dataWidth];
         float pixel;
         float dataRange = waterfallMax - waterfallMin;
+        int size;
         for (int i = 0; i < count; i++) {
-            drawDataSize = (viewBandwidth / wholeBandwidth) * rawFFTs[i].size();
-            drawDataStart = (((float)rawFFTs[i].size() / 2.0f) * (offsetRatio + 1)) - (drawDataSize / 2);
+            size = rawFFTs[i].size();
+            drawDataSize = (viewBandwidth / wholeBandwidth) * size;
+            drawDataStart = (((float)size / 2.0f) * (offsetRatio + 1)) - (drawDataSize / 2);
             doZoom(drawDataStart, drawDataSize, dataWidth, rawFFTs[i], tempData);
             for (int j = 0; j < dataWidth; j++) {
                 pixel = (std::clamp<float>(tempData[j], waterfallMin, waterfallMax) - waterfallMin) / dataRange;
@@ -365,8 +373,8 @@ namespace ImGui {
         freqAreaMin = ImVec2(widgetPos.x + 50, widgetPos.y + fftHeight + 11);
         freqAreaMax = ImVec2(widgetPos.x + dataWidth + 50, widgetPos.y + fftHeight + 50);
 
-        maxHSteps = dataWidth / 50;
-        maxVSteps = fftHeight / 15;
+        maxHSteps = dataWidth / (ImGui::CalcTextSize("000.000").x + 10);
+        maxVSteps = fftHeight / (ImGui::CalcTextSize("000.000").y);
 
         range = findBestRange(viewBandwidth, maxHSteps);
         vRange = findBestRange(fftMax - fftMin, maxVSteps);

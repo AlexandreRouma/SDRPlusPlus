@@ -11,8 +11,8 @@ struct RadioContext_t {
     std::string name;
     int demod = 1;
     SigPath sigPath;
-    watcher<float> volume;
-    watcher<int> audioDevice;
+    // watcher<float> volume;
+    // watcher<int> audioDevice;
 };
 
 MOD_EXPORT void* _INIT_(mod::API_t* _API, ImGuiContext* imctx, std::string _name) {
@@ -21,24 +21,24 @@ MOD_EXPORT void* _INIT_(mod::API_t* _API, ImGuiContext* imctx, std::string _name
     ctx->name = _name;
     ctx->sigPath.init(_name, 200000, 1000, API->registerVFO(_name, mod::API_t::REF_CENTER, 0, 200000, 200000, 1000));
     ctx->sigPath.start();
-    ctx->volume.val = 1.0f;
-    ctx->volume.markAsChanged();
-    API->bindVolumeVariable(&ctx->volume.val);
-    ctx->audioDevice.val = ctx->sigPath.audio.getDeviceId();
-    ctx->audioDevice.changed(); // clear change
+    // ctx->volume.val = 1.0f;
+    // ctx->volume.markAsChanged();
+    // API->bindVolumeVariable(&ctx->volume.val);
+    // ctx->audioDevice.val = ctx->sigPath.audio.getDeviceId();
+    // ctx->audioDevice.changed(); // clear change
     ImGui::SetCurrentContext(imctx);
     return ctx;
 }
 
 MOD_EXPORT void _NEW_FRAME_(RadioContext_t* ctx) {
-    if (ctx->volume.changed()) {
-        ctx->sigPath.setVolume(ctx->volume.val);
-    }
-    if (ctx->audioDevice.changed()) {
-        ctx->sigPath.audio.stop();
-        ctx->sigPath.audio.setDevice(ctx->audioDevice.val);
-        ctx->sigPath.audio.start();
-    }
+    // if (ctx->volume.changed()) {
+    //     ctx->sigPath.setVolume(ctx->volume.val);
+    // }
+    // if (ctx->audioDevice.changed()) {
+    //     ctx->sigPath.audio.stop();
+    //     ctx->sigPath.audio.setDevice(ctx->audioDevice.val);
+    //     ctx->sigPath.audio.start();
+    // }
 }
 
 MOD_EXPORT void _DRAW_MENU_(RadioContext_t* ctx) {
@@ -85,9 +85,9 @@ MOD_EXPORT void _DRAW_MENU_(RadioContext_t* ctx) {
 
     ImGui::EndGroup();
 
-    ImGui::PushItemWidth(ImGui::GetWindowSize().x);
-    ImGui::Combo(CONCAT("##_audio_dev_", ctx->name), &ctx->audioDevice.val, ctx->sigPath.audio.devTxtList.c_str());
-    ImGui::PopItemWidth();
+    // ImGui::PushItemWidth(ImGui::GetWindowSize().x);
+    // ImGui::Combo(CONCAT("##_audio_dev_", ctx->name), &ctx->audioDevice.val, ctx->sigPath.audio.devTxtList.c_str());
+    // ImGui::PopItemWidth();
 }
 
 MOD_EXPORT void _HANDLE_EVENT_(RadioContext_t* ctx, int eventId) {
@@ -96,9 +96,9 @@ MOD_EXPORT void _HANDLE_EVENT_(RadioContext_t* ctx, int eventId) {
        ctx->sigPath.updateBlockSize();
     }
     else if (eventId == mod::EVENT_SELECTED_VFO_CHANGED) {
-        if (API->getSelectedVFOName() == ctx->name) {
-            API->bindVolumeVariable(&ctx->volume.val);
-        }
+        // if (API->getSelectedVFOName() == ctx->name) {
+        //     API->bindVolumeVariable(&ctx->volume.val);
+        // }
     }
 }
 

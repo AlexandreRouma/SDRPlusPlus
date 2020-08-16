@@ -52,6 +52,7 @@ namespace io {
             
             devList = SoapySDR::Device::enumerate();
             txtDevList = "";
+            devNameList.clear();
             if (devList.size() == 0) {
                 txtDevList += '\0';
                 return;
@@ -59,6 +60,7 @@ namespace io {
             for (int i = 0; i < devList.size(); i++) {
                 txtDevList += devList[i]["label"];
                 txtDevList += '\0';
+                devNameList.push_back(devList[i]["label"]);
             }
         }
 
@@ -74,6 +76,7 @@ namespace io {
                 txtSampleRateList += std::to_string((int)sampleRates[i]);
                 txtSampleRateList += '\0';
             }
+            _sampleRate = sampleRates[0];
 
             gainList = dev->listGains(SOAPY_SDR_RX, 0);
             gainRanges.clear();
@@ -84,7 +87,11 @@ namespace io {
             currentGains = new float[gainList.size()];
             for (int i = 0; i < gainList.size(); i++) {
                 gainRanges.push_back(dev->getGainRange(SOAPY_SDR_RX, 0, gainList[i]));
-                currentGains[i] = dev->getGain(SOAPY_SDR_RX, 0, gainList[i]);
+                SoapySDR::Range rng = dev->getGainRange(SOAPY_SDR_RX, 0, gainList[i]);
+
+                spdlog::info("{0}: {1} -> {2} (Step: {3})", gainList[i], rng.minimum(), rng.maximum(), rng.step());
+
+                currentGains[i] = rng.minimum();
             }
         }
 
@@ -109,8 +116,14 @@ namespace io {
             return running;
         }
 
+        float getSampleRate() {
+            return _sampleRate;
+        }
+
         SoapySDR::KwargsList devList;
+        std::vector<std::string> devNameList;
         std::string txtDevList;
+
         std::vector<double> sampleRates;
         std::string txtSampleRateList;
 

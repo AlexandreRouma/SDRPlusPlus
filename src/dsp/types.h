@@ -5,4 +5,9 @@ namespace dsp {
         float q;
         float i;
     };
+
+    struct StereoFloat_t {
+        float l;
+        float r;
+    };
 };

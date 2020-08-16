@@ -76,18 +76,19 @@ namespace dsp {
         bool running = false;
     };
 
+    template <class T>
     class DynamicSplitter {
     public:
         DynamicSplitter() {
             
         }
 
-        DynamicSplitter(stream<complex_t>* input, int bufferSize) {
+        DynamicSplitter(stream<T>* input, int bufferSize) {
             _in = input;
             _bufferSize = bufferSize;
         }
 
-        void init(stream<complex_t>* input, int bufferSize) {
+        void init(stream<T>* input, int bufferSize) {
             _in = input;
             _bufferSize = bufferSize;
         }
@@ -128,14 +129,14 @@ namespace dsp {
             }
         }
 
-        void bind(stream<complex_t>* stream) {
+        void bind(stream<T>* stream) {
             if (running) {
                 return;
             }
             outputs.push_back(stream);
         }
 
-        void unbind(stream<complex_t>* stream) {
+        void unbind(stream<T>* stream) {
             if (running) {
                 return;
             }
@@ -150,7 +151,7 @@ namespace dsp {
 
     private:
         static void _worker(DynamicSplitter* _this) {
-            complex_t* buf = new complex_t[_this->_bufferSize];
+            T* buf = new T[_this->_bufferSize];
             int outputCount = _this->outputs.size();
             while (true) {
                 if (_this->_in->read(buf, _this->_bufferSize) < 0) { break; };
@@ -161,10 +162,146 @@ namespace dsp {
             delete[] buf;
         }
 
-        stream<complex_t>* _in;
+        stream<T>* _in;
         int _bufferSize;
         std::thread _workerThread;
         bool running = false;
-        std::vector<stream<complex_t>*> outputs;
+        std::vector<stream<T>*> outputs;
+    };
+
+
+    class MonoToStereo {
+    public:
+        MonoToStereo() {
+            
+        }
+
+        MonoToStereo(stream<float>* input, int bufferSize) {
+            _in = input;
+            _bufferSize = bufferSize;
+        }
+
+        void init(stream<float>* input, int bufferSize) {
+            _in = input;
+            _bufferSize = bufferSize;
+        }
+
+        void start() {
+            if (running) {
+                return;
+            }
+            _workerThread = std::thread(_worker, this);
+            running = true;
+        }
+
+        void stop() {
+            if (!running) {
+                return;
+            }
+            _in->stopReader();
+            output.stopWriter();
+            _workerThread.join();
+            _in->clearReadStop();
+            output.clearWriteStop();
+            running = false;
+        }
+
+        void setBlockSize(int blockSize) {
+            if (running) {
+                return;
+            }
+            _bufferSize = blockSize;
+            output.setMaxLatency(blockSize * 2);
+        }
+
+        stream<StereoFloat_t> output;
+
+    private:
+        static void _worker(MonoToStereo* _this) {
+            float* inBuf = new float[_this->_bufferSize];
+            StereoFloat_t* outBuf = new StereoFloat_t[_this->_bufferSize];
+            while (true) {
+                if (_this->_in->read(inBuf, _this->_bufferSize) < 0) { break; };
+                for (int i = 0; i < _this->_bufferSize; i++) {
+                    outBuf[i].l = inBuf[i];
+                    outBuf[i].r = inBuf[i];
+                }
+                if (_this->output.write(outBuf, _this->_bufferSize) < 0) { break; };
+            }
+            delete[] inBuf;
+            delete[] outBuf;
+        }
+
+        stream<float>* _in;
+        int _bufferSize;
+        std::thread _workerThread;
+        bool running = false;
+    };
+
+    class StereoToMono {
+    public:
+        StereoToMono() {
+            
+        }
+
+        StereoToMono(stream<StereoFloat_t>* input, int bufferSize) {
+            _in = input;
+            _bufferSize = bufferSize;
+        }
+
+        void init(stream<StereoFloat_t>* input, int bufferSize) {
+            _in = input;
+            _bufferSize = bufferSize;
+        }
+
+        void start() {
+            if (running) {
+                return;
+            }
+            _workerThread = std::thread(_worker, this);
+            running = true;
+        }
+
+        void stop() {
+            if (!running) {
+                return;
+            }
+            _in->stopReader();
+            output.stopWriter();
+            _workerThread.join();
+            _in->clearReadStop();
+            output.clearWriteStop();
+            running = false;
+        }
+
+        void setBlockSize(int blockSize) {
+            if (running) {
+                return;
+            }
+            _bufferSize = blockSize;
+            output.setMaxLatency(blockSize * 2);
+        }
+
+        stream<float> output;
+
+    private:
+        static void _worker(StereoToMono* _this) {
+            StereoFloat_t* inBuf = new StereoFloat_t[_this->_bufferSize];
+            float* outBuf = new float[_this->_bufferSize];
+            while (true) {
+                if (_this->_in->read(inBuf, _this->_bufferSize) < 0) { break; };
+                for (int i = 0; i < _this->_bufferSize; i++) {
+                    outBuf[i] = (inBuf[i].l + inBuf[i].r) / 2.0f;
+                }
+                if (_this->output.write(outBuf, _this->_bufferSize) < 0) { break; };
+            }
+            delete[] inBuf;
+            delete[] outBuf;
+        }
+
+        stream<StereoFloat_t>* _in;
+        int _bufferSize;
+        std::thread _workerThread;
+        bool running = false;
     };
 };
