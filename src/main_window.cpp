@@ -70,12 +70,7 @@ void saveCurrentSource() {
 void loadSourceConfig(std::string name) {
     json sourceSettings = config::config["sourceSettings"][name];
 
-    // Set sample rate
-
-    spdlog::warn("Type {0}", sourceSettings.contains("sampleRate"));
-
     sampleRate = sourceSettings["sampleRate"];
-
     
     auto _srIt = std::find(soapy.sampleRates.begin(), soapy.sampleRates.end(), sampleRate);
     // If the sample rate isn't valid, set to minimum
@@ -90,7 +85,7 @@ void loadSourceConfig(std::string name) {
     soapy.setSampleRate(sampleRate);
 
     // Set gains
-    delete uiGains;
+    delete[] uiGains;
     uiGains = new float[soapy.gainList.size()];
     int i = 0;
     for (std::string gainName : soapy.gainList) {
@@ -531,8 +526,15 @@ void drawWindow() {
         }
 
         ImGui::SameLine();
+        bool noDevice = (soapy.devList.size() == 0);
         if (ImGui::Button("Refresh", ImVec2(menuColumnWidth - ImGui::GetCursorPosX(), 0.0f))) {
             soapy.refresh();
+            if (noDevice && soapy.devList.size() > 0) {
+                soapy.setDevice(soapy.devList[0]);
+                if (config::config["sourceSettings"][soapy.devNameList[0]]) {
+                    loadSourceConfig(soapy.devNameList[0]);
+                }
+            }
         }
 
         if (playing) { style::endDisabled(); };
@@ -563,10 +565,6 @@ void drawWindow() {
                 config::configModified = true;
             }
             ImGui::PopItemWidth();
-
-            if (uiGains[i] != soapy.currentGains[i]) {
-                
-            }
         }
 
         ImGui::Spacing();
