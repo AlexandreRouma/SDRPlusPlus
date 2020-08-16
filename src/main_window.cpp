@@ -76,17 +76,30 @@ void loadSourceConfig(std::string name) {
 
     sampleRate = sourceSettings["sampleRate"];
 
+    
+    auto _srIt = std::find(soapy.sampleRates.begin(), soapy.sampleRates.end(), sampleRate);
+    // If the sample rate isn't valid, set to minimum
+    if (_srIt == soapy.sampleRates.end()) {
+        srId = 0;
+        sampleRate = soapy.sampleRates[0];
+    }
+    else {
+        srId = std::distance(soapy.sampleRates.begin(), _srIt);
+    }
     sigPath.setSampleRate(sampleRate);
     soapy.setSampleRate(sampleRate);
-    auto _srIt = std::find(soapy.sampleRates.begin(), soapy.sampleRates.end(), sampleRate);
-    srId = std::distance(soapy.sampleRates.begin(), _srIt);
-    spdlog::warn("sr {0}", srId);
 
     // Set gains
     delete uiGains;
     uiGains = new float[soapy.gainList.size()];
     int i = 0;
     for (std::string gainName : soapy.gainList) {
+        // If gain doesn't exist in config, set it to the minimum value
+        if (!sourceSettings["gains"].contains(gainName)) {
+            uiGains[i] = soapy.gainRanges[i].minimum();
+            soapy.setGain(i, uiGains[i]);
+            continue;
+        }
         uiGains[i] = sourceSettings["gains"][gainName];
         soapy.setGain(i, uiGains[i]);
         i++;
@@ -96,6 +109,42 @@ void loadSourceConfig(std::string name) {
     wtf.setBandwidth(sampleRate);
     wtf.setViewBandwidth(sampleRate);
     bw.val = sampleRate;
+}
+
+void loadAudioConfig(std::string name) {
+    json audioSettings = config::config["audio"][name];
+    std::string devName = audioSettings["device"];
+    auto _devIt = std::find(audio::streams[name]->audio->deviceNames.begin(), audio::streams[name]->audio->deviceNames.end(), devName);
+
+    // If audio device doesn't exist anymore
+    if (_devIt == audio::streams[name]->audio->deviceNames.end()) {
+        audio::streams[name]->audio->setToDefault();
+        int deviceId = audio::streams[name]->audio->getDeviceId();
+        audio::setAudioDevice(name, deviceId, audio::streams[name]->audio->devices[deviceId].sampleRates[0]);
+        audio::streams[name]->sampleRateId = 0;
+        audio::streams[name]->volume = audioSettings["volume"];
+        audio::streams[name]->audio->setVolume(audio::streams[name]->volume);
+        return;
+    }
+    int deviceId = std::distance(audio::streams[name]->audio->deviceNames.begin(), _devIt);
+    float sr = audioSettings["sampleRate"];
+    auto _srIt = std::find(audio::streams[name]->audio->devices[deviceId].sampleRates.begin(), audio::streams[name]->audio->devices[deviceId].sampleRates.end(), sr);
+
+    // If sample rate doesn't exist anymore
+    if (_srIt == audio::streams[name]->audio->devices[deviceId].sampleRates.end()) {
+        audio::streams[name]->sampleRateId = 0;
+        audio::setAudioDevice(name, deviceId, audio::streams[name]->audio->devices[deviceId].sampleRates[0]);
+        audio::streams[name]->volume = audioSettings["volume"];
+        audio::streams[name]->audio->setVolume(audio::streams[name]->volume);
+        return;
+    }
+
+    int samplerateId = std::distance(audio::streams[name]->audio->devices[deviceId].sampleRates.begin(), _srIt);
+    audio::streams[name]->sampleRateId = samplerateId;
+    audio::setAudioDevice(name, deviceId, audio::streams[name]->audio->devices[deviceId].sampleRates[samplerateId]);
+    audio::streams[name]->deviceId = deviceId;
+    audio::streams[name]->volume = audioSettings["volume"];
+    audio::streams[name]->audio->setVolume(audio::streams[name]->volume);
 }
 
 void windowInit() {
@@ -202,6 +251,16 @@ void windowInit() {
     wtf.centerFreqMoved = false;
     wtf.selectFirstVFO();
 
+    for (auto [name, stream] : audio::streams) {
+        if (config::config["audio"].contains(name)) {
+            bool running = audio::streams[name]->running;
+            audio::stopStream(name);
+            loadAudioConfig(name);
+            if (running) {
+                audio::startStream(name);
+            }
+        }
+    }
 
     audioStreamName = audio::getNameFromVFO(wtf.selectedVFO);
     if (audioStreamName != "") {
@@ -534,19 +593,48 @@ void drawWindow() {
             ImGui::Text(name.c_str());
 
             ImGui::PushItemWidth(menuColumnWidth);
+            bool running = stream->running;
             if (ImGui::Combo(("##_audio_dev_0_"+ name).c_str(), &stream->deviceId, stream->audio->devTxtList.c_str())) {
                 audio::stopStream(name);
                 audio::setAudioDevice(name, stream->deviceId, stream->audio->devices[deviceId].sampleRates[0]);
-                audio::startStream(name);
+                if (running) {
+                    audio::startStream(name);
+                }
                 stream->sampleRateId = 0;
+
+                // Create config if it doesn't exist
+                if (!config::config["audio"].contains(name)) {
+                    config::config["audio"][name]["volume"] = stream->volume;
+                }
+                config::config["audio"][name]["device"] = stream->audio->deviceNames[stream->deviceId];
+                config::config["audio"][name]["sampleRate"] = stream->audio->devices[stream->deviceId].sampleRates[0];
+                config::configModified = true;
             }
             if (ImGui::Combo(("##_audio_sr_0_" + name).c_str(), &stream->sampleRateId, stream->audio->devices[deviceId].txtSampleRates.c_str())) {
                 audio::stopStream(name);
                 audio::setSampleRate(name, stream->audio->devices[deviceId].sampleRates[stream->sampleRateId]);
-                audio::startStream(name);
+                if (running) {
+                    audio::startStream(name);
+                }
+
+                // Create config if it doesn't exist
+                if (!config::config["audio"].contains(name)) {
+                    config::config["audio"][name]["volume"] = stream->volume;
+                    config::config["audio"][name]["device"] = stream->audio->deviceNames[deviceId];
+                }
+                config::config["audio"][name]["sampleRate"] = stream->audio->devices[deviceId].sampleRates[stream->sampleRateId];
+                config::configModified = true;
             }
             if (ImGui::SliderFloat(("##_audio_vol_0_" + name).c_str(), &stream->volume, 0.0f, 1.0f, "")) {
                 stream->audio->setVolume(stream->volume);
+
+                // Create config if it doesn't exist
+                if (!config::config["audio"].contains(name)) {
+                    config::config["audio"][name]["device"] = stream->audio->deviceNames[deviceId];
+                    config::config["audio"][name]["sampleRate"] = stream->audio->devices[deviceId].sampleRates[stream->sampleRateId];
+                }
+                config::config["audio"][name]["volume"] = stream->volume;
+                config::configModified = true;
             }
             ImGui::PopItemWidth();
             count++;

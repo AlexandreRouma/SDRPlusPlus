@@ -69,8 +69,10 @@ namespace io {
                 }
                 if (i == devIndex) {
                     devListIndex = devices.size();
+                    defaultDev = devListIndex;
                 }
                 devices.push_back(dev);
+                deviceNames.push_back(deviceInfo->name);
                 devTxtList += deviceInfo->name;
                 devTxtList += '\0';
             }
@@ -118,8 +120,10 @@ namespace io {
                 }
                 if (i == devIndex) {
                     devListIndex = devices.size();
+                    defaultDev = devListIndex;
                 }
                 devices.push_back(dev);
+                deviceNames.push_back(deviceInfo->name);
                 devTxtList += deviceInfo->name;
                 devTxtList += '\0';
             }
@@ -208,6 +212,10 @@ namespace io {
             devIndex = devices[id].index;
         }
 
+        void setToDefault() {
+            setDevice(defaultDev);
+        }
+
         int getDeviceId() {
             return devListIndex;
         }
@@ -218,6 +226,7 @@ namespace io {
 
         std::string devTxtList;
         std::vector<AudioDevice_t> devices;
+        std::vector<std::string> deviceNames;
 
     private:
         static int _mono_to_mono_callback(const void *input,
@@ -302,6 +311,7 @@ namespace io {
         int streamType;
         int devIndex;
         int devListIndex;
+        int defaultDev;
         float _sampleRate;
         int _bufferSize;
         dsp::stream<float>* _monoInput;
