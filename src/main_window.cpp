@@ -480,14 +480,6 @@ void drawWindow() {
             spdlog::info("Changed input device: {0}", devId);
             sourceName = soapy.devNameList[devId];
             soapy.setDevice(soapy.devList[devId]);
-            if (soapy.gainList.size() == 0) {
-                return;
-            }
-            delete[] uiGains;
-            uiGains = new float[soapy.gainList.size()];
-            for (int i = 0; i < soapy.gainList.size(); i++) {
-                uiGains[i] = soapy.currentGains[i];
-            }
 
             if (config::config["sourceSettings"].contains(sourceName)) {
                 loadSourceConfig(sourceName);
@@ -499,8 +491,13 @@ void drawWindow() {
                 wtf.setBandwidth(sampleRate);
                 wtf.setViewBandwidth(sampleRate);
                 sigPath.setSampleRate(sampleRate);
-                for (int i = 0; i < soapy.gainList.size(); i++) {
-                    uiGains[i] = soapy.gainRanges[i].minimum();
+
+                if (soapy.gainList.size() >= 0) {
+                    delete[] uiGains;
+                    uiGains = new float[soapy.gainList.size()];
+                    for (int i = 0; i < soapy.gainList.size(); i++) {
+                        uiGains[i] = soapy.currentGains[i];
+                    }
                 }
             }
             setVFO(fSel.frequency);
@@ -594,12 +591,16 @@ void drawWindow() {
             ImGui::PushItemWidth(menuColumnWidth);
             bool running = stream->running;
             if (ImGui::Combo(("##_audio_dev_0_"+ name).c_str(), &stream->deviceId, stream->audio->devTxtList.c_str())) {
+                spdlog::warn("Stopping audio stream");
                 audio::stopStream(name);
+                spdlog::warn("Setting device");
                 audio::setAudioDevice(name, stream->deviceId, stream->audio->devices[deviceId].sampleRates[0]);
                 if (running) {
+                    spdlog::warn("Starting stream");
                     audio::startStream(name);
                 }
                 stream->sampleRateId = 0;
+                spdlog::warn("Done, saving config");
 
                 // Create config if it doesn't exist
                 if (!config::config["audio"].contains(name)) {

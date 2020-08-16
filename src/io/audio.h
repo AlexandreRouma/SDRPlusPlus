@@ -156,11 +156,11 @@ namespace io {
             outputParams.suggestedLatency = Pa_GetDeviceInfo(outputParams.device)->defaultLowOutputLatency;
             PaError err;
             if (streamType == MONO) {
-                err = Pa_OpenStream(&stream, NULL, &outputParams, _sampleRate, _bufferSize, NULL,
+                err = Pa_OpenStream(&stream, NULL, &outputParams, _sampleRate, _bufferSize, 0,
                                 (dev.channels == 2) ? _mono_to_stereo_callback : _mono_to_mono_callback, this);
             }
             else {
-                err = Pa_OpenStream(&stream, NULL, &outputParams, _sampleRate, _bufferSize, NULL,
+                err = Pa_OpenStream(&stream, NULL, &outputParams, _sampleRate, _bufferSize, 0,
                                 (dev.channels == 2) ? _stereo_to_stereo_callback : _stereo_to_mono_callback, this);
             }
             
