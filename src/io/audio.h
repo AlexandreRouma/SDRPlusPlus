@@ -181,8 +181,8 @@ namespace io {
             if (!running) {
                 return;
             }
-            spdlog::warn("==> Pa_StopStream");
-            Pa_AbortStream(stream);
+            // spdlog::warn("==> Pa_StopStream");
+            // Pa_AbortStream(stream);
             spdlog::warn("==> Pa_CloseStream");
             Pa_CloseStream(stream);
             spdlog::warn("==> Done");
