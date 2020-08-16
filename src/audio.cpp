@@ -136,6 +136,7 @@ namespace audio {
         bstr.stereoStream = &bstr.m2s->output;
         astr->monoDynSplit->bind(bstr.monoStream);
         bstr.m2s->start();
+        return bstr.stereoStream;
     }
 
     void setBlockSize(std::string name, int blockSize) {
