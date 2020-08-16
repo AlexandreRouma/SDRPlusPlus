@@ -181,11 +181,23 @@ namespace io {
             if (!running) {
                 return;
             }
-            spdlog::warn("==> Pa_StopStream");
+            if (streamType == MONO) {
+                _monoInput->stopReader();
+            }
+            else {
+                _stereoInput->stopReader();
+            }
+            spdlog::warn("==> Pa_AbortStream");
             Pa_AbortStream(stream);
             spdlog::warn("==> Pa_CloseStream");
             Pa_CloseStream(stream);
             spdlog::warn("==> Done");
+            if (streamType == MONO) {
+                _monoInput->clearReadStop();
+            }
+            else {
+                _stereoInput->clearReadStop();
+            }
             running = false;
         }
 
@@ -239,7 +251,9 @@ namespace io {
                                       PaStreamCallbackFlags statusFlags, void *userData ) {
             AudioSink* _this = (AudioSink*)userData;
             float* outbuf = (float*)output;
-            _this->_monoInput->read(_this->monoBuffer, frameCount);
+            if (_this->_monoInput->read(_this->monoBuffer, frameCount) < 0) {
+                return 0;
+            }
             
             float vol = powf(_this->_volume, 2);
             for (int i = 0; i < frameCount; i++) {
@@ -255,7 +269,9 @@ namespace io {
                                       PaStreamCallbackFlags statusFlags, void *userData ) {
             AudioSink* _this = (AudioSink*)userData;
             dsp::StereoFloat_t* outbuf = (dsp::StereoFloat_t*)output;
-            _this->_stereoInput->read(_this->stereoBuffer, frameCount);
+            if (_this->_stereoInput->read(_this->stereoBuffer, frameCount) < 0) {
+                return 0;
+            }
 
             // Note: Calculate the power in the UI instead of here
             
@@ -274,7 +290,9 @@ namespace io {
                                       PaStreamCallbackFlags statusFlags, void *userData ) {
             AudioSink* _this = (AudioSink*)userData;
             dsp::StereoFloat_t* outbuf = (dsp::StereoFloat_t*)output;
-            _this->_monoInput->read(_this->monoBuffer, frameCount);
+            if (_this->_monoInput->read(_this->monoBuffer, frameCount) < 0) {
+                return 0;
+            }
             
             float vol = powf(_this->_volume, 2);
             for (int i = 0; i < frameCount; i++) {
@@ -291,7 +309,9 @@ namespace io {
                                       PaStreamCallbackFlags statusFlags, void *userData ) {
             AudioSink* _this = (AudioSink*)userData;
             float* outbuf = (float*)output;
-            _this->_stereoInput->read(_this->stereoBuffer, frameCount);
+            if (_this->_stereoInput->read(_this->stereoBuffer, frameCount) < 0) {
+                return 0;
+            }
 
             // Note: Calculate the power in the UI instead of here
             
