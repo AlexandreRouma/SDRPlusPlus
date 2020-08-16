@@ -159,7 +159,7 @@ void windowInit() {
 
     vfoman::init(&wtf, &sigPath);
 
-    uiGains = new float[1];
+    uiGains = new float[soapy.gainList.size()];
 
     spdlog::info("Loading modules");
     mod::initAPI(&wtf);
