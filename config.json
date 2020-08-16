@@ -1,5 +1,9 @@
 {
-    "frequency": 90500000,
+    "bandPlan": "General",
+    "bandPlanEnabled": true,
+    "frequency": 98000000,
+    "max": 0.0,
+    "min": -70.0,
     "source": "",
     "sourceSettings": {}
 }

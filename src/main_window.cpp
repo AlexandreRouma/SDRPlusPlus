@@ -152,6 +152,13 @@ void windowInit() {
     // Load last band plan configuration
 
     // TODO: Save/load config for audio streams + window size/fullscreen
+    // Also add a loading screen
+    // And a module add/remove/change order menu
+    // get rid of watchers and use if() instead
+    // Add squelsh
+    // Bandwidth ajustment
+    // DSB / CW and RAW modes;
+    // Write a recorder
 
 
     // Update UI settings
