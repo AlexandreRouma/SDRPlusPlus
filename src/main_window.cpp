@@ -530,9 +530,10 @@ void drawWindow() {
         if (ImGui::Button("Refresh", ImVec2(menuColumnWidth - ImGui::GetCursorPosX(), 0.0f))) {
             soapy.refresh();
             if (noDevice && soapy.devList.size() > 0) {
+                sourceName = soapy.devNameList[0];
                 soapy.setDevice(soapy.devList[0]);
-                if (config::config["sourceSettings"][soapy.devNameList[0]]) {
-                    loadSourceConfig(soapy.devNameList[0]);
+                if (config::config["sourceSettings"][sourceName]) {
+                    loadSourceConfig(sourceName);
                 }
             }
         }
