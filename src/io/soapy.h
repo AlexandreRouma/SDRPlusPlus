@@ -15,6 +15,7 @@ namespace io {
             currentGains = new float[1];
             refresh();
             if (devList.size() == 0) {
+                dev = NULL;
                 return;
             }
             setDevice(devList[0]);
@@ -96,7 +97,7 @@ namespace io {
         }
 
         void setSampleRate(float sampleRate) {
-            if (running) {
+            if (running || dev == NULL) {
                 return;
             }
             _sampleRate = sampleRate;
@@ -104,10 +105,16 @@ namespace io {
         }
 
         void setFrequency(float freq) {
+            if (dev == NULL) {
+                return;
+            }
             dev->setFrequency(SOAPY_SDR_RX, 0, freq);
         }
 
         void setGain(int gainId, float gain) {
+            if (dev == NULL) {
+                return;
+            }
             currentGains[gainId] = gain;
             dev->setGain(SOAPY_SDR_RX, 0, gainList[gainId], gain);
         }
