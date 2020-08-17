@@ -252,6 +252,7 @@ namespace io {
             AudioSink* _this = (AudioSink*)userData;
             float* outbuf = (float*)output;
             if (_this->_monoInput->read(_this->monoBuffer, frameCount) < 0) {
+                memset(outbuf, 0, sizeof(float) * frameCount);
                 return 0;
             }
             
@@ -270,6 +271,7 @@ namespace io {
             AudioSink* _this = (AudioSink*)userData;
             dsp::StereoFloat_t* outbuf = (dsp::StereoFloat_t*)output;
             if (_this->_stereoInput->read(_this->stereoBuffer, frameCount) < 0) {
+                memset(outbuf, 0, sizeof(dsp::StereoFloat_t) * frameCount);
                 return 0;
             }
 
@@ -291,6 +293,7 @@ namespace io {
             AudioSink* _this = (AudioSink*)userData;
             dsp::StereoFloat_t* outbuf = (dsp::StereoFloat_t*)output;
             if (_this->_monoInput->read(_this->monoBuffer, frameCount) < 0) {
+                memset(outbuf, 0, sizeof(dsp::StereoFloat_t) * frameCount);
                 return 0;
             }
             
@@ -310,6 +313,7 @@ namespace io {
             AudioSink* _this = (AudioSink*)userData;
             float* outbuf = (float*)output;
             if (_this->_stereoInput->read(_this->stereoBuffer, frameCount) < 0) {
+                memset(outbuf, 0, sizeof(float) * frameCount);
                 return 0;
             }
 

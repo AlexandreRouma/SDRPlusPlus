@@ -106,7 +106,9 @@ namespace ImGui {
         float vertRange = fftMax - fftMin;
         float scaleFactor = fftHeight / vertRange;
         char buf[100];
-        
+
+        ImU32 trace = ImGui::GetColorU32(ImGuiCol_PlotLines);
+        ImU32 shadow = ImGui::GetColorU32(ImGuiCol_PlotLines, 0.2);
 
         // Vertical scale
         for (float line = startLine; line > fftMin; line -= vRange) {
@@ -145,11 +147,9 @@ namespace ImGui {
             aPos = std::clamp<float>(aPos, widgetPos.y + 10, widgetPos.y + fftHeight + 10);
             bPos = std::clamp<float>(bPos, widgetPos.y + 10, widgetPos.y + fftHeight + 10);
             window->DrawList->AddLine(ImVec2(widgetPos.x + 49 + i, roundf(aPos)), 
-                                    ImVec2(widgetPos.x + 50 + i, roundf(bPos)),
-                                    IM_COL32(0, 255, 255, 255), 1.0f);
+                                    ImVec2(widgetPos.x + 50 + i, roundf(bPos)), trace, 1.0f);
             window->DrawList->AddLine(ImVec2(widgetPos.x + 50 + i, roundf(bPos)), 
-                                    ImVec2(widgetPos.x + 50 + i, widgetPos.y + fftHeight + 10),
-                                    IM_COL32(0, 255, 255, 50), 1.0f);
+                                    ImVec2(widgetPos.x + 50 + i, widgetPos.y + fftHeight + 10), shadow, 1.0f);
         }
 
         // X Axis
@@ -361,6 +361,7 @@ namespace ImGui {
         waterfallHeight = widgetSize.y - fftHeight - 52;
         delete[] latestFFT;
         delete[] waterfallFb;
+
         latestFFT = new float[dataWidth];
         waterfallFb = new uint32_t[dataWidth * waterfallHeight];
         memset(waterfallFb, 0, dataWidth * waterfallHeight * sizeof(uint32_t));
@@ -387,13 +388,23 @@ namespace ImGui {
     void WaterFall::draw() {
         buf_mtx.lock();
         window = GetCurrentWindow();
+
+        // Fix for weird ImGui bug
+        ImVec2 tmpWidgetEndPos = ImGui::GetWindowContentRegionMax();
+        if (tmpWidgetEndPos.x < 100 || tmpWidgetEndPos.y < fftHeight + 100) {
+            buf_mtx.unlock();
+            return;
+        }
+
         widgetPos = ImGui::GetWindowContentRegionMin();
-        widgetEndPos = ImGui::GetWindowContentRegionMax();
+        widgetEndPos = tmpWidgetEndPos;
         widgetPos.x += window->Pos.x;
         widgetPos.y += window->Pos.y;
-        widgetEndPos.x += window->Pos.x;
+        widgetEndPos.x += window->Pos.x - 4; // Padding
         widgetEndPos.y += window->Pos.y;
         widgetSize = ImVec2(widgetEndPos.x - widgetPos.x, widgetEndPos.y - widgetPos.y);
+
+        
 
         if (widgetPos.x != lastWidgetPos.x || widgetPos.y != lastWidgetPos.y) {
             lastWidgetPos = widgetPos;

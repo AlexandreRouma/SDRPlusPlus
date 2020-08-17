@@ -84,6 +84,9 @@ void FrequencySelect::draw() {
         onResize();
     }
 
+    ImU32 disabledColor = ImGui::GetColorU32(ImGuiCol_Text, 0.3f);
+    ImU32 textColor = ImGui::GetColorU32(ImGuiCol_Text);
+
     int commaOffset = 0;
     bool zeros = true;
     for (int i = 0; i < 12; i++) {
@@ -92,11 +95,11 @@ void FrequencySelect::draw() {
         }
         sprintf(buf, "%d", digits[i]);
         window->DrawList->AddText(ImVec2(widgetPos.x + (i * 22) + commaOffset, widgetPos.y), 
-                                zeros ? IM_COL32(90, 90, 90, 255) : IM_COL32(255, 255, 255, 255), buf);
+                                zeros ? disabledColor : textColor, buf);
         if ((i + 1) % 3 == 0 && i < 11) {
             commaOffset += 12;
             window->DrawList->AddText(ImVec2(widgetPos.x + (i * 22) + commaOffset + 10, widgetPos.y), 
-                                    zeros ? IM_COL32(90, 90, 90, 255) : IM_COL32(255, 255, 255, 255), ".");
+                                    zeros ? disabledColor : textColor, ".");
         }
     }
 

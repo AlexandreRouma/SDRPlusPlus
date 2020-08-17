@@ -195,7 +195,7 @@ void windowInit() {
 
     // Load last band plan configuration
 
-    // TODO: Save/load config for audio streams + window size/fullscreen
+    // TODO: Save/load config window size/fullscreen
     // Also add a loading screen
     // And a module add/remove/change order menu
     // get rid of watchers and use if() instead
@@ -203,7 +203,11 @@ void windowInit() {
     // Bandwidth ajustment
     // DSB / CW and RAW modes;
     // Write a recorder
-
+    // Adjustable "snap to grid" for each VFO
+    // Bring VFO to a visible plane when changing sample rate if it's smaller
+    // Fix invalid values on the min/max sliders
+    // Possibility to resize waterfall and menu
+    // Have a proper root directory
 
     // Update UI settings
     fftMin = config::config["min"];
@@ -685,13 +689,14 @@ void drawWindow() {
     // Right Column
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
     ImGui::NextColumn();
+    ImGui::PopStyleVar();
+
     ImGui::BeginChild("Waterfall");
 
     wtf.draw();    
 
     ImGui::EndChild();
 
-    ImGui::PopStyleVar();
     ImGui::NextColumn();
     ImGui::BeginChild("WaterfallControls");
 
@@ -706,6 +711,7 @@ void drawWindow() {
     ImGui::Text("Max");
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0f) - 10);
     if (ImGui::VSliderFloat("##_8_", ImVec2(20.0f, 150.0f), &fftMax, 0.0f, -100.0f, "")) {
+        fftMax = std::max<float>(fftMax, fftMin + 10);
         config::config["max"] = fftMax;
         config::configModified = true;
     }
@@ -716,6 +722,7 @@ void drawWindow() {
     ImGui::Text("Min");
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0f) - 10);
     if (ImGui::VSliderFloat("##_9_", ImVec2(20.0f, 150.0f), &fftMin, 0.0f, -100.0f, "")) {
+        fftMin = std::min<float>(fftMax - 10, fftMin);
         config::config["min"] = fftMin;
         config::configModified = true;
     }
