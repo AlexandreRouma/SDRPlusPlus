@@ -44,6 +44,7 @@ namespace mod {
         void (*setBlockSize)(std::string name, int blockSize);
         void (*unbindFromStreamMono)(std::string name, dsp::stream<float>* stream);
         void (*unbindFromStreamStereo)(std::string name, dsp::stream<dsp::StereoFloat_t>* stream);
+        std::vector<std::string> (*getStreamNameList)(void);
 
         enum {
             REF_LOWER,

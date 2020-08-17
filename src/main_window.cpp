@@ -204,10 +204,10 @@ void windowInit() {
     // DSB / CW and RAW modes;
     // Write a recorder
     // Adjustable "snap to grid" for each VFO
-    // Bring VFO to a visible plane when changing sample rate if it's smaller
-    // Fix invalid values on the min/max sliders
+    // Bring VFO to a visible place when changing sample rate if it's smaller
     // Possibility to resize waterfall and menu
     // Have a proper root directory
+    // Switch to double for all frequecies and bandwidth
 
     // Update UI settings
     fftMin = config::config["min"];
@@ -669,10 +669,6 @@ void drawWindow() {
     } 
 
     if (ImGui::CollapsingHeader("Display")) {
-        ImGui::Spacing();
-    }
-
-    if (ImGui::CollapsingHeader("Recording")) {
         ImGui::Spacing();
     }
 

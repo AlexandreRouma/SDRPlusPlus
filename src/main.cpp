@@ -123,6 +123,9 @@ int main() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        
+        
+
         int wwidth, wheight;
         glfwGetWindowSize(window, &wwidth, &wheight);
         ImGui::SetNextWindowPos(ImVec2(0, 0));

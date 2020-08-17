@@ -3,6 +3,7 @@
 #include <dsp/stream.h>
 #include <dsp/types.h>
 #include <vector>
+#include <spdlog/spdlog.h>
 
 namespace dsp {
     class Splitter {
@@ -144,7 +145,7 @@ namespace dsp {
             for (int i = 0; i < outputCount; i++) {
                 if (outputs[i] == stream) {
                     outputs.erase(outputs.begin() + i);
-                    break;
+                    return;
                 }
             }
         }
@@ -179,11 +180,13 @@ namespace dsp {
         MonoToStereo(stream<float>* input, int bufferSize) {
             _in = input;
             _bufferSize = bufferSize;
+            output.init(bufferSize * 2);
         }
 
         void init(stream<float>* input, int bufferSize) {
             _in = input;
             _bufferSize = bufferSize;
+            output.init(bufferSize * 2);
         }
 
         void start() {

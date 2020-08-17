@@ -42,6 +42,7 @@ namespace mod {
         API.setBlockSize = audio::setBlockSize;
         API.unbindFromStreamMono = audio::unbindFromStreamMono;
         API.unbindFromStreamStereo = audio::unbindFromStreamStereo;
+        API.getStreamNameList = audio::getStreamNameList;
     }
 
     void loadModule(std::string path, std::string name) {

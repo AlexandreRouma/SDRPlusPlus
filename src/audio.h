@@ -59,5 +59,6 @@ namespace audio {
     std::string getNameFromVFO(std::string vfoName);
     void setSampleRate(std::string name, float sampleRate);
     void setAudioDevice(std::string name, int deviceId, float sampleRate);
+    std::vector<std::string> getStreamNameList();
 };
 

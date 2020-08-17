@@ -108,14 +108,24 @@ namespace audio {
         bstr.sampleRateChangeHandler = sampleRateChangeHandler;
         if (astr->type == STREAM_TYPE_MONO) {
             bstr.monoStream = new dsp::stream<float>(astr->blockSize * 2);
+            astr->monoDynSplit->stop();
             astr->monoDynSplit->bind(bstr.monoStream);
+            if (astr->running) {
+                astr->monoDynSplit->start();
+            }
+            astr->boundStreams.push_back(bstr);
             return bstr.monoStream;
         }
         bstr.stereoStream = new dsp::stream<dsp::StereoFloat_t>(astr->blockSize * 2);
         bstr.s2m = new dsp::StereoToMono(bstr.stereoStream, astr->blockSize * 2);
         bstr.monoStream = &bstr.s2m->output;
+        astr->stereoDynSplit->stop();
         astr->stereoDynSplit->bind(bstr.stereoStream);
+        if (astr->running) {
+            astr->stereoDynSplit->start();
+        }
         bstr.s2m->start();
+        astr->boundStreams.push_back(bstr);
         return bstr.monoStream;
     }
 
@@ -128,14 +138,24 @@ namespace audio {
         bstr.sampleRateChangeHandler = sampleRateChangeHandler;
         if (astr->type == STREAM_TYPE_STEREO) {
             bstr.stereoStream = new dsp::stream<dsp::StereoFloat_t>(astr->blockSize * 2);
+            astr->stereoDynSplit->stop();
             astr->stereoDynSplit->bind(bstr.stereoStream);
+            if (astr->running) {
+                astr->stereoDynSplit->start();
+            }
+            astr->boundStreams.push_back(bstr);
             return bstr.stereoStream;
         }
         bstr.monoStream = new dsp::stream<float>(astr->blockSize * 2);
         bstr.m2s = new dsp::MonoToStereo(bstr.monoStream, astr->blockSize * 2);
         bstr.stereoStream = &bstr.m2s->output;
+        astr->monoDynSplit->stop();
         astr->monoDynSplit->bind(bstr.monoStream);
+        if (astr->running) {
+            astr->monoDynSplit->start();
+        }
         bstr.m2s->start();
+        astr->boundStreams.push_back(bstr);
         return bstr.stereoStream;
     }
 
@@ -179,8 +199,19 @@ namespace audio {
                 continue;
             }
             if (astr->type == STREAM_TYPE_STEREO) {
+                astr->stereoDynSplit->stop();
+                astr->stereoDynSplit->unbind(bstr.stereoStream);
+                if (astr->running) {
+                    astr->stereoDynSplit->start();
+                }
                 bstr.s2m->stop();
                 delete bstr.s2m;
+                return;
+            }
+            astr->monoDynSplit->stop();
+            astr->monoDynSplit->unbind(bstr.monoStream);
+            if (astr->running) {
+                astr->monoDynSplit->start();
             }
             delete stream;
             return;
@@ -195,8 +226,19 @@ namespace audio {
                 continue;
             }
             if (astr->type == STREAM_TYPE_MONO) {
-                bstr.s2m->stop();
+                astr->monoDynSplit->stop();
+                astr->monoDynSplit->unbind(bstr.monoStream);
+                if (astr->running) {
+                    astr->monoDynSplit->start();
+                }
+                bstr.m2s->stop();
                 delete bstr.m2s;
+                return;
+            }
+            astr->stereoDynSplit->stop();
+            astr->stereoDynSplit->unbind(bstr.stereoStream);
+            if (astr->running) {
+                astr->stereoDynSplit->start();
             }
             delete stream;
             return;
@@ -258,6 +300,14 @@ namespace audio {
         astr->deviceId = deviceId;
         astr->audio->setDevice(deviceId);
         setSampleRate(name, sampleRate);
+    }
+
+    std::vector<std::string> getStreamNameList() {
+        std::vector<std::string> list;
+        for (auto [name, stream] : streams) {
+            list.push_back(name);
+        }
+        return list;
     }
 };
 
