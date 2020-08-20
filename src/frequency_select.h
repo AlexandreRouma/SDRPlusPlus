@@ -1,15 +1,16 @@
 #pragma once
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <stdint.h>
 
 class FrequencySelect {
 public:
     FrequencySelect();
     void init();
     void draw();
-    void setFrequency(long freq);
+    void setFrequency(uint64_t freq);
 
-    long frequency;
+    uint64_t frequency;
     bool frequencyChanged = false;
 
 private:

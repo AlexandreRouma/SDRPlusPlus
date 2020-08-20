@@ -58,7 +58,9 @@ namespace vfoman {
         if (vfos.find(name) == vfos.end()) {
             return;
         }
-        vfos[name].dspVFO->setOutputSampleRate(sampleRate, bandwidth);
+        VFO_t vfo = vfos[name];
+        vfo.dspVFO->setOutputSampleRate(sampleRate, bandwidth);
+        vfo.wtfVFO->setBandwidth(bandwidth);
     }
 
     void setReference(std::string name, int ref){

@@ -4,11 +4,12 @@
 #include <dsp/types.h>
 #include <vector>
 #include <dsp/math.h>
+#include <spdlog/spdlog.h>
 
 #define GET_FROM_RIGHT_BUF(buffer, delayLine, delayLineSz, n) (((n) < 0) ? delayLine[(delayLineSz) + (n)] : buffer[(n)])
 
 namespace dsp {
-    inline void BlackmanWindow(std::vector<float>& taps, float sampleRate, float cutoff, float transWidth) {
+    inline void BlackmanWindow(std::vector<float>& taps, float sampleRate, float cutoff, float transWidth, int addedTaps = 0) {
         taps.clear();
 
         float fc = cutoff / sampleRate;
@@ -16,7 +17,7 @@ namespace dsp {
             fc = 1.0f;
         }
 
-        int _M = 4.0f / (transWidth / sampleRate);
+        int _M = (4.0f / (transWidth / sampleRate)) + (float)addedTaps;
         if (_M < 4) {
             _M = 4;
         }
@@ -376,5 +377,114 @@ namespace dsp {
         std::thread _workerThread;
         float* _taps;
         bool running;
+    };
+
+    class FMDeemphasis {
+    public:
+        FMDeemphasis() {
+            
+        }
+
+        FMDeemphasis(stream<float>* input, int bufferSize, float tau, float sampleRate) : output(bufferSize * 2) {
+            _in = input;
+            _bufferSize = bufferSize;
+            bypass = false;
+            _tau = tau;
+            _sampleRate = sampleRate;
+        }
+
+        void init(stream<float>* input, int bufferSize, float tau, float sampleRate) {
+            output.init(bufferSize * 2);
+            _in = input;
+            _bufferSize = bufferSize;
+            bypass = false;
+            _tau = tau;
+            _sampleRate = sampleRate;
+        }
+
+        void start() {
+            if (running) {
+                return;
+            }
+            _workerThread = std::thread(_worker, this);
+            running = true;
+        }
+
+        void stop() {
+            if (!running) {
+                return;
+            }
+            _in->stopReader();
+            output.stopWriter();
+            _workerThread.join();
+            _in->clearReadStop();
+            output.clearWriteStop();
+            running = false;
+        }
+
+        void setBlockSize(int blockSize) {
+            if (running) {
+                return;
+            }
+            _bufferSize = blockSize;
+            output.setMaxLatency(blockSize * 2);
+        }
+
+        void setSamplerate(float sampleRate) {
+            if (running) {
+                return;
+            }
+            _sampleRate = sampleRate;
+        }
+
+        void setTau(float tau) {
+            if (running) {
+                return;
+            }
+            _tau = tau;
+        }
+
+        stream<float> output;
+        bool bypass;
+
+    private:
+        static void _worker(FMDeemphasis* _this) {
+            float* inBuf = new float[_this->_bufferSize];
+            float* outBuf = new float[_this->_bufferSize];
+            int count = _this->_bufferSize;
+            float lastOut = 0.0f;
+            float dt = 1.0f / _this->_sampleRate;
+            float alpha = dt / (_this->_tau + dt);
+
+            spdlog::warn("Deemp filter started: {0}, {1}", _this->_tau * 1000000.0, _this->_sampleRate);
+
+            while (true) {
+                if (_this->_in->read(inBuf, count) < 0) { break; };
+                if (_this->bypass) {
+                    if (_this->output.write(inBuf, count) < 0) { break; };
+                    continue;
+                }
+
+                if (isnan(lastOut)) {
+                    lastOut = 0.0f;
+                }
+                outBuf[0] = (alpha * inBuf[0]) + ((1-alpha) * lastOut);
+                for (int i = 1; i < count; i++) {
+                    outBuf[i] = (alpha * inBuf[i]) + ((1 - alpha) * outBuf[i - 1]);
+                }
+                lastOut = outBuf[count - 1];
+                
+                if (_this->output.write(outBuf, count) < 0) { break; };
+            }
+            delete[] inBuf;
+            delete[] outBuf;
+        }
+
+        stream<float>* _in;
+        int _bufferSize;
+        std::thread _workerThread;
+        bool running = false;
+        float _sampleRate;
+        float _tau;
     };
 };

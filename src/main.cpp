@@ -21,8 +21,19 @@
 #include <Windows.h>
 #endif
 
+bool maximized = false;
+
 static void glfw_error_callback(int error, const char* description) {
     spdlog::error("Glfw Error {0}: {1}", error, description);
+}
+
+static void maximized_callback(GLFWwindow* window, int n) {
+    if (n == GLFW_TRUE) {
+        maximized = true;
+    }
+    else {
+        maximized = false;
+    }
 }
 
 int main() {
@@ -31,6 +42,11 @@ int main() {
 #endif
 
     spdlog::info("SDR++ v" VERSION_STR);
+
+    // Load config
+    spdlog::info("Loading config");
+    config::load("config.json");
+    config::startAutoSave();
 
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);
@@ -43,13 +59,22 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
     
+    int winWidth = config::config["windowSize"]["w"];
+    int winHeight = config::config["windowSize"]["h"];
+    maximized = config::config["maximized"];
 
     // Create window with graphics context
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "SDR++ v" VERSION_STR " (Built at " __TIME__ ", " __DATE__ ")", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(winWidth, winHeight, "SDR++ v" VERSION_STR " (Built at " __TIME__ ", " __DATE__ ")", NULL, NULL);
     if (window == NULL)
         return 1;
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync
+
+    if (maximized) {
+        glfwMaximizeWindow(window);
+    }
+
+    glfwSetWindowMaximizeCallback(window, maximized_callback);
 
     // Load app icon
     GLFWimage icons[10];
@@ -94,11 +119,6 @@ int main() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 150");
 
-    // Load config
-    spdlog::info("Loading config");
-    config::load("config.json");
-    config::startAutoSave();
-
     style::setDarkStyle();
 
     spdlog::info("Loading icons");
@@ -114,6 +134,8 @@ int main() {
 
     spdlog::info("Ready.");
 
+    bool _maximized = maximized;
+
     // Main loop
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -123,15 +145,31 @@ int main() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        
-        
+        if (_maximized != maximized) {
+            _maximized = maximized;
+            config::config["maximized"]= _maximized;
+            config::configModified = true;
+            if (!maximized) {
+                glfwSetWindowSize(window, config::config["windowSize"]["w"], config::config["windowSize"]["h"]);
+            }
+        }
 
-        int wwidth, wheight;
-        glfwGetWindowSize(window, &wwidth, &wheight);
-        ImGui::SetNextWindowPos(ImVec2(0, 0));
-        ImGui::SetNextWindowSize(ImVec2(wwidth, wheight));
-        
-        drawWindow();
+        int _winWidth, _winHeight;
+        glfwGetWindowSize(window, &_winWidth, &_winHeight);
+
+        if ((_winWidth != winWidth || _winHeight != winHeight) && !maximized && _winWidth > 0 && _winHeight > 0) {
+            winWidth = _winWidth;
+            winHeight = _winHeight;
+            config::config["windowSize"]["w"] = winWidth;
+            config::config["windowSize"]["h"] = winHeight;
+            config::configModified = true;
+        }
+
+        if (winWidth > 0 && winHeight > 0) {
+            ImGui::SetNextWindowPos(ImVec2(0, 0));
+            ImGui::SetNextWindowSize(ImVec2(_winWidth, _winHeight));
+            drawWindow();
+        }
 
         // Rendering
         ImGui::Render();

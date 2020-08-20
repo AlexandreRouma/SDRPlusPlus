@@ -41,7 +41,7 @@ dsp::NullSink sink;
 int devId = 0;
 int srId = 0;
 watcher<int> bandplanId(0, true);
-watcher<long> freq(90500000L);
+watcher<uint64_t> freq(90500000Ui64);
 int demod = 1;
 watcher<float> vfoFreq(92000000.0f);
 float dummyVolume = 1.0f;
@@ -57,6 +57,11 @@ watcher<bool> bandPlanEnabled(true, false);
 bool showCredits = false;
 std::string audioStreamName = "";
 std::string sourceName = "";
+int menuWidth = 300;
+bool grabbingMenu = false;
+int newWidth = 300;
+bool showWaterfall = true;
+int fftHeight = 300;
 
 void saveCurrentSource() {
     int i = 0;
@@ -188,25 +193,23 @@ void windowInit() {
         }
         if (!settingsFound) {
             sampleRate = soapy.getSampleRate();
+            sigPath.setSampleRate(sampleRate);
         }
         // Search for the first source in the list to have a config
         // If no pre-defined source, selected default device
     }
 
-    // Load last band plan configuration
-
-    // TODO: Save/load config window size/fullscreen
     // Also add a loading screen
-    // And a module add/remove/change order menu
-    // get rid of watchers and use if() instead
+    // Adjustable "snap to grid" for each VFO
+    // Finish the recorder module
     // Add squelsh
     // Bandwidth ajustment
     // DSB / CW and RAW modes;
-    // Write a recorder
-    // Adjustable "snap to grid" for each VFO
     // Bring VFO to a visible place when changing sample rate if it's smaller
-    // Possibility to resize waterfall and menu
     // Have a proper root directory
+
+    // And a module add/remove/change order menu
+    // get rid of watchers and use if() instead
     // Switch to double for all frequecies and bandwidth
 
     // Update UI settings
@@ -265,6 +268,17 @@ void windowInit() {
     if (audioStreamName != "") {
         volume = &audio::streams[audioStreamName]->volume;
     }
+
+    menuWidth = config::config["menuWidth"];
+    newWidth = menuWidth;
+
+    showWaterfall = config::config["showWaterfall"];
+    if (!showWaterfall) {
+        wtf.hideWaterfall();
+    }
+
+    fftHeight = config::config["fftHeight"];
+    wtf.setFFTHeight(fftHeight);
 }
 
 void setVFO(float freq) {
@@ -409,6 +423,13 @@ void drawWindow() {
         wtf.bandplan = bandPlanEnabled.val ? &bandplan::bandplans[bandplan::bandplanNames[bandplanId.val]] : NULL;
     }
 
+    int _fftHeight = wtf.getFFTHeight();
+    if (fftHeight != _fftHeight) {
+        fftHeight = _fftHeight;
+        config::config["fftHeight"] = fftHeight;
+        config::configModified = true;
+    }
+
     ImVec2 vMin = ImGui::GetWindowContentRegionMin();
     ImVec2 vMax = ImGui::GetWindowContentRegionMax();
 
@@ -466,10 +487,36 @@ void drawWindow() {
         showCredits = false;
     }
 
-    ImGui::Columns(3, "WindowColumns", false);
+    // Handle menu resize
+    float curY = ImGui::GetCursorPosY();
     ImVec2 winSize = ImGui::GetWindowSize();
-    ImGui::SetColumnWidth(0, 300);
-    ImGui::SetColumnWidth(1, winSize.x - 300 - 60);
+    ImVec2 mousePos = ImGui::GetMousePos();
+    bool click = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+    bool down = ImGui::IsMouseDown(ImGuiMouseButton_Left);
+    if (grabbingMenu) {
+        newWidth = mousePos.x;
+        newWidth = std::clamp<float>(newWidth, 250, winSize.x - 250);
+        ImGui::GetForegroundDrawList()->AddLine(ImVec2(newWidth, curY), ImVec2(newWidth, winSize.y - 10), ImGui::GetColorU32(ImGuiCol_SeparatorActive));
+    }
+    if (mousePos.x >= newWidth - 2 && mousePos.x <= newWidth + 2 && mousePos.y > curY) {
+        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+        if (click) {
+            grabbingMenu = true;
+        }
+    }
+    else {
+        ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+    }
+    if(!down && grabbingMenu) {
+        grabbingMenu = false;
+        menuWidth = newWidth;
+        config::config["menuWidth"] = menuWidth;
+        config::configModified = true;
+    }
+
+    ImGui::Columns(3, "WindowColumns", false);
+    ImGui::SetColumnWidth(0, menuWidth);
+    ImGui::SetColumnWidth(1, winSize.x - menuWidth - 60);
     ImGui::SetColumnWidth(2, 60);
 
     // Left Column
@@ -668,7 +715,10 @@ void drawWindow() {
         ImGui::Spacing();
     } 
 
-    if (ImGui::CollapsingHeader("Display")) {
+    if (ImGui::CollapsingHeader("Display", ImGuiTreeNodeFlags_DefaultOpen)) {
+        if (ImGui::Checkbox("Show waterfall", &showWaterfall)) {
+            showWaterfall ? wtf.showWaterfall() : wtf.hideWaterfall();
+        }
         ImGui::Spacing();
     }
 
@@ -693,6 +743,7 @@ void drawWindow() {
 
     ImGui::EndChild();
 
+    
     ImGui::NextColumn();
     ImGui::BeginChild("WaterfallControls");
 
@@ -734,6 +785,7 @@ void drawWindow() {
     wtf.setFFTMax(fftMax);
     wtf.setWaterfallMin(fftMin);
     wtf.setWaterfallMax(fftMax);
+
 
     ImGui::End();
 

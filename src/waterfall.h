@@ -87,6 +87,12 @@ namespace ImGui {
 
         void selectFirstVFO();
 
+        void showWaterfall();
+        void hideWaterfall();
+
+        void setFFTHeight(int height);
+        int getFFTHeight();
+
         bool centerFreqMoved = false;
         bool vfoFreqChanged = false;
         bool bandplanEnabled = false;
@@ -175,5 +181,10 @@ namespace ImGui {
 
         uint32_t* waterfallFb;
 
+        bool draggingFW = false;
+        int FFTAreaHeight;
+        int newFFTAreaHeight;
+
+        bool waterfallVisible = true;
     };
 };

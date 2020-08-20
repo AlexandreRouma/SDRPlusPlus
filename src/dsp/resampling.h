@@ -564,4 +564,212 @@ namespace dsp {
         int _blockSize;
         bool running = false;
     };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    class FloatPolyphaseFIRResampler {
+    public:
+        FloatPolyphaseFIRResampler() {
+
+        }
+
+        void init(stream<float>* in, float inputSampleRate, float outputSampleRate, int blockSize, float passBand = -1.0f, float transWidth = -1.0f) {
+            _input = in;
+            _outputSampleRate = outputSampleRate;
+            _inputSampleRate = inputSampleRate;
+            int _gcd = std::gcd((int)inputSampleRate, (int)outputSampleRate);
+            _interp = outputSampleRate / _gcd;
+            _decim = inputSampleRate / _gcd;
+            _blockSize = blockSize;
+            outputBlockSize = (blockSize * _interp) / _decim;
+            output.init(outputBlockSize * 2);
+
+            float cutoff = std::min<float>(_outputSampleRate / 2.0f, _inputSampleRate / 2.0f);
+            if (passBand > 0.0f && transWidth > 0.0f) {
+                dsp::BlackmanWindow(_taps, _outputSampleRate, passBand, transWidth, _interp - 1);
+            }
+            else {
+                dsp::BlackmanWindow(_taps, _outputSampleRate, cutoff, cutoff, _interp - 1);
+            }
+        }
+
+        void start() {
+            if (running) {
+                return;
+            }
+            _workerThread = std::thread(_worker, this);
+            running = true;
+        }
+
+        void stop() {
+            if (!running) {
+                return;
+            }
+            _input->stopReader();
+            output.stopWriter();
+            _workerThread.join();
+            _input->clearReadStop();
+            output.clearWriteStop();
+            running = false;
+        }
+
+        void setInputSampleRate(float inputSampleRate, int blockSize = -1, float passBand = -1.0f, float transWidth = -1.0f) {
+            stop();
+            _inputSampleRate = inputSampleRate;
+            int _gcd = std::gcd((int)inputSampleRate, (int)_outputSampleRate);
+            _interp = _outputSampleRate / _gcd;
+            _decim = inputSampleRate / _gcd;
+
+            float cutoff = std::min<float>(_outputSampleRate / 2.0f, _inputSampleRate / 2.0f);
+            if (passBand > 0.0f && transWidth > 0.0f) {
+                dsp::BlackmanWindow(_taps, _outputSampleRate, passBand, transWidth, _interp - 1);
+            }
+            else {
+                dsp::BlackmanWindow(_taps,_outputSampleRate, cutoff, cutoff, _interp - 1);
+            }
+
+            if (blockSize > 0) {
+                _blockSize = blockSize;
+            }
+            outputBlockSize = (blockSize * _interp) / _decim;
+            output.setMaxLatency(outputBlockSize * 2);
+            start();
+        }
+
+        void setOutputSampleRate(float outputSampleRate, float passBand = -1.0f, float transWidth = -1.0f) {
+            stop();
+            _outputSampleRate = outputSampleRate;
+            int _gcd = std::gcd((int)_inputSampleRate, (int)outputSampleRate);
+            _interp = outputSampleRate / _gcd;
+            _decim = _inputSampleRate / _gcd;
+            outputBlockSize = (_blockSize * _interp) / _decim;
+            output.setMaxLatency(outputBlockSize * 2);
+
+            float cutoff = std::min<float>(_outputSampleRate / 2.0f, _inputSampleRate / 2.0f);
+            if (passBand > 0.0f && transWidth > 0.0f) {
+                dsp::BlackmanWindow(_taps, _outputSampleRate, passBand, transWidth, _interp - 1);
+            }
+            else {
+                dsp::BlackmanWindow(_taps, _outputSampleRate, cutoff, cutoff, _interp - 1);
+            }
+            
+            start();
+        }
+
+        void setFilterParams(float passBand, float transWidth) {
+            stop();
+            dsp::BlackmanWindow(_taps, _outputSampleRate, passBand, transWidth, _interp - 1);
+            start();
+        }
+
+        void setBlockSize(int blockSize) {
+            stop();
+            _blockSize = blockSize;
+            outputBlockSize = (_blockSize * _interp) / _decim;
+            output.setMaxLatency(outputBlockSize * 2);
+            start();
+        }
+
+        void setInput(stream<float>* input) {
+            if (running) {
+                return;
+            }
+            _input = input;
+        }
+
+        int getOutputBlockSize() {
+            return outputBlockSize;
+        }
+
+        stream<float> output;
+
+    private:
+        static void _worker(FloatPolyphaseFIRResampler* _this) {
+            float* inBuf = new float[_this->_blockSize];
+            float* outBuf = new float[_this->outputBlockSize];
+            
+            int inCount = _this->_blockSize;
+            int outCount = _this->outputBlockSize;
+
+            int interp = _this->_interp;
+            int decim = _this->_decim;
+            float correction = interp;//(float)sqrt((float)interp);
+            
+            int tapCount = _this->_taps.size();
+            float* taps = new float[tapCount];
+            for (int i = 0; i < tapCount; i++) {
+                taps[i] = _this->_taps[i] * correction;
+            }
+
+            float* delayBuf = new float[tapCount];
+
+            float* delayStart = &inBuf[std::max<int>(inCount - tapCount, 0)];
+            int delaySize = tapCount * sizeof(float);
+            float* delayBufEnd = &delayBuf[std::max<int>(tapCount - inCount, 0)];
+            int moveSize = std::min<int>(inCount, tapCount - inCount) * sizeof(float);
+            int inSize = inCount * sizeof(float);
+            
+            int afterInterp = inCount * interp;
+            int outIndex = 0;
+
+            tapCount -= interp - 1;
+
+            while (true) {
+                if (_this->_input->read(inBuf, inCount) < 0) { break; };
+
+
+                for (int i = 0; i < outCount; i++) {
+                    outBuf[i] = 0;
+                    int filterId = (i * decim) % interp;
+                    int inputId = (i * decim) / interp;
+                    for (int j = 0; j < tapCount; j++) {
+                        outBuf[i] += GET_FROM_RIGHT_BUF(inBuf, delayBuf, tapCount, inputId - j) * taps[j + filterId];
+                    }
+                }
+
+
+
+
+
+                
+                if (tapCount > inCount) {
+                    memmove(delayBuf, delayBufEnd, moveSize);
+                    memcpy(delayBufEnd, delayStart, inSize);
+                }
+                else {
+                    memcpy(delayBuf, delayStart, delaySize);
+                }
+                
+                if (_this->output.write(outBuf, _this->outputBlockSize) < 0) { break; };
+            }
+            delete[] inBuf;
+            delete[] outBuf;
+            delete[] delayBuf;
+        }
+
+        std::thread _workerThread;
+
+        stream<float>* _input;
+        std::vector<float> _taps;
+        int _interp;
+        int _decim;
+        int outputBlockSize;
+        float _outputSampleRate;
+        float _inputSampleRate;
+        int _blockSize;
+        bool running = false;
+    };
 };

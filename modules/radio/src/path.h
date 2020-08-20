@@ -18,7 +18,7 @@ public:
     void start();
     void setSampleRate(float sampleRate);
 
-    void setVFOFrequency(long frequency);
+    void setVFOFrequency(uint64_t frequency);
 
     void updateBlockSize();
 
@@ -30,8 +30,11 @@ public:
         DEMOD_AM,
         DEMOD_USB,
         DEMOD_LSB,
+        DEMOD_DSB,
         _DEMOD_COUNT
     };
+
+    dsp::FMDeemphasis deemp;
 
 private:
     static int sampleRateChangeHandler(void* ctx, float sampleRate);
@@ -49,6 +52,8 @@ private:
     std::string vfoName;
 
     float sampleRate;
+    float bandwidth;
+    float outputSampleRate;
     int blockSize;
     int _demod;
 };

@@ -6,6 +6,7 @@ if (MSVC)
     link_directories(sdrpp "C:/Program Files/PothosSDR/lib/")
     include_directories(sdrpp "C:/Program Files/PothosSDR/include/volk/")
     include_directories(sdrpp "C:/Program Files/PothosSDR/include/")
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 else()
     set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -fpermissive -fsanitize=address -g")
     # set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -fpermissive")
@@ -37,6 +38,7 @@ if (MSVC)
 endif (MSVC)
 
 add_executable(sdrpp ${SRC} ${IMGUI})
+# add_library(sdrpp ${SRC} ${IMGUI})
 
 if (MSVC)
     # Glew

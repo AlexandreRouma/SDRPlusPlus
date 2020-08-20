@@ -141,7 +141,7 @@ void FrequencySelect::draw() {
         }
     }
 
-    long freq = 0;
+    uint64_t freq = 0;
     for (int i = 0; i < 12; i++) {
         freq += digits[i] * pow(10, 11 - i);
     }
@@ -151,9 +151,9 @@ void FrequencySelect::draw() {
     ImGui::NewLine();
 }
 
-void FrequencySelect::setFrequency(long freq) {
+void FrequencySelect::setFrequency(uint64_t freq) {
     int i = 11;
-    for (long f = freq; i >= 0; i--) {
+    for (uint64_t f = freq; i >= 0; i--) {
         digits[i] = f % 10;
         f -= digits[i];
         f /= 10;

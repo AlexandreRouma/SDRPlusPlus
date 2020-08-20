@@ -83,7 +83,9 @@ namespace ImGui {
         fftMax = 0.0f;
         waterfallMin = -70.0f;
         waterfallMax = 0.0f;
-        fftHeight = 250;
+        FFTAreaHeight = 300;
+        newFFTAreaHeight = FFTAreaHeight;
+        fftHeight = FFTAreaHeight - 50;
         dataWidth = 600;
         lastWidgetPos.x = 0;
         lastWidgetPos.y = 0;
@@ -113,8 +115,8 @@ namespace ImGui {
         // Vertical scale
         for (float line = startLine; line > fftMin; line -= vRange) {
             float yPos = widgetPos.y + fftHeight + 10 - ((line - fftMin) * scaleFactor);
-            window->DrawList->AddLine(ImVec2(widgetPos.x + 50, roundf(yPos)), 
-                                    ImVec2(widgetPos.x + dataWidth + 50, roundf(yPos)),
+            window->DrawList->AddLine(ImVec2(roundf(widgetPos.x + 50), roundf(yPos)), 
+                                    ImVec2(roundf(widgetPos.x + dataWidth + 50), roundf(yPos)),
                                     IM_COL32(50, 50, 50, 255), 1.0f);
             sprintf(buf, "%d", (int)line);
             ImVec2 txtSz = ImGui::CalcTextSize(buf);
@@ -263,6 +265,9 @@ namespace ImGui {
     }
 
     void WaterFall::updateWaterfallFb() {
+        if (!waterfallVisible) {
+            return;
+        }
         float offsetRatio = viewOffset / (wholeBandwidth / 2.0f);
         int drawDataSize;
         int drawDataStart;
@@ -357,14 +362,31 @@ namespace ImGui {
     }
 
     void WaterFall::onResize() {
+        // return if widget is too small
+        if (widgetSize.x < 100 || widgetSize.y < 100) {
+            return;
+        }
+
+        if (waterfallVisible) {
+            FFTAreaHeight = std::min<int>(FFTAreaHeight, widgetSize.y - 50);
+            fftHeight = FFTAreaHeight - 50;
+            waterfallHeight = widgetSize.y - fftHeight - 52;
+        }
+        else {
+            fftHeight =  widgetSize.y - 50;
+        }
         dataWidth = widgetSize.x - 60.0f;
-        waterfallHeight = widgetSize.y - fftHeight - 52;
         delete[] latestFFT;
-        delete[] waterfallFb;
+
+        if (waterfallVisible) {
+            delete[] waterfallFb;
+        }
 
         latestFFT = new float[dataWidth];
-        waterfallFb = new uint32_t[dataWidth * waterfallHeight];
-        memset(waterfallFb, 0, dataWidth * waterfallHeight * sizeof(uint32_t));
+        if (waterfallVisible) {
+            waterfallFb = new uint32_t[dataWidth * waterfallHeight];
+            memset(waterfallFb, 0, dataWidth * waterfallHeight * sizeof(uint32_t));
+        }
         for (int i = 0; i < dataWidth; i++) {
             latestFFT[i] = -1000.0f; // Hide everything
         }
@@ -389,15 +411,8 @@ namespace ImGui {
         buf_mtx.lock();
         window = GetCurrentWindow();
 
-        // Fix for weird ImGui bug
-        ImVec2 tmpWidgetEndPos = ImGui::GetWindowContentRegionMax();
-        if (tmpWidgetEndPos.x < 100 || tmpWidgetEndPos.y < fftHeight + 100) {
-            buf_mtx.unlock();
-            return;
-        }
-
         widgetPos = ImGui::GetWindowContentRegionMin();
-        widgetEndPos = tmpWidgetEndPos;
+        widgetEndPos = ImGui::GetWindowContentRegionMax();
         widgetPos.x += window->Pos.x;
         widgetPos.y += window->Pos.y;
         widgetEndPos.x += window->Pos.x - 4; // Padding
@@ -422,10 +437,42 @@ namespace ImGui {
         processInputs();
         
         drawFFT();
-        drawWaterfall();
+        if (waterfallVisible) {
+            drawWaterfall();
+        }
         drawVFOs();
         if (bandplan != NULL) {
             drawBandPlan();
+        }
+
+        if (!waterfallVisible) {
+            buf_mtx.unlock();
+            return;
+        }
+
+        // Handle fft resize
+        ImVec2 winSize = ImGui::GetWindowSize();
+        ImVec2 mousePos = ImGui::GetMousePos();
+        mousePos.x -= widgetPos.x;
+        mousePos.y -= widgetPos.y;
+        bool click = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+        bool down = ImGui::IsMouseDown(ImGuiMouseButton_Left);
+        if (draggingFW) {
+            newFFTAreaHeight = mousePos.y;
+            newFFTAreaHeight = std::clamp<float>(newFFTAreaHeight, 150, widgetSize.y - 50);
+            ImGui::GetForegroundDrawList()->AddLine(ImVec2(widgetPos.x, newFFTAreaHeight + widgetPos.y), ImVec2(widgetEndPos.x, newFFTAreaHeight + widgetPos.y), 
+                                                    ImGui::GetColorU32(ImGuiCol_SeparatorActive));
+        }
+        if (mousePos.y >= newFFTAreaHeight - 2 && mousePos.y <= newFFTAreaHeight + 2 && mousePos.x > 0 && mousePos.x < widgetSize.x) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
+            if (click) {
+                draggingFW = true;
+            }
+        }
+        if(!down && draggingFW) {
+            draggingFW = false;
+            FFTAreaHeight = newFFTAreaHeight;
+            onResize();
         }
 
         buf_mtx.unlock();
@@ -443,15 +490,18 @@ namespace ImGui {
             rawFFTs.resize(waterfallHeight);
         }
 
-        memmove(&waterfallFb[dataWidth], waterfallFb, dataWidth * (waterfallHeight - 1) * sizeof(uint32_t));
-        float pixel;
-        float dataRange = waterfallMax - waterfallMin;
-        for (int j = 0; j < dataWidth; j++) {
-            pixel = (std::clamp<float>(latestFFT[j], waterfallMin, waterfallMax) - waterfallMin) / dataRange;
-            int id = (int)(pixel * (WATERFALL_RESOLUTION - 1));
-            waterfallFb[j] = waterfallPallet[id];
+        if (waterfallVisible) {
+            memmove(&waterfallFb[dataWidth], waterfallFb, dataWidth * (waterfallHeight - 1) * sizeof(uint32_t));
+            float pixel;
+            float dataRange = waterfallMax - waterfallMin;
+            for (int j = 0; j < dataWidth; j++) {
+                pixel = (std::clamp<float>(latestFFT[j], waterfallMin, waterfallMax) - waterfallMin) / dataRange;
+                int id = (int)(pixel * (WATERFALL_RESOLUTION - 1));
+                waterfallFb[j] = waterfallPallet[id];
+            }
+            waterfallUpdate = true;
         }
-        waterfallUpdate = true;
+        
         buf_mtx.unlock();
     }
 
@@ -710,5 +760,24 @@ namespace ImGui {
             window->DrawList->AddLine(lineMin, lineMax, selected ? IM_COL32(255, 0, 0, 255) : IM_COL32(255, 255, 0, 255));
         }
     };
+
+    void WaterFall::showWaterfall() {
+        waterfallVisible = true;
+        onResize();
+    }
+
+    void WaterFall::hideWaterfall() {
+        waterfallVisible = false;
+        onResize();
+    }
+
+    void WaterFall::setFFTHeight(int height) {
+        FFTAreaHeight = height;
+        onResize();
+    }
+    
+    int WaterFall::getFFTHeight() {
+        return FFTAreaHeight;
+    }
 };
 

@@ -21,6 +21,8 @@ struct RecorderContext_t {
     std::string lastNameList;
     std::string selectedStreamName;
     int selectedStreamId;
+    uint64_t samplesWritten;
+    float sampleRate;
 };
 
 void _writeWorker(RecorderContext_t* ctx) {
@@ -34,6 +36,7 @@ void _writeWorker(RecorderContext_t* ctx) {
             sampleBuf[(i * 2) + 0] = floatBuf[i].l * 0x7FFF;
             sampleBuf[(i * 2) + 1] = floatBuf[i].r * 0x7FFF;
         }
+        ctx->samplesWritten += 1024;
         ctx->writer->writeSamples(sampleBuf, 2048 * sizeof(int16_t));
     }
     delete[] floatBuf;
@@ -60,6 +63,9 @@ MOD_EXPORT void* _INIT_(mod::API_t* _API, ImGuiContext* imctx, std::string _name
     API = _API;
     RecorderContext_t* ctx = new RecorderContext_t;
     ctx->recording = false;
+    ctx->selectedStreamName = "";
+    ctx->selectedStreamId = 0;
+    ctx->lastNameList = "";
     ImGui::SetCurrentContext(imctx);
     return ctx;
 }
@@ -78,14 +84,30 @@ MOD_EXPORT void _DRAW_MENU_(RecorderContext_t* ctx) {
         nameList += '\0';
     }
 
+    if (nameList == "") {
+        ImGui::Text("No audio stream available");
+        return;
+    }
+
     if (ctx->lastNameList != nameList) {
         ctx->lastNameList = nameList;
-        
+        auto _nameIt = std::find(streamNames.begin(), streamNames.end(), ctx->selectedStreamName);
+        if (_nameIt == streamNames.end()) {
+            // TODO: verify if there even is a stream
+            ctx->selectedStreamId = 0;
+            ctx->selectedStreamName = streamNames[ctx->selectedStreamId];
+        }
+        else {
+            ctx->selectedStreamId = std::distance(streamNames.begin(), _nameIt);
+            ctx->selectedStreamName = streamNames[ctx->selectedStreamId];
+        }
     }
 
     ImGui::PushItemWidth(menuColumnWidth);
     if (!ctx->recording) {
-        ImGui::Combo(CONCAT("##_strea_select_", ctx->name), &ctx->selectedStreamId, nameList.c_str());
+        if (ImGui::Combo(CONCAT("##_strea_select_", ctx->name), &ctx->selectedStreamId, nameList.c_str())) {
+            ctx->selectedStreamName = nameList[ctx->selectedStreamId];
+        }
     }
     else {
         ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
@@ -99,8 +121,10 @@ MOD_EXPORT void _DRAW_MENU_(RecorderContext_t* ctx) {
     
     if (!ctx->recording) {
         if (ImGui::Button("Record", ImVec2(menuColumnWidth, 0))) {
+            ctx->samplesWritten = 0;
+            ctx->sampleRate = 48000;
             ctx->writer = new WavWriter("recordings/" + genFileName("audio_"), 16, 2, 48000);
-            ctx->stream = API->bindToStreamStereo("Radio", streamRemovedHandler, sampleRateChanged, ctx);
+            ctx->stream = API->bindToStreamStereo(ctx->selectedStreamName, streamRemovedHandler, sampleRateChanged, ctx);
             ctx->workerThread = std::thread(_writeWorker, ctx);
             ctx->recording = true;
             ctx->startTime = time(0);
@@ -112,12 +136,13 @@ MOD_EXPORT void _DRAW_MENU_(RecorderContext_t* ctx) {
             ctx->stream->stopReader();
             ctx->workerThread.join();
             ctx->stream->clearReadStop();
-            API->unbindFromStreamStereo("Radio", ctx->stream);
+            API->unbindFromStreamStereo(ctx->selectedStreamName, ctx->stream);
             ctx->writer->close();
             delete ctx->writer;
             ctx->recording = false;
         }
-        time_t diff = time(0) - ctx->startTime;
+        uint64_t seconds = ctx->samplesWritten / (uint64_t)ctx->sampleRate;
+        time_t diff = seconds;
         tm *dtm = gmtime(&diff);
         ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Recording %02d:%02d:%02d", dtm->tm_hour, dtm->tm_min, dtm->tm_sec);
     }
