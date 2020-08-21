@@ -22,6 +22,7 @@
 #endif
 
 bool maximized = false;
+bool fullScreen = false;
 
 static void glfw_error_callback(int error, const char* description) {
     spdlog::error("Glfw Error {0}: {1}", error, description);
@@ -64,6 +65,7 @@ int main() {
     maximized = config::config["maximized"];
 
     // Create window with graphics context
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     GLFWwindow* window = glfwCreateWindow(winWidth, winHeight, "SDR++ v" VERSION_STR " (Built at " __TIME__ ", " __DATE__ ")", NULL, NULL);
     if (window == NULL)
         return 1;
@@ -135,6 +137,7 @@ int main() {
     spdlog::info("Ready.");
 
     bool _maximized = maximized;
+    int fsWidth, fsHeight, fsPosX, fsPosY;
 
     // Main loop
     while (!glfwWindowShouldClose(window)) {
@@ -154,8 +157,26 @@ int main() {
             }
         }
 
+        
+
         int _winWidth, _winHeight;
         glfwGetWindowSize(window, &_winWidth, &_winHeight);
+
+        if (ImGui::IsKeyPressed(GLFW_KEY_F11)) {
+            fullScreen = !fullScreen;
+            if (fullScreen) {
+                spdlog::info("Fullscreen: ON");
+                fsWidth = _winWidth;
+                fsHeight = _winHeight;
+                glfwGetWindowPos(window, &fsPosX, &fsPosY);
+                const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+                glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, 0);
+            }
+            else {
+                spdlog::info("Fullscreen: OFF");
+                glfwSetWindowMonitor(window, nullptr,  fsPosX, fsPosY, fsWidth, fsHeight, 0);
+            }
+        }
 
         if ((_winWidth != winWidth || _winHeight != winHeight) && !maximized && _winWidth > 0 && _winHeight > 0) {
             winWidth = _winWidth;

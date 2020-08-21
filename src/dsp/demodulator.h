@@ -265,6 +265,16 @@ namespace dsp {
             }
         }
 
+        void setBandwidth(float bandwidth) {
+            _bandWidth = bandwidth;
+            if (_mode == MODE_USB) {
+                lo.setFrequency(_bandWidth / 2.0f);
+            }
+            else if (_mode == MODE_LSB) {
+                lo.setFrequency(-_bandWidth / 2.0f);
+            }
+        }
+
         stream<float> output;
 
         enum {

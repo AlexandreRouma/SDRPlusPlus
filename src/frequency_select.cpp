@@ -67,9 +67,10 @@ void FrequencySelect::draw() {
     window = ImGui::GetCurrentWindow();
     widgetPos = ImGui::GetWindowContentRegionMin();
     widgetEndPos = ImGui::GetWindowContentRegionMax();
-    widgetPos.x += window->Pos.x + 255;
+    ImVec2 cursorPos = ImGui::GetCursorPos();
+    widgetPos.x += window->Pos.x + cursorPos.x;
     widgetPos.y += window->Pos.y - 3;
-    widgetEndPos.x += window->Pos.x + 255;
+    widgetEndPos.x += window->Pos.x + cursorPos.x;
     widgetEndPos.y += window->Pos.y - 3;
     widgetSize = ImVec2(widgetEndPos.x - widgetPos.x, widgetEndPos.y - widgetPos.y);
 

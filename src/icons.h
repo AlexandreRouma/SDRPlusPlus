@@ -7,8 +7,7 @@ namespace icons {
     extern ImTextureID LOGO;
     extern ImTextureID PLAY;
     extern ImTextureID STOP;
-    extern ImTextureID PLAY_RAW;
-    extern ImTextureID STOP_RAW;
+    extern ImTextureID MENU;
 
     GLuint loadTexture(char* path);
     void load();

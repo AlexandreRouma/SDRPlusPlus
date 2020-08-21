@@ -703,12 +703,12 @@ namespace ImGui {
         else if (reference == REF_LOWER) {
             centerOffset = lowerOffset + (bandwidth / 2.0f);
             upperOffset = lowerOffset + bandwidth;
-            centerOffsetChanged;
+            centerOffsetChanged = true;
         }
         else if (reference == REF_UPPER) {
             centerOffset = upperOffset - (bandwidth / 2.0f);
             lowerOffset = upperOffset - bandwidth;
-            centerOffsetChanged;
+            centerOffsetChanged = true;
         }
         redrawRequired = true;
     }
@@ -773,6 +773,7 @@ namespace ImGui {
 
     void WaterFall::setFFTHeight(int height) {
         FFTAreaHeight = height;
+        newFFTAreaHeight = height;
         onResize();
     }
     

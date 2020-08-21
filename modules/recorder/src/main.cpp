@@ -106,7 +106,7 @@ MOD_EXPORT void _DRAW_MENU_(RecorderContext_t* ctx) {
     ImGui::PushItemWidth(menuColumnWidth);
     if (!ctx->recording) {
         if (ImGui::Combo(CONCAT("##_strea_select_", ctx->name), &ctx->selectedStreamId, nameList.c_str())) {
-            ctx->selectedStreamName = nameList[ctx->selectedStreamId];
+            ctx->selectedStreamName = streamNames[ctx->selectedStreamId];
         }
     }
     else {

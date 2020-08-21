@@ -62,6 +62,7 @@ bool grabbingMenu = false;
 int newWidth = 300;
 bool showWaterfall = true;
 int fftHeight = 300;
+bool showMenu = true;
 
 void saveCurrentSource() {
     int i = 0;
@@ -227,7 +228,6 @@ void windowInit() {
     auto _bandplanIt = bandplan::bandplans.find(bandPlanName);
     if (_bandplanIt != bandplan::bandplans.end()) {
         bandplanId.val = std::distance(bandplan::bandplans.begin(), bandplan::bandplans.find(bandPlanName));
-        spdlog::warn("{0} => {1}", bandplanId.val, bandPlanName);
         
         if (bandPlanEnabled.val) {
             wtf.bandplan = &bandplan::bandplans[bandPlanName];
@@ -444,6 +444,12 @@ void drawWindow() {
     }
 
     // To Bar
+    if (ImGui::ImageButton(icons::MENU, ImVec2(40, 40), ImVec2(0, 0), ImVec2(1, 1), 0)) {
+        showMenu = !showMenu;
+    }
+
+    ImGui::SameLine();
+
     if (playing) {
         if (ImGui::ImageButton(icons::STOP, ImVec2(40, 40), ImVec2(0, 0), ImVec2(1, 1), 0)) {
             soapy.stop();
@@ -465,6 +471,8 @@ void drawWindow() {
     if (ImGui::SliderFloat("##_2_", volume, 0.0f, 1.0f, "")) {
         if (audioStreamName != "") {
             audio::streams[audioStreamName]->audio->setVolume(*volume);
+            config::config["audio"][audioStreamName]["volume"] = *volume;
+            config::configModified = true;
         }
     }
 
@@ -514,223 +522,228 @@ void drawWindow() {
         config::configModified = true;
     }
 
-    ImGui::Columns(3, "WindowColumns", false);
-    ImGui::SetColumnWidth(0, menuWidth);
-    ImGui::SetColumnWidth(1, winSize.x - menuWidth - 60);
-    ImGui::SetColumnWidth(2, 60);
-
     // Left Column
-    ImGui::BeginChild("Left Column");
-    float menuColumnWidth = ImGui::GetContentRegionAvailWidth();
 
-    if (ImGui::CollapsingHeader("Source", ImGuiTreeNodeFlags_DefaultOpen)) {
-        if (playing) { style::beginDisabled(); };
+    if (showMenu) {
+        ImGui::Columns(3, "WindowColumns", false);
+        ImGui::SetColumnWidth(0, menuWidth);
+        ImGui::SetColumnWidth(1, winSize.x - menuWidth - 60);
+        ImGui::SetColumnWidth(2, 60);
+        ImGui::BeginChild("Left Column");
+        float menuColumnWidth = ImGui::GetContentRegionAvailWidth();
 
-        ImGui::PushItemWidth(menuColumnWidth);
-        if (ImGui::Combo("##_0_", &devId, soapy.txtDevList.c_str())) {
-            spdlog::info("Changed input device: {0}", devId);
-            sourceName = soapy.devNameList[devId];
-            soapy.setDevice(soapy.devList[devId]);
+        if (ImGui::CollapsingHeader("Source", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (playing) { style::beginDisabled(); };
 
-            if (config::config["sourceSettings"].contains(sourceName)) {
-                loadSourceConfig(sourceName);
+            ImGui::PushItemWidth(menuColumnWidth);
+            if (ImGui::Combo("##_0_", &devId, soapy.txtDevList.c_str())) {
+                spdlog::info("Changed input device: {0}", devId);
+                sourceName = soapy.devNameList[devId];
+                soapy.setDevice(soapy.devList[devId]);
+
+                if (config::config["sourceSettings"].contains(sourceName)) {
+                    loadSourceConfig(sourceName);
+                }
+                else {
+                    srId = 0;
+                    sampleRate = soapy.getSampleRate();
+                    bw.val = sampleRate;
+                    wtf.setBandwidth(sampleRate);
+                    wtf.setViewBandwidth(sampleRate);
+                    sigPath.setSampleRate(sampleRate);
+
+                    if (soapy.gainList.size() >= 0) {
+                        delete[] uiGains;
+                        uiGains = new float[soapy.gainList.size()];
+                        for (int i = 0; i < soapy.gainList.size(); i++) {
+                            uiGains[i] = soapy.currentGains[i];
+                        }
+                    }
+                }
+                setVFO(fSel.frequency);
+                config::config["source"] = sourceName;
+                config::configModified = true;
             }
-            else {
-                srId = 0;
-                sampleRate = soapy.getSampleRate();
-                bw.val = sampleRate;
+            ImGui::PopItemWidth();
+
+            if (ImGui::Combo("##_1_", &srId, soapy.txtSampleRateList.c_str())) {
+                spdlog::info("Changed sample rate: {0}", srId);
+                sampleRate = soapy.sampleRates[srId];
+                soapy.setSampleRate(sampleRate);
                 wtf.setBandwidth(sampleRate);
                 wtf.setViewBandwidth(sampleRate);
                 sigPath.setSampleRate(sampleRate);
+                bw.val = sampleRate;
 
-                if (soapy.gainList.size() >= 0) {
-                    delete[] uiGains;
-                    uiGains = new float[soapy.gainList.size()];
-                    for (int i = 0; i < soapy.gainList.size(); i++) {
-                        uiGains[i] = soapy.currentGains[i];
+                if (!config::config["sourceSettings"].contains(sourceName)) {
+                    saveCurrentSource();
+                }
+                config::config["sourceSettings"][sourceName]["sampleRate"] = sampleRate;
+                config::configModified = true;
+            }
+
+            ImGui::SameLine();
+            bool noDevice = (soapy.devList.size() == 0);
+            if (ImGui::Button("Refresh", ImVec2(menuColumnWidth - ImGui::GetCursorPosX(), 0.0f))) {
+                soapy.refresh();
+                if (noDevice && soapy.devList.size() > 0) {
+                    sourceName = soapy.devNameList[0];
+                    soapy.setDevice(soapy.devList[0]);
+                    if (config::config["sourceSettings"][sourceName]) {
+                        loadSourceConfig(sourceName);
                     }
                 }
             }
-            setVFO(fSel.frequency);
-            config::config["source"] = sourceName;
-            config::configModified = true;
-        }
-        ImGui::PopItemWidth();
 
-        if (ImGui::Combo("##_1_", &srId, soapy.txtSampleRateList.c_str())) {
-            spdlog::info("Changed sample rate: {0}", srId);
-            sampleRate = soapy.sampleRates[srId];
-            soapy.setSampleRate(sampleRate);
-            wtf.setBandwidth(sampleRate);
-            wtf.setViewBandwidth(sampleRate);
-            sigPath.setSampleRate(sampleRate);
-            bw.val = sampleRate;
+            if (playing) { style::endDisabled(); };
 
-            if (!config::config["sourceSettings"].contains(sourceName)) {
-                saveCurrentSource();
-            }
-            config::config["sourceSettings"][sourceName]["sampleRate"] = sampleRate;
-            config::configModified = true;
-        }
+            float maxTextLength = 0;
+            float txtLen = 0;
+            char buf[100];
 
-        ImGui::SameLine();
-        bool noDevice = (soapy.devList.size() == 0);
-        if (ImGui::Button("Refresh", ImVec2(menuColumnWidth - ImGui::GetCursorPosX(), 0.0f))) {
-            soapy.refresh();
-            if (noDevice && soapy.devList.size() > 0) {
-                sourceName = soapy.devNameList[0];
-                soapy.setDevice(soapy.devList[0]);
-                if (config::config["sourceSettings"][sourceName]) {
-                    loadSourceConfig(sourceName);
+            // Calculate the spacing
+            for (int i = 0; i < soapy.gainList.size(); i++) {
+                sprintf(buf, "%s gain", soapy.gainList[i].c_str());
+                txtLen = ImGui::CalcTextSize(buf).x;
+                if (txtLen > maxTextLength) {
+                    maxTextLength = txtLen;
                 }
             }
-        }
 
-        if (playing) { style::endDisabled(); };
+            for (int i = 0; i < soapy.gainList.size(); i++) {
+                ImGui::Text("%s gain", soapy.gainList[i].c_str());
+                ImGui::SameLine();
+                sprintf(buf, "##_gain_slide_%d_", i);
 
-        float maxTextLength = 0;
-        float txtLen = 0;
-        char buf[100];
-
-        // Calculate the spacing
-        for (int i = 0; i < soapy.gainList.size(); i++) {
-            sprintf(buf, "%s gain", soapy.gainList[i].c_str());
-            txtLen = ImGui::CalcTextSize(buf).x;
-            if (txtLen > maxTextLength) {
-                maxTextLength = txtLen;
+                ImGui::SetCursorPosX(maxTextLength + 5);
+                ImGui::PushItemWidth(menuColumnWidth - (maxTextLength + 5));
+                if (ImGui::SliderFloat(buf, &uiGains[i], soapy.gainRanges[i].minimum(), soapy.gainRanges[i].maximum())) {
+                    soapy.setGain(i, uiGains[i]);
+                    config::config["sourceSettings"][sourceName]["gains"][soapy.gainList[i]] = uiGains[i];
+                    config::configModified = true;
+                }
+                ImGui::PopItemWidth();
             }
-        }
 
-        for (int i = 0; i < soapy.gainList.size(); i++) {
-            ImGui::Text("%s gain", soapy.gainList[i].c_str());
-            ImGui::SameLine();
-            sprintf(buf, "##_gain_slide_%d_", i);
-
-            ImGui::SetCursorPosX(maxTextLength + 5);
-            ImGui::PushItemWidth(menuColumnWidth - (maxTextLength + 5));
-            if (ImGui::SliderFloat(buf, &uiGains[i], soapy.gainRanges[i].minimum(), soapy.gainRanges[i].maximum())) {
-                soapy.setGain(i, uiGains[i]);
-                config::config["sourceSettings"][sourceName]["gains"][soapy.gainList[i]] = uiGains[i];
-                config::configModified = true;
-            }
-            ImGui::PopItemWidth();
-        }
-
-        ImGui::Spacing();
-    }
-
-    for (int i = 0; i < modCount; i++) {
-        if (ImGui::CollapsingHeader(mod::moduleNames[i].c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
-            mod = mod::modules[mod::moduleNames[i]];
-            mod._DRAW_MENU_(mod.ctx);
             ImGui::Spacing();
         }
-    }
 
-
-    if (ImGui::CollapsingHeader("Audio", ImGuiTreeNodeFlags_DefaultOpen)) {
-        int count = 0;
-        int maxCount = audio::streams.size();
-        for (auto const& [name, stream] : audio::streams) {
-            int deviceId;
-            float vol = 1.0f;
-            deviceId = stream->audio->getDeviceId();
-
-            ImGui::SetCursorPosX((menuColumnWidth / 2.0f) - (ImGui::CalcTextSize(name.c_str()).x / 2.0f));
-            ImGui::Text(name.c_str());
-
-            ImGui::PushItemWidth(menuColumnWidth);
-            bool running = stream->running;
-            if (ImGui::Combo(("##_audio_dev_0_"+ name).c_str(), &stream->deviceId, stream->audio->devTxtList.c_str())) {
-                spdlog::warn("Stopping audio stream");
-                audio::stopStream(name);
-                spdlog::warn("Setting device");
-                audio::setAudioDevice(name, stream->deviceId, stream->audio->devices[deviceId].sampleRates[0]);
-                if (running) {
-                    spdlog::warn("Starting stream");
-                    audio::startStream(name);
-                }
-                stream->sampleRateId = 0;
-                spdlog::warn("Done, saving config");
-
-                // Create config if it doesn't exist
-                if (!config::config["audio"].contains(name)) {
-                    config::config["audio"][name]["volume"] = stream->volume;
-                }
-                config::config["audio"][name]["device"] = stream->audio->deviceNames[stream->deviceId];
-                config::config["audio"][name]["sampleRate"] = stream->audio->devices[stream->deviceId].sampleRates[0];
-                config::configModified = true;
-            }
-            if (ImGui::Combo(("##_audio_sr_0_" + name).c_str(), &stream->sampleRateId, stream->audio->devices[deviceId].txtSampleRates.c_str())) {
-                audio::stopStream(name);
-                audio::setSampleRate(name, stream->audio->devices[deviceId].sampleRates[stream->sampleRateId]);
-                if (running) {
-                    audio::startStream(name);
-                }
-
-                // Create config if it doesn't exist
-                if (!config::config["audio"].contains(name)) {
-                    config::config["audio"][name]["volume"] = stream->volume;
-                    config::config["audio"][name]["device"] = stream->audio->deviceNames[deviceId];
-                }
-                config::config["audio"][name]["sampleRate"] = stream->audio->devices[deviceId].sampleRates[stream->sampleRateId];
-                config::configModified = true;
-            }
-            if (ImGui::SliderFloat(("##_audio_vol_0_" + name).c_str(), &stream->volume, 0.0f, 1.0f, "")) {
-                stream->audio->setVolume(stream->volume);
-
-                // Create config if it doesn't exist
-                if (!config::config["audio"].contains(name)) {
-                    config::config["audio"][name]["device"] = stream->audio->deviceNames[deviceId];
-                    config::config["audio"][name]["sampleRate"] = stream->audio->devices[deviceId].sampleRates[stream->sampleRateId];
-                }
-                config::config["audio"][name]["volume"] = stream->volume;
-                config::configModified = true;
-            }
-            ImGui::PopItemWidth();
-            count++;
-            if (count < maxCount) {
+        for (int i = 0; i < modCount; i++) {
+            if (ImGui::CollapsingHeader(mod::moduleNames[i].c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+                mod = mod::modules[mod::moduleNames[i]];
+                mod._DRAW_MENU_(mod.ctx);
                 ImGui::Spacing();
-                ImGui::Separator();
+            }
+        }
+
+
+        if (ImGui::CollapsingHeader("Audio", ImGuiTreeNodeFlags_DefaultOpen)) {
+            int count = 0;
+            int maxCount = audio::streams.size();
+            for (auto const& [name, stream] : audio::streams) {
+                int deviceId;
+                float vol = 1.0f;
+                deviceId = stream->audio->getDeviceId();
+
+                ImGui::SetCursorPosX((menuColumnWidth / 2.0f) - (ImGui::CalcTextSize(name.c_str()).x / 2.0f));
+                ImGui::Text(name.c_str());
+
+                ImGui::PushItemWidth(menuColumnWidth);
+                bool running = stream->running;
+                if (ImGui::Combo(("##_audio_dev_0_"+ name).c_str(), &stream->deviceId, stream->audio->devTxtList.c_str())) {
+                    audio::stopStream(name);
+                    audio::setAudioDevice(name, stream->deviceId, stream->audio->devices[deviceId].sampleRates[0]);
+                    if (running) {
+                        audio::startStream(name);
+                    }
+                    stream->sampleRateId = 0;
+
+                    // Create config if it doesn't exist
+                    if (!config::config["audio"].contains(name)) {
+                        config::config["audio"][name]["volume"] = stream->volume;
+                    }
+                    config::config["audio"][name]["device"] = stream->audio->deviceNames[stream->deviceId];
+                    config::config["audio"][name]["sampleRate"] = stream->audio->devices[stream->deviceId].sampleRates[0];
+                    config::configModified = true;
+                }
+                if (ImGui::Combo(("##_audio_sr_0_" + name).c_str(), &stream->sampleRateId, stream->audio->devices[deviceId].txtSampleRates.c_str())) {
+                    audio::stopStream(name);
+                    audio::setSampleRate(name, stream->audio->devices[deviceId].sampleRates[stream->sampleRateId]);
+                    if (running) {
+                        audio::startStream(name);
+                    }
+
+                    // Create config if it doesn't exist
+                    if (!config::config["audio"].contains(name)) {
+                        config::config["audio"][name]["volume"] = stream->volume;
+                        config::config["audio"][name]["device"] = stream->audio->deviceNames[deviceId];
+                    }
+                    config::config["audio"][name]["sampleRate"] = stream->audio->devices[deviceId].sampleRates[stream->sampleRateId];
+                    config::configModified = true;
+                }
+                if (ImGui::SliderFloat(("##_audio_vol_0_" + name).c_str(), &stream->volume, 0.0f, 1.0f, "")) {
+                    stream->audio->setVolume(stream->volume);
+
+                    // Create config if it doesn't exist
+                    if (!config::config["audio"].contains(name)) {
+                        config::config["audio"][name]["device"] = stream->audio->deviceNames[deviceId];
+                        config::config["audio"][name]["sampleRate"] = stream->audio->devices[deviceId].sampleRates[stream->sampleRateId];
+                    }
+                    config::config["audio"][name]["volume"] = stream->volume;
+                    config::configModified = true;
+                }
+                ImGui::PopItemWidth();
+                count++;
+                if (count < maxCount) {
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                }
+                ImGui::Spacing();
             }
             ImGui::Spacing();
         }
-        ImGui::Spacing();
-    }
 
-    if (ImGui::CollapsingHeader("Band Plan", ImGuiTreeNodeFlags_DefaultOpen)) {
-        ImGui::PushItemWidth(menuColumnWidth);
-        if (ImGui::Combo("##_4_", &bandplanId.val, bandplan::bandplanNameTxt.c_str())) {
-            config::config["bandPlan"] = bandplan::bandplanNames[bandplanId.val];
-            config::configModified = true;
+        if (ImGui::CollapsingHeader("Band Plan", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::PushItemWidth(menuColumnWidth);
+            if (ImGui::Combo("##_4_", &bandplanId.val, bandplan::bandplanNameTxt.c_str())) {
+                config::config["bandPlan"] = bandplan::bandplanNames[bandplanId.val];
+                config::configModified = true;
+            }
+            ImGui::PopItemWidth();
+            if (ImGui::Checkbox("Enabled", &bandPlanEnabled.val)) {
+                config::config["bandPlanEnabled"] = bandPlanEnabled.val;
+                config::configModified = true;
+            }
+            bandplan::BandPlan_t plan = bandplan::bandplans[bandplan::bandplanNames[bandplanId.val]];
+            ImGui::Text("Country: %s (%s)", plan.countryName, plan.countryCode);
+            ImGui::Text("Author: %s", plan.authorName);
+            ImGui::Spacing();
+        } 
+
+        if (ImGui::CollapsingHeader("Display", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::Checkbox("Show waterfall", &showWaterfall)) {
+                showWaterfall ? wtf.showWaterfall() : wtf.hideWaterfall();
+            }
+            ImGui::Spacing();
         }
-        ImGui::PopItemWidth();
-        if (ImGui::Checkbox("Enabled", &bandPlanEnabled.val)) {
-            config::config["bandPlanEnabled"] = bandPlanEnabled.val;
-            config::configModified = true;
+
+        if(ImGui::CollapsingHeader("Debug")) {
+            ImGui::Text("Frame time: %.3f ms/frame", 1000.0f / ImGui::GetIO().Framerate);
+            ImGui::Text("Framerate: %.1f FPS", ImGui::GetIO().Framerate);
+            ImGui::Text("Center Frequency: %.0f Hz", wtf.getCenterFrequency());
+
+            ImGui::Spacing();
         }
-        bandplan::BandPlan_t plan = bandplan::bandplans[bandplan::bandplanNames[bandplanId.val]];
-        ImGui::Text("Country: %s (%s)", plan.countryName, plan.countryCode);
-        ImGui::Text("Author: %s", plan.authorName);
-        ImGui::Spacing();
-    } 
 
-    if (ImGui::CollapsingHeader("Display", ImGuiTreeNodeFlags_DefaultOpen)) {
-        if (ImGui::Checkbox("Show waterfall", &showWaterfall)) {
-            showWaterfall ? wtf.showWaterfall() : wtf.hideWaterfall();
-        }
-        ImGui::Spacing();
+        ImGui::EndChild();
     }
-
-    if(ImGui::CollapsingHeader("Debug")) {
-        ImGui::Text("Frame time: %.3f ms/frame", 1000.0f / ImGui::GetIO().Framerate);
-        ImGui::Text("Framerate: %.1f FPS", ImGui::GetIO().Framerate);
-        ImGui::Text("Center Frequency: %.0f Hz", wtf.getCenterFrequency());
-
-        ImGui::Spacing();
+    else {
+        // When hiding the menu bar
+        ImGui::Columns(3, "WindowColumns", false);
+        ImGui::SetColumnWidth(0, 8);
+        ImGui::SetColumnWidth(1, winSize.x - 8 - 60);
+        ImGui::SetColumnWidth(2, 60);
     }
-
-    ImGui::EndChild();
 
     // Right Column
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));

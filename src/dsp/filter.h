@@ -25,8 +25,9 @@ namespace dsp {
         if (_M % 2 == 0) { _M++; }
         float M = _M;
         float sum = 0.0f;
+        float val;
         for (int i = 0; i < _M; i++) {
-            float val = (sin(2.0f * M_PI * fc * ((float)i - (M / 2))) / ((float)i - (M / 2))) * (0.42f - (0.5f * cos(2.0f * M_PI / M)) + (0.8f * cos(4.0f * M_PI / M)));
+            val = (sin(2.0f * M_PI * fc * ((float)i - (M / 2))) / ((float)i - (M / 2))) * (0.42f - (0.5f * cos(2.0f * M_PI / M)) + (0.8f * cos(4.0f * M_PI / M)));
             taps.push_back(val);
             sum += val;
         }
@@ -455,8 +456,6 @@ namespace dsp {
             float lastOut = 0.0f;
             float dt = 1.0f / _this->_sampleRate;
             float alpha = dt / (_this->_tau + dt);
-
-            spdlog::warn("Deemp filter started: {0}, {1}", _this->_tau * 1000000.0, _this->_sampleRate);
 
             while (true) {
                 if (_this->_in->read(inBuf, count) < 0) { break; };

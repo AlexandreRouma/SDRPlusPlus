@@ -7,8 +7,7 @@ namespace icons {
     ImTextureID LOGO;
     ImTextureID PLAY;
     ImTextureID STOP;
-    ImTextureID PLAY_RAW;
-    ImTextureID STOP_RAW;
+    ImTextureID MENU;
 
     GLuint loadTexture(char* path) {
         int w,h,n;
@@ -28,7 +27,6 @@ namespace icons {
         LOGO = (ImTextureID)loadTexture("res/icons/sdrpp.png");
         PLAY = (ImTextureID)loadTexture("res/icons/play.png");
         STOP = (ImTextureID)loadTexture("res/icons/stop.png");
-        PLAY_RAW = (ImTextureID)loadTexture("res/icons/play_raw.png");
-        STOP_RAW = (ImTextureID)loadTexture("res/icons/stop_raw.png");
+        MENU = (ImTextureID)loadTexture("res/icons/menu.png");
     }
 }

@@ -77,16 +77,12 @@ namespace audio {
             return;
         }
         if (astr->type == STREAM_TYPE_MONO) {
-            spdlog::warn("=> Stopping monoDynSplit");
             astr->monoDynSplit->stop();
         }
         else {
-            spdlog::warn("=> Stopping stereoDynSplit");
             astr->stereoDynSplit->stop();
         }
-        spdlog::warn("=> Stopping audio");
         astr->audio->stop();
-        spdlog::warn("=> Done");
         astr->running = false;
     }
 

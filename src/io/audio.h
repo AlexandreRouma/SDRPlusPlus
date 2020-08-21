@@ -187,11 +187,8 @@ namespace io {
             else {
                 _stereoInput->stopReader();
             }
-            spdlog::warn("==> Pa_StopStream");
             Pa_StopStream(stream);
-            spdlog::warn("==> Pa_CloseStream");
             Pa_CloseStream(stream);
-            spdlog::warn("==> Done");
             if (streamType == MONO) {
                 _monoInput->clearReadStop();
             }
