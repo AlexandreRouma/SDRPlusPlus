@@ -732,8 +732,8 @@ void drawWindow() {
                 config::configModified = true;
             }
             bandplan::BandPlan_t plan = bandplan::bandplans[bandplan::bandplanNames[bandplanId.val]];
-            ImGui::Text("Country: %s (%s)", plan.countryName, plan.countryCode);
-            ImGui::Text("Author: %s", plan.authorName);
+            ImGui::Text("Country: %s (%s)", plan.countryName.c_str(), plan.countryCode.c_str());
+            ImGui::Text("Author: %s", plan.authorName.c_str());
             ImGui::Spacing();
         } 
 
