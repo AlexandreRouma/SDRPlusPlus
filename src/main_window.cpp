@@ -148,6 +148,12 @@ void loadAudioConfig(std::string name) {
     audio::streams[name]->audio->setVolume(audio::streams[name]->volume);
 }
 
+void saveAudioConfig(std::string name) {
+    config::config["audio"][name]["device"] = audio::streams[name]->audio->deviceNames[audio::streams[name]->deviceId];
+    config::config["audio"][name]["volume"] = audio::streams[name]->volume;
+    config::config["audio"][name]["sampleRate"] = audio::streams[name]->sampleRate;
+}
+
 void windowInit() {
     fSel.init();
     
@@ -193,6 +199,9 @@ void windowInit() {
             i++;
         }
         if (!settingsFound) {
+            if (soapy.devNameList.size() > 0) {
+                sourceName = soapy.devNameList[0];
+            }
             sampleRate = soapy.getSampleRate();
             sigPath.setSampleRate(sampleRate);
         }
@@ -208,6 +217,10 @@ void windowInit() {
     // DSB / CW and RAW modes;
     // Bring VFO to a visible place when changing sample rate if it's smaller
     // Have a proper root directory
+
+    // Fix issue of source name not set when source was not selected manually
+    // Generate entire source config before saving a source property
+    // ^ same for audio devices
 
     // And a module add/remove/change order menu
     // get rid of watchers and use if() instead
@@ -470,6 +483,9 @@ void drawWindow() {
     ImGui::SetNextItemWidth(200);
     if (ImGui::SliderFloat("##_2_", volume, 0.0f, 1.0f, "")) {
         if (audioStreamName != "") {
+            if (!config::config["audio"].contains(audioStreamName)) {
+                saveAudioConfig(audioStreamName);
+            }
             audio::streams[audioStreamName]->audio->setVolume(*volume);
             config::config["audio"][audioStreamName]["volume"] = *volume;
             config::configModified = true;
@@ -619,6 +635,9 @@ void drawWindow() {
                 ImGui::PushItemWidth(menuColumnWidth - (maxTextLength + 5));
                 if (ImGui::SliderFloat(buf, &uiGains[i], soapy.gainRanges[i].minimum(), soapy.gainRanges[i].maximum())) {
                     soapy.setGain(i, uiGains[i]);
+                    if (!config::config["sourceSettings"].contains(sourceName)) {
+                        saveCurrentSource();
+                    }
                     config::config["sourceSettings"][sourceName]["gains"][soapy.gainList[i]] = uiGains[i];
                     config::configModified = true;
                 }
@@ -660,7 +679,7 @@ void drawWindow() {
 
                     // Create config if it doesn't exist
                     if (!config::config["audio"].contains(name)) {
-                        config::config["audio"][name]["volume"] = stream->volume;
+                        saveAudioConfig(name);
                     }
                     config::config["audio"][name]["device"] = stream->audio->deviceNames[stream->deviceId];
                     config::config["audio"][name]["sampleRate"] = stream->audio->devices[stream->deviceId].sampleRates[0];
@@ -675,8 +694,7 @@ void drawWindow() {
 
                     // Create config if it doesn't exist
                     if (!config::config["audio"].contains(name)) {
-                        config::config["audio"][name]["volume"] = stream->volume;
-                        config::config["audio"][name]["device"] = stream->audio->deviceNames[deviceId];
+                        saveAudioConfig(name);
                     }
                     config::config["audio"][name]["sampleRate"] = stream->audio->devices[deviceId].sampleRates[stream->sampleRateId];
                     config::configModified = true;
@@ -686,8 +704,7 @@ void drawWindow() {
 
                     // Create config if it doesn't exist
                     if (!config::config["audio"].contains(name)) {
-                        config::config["audio"][name]["device"] = stream->audio->deviceNames[deviceId];
-                        config::config["audio"][name]["sampleRate"] = stream->audio->devices[deviceId].sampleRates[stream->sampleRateId];
+                        saveAudioConfig(name);
                     }
                     config::config["audio"][name]["volume"] = stream->volume;
                     config::configModified = true;
@@ -731,7 +748,7 @@ void drawWindow() {
             ImGui::Text("Frame time: %.3f ms/frame", 1000.0f / ImGui::GetIO().Framerate);
             ImGui::Text("Framerate: %.1f FPS", ImGui::GetIO().Framerate);
             ImGui::Text("Center Frequency: %.0f Hz", wtf.getCenterFrequency());
-
+            ImGui::Text("Source name: %s", sourceName.c_str());
             ImGui::Spacing();
         }
 
