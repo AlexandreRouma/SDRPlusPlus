@@ -41,7 +41,7 @@ dsp::NullSink sink;
 int devId = 0;
 int srId = 0;
 watcher<int> bandplanId(0, true);
-watcher<uint64_t> freq(90500000Ui64);
+watcher<uint64_t> freq(90500000);
 int demod = 1;
 watcher<float> vfoFreq(92000000.0f);
 float dummyVolume = 1.0f;
