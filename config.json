@@ -1,9 +1,18 @@
 {
+    "audio": {},
     "bandPlan": "General",
     "bandPlanEnabled": true,
-    "frequency": 98000000,
+    "fftHeight": 300,
+    "frequency": 99000000,
     "max": 0.0,
+    "maximized": false,
+    "menuWidth": 300,
     "min": -70.0,
+    "showWaterfall": true,
     "source": "",
-    "sourceSettings": {}
+    "sourceSettings": {},
+    "windowSize": {
+        "h": 720,
+        "w": 1280
+    }
 }
