@@ -185,11 +185,11 @@ namespace dsp {
                         if (i < t) {
                             outBuf[id].i += tap * delayBuf[delayOff + i].i;
                             outBuf[id].q += tap * delayBuf[delayOff + i].q;
-                            id++;
-                            continue;
                         }
-                        outBuf[id].i += tap * inBuf[i - t].i;
-                        outBuf[id].q += tap * inBuf[i - t].q;
+                        else {
+                            outBuf[id].i += tap * inBuf[i - t].i;
+                            outBuf[id].q += tap * inBuf[i - t].q;
+                        }
                         id++;
                     }
                 }
