@@ -6,7 +6,9 @@ if (MSVC)
     link_directories(sdrpp "C:/Program Files/PothosSDR/lib/")
     include_directories(sdrpp "C:/Program Files/PothosSDR/include/volk/")
     include_directories(sdrpp "C:/Program Files/PothosSDR/include/")
-    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    link_directories(sdrpp "C:/Program Files/PothosSDR/lib/")
+ENDIF()
+
 else()
     set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -fpermissive -fsanitize=address -g")
     # set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -fpermissive")
@@ -43,22 +45,52 @@ add_executable(sdrpp ${SRC} ${IMGUI})
 if (MSVC)
     # Glew
     find_package(GLEW REQUIRED)
-    target_link_libraries(sdrpp PRIVATE GLEW::GLEW)
 
     # GLFW3
     find_package(glfw3 CONFIG REQUIRED)
-    target_link_libraries(sdrpp PRIVATE glfw)
 
     # FFTW3
     find_package(FFTW3 CONFIG REQUIRED)
-    target_link_libraries(sdrpp PRIVATE FFTW3::fftw3)
+
     find_package(FFTW3f CONFIG REQUIRED)
-    target_link_libraries(sdrpp PRIVATE FFTW3::fftw3f)
 
     # PortAudio
     find_package(portaudio CONFIG REQUIRED)
-    target_link_libraries(sdrpp PRIVATE portaudio portaudio_static)
 endif (MSVC)
+
+FUNCTION(LINK_LIB)
+    target_link_libraries(${ARGV0} PRIVATE GLEW::GLEW)
+    target_link_libraries(${ARGV0} PRIVATE glfw)
+    target_link_libraries(${ARGV0} PRIVATE FFTW3::fftw3)
+    target_link_libraries(${ARGV0} PRIVATE FFTW3::fftw3f)
+    target_link_libraries(${ARGV0} PRIVATE portaudio portaudio_static)
+ENDFUNCTION()
+
+FUNCTION(AddPlugin)
+    file(GLOB PLUGIN_MOD_SRC "modules/${ARGV0}/src/*.cpp")
+    include_directories(${ARGV0} "modules/${ARGV0}/src")
+    add_library(${ARGV0} SHARED ${PLUGIN_MOD_SRC} ${IMGUI})
+    LINK_LIB(${ARGV0})
+    set_target_properties(${ARGV0} PROPERTIES OUTPUT_NAME ${ARGV0})
+ENDFUNCTION()
+
+# Main code
+include_directories(sdrpp "src/")
+include_directories(sdrpp "src/imgui")
+file(GLOB SRC "src/*.cpp")
+file(GLOB IMGUI "src/imgui/*.cpp")
+
+# If on windows, set the executable icon
+if (MSVC)
+    set(SRC ${SRC} "win32/resources.rc")
+endif (MSVC)
+
+add_executable(sdrpp ${SRC} ${IMGUI} ${RX888})
+LINK_LIB(sdrpp)
+
+AddPlugin(radio)
+AddPlugin(demo)
+AddPlugin(recorder)
 
 # # Copy resource directories
 # if (!MSVC)
