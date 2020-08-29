@@ -46,14 +46,6 @@ namespace mod {
     }
 
     void loadModule(std::string path, std::string name) {
-        if (!std::filesystem::exists(path)) {
-            spdlog::error("{0} does not exist", path);
-            return;
-        }
-        if (!std::filesystem::is_regular_file(path)) {
-            spdlog::error("{0} isn't a loadable module", path);
-            return;
-        }
         Module_t mod;
 #ifdef _WIN32
         mod.inst = LoadLibraryA(path.c_str());
@@ -136,4 +128,3 @@ namespace mod {
         }
     }
 };
-
