@@ -16,7 +16,7 @@ namespace dsp {
             _blockSize = blockSize;
             _sampleRate = sampleRate;
             _frequency = frequency;
-            _phasorSpeed = (2 * 3.1415926535) / (sampleRate / frequency);
+            _phasorSpeed = (2 * 3.1415926535 * frequency) / sampleRate;
             _phase = 0;
         }
 
@@ -25,7 +25,7 @@ namespace dsp {
             _sampleRate = sampleRate;
             _blockSize = blockSize;
             _frequency = frequency;
-            _phasorSpeed = (2 * 3.1415926535) / (sampleRate / frequency);
+            _phasorSpeed = (2 * 3.1415926535 * frequency) / sampleRate;
             _phase = 0;
         }
 
@@ -61,7 +61,7 @@ namespace dsp {
 
         void setSampleRate(float sampleRate) {
             _sampleRate = sampleRate;
-            _phasorSpeed = (2 * 3.1415926535) / (sampleRate / _frequency);
+            _phasorSpeed = (2 * 3.1415926535 * _frequency) / sampleRate;
         }
 
         stream<complex_t> output;
