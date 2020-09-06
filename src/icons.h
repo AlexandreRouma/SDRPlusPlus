@@ -2,6 +2,7 @@
 #include <imgui/imgui.h>
 #include <stdint.h>
 #include <GL/glew.h>
+#include <config.h>
 
 namespace icons {
     extern ImTextureID LOGO;

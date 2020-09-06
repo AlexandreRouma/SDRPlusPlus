@@ -30,7 +30,7 @@ include_directories(recorder "../../src/imgui")
 file(GLOB SRC "src/*.cpp")
 file(GLOB IMGUI "../../src/imgui/*.cpp")
 add_library(recorder SHARED ${SRC} ${IMGUI})
-set_target_properties(recorder PROPERTIES OUTPUT_NAME recorder)
+set_target_properties(recorder PROPERTIES PREFIX "")
 
 if (MSVC)
     # Glew

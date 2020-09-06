@@ -14,6 +14,8 @@ namespace config {
     void load(std::string path);
     void startAutoSave();
     void stopAutoSave();
+    void setRootDirectory(std::string dir);
+    std::string getRootDirectory();
 
     extern bool configModified;
     extern json config;

@@ -170,9 +170,9 @@ void windowInit() {
 
     spdlog::info("Loading modules");
     mod::initAPI(&wtf);
-    mod::loadFromList("module_list.json");
+    mod::loadFromList(config::getRootDirectory() + "/module_list.json");
 
-    bigFont = ImGui::GetIO().Fonts->AddFontFromFileTTF("res/fonts/Roboto-Medium.ttf", 128.0f);
+    bigFont = ImGui::GetIO().Fonts->AddFontFromFileTTF((config::getRootDirectory() + "/res/fonts/Roboto-Medium.ttf").c_str(), 128.0f);
 
     // Load last source configuration
     uint64_t frequency = config::config["frequency"];
@@ -214,13 +214,10 @@ void windowInit() {
     // Finish the recorder module
     // Add squelsh
     // Bandwidth ajustment
-    // DSB / CW and RAW modes;
+    // CW and RAW modes;
     // Bring VFO to a visible place when changing sample rate if it's smaller
-    // Have a proper root directory
 
-    // Fix issue of source name not set when source was not selected manually
-    // Generate entire source config before saving a source property
-    // ^ same for audio devices
+    // Have a proper root directory
 
     // And a module add/remove/change order menu
     // get rid of watchers and use if() instead

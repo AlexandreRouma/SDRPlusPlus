@@ -30,7 +30,7 @@ include_directories(demo "../../src/imgui")
 file(GLOB SRC "src/*.cpp")
 file(GLOB IMGUI "../../src/imgui/*.cpp")
 add_library(demo SHARED ${SRC} ${IMGUI})
-set_target_properties(demo PROPERTIES OUTPUT_NAME demo)
+set_target_properties(demo PROPERTIES PREFIX "")
 
 if (MSVC)
     # Glew

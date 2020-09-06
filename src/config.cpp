@@ -6,6 +6,7 @@ namespace config {
     bool autoSaveRunning = false;
     std::string _path;
     std::thread _workerThread;
+    std::string rootDir;
 
     void _autoSaveWorker() {
         while (autoSaveRunning) {
@@ -49,5 +50,13 @@ namespace config {
         }
         autoSaveRunning = false;
         _workerThread.join();
+    }
+
+    void setRootDirectory(std::string dir) {
+        rootDir = dir;
+    }
+
+    std::string getRootDirectory() {
+        return rootDir;
     }
 };

@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.9)
 project(sdrpp)
 
+add_subdirectory("modules/radio")
+add_subdirectory("modules/recorder")
+
 if (MSVC)
     set(CMAKE_CXX_FLAGS "-O2 /std:c++17")
     link_directories(sdrpp "C:/Program Files/PothosSDR/lib/")
@@ -38,7 +41,6 @@ if (MSVC)
 endif (MSVC)
 
 add_executable(sdrpp ${SRC} ${IMGUI})
-# add_library(sdrpp ${SRC} ${IMGUI})
 
 if (MSVC)
     # Glew
@@ -59,11 +61,5 @@ if (MSVC)
     find_package(portaudio CONFIG REQUIRED)
     target_link_libraries(sdrpp PRIVATE portaudio portaudio_static)
 endif (MSVC)
-
-# # Copy resource directories
-# if (!MSVC)
-#     add_custom_command(TARGET sdrpp POST_BUILD COMMAND cmake -E copy_directory ${CMAKE_SOURCE_DIR}/res ${CMAKE_BINARY_DIR}/res)
-#     add_custom_command(TARGET sdrpp POST_BUILD COMMAND cmake -E copy_directory ${CMAKE_SOURCE_DIR}/bandplans ${CMAKE_BINARY_DIR}/bandplans)
-# endif (MSVC)
 
 # cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/Users/Alex/vcpkg/scripts/buildsystems/vcpkg.cmake" -G "Visual Studio 15 2017 Win64"

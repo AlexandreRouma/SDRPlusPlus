@@ -1,0 +1,4 @@
+{
+    "Radio": "./modules/radio.dll",
+    "Recorder": "./modules/recorder.dll"
+}

@@ -44,9 +44,15 @@ int main() {
 
     spdlog::info("SDR++ v" VERSION_STR);
 
+#ifdef _WIN32
+    config::setRootDirectory(".");
+#else
+    config::setRootDirectory("/etc/sdrpp");
+#endif
+
     // Load config
     spdlog::info("Loading config");
-    config::load("config.json");
+    config::load(config::getRootDirectory() + "/config.json");
     config::startAutoSave();
 
     // Setup window
@@ -80,7 +86,7 @@ int main() {
 
     // Load app icon
     GLFWimage icons[10];
-    icons[0].pixels = stbi_load("res/icons/sdrpp.png", &icons[0].width, &icons[0].height, 0, 4);
+    icons[0].pixels = stbi_load((config::getRootDirectory() + "/res/icons/sdrpp.png").c_str(), &icons[0].width, &icons[0].height, 0, 4);
     icons[1].pixels = (unsigned char*)malloc(16 * 16 * 4); icons[1].width = icons[1].height = 16;
     icons[2].pixels = (unsigned char*)malloc(24 * 24 * 4); icons[2].width = icons[2].height = 24;
     icons[3].pixels = (unsigned char*)malloc(32 * 32 * 4); icons[3].width = icons[3].height = 32;
@@ -127,10 +133,10 @@ int main() {
     icons::load();
 
     spdlog::info("Loading band plans");
-    bandplan::loadFromDir("bandplans");
+    bandplan::loadFromDir(config::getRootDirectory() + "/bandplans");
 
     spdlog::info("Loading band plans color table");
-    bandplan::loadColorTable("band_colors.json");
+    bandplan::loadColorTable(config::getRootDirectory() + "/band_colors.json");
 
     windowInit();
 
