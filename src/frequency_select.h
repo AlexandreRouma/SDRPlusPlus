@@ -2,6 +2,7 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <stdint.h>
+#include <config.h>
 
 class FrequencySelect {
 public:

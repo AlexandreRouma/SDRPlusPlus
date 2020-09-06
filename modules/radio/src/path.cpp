@@ -146,7 +146,7 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
         ssbDemod.start();
     }
     else {
-        spdlog::error("UNIMPLEMENTED DEMODULATOR IN SigPath::setDemodulator (start)");
+        spdlog::error("UNIMPLEMENTED DEMODULATOR IN SigPath::setDemodulator (start): {0}", demId);
     }
 
     deemp.setBlockSize(audioResamp.getOutputBlockSize());

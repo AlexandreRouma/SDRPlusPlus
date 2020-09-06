@@ -65,20 +65,25 @@ comming soon :)
 comming soon as well :)
 
 # Contributing
+
 Feel free to issue pull request and report bugs via the github issues.
 I will soon publish a contributing.md listing the code style to use.
 
 # Credits
-## Libaries used
-* [SoapySDR (PothosWare)](https://github.com/pothosware/SoapySDR)
-* [Dear ImGui (ocornut)](https://github.com/ocornut/imgui)
-* [spdlog (gabime)](https://github.com/gabime/spdlog)
-* [json (nlohmann)](https://github.com/nlohmann/json)
-* [portaudio (PortAudio community)](http://www.portaudio.com/)
+
+## Patrons
+* [SignalsEverywhere](https://signalseverywhere.com/)
 
 ## Contributors
 * [aosync](https://github.com/aosync)
 * [Benjamin Kyd](https://github.com/benkyd)
 * [Tobias Mädel](https://github.com/Manawyrm)
 * [Raov](https://twitter.com/raov_birbtog)
-* [SignalsEverywhere](https://signalseverywhere.com/)
+* [Howard0su](https://github.com/howard0su)
+
+## Libaries used
+* [SoapySDR (PothosWare)](https://github.com/pothosware/SoapySDR)
+* [Dear ImGui (ocornut)](https://github.com/ocornut/imgui)
+* [spdlog (gabime)](https://github.com/gabime/spdlog)
+* [json (nlohmann)](https://github.com/nlohmann/json)
+* [portaudio (PortAudio community)](http://www.portaudio.com/)

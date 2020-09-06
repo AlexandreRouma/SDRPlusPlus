@@ -1,2 +1,2 @@
-cp modules/radio/build/radio.so root/modules/radio.so
-cp modules/recorder/build/recorder.so root/modules/recorder.so
+cp build/modules/radio/radio.so root/modules/radio.so
+cp build/modules/recorder/recorder.so root/modules/recorder.so

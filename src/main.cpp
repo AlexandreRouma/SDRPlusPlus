@@ -21,6 +21,9 @@
 #include <Windows.h>
 #endif
 
+// Comment to build a normal release
+// #define DEV_BUILD
+
 bool maximized = false;
 bool fullScreen = false;
 
@@ -44,7 +47,9 @@ int main() {
 
     spdlog::info("SDR++ v" VERSION_STR);
 
-#ifdef _WIN32
+#ifdef DEV_BUILD
+    config::setRootDirectory("../root");
+#elif _WIN32
     config::setRootDirectory(".");
 #else
     config::setRootDirectory("/etc/sdrpp");

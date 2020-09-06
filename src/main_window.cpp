@@ -841,6 +841,7 @@ void drawWindow() {
         ImGui::BulletText("Benjamin Kyd");
         ImGui::BulletText("Tobias Mädel");
         ImGui::BulletText("Raov");
+        ImGui::BulletText("Howard0su");
 
         // Libraries
         ImGui::NextColumn();
