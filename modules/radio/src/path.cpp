@@ -95,7 +95,7 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
         deemp.bypass = (_deemp == DEEMP_NONE);
         demod.start();
     }
-    if (demId == DEMOD_NFM) {
+    else if (demId == DEMOD_NFM) {
         API->setVFOSampleRate(vfoName, 16000, bandwidth);
         demod.setBlockSize(API->getVFOOutputBlockSize(vfoName));
         demod.setSampleRate(16000);
