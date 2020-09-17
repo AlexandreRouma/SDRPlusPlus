@@ -4,6 +4,7 @@
 #include <dsp/resampling.h>
 #include <dsp/filter.h>
 #include <spdlog/spdlog.h>
+#include <dsp/block.h>
 
 namespace dsp {
     class VFO {
@@ -22,7 +23,8 @@ namespace dsp {
 
             lo.init(offset, inputSampleRate, blockSize);
             mixer.init(in, &lo.output, blockSize);
-            resamp.init(&mixer.output, inputSampleRate, outputSampleRate, blockSize, _bandWidth * 0.8f, _bandWidth);
+            //resamp.init(&mixer.output, inputSampleRate, outputSampleRate, blockSize, _bandWidth * 0.8f, _bandWidth);
+            resamp.init(mixer.out[0], inputSampleRate, outputSampleRate, blockSize, _bandWidth * 0.8f, _bandWidth);
         }
 
         void start() {
@@ -87,8 +89,10 @@ namespace dsp {
 
     private:
         SineSource lo;
-        Multiplier mixer;
-        FIRResampler resamp;
+        //Multiplier mixer;
+        DemoMultiplier mixer;
+        FIRResampler<complex_t> resamp;
+        DecimatingFIRFilter filter;
         stream<complex_t>* _input;
 
         float _outputSampleRate;

@@ -28,10 +28,13 @@ void SigPath::init(std::string vfoName, uint64_t sampleRate, int blockSize, dsp:
     bandwidth = 200000;
 
     // TODO: Set default VFO options
+    // TODO: ajust deemphasis for different output sample rates
+    // TODO: Add a mono to stereo for different modes
 
     demod.init(input, 100000, 200000, 800);
     amDemod.init(input, 50);
     ssbDemod.init(input, 6000, 3000, 22);
+    cpx2stereo.init(input, 22);
     
     audioResamp.init(&demod.output, 200000, 48000, 800);
     deemp.init(&audioResamp.output, 800, 50e-6, 48000);
@@ -76,6 +79,9 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
     }
     else if (_demod == DEMOD_DSB) {
         ssbDemod.stop();
+    }
+    else if (_demod == DEMOD_RAW) {
+        cpx2stereo.stop();
     }
     else {
         spdlog::error("UNIMPLEMENTED DEMODULATOR IN SigPath::setDemodulator (stop)");
@@ -145,6 +151,14 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
         deemp.bypass = true;
         ssbDemod.start();
     }
+    else if (demId == DEMOD_RAW) {
+        API->setVFOSampleRate(vfoName, 10000, bandwidth);
+        cpx2stereo.setBlockSize(API->getVFOOutputBlockSize(vfoName));
+        //audioResamp.setInput(&cpx2stereo.output);
+        audioBw = std::min<float>(bandwidth, outputSampleRate / 2.0f);
+        audioResamp.setInputSampleRate(10000, API->getVFOOutputBlockSize(vfoName), audioBw, audioBw);
+        cpx2stereo.start();
+    }
     else {
         spdlog::error("UNIMPLEMENTED DEMODULATOR IN SigPath::setDemodulator (start): {0}", demId);
     }
@@ -206,6 +220,9 @@ void SigPath::setBandwidth(float bandWidth) {
         ssbDemod.stop();
         ssbDemod.setBandwidth(bandwidth);
         ssbDemod.start();
+    }
+    else if (_demod == DEMOD_RAW) {
+        // Notbing to change
     }
     else {
         spdlog::error("UNIMPLEMENTED DEMODULATOR IN SigPath::setBandwidth");

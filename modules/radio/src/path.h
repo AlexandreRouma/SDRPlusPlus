@@ -30,6 +30,7 @@ public:
         DEMOD_USB,
         DEMOD_LSB,
         DEMOD_DSB,
+        DEMOD_RAW,
         _DEMOD_COUNT
     };
 
@@ -52,9 +53,11 @@ private:
     dsp::FMDemodulator demod;
     dsp::AMDemodulator amDemod;
     dsp::SSBDemod ssbDemod;
+    dsp::ComplexToStereo cpx2stereo;
 
     // Audio output
-    dsp::FloatFIRResampler audioResamp;
+    dsp::MonoToStereo m2s;
+    dsp::FIRResampler<float> audioResamp;
 
     std::string vfoName;
 

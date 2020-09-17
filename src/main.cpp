@@ -14,6 +14,8 @@
 #include <stb_image.h>
 #include <config.h>
 
+#include <dsp/block.h>
+
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb_image_resize.h>
 
@@ -22,7 +24,7 @@
 #endif
 
 // Comment to build a normal release
-// #define DEV_BUILD
+#define DEV_BUILD
 
 bool maximized = false;
 bool fullScreen = false;
@@ -40,6 +42,7 @@ static void maximized_callback(GLFWwindow* window, int n) {
     }
 }
 
+// main
 int main() {
 #ifdef _WIN32
     //FreeConsole();
@@ -48,7 +51,7 @@ int main() {
     spdlog::info("SDR++ v" VERSION_STR);
 
 #ifdef DEV_BUILD
-    config::setRootDirectory("../root");
+    config::setRootDirectory("../root_dev");
 #elif _WIN32
     config::setRootDirectory(".");
 #else
@@ -133,6 +136,27 @@ int main() {
     ImGui_ImplOpenGL3_Init("#version 150");
 
     style::setDarkStyle();
+
+
+    // ====================================================
+    // glfwPollEvents();
+    // ImGui_ImplOpenGL3_NewFrame();
+    // ImGui_ImplGlfw_NewFrame();
+    // ImGui::NewFrame();
+
+    // ImGui::ShowDemoWindow();
+
+    // ImGui::Render();
+    // int display_w, display_h;
+    // glfwGetFramebufferSize(window, &display_w, &display_h);
+    // glViewport(0, 0, display_w, display_h);
+    // glClearColor(0.0666f, 0.0666f, 0.0666f, 1.0f);
+    // //glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
+    // glClear(GL_COLOR_BUFFER_BIT);
+    // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    // glfwSwapBuffers(window);
+    // ====================================================
 
     spdlog::info("Loading icons");
     icons::load();

@@ -216,8 +216,8 @@ void windowInit() {
     // Bandwidth ajustment
     // CW and RAW modes;
     // Bring VFO to a visible place when changing sample rate if it's smaller
-
-    // Have a proper root directory
+    // Add save config for modules
+    // Do VFO in two steps: First sample rate conversion, then filtering
 
     // And a module add/remove/change order menu
     // get rid of watchers and use if() instead

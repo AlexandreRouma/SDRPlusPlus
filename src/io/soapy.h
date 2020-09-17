@@ -12,7 +12,7 @@ namespace io {
         SoapyWrapper() {
             SoapySDR::registerLogHandler(_logHandler);
             SoapySDR::Device::make("");
-
+            
             output.init(64000);
             currentGains = new float[1];
             refresh();

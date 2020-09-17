@@ -33,6 +33,7 @@ namespace ImGui {
         float lowerOffset;
         float upperOffset;
         float bandwidth;
+        float snapInterval;
         int reference = REF_CENTER;
 
         ImVec2 rectMin;

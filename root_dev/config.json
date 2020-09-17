@@ -3,13 +3,13 @@
         "Radio": {
             "device": "Speakers (Realtek High Definiti",
             "sampleRate": 48000.0,
-            "volume": 0.2956989109516144
+            "volume": 0.4032258093357086
         }
     },
     "bandPlan": "General",
     "bandPlanEnabled": true,
     "fftHeight": 300,
-    "frequency": 103184112,
+    "frequency": 100100000,
     "max": 0.0,
     "maximized": false,
     "menuWidth": 300,
@@ -27,7 +27,7 @@
         }
     },
     "windowSize": {
-        "h": 720,
+        "h": 725,
         "w": 1280
     }
 }

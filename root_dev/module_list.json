@@ -1,4 +1,4 @@
 {
-    "Radio": "./modules/radio.dll",
-    "Recorder": "./modules/recorder.dll"
+    "Radio": "../build/modules/radio/Release/radio.dll",
+    "Recorder": "../build/modules/recorder/Release/recorder.dll"
 }

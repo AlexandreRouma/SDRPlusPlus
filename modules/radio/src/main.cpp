@@ -95,7 +95,14 @@ MOD_EXPORT void _DRAW_MENU_(RadioContext_t* ctx) {
         ctx->sigPath.setDemodulator(SigPath::DEMOD_LSB, ctx->bandWidth);
         API->setVFOReference(ctx->name, mod::API_t::REF_UPPER);
     }
-    if (ImGui::RadioButton(CONCAT("RAW##_", ctx->name), ctx->demod == 7) && ctx->demod != 7) { ctx->demod = 7; };
+    if (ImGui::RadioButton(CONCAT("RAW##_", ctx->name), ctx->demod == 7) && ctx->demod != 7) {
+        ctx->demod = 7;
+        ctx->bandWidth = 10000;
+        ctx->bandWidthMin = 3000;
+        ctx->bandWidthMax = 10000;
+        ctx->sigPath.setDemodulator(SigPath::DEMOD_RAW, ctx->bandWidth);
+        API->setVFOReference(ctx->name, mod::API_t::REF_CENTER);
+    };
     ImGui::Columns(1, CONCAT("EndRadioModeColumns##_", ctx->name), false);
 
     ImGui::EndGroup();

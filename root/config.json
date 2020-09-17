@@ -3,25 +3,25 @@
         "Radio": {
             "device": "Speakers (Realtek High Definiti",
             "sampleRate": 48000.0,
-            "volume": 0.32258063554763794
+            "volume": 0.4354838728904724
         }
     },
     "bandPlan": "General",
     "bandPlanEnabled": true,
     "fftHeight": 300,
-    "frequency": 99000000,
+    "frequency": 91000000,
     "max": 0.0,
     "maximized": false,
     "menuWidth": 300,
-    "min": -52.20588302612305,
+    "min": -70.0,
     "showWaterfall": true,
     "source": "HackRF One #0 901868dc282c8f8b",
     "sourceSettings": {
         "HackRF One #0 901868dc282c8f8b": {
             "gains": {
                 "AMP": 0.0,
-                "LNA": 24.503000259399414,
-                "VGA": 16.229999542236328
+                "LNA": 0.0,
+                "VGA": 0.0
             },
             "sampleRate": 8000000
         }
