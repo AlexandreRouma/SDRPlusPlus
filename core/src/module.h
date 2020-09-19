@@ -17,7 +17,7 @@
 #define SDRPP_EXPORT extern "C" __declspec(dllimport)
 #endif
 #else
-#define SDRPP_EXPORT /**/
+#define SDRPP_EXPORT extern
 #endif
 
 #ifdef _WIN32
