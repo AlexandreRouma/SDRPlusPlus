@@ -71,7 +71,7 @@ namespace bandplan {
     void loadBandPlan(std::string path) {
         std::ifstream file(path.c_str());
         json data;
-        data << file;
+        file >> data;
         file.close();
 
         BandPlan_t plan = data.get<BandPlan_t>();
@@ -114,7 +114,7 @@ namespace bandplan {
         }
         std::ifstream file(path.c_str());
         json data;
-        data << file;
+        file >> data;
         file.close();
 
         colorTable = data.get<std::map<std::string, BandPlanColor_t>>();

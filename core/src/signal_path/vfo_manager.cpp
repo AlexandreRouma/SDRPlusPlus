@@ -9,7 +9,6 @@ VFOManager::VFO::VFO(std::string name, int reference, float offset, float bandwi
     wtfVFO->setBandwidth(bandwidth);
     wtfVFO->setOffset(offset);
     output = dspVFO->output;
-    printf("Created VFO: %p", wtfVFO);
     gui::waterfall.vfos[name] = wtfVFO;
 }
 

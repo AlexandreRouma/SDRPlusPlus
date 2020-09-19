@@ -116,7 +116,7 @@ namespace mod {
         }
         std::ifstream file(path.c_str());
         json data;
-        data << file;
+        file >> data;
         file.close();
 
         std::map<std::string, std::string> list = data.get<std::map<std::string, std::string>>();

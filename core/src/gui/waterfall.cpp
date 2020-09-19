@@ -199,7 +199,7 @@ namespace ImGui {
         ImVec2 dragOrigin(mousePos.x - drag.x, mousePos.y - drag.y);
 
         bool mouseHovered, mouseHeld;
-        bool mouseClicked = ImGui::ButtonBehavior(ImRect(fftAreaMin, fftAreaMax), ImGuiID("WaterfallID"), &mouseHovered, &mouseHeld, 
+        bool mouseClicked = ImGui::ButtonBehavior(ImRect(fftAreaMin, fftAreaMax), GetID("WaterfallID"), &mouseHovered, &mouseHeld, 
                                                 ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_PressedOnClick);
         
         bool draging = ImGui::IsMouseDragging(ImGuiMouseButton_Left) && ImGui::IsWindowFocused();
@@ -650,7 +650,6 @@ namespace ImGui {
     }
 
     void WaterfallVFO::setOffset(float offset) {
-        printf("WaterfallVFO::SetOffset: %p\n", this);
         generalOffset = offset;
         if (reference == REF_CENTER) {
             centerOffset = offset;

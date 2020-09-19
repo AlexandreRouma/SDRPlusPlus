@@ -1,6 +1,4 @@
 {
-    "Radio": "../build/radio/Release/radio.dll",
-    "Recorder": "../build/recorder/Release/recorder.dll",
-    "Demo": "../build/demo/Release/demo.dll",
-    "Demo 2": "../build/demo/Release/demo.dll"
+    "Radio": "./radio/radio.so",
+    "Recorder": "./recorder/recorder.so"
 }

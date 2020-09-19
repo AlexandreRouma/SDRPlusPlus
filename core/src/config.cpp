@@ -32,7 +32,7 @@ namespace config {
         }
         _path = path;
         std::ifstream file(path.c_str());
-        config << file;
+        file >> config;
         file.close();
     }
 

@@ -11,7 +11,7 @@ namespace icons {
 
     GLuint loadTexture(std::string path) {
         int w,h,n;
-        stbi_uc* data = stbi_load(path.c_str(), &w, &h, &n, NULL);
+        stbi_uc* data = stbi_load(path.c_str(), &w, &h, &n, 0);
         GLuint texId;
         glGenTextures(1, &texId);
         glBindTexture(GL_TEXTURE_2D, texId);
@@ -24,9 +24,9 @@ namespace icons {
     }
 
     void load() {
-        LOGO = (ImTextureID)loadTexture(config::getRootDirectory() + "/res/icons/sdrpp.png");
-        PLAY = (ImTextureID)loadTexture(config::getRootDirectory() + "/res/icons/play.png");
-        STOP = (ImTextureID)loadTexture(config::getRootDirectory() + "/res/icons/stop.png");
-        MENU = (ImTextureID)loadTexture(config::getRootDirectory() + "/res/icons/menu.png");
+        LOGO = (ImTextureID)(uintptr_t)loadTexture(config::getRootDirectory() + "/res/icons/sdrpp.png");
+        PLAY = (ImTextureID)(uintptr_t)loadTexture(config::getRootDirectory() + "/res/icons/play.png");
+        STOP = (ImTextureID)(uintptr_t)loadTexture(config::getRootDirectory() + "/res/icons/stop.png");
+        MENU = (ImTextureID)(uintptr_t)loadTexture(config::getRootDirectory() + "/res/icons/menu.png");
     }
 }
