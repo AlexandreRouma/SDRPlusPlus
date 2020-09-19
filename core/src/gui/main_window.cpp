@@ -1,9 +1,8 @@
-#include <main_window.h>
+#include <gui/main_window.h>
+#include <gui/gui.h>
 
 std::thread worker;
 std::mutex fft_mtx;
-ImGui::WaterFall wtf;
-FrequencySelect fSel;
 fftwf_complex *fft_in, *fft_out;
 fftwf_plan p;
 float* tempData;
@@ -14,8 +13,6 @@ ImFont* bigFont;
 int fftSize = 8192 * 8;
 
 io::SoapyWrapper soapy;
-
-SignalPath sigPath;
 std::vector<float> _data;
 std::vector<float> fftTaps;
 void fftHandler(dsp::complex_t* samples) {
@@ -33,7 +30,7 @@ void fftHandler(dsp::complex_t* samples) {
         _data[i] = (_data[i - 4]  + _data[i - 3] + _data[i - 2] + _data[i - 1] + _data[i]) / 5.0f;
     }
 
-    wtf.pushFFT(_data, fftSize);
+    gui::waterfall.pushFFT(_data, fftSize);
     _data.clear();
 }
 
@@ -87,7 +84,7 @@ void loadSourceConfig(std::string name) {
     else {
         srId = std::distance(soapy.sampleRates.begin(), _srIt);
     }
-    sigPath.setSampleRate(sampleRate);
+    sigpath::signalPath.setSampleRate(sampleRate);
     soapy.setSampleRate(sampleRate);
 
     // Set gains
@@ -107,8 +104,8 @@ void loadSourceConfig(std::string name) {
     }
 
     // Update GUI
-    wtf.setBandwidth(sampleRate);
-    wtf.setViewBandwidth(sampleRate);
+    gui::waterfall.setBandwidth(sampleRate);
+    gui::waterfall.setViewBandwidth(sampleRate);
     bw.val = sampleRate;
 }
 
@@ -158,21 +155,19 @@ void windowInit() {
     spdlog::info("Initializing SoapySDR");
     soapy.init();
     
-    fSel.init();
+    gui::freqSelect.init();
     
     fft_in = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * fftSize);
     fft_out = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * fftSize);
     p = fftwf_plan_dft_1d(fftSize, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
 
-    sigPath.init(sampleRate, 20, fftSize, &soapy.output, (dsp::complex_t*)fft_in, fftHandler);
-    sigPath.start();
-
-    vfoman::init(&wtf, &sigPath);
+    sigpath::signalPath.init(sampleRate, 20, fftSize, &soapy.output, (dsp::complex_t*)fft_in, fftHandler);
+    sigpath::signalPath.start();
 
     uiGains = new float[soapy.gainList.size()];
 
     spdlog::info("Loading modules");
-    mod::initAPI(&wtf);
+    mod::initAPI(&gui::waterfall);
     mod::loadFromList(config::getRootDirectory() + "/module_list.json");
 
     bigFont = ImGui::GetIO().Fonts->AddFontFromFileTTF((config::getRootDirectory() + "/res/fonts/Roboto-Medium.ttf").c_str(), 128.0f);
@@ -206,7 +201,7 @@ void windowInit() {
                 sourceName = soapy.devNameList[0];
             }
             sampleRate = soapy.getSampleRate();
-            sigPath.setSampleRate(sampleRate);
+            sigpath::signalPath.setSampleRate(sampleRate);
         }
         // Search for the first source in the list to have a config
         // If no pre-defined source, selected default device
@@ -229,10 +224,10 @@ void windowInit() {
     // Update UI settings
     fftMin = config::config["min"];
     fftMax = config::config["max"];
-    wtf.setFFTMin(fftMin);
-    wtf.setWaterfallMin(fftMin);
-    wtf.setFFTMax(fftMax);
-    wtf.setWaterfallMax(fftMax);
+    gui::waterfall.setFFTMin(fftMin);
+    gui::waterfall.setWaterfallMin(fftMin);
+    gui::waterfall.setFFTMax(fftMax);
+    gui::waterfall.setWaterfallMax(fftMax);
 
     bandPlanEnabled.val = config::config["bandPlanEnabled"];
     bandPlanEnabled.markAsChanged();
@@ -243,10 +238,10 @@ void windowInit() {
         bandplanId.val = std::distance(bandplan::bandplans.begin(), bandplan::bandplans.find(bandPlanName));
         
         if (bandPlanEnabled.val) {
-            wtf.bandplan = &bandplan::bandplans[bandPlanName];
+            gui::waterfall.bandplan = &bandplan::bandplans[bandPlanName];
         }
         else {
-            wtf.bandplan = NULL;
+            gui::waterfall.bandplan = NULL;
         }
     }
     else {
@@ -255,16 +250,16 @@ void windowInit() {
     bandplanId.markAsChanged();
     
 
-    fSel.setFrequency(frequency);
-    fSel.frequencyChanged = false;
+    gui::freqSelect.setFrequency(frequency);
+    gui::freqSelect.frequencyChanged = false;
     soapy.setFrequency(frequency);
-    wtf.setCenterFrequency(frequency);
-    wtf.setBandwidth(sampleRate);
-    wtf.setViewBandwidth(sampleRate);
+    gui::waterfall.setCenterFrequency(frequency);
+    gui::waterfall.setBandwidth(sampleRate);
+    gui::waterfall.setViewBandwidth(sampleRate);
     bw.val = sampleRate;
-    wtf.vfoFreqChanged = false;
-    wtf.centerFreqMoved = false;
-    wtf.selectFirstVFO();
+    gui::waterfall.vfoFreqChanged = false;
+    gui::waterfall.centerFreqMoved = false;
+    gui::waterfall.selectFirstVFO();
 
     for (auto [name, stream] : audio::streams) {
         if (config::config["audio"].contains(name)) {
@@ -277,7 +272,7 @@ void windowInit() {
         }
     }
 
-    audioStreamName = audio::getNameFromVFO(wtf.selectedVFO);
+    audioStreamName = audio::getNameFromVFO(gui::waterfall.selectedVFO);
     if (audioStreamName != "") {
         volume = &audio::streams[audioStreamName]->volume;
     }
@@ -287,18 +282,18 @@ void windowInit() {
 
     showWaterfall = config::config["showWaterfall"];
     if (!showWaterfall) {
-        wtf.hideWaterfall();
+        gui::waterfall.hideWaterfall();
     }
 
     fftHeight = config::config["fftHeight"];
-    wtf.setFFTHeight(fftHeight);
+    gui::waterfall.setFFTHeight(fftHeight);
 }
 
 void setVFO(float freq) {
-    ImGui::WaterfallVFO* vfo = wtf.vfos[wtf.selectedVFO];
+    ImGui::WaterfallVFO* vfo = gui::waterfall.vfos[gui::waterfall.selectedVFO];
 
     float currentOff =  vfo->centerOffset;
-    float currentTune = wtf.getCenterFrequency() + vfo->generalOffset;
+    float currentTune = gui::waterfall.getCenterFrequency() + vfo->generalOffset;
     float delta = freq - currentTune;
 
     float newVFO = currentOff + delta;
@@ -306,38 +301,38 @@ void setVFO(float freq) {
     float vfoBottom = newVFO - (vfoBW / 2.0f);
     float vfoTop = newVFO + (vfoBW / 2.0f);
 
-    float view = wtf.getViewOffset();
-    float viewBW = wtf.getViewBandwidth();
+    float view = gui::waterfall.getViewOffset();
+    float viewBW = gui::waterfall.getViewBandwidth();
     float viewBottom = view - (viewBW / 2.0f);
     float viewTop = view + (viewBW / 2.0f);
 
-    float wholeFreq = wtf.getCenterFrequency();
-    float BW = wtf.getBandwidth();
+    float wholeFreq = gui::waterfall.getCenterFrequency();
+    float BW = gui::waterfall.getBandwidth();
     float bottom = -(BW / 2.0f);
     float top = (BW / 2.0f);
 
     // VFO still fints in the view
     if (vfoBottom > viewBottom && vfoTop < viewTop) {
-        vfoman::setCenterOffset(wtf.selectedVFO, newVFO);
+        sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFO);
         return;
     }
 
     // VFO too low for current SDR tuning
     if (vfoBottom < bottom) {
-        wtf.setViewOffset((BW / 2.0f) - (viewBW / 2.0f));
+        gui::waterfall.setViewOffset((BW / 2.0f) - (viewBW / 2.0f));
         float newVFOOffset = (BW / 2.0f) - (vfoBW / 2.0f) - (viewBW / 10.0f);
-        vfoman::setCenterOffset(wtf.selectedVFO, newVFOOffset);
-        wtf.setCenterFrequency(freq - newVFOOffset);
+        sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFOOffset);
+        gui::waterfall.setCenterFrequency(freq - newVFOOffset);
         soapy.setFrequency(freq - newVFOOffset);
         return;
     }
 
     // VFO too high for current SDR tuning
     if (vfoTop > top) {
-        wtf.setViewOffset((viewBW / 2.0f) - (BW / 2.0f));
+        gui::waterfall.setViewOffset((viewBW / 2.0f) - (BW / 2.0f));
         float newVFOOffset = (vfoBW / 2.0f) - (BW / 2.0f) + (viewBW / 10.0f);
-        vfoman::setCenterOffset(wtf.selectedVFO, newVFOOffset);
-        wtf.setCenterFrequency(freq - newVFOOffset);
+        sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFOOffset);
+        gui::waterfall.setCenterFrequency(freq - newVFOOffset);
         soapy.setFrequency(freq - newVFOOffset);
         return;
     }
@@ -349,15 +344,15 @@ void setVFO(float freq) {
         float newViewTop = newViewOff + (viewBW / 2.0f);
 
         if (newViewBottom > bottom) {
-            wtf.setViewOffset(newViewOff);
-            vfoman::setCenterOffset(wtf.selectedVFO, newVFO);
+            gui::waterfall.setViewOffset(newViewOff);
+            sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFO);
             return;
         }
 
-        wtf.setViewOffset((BW / 2.0f) - (viewBW / 2.0f));
+        gui::waterfall.setViewOffset((BW / 2.0f) - (viewBW / 2.0f));
         float newVFOOffset = (BW / 2.0f) - (vfoBW / 2.0f) - (viewBW / 10.0f);
-        vfoman::setCenterOffset(wtf.selectedVFO, newVFOOffset);
-        wtf.setCenterFrequency(freq - newVFOOffset);
+        sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFOOffset);
+        gui::waterfall.setCenterFrequency(freq - newVFOOffset);
         soapy.setFrequency(freq - newVFOOffset);
     }
     else {
@@ -366,15 +361,15 @@ void setVFO(float freq) {
         float newViewTop = newViewOff + (viewBW / 2.0f);
 
         if (newViewTop < top) {
-            wtf.setViewOffset(newViewOff);
-            vfoman::setCenterOffset(wtf.selectedVFO, newVFO);
+            gui::waterfall.setViewOffset(newViewOff);
+            sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFO);
             return;
         }
 
-        wtf.setViewOffset((viewBW / 2.0f) - (BW / 2.0f));
+        gui::waterfall.setViewOffset((viewBW / 2.0f) - (BW / 2.0f));
         float newVFOOffset = (vfoBW / 2.0f) - (BW / 2.0f) + (viewBW / 10.0f);
-        vfoman::setCenterOffset(wtf.selectedVFO, newVFOOffset);
-        wtf.setCenterFrequency(freq - newVFOOffset);
+        sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFOOffset);
+        gui::waterfall.setCenterFrequency(freq - newVFOOffset);
         soapy.setFrequency(freq - newVFOOffset);
     }
 }
@@ -382,61 +377,61 @@ void setVFO(float freq) {
 void drawWindow() {
     ImGui::Begin("Main", NULL, WINDOW_FLAGS);
 
-    ImGui::WaterfallVFO* vfo = wtf.vfos[wtf.selectedVFO];
+    ImGui::WaterfallVFO* vfo = gui::waterfall.vfos[gui::waterfall.selectedVFO];
 
     if (vfo->centerOffsetChanged) {
-        fSel.setFrequency(wtf.getCenterFrequency() + vfo->generalOffset);
-        fSel.frequencyChanged = false;
-        config::config["frequency"] = fSel.frequency;
+        gui::freqSelect.setFrequency(gui::waterfall.getCenterFrequency() + vfo->generalOffset);
+        gui::freqSelect.frequencyChanged = false;
+        config::config["frequency"] = gui::freqSelect.frequency;
         config::configModified = true;
     }
 
-    vfoman::updateFromWaterfall();
+    sigpath::vfoManager.updateFromWaterfall(&gui::waterfall);
 
-    if (wtf.selectedVFOChanged) {
-        wtf.selectedVFOChanged = false;
-        fSel.setFrequency(vfo->generalOffset + wtf.getCenterFrequency());
-        fSel.frequencyChanged = false;
+    if (gui::waterfall.selectedVFOChanged) {
+        gui::waterfall.selectedVFOChanged = false;
+        gui::freqSelect.setFrequency(vfo->generalOffset + gui::waterfall.getCenterFrequency());
+        gui::freqSelect.frequencyChanged = false;
         mod::broadcastEvent(mod::EVENT_SELECTED_VFO_CHANGED);
-        audioStreamName = audio::getNameFromVFO(wtf.selectedVFO);
+        audioStreamName = audio::getNameFromVFO(gui::waterfall.selectedVFO);
         if (audioStreamName != "") {
             volume = &audio::streams[audioStreamName]->volume;
         }
-        config::config["frequency"] = fSel.frequency;
+        config::config["frequency"] = gui::freqSelect.frequency;
         config::configModified = true;
     }
 
-    if (fSel.frequencyChanged) {
-        fSel.frequencyChanged = false;
-        setVFO(fSel.frequency);
+    if (gui::freqSelect.frequencyChanged) {
+        gui::freqSelect.frequencyChanged = false;
+        setVFO(gui::freqSelect.frequency);
         vfo->centerOffsetChanged = false;
         vfo->lowerOffsetChanged = false;
         vfo->upperOffsetChanged = false;
-        config::config["frequency"] = fSel.frequency;
+        config::config["frequency"] = gui::freqSelect.frequency;
         config::configModified = true;
     }
 
-    if (wtf.centerFreqMoved) {
-        wtf.centerFreqMoved = false;
-        soapy.setFrequency(wtf.getCenterFrequency());
-        fSel.setFrequency(wtf.getCenterFrequency() + vfo->generalOffset);
-        config::config["frequency"] = fSel.frequency;
+    if (gui::waterfall.centerFreqMoved) {
+        gui::waterfall.centerFreqMoved = false;
+        soapy.setFrequency(gui::waterfall.getCenterFrequency());
+        gui::freqSelect.setFrequency(gui::waterfall.getCenterFrequency() + vfo->generalOffset);
+        config::config["frequency"] = gui::freqSelect.frequency;
         config::configModified = true;
     }
 
     if (dcbias.changed()) {
-        sigPath.setDCBiasCorrection(dcbias.val);
+        sigpath::signalPath.setDCBiasCorrection(dcbias.val);
     }
 
     if (bandplanId.changed() && bandPlanEnabled.val) {
-        wtf.bandplan = &bandplan::bandplans[bandplan::bandplanNames[bandplanId.val]];
+        gui::waterfall.bandplan = &bandplan::bandplans[bandplan::bandplanNames[bandplanId.val]];
     }
 
     if (bandPlanEnabled.changed()) {
-        wtf.bandplan = bandPlanEnabled.val ? &bandplan::bandplans[bandplan::bandplanNames[bandplanId.val]] : NULL;
+        gui::waterfall.bandplan = bandPlanEnabled.val ? &bandplan::bandplans[bandplan::bandplanNames[bandplanId.val]] : NULL;
     }
 
-    int _fftHeight = wtf.getFFTHeight();
+    int _fftHeight = gui::waterfall.getFFTHeight();
     if (fftHeight != _fftHeight) {
         fftHeight = _fftHeight;
         config::config["fftHeight"] = fftHeight;
@@ -472,7 +467,7 @@ void drawWindow() {
     else {
         if (ImGui::ImageButton(icons::PLAY, ImVec2(40, 40), ImVec2(0, 0), ImVec2(1, 1), 0) && soapy.devList.size() > 0) {
             soapy.start();
-            soapy.setFrequency(wtf.getCenterFrequency());
+            soapy.setFrequency(gui::waterfall.getCenterFrequency());
             playing = true;
         }
     }
@@ -494,7 +489,7 @@ void drawWindow() {
 
     ImGui::SameLine();
 
-    fSel.draw();
+    gui::freqSelect.draw();
 
     ImGui::SameLine();
 
@@ -564,9 +559,9 @@ void drawWindow() {
                     srId = 0;
                     sampleRate = soapy.getSampleRate();
                     bw.val = sampleRate;
-                    wtf.setBandwidth(sampleRate);
-                    wtf.setViewBandwidth(sampleRate);
-                    sigPath.setSampleRate(sampleRate);
+                    gui::waterfall.setBandwidth(sampleRate);
+                    gui::waterfall.setViewBandwidth(sampleRate);
+                    sigpath::signalPath.setSampleRate(sampleRate);
 
                     if (soapy.gainList.size() >= 0) {
                         delete[] uiGains;
@@ -576,7 +571,7 @@ void drawWindow() {
                         }
                     }
                 }
-                setVFO(fSel.frequency);
+                setVFO(gui::freqSelect.frequency);
                 config::config["source"] = sourceName;
                 config::configModified = true;
             }
@@ -586,9 +581,9 @@ void drawWindow() {
                 spdlog::info("Changed sample rate: {0}", srId);
                 sampleRate = soapy.sampleRates[srId];
                 soapy.setSampleRate(sampleRate);
-                wtf.setBandwidth(sampleRate);
-                wtf.setViewBandwidth(sampleRate);
-                sigPath.setSampleRate(sampleRate);
+                gui::waterfall.setBandwidth(sampleRate);
+                gui::waterfall.setViewBandwidth(sampleRate);
+                sigpath::signalPath.setSampleRate(sampleRate);
                 bw.val = sampleRate;
 
                 if (!config::config["sourceSettings"].contains(sourceName)) {
@@ -739,7 +734,7 @@ void drawWindow() {
 
         if (ImGui::CollapsingHeader("Display", ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::Checkbox("Show waterfall", &showWaterfall)) {
-                showWaterfall ? wtf.showWaterfall() : wtf.hideWaterfall();
+                showWaterfall ? gui::waterfall.showWaterfall() : gui::waterfall.hideWaterfall();
             }
             ImGui::Spacing();
         }
@@ -747,7 +742,7 @@ void drawWindow() {
         if(ImGui::CollapsingHeader("Debug")) {
             ImGui::Text("Frame time: %.3f ms/frame", 1000.0f / ImGui::GetIO().Framerate);
             ImGui::Text("Framerate: %.1f FPS", ImGui::GetIO().Framerate);
-            ImGui::Text("Center Frequency: %.0f Hz", wtf.getCenterFrequency());
+            ImGui::Text("Center Frequency: %.0f Hz", gui::waterfall.getCenterFrequency());
             ImGui::Text("Source name: %s", sourceName.c_str());
             ImGui::Spacing();
         }
@@ -769,7 +764,7 @@ void drawWindow() {
 
     ImGui::BeginChild("Waterfall");
 
-    wtf.draw();    
+    gui::waterfall.draw();    
 
     ImGui::EndChild();
 
@@ -807,14 +802,14 @@ void drawWindow() {
     ImGui::EndChild();
 
     if (bw.changed()) {
-        wtf.setViewBandwidth(bw.val);
-        wtf.setViewOffset(vfo->centerOffset);
+        gui::waterfall.setViewBandwidth(bw.val);
+        gui::waterfall.setViewOffset(vfo->centerOffset);
     }
 
-    wtf.setFFTMin(fftMin);
-    wtf.setFFTMax(fftMax);
-    wtf.setWaterfallMin(fftMin);
-    wtf.setWaterfallMax(fftMax);
+    gui::waterfall.setFFTMin(fftMin);
+    gui::waterfall.setFFTMax(fftMax);
+    gui::waterfall.setWaterfallMin(fftMin);
+    gui::waterfall.setWaterfallMax(fftMax);
 
 
     ImGui::End();

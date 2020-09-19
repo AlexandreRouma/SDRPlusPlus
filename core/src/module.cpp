@@ -1,7 +1,7 @@
 #include <module.h>
-#include <vfo_manager.h>
-#include <main_window.h>
-#include <audio.h>
+#include <signal_path/vfo_manager.h>
+#include <gui/main_window.h>
+#include <signal_path/audio.h>
 
 namespace mod {
     API_t API;
@@ -15,16 +15,6 @@ namespace mod {
 
     void initAPI(ImGui::WaterFall* wtf) {
         _wtf = wtf;
-
-        // VFO Manager
-        API.registerVFO = vfoman::create;
-        API.setVFOOffset = vfoman::setOffset;
-        API.setVFOCenterOffset = vfoman::setCenterOffset;
-        API.setVFOBandwidth = vfoman::setBandwidth;
-        API.setVFOSampleRate = vfoman::setSampleRate;
-        API.getVFOOutputBlockSize = vfoman::getOutputBlockSize;
-        API.setVFOReference = vfoman::setReference;
-        API.removeVFO = vfoman::remove;
 
         // GUI
         API.getSelectedVFOName = api_getSelectedVFOName;

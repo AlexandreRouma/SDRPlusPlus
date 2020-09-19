@@ -1,4 +1,4 @@
-#include <audio.h>
+#include <signal_path/audio.h>
 
 namespace audio {
     std::map<std::string, AudioStream_t*> streams;

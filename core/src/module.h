@@ -7,16 +7,25 @@
 #include <spdlog/spdlog.h>
 #include <dsp/types.h>
 #include <dsp/stream.h>
-#include <waterfall.h>
+#include <gui/waterfall.h>
 #include <json.hpp>
 
 #ifdef _WIN32
+#ifdef SDRPP_IS_CORE
+#define SDRPP_EXPORT extern "C" __declspec(dllexport)
+#else
+#define SDRPP_EXPORT extern "C" __declspec(dllimport)
+#endif
+#else
+#define SDRPP_EXPORT /**/
+#endif
+
+#ifdef _WIN32
 #include <Windows.h>
-#define MOD_EXPORT  extern "C" \
-                    __declspec(dllexport)
+#define MOD_EXPORT extern "C" __declspec(dllexport)
 #else
 #include <dlfcn.h>
-#define MOD_EXPORT  extern "C"
+#define MOD_EXPORT extern "C"
 #endif
 
 namespace mod {

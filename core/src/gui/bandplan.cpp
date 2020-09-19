@@ -1,4 +1,4 @@
-#include <bandplan.h>
+#include <gui/bandplan.h>
 
 namespace bandplan {
     std::map<std::string, BandPlan_t> bandplans;

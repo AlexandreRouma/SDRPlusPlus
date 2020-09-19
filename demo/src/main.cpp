@@ -6,7 +6,7 @@
 #include <thread>
 #include <ctime>
 #include <stdio.h>
-#include <style.h>
+#include <gui/style.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 

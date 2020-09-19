@@ -4,12 +4,12 @@
 #include <stdio.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <main_window.h>
-#include <style.h>
-#include <icons.h>
+#include <gui/main_window.h>
+#include <gui/style.h>
+#include <gui/icons.h>
 #include <version.h>
 #include <spdlog/spdlog.h>
-#include <bandplan.h>
+#include <gui/bandplan.h>
 #include <module.h>
 #include <stb_image.h>
 #include <config.h>
@@ -139,23 +139,23 @@ int sdrpp_main() {
 
 
     // ====================================================
-    // glfwPollEvents();
-    ImGui_ImplOpenGL3_NewFrame();
-    // ImGui_ImplGlfw_NewFrame();
-    // ImGui::NewFrame();
+    // // glfwPollEvents();
+    // ImGui_ImplOpenGL3_NewFrame();
+    // // ImGui_ImplGlfw_NewFrame();
+    // // ImGui::NewFrame();
 
-    // ImGui::ShowDemoWindow();
+    // // ImGui::ShowDemoWindow();
 
-    // ImGui::Render();
-    int display_w, display_h;
-    glfwGetFramebufferSize(window, &display_w, &display_h);
-    glViewport(0, 0, display_w, display_h);
-    glClearColor(0.0666f, 0.0666f, 0.0666f, 1.0f);
-    //glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    // // ImGui::Render();
+    // int display_w, display_h;
+    // glfwGetFramebufferSize(window, &display_w, &display_h);
+    // glViewport(0, 0, display_w, display_h);
+    // glClearColor(0.0666f, 0.0666f, 0.0666f, 1.0f);
+    // //glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
+    // glClear(GL_COLOR_BUFFER_BIT);
+    // // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    glfwSwapBuffers(window);
+    // glfwSwapBuffers(window);
     // ====================================================
 
     spdlog::info("Loading icons");

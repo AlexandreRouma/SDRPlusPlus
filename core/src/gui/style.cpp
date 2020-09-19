@@ -1,4 +1,4 @@
-#include <style.h>
+#include <gui/style.h>
 
 namespace style {
     void setDefaultStyle() {

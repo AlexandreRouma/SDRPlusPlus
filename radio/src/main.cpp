@@ -25,7 +25,7 @@ MOD_EXPORT void* _INIT_(mod::API_t* _API, ImGuiContext* imctx, std::string _name
     ctx->bandWidth = 200000;
     ctx->bandWidthMin = 100000;
     ctx->bandWidthMax = 200000;
-    ctx->sigPath.init(_name, 200000, 1000, API->registerVFO(_name, mod::API_t::REF_CENTER, 0, 200000, 200000, 1000));
+    ctx->sigPath.init(_name, 200000, 1000);
     ctx->sigPath.start();
     ImGui::SetCurrentContext(imctx);
     return ctx;
@@ -49,7 +49,6 @@ MOD_EXPORT void _DRAW_MENU_(RadioContext_t* ctx) {
         ctx->bandWidthMin = 8000;
         ctx->bandWidthMax = 16000;
         ctx->sigPath.setDemodulator(SigPath::DEMOD_NFM, ctx->bandWidth);
-        API->setVFOReference(ctx->name, mod::API_t::REF_CENTER);
     }
     if (ImGui::RadioButton(CONCAT("WFM##_", ctx->name), ctx->demod == 1) && ctx->demod != 1) {
         ctx->demod = 1;
@@ -57,7 +56,6 @@ MOD_EXPORT void _DRAW_MENU_(RadioContext_t* ctx) {
         ctx->bandWidthMin = 100000;
         ctx->bandWidthMax = 200000;
         ctx->sigPath.setDemodulator(SigPath::DEMOD_FM, ctx->bandWidth); 
-        API->setVFOReference(ctx->name, mod::API_t::REF_CENTER);
     }
     ImGui::NextColumn();
     if (ImGui::RadioButton(CONCAT("AM##_", ctx->name), ctx->demod == 2) && ctx->demod != 2) {
@@ -66,7 +64,6 @@ MOD_EXPORT void _DRAW_MENU_(RadioContext_t* ctx) {
         ctx->bandWidthMin = 6250;
         ctx->bandWidthMax = 12500;
         ctx->sigPath.setDemodulator(SigPath::DEMOD_AM, ctx->bandWidth); 
-        API->setVFOReference(ctx->name, mod::API_t::REF_CENTER);
     }
     if (ImGui::RadioButton(CONCAT("DSB##_", ctx->name), ctx->demod == 3) && ctx->demod != 3)  {
         ctx->demod = 3;
@@ -74,7 +71,6 @@ MOD_EXPORT void _DRAW_MENU_(RadioContext_t* ctx) {
         ctx->bandWidthMin = 3000;
         ctx->bandWidthMax = 6000;
         ctx->sigPath.setDemodulator(SigPath::DEMOD_DSB, ctx->bandWidth); 
-        API->setVFOReference(ctx->name, mod::API_t::REF_CENTER);
     }
     ImGui::NextColumn();
     if (ImGui::RadioButton(CONCAT("USB##_", ctx->name), ctx->demod == 4) && ctx->demod != 4) {
@@ -83,7 +79,6 @@ MOD_EXPORT void _DRAW_MENU_(RadioContext_t* ctx) {
         ctx->bandWidthMin = 1500;
         ctx->bandWidthMax = 3000;
         ctx->sigPath.setDemodulator(SigPath::DEMOD_USB, ctx->bandWidth); 
-        API->setVFOReference(ctx->name, mod::API_t::REF_LOWER);
     }
     if (ImGui::RadioButton(CONCAT("CW##_", ctx->name), ctx->demod == 5) && ctx->demod != 5) { ctx->demod = 5; };
     ImGui::NextColumn();
@@ -93,7 +88,6 @@ MOD_EXPORT void _DRAW_MENU_(RadioContext_t* ctx) {
         ctx->bandWidthMin = 1500;
         ctx->bandWidthMax = 3000;
         ctx->sigPath.setDemodulator(SigPath::DEMOD_LSB, ctx->bandWidth);
-        API->setVFOReference(ctx->name, mod::API_t::REF_UPPER);
     }
     if (ImGui::RadioButton(CONCAT("RAW##_", ctx->name), ctx->demod == 7) && ctx->demod != 7) {
         ctx->demod = 7;
@@ -101,7 +95,6 @@ MOD_EXPORT void _DRAW_MENU_(RadioContext_t* ctx) {
         ctx->bandWidthMin = 3000;
         ctx->bandWidthMax = 10000;
         ctx->sigPath.setDemodulator(SigPath::DEMOD_RAW, ctx->bandWidth);
-        API->setVFOReference(ctx->name, mod::API_t::REF_CENTER);
     };
     ImGui::Columns(1, CONCAT("EndRadioModeColumns##_", ctx->name), false);
 

@@ -1,4 +1,4 @@
-#include <waterfall.h>
+#include <gui/waterfall.h>
 
 float COLOR_MAP[][3] = {
     {0x00, 0x00, 0x20},
@@ -650,6 +650,7 @@ namespace ImGui {
     }
 
     void WaterfallVFO::setOffset(float offset) {
+        printf("WaterfallVFO::SetOffset: %p\n", this);
         generalOffset = offset;
         if (reference == REF_CENTER) {
             centerOffset = offset;

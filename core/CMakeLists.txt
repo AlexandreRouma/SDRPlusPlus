@@ -9,13 +9,16 @@ else()
     set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -fpermissive -fsanitize=address -g")
     # set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -fpermissive")
 endif (MSVC)
+add_definitions(-DSDRPP_IS_CORE)
 
 # Main code
 file(GLOB SRC "src/*.cpp")
+file(GLOB GUI "src/gui/*.cpp")
+file(GLOB SIGPATH "src/signal_path/*.cpp")
 file(GLOB IMGUI "src/imgui/*.cpp")
 
 # Add code to dyn lib
-add_library(sdrpp_core SHARED ${SRC} ${IMGUI})
+add_library(sdrpp_core SHARED ${SRC} ${GUI} ${SIGPATH} ${IMGUI})
 
 # Include core headers
 target_include_directories(sdrpp_core PUBLIC "src/")

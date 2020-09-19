@@ -1,4 +1,4 @@
-#include <frequency_select.h>
+#include <gui/frequency_select.h>
 
 bool isInArea(ImVec2 val, ImVec2 min, ImVec2 max) {
     return val.x >= min.x && val.x < max.x && val.y >= min.y && val.y < max.y;

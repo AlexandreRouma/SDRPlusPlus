@@ -1,4 +1,4 @@
-#include <signal_path.h>
+#include <signal_path/dsp.h>
 
 SignalPath::SignalPath() {
     

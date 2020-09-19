@@ -13,19 +13,20 @@
 #include <complex>
 #include <dsp/source.h>
 #include <dsp/math.h>
-#include <waterfall.h>
-#include <frequency_select.h>
+#include <gui/waterfall.h>
+#include <gui/frequency_select.h>
 #include <fftw3.h>
-#include <signal_path.h>
+#include <signal_path/dsp.h>
 #include <io/soapy.h>
-#include <icons.h>
-#include <bandplan.h>
+#include <gui/icons.h>
+#include <gui/bandplan.h>
 #include <watcher.h>
 #include <module.h>
-#include <vfo_manager.h>
-#include <audio.h>
-#include <style.h>
+#include <signal_path/vfo_manager.h>
+#include <signal_path/audio.h>
+#include <gui/style.h>
 #include <config.h>
+#include <signal_path/signal_path.h>
 
 #define WINDOW_FLAGS    ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground
 

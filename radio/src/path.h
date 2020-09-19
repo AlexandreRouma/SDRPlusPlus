@@ -10,11 +10,12 @@
 #include <dsp/vfo.h>
 #include <io/audio.h>
 #include <module.h>
+#include <signal_path/signal_path.h>
 
 class SigPath {
 public:
     SigPath();
-    void init(std::string vfoName, uint64_t sampleRate, int blockSize, dsp::stream<dsp::complex_t>* input);
+    void init(std::string vfoName, uint64_t sampleRate, int blockSize);
     void start();
     void setSampleRate(float sampleRate);
     void setVFOFrequency(uint64_t frequency);
@@ -46,6 +47,8 @@ public:
 
 private:
     static int sampleRateChangeHandler(void* ctx, float sampleRate);
+
+    VFOManager::VFO* vfo;
     
     dsp::stream<dsp::complex_t> input;
 
