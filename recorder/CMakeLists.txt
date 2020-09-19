@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.13)
 project(recorder)
 
 if (MSVC)
@@ -25,10 +25,10 @@ link_libraries(SoapySDR)
 
 # Main code
 include_directories(recorder "src/")
-include_directories(recorder "../../src/")
-include_directories(recorder "../../src/imgui")
+include_directories(recorder "../core/src/")
+include_directories(recorder "../core/src/imgui")
 file(GLOB SRC "src/*.cpp")
-file(GLOB IMGUI "../../src/imgui/*.cpp")
+file(GLOB IMGUI "../core/src/imgui/*.cpp")
 add_library(recorder SHARED ${SRC} ${IMGUI})
 set_target_properties(recorder PROPERTIES PREFIX "")
 

@@ -15,6 +15,10 @@ namespace style {
         //ImGui::StyleColorsLight();
     }
 
+    void testtt() {
+        ImGui::StyleColorsLight();
+    }
+
     void setDarkStyle() {
         ImGui::GetStyle().WindowRounding = 0.0f;
         ImGui::GetStyle().ChildRounding = 0.0f;

@@ -8,4 +8,5 @@ namespace style {
     void setDarkStyle();
     void beginDisabled();
     void endDisabled();
+    void testtt();
 }

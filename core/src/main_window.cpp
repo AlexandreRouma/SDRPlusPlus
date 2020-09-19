@@ -155,6 +155,9 @@ void saveAudioConfig(std::string name) {
 }
 
 void windowInit() {
+    spdlog::info("Initializing SoapySDR");
+    soapy.init();
+    
     fSel.init();
     
     fft_in = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * fftSize);

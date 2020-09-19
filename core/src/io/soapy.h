@@ -10,8 +10,12 @@ namespace io {
     class SoapyWrapper {
     public:
         SoapyWrapper() {
+            
+        }
+
+        void init() {
             SoapySDR::registerLogHandler(_logHandler);
-            SoapySDR::Device::make("");
+            //SoapySDR::Device::make("");
             
             output.init(64000);
             currentGains = new float[1];
@@ -52,7 +56,6 @@ namespace io {
             if (running) {
                 return;
             }
-            
             devList = SoapySDR::Device::enumerate();
             txtDevList = "";
             devNameList.clear();

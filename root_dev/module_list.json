@@ -1,4 +1,6 @@
 {
-    "Radio": "../build/modules/radio/Release/radio.dll",
-    "Recorder": "../build/modules/recorder/Release/recorder.dll"
+    "Radio": "../build/radio/Release/radio.dll",
+    "Recorder": "../build/recorder/Release/recorder.dll",
+    "Demo": "../build/demo/Release/demo.dll",
+    "Demo 2": "../build/demo/Release/demo.dll"
 }
