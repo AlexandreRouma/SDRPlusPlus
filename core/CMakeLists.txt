@@ -72,6 +72,9 @@ else()
     target_link_libraries(sdrpp_core PUBLIC dl)
 endif (MSVC)
 
+target_link_libraries(sdrpp_core PUBLIC SoapySDR)
+target_link_libraries(sdrpp_core PUBLIC volk)
+
 set(CORE_FILES ${RUNTIME_OUTPUT_DIRECTORY} PARENT_SCOPE)
 
 # cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/Users/Alex/vcpkg/scripts/buildsystems/vcpkg.cmake" -G "Visual Studio 15 2017 Win64"
