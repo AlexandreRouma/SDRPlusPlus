@@ -19,6 +19,7 @@ file(GLOB IMGUI "src/imgui/*.cpp")
 
 # Add code to dyn lib
 add_library(sdrpp_core SHARED ${SRC} ${GUI} ${SIGPATH} ${IMGUI})
+set_target_properties(sdrpp_core PROPERTIES PREFIX "")
 
 # Include core headers
 target_include_directories(sdrpp_core PUBLIC "src/")

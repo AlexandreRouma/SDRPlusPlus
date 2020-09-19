@@ -12,3 +12,4 @@ file(GLOB SRC "src/*.cpp")
 
 add_library(demo SHARED ${SRC})
 target_link_libraries(demo PRIVATE sdrpp_core)
+set_target_properties(demo PROPERTIES PREFIX "")
