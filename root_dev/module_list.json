@@ -1,4 +1,4 @@
 {
-    "Radio": "./radio/radio.so",
-    "Recorder": "./recorder/recorder.so"
+    "Radio": "./radio/Release/radio.dll",
+    "Recorder": "./recorder/Release/recorder.dll"
 }

@@ -119,7 +119,6 @@ int VFOManager::getOutputBlockSize(std::string name) {
 void VFOManager::updateFromWaterfall(ImGui::WaterFall* wtf) {
     for (auto const& [name, vfo] : vfos) {
         if (vfo->wtfVFO->centerOffsetChanged) {
-            spdlog::info("UH OH: Change!");
             vfo->wtfVFO->centerOffsetChanged = false;
             vfo->dspVFO->setOffset(vfo->wtfVFO->centerOffset);
         }

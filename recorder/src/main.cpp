@@ -6,10 +6,9 @@
 #include <dsp/stream.h>
 #include <thread>
 #include <ctime>
+#include <signal_path/audio.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
-
-mod::API_t* API;
 
 struct RecorderContext_t {
     std::string name;
@@ -60,7 +59,6 @@ void sampleRateChanged(void* ctx, float sampleRate, int blockSize) {
 }
 
 MOD_EXPORT void* _INIT_(mod::API_t* _API, ImGuiContext* imctx, std::string _name) {
-    API = _API;
     RecorderContext_t* ctx = new RecorderContext_t;
     ctx->recording = false;
     ctx->selectedStreamName = "";
@@ -77,7 +75,7 @@ MOD_EXPORT void _NEW_FRAME_(RecorderContext_t* ctx) {
 MOD_EXPORT void _DRAW_MENU_(RecorderContext_t* ctx) {
     float menuColumnWidth = ImGui::GetContentRegionAvailWidth();
 
-    std::vector<std::string> streamNames = API->getStreamNameList();
+    std::vector<std::string> streamNames = audio::getStreamNameList();
     std::string nameList;
     for (std::string name : streamNames) {
         nameList += name;
@@ -124,7 +122,7 @@ MOD_EXPORT void _DRAW_MENU_(RecorderContext_t* ctx) {
             ctx->samplesWritten = 0;
             ctx->sampleRate = 48000;
             ctx->writer = new WavWriter("recordings/" + genFileName("audio_"), 16, 2, 48000);
-            ctx->stream = API->bindToStreamStereo(ctx->selectedStreamName, streamRemovedHandler, sampleRateChanged, ctx);
+            ctx->stream = audio::bindToStreamStereo(ctx->selectedStreamName, streamRemovedHandler, sampleRateChanged, ctx);
             ctx->workerThread = std::thread(_writeWorker, ctx);
             ctx->recording = true;
             ctx->startTime = time(0);
@@ -136,7 +134,7 @@ MOD_EXPORT void _DRAW_MENU_(RecorderContext_t* ctx) {
             ctx->stream->stopReader();
             ctx->workerThread.join();
             ctx->stream->clearReadStop();
-            API->unbindFromStreamStereo(ctx->selectedStreamName, ctx->stream);
+            audio::unbindFromStreamStereo(ctx->selectedStreamName, ctx->stream);
             ctx->writer->close();
             delete ctx->writer;
             ctx->recording = false;
