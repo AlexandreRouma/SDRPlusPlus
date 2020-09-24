@@ -11,7 +11,7 @@
 
 using nlohmann::json;
 
-//#define DEV_BUILD
+#define DEV_BUILD
 
 #ifndef ROOT_DIR
 #ifdef DEV_BUILD
