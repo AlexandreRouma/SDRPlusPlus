@@ -2,11 +2,15 @@
 #include <module.h>
 #include <path.h>
 #include <watcher.h>
+#include <config.h>
 
 #define CONCAT(a, b)    ((std::string(a) + b).c_str())
 #define DEEMP_LIST      "50µS\00075µS\000none\000"
 
 mod::API_t* API;
+
+ConfigManager config;
+bool firstInit = true;
 
 struct RadioContext_t {
     std::string name;
@@ -21,12 +25,16 @@ struct RadioContext_t {
 MOD_EXPORT void* _INIT_(mod::API_t* _API, ImGuiContext* imctx, std::string _name) {
     API = _API;
     RadioContext_t* ctx = new RadioContext_t;
+
     ctx->name = _name;
+
+    ctx->demod = 1;
     ctx->bandWidth = 200000;
     ctx->bandWidthMin = 100000;
     ctx->bandWidthMax = 200000;
     ctx->sigPath.init(_name, 200000, 1000);
     ctx->sigPath.start();
+    ctx->sigPath.setDemodulator(SigPath::DEMOD_FM, ctx->bandWidth);
     ImGui::SetCurrentContext(imctx);
     return ctx;
 }

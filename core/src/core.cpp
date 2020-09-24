@@ -13,6 +13,7 @@
 #include <module.h>
 #include <stb_image.h>
 #include <config.h>
+#include <core.h>
 
 #include <dsp/block.h>
 
@@ -23,8 +24,9 @@
 #include <Windows.h>
 #endif
 
-// Comment to build a normal release
-#define DEV_BUILD
+namespace core {
+    ConfigManager configManager;
+};
 
 bool maximized = false;
 bool fullScreen = false;
@@ -50,18 +52,11 @@ int sdrpp_main() {
 
     spdlog::info("SDR++ v" VERSION_STR);
 
-#ifdef DEV_BUILD
-    config::setRootDirectory("../root_dev");
-#elif _WIN32
-    config::setRootDirectory(".");
-#else
-    config::setRootDirectory("/etc/sdrpp");
-#endif
-
     // Load config
     spdlog::info("Loading config");
-    config::load(config::getRootDirectory() + "/config.json");
-    config::startAutoSave();
+    core::configManager.setPath(ROOT_DIR "/config.json");
+    core::configManager.load(json());
+    core::configManager.enableAutoSave();
 
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);
@@ -74,9 +69,11 @@ int sdrpp_main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
     
-    int winWidth = config::config["windowSize"]["w"];
-    int winHeight = config::config["windowSize"]["h"];
-    maximized = config::config["maximized"];
+    core::configManager.aquire();
+    int winWidth = core::configManager.conf["windowSize"]["w"];
+    int winHeight = core::configManager.conf["windowSize"]["h"];
+    maximized = core::configManager.conf["maximized"];
+    core::configManager.release();
 
     // Create window with graphics context
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
@@ -94,7 +91,7 @@ int sdrpp_main() {
 
     // Load app icon
     GLFWimage icons[10];
-    icons[0].pixels = stbi_load((config::getRootDirectory() + "/res/icons/sdrpp.png").c_str(), &icons[0].width, &icons[0].height, 0, 4);
+    icons[0].pixels = stbi_load(((std::string)(ROOT_DIR "/res/icons/sdrpp.png")).c_str(), &icons[0].width, &icons[0].height, 0, 4);
     icons[1].pixels = (unsigned char*)malloc(16 * 16 * 4); icons[1].width = icons[1].height = 16;
     icons[2].pixels = (unsigned char*)malloc(24 * 24 * 4); icons[2].width = icons[2].height = 24;
     icons[3].pixels = (unsigned char*)malloc(32 * 32 * 4); icons[3].width = icons[3].height = 32;
@@ -162,10 +159,10 @@ int sdrpp_main() {
     icons::load();
 
     spdlog::info("Loading band plans");
-    bandplan::loadFromDir(config::getRootDirectory() + "/bandplans");
+    bandplan::loadFromDir(ROOT_DIR "/bandplans");
 
     spdlog::info("Loading band plans color table");
-    bandplan::loadColorTable(config::getRootDirectory() + "/band_colors.json");
+    bandplan::loadColorTable(ROOT_DIR "/band_colors.json");
 
     windowInit();
 
@@ -185,11 +182,12 @@ int sdrpp_main() {
 
         if (_maximized != maximized) {
             _maximized = maximized;
-            config::config["maximized"]= _maximized;
-            config::configModified = true;
+            core::configManager.aquire();
+            core::configManager.conf["maximized"]= _maximized;
             if (!maximized) {
-                glfwSetWindowSize(window, config::config["windowSize"]["w"], config::config["windowSize"]["h"]);
+                glfwSetWindowSize(window, core::configManager.conf["windowSize"]["w"], core::configManager.conf["windowSize"]["h"]);
             }
+            core::configManager.release(true);
         }
 
         int _winWidth, _winHeight;
@@ -214,9 +212,10 @@ int sdrpp_main() {
         if ((_winWidth != winWidth || _winHeight != winHeight) && !maximized && _winWidth > 0 && _winHeight > 0) {
             winWidth = _winWidth;
             winHeight = _winHeight;
-            config::config["windowSize"]["w"] = winWidth;
-            config::config["windowSize"]["h"] = winHeight;
-            config::configModified = true;
+            core::configManager.aquire();
+            core::configManager.conf["windowSize"]["w"] = winWidth;
+            core::configManager.conf["windowSize"]["h"] = winHeight;
+            core::configManager.release(true);
         }
 
         if (winWidth > 0 && winHeight > 0) {

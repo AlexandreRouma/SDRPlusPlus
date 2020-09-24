@@ -1,4 +1,5 @@
 #pragma once
+#include <imgui/imgui.h>
 #include <string>
 #include <vector>
 #include <map>
@@ -19,5 +20,7 @@ public:
     std::vector<std::string> order;
 
 private:
+    bool isInOrderList(std::string name);
+
     std::map<std::string, MenuItem_t> items;
 };

@@ -64,14 +64,14 @@ bool showMenu = true;
 void saveCurrentSource() {
     int i = 0;
     for (std::string gainName : soapy.gainList) {
-        config::config["sourceSettings"][sourceName]["gains"][gainName] = uiGains[i];
+        core::configManager.conf["sourceSettings"][sourceName]["gains"][gainName] = uiGains[i];
         i++;
     }
-    config::config["sourceSettings"][sourceName]["sampleRate"] = soapy.sampleRates[srId];
+    core::configManager.conf["sourceSettings"][sourceName]["sampleRate"] = soapy.sampleRates[srId];
 }
 
 void loadSourceConfig(std::string name) {
-    json sourceSettings = config::config["sourceSettings"][name];
+    json sourceSettings = core::configManager.conf["sourceSettings"][name];
 
     sampleRate = sourceSettings["sampleRate"];
     
@@ -110,7 +110,7 @@ void loadSourceConfig(std::string name) {
 }
 
 void loadAudioConfig(std::string name) {
-    json audioSettings = config::config["audio"][name];
+    json audioSettings = core::configManager.conf["audio"][name];
     std::string devName = audioSettings["device"];
     auto _devIt = std::find(audio::streams[name]->audio->deviceNames.begin(), audio::streams[name]->audio->deviceNames.end(), devName);
 
@@ -146,14 +146,125 @@ void loadAudioConfig(std::string name) {
 }
 
 void saveAudioConfig(std::string name) {
-    config::config["audio"][name]["device"] = audio::streams[name]->audio->deviceNames[audio::streams[name]->deviceId];
-    config::config["audio"][name]["volume"] = audio::streams[name]->volume;
-    config::config["audio"][name]["sampleRate"] = audio::streams[name]->sampleRate;
+    core::configManager.conf["audio"][name]["device"] = audio::streams[name]->audio->deviceNames[audio::streams[name]->deviceId];
+    core::configManager.conf["audio"][name]["volume"] = audio::streams[name]->volume;
+    core::configManager.conf["audio"][name]["sampleRate"] = audio::streams[name]->sampleRate;
 }
+
+void setVFO(float freq);
+
+// =======================================================
+
+void sourceMenu(void* ctx) {
+    float menuColumnWidth = ImGui::GetContentRegionAvailWidth();
+    if (playing) { style::beginDisabled(); };
+
+    ImGui::PushItemWidth(menuColumnWidth);
+    if (ImGui::Combo("##_0_", &devId, soapy.txtDevList.c_str())) {
+        spdlog::info("Changed input device: {0}", devId);
+        sourceName = soapy.devNameList[devId];
+        soapy.setDevice(soapy.devList[devId]);
+
+        core::configManager.aquire();
+        if (core::configManager.conf["sourceSettings"].contains(sourceName)) {
+            loadSourceConfig(sourceName);
+        }
+        else {
+            srId = 0;
+            sampleRate = soapy.getSampleRate();
+            bw.val = sampleRate;
+            gui::waterfall.setBandwidth(sampleRate);
+            gui::waterfall.setViewBandwidth(sampleRate);
+            sigpath::signalPath.setSampleRate(sampleRate);
+
+            if (soapy.gainList.size() >= 0) {
+                delete[] uiGains;
+                uiGains = new float[soapy.gainList.size()];
+                for (int i = 0; i < soapy.gainList.size(); i++) {
+                    uiGains[i] = soapy.currentGains[i];
+                }
+            }
+        }
+        setVFO(gui::freqSelect.frequency);
+        core::configManager.conf["source"] = sourceName;
+        core::configManager.release(true);
+    }
+    ImGui::PopItemWidth();
+
+    if (ImGui::Combo("##_1_", &srId, soapy.txtSampleRateList.c_str())) {
+        spdlog::info("Changed sample rate: {0}", srId);
+        sampleRate = soapy.sampleRates[srId];
+        soapy.setSampleRate(sampleRate);
+        gui::waterfall.setBandwidth(sampleRate);
+        gui::waterfall.setViewBandwidth(sampleRate);
+        sigpath::signalPath.setSampleRate(sampleRate);
+        bw.val = sampleRate;
+
+        core::configManager.aquire();
+        if (!core::configManager.conf["sourceSettings"].contains(sourceName)) {
+            saveCurrentSource();
+        }
+        core::configManager.conf["sourceSettings"][sourceName]["sampleRate"] = sampleRate;
+        core::configManager.release(true);
+    }
+
+    ImGui::SameLine();
+    bool noDevice = (soapy.devList.size() == 0);
+    if (ImGui::Button("Refresh", ImVec2(menuColumnWidth - ImGui::GetCursorPosX(), 0.0f))) {
+        soapy.refresh();
+        if (noDevice && soapy.devList.size() > 0) {
+            sourceName = soapy.devNameList[0];
+            soapy.setDevice(soapy.devList[0]);
+            if (core::configManager.conf["sourceSettings"][sourceName]) {
+                loadSourceConfig(sourceName);
+            }
+        }
+    }
+
+    if (playing) { style::endDisabled(); };
+
+    float maxTextLength = 0;
+    float txtLen = 0;
+    char buf[100];
+
+    // Calculate the spacing
+    for (int i = 0; i < soapy.gainList.size(); i++) {
+        sprintf(buf, "%s gain", soapy.gainList[i].c_str());
+        txtLen = ImGui::CalcTextSize(buf).x;
+        if (txtLen > maxTextLength) {
+            maxTextLength = txtLen;
+        }
+    }
+
+    for (int i = 0; i < soapy.gainList.size(); i++) {
+        ImGui::Text("%s gain", soapy.gainList[i].c_str());
+        ImGui::SameLine();
+        sprintf(buf, "##_gain_slide_%d_", i);
+
+        ImGui::SetCursorPosX(maxTextLength + 5);
+        ImGui::PushItemWidth(menuColumnWidth - (maxTextLength + 5));
+        if (ImGui::SliderFloat(buf, &uiGains[i], soapy.gainRanges[i].minimum(), soapy.gainRanges[i].maximum())) {
+            soapy.setGain(i, uiGains[i]);
+            core::configManager.aquire();
+            if (!core::configManager.conf["sourceSettings"].contains(sourceName)) {
+                saveCurrentSource();
+            }
+            core::configManager.conf["sourceSettings"][sourceName]["gains"][soapy.gainList[i]] = uiGains[i];
+            core::configManager.release(true);
+        }
+        ImGui::PopItemWidth();
+    }
+
+    ImGui::Spacing();
+}
+
+// =======================================================
 
 void windowInit() {
     spdlog::info("Initializing SoapySDR");
     soapy.init();
+
+    gui::menu.registerEntry("Source", sourceMenu, NULL);
     
     gui::freqSelect.init();
     
@@ -168,16 +279,17 @@ void windowInit() {
 
     spdlog::info("Loading modules");
     mod::initAPI(&gui::waterfall);
-    mod::loadFromList(config::getRootDirectory() + "/module_list.json");
+    mod::loadFromList(ROOT_DIR "/module_list.json");
 
-    bigFont = ImGui::GetIO().Fonts->AddFontFromFileTTF((config::getRootDirectory() + "/res/fonts/Roboto-Medium.ttf").c_str(), 128.0f);
+    bigFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(ROOT_DIR "/res/fonts/Roboto-Medium.ttf")).c_str(), 128.0f);
 
     // Load last source configuration
-    uint64_t frequency = config::config["frequency"];
-    sourceName = config::config["source"];
+    core::configManager.aquire();
+    uint64_t frequency = core::configManager.conf["frequency"];
+    sourceName = core::configManager.conf["source"];
     auto _sourceIt = std::find(soapy.devNameList.begin(), soapy.devNameList.end(), sourceName);
-    if (_sourceIt != soapy.devNameList.end() && config::config["sourceSettings"].contains(sourceName)) {
-        json sourceSettings = config::config["sourceSettings"][sourceName];
+    if (_sourceIt != soapy.devNameList.end() && core::configManager.conf["sourceSettings"].contains(sourceName)) {
+        json sourceSettings = core::configManager.conf["sourceSettings"][sourceName];
         devId = std::distance(soapy.devNameList.begin(), _sourceIt);
         soapy.setDevice(soapy.devList[devId]);
         loadSourceConfig(sourceName);
@@ -186,7 +298,7 @@ void windowInit() {
         int i = 0;
         bool settingsFound = false;
         for (std::string devName : soapy.devNameList) {
-            if (config::config["sourceSettings"].contains(devName)) {
+            if (core::configManager.conf["sourceSettings"].contains(devName)) {
                 sourceName = devName;
                 settingsFound = true;
                 devId = i;
@@ -222,17 +334,17 @@ void windowInit() {
     // Switch to double for all frequecies and bandwidth
 
     // Update UI settings
-    fftMin = config::config["min"];
-    fftMax = config::config["max"];
+    fftMin = core::configManager.conf["min"];
+    fftMax = core::configManager.conf["max"];
     gui::waterfall.setFFTMin(fftMin);
     gui::waterfall.setWaterfallMin(fftMin);
     gui::waterfall.setFFTMax(fftMax);
     gui::waterfall.setWaterfallMax(fftMax);
 
-    bandPlanEnabled.val = config::config["bandPlanEnabled"];
+    bandPlanEnabled.val = core::configManager.conf["bandPlanEnabled"];
     bandPlanEnabled.markAsChanged();
 
-    std::string bandPlanName = config::config["bandPlan"];
+    std::string bandPlanName = core::configManager.conf["bandPlan"];
     auto _bandplanIt = bandplan::bandplans.find(bandPlanName);
     if (_bandplanIt != bandplan::bandplans.end()) {
         bandplanId.val = std::distance(bandplan::bandplans.begin(), bandplan::bandplans.find(bandPlanName));
@@ -262,7 +374,7 @@ void windowInit() {
     gui::waterfall.selectFirstVFO();
 
     for (auto [name, stream] : audio::streams) {
-        if (config::config["audio"].contains(name)) {
+        if (core::configManager.conf["audio"].contains(name)) {
             bool running = audio::streams[name]->running;
             audio::stopStream(name);
             loadAudioConfig(name);
@@ -277,16 +389,18 @@ void windowInit() {
         volume = &audio::streams[audioStreamName]->volume;
     }
 
-    menuWidth = config::config["menuWidth"];
+    menuWidth = core::configManager.conf["menuWidth"];
     newWidth = menuWidth;
 
-    showWaterfall = config::config["showWaterfall"];
+    showWaterfall = core::configManager.conf["showWaterfall"];
     if (!showWaterfall) {
         gui::waterfall.hideWaterfall();
     }
 
-    fftHeight = config::config["fftHeight"];
+    fftHeight = core::configManager.conf["fftHeight"];
     gui::waterfall.setFFTHeight(fftHeight);
+
+    core::configManager.release();
 }
 
 void setVFO(float freq) {
@@ -382,8 +496,9 @@ void drawWindow() {
     if (vfo->centerOffsetChanged) {
         gui::freqSelect.setFrequency(gui::waterfall.getCenterFrequency() + vfo->generalOffset);
         gui::freqSelect.frequencyChanged = false;
-        config::config["frequency"] = gui::freqSelect.frequency;
-        config::configModified = true;
+        core::configManager.aquire();
+        core::configManager.conf["frequency"] = gui::freqSelect.frequency;
+        core::configManager.release(true);
     }
 
     sigpath::vfoManager.updateFromWaterfall(&gui::waterfall);
@@ -397,8 +512,9 @@ void drawWindow() {
         if (audioStreamName != "") {
             volume = &audio::streams[audioStreamName]->volume;
         }
-        config::config["frequency"] = gui::freqSelect.frequency;
-        config::configModified = true;
+        core::configManager.aquire();
+        core::configManager.conf["frequency"] = gui::freqSelect.frequency;
+        core::configManager.release(true);
     }
 
     if (gui::freqSelect.frequencyChanged) {
@@ -407,16 +523,18 @@ void drawWindow() {
         vfo->centerOffsetChanged = false;
         vfo->lowerOffsetChanged = false;
         vfo->upperOffsetChanged = false;
-        config::config["frequency"] = gui::freqSelect.frequency;
-        config::configModified = true;
+        core::configManager.aquire();
+        core::configManager.conf["frequency"] = gui::freqSelect.frequency;
+        core::configManager.release(true);
     }
 
     if (gui::waterfall.centerFreqMoved) {
         gui::waterfall.centerFreqMoved = false;
         soapy.setFrequency(gui::waterfall.getCenterFrequency());
         gui::freqSelect.setFrequency(gui::waterfall.getCenterFrequency() + vfo->generalOffset);
-        config::config["frequency"] = gui::freqSelect.frequency;
-        config::configModified = true;
+        core::configManager.aquire();
+        core::configManager.conf["frequency"] = gui::freqSelect.frequency;
+        core::configManager.release(true);
     }
 
     if (dcbias.changed()) {
@@ -434,8 +552,9 @@ void drawWindow() {
     int _fftHeight = gui::waterfall.getFFTHeight();
     if (fftHeight != _fftHeight) {
         fftHeight = _fftHeight;
-        config::config["fftHeight"] = fftHeight;
-        config::configModified = true;
+        core::configManager.aquire();
+        core::configManager.conf["fftHeight"] = fftHeight;
+        core::configManager.release(true);
     }
 
     ImVec2 vMin = ImGui::GetWindowContentRegionMin();
@@ -478,12 +597,13 @@ void drawWindow() {
     ImGui::SetNextItemWidth(200);
     if (ImGui::SliderFloat("##_2_", volume, 0.0f, 1.0f, "")) {
         if (audioStreamName != "") {
-            if (!config::config["audio"].contains(audioStreamName)) {
+            core::configManager.aquire();
+            if (!core::configManager.conf["audio"].contains(audioStreamName)) {
                 saveAudioConfig(audioStreamName);
             }
             audio::streams[audioStreamName]->audio->setVolume(*volume);
-            config::config["audio"][audioStreamName]["volume"] = *volume;
-            config::configModified = true;
+            core::configManager.conf["audio"][audioStreamName]["volume"] = *volume;
+            core::configManager.release(true);
         }
     }
 
@@ -529,8 +649,9 @@ void drawWindow() {
     if(!down && grabbingMenu) {
         grabbingMenu = false;
         menuWidth = newWidth;
-        config::config["menuWidth"] = menuWidth;
-        config::configModified = true;
+        core::configManager.aquire();
+        core::configManager.conf["menuWidth"] = menuWidth;
+        core::configManager.release(true);
     }
 
     // Left Column
@@ -543,104 +664,7 @@ void drawWindow() {
         ImGui::BeginChild("Left Column");
         float menuColumnWidth = ImGui::GetContentRegionAvailWidth();
 
-        if (ImGui::CollapsingHeader("Source", ImGuiTreeNodeFlags_DefaultOpen)) {
-            if (playing) { style::beginDisabled(); };
-
-            ImGui::PushItemWidth(menuColumnWidth);
-            if (ImGui::Combo("##_0_", &devId, soapy.txtDevList.c_str())) {
-                spdlog::info("Changed input device: {0}", devId);
-                sourceName = soapy.devNameList[devId];
-                soapy.setDevice(soapy.devList[devId]);
-
-                if (config::config["sourceSettings"].contains(sourceName)) {
-                    loadSourceConfig(sourceName);
-                }
-                else {
-                    srId = 0;
-                    sampleRate = soapy.getSampleRate();
-                    bw.val = sampleRate;
-                    gui::waterfall.setBandwidth(sampleRate);
-                    gui::waterfall.setViewBandwidth(sampleRate);
-                    sigpath::signalPath.setSampleRate(sampleRate);
-
-                    if (soapy.gainList.size() >= 0) {
-                        delete[] uiGains;
-                        uiGains = new float[soapy.gainList.size()];
-                        for (int i = 0; i < soapy.gainList.size(); i++) {
-                            uiGains[i] = soapy.currentGains[i];
-                        }
-                    }
-                }
-                setVFO(gui::freqSelect.frequency);
-                config::config["source"] = sourceName;
-                config::configModified = true;
-            }
-            ImGui::PopItemWidth();
-
-            if (ImGui::Combo("##_1_", &srId, soapy.txtSampleRateList.c_str())) {
-                spdlog::info("Changed sample rate: {0}", srId);
-                sampleRate = soapy.sampleRates[srId];
-                soapy.setSampleRate(sampleRate);
-                gui::waterfall.setBandwidth(sampleRate);
-                gui::waterfall.setViewBandwidth(sampleRate);
-                sigpath::signalPath.setSampleRate(sampleRate);
-                bw.val = sampleRate;
-
-                if (!config::config["sourceSettings"].contains(sourceName)) {
-                    saveCurrentSource();
-                }
-                config::config["sourceSettings"][sourceName]["sampleRate"] = sampleRate;
-                config::configModified = true;
-            }
-
-            ImGui::SameLine();
-            bool noDevice = (soapy.devList.size() == 0);
-            if (ImGui::Button("Refresh", ImVec2(menuColumnWidth - ImGui::GetCursorPosX(), 0.0f))) {
-                soapy.refresh();
-                if (noDevice && soapy.devList.size() > 0) {
-                    sourceName = soapy.devNameList[0];
-                    soapy.setDevice(soapy.devList[0]);
-                    if (config::config["sourceSettings"][sourceName]) {
-                        loadSourceConfig(sourceName);
-                    }
-                }
-            }
-
-            if (playing) { style::endDisabled(); };
-
-            float maxTextLength = 0;
-            float txtLen = 0;
-            char buf[100];
-
-            // Calculate the spacing
-            for (int i = 0; i < soapy.gainList.size(); i++) {
-                sprintf(buf, "%s gain", soapy.gainList[i].c_str());
-                txtLen = ImGui::CalcTextSize(buf).x;
-                if (txtLen > maxTextLength) {
-                    maxTextLength = txtLen;
-                }
-            }
-
-            for (int i = 0; i < soapy.gainList.size(); i++) {
-                ImGui::Text("%s gain", soapy.gainList[i].c_str());
-                ImGui::SameLine();
-                sprintf(buf, "##_gain_slide_%d_", i);
-
-                ImGui::SetCursorPosX(maxTextLength + 5);
-                ImGui::PushItemWidth(menuColumnWidth - (maxTextLength + 5));
-                if (ImGui::SliderFloat(buf, &uiGains[i], soapy.gainRanges[i].minimum(), soapy.gainRanges[i].maximum())) {
-                    soapy.setGain(i, uiGains[i]);
-                    if (!config::config["sourceSettings"].contains(sourceName)) {
-                        saveCurrentSource();
-                    }
-                    config::config["sourceSettings"][sourceName]["gains"][soapy.gainList[i]] = uiGains[i];
-                    config::configModified = true;
-                }
-                ImGui::PopItemWidth();
-            }
-
-            ImGui::Spacing();
-        }
+        gui::menu.draw();
 
         for (int i = 0; i < modCount; i++) {
             if (ImGui::CollapsingHeader(mod::moduleNames[i].c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -673,12 +697,13 @@ void drawWindow() {
                     stream->sampleRateId = 0;
 
                     // Create config if it doesn't exist
-                    if (!config::config["audio"].contains(name)) {
+                    core::configManager.aquire();
+                    if (!core::configManager.conf["audio"].contains(name)) {
                         saveAudioConfig(name);
                     }
-                    config::config["audio"][name]["device"] = stream->audio->deviceNames[stream->deviceId];
-                    config::config["audio"][name]["sampleRate"] = stream->audio->devices[stream->deviceId].sampleRates[0];
-                    config::configModified = true;
+                    core::configManager.conf["audio"][name]["device"] = stream->audio->deviceNames[stream->deviceId];
+                    core::configManager.conf["audio"][name]["sampleRate"] = stream->audio->devices[stream->deviceId].sampleRates[0];
+                    core::configManager.release(true);
                 }
                 if (ImGui::Combo(("##_audio_sr_0_" + name).c_str(), &stream->sampleRateId, stream->audio->devices[deviceId].txtSampleRates.c_str())) {
                     audio::stopStream(name);
@@ -688,21 +713,23 @@ void drawWindow() {
                     }
 
                     // Create config if it doesn't exist
-                    if (!config::config["audio"].contains(name)) {
+                    core::configManager.aquire();
+                    if (!core::configManager.conf["audio"].contains(name)) {
                         saveAudioConfig(name);
                     }
-                    config::config["audio"][name]["sampleRate"] = stream->audio->devices[deviceId].sampleRates[stream->sampleRateId];
-                    config::configModified = true;
+                    core::configManager.conf["audio"][name]["sampleRate"] = stream->audio->devices[deviceId].sampleRates[stream->sampleRateId];
+                    core::configManager.release(true);
                 }
                 if (ImGui::SliderFloat(("##_audio_vol_0_" + name).c_str(), &stream->volume, 0.0f, 1.0f, "")) {
                     stream->audio->setVolume(stream->volume);
 
                     // Create config if it doesn't exist
-                    if (!config::config["audio"].contains(name)) {
+                    core::configManager.aquire();
+                    if (!core::configManager.conf["audio"].contains(name)) {
                         saveAudioConfig(name);
                     }
-                    config::config["audio"][name]["volume"] = stream->volume;
-                    config::configModified = true;
+                    core::configManager.conf["audio"][name]["volume"] = stream->volume;
+                    core::configManager.release(true);
                 }
                 ImGui::PopItemWidth();
                 count++;
@@ -718,13 +745,15 @@ void drawWindow() {
         if (ImGui::CollapsingHeader("Band Plan", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::PushItemWidth(menuColumnWidth);
             if (ImGui::Combo("##_4_", &bandplanId.val, bandplan::bandplanNameTxt.c_str())) {
-                config::config["bandPlan"] = bandplan::bandplanNames[bandplanId.val];
-                config::configModified = true;
+                core::configManager.aquire();
+                core::configManager.conf["bandPlan"] = bandplan::bandplanNames[bandplanId.val];
+                core::configManager.release(true);
             }
             ImGui::PopItemWidth();
             if (ImGui::Checkbox("Enabled", &bandPlanEnabled.val)) {
-                config::config["bandPlanEnabled"] = bandPlanEnabled.val;
-                config::configModified = true;
+                core::configManager.aquire();
+                core::configManager.conf["bandPlanEnabled"] = bandPlanEnabled.val;
+                core::configManager.release(true);
             }
             bandplan::BandPlan_t plan = bandplan::bandplans[bandplan::bandplanNames[bandplanId.val]];
             ImGui::Text("Country: %s (%s)", plan.countryName.c_str(), plan.countryCode.c_str());
@@ -784,8 +813,9 @@ void drawWindow() {
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0f) - 10);
     if (ImGui::VSliderFloat("##_8_", ImVec2(20.0f, 150.0f), &fftMax, 0.0f, -100.0f, "")) {
         fftMax = std::max<float>(fftMax, fftMin + 10);
-        config::config["max"] = fftMax;
-        config::configModified = true;
+        core::configManager.aquire();
+        core::configManager.conf["max"] = fftMax;
+        core::configManager.release(true);
     }
 
     ImGui::NewLine();
@@ -795,8 +825,9 @@ void drawWindow() {
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0f) - 10);
     if (ImGui::VSliderFloat("##_9_", ImVec2(20.0f, 150.0f), &fftMin, 0.0f, -100.0f, "")) {
         fftMin = std::min<float>(fftMax - 10, fftMin);
-        config::config["min"] = fftMin;
-        config::configModified = true;
+        core::configManager.aquire();
+        core::configManager.conf["min"] = fftMin;
+        core::configManager.release(true);
     }
 
     ImGui::EndChild();

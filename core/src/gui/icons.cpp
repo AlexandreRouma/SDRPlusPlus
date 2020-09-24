@@ -24,9 +24,9 @@ namespace icons {
     }
 
     void load() {
-        LOGO = (ImTextureID)(uintptr_t)loadTexture(config::getRootDirectory() + "/res/icons/sdrpp.png");
-        PLAY = (ImTextureID)(uintptr_t)loadTexture(config::getRootDirectory() + "/res/icons/play.png");
-        STOP = (ImTextureID)(uintptr_t)loadTexture(config::getRootDirectory() + "/res/icons/stop.png");
-        MENU = (ImTextureID)(uintptr_t)loadTexture(config::getRootDirectory() + "/res/icons/menu.png");
+        LOGO = (ImTextureID)(uintptr_t)loadTexture(ROOT_DIR "/res/icons/sdrpp.png");
+        PLAY = (ImTextureID)(uintptr_t)loadTexture(ROOT_DIR "/res/icons/play.png");
+        STOP = (ImTextureID)(uintptr_t)loadTexture(ROOT_DIR "/res/icons/stop.png");
+        MENU = (ImTextureID)(uintptr_t)loadTexture(ROOT_DIR "/res/icons/menu.png");
     }
 }

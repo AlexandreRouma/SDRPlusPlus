@@ -10,6 +10,6 @@ namespace icons {
     extern ImTextureID STOP;
     extern ImTextureID MENU;
 
-    GLuint loadTexture(char* path);
+    GLuint loadTexture(std::string path);
     void load();
 }

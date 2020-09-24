@@ -4,6 +4,16 @@
             "device": "Speakers (Realtek High Definiti",
             "sampleRate": 48000.0,
             "volume": 0.602150559425354
+        },
+        "Radio 1": {
+            "device": "Speakers (Realtek High Definiti",
+            "sampleRate": 48000.0,
+            "volume": 0.6881720423698425
+        },
+        "Radio 2": {
+            "device": "Speakers (Realtek High Definiti",
+            "sampleRate": 48000.0,
+            "volume": 0.0
         }
     },
     "bandPlan": "General",
@@ -19,7 +29,7 @@
     "sourceSettings": {
         "Generic RTL2832U OEM :: 00000001": {
             "gains": {
-                "TUNER": 0.0
+                "TUNER": 11.625
             },
             "sampleRate": 2560000
         },
@@ -36,7 +46,7 @@
         }
     },
     "windowSize": {
-        "h": 720,
-        "w": 1280
+        "h": 784,
+        "w": 1460
     }
 }

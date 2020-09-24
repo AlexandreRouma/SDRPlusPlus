@@ -9,7 +9,7 @@ namespace style {
         ImGui::GetStyle().PopupRounding = 0.0f;
         ImGui::GetStyle().ScrollbarRounding = 0.0f;
 
-        ImGui::GetIO().Fonts->AddFontFromFileTTF((config::getRootDirectory() + "/res/fonts/Roboto-Medium.ttf").c_str(), 16.0f);
+        ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(ROOT_DIR "/res/fonts/Roboto-Medium.ttf")).c_str(), 16.0f);
 
         ImGui::StyleColorsDark();
         //ImGui::StyleColorsLight();
@@ -27,7 +27,7 @@ namespace style {
         ImGui::GetStyle().PopupRounding = 0.0f;
         ImGui::GetStyle().ScrollbarRounding = 0.0f;
 
-        ImGui::GetIO().Fonts->AddFontFromFileTTF((config::getRootDirectory() + "/res/fonts/Roboto-Medium.ttf").c_str(), 16.0f);
+        ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(ROOT_DIR "/res/fonts/Roboto-Medium.ttf")).c_str(), 16.0f);
 
         ImGui::StyleColorsDark();
 

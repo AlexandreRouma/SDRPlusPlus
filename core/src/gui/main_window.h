@@ -27,6 +27,7 @@
 #include <gui/style.h>
 #include <config.h>
 #include <signal_path/signal_path.h>
+#include <core.h>
 
 #define WINDOW_FLAGS    ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground
 

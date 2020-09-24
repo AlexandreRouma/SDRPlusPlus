@@ -3,4 +3,5 @@
 namespace gui {
     ImGui::WaterFall waterfall;
     FrequencySelect freqSelect;
+    Menu menu;
 };

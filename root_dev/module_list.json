@@ -1,4 +1,4 @@
 {
-    "Radio": "./radio/Release/radio.dll",
-    "Recorder": "./recorder/Release/recorder.dll"
+    "Radio 1": "./radio/Release/radio.dll",
+    "Recorder 1": "./recorder/Release/recorder.dll"
 }

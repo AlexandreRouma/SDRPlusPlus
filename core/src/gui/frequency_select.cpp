@@ -9,7 +9,7 @@ FrequencySelect::FrequencySelect() {
 }
 
 void FrequencySelect::init() {
-    font = ImGui::GetIO().Fonts->AddFontFromFileTTF((config::getRootDirectory() + "/res/fonts/Roboto-Medium.ttf").c_str(), 42.0f);
+    font = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(ROOT_DIR "/res/fonts/Roboto-Medium.ttf")).c_str(), 42.0f);
     for (int i = 0; i < 12; i++) {
         digits[i] = 0;
         
