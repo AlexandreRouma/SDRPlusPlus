@@ -8,7 +8,7 @@ void ConfigManager::setPath(std::string file) {
     path = file;
 }
 
-void ConfigManager::load(json default, bool lock) {
+void ConfigManager::load(json def, bool lock) {
     if (lock) { mtx.lock(); }
     if (path == "") {
         spdlog::error("Config manager tried to load file with no path specified");
@@ -16,7 +16,7 @@ void ConfigManager::load(json default, bool lock) {
     }
     if (!std::filesystem::exists(path)) {
         spdlog::warn("Config file '{0}' does not exist, creating it", path);
-        conf = default;
+        conf = def;
         save(false);
     }
     if (!std::filesystem::is_regular_file(path)) {

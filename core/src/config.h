@@ -27,7 +27,7 @@ class ConfigManager {
 public:
     ConfigManager();
     void setPath(std::string file);
-    void load(json default, bool lock = true);
+    void load(json def, bool lock = true);
     void save(bool lock = true);
     void enableAutoSave();
     void disableAutoSave();
