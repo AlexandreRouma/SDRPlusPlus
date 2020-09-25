@@ -8,7 +8,6 @@ fftwf_plan p;
 float* tempData;
 float* uiGains;
 char buf[1024];
-ImFont* bigFont;
 
 int fftSize = 8192 * 8;
 
@@ -37,7 +36,6 @@ void fftHandler(dsp::complex_t* samples) {
 dsp::NullSink sink;
 int devId = 0;
 int srId = 0;
-watcher<int> bandplanId(0, true);
 watcher<uint64_t> freq((uint64_t)90500000);
 int demod = 1;
 watcher<float> vfoFreq(92000000.0f);
@@ -50,14 +48,12 @@ watcher<float> bw(8000000.0f, true);
 int sampleRate = 8000000;
 bool playing = false;
 watcher<bool> dcbias(false, false);
-watcher<bool> bandPlanEnabled(true, false);
 bool showCredits = false;
 std::string audioStreamName = "";
 std::string sourceName = "";
 int menuWidth = 300;
 bool grabbingMenu = false;
 int newWidth = 300;
-bool showWaterfall = true;
 int fftHeight = 300;
 bool showMenu = true;
 
@@ -107,48 +103,6 @@ void loadSourceConfig(std::string name) {
     gui::waterfall.setBandwidth(sampleRate);
     gui::waterfall.setViewBandwidth(sampleRate);
     bw.val = sampleRate;
-}
-
-void loadAudioConfig(std::string name) {
-    json audioSettings = core::configManager.conf["audio"][name];
-    std::string devName = audioSettings["device"];
-    auto _devIt = std::find(audio::streams[name]->audio->deviceNames.begin(), audio::streams[name]->audio->deviceNames.end(), devName);
-
-    // If audio device doesn't exist anymore
-    if (_devIt == audio::streams[name]->audio->deviceNames.end()) {
-        audio::streams[name]->audio->setToDefault();
-        int deviceId = audio::streams[name]->audio->getDeviceId();
-        audio::setAudioDevice(name, deviceId, audio::streams[name]->audio->devices[deviceId].sampleRates[0]);
-        audio::streams[name]->sampleRateId = 0;
-        audio::streams[name]->volume = audioSettings["volume"];
-        audio::streams[name]->audio->setVolume(audio::streams[name]->volume);
-        return;
-    }
-    int deviceId = std::distance(audio::streams[name]->audio->deviceNames.begin(), _devIt);
-    float sr = audioSettings["sampleRate"];
-    auto _srIt = std::find(audio::streams[name]->audio->devices[deviceId].sampleRates.begin(), audio::streams[name]->audio->devices[deviceId].sampleRates.end(), sr);
-
-    // If sample rate doesn't exist anymore
-    if (_srIt == audio::streams[name]->audio->devices[deviceId].sampleRates.end()) {
-        audio::streams[name]->sampleRateId = 0;
-        audio::setAudioDevice(name, deviceId, audio::streams[name]->audio->devices[deviceId].sampleRates[0]);
-        audio::streams[name]->volume = audioSettings["volume"];
-        audio::streams[name]->audio->setVolume(audio::streams[name]->volume);
-        return;
-    }
-
-    int samplerateId = std::distance(audio::streams[name]->audio->devices[deviceId].sampleRates.begin(), _srIt);
-    audio::streams[name]->sampleRateId = samplerateId;
-    audio::setAudioDevice(name, deviceId, audio::streams[name]->audio->devices[deviceId].sampleRates[samplerateId]);
-    audio::streams[name]->deviceId = deviceId;
-    audio::streams[name]->volume = audioSettings["volume"];
-    audio::streams[name]->audio->setVolume(audio::streams[name]->volume);
-}
-
-void saveAudioConfig(std::string name) {
-    core::configManager.conf["audio"][name]["device"] = audio::streams[name]->audio->deviceNames[audio::streams[name]->deviceId];
-    core::configManager.conf["audio"][name]["volume"] = audio::streams[name]->volume;
-    core::configManager.conf["audio"][name]["sampleRate"] = audio::streams[name]->sampleRate;
 }
 
 void setVFO(float freq);
@@ -264,7 +218,16 @@ void windowInit() {
     spdlog::info("Initializing SoapySDR");
     soapy.init();
 
+    credits::init();
+
+    audiomenu::init();
+    bandplanmenu::init();
+    displaymenu::init();
+
     gui::menu.registerEntry("Source", sourceMenu, NULL);
+    gui::menu.registerEntry("Audio", audiomenu::draw, NULL);
+    gui::menu.registerEntry("Band Plan", bandplanmenu::draw, NULL);
+    gui::menu.registerEntry("Display", displaymenu::draw, NULL);
     
     gui::freqSelect.init();
     
@@ -280,8 +243,6 @@ void windowInit() {
     spdlog::info("Loading modules");
     mod::initAPI(&gui::waterfall);
     mod::loadFromList(ROOT_DIR "/module_list.json");
-
-    bigFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(ROOT_DIR "/res/fonts/Roboto-Medium.ttf")).c_str(), 128.0f);
 
     // Load last source configuration
     core::configManager.aquire();
@@ -340,26 +301,6 @@ void windowInit() {
     gui::waterfall.setWaterfallMin(fftMin);
     gui::waterfall.setFFTMax(fftMax);
     gui::waterfall.setWaterfallMax(fftMax);
-
-    bandPlanEnabled.val = core::configManager.conf["bandPlanEnabled"];
-    bandPlanEnabled.markAsChanged();
-
-    std::string bandPlanName = core::configManager.conf["bandPlan"];
-    auto _bandplanIt = bandplan::bandplans.find(bandPlanName);
-    if (_bandplanIt != bandplan::bandplans.end()) {
-        bandplanId.val = std::distance(bandplan::bandplans.begin(), bandplan::bandplans.find(bandPlanName));
-        
-        if (bandPlanEnabled.val) {
-            gui::waterfall.bandplan = &bandplan::bandplans[bandPlanName];
-        }
-        else {
-            gui::waterfall.bandplan = NULL;
-        }
-    }
-    else {
-        bandplanId.val = 0;
-    }
-    bandplanId.markAsChanged();
     
 
     gui::freqSelect.setFrequency(frequency);
@@ -373,29 +314,8 @@ void windowInit() {
     gui::waterfall.centerFreqMoved = false;
     gui::waterfall.selectFirstVFO();
 
-    for (auto [name, stream] : audio::streams) {
-        if (core::configManager.conf["audio"].contains(name)) {
-            bool running = audio::streams[name]->running;
-            audio::stopStream(name);
-            loadAudioConfig(name);
-            if (running) {
-                audio::startStream(name);
-            }
-        }
-    }
-
-    audioStreamName = audio::getNameFromVFO(gui::waterfall.selectedVFO);
-    if (audioStreamName != "") {
-        volume = &audio::streams[audioStreamName]->volume;
-    }
-
     menuWidth = core::configManager.conf["menuWidth"];
     newWidth = menuWidth;
-
-    showWaterfall = core::configManager.conf["showWaterfall"];
-    if (!showWaterfall) {
-        gui::waterfall.hideWaterfall();
-    }
 
     fftHeight = core::configManager.conf["fftHeight"];
     gui::waterfall.setFFTHeight(fftHeight);
@@ -541,14 +461,6 @@ void drawWindow() {
         sigpath::signalPath.setDCBiasCorrection(dcbias.val);
     }
 
-    if (bandplanId.changed() && bandPlanEnabled.val) {
-        gui::waterfall.bandplan = &bandplan::bandplans[bandplan::bandplanNames[bandplanId.val]];
-    }
-
-    if (bandPlanEnabled.changed()) {
-        gui::waterfall.bandplan = bandPlanEnabled.val ? &bandplan::bandplans[bandplan::bandplanNames[bandplanId.val]] : NULL;
-    }
-
     int _fftHeight = gui::waterfall.getFFTHeight();
     if (fftHeight != _fftHeight) {
         fftHeight = _fftHeight;
@@ -599,7 +511,8 @@ void drawWindow() {
         if (audioStreamName != "") {
             core::configManager.aquire();
             if (!core::configManager.conf["audio"].contains(audioStreamName)) {
-                saveAudioConfig(audioStreamName);
+                //saveAudioConfig(audioStreamName);
+                // TODO: FIX THIS SHIT
             }
             audio::streams[audioStreamName]->audio->setVolume(*volume);
             core::configManager.conf["audio"][audioStreamName]["volume"] = *volume;
@@ -672,100 +585,6 @@ void drawWindow() {
                 mod._DRAW_MENU_(mod.ctx);
                 ImGui::Spacing();
             }
-        }
-
-
-        if (ImGui::CollapsingHeader("Audio", ImGuiTreeNodeFlags_DefaultOpen)) {
-            int count = 0;
-            int maxCount = audio::streams.size();
-            for (auto const& [name, stream] : audio::streams) {
-                int deviceId;
-                float vol = 1.0f;
-                deviceId = stream->audio->getDeviceId();
-
-                ImGui::SetCursorPosX((menuColumnWidth / 2.0f) - (ImGui::CalcTextSize(name.c_str()).x / 2.0f));
-                ImGui::Text(name.c_str());
-
-                ImGui::PushItemWidth(menuColumnWidth);
-                bool running = stream->running;
-                if (ImGui::Combo(("##_audio_dev_0_"+ name).c_str(), &stream->deviceId, stream->audio->devTxtList.c_str())) {
-                    audio::stopStream(name);
-                    audio::setAudioDevice(name, stream->deviceId, stream->audio->devices[deviceId].sampleRates[0]);
-                    if (running) {
-                        audio::startStream(name);
-                    }
-                    stream->sampleRateId = 0;
-
-                    // Create config if it doesn't exist
-                    core::configManager.aquire();
-                    if (!core::configManager.conf["audio"].contains(name)) {
-                        saveAudioConfig(name);
-                    }
-                    core::configManager.conf["audio"][name]["device"] = stream->audio->deviceNames[stream->deviceId];
-                    core::configManager.conf["audio"][name]["sampleRate"] = stream->audio->devices[stream->deviceId].sampleRates[0];
-                    core::configManager.release(true);
-                }
-                if (ImGui::Combo(("##_audio_sr_0_" + name).c_str(), &stream->sampleRateId, stream->audio->devices[deviceId].txtSampleRates.c_str())) {
-                    audio::stopStream(name);
-                    audio::setSampleRate(name, stream->audio->devices[deviceId].sampleRates[stream->sampleRateId]);
-                    if (running) {
-                        audio::startStream(name);
-                    }
-
-                    // Create config if it doesn't exist
-                    core::configManager.aquire();
-                    if (!core::configManager.conf["audio"].contains(name)) {
-                        saveAudioConfig(name);
-                    }
-                    core::configManager.conf["audio"][name]["sampleRate"] = stream->audio->devices[deviceId].sampleRates[stream->sampleRateId];
-                    core::configManager.release(true);
-                }
-                if (ImGui::SliderFloat(("##_audio_vol_0_" + name).c_str(), &stream->volume, 0.0f, 1.0f, "")) {
-                    stream->audio->setVolume(stream->volume);
-
-                    // Create config if it doesn't exist
-                    core::configManager.aquire();
-                    if (!core::configManager.conf["audio"].contains(name)) {
-                        saveAudioConfig(name);
-                    }
-                    core::configManager.conf["audio"][name]["volume"] = stream->volume;
-                    core::configManager.release(true);
-                }
-                ImGui::PopItemWidth();
-                count++;
-                if (count < maxCount) {
-                    ImGui::Spacing();
-                    ImGui::Separator();
-                }
-                ImGui::Spacing();
-            }
-            ImGui::Spacing();
-        }
-
-        if (ImGui::CollapsingHeader("Band Plan", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::PushItemWidth(menuColumnWidth);
-            if (ImGui::Combo("##_4_", &bandplanId.val, bandplan::bandplanNameTxt.c_str())) {
-                core::configManager.aquire();
-                core::configManager.conf["bandPlan"] = bandplan::bandplanNames[bandplanId.val];
-                core::configManager.release(true);
-            }
-            ImGui::PopItemWidth();
-            if (ImGui::Checkbox("Enabled", &bandPlanEnabled.val)) {
-                core::configManager.aquire();
-                core::configManager.conf["bandPlanEnabled"] = bandPlanEnabled.val;
-                core::configManager.release(true);
-            }
-            bandplan::BandPlan_t plan = bandplan::bandplans[bandplan::bandplanNames[bandplanId.val]];
-            ImGui::Text("Country: %s (%s)", plan.countryName.c_str(), plan.countryCode.c_str());
-            ImGui::Text("Author: %s", plan.authorName.c_str());
-            ImGui::Spacing();
-        } 
-
-        if (ImGui::CollapsingHeader("Display", ImGuiTreeNodeFlags_DefaultOpen)) {
-            if (ImGui::Checkbox("Show waterfall", &showWaterfall)) {
-                showWaterfall ? gui::waterfall.showWaterfall() : gui::waterfall.hideWaterfall();
-            }
-            ImGui::Spacing();
         }
 
         if(ImGui::CollapsingHeader("Debug")) {
@@ -846,48 +665,7 @@ void drawWindow() {
     ImGui::End();
 
     if (showCredits) {
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f, 20.0f));
-        ImGui::OpenPopup("Credits");
-        ImGui::BeginPopupModal("Credits", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
-
-        ImGui::PushFont(bigFont);
-        ImGui::Text("SDR++    ");
-        ImGui::PopFont();
-        ImGui::SameLine();
-        ImGui::Image(icons::LOGO, ImVec2(128, 128));
-        ImGui::Spacing();
-        ImGui::Spacing();
-        ImGui::Spacing();
-
-        ImGui::Text("This software is brought to you by\n\n");
-
-        ImGui::Columns(3, "CreditColumns", true);
-
-        // Contributors
-        ImGui::Text("Contributors");
-        ImGui::BulletText("Ryzerth (Creator)");
-        ImGui::BulletText("aosync");
-        ImGui::BulletText("Benjamin Kyd");
-        ImGui::BulletText("Tobias Mädel");
-        ImGui::BulletText("Raov");
-        ImGui::BulletText("Howard0su");
-
-        // Libraries
-        ImGui::NextColumn();
-        ImGui::Text("Libraries");
-        ImGui::BulletText("SoapySDR (PothosWare)");
-        ImGui::BulletText("Dear ImGui (ocornut)");
-        ImGui::BulletText("spdlog (gabime)");
-        ImGui::BulletText("json (nlohmann)");
-        ImGui::BulletText("portaudio (PA Comm.)");
-
-        // Patrons
-        ImGui::NextColumn();
-        ImGui::Text("Patrons");
-        ImGui::BulletText("SignalsEverywhere");
-
-        ImGui::EndPopup();
-        ImGui::PopStyleVar(1);
+        credits::show();
     }
 }
 

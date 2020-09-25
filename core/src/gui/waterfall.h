@@ -91,6 +91,9 @@ namespace ImGui {
         void showWaterfall();
         void hideWaterfall();
 
+        void showBandplan();
+        void hideBandplan();
+
         void setFFTHeight(int height);
         int getFFTHeight();
 
@@ -187,5 +190,6 @@ namespace ImGui {
         int newFFTAreaHeight;
 
         bool waterfallVisible = true;
+        bool bandplanVisible = false;
     };
 };

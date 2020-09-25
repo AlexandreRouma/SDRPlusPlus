@@ -441,7 +441,7 @@ namespace ImGui {
             drawWaterfall();
         }
         drawVFOs();
-        if (bandplan != NULL) {
+        if (bandplan != NULL && bandplanVisible) {
             drawBandPlan();
         }
 
@@ -779,6 +779,14 @@ namespace ImGui {
     
     int WaterFall::getFFTHeight() {
         return FFTAreaHeight;
+    }
+
+    void WaterFall::showBandplan() {
+        bandplanVisible = true;
+    }
+
+    void WaterFall::hideBandplan() {
+        bandplanVisible = false;
     }
 };
 

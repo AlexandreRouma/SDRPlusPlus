@@ -13,11 +13,13 @@ add_definitions(-DSDRPP_IS_CORE)
 # Main code
 file(GLOB SRC "src/*.cpp")
 file(GLOB GUI "src/gui/*.cpp")
+file(GLOB MENUS "src/gui/menus/*.cpp")
+file(GLOB DIALOGS "src/gui/dialogs/*.cpp")
 file(GLOB SIGPATH "src/signal_path/*.cpp")
 file(GLOB IMGUI "src/imgui/*.cpp")
 
 # Add code to dyn lib
-add_library(sdrpp_core SHARED ${SRC} ${GUI} ${SIGPATH} ${IMGUI})
+add_library(sdrpp_core SHARED ${SRC} ${GUI} ${MENUS} ${DIALOGS} ${SIGPATH} ${IMGUI})
 set_target_properties(sdrpp_core PROPERTIES PREFIX "")
 
 # Include core headers

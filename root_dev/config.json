@@ -8,7 +8,7 @@
         "Radio 1": {
             "device": "Speakers (Realtek High Definiti",
             "sampleRate": 48000.0,
-            "volume": 0.6881720423698425
+            "volume": 0.4185185134410858
         },
         "Radio 2": {
             "device": "Speakers (Realtek High Definiti",
@@ -25,7 +25,7 @@
     "menuWidth": 300,
     "min": -51.47058868408203,
     "showWaterfall": true,
-    "source": "HackRF One #0 901868dc282c8f8b",
+    "source": "Generic RTL2832U OEM :: 00000001",
     "sourceSettings": {
         "Generic RTL2832U OEM :: 00000001": {
             "gains": {
