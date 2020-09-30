@@ -1,38 +1,51 @@
 #include <imgui.h>
+#include <spdlog/spdlog.h>
 #include <module.h>
-#include <watcher.h>
-#include <dsp/types.h>
-#include <dsp/stream.h>
-#include <thread>
-#include <ctime>
-#include <stdio.h>
-#include <gui/style.h>
+#include <gui/gui.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-
-struct DemoContext_t {
-    std::string name;
+MOD_INFO {
+    /* Name:        */ "demo",
+    /* Description: */ "Demo module for SDR++",
+    /* Author:      */ "Ryzerth",
+    /* Version:     */ "0.1.0"
 };
 
-MOD_EXPORT void* _INIT_(mod::API_t* _API, ImGuiContext* imctx, std::string _name) {
-    DemoContext_t* ctx = new DemoContext_t;
-    ctx->name = _name;
-    return ctx;
+class DemoModule {
+public:
+    DemoModule(std::string name) {
+        this->name = name;
+        gui::menu.registerEntry(name, menuHandler, this);
+        spdlog::info("DemoModule '{0}': Instance created!", name);
+    }
+
+    ~DemoModule() {
+        spdlog::info("DemoModule '{0}': Instance deleted!", name);
+    }
+
+private:
+    static void menuHandler(void* ctx) {
+        DemoModule* _this = (DemoModule*)ctx;
+        ImGui::Text("Hi from %s!", _this->name.c_str());
+    }
+
+    std::string name;
+
+};
+
+MOD_EXPORT void _INIT_() {
+   // Do your one time init here
 }
 
-MOD_EXPORT void _NEW_FRAME_(DemoContext_t* ctx) {
-    
+MOD_EXPORT void* _CREATE_INSTANCE_(std::string name) {
+    return new DemoModule(name);
 }
 
-MOD_EXPORT void _DRAW_MENU_(DemoContext_t* ctx) {
-    ImGui::Text(ctx->name.c_str());
+MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
+    delete (DemoModule*)instance;
 }
 
-MOD_EXPORT void _HANDLE_EVENT_(DemoContext_t* ctx, int eventId) {
-    
-}
-
-MOD_EXPORT void _STOP_(DemoContext_t* ctx) {
-    
+MOD_EXPORT void _STOP_() {
+    // Do your one shutdown here
 }

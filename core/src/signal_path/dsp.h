@@ -22,6 +22,7 @@ public:
     void setFFTRate(float rate);
     dsp::VFO* addVFO(std::string name, float outSampleRate, float bandwidth, float offset);
     void removeVFO(std::string name);
+    void setInput(dsp::stream<dsp::complex_t>* input);
 
 private:
     struct VFO_t {

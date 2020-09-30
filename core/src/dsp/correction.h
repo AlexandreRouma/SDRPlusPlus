@@ -52,6 +52,13 @@ namespace dsp {
             output.setMaxLatency(blockSize * 2);
         }
 
+        void setInput(stream<complex_t>* input) {
+            if (running) {
+                return;
+            }
+            _in = input;
+        }
+
         stream<complex_t> output;
         bool bypass;
 

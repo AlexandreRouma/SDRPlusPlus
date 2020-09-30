@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 #include <SoapySDR/Device.hpp>
 #include <SoapySDR/Modules.hpp>

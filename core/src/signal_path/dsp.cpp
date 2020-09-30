@@ -40,7 +40,7 @@ void SignalPath::setSampleRate(float sampleRate) {
     fftBlockDec.setSkip(skip);
     dynSplit.setBlockSize(inputBlockSize);
 
-    mod::broadcastEvent(mod::EVENT_STREAM_PARAM_CHANGED);
+    // TODO: Tell modules that the block size has changed
 
     for (auto const& [name, vfo] : vfos) {
         vfo.vfo->setInputSampleRate(sampleRate, inputBlockSize);
@@ -87,6 +87,7 @@ dsp::VFO* SignalPath::addVFO(std::string name, float outSampleRate, float bandwi
 void SignalPath::removeVFO(std::string name) {
     if (vfos.find(name) == vfos.end()) {
         return;
+        
     }
     dynSplit.stop();
     VFO_t vfo = vfos[name];
@@ -96,4 +97,10 @@ void SignalPath::removeVFO(std::string name) {
     delete vfo.inputStream;
     dynSplit.start();
     vfos.erase(name);
+}
+
+void SignalPath::setInput(dsp::stream<dsp::complex_t>* input) {
+    dcBiasRemover.stop();
+    dcBiasRemover.setInput(input);
+    dcBiasRemover.start();
 }

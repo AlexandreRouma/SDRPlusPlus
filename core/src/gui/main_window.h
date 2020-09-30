@@ -28,10 +28,12 @@
 #include <config.h>
 #include <signal_path/signal_path.h>
 #include <core.h>
+#include <gui/menus/source.h>
 #include <gui/menus/display.h>
 #include <gui/menus/bandplan.h>
 #include <gui/menus/audio.h>
 #include <gui/dialogs/credits.h>
+#include <signal_path/source.h>
 
 #define WINDOW_FLAGS    ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground
 

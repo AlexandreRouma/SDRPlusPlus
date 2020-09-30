@@ -1,4 +1,5 @@
 #include <path.h>
+#include <signal_path/audio.h>
 
 SigPath::SigPath() {
     
@@ -23,7 +24,7 @@ void SigPath::init(std::string vfoName, uint64_t sampleRate, int blockSize) {
     this->blockSize = blockSize;
     this->vfoName = vfoName;
 
-    vfo = sigpath::vfoManager.createVFO(vfoName, mod::API_t::REF_CENTER, 0, 200000, 200000, 1000);
+    vfo = sigpath::vfoManager.createVFO(vfoName, ImGui::WaterfallVFO::REF_CENTER, 0, 200000, 200000, 1000);
 
     _demod = DEMOD_FM;
     _deemp = DEEMP_50US;
@@ -40,8 +41,9 @@ void SigPath::init(std::string vfoName, uint64_t sampleRate, int blockSize) {
     
     audioResamp.init(&demod.output, 200000, 48000, 800);
     deemp.init(&audioResamp.output, 800, 50e-6, 48000);
-    outputSampleRate = API->registerMonoStream(&deemp.output, vfoName, vfoName, sampleRateChangeHandler, this);
-    API->setBlockSize(vfoName, audioResamp.getOutputBlockSize());
+    
+    outputSampleRate = audio::registerMonoStream(&deemp.output, vfoName, vfoName, sampleRateChangeHandler, this);
+    audio::setBlockSize(vfoName, audioResamp.getOutputBlockSize());
 
     setDemodulator(_demod, bandwidth);
 }
@@ -101,7 +103,7 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
         audioBw = std::min<float>(bandwidth, outputSampleRate / 2.0f);
         audioResamp.setInputSampleRate(200000, vfo->getOutputBlockSize(), audioBw, audioBw);
         deemp.bypass = (_deemp == DEEMP_NONE);
-        vfo->setReference(mod::API_t::REF_CENTER);
+        vfo->setReference(ImGui::WaterfallVFO::REF_CENTER);
         demod.start();
     }
     else if (demId == DEMOD_NFM) {
@@ -113,7 +115,7 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
         audioBw = std::min<float>(bandwidth, outputSampleRate / 2.0f);
         audioResamp.setInputSampleRate(16000, vfo->getOutputBlockSize(), audioBw, audioBw);
         deemp.bypass = true;
-        vfo->setReference(mod::API_t::REF_CENTER);
+        vfo->setReference(ImGui::WaterfallVFO::REF_CENTER);
         demod.start();
     }
     else if (demId == DEMOD_AM) {
@@ -123,7 +125,7 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
         audioBw = std::min<float>(bandwidth, outputSampleRate / 2.0f);
         audioResamp.setInputSampleRate(12500, vfo->getOutputBlockSize(), audioBw, audioBw);
         deemp.bypass = true;
-        vfo->setReference(mod::API_t::REF_CENTER);
+        vfo->setReference(ImGui::WaterfallVFO::REF_CENTER);
         amDemod.start();
     }
     else if (demId == DEMOD_USB) {
@@ -134,7 +136,7 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
         audioBw = std::min<float>(bandwidth, outputSampleRate / 2.0f);
         audioResamp.setInputSampleRate(6000, vfo->getOutputBlockSize(), audioBw, audioBw);
         deemp.bypass = true;
-        vfo->setReference(mod::API_t::REF_LOWER);
+        vfo->setReference(ImGui::WaterfallVFO::REF_LOWER);
         ssbDemod.start();
     }
     else if (demId == DEMOD_LSB) {
@@ -145,7 +147,7 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
         audioBw = std::min<float>(bandwidth, outputSampleRate / 2.0f);
         audioResamp.setInputSampleRate(6000, vfo->getOutputBlockSize(), audioBw, audioBw);
         deemp.bypass = true;
-        vfo->setReference(mod::API_t::REF_UPPER);
+        vfo->setReference(ImGui::WaterfallVFO::REF_UPPER);
         ssbDemod.start();
     }
     else if (demId == DEMOD_DSB) {
@@ -156,7 +158,7 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
         audioBw = std::min<float>(bandwidth, outputSampleRate / 2.0f);
         audioResamp.setInputSampleRate(6000, vfo->getOutputBlockSize(), audioBw, audioBw);
         deemp.bypass = true;
-        vfo->setReference(mod::API_t::REF_CENTER);
+        vfo->setReference(ImGui::WaterfallVFO::REF_CENTER);
         ssbDemod.start();
     }
     else if (demId == DEMOD_RAW) {
@@ -165,7 +167,7 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
         //audioResamp.setInput(&cpx2stereo.output);
         audioBw = std::min<float>(bandwidth, outputSampleRate / 2.0f);
         audioResamp.setInputSampleRate(10000, vfo->getOutputBlockSize(), audioBw, audioBw);
-        vfo->setReference(mod::API_t::REF_LOWER);
+        vfo->setReference(ImGui::WaterfallVFO::REF_LOWER);
         cpx2stereo.start();
     }
     else {
@@ -249,5 +251,5 @@ void SigPath::start() {
     demod.start();
     audioResamp.start();
     deemp.start();
-    API->startStream(vfoName);
+    audio::startStream(vfoName);
 }

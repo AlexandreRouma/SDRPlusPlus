@@ -6,12 +6,10 @@ std::mutex fft_mtx;
 fftwf_complex *fft_in, *fft_out;
 fftwf_plan p;
 float* tempData;
-float* uiGains;
 char buf[1024];
 
 int fftSize = 8192 * 8;
 
-io::SoapyWrapper soapy;
 std::vector<float> _data;
 std::vector<float> fftTaps;
 void fftHandler(dsp::complex_t* samples) {
@@ -34,10 +32,7 @@ void fftHandler(dsp::complex_t* samples) {
 }
 
 dsp::NullSink sink;
-int devId = 0;
-int srId = 0;
 watcher<uint64_t> freq((uint64_t)90500000);
-int demod = 1;
 watcher<float> vfoFreq(92000000.0f);
 float dummyVolume = 1.0f;
 float* volume = &dummyVolume;
@@ -45,7 +40,6 @@ float fftMin = -70.0f;
 float fftMax = 0.0f;
 watcher<float> offset(0.0f, true);
 watcher<float> bw(8000000.0f, true);
-int sampleRate = 8000000;
 bool playing = false;
 watcher<bool> dcbias(false, false);
 bool showCredits = false;
@@ -56,175 +50,14 @@ bool grabbingMenu = false;
 int newWidth = 300;
 int fftHeight = 300;
 bool showMenu = true;
-
-void saveCurrentSource() {
-    int i = 0;
-    for (std::string gainName : soapy.gainList) {
-        core::configManager.conf["sourceSettings"][sourceName]["gains"][gainName] = uiGains[i];
-        i++;
-    }
-    core::configManager.conf["sourceSettings"][sourceName]["sampleRate"] = soapy.sampleRates[srId];
-}
-
-void loadSourceConfig(std::string name) {
-    json sourceSettings = core::configManager.conf["sourceSettings"][name];
-
-    sampleRate = sourceSettings["sampleRate"];
-    
-    auto _srIt = std::find(soapy.sampleRates.begin(), soapy.sampleRates.end(), sampleRate);
-    // If the sample rate isn't valid, set to minimum
-    if (_srIt == soapy.sampleRates.end()) {
-        srId = 0;
-        sampleRate = soapy.sampleRates[0];
-    }
-    else {
-        srId = std::distance(soapy.sampleRates.begin(), _srIt);
-    }
-    sigpath::signalPath.setSampleRate(sampleRate);
-    soapy.setSampleRate(sampleRate);
-
-    // Set gains
-    delete[] uiGains;
-    uiGains = new float[soapy.gainList.size()];
-    int i = 0;
-    for (std::string gainName : soapy.gainList) {
-        // If gain doesn't exist in config, set it to the minimum value
-        if (!sourceSettings["gains"].contains(gainName)) {
-            uiGains[i] = soapy.gainRanges[i].minimum();
-            soapy.setGain(i, uiGains[i]);
-            continue;
-        }
-        uiGains[i] = sourceSettings["gains"][gainName];
-        soapy.setGain(i, uiGains[i]);
-        i++;
-    }
-
-    // Update GUI
-    gui::waterfall.setBandwidth(sampleRate);
-    gui::waterfall.setViewBandwidth(sampleRate);
-    bw.val = sampleRate;
-}
-
-void setVFO(float freq);
-
-// =======================================================
-
-void sourceMenu(void* ctx) {
-    float menuColumnWidth = ImGui::GetContentRegionAvailWidth();
-    if (playing) { style::beginDisabled(); };
-
-    ImGui::PushItemWidth(menuColumnWidth);
-    if (ImGui::Combo("##_0_", &devId, soapy.txtDevList.c_str())) {
-        spdlog::info("Changed input device: {0}", devId);
-        sourceName = soapy.devNameList[devId];
-        soapy.setDevice(soapy.devList[devId]);
-
-        core::configManager.aquire();
-        if (core::configManager.conf["sourceSettings"].contains(sourceName)) {
-            loadSourceConfig(sourceName);
-        }
-        else {
-            srId = 0;
-            sampleRate = soapy.getSampleRate();
-            bw.val = sampleRate;
-            gui::waterfall.setBandwidth(sampleRate);
-            gui::waterfall.setViewBandwidth(sampleRate);
-            sigpath::signalPath.setSampleRate(sampleRate);
-
-            if (soapy.gainList.size() >= 0) {
-                delete[] uiGains;
-                uiGains = new float[soapy.gainList.size()];
-                for (int i = 0; i < soapy.gainList.size(); i++) {
-                    uiGains[i] = soapy.currentGains[i];
-                }
-            }
-        }
-        setVFO(gui::freqSelect.frequency);
-        core::configManager.conf["source"] = sourceName;
-        core::configManager.release(true);
-    }
-    ImGui::PopItemWidth();
-
-    if (ImGui::Combo("##_1_", &srId, soapy.txtSampleRateList.c_str())) {
-        spdlog::info("Changed sample rate: {0}", srId);
-        sampleRate = soapy.sampleRates[srId];
-        soapy.setSampleRate(sampleRate);
-        gui::waterfall.setBandwidth(sampleRate);
-        gui::waterfall.setViewBandwidth(sampleRate);
-        sigpath::signalPath.setSampleRate(sampleRate);
-        bw.val = sampleRate;
-
-        core::configManager.aquire();
-        if (!core::configManager.conf["sourceSettings"].contains(sourceName)) {
-            saveCurrentSource();
-        }
-        core::configManager.conf["sourceSettings"][sourceName]["sampleRate"] = sampleRate;
-        core::configManager.release(true);
-    }
-
-    ImGui::SameLine();
-    bool noDevice = (soapy.devList.size() == 0);
-    if (ImGui::Button("Refresh", ImVec2(menuColumnWidth - ImGui::GetCursorPosX(), 0.0f))) {
-        soapy.refresh();
-        if (noDevice && soapy.devList.size() > 0) {
-            sourceName = soapy.devNameList[0];
-            soapy.setDevice(soapy.devList[0]);
-            if (core::configManager.conf["sourceSettings"][sourceName]) {
-                loadSourceConfig(sourceName);
-            }
-        }
-    }
-
-    if (playing) { style::endDisabled(); };
-
-    float maxTextLength = 0;
-    float txtLen = 0;
-    char buf[100];
-
-    // Calculate the spacing
-    for (int i = 0; i < soapy.gainList.size(); i++) {
-        sprintf(buf, "%s gain", soapy.gainList[i].c_str());
-        txtLen = ImGui::CalcTextSize(buf).x;
-        if (txtLen > maxTextLength) {
-            maxTextLength = txtLen;
-        }
-    }
-
-    for (int i = 0; i < soapy.gainList.size(); i++) {
-        ImGui::Text("%s gain", soapy.gainList[i].c_str());
-        ImGui::SameLine();
-        sprintf(buf, "##_gain_slide_%d_", i);
-
-        ImGui::SetCursorPosX(maxTextLength + 5);
-        ImGui::PushItemWidth(menuColumnWidth - (maxTextLength + 5));
-        if (ImGui::SliderFloat(buf, &uiGains[i], soapy.gainRanges[i].minimum(), soapy.gainRanges[i].maximum())) {
-            soapy.setGain(i, uiGains[i]);
-            core::configManager.aquire();
-            if (!core::configManager.conf["sourceSettings"].contains(sourceName)) {
-                saveCurrentSource();
-            }
-            core::configManager.conf["sourceSettings"][sourceName]["gains"][soapy.gainList[i]] = uiGains[i];
-            core::configManager.release(true);
-        }
-        ImGui::PopItemWidth();
-    }
-
-    ImGui::Spacing();
-}
-
-// =======================================================
+dsp::stream<dsp::complex_t> dummyStream;
 
 void windowInit() {
     spdlog::info("Initializing SoapySDR");
-    soapy.init();
 
     credits::init();
 
-    audiomenu::init();
-    bandplanmenu::init();
-    displaymenu::init();
-
-    gui::menu.registerEntry("Source", sourceMenu, NULL);
+    gui::menu.registerEntry("Source", sourecmenu::draw, NULL);
     gui::menu.registerEntry("Audio", audiomenu::draw, NULL);
     gui::menu.registerEntry("Band Plan", bandplanmenu::draw, NULL);
     gui::menu.registerEntry("Display", displaymenu::draw, NULL);
@@ -235,50 +68,19 @@ void windowInit() {
     fft_out = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * fftSize);
     p = fftwf_plan_dft_1d(fftSize, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
 
-    sigpath::signalPath.init(sampleRate, 20, fftSize, &soapy.output, (dsp::complex_t*)fft_in, fftHandler);
+    sigpath::signalPath.init(8000000, 20, fftSize, &dummyStream, (dsp::complex_t*)fft_in, fftHandler);
     sigpath::signalPath.start();
-
-    uiGains = new float[soapy.gainList.size()];
 
     spdlog::info("Loading modules");
     mod::initAPI(&gui::waterfall);
     mod::loadFromList(ROOT_DIR "/module_list.json");
 
+    sourecmenu::init();
+    audiomenu::init();
+    bandplanmenu::init();
+    displaymenu::init();
+
     // Load last source configuration
-    core::configManager.aquire();
-    uint64_t frequency = core::configManager.conf["frequency"];
-    sourceName = core::configManager.conf["source"];
-    auto _sourceIt = std::find(soapy.devNameList.begin(), soapy.devNameList.end(), sourceName);
-    if (_sourceIt != soapy.devNameList.end() && core::configManager.conf["sourceSettings"].contains(sourceName)) {
-        json sourceSettings = core::configManager.conf["sourceSettings"][sourceName];
-        devId = std::distance(soapy.devNameList.begin(), _sourceIt);
-        soapy.setDevice(soapy.devList[devId]);
-        loadSourceConfig(sourceName);
-    }
-    else {
-        int i = 0;
-        bool settingsFound = false;
-        for (std::string devName : soapy.devNameList) {
-            if (core::configManager.conf["sourceSettings"].contains(devName)) {
-                sourceName = devName;
-                settingsFound = true;
-                devId = i;
-                soapy.setDevice(soapy.devList[i]);
-                loadSourceConfig(sourceName);
-                break;
-            }
-            i++;
-        }
-        if (!settingsFound) {
-            if (soapy.devNameList.size() > 0) {
-                sourceName = soapy.devNameList[0];
-            }
-            sampleRate = soapy.getSampleRate();
-            sigpath::signalPath.setSampleRate(sampleRate);
-        }
-        // Search for the first source in the list to have a config
-        // If no pre-defined source, selected default device
-    }
 
     // Also add a loading screen
     // Adjustable "snap to grid" for each VFO
@@ -301,15 +103,17 @@ void windowInit() {
     gui::waterfall.setWaterfallMin(fftMin);
     gui::waterfall.setFFTMax(fftMax);
     gui::waterfall.setWaterfallMax(fftMax);
+
+    float frequency = core::configManager.conf["frequency"];
     
 
     gui::freqSelect.setFrequency(frequency);
     gui::freqSelect.frequencyChanged = false;
-    soapy.setFrequency(frequency);
+    sigpath::sourceManager.tune(frequency);
     gui::waterfall.setCenterFrequency(frequency);
-    gui::waterfall.setBandwidth(sampleRate);
-    gui::waterfall.setViewBandwidth(sampleRate);
-    bw.val = sampleRate;
+    gui::waterfall.setBandwidth(8000000);
+    gui::waterfall.setViewBandwidth(8000000);
+    bw.val = 8000000;
     gui::waterfall.vfoFreqChanged = false;
     gui::waterfall.centerFreqMoved = false;
     gui::waterfall.selectFirstVFO();
@@ -357,7 +161,7 @@ void setVFO(float freq) {
         float newVFOOffset = (BW / 2.0f) - (vfoBW / 2.0f) - (viewBW / 10.0f);
         sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFOOffset);
         gui::waterfall.setCenterFrequency(freq - newVFOOffset);
-        soapy.setFrequency(freq - newVFOOffset);
+        sigpath::sourceManager.tune(freq - newVFOOffset);
         return;
     }
 
@@ -367,7 +171,7 @@ void setVFO(float freq) {
         float newVFOOffset = (vfoBW / 2.0f) - (BW / 2.0f) + (viewBW / 10.0f);
         sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFOOffset);
         gui::waterfall.setCenterFrequency(freq - newVFOOffset);
-        soapy.setFrequency(freq - newVFOOffset);
+        sigpath::sourceManager.tune(freq - newVFOOffset);
         return;
     }
 
@@ -387,7 +191,7 @@ void setVFO(float freq) {
         float newVFOOffset = (BW / 2.0f) - (vfoBW / 2.0f) - (viewBW / 10.0f);
         sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFOOffset);
         gui::waterfall.setCenterFrequency(freq - newVFOOffset);
-        soapy.setFrequency(freq - newVFOOffset);
+        sigpath::sourceManager.tune(freq - newVFOOffset);
     }
     else {
         float newViewOff = vfoBottom + (viewBW / 2.0f) - (viewBW / 10.0f);
@@ -404,7 +208,7 @@ void setVFO(float freq) {
         float newVFOOffset = (vfoBW / 2.0f) - (BW / 2.0f) + (viewBW / 10.0f);
         sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFOOffset);
         gui::waterfall.setCenterFrequency(freq - newVFOOffset);
-        soapy.setFrequency(freq - newVFOOffset);
+        sigpath::sourceManager.tune(freq - newVFOOffset);
     }
 }
 
@@ -450,7 +254,7 @@ void drawWindow() {
 
     if (gui::waterfall.centerFreqMoved) {
         gui::waterfall.centerFreqMoved = false;
-        soapy.setFrequency(gui::waterfall.getCenterFrequency());
+        sigpath::sourceManager.tune(gui::waterfall.getCenterFrequency());
         gui::freqSelect.setFrequency(gui::waterfall.getCenterFrequency() + vfo->generalOffset);
         core::configManager.aquire();
         core::configManager.conf["frequency"] = gui::freqSelect.frequency;
@@ -491,14 +295,15 @@ void drawWindow() {
 
     if (playing) {
         if (ImGui::ImageButton(icons::STOP, ImVec2(40, 40), ImVec2(0, 0), ImVec2(1, 1), 0)) {
-            soapy.stop();
+            sigpath::sourceManager.stop();
             playing = false;
         }
     }
-    else {
-        if (ImGui::ImageButton(icons::PLAY, ImVec2(40, 40), ImVec2(0, 0), ImVec2(1, 1), 0) && soapy.devList.size() > 0) {
-            soapy.start();
-            soapy.setFrequency(gui::waterfall.getCenterFrequency());
+    else { // TODO: Might need to check if there even is a device
+        if (ImGui::ImageButton(icons::PLAY, ImVec2(40, 40), ImVec2(0, 0), ImVec2(1, 1), 0)) {
+            sigpath::sourceManager.start();
+            // TODO: tune in module instead
+            sigpath::sourceManager.tune(gui::waterfall.getCenterFrequency());
             playing = true;
         }
     }
@@ -623,7 +428,8 @@ void drawWindow() {
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0f) - (ImGui::CalcTextSize("Zoom").x / 2.0f));
     ImGui::Text("Zoom");
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0f) - 10);
-    ImGui::VSliderFloat("##_7_", ImVec2(20.0f, 150.0f), &bw.val, sampleRate, 1000.0f, "");
+    // TODO: use global sample rate value from DSP instead of 8000000
+    ImGui::VSliderFloat("##_7_", ImVec2(20.0f, 150.0f), &bw.val, 8000000, 1000.0f, "");
 
     ImGui::NewLine();
 
