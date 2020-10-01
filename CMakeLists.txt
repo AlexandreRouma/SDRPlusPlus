@@ -3,8 +3,9 @@ project(sdrpp_core)
 
 add_subdirectory("core")
 add_subdirectory("radio")
-# Add back recorder when module new system is ready
-#add_subdirectory("recorder") 
+add_subdirectory("recorder") 
+add_subdirectory("soapy")
+add_subdirectory("file_source")
 add_subdirectory("demo")
 
 add_executable(sdrpp "src/main.cpp" "win32/resources.rc")

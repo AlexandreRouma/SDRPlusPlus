@@ -37,23 +37,22 @@ namespace mod {
         void* inst;
 #endif
         void (*_INIT_)();
-        void* (*_CREATE_INSTANCE)(std::string);
-        void (*_DELETE_INSTANCE)();
+        void* (*_CREATE_INSTANCE_)(std::string name);
+        void (*_DELETE_INSTANCE_)(void* instance);
         void (*_STOP_)();
         void* ctx;
     };
 
     struct ModuleInfo_t {
-        char* name;
-        char* description;
-        char* author;
-        char* version;
+        const char* name;
+        const char* description;
+        const char* author;
+        const char* version;
     };
 
-    void initAPI(ImGui::WaterFall* wtf);
     void loadModule(std::string path, std::string name);
-    void broadcastEvent(int eventId);
     void loadFromList(std::string path);
+    bool isLoaded(void* handle);
     
     extern std::map<std::string, Module_t> modules;
     extern std::vector<std::string> moduleNames;

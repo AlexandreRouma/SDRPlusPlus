@@ -48,7 +48,7 @@ int VFOManager::VFO::getOutputBlockSize() {
 
 
 VFOManager::VFOManager() {
-
+    
 }
 
 VFOManager::VFO* VFOManager::createVFO(std::string name, int reference, float offset, float bandwidth, float sampleRate, int blockSize) {

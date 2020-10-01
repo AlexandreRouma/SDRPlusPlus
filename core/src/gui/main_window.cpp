@@ -72,7 +72,6 @@ void windowInit() {
     sigpath::signalPath.start();
 
     spdlog::info("Loading modules");
-    mod::initAPI(&gui::waterfall);
     mod::loadFromList(ROOT_DIR "/module_list.json");
 
     sourecmenu::init();
@@ -231,7 +230,6 @@ void drawWindow() {
         gui::waterfall.selectedVFOChanged = false;
         gui::freqSelect.setFrequency(vfo->generalOffset + gui::waterfall.getCenterFrequency());
         gui::freqSelect.frequencyChanged = false;
-        mod::broadcastEvent(mod::EVENT_SELECTED_VFO_CHANGED);
         audioStreamName = audio::getNameFromVFO(gui::waterfall.selectedVFO);
         if (audioStreamName != "") {
             volume = &audio::streams[audioStreamName]->volume;
@@ -278,13 +276,6 @@ void drawWindow() {
 
     int width = vMax.x - vMin.x;
     int height = vMax.y - vMin.y;
-
-    int modCount = mod::moduleNames.size();
-    mod::Module_t mod;
-    for (int i = 0; i < modCount; i++) {
-        mod = mod::modules[mod::moduleNames[i]];
-        mod._NEW_FRAME_(mod.ctx);
-    }
 
     // To Bar
     if (ImGui::ImageButton(icons::MENU, ImVec2(40, 40), ImVec2(0, 0), ImVec2(1, 1), 0)) {
@@ -383,14 +374,6 @@ void drawWindow() {
         float menuColumnWidth = ImGui::GetContentRegionAvailWidth();
 
         gui::menu.draw();
-
-        for (int i = 0; i < modCount; i++) {
-            if (ImGui::CollapsingHeader(mod::moduleNames[i].c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
-                mod = mod::modules[mod::moduleNames[i]];
-                mod._DRAW_MENU_(mod.ctx);
-                ImGui::Spacing();
-            }
-        }
 
         if(ImGui::CollapsingHeader("Debug")) {
             ImGui::Text("Frame time: %.3f ms/frame", 1000.0f / ImGui::GetIO().Framerate);

@@ -25,6 +25,7 @@ public:
         sigPath.init(name, 200000, 1000);
         sigPath.start();
         sigPath.setDemodulator(SigPath::DEMOD_FM, bandWidth);
+        gui::menu.registerEntry(name, menuHandler, this);
     }
 
     ~RadioModule() {
