@@ -28,7 +28,7 @@ namespace mod {
         mod._INIT_ = (void(*)())GetProcAddress(mod.inst, "_INIT_");
         mod._CREATE_INSTANCE_ = (void*(*)(std::string))GetProcAddress(mod.inst, "_CREATE_INSTANCE_");
         mod._DELETE_INSTANCE_ = (void(*)(void*))GetProcAddress(mod.inst, "_DELETE_INSTANCE_");
-        mod._STOP_ = (void(*)(void*))GetProcAddress(mod.inst, "_STOP_");
+        mod._STOP_ = (void(*)())GetProcAddress(mod.inst, "_STOP_");
 #else
         mod.inst = dlopen(path.c_str(), RTLD_LAZY);
         if (mod.inst == NULL) {

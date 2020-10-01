@@ -74,7 +74,6 @@ else()
     target_link_libraries(sdrpp_core PUBLIC dl)
 endif (MSVC)
 
-target_link_libraries(sdrpp_core PUBLIC SoapySDR)
 target_link_libraries(sdrpp_core PUBLIC volk)
 
 set(CORE_FILES ${RUNTIME_OUTPUT_DIRECTORY} PARENT_SCOPE)

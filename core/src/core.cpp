@@ -26,6 +26,12 @@
 
 namespace core {
     ConfigManager configManager;
+
+    void setInputSampleRate(double samplerate) {
+        // NOTE: Zoom controls won't work
+        gui::waterfall.setBandwidth(samplerate);
+        sigpath::signalPath.setSampleRate(samplerate);
+    }
 };
 
 bool maximized = false;

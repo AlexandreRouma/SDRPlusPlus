@@ -1,21 +1,5 @@
 {
-    "audio": {
-        "Radio": {
-            "device": "Speakers (Realtek High Definiti",
-            "sampleRate": 48000.0,
-            "volume": 0.602150559425354
-        },
-        "Radio 1": {
-            "device": "Speakers (Realtek High Definiti",
-            "sampleRate": 48000.0,
-            "volume": 0.4185185134410858
-        },
-        "Radio 2": {
-            "device": "Speakers (Realtek High Definiti",
-            "sampleRate": 48000.0,
-            "volume": 0.0
-        }
-    },
+    "audio": {},
     "bandPlan": "General",
     "bandPlanEnabled": true,
     "fftHeight": 300,
@@ -25,28 +9,10 @@
     "menuWidth": 300,
     "min": -51.47058868408203,
     "showWaterfall": true,
-    "source": "Generic RTL2832U OEM :: 00000001",
-    "sourceSettings": {
-        "Generic RTL2832U OEM :: 00000001": {
-            "gains": {
-                "TUNER": 11.625
-            },
-            "sampleRate": 2560000
-        },
-        "HackRF One #0 901868dc282c8f8b": {
-            "gains": {
-                "AMP": 0.0,
-                "LNA": 24.503000259399414,
-                "VGA": 16.229999542236328
-            },
-            "sampleRate": 8000000
-        },
-        "PulseAudio": {
-            "sampleRate": 96000
-        }
-    },
+    "source": "",
+    "sourceSettings": {},
     "windowSize": {
-        "h": 1053,
-        "w": 959
+        "h": 720,
+        "w": 1280
     }
 }

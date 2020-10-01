@@ -4,6 +4,8 @@
 
 namespace core {
     SDRPP_EXPORT ConfigManager configManager;
+
+    void setInputSampleRate(double samplerate);
 };
 
 int sdrpp_main();
