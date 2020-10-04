@@ -73,6 +73,7 @@ I will soon publish a contributing.md listing the code style to use.
 
 ## Patrons
 * [SignalsEverywhere](https://signalseverywhere.com/)
+* [Lee Donaghy](https://github.com/github)
 
 ## Contributors
 * [aosync](https://github.com/aosync)

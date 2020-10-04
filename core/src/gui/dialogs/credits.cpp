@@ -50,6 +50,7 @@ namespace credits {
         ImGui::NextColumn();
         ImGui::Text("Patrons");
         ImGui::BulletText("SignalsEverywhere");
+        ImGui::BulletText("Lee Donaghy");
 
         ImGui::EndPopup();
         ImGui::PopStyleVar(1);

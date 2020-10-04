@@ -24,6 +24,10 @@ public:
     }
 
     bool connectToRTL(char* host, uint16_t port) {
+        if (connected) {
+            return true;
+        }
+
         struct addrinfo *result = NULL;
         struct addrinfo *ptr = NULL;
         struct addrinfo hints;
@@ -62,12 +66,18 @@ public:
         }
         freeaddrinfo(result);
 
+        connected = true;
+
         return true;
     }
 
     void disconnect() {
+        if (!connected) {
+            return;
+        }
         closesocket(sock);
         WSACleanup();
+        connected = false;
     }
 
     // struct command_t {
@@ -116,5 +126,6 @@ public:
 
 private:
     SOCKET sock;
+    bool connected = false;
 
 };
