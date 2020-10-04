@@ -18,6 +18,5 @@ namespace displaymenu {
             core::configManager.conf["showWaterfall"] = showWaterfall;
             core::configManager.release(true);
         }
-        ImGui::Spacing();
     }
 }

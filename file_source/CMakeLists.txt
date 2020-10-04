@@ -7,6 +7,8 @@ else()
     set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -fpermissive")
 endif (MSVC)
 
+include_directories("src/")
+
 file(GLOB SRC "src/*.cpp")
 
 add_library(file_source SHARED ${SRC})

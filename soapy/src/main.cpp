@@ -7,6 +7,7 @@
 #include <SoapySDR/Modules.hpp>
 #include <SoapySDR/Logger.hpp>
 #include <core.h>
+#include <gui/style.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -17,6 +18,8 @@ MOD_INFO {
     /* Version:     */ "0.1.0"
 };
 
+ConfigManager config;
+
 class SoapyModule {
 public:
     SoapyModule(std::string name) {
@@ -24,14 +27,17 @@ public:
 
         //TODO: Make module tune on source select change (in sdrpp_core)
 
-        devList = SoapySDR::Device::enumerate();
-        txtDevList = "";
-        for (auto& dev : devList) {
-            txtDevList += dev["label"];
-            txtDevList += '\0';
-        }
+        uiGains = new float[1];
+
+        refresh();
 
         stream.init(100);
+
+        // Select default device
+        config.aquire();
+        std::string devName = config.conf["device"];
+        config.release();
+        selectDevice(devName);
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
@@ -42,10 +48,17 @@ public:
         handler.tuneHandler = tune;
         handler.stream = &stream;
         sigpath::sourceManager.registerSource("SoapySDR", &handler);
-        spdlog::info("SoapyModule '{0}': Instance created!", name);
 
-        // Select default device
-        selectDevice(devList[0]["label"]);
+        spdlog::info("SoapyModule '{0}': Instance created!", name);
+    }
+
+    void refresh() {
+        devList = SoapySDR::Device::enumerate();
+        txtDevList = "";
+        for (auto& dev : devList) {
+            txtDevList += dev["label"];
+            txtDevList += '\0';
+        }
     }
 
     ~SoapyModule() {
@@ -54,6 +67,7 @@ public:
 
 private:
     void selectSampleRate(double samplerate) {
+        spdlog::info("Setting sample rate to {0}", samplerate);
         if (sampleRates.size() == 0) {
             devId = -1;
             return;
@@ -65,6 +79,7 @@ private:
                 srId = i;
                 sampleRate = sr;
                 found = true;
+                core::setInputSampleRate(sampleRate);
                 break;
             }
             i++;
@@ -98,15 +113,57 @@ private:
         }
 
         SoapySDR::Device* dev = SoapySDR::Device::make(devArgs);
+
+        gainList = dev->listGains(SOAPY_SDR_RX, 0);
+        delete[] uiGains;
+        uiGains = new float[gainList.size()];
+        for (auto gain : gainList) {
+            gainRanges.push_back(dev->getGainRange(SOAPY_SDR_RX, 0, gain));
+        }
+
         sampleRates = dev->listSampleRates(SOAPY_SDR_RX, 0);
         txtSrList = "";
         for (double sr : sampleRates) {
             txtSrList += std::to_string((int)sr);
             txtSrList += '\0';
         }
-        SoapySDR::Device::unmake(dev);
-        selectSampleRate(sampleRates[0]);
 
+        SoapySDR::Device::unmake(dev);
+
+        config.aquire();
+        if (config.conf["devices"].contains(name)) {
+            int i = 0;
+            for (auto gain : gainList) {
+                if (config.conf["devices"][name]["gains"].contains(gain)) {
+                    uiGains[i] = config.conf["devices"][name]["gains"][gain];
+                }
+                i++;
+            }
+            selectSampleRate(config.conf["devices"][name]["sampleRate"]);
+        }
+        else {
+            int i = 0;
+            for (auto gain : gainList) {
+                uiGains[i] = gainRanges[i].minimum();
+                i++;
+            }
+            selectSampleRate(sampleRates[0]); // Select default
+        }
+        config.release();
+
+    }
+
+    void saveCurrent() {
+        json conf;
+        conf["sampleRate"] = sampleRate;
+        int i = 0;
+        for (auto gain : gainList) {
+            conf["gains"][gain] = uiGains[i];
+            i++;
+        }
+        config.aquire();
+        config.conf["devices"][devArgs["label"]] = conf;
+        config.release(true);
     }
 
     static void menuSelected(void* ctx) {
@@ -126,7 +183,17 @@ private:
     static void start(void* ctx) {
         SoapyModule* _this = (SoapyModule*)ctx;
         _this->dev = SoapySDR::Device::make(_this->devArgs);
+
         _this->dev->setSampleRate(SOAPY_SDR_RX, 0, _this->sampleRate);
+
+        int i = 0;
+        for (auto gain : _this->gainList) {
+            _this->dev->setGain(SOAPY_SDR_RX, 0, gain, _this->uiGains[i]);
+            i++;
+        }
+
+        _this->dev->setFrequency(SOAPY_SDR_RX, 0, _this->freq);
+
         _this->devStream = _this->dev->setupStream(SOAPY_SDR_RX, "CF32");
         _this->dev->activateStream(_this->devStream);
         _this->running = true;
@@ -137,6 +204,11 @@ private:
     static void stop(void* ctx) {
         SoapyModule* _this = (SoapyModule*)ctx;
         _this->running = false;
+        _this->dev->deactivateStream(_this->devStream);
+        _this->dev->closeStream(_this->devStream);
+        _this->workerThread.join();
+        SoapySDR::Device::unmake(_this->dev);
+        
         spdlog::info("SoapyModule '{0}': Stop!", _this->name);
     }
     
@@ -159,14 +231,56 @@ private:
         }
 
         float menuWidth = ImGui::GetContentRegionAvailWidth();
+
+        if (_this->running) { style::beginDisabled(); }
+
         ImGui::SetNextItemWidth(menuWidth);
         if (ImGui::Combo(CONCAT("##_dev_select_", _this->name), &_this->devId, _this->txtDevList.c_str())) {
             _this->selectDevice(_this->devList[_this->devId]["label"]);
+            config.aquire();
+            config.conf["device"] = _this->devList[_this->devId]["label"];
+            config.release(true);
         }
-        ImGui::SetNextItemWidth(menuWidth);
+
+        
         if (ImGui::Combo(CONCAT("##_sr_select_", _this->name), &_this->srId, _this->txtSrList.c_str())) {
             _this->selectSampleRate(_this->sampleRates[_this->srId]);
-            core::setInputSampleRate(_this->sampleRate);
+            _this->saveCurrent();
+        }
+
+        ImGui::SameLine();
+        float refreshBtnWdith = menuWidth - ImGui::GetCursorPosX();
+        if (ImGui::Button(CONCAT("Refresh##_dev_select_", _this->name), ImVec2(refreshBtnWdith, 0))) {
+            _this->refresh();
+            _this->selectDevice(config.conf["device"]);
+        }
+
+        if (_this->running) { style::endDisabled(); }
+
+        float gainNameLen = 0;
+        float len;
+        for (auto gain : _this->gainList) {
+            len = ImGui::CalcTextSize((gain + " gain").c_str()).x;
+            if (len > gainNameLen) {
+                gainNameLen = len;
+            }
+        }
+        gainNameLen += 5.0f;
+
+        int i = 0;
+        for (auto gain : _this->gainList) {
+            ImGui::Text((gain + " gain").c_str());
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(gainNameLen);
+            ImGui::SetNextItemWidth(menuWidth - gainNameLen);
+            if (ImGui::SliderFloat((gain + std::string("##_gain_sel_") + _this->name).c_str(), &_this->uiGains[i], 
+                                _this->gainRanges[i].minimum(), _this->gainRanges[i].maximum())) {
+                if (_this->running) {
+                    _this->dev->setGain(SOAPY_SDR_RX, 0, gain, _this->uiGains[i]);
+                }
+                _this->saveCurrent();
+            }
+            i++;
         }
     }
 
@@ -203,10 +317,18 @@ private:
     bool running = false;
     std::vector<double> sampleRates;
     int srId = -1;
+    float* uiGains;
+    std::vector<std::string> gainList;
+    std::vector<SoapySDR::Range> gainRanges;
 };
 
 MOD_EXPORT void _INIT_() {
-   // Do your one time init here
+   config.setPath(ROOT_DIR "/soapy_source_config.json");
+   json defConf;
+   defConf["device"] = "";
+   defConf["devices"] = json({});
+   config.load(defConf);
+   config.enableAutoSave();
 }
 
 MOD_EXPORT void* _CREATE_INSTANCE_(std::string name) {
@@ -218,5 +340,6 @@ MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
 }
 
 MOD_EXPORT void _STOP_() {
-    // Do your one shutdown here
+    config.disableAutoSave();
+    config.save();
 }

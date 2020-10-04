@@ -2,5 +2,6 @@
     "Radio": "./radio/Release/radio.dll",
     "Recorder": "./recorder/Release/recorder.dll",
     "Soapy": "./soapy/Release/soapy.dll",
-    "FileSource": "./file_source/Release/file_source.dll"
+    "FileSource": "./file_source/Release/file_source.dll",
+    "RTLTCPSource": "./rtl_tcp_source/Release/rtl_tcp_source.dll"
 }

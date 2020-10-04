@@ -48,7 +48,8 @@ namespace dsp {
         }
 
         void setFrequency(float frequency) {
-            _phasorSpeed = (2 * 3.1415926535) / (_sampleRate / frequency);
+            _frequency = frequency;
+            _phasorSpeed = (2 * 3.1415926535 * frequency) / _sampleRate;
         }
 
         void setBlockSize(int blockSize) {

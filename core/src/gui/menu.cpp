@@ -27,6 +27,7 @@ void Menu::draw() {
         item = items[name];
         if (ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
             item.drawHandler(item.ctx);
+            ImGui::Spacing();
         }
     }
 }

@@ -186,6 +186,8 @@ int sdrpp_main() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        //ImGui::ShowDemoWindow();
+
         if (_maximized != maximized) {
             _maximized = maximized;
             core::configManager.aquire();

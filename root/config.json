@@ -29,5 +29,6 @@
     "windowSize": {
         "h": 720,
         "w": 1280
-    }
+    },
+    "menuOrder": ["Source", "Radio", "Recorder", "Audio", "Band Plan", "Display"]
 }

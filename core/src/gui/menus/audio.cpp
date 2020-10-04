@@ -134,6 +134,5 @@ namespace audiomenu {
             }
             ImGui::Spacing();
         }
-        ImGui::Spacing();
     }
 };

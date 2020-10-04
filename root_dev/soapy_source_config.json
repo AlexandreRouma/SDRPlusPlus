@@ -1,0 +1,19 @@
+{
+    "device": "Generic RTL2832U OEM :: 00000001",
+    "devices": {
+        "Generic RTL2832U OEM :: 00000001": {
+            "gains": {
+                "TUNER": 12.817999839782715
+            },
+            "sampleRate": 2560000.0
+        },
+        "HackRF One #0 901868dc282c8f8b": {
+            "gains": {
+                "AMP": 0.0,
+                "LNA": 24.711999893188477,
+                "VGA": 15.906000137329102
+            },
+            "sampleRate": 8000000.0
+        }
+    }
+}

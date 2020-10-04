@@ -17,7 +17,6 @@
 #include <gui/frequency_select.h>
 #include <fftw3.h>
 #include <signal_path/dsp.h>
-#include <io/soapy.h>
 #include <gui/icons.h>
 #include <gui/bandplan.h>
 #include <watcher.h>

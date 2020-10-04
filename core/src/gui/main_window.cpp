@@ -123,6 +123,8 @@ void windowInit() {
     fftHeight = core::configManager.conf["fftHeight"];
     gui::waterfall.setFFTHeight(fftHeight);
 
+    gui::menu.order = core::configManager.conf["menuOrder"].get<std::vector<std::string>>();
+
     core::configManager.release();
 }
 
@@ -411,8 +413,7 @@ void drawWindow() {
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0f) - (ImGui::CalcTextSize("Zoom").x / 2.0f));
     ImGui::Text("Zoom");
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0f) - 10);
-    // TODO: use global sample rate value from DSP instead of 8000000
-    ImGui::VSliderFloat("##_7_", ImVec2(20.0f, 150.0f), &bw.val, 8000000, 1000.0f, "");
+    ImGui::VSliderFloat("##_7_", ImVec2(20.0f, 150.0f), &bw.val, gui::waterfall.getBandwidth(), 1000.0f, "");
 
     ImGui::NewLine();
 
