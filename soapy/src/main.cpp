@@ -55,9 +55,11 @@ public:
     void refresh() {
         devList = SoapySDR::Device::enumerate();
         txtDevList = "";
+        int i = 0;
         for (auto& dev : devList) {
-            txtDevList += dev["label"];
+            txtDevList += dev["label"] != "" ? dev["label"] : dev["driver"];
             txtDevList += '\0';
+            i++;
         }
     }
 
