@@ -17,9 +17,10 @@ file(GLOB MENUS "src/gui/menus/*.cpp")
 file(GLOB DIALOGS "src/gui/dialogs/*.cpp")
 file(GLOB SIGPATH "src/signal_path/*.cpp")
 file(GLOB IMGUI "src/imgui/*.cpp")
+file(GLOB DUKTAPE "src/duktape/*.c")
 
 # Add code to dyn lib
-add_library(sdrpp_core SHARED ${SRC} ${GUI} ${MENUS} ${DIALOGS} ${SIGPATH} ${IMGUI})
+add_library(sdrpp_core SHARED ${SRC} ${GUI} ${MENUS} ${DIALOGS} ${SIGPATH} ${IMGUI} ${DUKTAPE})
 set_target_properties(sdrpp_core PROPERTIES PREFIX "")
 
 # Include core headers
