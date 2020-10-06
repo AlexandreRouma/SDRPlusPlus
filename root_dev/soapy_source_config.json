@@ -14,6 +14,9 @@
                 "VGA": 15.906000137329102
             },
             "sampleRate": 8000000.0
+        },
+        "PulseAudio": {
+            "sampleRate": 96000.0
         }
     }
 }

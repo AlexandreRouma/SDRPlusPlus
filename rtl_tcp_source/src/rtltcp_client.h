@@ -2,8 +2,18 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>
+
+#ifdef _WIN32
 #include <WinSock2.h>
 #include <WS2tcpip.h>
+#else
+#include <unistd.h>
+#include <strings.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h> 
+#endif
 
 #ifdef _WIN32
 #define __attribute__(x)
@@ -28,6 +38,7 @@ public:
             return true;
         }
 
+#ifdef _WIN32
         struct addrinfo *result = NULL;
         struct addrinfo *ptr = NULL;
         struct addrinfo hints;
@@ -65,6 +76,23 @@ public:
             return false;
         }
         freeaddrinfo(result);
+#else
+        sockfd = socket(AF_INET, SOCK_STREAM, 0);
+        if (sockfd < 0) {
+            // TODO: Log error
+            return false;
+        }
+        struct hostent *server = gethostbyname(host);
+        struct sockaddr_in serv_addr;
+        bzero(&serv_addr, sizeof(struct sockaddr_in));
+        serv_addr.sin_family = AF_INET;
+        bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
+        serv_addr.sin_port = port;
+        if (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0) {
+            // TODO: log error
+            return false;
+        }
+#endif
 
         connected = true;
 
@@ -75,8 +103,12 @@ public:
         if (!connected) {
             return;
         }
+#ifdef _WIN32
         closesocket(sock);
         WSACleanup();
+#else
+        close(sockfd);
+#endif
         connected = false;
     }
 
@@ -89,11 +121,19 @@ public:
         command_t cmd;
         cmd.cmd = command;
         cmd.param = htonl(param);
-        send(sock, (char*)&cmd, sizeof(command_t), 0);
+#ifdef _WIN32
+        send(sock, (char*)&cmd, sizeof(command_t), 0);  
+#else
+        write(sockfd, &cmd, sizeof(command_t));
+#endif
     }
 
     void receiveData(uint8_t* buf, size_t count) {
+#ifdef _WIN32
         recv(sock, (char*)buf, count, 0);
+#else
+        read(sockfd, buf, count);
+#endif
     }
 
     void setFrequency(double freq) {
@@ -125,7 +165,12 @@ public:
     }
 
 private:
+#ifdef _WIN32
     SOCKET sock;
+#else
+    int sockfd;
+#endif
+    
     bool connected = false;
 
 };

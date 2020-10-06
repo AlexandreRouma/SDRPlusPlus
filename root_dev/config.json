@@ -3,17 +3,24 @@
     "bandPlan": "General",
     "bandPlanEnabled": true,
     "fftHeight": 300,
-    "frequency": 96570096,
+    "frequency": 96571704,
     "max": 0.0,
     "maximized": false,
+    "menuOrder": [
+        "Source",
+        "Radio",
+        "Recorder",
+        "Audio",
+        "Band Plan",
+        "Display"
+    ],
     "menuWidth": 300,
     "min": -51.47058868408203,
     "showWaterfall": true,
     "source": "",
     "sourceSettings": {},
     "windowSize": {
-        "h": 720,
-        "w": 1280
-    },
-    "menuOrder": ["Source", "Radio", "Recorder", "Audio", "Band Plan", "Display"]
+        "h": 1053,
+        "w": 1920
+    }
 }
