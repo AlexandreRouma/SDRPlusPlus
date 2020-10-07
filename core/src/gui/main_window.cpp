@@ -59,6 +59,7 @@ void windowInit() {
 
     gui::menu.registerEntry("Source", sourecmenu::draw, NULL);
     gui::menu.registerEntry("Audio", audiomenu::draw, NULL);
+    gui::menu.registerEntry("Scripting", scriptingmenu::draw, NULL);
     gui::menu.registerEntry("Band Plan", bandplanmenu::draw, NULL);
     gui::menu.registerEntry("Display", displaymenu::draw, NULL);
     
@@ -76,6 +77,7 @@ void windowInit() {
 
     sourecmenu::init();
     audiomenu::init();
+    scriptingmenu::init();
     bandplanmenu::init();
     displaymenu::init();
 

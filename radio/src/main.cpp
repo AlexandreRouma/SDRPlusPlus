@@ -3,6 +3,7 @@
 #include <path.h>
 #include <watcher.h>
 #include <config.h>
+#include <core.h>
 
 #define CONCAT(a, b)    ((std::string(a) + b).c_str())
 #define DEEMP_LIST      "50µS\00075µS\000none\000"
@@ -26,6 +27,11 @@ public:
         sigPath.start();
         sigPath.setDemodulator(SigPath::DEMOD_FM, bandWidth);
         gui::menu.registerEntry(name, menuHandler, this);
+
+        ScriptManager::ScriptRunHandler_t handler;
+        handler.ctx = this;
+        handler.handler = scriptCreateHandler;
+        core::scriptManager.bindScriptRunHandler(name, handler);
     }
 
     ~RadioModule() {
@@ -115,6 +121,32 @@ private:
             _this->sigPath.setBandwidth(_this->bandWidth);
         }
         ImGui::PopItemWidth();
+    }
+
+    static void scriptCreateHandler(void* ctx, duk_context* dukCtx, duk_idx_t objId) {
+        duk_push_string(dukCtx, "Hello from modules ;)");
+        duk_put_prop_string(dukCtx, objId, "test");
+
+        duk_push_c_function(dukCtx, duk_setDemodulator, 1);
+        duk_put_prop_string(dukCtx, objId, "setDemodulator");
+        
+        duk_push_pointer(dukCtx, ctx);
+        duk_put_prop_string(dukCtx, objId, DUK_HIDDEN_SYMBOL("radio_ctx"));
+    }
+
+    static duk_ret_t duk_setDemodulator(duk_context* dukCtx) {
+        const char* str = duk_require_string(dukCtx, -1);
+        std::string modName = str;
+
+        if (modName == "USB") {
+            _this->demod = 4;
+            _this->bandWidth = 3000;
+            _this->bandWidthMin = 1500;
+            _this->bandWidthMax = 3000;
+            _this->sigPath.setDemodulator(SigPath::DEMOD_USB, _this->bandWidth); 
+        }
+        
+        return 0;
     }
 
     std::string name;

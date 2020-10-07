@@ -31,6 +31,7 @@
 #include <gui/menus/display.h>
 #include <gui/menus/bandplan.h>
 #include <gui/menus/audio.h>
+#include <gui/menus/scripting.h>
 #include <gui/dialogs/credits.h>
 #include <signal_path/source.h>
 

@@ -11,6 +11,7 @@
         "Radio",
         "Recorder",
         "Audio",
+        "Scripting",
         "Band Plan",
         "Display"
     ],
@@ -20,7 +21,7 @@
     "source": "",
     "sourceSettings": {},
     "windowSize": {
-        "h": 1053,
-        "w": 1920
+        "h": 720,
+        "w": 1280
     }
 }

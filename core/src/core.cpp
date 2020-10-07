@@ -14,6 +14,9 @@
 #include <stb_image.h>
 #include <config.h>
 #include <core.h>
+#include <duktape/duktape.h>
+#include <duktape/duk_console.h>
+#include <scripting.h>
 
 #include <dsp/block.h>
 
@@ -26,6 +29,7 @@
 
 namespace core {
     ConfigManager configManager;
+    ScriptManager scriptManager;
 
     void setInputSampleRate(double samplerate) {
         // NOTE: Zoom controls won't work
@@ -50,11 +54,54 @@ static void maximized_callback(GLFWwindow* window, int n) {
     }
 }
 
+duk_ret_t test_func(duk_context *ctx) {
+    printf("Hello from C++\n");
+    return 1;
+}
+
 // main
 int sdrpp_main() {
 #ifdef _WIN32
     //FreeConsole();
 #endif
+
+
+    // TESTING
+
+
+    // duk_context* ctx = duk_create_heap_default();
+    // duk_console_init(ctx, DUK_CONSOLE_PROXY_WRAPPER);
+
+    // std::ifstream file("test.js", std::ios::in);
+    // std::stringstream ss;
+    // ss << file.rdbuf();
+    // std::string code = ss.str();
+
+    // duk_idx_t baseObj = duk_push_object(ctx);
+    
+    // duk_push_int(ctx, 42);
+    // duk_put_prop_string(ctx, baseObj, "my_property");
+
+    // duk_push_c_function(ctx, test_func, 0);
+    // duk_put_prop_string(ctx, baseObj, "my_func");
+
+    // duk_put_global_string(ctx, "my_object");
+    // duk_push_object(ctx);
+
+    
+
+    // if (duk_peval_string(ctx, code.c_str()) != 0) {
+    //     printf("Error: %s\n", duk_safe_to_string(ctx, -1));
+    //     return -1;
+    // }
+    // duk_pop(ctx);
+
+    core::scriptManager.createScript("TestScript 1", "test.js");
+    core::scriptManager.createScript("TestScript 2", "test.js");
+    core::scriptManager.createScript("TestScript 3", "test.js");
+    core::scriptManager.createScript("TestScript 4", "test.js");
+
+    // TESTING
 
     spdlog::info("SDR++ v" VERSION_STR);
 
