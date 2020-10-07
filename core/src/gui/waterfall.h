@@ -1,12 +1,10 @@
 #pragma once
-#include <imgui.h>
-#include <imgui_internal.h>
 #include <vector>
 #include <mutex>
-#include <GL/glew.h>
-#include <imutils.h>
 #include <gui/bandplan.h>
-#include <algorithm>
+#include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
+#include <GL/glew.h>
 
 #define WATERFALL_RESOLUTION    1000000
 

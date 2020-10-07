@@ -1,11 +1,7 @@
 #pragma once
 #include <json.hpp>
-#include <fstream>
-#include <spdlog/spdlog.h>
-#include <filesystem>
-#include <sstream>
-#include <iomanip>
 #include <imgui/imgui.h>
+#include <stdint.h>
 
 using nlohmann::json;
 

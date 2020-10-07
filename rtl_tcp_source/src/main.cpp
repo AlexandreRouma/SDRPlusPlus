@@ -10,8 +10,8 @@
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
 MOD_INFO {
-    /* Name:        */ "fike_source",
-    /* Description: */ "File input module for SDR++",
+    /* Name:        */ "rtl_tcp_source",
+    /* Description: */ "RTL-TCP input module for SDR++",
     /* Author:      */ "Ryzerth",
     /* Version:     */ "0.1.0"
 };

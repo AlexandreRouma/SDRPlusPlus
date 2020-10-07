@@ -1,13 +1,6 @@
 #pragma once
 #include <string>
 #include <map>
-#include <filesystem>
-#include <stdint.h>
-#include <imgui.h>
-#include <spdlog/spdlog.h>
-#include <dsp/types.h>
-#include <dsp/stream.h>
-#include <gui/waterfall.h>
 #include <json.hpp>
 
 #ifdef _WIN32

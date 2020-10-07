@@ -8,4 +8,6 @@ namespace gui {
     SDRPP_EXPORT ImGui::WaterFall waterfall;
     SDRPP_EXPORT FrequencySelect freqSelect;
     SDRPP_EXPORT Menu menu;
+
+    void selectSource(std::string name);
 };

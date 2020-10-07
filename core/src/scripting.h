@@ -43,6 +43,9 @@ public:
 private:
     static duk_context* createContext(ScriptManager* _this, std::string name);
 
+    // API
+    static duk_ret_t duk_setSource(duk_context* ctx);
+
     std::map<std::string, ScriptManager::ScriptRunHandler_t> handlers;
 
 };

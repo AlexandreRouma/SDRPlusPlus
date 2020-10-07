@@ -87,7 +87,7 @@ public:
         bzero(&serv_addr, sizeof(struct sockaddr_in));
         serv_addr.sin_family = AF_INET;
         bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
-        serv_addr.sin_port = port;
+        serv_addr.sin_port = htons(port);
         if (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0) {
             // TODO: log error
             return false;

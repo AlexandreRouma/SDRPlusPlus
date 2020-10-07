@@ -1,4 +1,9 @@
 #include <gui/waterfall.h>
+#include <imgui.h>
+#include <imgui_internal.h>
+#include <GL/glew.h>
+#include <imutils.h>
+#include <algorithm>
 
 float COLOR_MAP[][3] = {
     {0x00, 0x00, 0x20},

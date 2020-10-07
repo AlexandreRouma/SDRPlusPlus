@@ -1,4 +1,5 @@
 #include <gui/menu.h>
+#include <imgui/imgui.h>
 
 Menu::Menu() {
 

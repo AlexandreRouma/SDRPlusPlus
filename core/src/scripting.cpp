@@ -3,6 +3,8 @@
 #include <version.h>
 #include <fstream>
 #include <sstream>
+#include <signal_path/signal_path.h>
+#include <imgui/imgui.h>
 
 ScriptManager::ScriptManager() {
 
@@ -42,8 +44,15 @@ duk_context* ScriptManager::createContext(ScriptManager* _this, std::string name
 
     duk_idx_t sdrppBase = duk_push_object(ctx);
 
+    // API
+
     duk_push_string(ctx, VERSION_STR);
     duk_put_prop_string(ctx, sdrppBase, "version");
+
+    duk_push_c_function(ctx, ScriptManager::duk_setSource, 1);
+    duk_put_prop_string(ctx, sdrppBase, "selectSource");
+
+    // Modules
 
     duk_idx_t modObjId = duk_push_object(ctx);
     for (const auto& [name, handler] : _this->handlers) {
@@ -72,4 +81,13 @@ void ScriptManager::Script::scriptWorker(Script* script) {
 void ScriptManager::bindScriptRunHandler(std::string name, ScriptManager::ScriptRunHandler_t handler) {
     // TODO: check if it exists and add a "unbind" function
     handlers[name] = handler;
+}
+
+duk_ret_t ScriptManager::duk_setSource(duk_context* dukCtx) {
+    const char* name = duk_require_string(dukCtx, -1);
+    sigpath::sourceManager.selectSource(name);
+
+    duk_pop_n(dukCtx, 1); // Pop demod name, this and context
+
+    return 0;
 }

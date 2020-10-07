@@ -10,6 +10,12 @@ add_subdirectory("file_source")
 add_subdirectory("rtl_tcp_source")
 add_subdirectory("demo")
 
+if (MSVC)
+    set(CMAKE_CXX_FLAGS "-O2 /std:c++17")
+else()
+    set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
+endif (MSVC)
+
 add_executable(sdrpp "src/main.cpp" "win32/resources.rc")
 target_link_libraries(sdrpp PRIVATE sdrpp_core)
 

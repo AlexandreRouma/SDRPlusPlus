@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <dsp/stream.h>
+#include <volk.h>
 
 namespace dsp {
     template <class D, class I, class O, int IC, int OC>

@@ -1,6 +1,7 @@
 #include <gui/menus/scripting.h>
 #include <core.h>
 #include <gui/style.h>
+#include <imgui/imgui.h>
 
 namespace scriptingmenu {
     void init() {

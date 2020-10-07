@@ -3,7 +3,7 @@
     "bandPlan": "General",
     "bandPlanEnabled": true,
     "fftHeight": 300,
-    "frequency": 96571704,
+    "frequency": 96035792,
     "max": 0.0,
     "maximized": false,
     "menuOrder": [
@@ -21,7 +21,7 @@
     "source": "",
     "sourceSettings": {},
     "windowSize": {
-        "h": 720,
-        "w": 1280
+        "h": 1053,
+        "w": 959
     }
 }

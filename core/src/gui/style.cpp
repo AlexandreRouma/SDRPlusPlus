@@ -1,4 +1,7 @@
 #include <gui/style.h>
+#include <imgui.h>
+#include <imgui_internal.h>
+#include <config.h>
 
 namespace style {
     void setDefaultStyle() {

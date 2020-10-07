@@ -8,7 +8,6 @@
 #include <dsp/sink.h>
 #include <dsp/correction.h>
 #include <dsp/vfo.h>
-#include <io/audio.h>
 #include <map>
 #include <module.h>
 

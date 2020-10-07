@@ -1,12 +1,14 @@
 #include <module.h>
-#include <signal_path/vfo_manager.h>
-#include <gui/main_window.h>
-#include <signal_path/audio.h>
+#include <filesystem>
+#include <spdlog/spdlog.h>
+#include <json.hpp>
+#include <fstream>
+
+using nlohmann::json;
 
 namespace mod {
     std::map<std::string, Module_t> modules;
     std::vector<std::string> moduleNames;
-    ImGui::WaterFall* _wtf;
 
     void loadModule(std::string path, std::string name) {
         if (!std::filesystem::exists(path)) {

@@ -16,12 +16,11 @@
 #include <core.h>
 #include <duktape/duktape.h>
 #include <duktape/duk_console.h>
-#include <scripting.h>
-
-#include <dsp/block.h>
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb_image_resize.h>
+#include <gui/gui.h>
+#include <signal_path/signal_path.h>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -97,9 +96,9 @@ int sdrpp_main() {
     // duk_pop(ctx);
 
     core::scriptManager.createScript("TestScript 1", "test.js");
-    core::scriptManager.createScript("TestScript 2", "test.js");
-    core::scriptManager.createScript("TestScript 3", "test.js");
-    core::scriptManager.createScript("TestScript 4", "test.js");
+    //core::scriptManager.createScript("TestScript 2", "test.js");
+    //core::scriptManager.createScript("TestScript 3", "test.js");
+    //core::scriptManager.createScript("TestScript 4", "test.js");
 
     // TESTING
 

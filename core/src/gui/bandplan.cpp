@@ -1,4 +1,9 @@
 #include <gui/bandplan.h>
+#include <fstream>
+#include <spdlog/spdlog.h>
+#include <filesystem>
+#include <sstream>
+#include <iomanip>
 
 namespace bandplan {
     std::map<std::string, BandPlan_t> bandplans;

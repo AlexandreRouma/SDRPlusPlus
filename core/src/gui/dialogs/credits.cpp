@@ -1,6 +1,7 @@
 #include <gui/dialogs/credits.h>
 #include <imgui.h>
 #include <gui/icons.h>
+#include <config.h>
 
 namespace credits {
     ImFont* bigFont;

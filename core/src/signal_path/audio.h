@@ -3,7 +3,6 @@
 #include <dsp/routing.h>
 #include <io/audio.h>
 #include <map>
-#include <watcher.h>
 
 namespace audio {
     enum {

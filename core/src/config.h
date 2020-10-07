@@ -1,13 +1,8 @@
 #pragma once
 #include <json.hpp>
-#include <fstream>
-#include <spdlog/spdlog.h>
-#include <filesystem>
-#include <sstream>
-#include <iomanip>
 #include <thread>
-#include <chrono>
 #include <string>
+#include <mutex>
 
 using nlohmann::json;
 
