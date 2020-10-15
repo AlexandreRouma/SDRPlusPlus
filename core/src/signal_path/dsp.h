@@ -16,10 +16,10 @@ public:
     SignalPath();
     void init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream<dsp::complex_t>* input, dsp::complex_t* fftBuffer, void fftHandler(dsp::complex_t*));
     void start();
-    void setSampleRate(float sampleRate);
+    void setSampleRate(double sampleRate);
     void setDCBiasCorrection(bool enabled);
-    void setFFTRate(float rate);
-    dsp::VFO* addVFO(std::string name, float outSampleRate, float bandwidth, float offset);
+    void setFFTRate(double rate);
+    dsp::VFO* addVFO(std::string name, double outSampleRate, double bandwidth, double offset);
     void removeVFO(std::string name);
     void setInput(dsp::stream<dsp::complex_t>* input);
 
@@ -40,8 +40,8 @@ private:
     dsp::DynamicSplitter<dsp::complex_t> dynSplit;
     std::map<std::string, VFO_t> vfos;
 
-    float sampleRate;
-    float fftRate;
+    double sampleRate;
+    double fftRate;
     int fftSize;
     int inputBlockSize;
 };

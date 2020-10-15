@@ -11,13 +11,15 @@ namespace audio {
         _STREAM_TYPE_COUNT
     };
 
+    // TODO: Create a manager class and an instance class
+
     struct BoundStream_t {
         dsp::stream<float>* monoStream;
         dsp::stream<dsp::StereoFloat_t>* stereoStream;
         dsp::StereoToMono* s2m;
         dsp::MonoToStereo* m2s;
         void (*streamRemovedHandler)(void* ctx);
-        void (*sampleRateChangeHandler)(void* ctx, float sampleRate, int blockSize);
+        void (*sampleRateChangeHandler)(void* ctx, double sampleRate, int blockSize);
         void* ctx;
         int type;
     };
@@ -31,8 +33,8 @@ namespace audio {
         dsp::DynamicSplitter<float>* monoDynSplit;
         dsp::stream<dsp::StereoFloat_t>* stereoStream;
         dsp::DynamicSplitter<dsp::StereoFloat_t>* stereoDynSplit;
-        int (*sampleRateChangeHandler)(void* ctx, float sampleRate);
-        float sampleRate;
+        int (*sampleRateChangeHandler)(void* ctx, double sampleRate);
+        double sampleRate;
         int blockSize;
         int type;
         bool running = false;
@@ -45,19 +47,19 @@ namespace audio {
 
     extern std::map<std::string, AudioStream_t*> streams;
 
-    float registerMonoStream(dsp::stream<float>* stream, std::string name, std::string vfoName, int (*sampleRateChangeHandler)(void* ctx, float sampleRate), void* ctx);
-    float registerStereoStream(dsp::stream<dsp::StereoFloat_t>* stream, std::string name, std::string vfoName, int (*sampleRateChangeHandler)(void* ctx, float sampleRate), void* ctx);
+    double registerMonoStream(dsp::stream<float>* stream, std::string name, std::string vfoName, int (*sampleRateChangeHandler)(void* ctx, double sampleRate), void* ctx);
+    double registerStereoStream(dsp::stream<dsp::StereoFloat_t>* stream, std::string name, std::string vfoName, int (*sampleRateChangeHandler)(void* ctx, double sampleRate), void* ctx);
     void startStream(std::string name);
     void stopStream(std::string name);
     void removeStream(std::string name);
-    dsp::stream<float>* bindToStreamMono(std::string name, void (*streamRemovedHandler)(void* ctx), void (*sampleRateChangeHandler)(void* ctx, float sampleRate, int blockSize), void* ctx);
-    dsp::stream<dsp::StereoFloat_t>* bindToStreamStereo(std::string name, void (*streamRemovedHandler)(void* ctx), void (*sampleRateChangeHandler)(void* ctx, float sampleRate, int blockSize), void* ctx);
+    dsp::stream<float>* bindToStreamMono(std::string name, void (*streamRemovedHandler)(void* ctx), void (*sampleRateChangeHandler)(void* ctx, double sampleRate, int blockSize), void* ctx);
+    dsp::stream<dsp::StereoFloat_t>* bindToStreamStereo(std::string name, void (*streamRemovedHandler)(void* ctx), void (*sampleRateChangeHandler)(void* ctx, double sampleRate, int blockSize), void* ctx);
     void setBlockSize(std::string name, int blockSize);
     void unbindFromStreamMono(std::string name, dsp::stream<float>* stream);
     void unbindFromStreamStereo(std::string name, dsp::stream<dsp::StereoFloat_t>* stream);
     std::string getNameFromVFO(std::string vfoName);
-    void setSampleRate(std::string name, float sampleRate);
-    void setAudioDevice(std::string name, int deviceId, float sampleRate);
+    void setSampleRate(std::string name, double sampleRate);
+    void setAudioDevice(std::string name, int deviceId, double sampleRate);
     std::vector<std::string> getStreamNameList();
 };
 

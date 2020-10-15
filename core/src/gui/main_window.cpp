@@ -52,14 +52,14 @@ void fftHandler(dsp::complex_t* samples) {
     int half = fftSize / 2;
 
     for (int i = 0; i < half; i++) {
-        _data.push_back(log10(std::abs(std::complex<float>(fft_out[half + i][0], fft_out[half + i][1])) / (float)fftSize) * 10.0f);
+        _data.push_back(log10(std::abs(std::complex<float>(fft_out[half + i][0], fft_out[half + i][1])) / (float)fftSize) * 10.0);
     }
     for (int i = 0; i < half; i++) {
-        _data.push_back(log10(std::abs(std::complex<float>(fft_out[i][0], fft_out[i][1])) / (float)fftSize) * 10.0f);
+        _data.push_back(log10(std::abs(std::complex<float>(fft_out[i][0], fft_out[i][1])) / (float)fftSize) * 10.0);
     }
 
     for (int i = 5; i < fftSize; i++) {
-        _data[i] = (_data[i - 4]  + _data[i - 3] + _data[i - 2] + _data[i - 1] + _data[i]) / 5.0f;
+        _data[i] = (_data[i - 4]  + _data[i - 3] + _data[i - 2] + _data[i - 1] + _data[i]) / 5.0;
     }
 
     gui::waterfall.pushFFT(_data, fftSize);
@@ -68,13 +68,13 @@ void fftHandler(dsp::complex_t* samples) {
 
 dsp::NullSink sink;
 watcher<uint64_t> freq((uint64_t)90500000);
-watcher<float> vfoFreq(92000000.0f);
-float dummyVolume = 1.0f;
+watcher<double> vfoFreq(92000000.0);
+float dummyVolume = 1.0;
 float* volume = &dummyVolume;
-float fftMin = -70.0f;
-float fftMax = 0.0f;
-watcher<float> offset(0.0f, true);
-watcher<float> bw(8000000.0f, true);
+float fftMin = -70.0;
+float fftMax = 0.0;
+watcher<double> offset(0.0, true);
+watcher<float> bw(8000000.0, true);
 bool playing = false;
 watcher<bool> dcbias(false, false);
 bool showCredits = false;
@@ -140,7 +140,7 @@ void windowInit() {
     gui::waterfall.setFFTMax(fftMax);
     gui::waterfall.setWaterfallMax(fftMax);
 
-    float frequency = core::configManager.conf["frequency"];
+    double frequency = core::configManager.conf["frequency"];
 
     gui::freqSelect.setFrequency(frequency);
     gui::freqSelect.frequencyChanged = false;
@@ -164,27 +164,27 @@ void windowInit() {
     core::configManager.release();
 }
 
-void setVFO(float freq) {
+void setVFO(double freq) {
     ImGui::WaterfallVFO* vfo = gui::waterfall.vfos[gui::waterfall.selectedVFO];
 
-    float currentOff =  vfo->centerOffset;
-    float currentTune = gui::waterfall.getCenterFrequency() + vfo->generalOffset;
-    float delta = freq - currentTune;
+    double currentOff =  vfo->centerOffset;
+    double currentTune = gui::waterfall.getCenterFrequency() + vfo->generalOffset;
+    double delta = freq - currentTune;
 
-    float newVFO = currentOff + delta;
-    float vfoBW = vfo->bandwidth;
-    float vfoBottom = newVFO - (vfoBW / 2.0f);
-    float vfoTop = newVFO + (vfoBW / 2.0f);
+    double newVFO = currentOff + delta;
+    double vfoBW = vfo->bandwidth;
+    double vfoBottom = newVFO - (vfoBW / 2.0);
+    double vfoTop = newVFO + (vfoBW / 2.0);
 
-    float view = gui::waterfall.getViewOffset();
-    float viewBW = gui::waterfall.getViewBandwidth();
-    float viewBottom = view - (viewBW / 2.0f);
-    float viewTop = view + (viewBW / 2.0f);
+    double view = gui::waterfall.getViewOffset();
+    double viewBW = gui::waterfall.getViewBandwidth();
+    double viewBottom = view - (viewBW / 2.0);
+    double viewTop = view + (viewBW / 2.0);
 
-    float wholeFreq = gui::waterfall.getCenterFrequency();
-    float BW = gui::waterfall.getBandwidth();
-    float bottom = -(BW / 2.0f);
-    float top = (BW / 2.0f);
+    double wholeFreq = gui::waterfall.getCenterFrequency();
+    double BW = gui::waterfall.getBandwidth();
+    double bottom = -(BW / 2.0);
+    double top = (BW / 2.0);
 
     // VFO still fints in the view
     if (vfoBottom > viewBottom && vfoTop < viewTop) {
@@ -194,8 +194,8 @@ void setVFO(float freq) {
 
     // VFO too low for current SDR tuning
     if (vfoBottom < bottom) {
-        gui::waterfall.setViewOffset((BW / 2.0f) - (viewBW / 2.0f));
-        float newVFOOffset = (BW / 2.0f) - (vfoBW / 2.0f) - (viewBW / 10.0f);
+        gui::waterfall.setViewOffset((BW / 2.0) - (viewBW / 2.0));
+        double newVFOOffset = (BW / 2.0) - (vfoBW / 2.0) - (viewBW / 10.0);
         sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFOOffset);
         gui::waterfall.setCenterFrequency(freq - newVFOOffset);
         sigpath::sourceManager.tune(freq - newVFOOffset);
@@ -204,8 +204,8 @@ void setVFO(float freq) {
 
     // VFO too high for current SDR tuning
     if (vfoTop > top) {
-        gui::waterfall.setViewOffset((viewBW / 2.0f) - (BW / 2.0f));
-        float newVFOOffset = (vfoBW / 2.0f) - (BW / 2.0f) + (viewBW / 10.0f);
+        gui::waterfall.setViewOffset((viewBW / 2.0) - (BW / 2.0));
+        double newVFOOffset = (vfoBW / 2.0) - (BW / 2.0) + (viewBW / 10.0);
         sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFOOffset);
         gui::waterfall.setCenterFrequency(freq - newVFOOffset);
         sigpath::sourceManager.tune(freq - newVFOOffset);
@@ -214,9 +214,9 @@ void setVFO(float freq) {
 
     // VFO is still without the SDR's bandwidth
     if (delta < 0) {
-        float newViewOff = vfoTop - (viewBW / 2.0f) + (viewBW / 10.0f);
-        float newViewBottom = newViewOff - (viewBW / 2.0f);
-        float newViewTop = newViewOff + (viewBW / 2.0f);
+        double newViewOff = vfoTop - (viewBW / 2.0) + (viewBW / 10.0);
+        double newViewBottom = newViewOff - (viewBW / 2.0);
+        double newViewTop = newViewOff + (viewBW / 2.0);
 
         if (newViewBottom > bottom) {
             gui::waterfall.setViewOffset(newViewOff);
@@ -224,16 +224,16 @@ void setVFO(float freq) {
             return;
         }
 
-        gui::waterfall.setViewOffset((BW / 2.0f) - (viewBW / 2.0f));
-        float newVFOOffset = (BW / 2.0f) - (vfoBW / 2.0f) - (viewBW / 10.0f);
+        gui::waterfall.setViewOffset((BW / 2.0) - (viewBW / 2.0));
+        double newVFOOffset = (BW / 2.0) - (vfoBW / 2.0) - (viewBW / 10.0);
         sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFOOffset);
         gui::waterfall.setCenterFrequency(freq - newVFOOffset);
         sigpath::sourceManager.tune(freq - newVFOOffset);
     }
     else {
-        float newViewOff = vfoBottom + (viewBW / 2.0f) - (viewBW / 10.0f);
-        float newViewBottom = newViewOff - (viewBW / 2.0f);
-        float newViewTop = newViewOff + (viewBW / 2.0f);
+        double newViewOff = vfoBottom + (viewBW / 2.0) - (viewBW / 10.0);
+        double newViewBottom = newViewOff - (viewBW / 2.0);
+        double newViewTop = newViewOff + (viewBW / 2.0);
 
         if (newViewTop < top) {
             gui::waterfall.setViewOffset(newViewOff);
@@ -241,8 +241,8 @@ void setVFO(float freq) {
             return;
         }
 
-        gui::waterfall.setViewOffset((viewBW / 2.0f) - (BW / 2.0f));
-        float newVFOOffset = (vfoBW / 2.0f) - (BW / 2.0f) + (viewBW / 10.0f);
+        gui::waterfall.setViewOffset((viewBW / 2.0) - (BW / 2.0));
+        double newVFOOffset = (vfoBW / 2.0) - (BW / 2.0) + (viewBW / 10.0);
         sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFOOffset);
         gui::waterfall.setCenterFrequency(freq - newVFOOffset);
         sigpath::sourceManager.tune(freq - newVFOOffset);
@@ -341,7 +341,7 @@ void drawWindow() {
 
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
     ImGui::SetNextItemWidth(200);
-    if (ImGui::SliderFloat("##_2_", volume, 0.0f, 1.0f, "")) {
+    if (ImGui::SliderFloat("##_2_", volume, 0.0, 1.0, "")) {
         if (audioStreamName != "") {
             core::configManager.aquire();
             if (!core::configManager.conf["audio"].contains(audioStreamName)) {
@@ -414,9 +414,9 @@ void drawWindow() {
         gui::menu.draw();
 
         if(ImGui::CollapsingHeader("Debug")) {
-            ImGui::Text("Frame time: %.3f ms/frame", 1000.0f / ImGui::GetIO().Framerate);
+            ImGui::Text("Frame time: %.3f ms/frame", 1000.0 / ImGui::GetIO().Framerate);
             ImGui::Text("Framerate: %.1f FPS", ImGui::GetIO().Framerate);
-            ImGui::Text("Center Frequency: %.0f Hz", gui::waterfall.getCenterFrequency());
+            ImGui::Text("Center Frequency: %.0 Hz", gui::waterfall.getCenterFrequency());
             ImGui::Text("Source name: %s", sourceName.c_str());
             ImGui::Spacing();
         }
@@ -446,17 +446,17 @@ void drawWindow() {
     ImGui::NextColumn();
     ImGui::BeginChild("WaterfallControls");
 
-    ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0f) - (ImGui::CalcTextSize("Zoom").x / 2.0f));
+    ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Zoom").x / 2.0));
     ImGui::Text("Zoom");
-    ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0f) - 10);
-    ImGui::VSliderFloat("##_7_", ImVec2(20.0f, 150.0f), &bw.val, gui::waterfall.getBandwidth(), 1000.0f, "");
+    ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10);
+    ImGui::VSliderFloat("##_7_", ImVec2(20.0, 150.0), &bw.val, gui::waterfall.getBandwidth(), 1000.0, "");
 
     ImGui::NewLine();
 
-    ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0f) - (ImGui::CalcTextSize("Max").x / 2.0f));
+    ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Max").x / 2.0));
     ImGui::Text("Max");
-    ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0f) - 10);
-    if (ImGui::VSliderFloat("##_8_", ImVec2(20.0f, 150.0f), &fftMax, 0.0f, -100.0f, "")) {
+    ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10);
+    if (ImGui::VSliderFloat("##_8_", ImVec2(20.0, 150.0), &fftMax, 0.0, -100.0, "")) {
         fftMax = std::max<float>(fftMax, fftMin + 10);
         core::configManager.aquire();
         core::configManager.conf["max"] = fftMax;
@@ -465,10 +465,10 @@ void drawWindow() {
 
     ImGui::NewLine();
 
-    ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0f) - (ImGui::CalcTextSize("Min").x / 2.0f));
+    ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Min").x / 2.0));
     ImGui::Text("Min");
-    ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0f) - 10);
-    if (ImGui::VSliderFloat("##_9_", ImVec2(20.0f, 150.0f), &fftMin, 0.0f, -100.0f, "")) {
+    ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10);
+    if (ImGui::VSliderFloat("##_9_", ImVec2(20.0, 150.0), &fftMin, 0.0, -100.0, "")) {
         fftMin = std::min<float>(fftMax - 10, fftMin);
         core::configManager.aquire();
         core::configManager.conf["min"] = fftMin;

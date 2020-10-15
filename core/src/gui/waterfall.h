@@ -12,11 +12,11 @@ namespace ImGui {
 
     class WaterfallVFO {
     public:
-        void setOffset(float offset);
-        void setCenterOffset(float offset);
-        void setBandwidth(float bw);
+        void setOffset(double offset);
+        void setCenterOffset(double offset);
+        void setBandwidth(double bw);
         void setReference(int ref);
-        void updateDrawingVars(float viewBandwidth, float dataWidth, float viewOffset, ImVec2 widgetPos, int fftHeight);
+        void updateDrawingVars(double viewBandwidth, float dataWidth, double viewOffset, ImVec2 widgetPos, int fftHeight); // NOTE: Datawidth double???
         void draw(ImGuiWindow* window, bool selected);
 
         enum {
@@ -26,12 +26,12 @@ namespace ImGui {
             _REF_COUNT
         };
 
-        float generalOffset;
-        float centerOffset;
-        float lowerOffset;
-        float upperOffset;
-        float bandwidth;
-        float snapInterval;
+        double generalOffset;
+        double centerOffset;
+        double lowerOffset;
+        double upperOffset;
+        double bandwidth;
+        double snapInterval = 5000;
         int reference = REF_CENTER;
 
         ImVec2 rectMin;
@@ -55,17 +55,17 @@ namespace ImGui {
 
         void updatePallette(float colors[][3], int colorCount);
 
-        void setCenterFrequency(float freq);
-        float getCenterFrequency();
+        void setCenterFrequency(double freq);
+        double getCenterFrequency();
 
-        void setBandwidth(float bandWidth);
-        float getBandwidth();
+        void setBandwidth(double bandWidth);
+        double getBandwidth();
 
-        void setViewBandwidth(float bandWidth);
-        float getViewBandwidth();
+        void setViewBandwidth(double bandWidth);
+        double getViewBandwidth();
 
-        void setViewOffset(float offset);
-        float getViewOffset();
+        void setViewOffset(double offset);
+        double getViewOffset();
 
         void setFFTMin(float min);
         float getFFTMin();
@@ -79,8 +79,8 @@ namespace ImGui {
         void setWaterfallMax(float max);
         float getWaterfallMax();
 
-        void setZoom(float zoomLevel);
-        void setOffset(float zoomOffset);
+        void setZoom(double zoomLevel);
+        void setOffset(double zoomOffset);
 
         void autoRange();
 
@@ -157,20 +157,20 @@ namespace ImGui {
         int fftHeight;          // Height of the fft graph
         int waterfallHeight;    // Height of the waterfall
 
-        float viewBandwidth;
-        float viewOffset;
+        double viewBandwidth;
+        double viewOffset;
 
-        float lowerFreq;
-        float upperFreq;
-        float range;
+        double lowerFreq;
+        double upperFreq;
+        double range;
 
         float lastDrag;
 
         int vfoRef = REF_CENTER;
 
         // Absolute values
-        float centerFreq;
-        float wholeBandwidth;
+        double centerFreq;
+        double wholeBandwidth;
 
         // Ranges
         float fftMin;

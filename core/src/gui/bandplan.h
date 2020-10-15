@@ -9,8 +9,8 @@ namespace bandplan {
     struct Band_t {
         std::string name;
         std::string type;
-        float start;
-        float end;
+        double start;
+        double end;
     };
 
     void to_json(json& j, const Band_t& b);

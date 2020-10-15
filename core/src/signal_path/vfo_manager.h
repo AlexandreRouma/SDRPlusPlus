@@ -9,13 +9,13 @@ public:
 
     class VFO {
     public:
-        VFO(std::string name, int reference, float offset, float bandwidth, float sampleRate, int blockSize);
+        VFO(std::string name, int reference, double offset, double bandwidth, double sampleRate, int blockSize);
         ~VFO();
 
-        void setOffset(float offset);
-        void setCenterOffset(float offset);
-        void setBandwidth(float bandwidth);
-        void setSampleRate(float sampleRate, float bandwidth);
+        void setOffset(double offset);
+        void setCenterOffset(double offset);
+        void setBandwidth(double bandwidth);
+        void setSampleRate(double sampleRate, double bandwidth);
         void setReference(int ref);
         int getOutputBlockSize();
 
@@ -30,13 +30,13 @@ public:
         
     };
 
-    VFOManager::VFO* createVFO(std::string name, int reference, float offset, float bandwidth, float sampleRate, int blockSize);
+    VFOManager::VFO* createVFO(std::string name, int reference, double offset, double bandwidth, double sampleRate, int blockSize);
     void deleteVFO(VFOManager::VFO* vfo);
 
-    void setOffset(std::string name, float offset);
-    void setCenterOffset(std::string name, float offset);
-    void setBandwidth(std::string name, float bandwidth);
-    void setSampleRate(std::string name, float sampleRate, float bandwidth);
+    void setOffset(std::string name, double offset);
+    void setCenterOffset(std::string name, double offset);
+    void setBandwidth(std::string name, double bandwidth);
+    void setSampleRate(std::string name, double sampleRate, double bandwidth);
     void setReference(std::string name, int ref);
     int getOutputBlockSize(std::string name);
 

@@ -19,7 +19,7 @@ namespace io {
             std::string name;
             int index;
             int channels;
-            std::vector<float> sampleRates;
+            std::vector<double> sampleRates;
             std::string txtSampleRates;
         };
 
@@ -323,7 +323,7 @@ namespace io {
             return 0;
         }
 
-        float POSSIBLE_SAMP_RATE[6] = {
+        double POSSIBLE_SAMP_RATE[6] = {
             48000.0f,
             44100.0f,
             24000.0f,
@@ -336,7 +336,7 @@ namespace io {
         int devIndex;
         int devListIndex;
         int defaultDev;
-        float _sampleRate;
+        double _sampleRate;
         int _bufferSize;
         dsp::stream<float>* _monoInput;
         dsp::stream<dsp::StereoFloat_t>* _stereoInput;

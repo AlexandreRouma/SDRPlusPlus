@@ -20,7 +20,7 @@ void SignalPath::init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream
     dynSplit.init(&split.output_b, 32000);
 }
 
-void SignalPath::setSampleRate(float sampleRate) {
+void SignalPath::setSampleRate(double sampleRate) {
     this->sampleRate = sampleRate;
     inputBlockSize = sampleRate / 200.0f;
 
@@ -68,7 +68,7 @@ void SignalPath::setDCBiasCorrection(bool enabled) {
     dcBiasRemover.bypass = !enabled;
 }
 
-dsp::VFO* SignalPath::addVFO(std::string name, float outSampleRate, float bandwidth, float offset) {
+dsp::VFO* SignalPath::addVFO(std::string name, double outSampleRate, double bandwidth, double offset) {
     if (vfos.find(name) != vfos.end()) {
         return NULL;
     }

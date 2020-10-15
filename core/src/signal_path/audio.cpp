@@ -3,14 +3,14 @@
 namespace audio {
     std::map<std::string, AudioStream_t*> streams;
 
-    float registerMonoStream(dsp::stream<float>* stream, std::string name, std::string vfoName, int (*sampleRateChangeHandler)(void* ctx, float sampleRate), void* ctx) {
+    double registerMonoStream(dsp::stream<float>* stream, std::string name, std::string vfoName, int (*sampleRateChangeHandler)(void* ctx, double sampleRate), void* ctx) {
         AudioStream_t* astr = new AudioStream_t;
         astr->type = STREAM_TYPE_MONO;
         astr->ctx = ctx;
         astr->audio = new io::AudioSink;
         astr->audio->init(1);
         astr->deviceId = astr->audio->getDeviceId();
-        float sampleRate = astr->audio->devices[astr->deviceId].sampleRates[0];
+        double sampleRate = astr->audio->devices[astr->deviceId].sampleRates[0];
         int blockSize = sampleRate / 200; // default block size
         astr->monoAudioStream = new dsp::stream<float>(blockSize * 2);
         astr->audio->setBlockSize(blockSize);
@@ -31,13 +31,13 @@ namespace audio {
         return sampleRate;
     }
 
-    float registerStereoStream(dsp::stream<dsp::StereoFloat_t>* stream, std::string name, std::string vfoName, int (*sampleRateChangeHandler)(void* ctx, float sampleRate), void* ctx) {
+    double registerStereoStream(dsp::stream<dsp::StereoFloat_t>* stream, std::string name, std::string vfoName, int (*sampleRateChangeHandler)(void* ctx, double sampleRate), void* ctx) {
         AudioStream_t* astr = new AudioStream_t;
         astr->type = STREAM_TYPE_STEREO;
         astr->ctx = ctx;
         astr->audio = new io::AudioSink;
         astr->audio->init(1);
-        float sampleRate = astr->audio->devices[astr->audio->getDeviceId()].sampleRates[0];
+        double sampleRate = astr->audio->devices[astr->audio->getDeviceId()].sampleRates[0];
         int blockSize = sampleRate / 200; // default block size
         astr->stereoAudioStream = new dsp::stream<dsp::StereoFloat_t>(blockSize * 2);
         astr->audio->setBlockSize(blockSize);
@@ -95,7 +95,7 @@ namespace audio {
         delete astr->monoDynSplit;
     }
 
-    dsp::stream<float>* bindToStreamMono(std::string name, void (*streamRemovedHandler)(void* ctx), void (*sampleRateChangeHandler)(void* ctx, float sampleRate, int blockSize), void* ctx) {
+    dsp::stream<float>* bindToStreamMono(std::string name, void (*streamRemovedHandler)(void* ctx), void (*sampleRateChangeHandler)(void* ctx, double sampleRate, int blockSize), void* ctx) {
         AudioStream_t* astr = streams[name];
         BoundStream_t bstr;
         bstr.type = STREAM_TYPE_MONO;
@@ -125,7 +125,7 @@ namespace audio {
         return bstr.monoStream;
     }
 
-    dsp::stream<dsp::StereoFloat_t>* bindToStreamStereo(std::string name, void (*streamRemovedHandler)(void* ctx), void (*sampleRateChangeHandler)(void* ctx, float sampleRate, int blockSize), void* ctx) {
+    dsp::stream<dsp::StereoFloat_t>* bindToStreamStereo(std::string name, void (*streamRemovedHandler)(void* ctx), void (*sampleRateChangeHandler)(void* ctx, double sampleRate, int blockSize), void* ctx) {
         AudioStream_t* astr = streams[name];
         BoundStream_t bstr;
         bstr.type = STREAM_TYPE_STEREO;
@@ -250,7 +250,7 @@ namespace audio {
         return "";
     }
 
-    void setSampleRate(std::string name, float sampleRate) {
+    void setSampleRate(std::string name, double sampleRate) {
         AudioStream_t* astr = streams[name];
         if (astr->running) {
             return;
@@ -288,7 +288,7 @@ namespace audio {
         }
     }
 
-    void setAudioDevice(std::string name, int deviceId, float sampleRate) {
+    void setAudioDevice(std::string name, int deviceId, double sampleRate) {
         AudioStream_t* astr = streams[name];
         if (astr->running) {
             return;

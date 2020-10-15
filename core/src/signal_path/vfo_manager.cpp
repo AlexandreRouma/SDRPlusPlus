@@ -1,7 +1,7 @@
 #include <signal_path/vfo_manager.h>
 #include <signal_path/signal_path.h>
 
-VFOManager::VFO::VFO(std::string name, int reference, float offset, float bandwidth, float sampleRate, int blockSize) {
+VFOManager::VFO::VFO(std::string name, int reference, double offset, double bandwidth, double sampleRate, int blockSize) {
     this->name = name;
     dspVFO = sigpath::signalPath.addVFO(name, sampleRate, bandwidth, offset);
     wtfVFO = new ImGui::WaterfallVFO;
@@ -18,22 +18,22 @@ VFOManager::VFO::~VFO() {
     delete wtfVFO;
 }
 
-void VFOManager::VFO::setOffset(float offset) {
+void VFOManager::VFO::setOffset(double offset) {
     wtfVFO->setOffset(offset);
     dspVFO->setOffset(wtfVFO->centerOffset);
 }
 
-void VFOManager::VFO::setCenterOffset(float offset) {
+void VFOManager::VFO::setCenterOffset(double offset) {
     wtfVFO->setCenterOffset(offset);
     dspVFO->setOffset(offset);
 }
 
-void VFOManager::VFO::setBandwidth(float bandwidth) {
+void VFOManager::VFO::setBandwidth(double bandwidth) {
     wtfVFO->setBandwidth(bandwidth);
     dspVFO->setBandwidth(bandwidth);
 }
 
-void VFOManager::VFO::setSampleRate(float sampleRate, float bandwidth) {
+void VFOManager::VFO::setSampleRate(double sampleRate, double bandwidth) {
     dspVFO->setOutputSampleRate(sampleRate, bandwidth);
     wtfVFO->setBandwidth(bandwidth);
 }
@@ -51,7 +51,7 @@ VFOManager::VFOManager() {
     
 }
 
-VFOManager::VFO* VFOManager::createVFO(std::string name, int reference, float offset, float bandwidth, float sampleRate, int blockSize) {
+VFOManager::VFO* VFOManager::createVFO(std::string name, int reference, double offset, double bandwidth, double sampleRate, int blockSize) {
     if (vfos.find(name) != vfos.end() || name == "") {
         return NULL;
     }
@@ -74,28 +74,28 @@ void VFOManager::deleteVFO(VFOManager::VFO* vfo) {
     vfos.erase(name);
 }
 
-void VFOManager::setOffset(std::string name, float offset) {
+void VFOManager::setOffset(std::string name, double offset) {
     if (vfos.find(name) == vfos.end()) {
         return;
     }
     vfos[name]->setOffset(offset);
 }
 
-void VFOManager::setCenterOffset(std::string name, float offset) {
+void VFOManager::setCenterOffset(std::string name, double offset) {
     if (vfos.find(name) == vfos.end()) {
         return;
     }
     vfos[name]->setCenterOffset(offset);
 }
 
-void VFOManager::setBandwidth(std::string name, float bandwidth) {
+void VFOManager::setBandwidth(std::string name, double bandwidth) {
     if (vfos.find(name) == vfos.end()) {
         return;
     }
     vfos[name]->setBandwidth(bandwidth);
 }
 
-void VFOManager::setSampleRate(std::string name, float sampleRate, float bandwidth) {
+void VFOManager::setSampleRate(std::string name, double sampleRate, double bandwidth) {
     if (vfos.find(name) == vfos.end()) {
         return;
     }
