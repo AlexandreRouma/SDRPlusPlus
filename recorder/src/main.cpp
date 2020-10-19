@@ -25,7 +25,7 @@ void streamRemovedHandler(void* ctx) {
 
 }
 
-void sampleRateChanged(void* ctx, float sampleRate, int blockSize) {
+void sampleRateChanged(void* ctx, double sampleRate, int blockSize) {
 
 }
 

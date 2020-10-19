@@ -1,9 +1,25 @@
 {
-    "audio": {},
+    "audio": {
+        "Radio": {
+            "device": "Speakers (Realtek High Definiti",
+            "sampleRate": 48000.0,
+            "volume": 0.60546875
+        },
+        "Radio 1": {
+            "device": "CABLE-A Input (VB-Audio Cable A)",
+            "sampleRate": 48000.0,
+            "volume": 1.0
+        },
+        "Radio 2": {
+            "device": "CABLE Input (VB-Audio Virtual Cable)",
+            "sampleRate": 48000.0,
+            "volume": 1.0
+        }
+    },
     "bandPlan": "General",
     "bandPlanEnabled": true,
     "fftHeight": 300,
-    "frequency": 94930000,
+    "frequency": 98983691,
     "max": 0.0,
     "maximized": false,
     "menuOrder": [
@@ -16,12 +32,12 @@
         "Display"
     ],
     "menuWidth": 300,
-    "min": -51.47058868408203,
+    "min": -72.05882263183594,
     "showWaterfall": true,
     "source": "",
     "sourceSettings": {},
     "windowSize": {
-        "h": 1053,
-        "w": 959
+        "h": 720,
+        "w": 1280
     }
 }

@@ -63,6 +63,7 @@ void ConfigManager::release(bool changed) {
 void ConfigManager::autoSaveWorker(ConfigManager* _this) {
     while (_this->autoSaveEnabled) {
         if (!_this->mtx.try_lock()) {
+            spdlog::warn("ConfigManager locked, waiting...");
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
             continue;
         }

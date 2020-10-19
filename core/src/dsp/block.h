@@ -119,4 +119,61 @@ namespace dsp {
         }
 
     };
+
+    class Squelch : public Block<Squelch, complex_t, complex_t, 1, 1> {
+    public:
+        Squelch() : Block({1}, {1}, this, worker) {}
+
+        void init(stream<complex_t>* input, int blockSize) {
+            in[0] = input;
+            inputBlockSize[0] = blockSize;
+            out[0]->setMaxLatency(blockSize * 2);
+            outputBlockSize[0] = blockSize;
+            level = -50.0f;
+        }
+
+        float level;
+        int onCount;
+        int offCount;
+
+    private:
+        static void worker(Squelch* _this) {
+            int blockSize = _this->inputBlockSize[0];
+            stream<complex_t>* in = _this->in[0];
+            stream<complex_t>* out = _this->out[0];
+            complex_t* buf = new complex_t[blockSize];
+
+            int _on = 0, _off = 0;
+            bool active = false;
+
+            while (true) {
+                if (in->read(buf, blockSize) < 0) { break; };
+                for (int i = 0; i < blockSize; i++) {
+                    if (log10(sqrt((buf[i].i*buf[i].i) + (buf[i].q*buf[i].q))) * 10.0f > _this->level) {
+                        _on++;
+                        _off = 0;
+                    }
+                    else {
+                        _on = 0;
+                        _off++;
+                    }
+                    if (_on >= _this->onCount && !active) {
+                        _on = _this->onCount;
+                        active = true;
+                    }
+                    if (_off >= _this->offCount && active) {
+                        _off = _this->offCount;
+                        active = false;
+                    }
+                    if (!active) {
+                        buf[i].i = 0.0f;
+                        buf[i].q = 0.0f;
+                    }
+                }
+                if (out->write(buf, blockSize) < 0) { break; };
+            }
+            delete[] buf;
+        }
+
+    };
 };

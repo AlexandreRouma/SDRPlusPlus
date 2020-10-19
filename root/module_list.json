@@ -1,4 +1,6 @@
 {
     "Radio": "./modules/radio.dll",
-    "Recorder": "./modules/recorder.dll"
+    "Recorder": "./modules/recorder.dll",
+    "Soapy": "./modules/soapy.dll",
+    "RTLTCPSource": "./modules/rtl_tcp_source.dll"
 }

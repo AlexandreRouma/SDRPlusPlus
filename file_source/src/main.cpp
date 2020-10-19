@@ -32,7 +32,7 @@ public:
         handler.stream = &stream;
         sigpath::sourceManager.registerSource("File", &handler);
 
-        reader = new WavReader("D:/satpic/raw_recordings/NOAA-18_09-08-2018_21-39-00_baseband_NR.wav");
+        reader = new WavReader("D:/Downloads/20120416_glv_594_2.wav");
         
         spdlog::info("Samplerate: {0}, Bit depth: {1}, Channel count: {2}", reader->getSampleRate(), reader->getBitDepth(), reader->getChannelCount());
 

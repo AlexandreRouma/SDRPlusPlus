@@ -66,7 +66,7 @@ private:
         if (ImGui::RadioButton(CONCAT("AM##_", _this->name), _this->demod == 2) && _this->demod != 2) {
             _this->demod = 2;
             _this->bandWidth = 12500;
-            _this->bandWidthMin = 6250;
+            _this->bandWidthMin = 1500;
             _this->bandWidthMax = 12500;
             _this->sigPath.setDemodulator(SigPath::DEMOD_AM, _this->bandWidth); 
         }
@@ -120,6 +120,9 @@ private:
             _this->bandWidth = std::clamp<int>(_this->bandWidth, _this->bandWidthMin, _this->bandWidthMax);
             _this->sigPath.setBandwidth(_this->bandWidth);
         }
+
+        ImGui::SliderFloat(CONCAT("##_squelch_select_", _this->name), &_this->sigPath.squelch.level, -100, 0);
+
         ImGui::PopItemWidth();
     }
 

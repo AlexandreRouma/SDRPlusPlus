@@ -8,6 +8,7 @@
 #include <dsp/sink.h>
 #include <dsp/correction.h>
 #include <dsp/vfo.h>
+#include <dsp/block.h>
 #include <io/audio.h>
 #include <module.h>
 #include <signal_path/signal_path.h>
@@ -44,13 +45,16 @@ public:
 
 
     dsp::FMDeemphasis deemp;
+    dsp::Squelch squelch;
 
 private:
-    static int sampleRateChangeHandler(void* ctx, float sampleRate);
+    static int sampleRateChangeHandler(void* ctx, double sampleRate);
 
     VFOManager::VFO* vfo;
     
     dsp::stream<dsp::complex_t> input;
+
+    
 
     // Demodulators
     dsp::FMDemodulator demod;
@@ -66,6 +70,7 @@ private:
 
     float sampleRate;
     float bandwidth;
+    float demodOutputSamplerate;
     float outputSampleRate;
     int blockSize;
     int _demod;

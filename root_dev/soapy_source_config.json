@@ -1,9 +1,16 @@
 {
-    "device": "HackRF One #0 901868dc282c8f8b",
+    "device": "Generic RTL2832U OEM :: 00000001",
     "devices": {
+        "AirSpy HF+ [c852435de0224af7]": {
+            "gains": {
+                "LNA": 6.0,
+                "RF": 0.0
+            },
+            "sampleRate": 768000.0
+        },
         "Generic RTL2832U OEM :: 00000001": {
             "gains": {
-                "TUNER": 12.817999839782715
+                "TUNER": 49.599998474121094
             },
             "sampleRate": 2560000.0
         },

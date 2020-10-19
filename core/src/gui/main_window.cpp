@@ -92,6 +92,10 @@ void windowInit() {
 
     credits::init();
 
+    core::configManager.aquire();
+    gui::menu.order = core::configManager.conf["menuOrder"].get<std::vector<std::string>>();
+    core::configManager.release();
+
     gui::menu.registerEntry("Source", sourecmenu::draw, NULL);
     gui::menu.registerEntry("Audio", audiomenu::draw, NULL);
     gui::menu.registerEntry("Scripting", scriptingmenu::draw, NULL);
@@ -117,7 +121,6 @@ void windowInit() {
     displaymenu::init();
 
     // Load last source configuration
-
     // Also add a loading screen
     // Adjustable "snap to grid" for each VFO
     // Finish the recorder module
@@ -129,10 +132,9 @@ void windowInit() {
     // Do VFO in two steps: First sample rate conversion, then filtering
 
     // And a module add/remove/change order menu
-    // get rid of watchers and use if() instead
-    // Switch to double for all frequecies and bandwidth
 
     // Update UI settings
+    core::configManager.aquire();
     fftMin = core::configManager.conf["min"];
     fftMax = core::configManager.conf["max"];
     gui::waterfall.setFFTMin(fftMin);
@@ -158,8 +160,6 @@ void windowInit() {
 
     fftHeight = core::configManager.conf["fftHeight"];
     gui::waterfall.setFFTHeight(fftHeight);
-
-    gui::menu.order = core::configManager.conf["menuOrder"].get<std::vector<std::string>>();
 
     core::configManager.release();
 }
@@ -297,10 +297,6 @@ void drawWindow() {
         core::configManager.release(true);
     }
 
-    if (dcbias.changed()) {
-        sigpath::signalPath.setDCBiasCorrection(dcbias.val);
-    }
-
     int _fftHeight = gui::waterfall.getFFTHeight();
     if (fftHeight != _fftHeight) {
         fftHeight = _fftHeight;
@@ -418,6 +414,9 @@ void drawWindow() {
             ImGui::Text("Framerate: %.1f FPS", ImGui::GetIO().Framerate);
             ImGui::Text("Center Frequency: %.0 Hz", gui::waterfall.getCenterFrequency());
             ImGui::Text("Source name: %s", sourceName.c_str());
+            if (ImGui::Checkbox("Test technique", &dcbias.val)) {
+                sigpath::signalPath.setDCBiasCorrection(dcbias.val);
+            }
             ImGui::Spacing();
         }
 

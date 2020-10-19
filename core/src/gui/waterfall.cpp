@@ -229,7 +229,8 @@ namespace ImGui {
             }
             int refCenter = mousePos.x - (widgetPos.x + 50);
             if (refCenter >= 0 && refCenter < dataWidth && mousePos.y > widgetPos.y && mousePos.y < (widgetPos.y + widgetSize.y)) {
-                vfo->setOffset(((((double)refCenter / ((double)dataWidth / 2.0)) - 1.0) * (viewBandwidth / 2.0)) + viewOffset);
+                double off = ((((double)refCenter / ((double)dataWidth / 2.0)) - 1.0) * (viewBandwidth / 2.0)) + viewOffset;
+                vfo->setOffset(round(off / vfo->snapInterval) * vfo->snapInterval);
             }
         }
 
