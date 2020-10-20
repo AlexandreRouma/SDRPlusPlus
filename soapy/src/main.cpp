@@ -284,6 +284,8 @@ private:
             }
             i++;
         }
+
+        _this->dev->
     }
 
     static void _worker(SoapyModule* _this) {

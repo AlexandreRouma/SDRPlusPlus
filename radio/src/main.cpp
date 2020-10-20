@@ -127,7 +127,6 @@ private:
 
         ImGui::Text("Snap Interval");
         ImGui::SetNextItemWidth(menuColumnWidth - ImGui::GetCursorPosX());
-        if (ImGui:)
     }
 
     static void scriptCreateHandler(void* ctx, duk_context* dukCtx, duk_idx_t objId) {
