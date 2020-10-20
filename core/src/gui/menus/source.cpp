@@ -6,6 +6,7 @@
 
 namespace sourecmenu {
     int sourceId = 0;
+    double freqOffset = 0.0;
 
     void init() {
         // Select default
@@ -13,6 +14,7 @@ namespace sourecmenu {
         if (sigpath::sourceManager.sourceNames.size() > 0) {
             sigpath::sourceManager.selectSource(sigpath::sourceManager.sourceNames[0]);
         }
+        sigpath::sourceManager.setTuningOffset(0);
     }
 
     void draw(void* ctx) {
@@ -29,5 +31,9 @@ namespace sourecmenu {
         }
 
         sigpath::sourceManager.showSelectedMenu();
+        ImGui::SetNextItemWidth(itemWidth - ImGui::CalcTextSize("Offset (Hz)").x - 10);
+        if (ImGui::InputDouble("Offset (Hz)##freq_offset", &freqOffset, 1.0, 100.0)) {
+            sigpath::sourceManager.setTuningOffset(freqOffset);
+        }
     }
 }

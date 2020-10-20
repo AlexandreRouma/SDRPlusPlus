@@ -16,6 +16,7 @@ namespace ImGui {
         void setCenterOffset(double offset);
         void setBandwidth(double bw);
         void setReference(int ref);
+        void setSnapInterval(double interval);
         void updateDrawingVars(double viewBandwidth, float dataWidth, double viewOffset, ImVec2 widgetPos, int fftHeight); // NOTE: Datawidth double???
         void draw(ImGuiWindow* window, bool selected);
 

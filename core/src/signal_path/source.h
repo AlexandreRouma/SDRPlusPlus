@@ -26,6 +26,7 @@ public:
     void start();
     void stop();
     void tune(double freq);
+    void setTuningOffset(double offset);
 
     std::vector<std::string> sourceNames;
 
@@ -33,5 +34,7 @@ private:
     std::map<std::string, SourceHandler*> sources;
     std::string selectedName;
     SourceHandler* selectedHandler = NULL;
+    double tuneOffset;
+    double currentFreq;
 
 };

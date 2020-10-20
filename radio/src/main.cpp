@@ -124,6 +124,10 @@ private:
         ImGui::SliderFloat(CONCAT("##_squelch_select_", _this->name), &_this->sigPath.squelch.level, -100, 0);
 
         ImGui::PopItemWidth();
+
+        ImGui::Text("Snap Interval");
+        ImGui::SetNextItemWidth(menuColumnWidth - ImGui::GetCursorPosX());
+        if (ImGui:)
     }
 
     static void scriptCreateHandler(void* ctx, duk_context* dukCtx, duk_idx_t objId) {
@@ -315,6 +319,7 @@ private:
     int bandWidth;
     int bandWidthMin;
     int bandWidthMax;
+    double snapInterval = 100000.0;
     SigPath sigPath;
 
 };

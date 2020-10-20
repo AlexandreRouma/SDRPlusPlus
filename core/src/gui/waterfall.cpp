@@ -230,7 +230,9 @@ namespace ImGui {
             int refCenter = mousePos.x - (widgetPos.x + 50);
             if (refCenter >= 0 && refCenter < dataWidth && mousePos.y > widgetPos.y && mousePos.y < (widgetPos.y + widgetSize.y)) {
                 double off = ((((double)refCenter / ((double)dataWidth / 2.0)) - 1.0) * (viewBandwidth / 2.0)) + viewOffset;
-                vfo->setOffset(round(off / vfo->snapInterval) * vfo->snapInterval);
+                off += centerFreq;
+                off = (round(off / vfo->snapInterval) * vfo->snapInterval) - centerFreq;
+                vfo->setOffset(off);
             }
         }
 
@@ -239,7 +241,9 @@ namespace ImGui {
             int refCenter = mousePos.x - (widgetPos.x + 50);
             if (refCenter >= 0 && refCenter < dataWidth && mousePos.y > widgetPos.y && mousePos.y < (widgetPos.y + widgetSize.y)) {
                 double off = ((((double)refCenter / ((double)dataWidth / 2.0)) - 1.0) * (viewBandwidth / 2.0)) + viewOffset;
-                vfo->setOffset(round(off / vfo->snapInterval) * vfo->snapInterval);
+                off += centerFreq;
+                off = (round(off / vfo->snapInterval) * vfo->snapInterval) - centerFreq;
+                vfo->setOffset(off);
             }
         } 
 
@@ -796,6 +800,10 @@ namespace ImGui {
 
     void WaterFall::hideBandplan() {
         bandplanVisible = false;
+    }
+
+    void WaterfallVFO::setSnapInterval(double interval) {
+        snapInterval = interval;
     }
 };
 

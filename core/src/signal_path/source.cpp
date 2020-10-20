@@ -54,5 +54,11 @@ void SourceManager::tune(double freq) {
     if (selectedHandler == NULL) {
         return;
     }
-    selectedHandler->tuneHandler(freq, selectedHandler->ctx);
+    selectedHandler->tuneHandler(freq + tuneOffset, selectedHandler->ctx);
+    currentFreq = freq;
+}
+
+void SourceManager::setTuningOffset(double offset) {
+    tuneOffset = offset;
+    tune(currentFreq);
 }
