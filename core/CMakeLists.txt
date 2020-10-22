@@ -60,7 +60,9 @@ if (MSVC)
     find_package(portaudio CONFIG REQUIRED)
     target_link_libraries(sdrpp_core PUBLIC portaudio portaudio_static)
 
-else()
+endif (MSVC)
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_include_directories(sdrpp_core PUBLIC "/usr/include/volk")
 
     target_link_libraries(sdrpp_core PUBLIC pthread)
@@ -73,7 +75,39 @@ else()
     target_link_libraries(sdrpp_core PUBLIC X11)
     target_link_libraries(sdrpp_core PUBLIC Xxf86vm)
     target_link_libraries(sdrpp_core PUBLIC dl)
-endif (MSVC)
+endif ()
+
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    find_package(OpenGL REQUIRED)
+
+    # find_package(GLEW REQUIRED)
+    # find_package(fftw3 REQUIRED)
+    # find_package(glfw3 REQUIRED)
+    # find_package(volk REQUIRED)
+
+    target_include_directories(sdrpp_core PUBLIC /usr/local/opt/glew/include)
+    target_include_directories(sdrpp_core PUBLIC /usr/local/opt/glfw/include)
+    target_include_directories(sdrpp_core PUBLIC /usr/local/opt/fftw/include)
+    target_include_directories(sdrpp_core PUBLIC /usr/local/opt/portaudio/include)
+    target_include_directories(sdrpp_core PUBLIC /usr/local/opt/volk/include)
+    target_include_directories(sdrpp_core PUBLIC /usr/local/opt/volk/include/volk)
+
+    target_link_directories(sdrpp_core PUBLIC /usr/local/opt/glew/lib)
+    target_link_directories(sdrpp_core PUBLIC /usr/local/opt/volk/lib)
+    target_link_directories(sdrpp_core PUBLIC /usr/local/opt/glfw/lib)
+    target_link_directories(sdrpp_core PUBLIC /usr/local/opt/fftw/lib)
+    target_link_directories(sdrpp_core PUBLIC /usr/local/opt/portaudio/lib)
+
+    target_link_libraries(sdrpp_core PUBLIC ${OPENGL_LIBRARIES})
+    target_link_libraries(sdrpp_core PUBLIC volk)
+    target_link_libraries(sdrpp_core PUBLIC glew)
+    target_link_libraries(sdrpp_core PUBLIC glfw)
+    target_link_libraries(sdrpp_core PUBLIC fftw3)
+    target_link_libraries(sdrpp_core PUBLIC fftw3f)
+    target_link_libraries(sdrpp_core PUBLIC portaudio)
+
+endif ()
 
 target_link_libraries(sdrpp_core PUBLIC volk)
 

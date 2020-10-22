@@ -62,7 +62,21 @@ If you followed the steps above, it should be `build/Release`.
 comming soon :)
 
 # Building on OSX
-comming soon as well :)
+## Install requirements
+```
+brew tap pothosware/homebrew-pothos
+brew install volk glew glfw fftw portaudio
+brew install soapysdr
+```
+You can install additional soapy device support based on your hardware.
+
+## The build
+```
+mkdir build
+cd build
+cmake ..
+cmake --build . --config Release
+```
 
 # Contributing
 
