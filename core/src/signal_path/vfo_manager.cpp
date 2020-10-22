@@ -46,6 +46,10 @@ int VFOManager::VFO::getOutputBlockSize() {
     return dspVFO->getOutputBlockSize();
 }
 
+void VFOManager::VFO::setSnapInterval(double interval) {
+    wtfVFO->setSnapInterval(interval);
+}
+
 
 VFOManager::VFOManager() {
     

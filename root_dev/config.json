@@ -6,9 +6,9 @@
             "volume": 0.60546875
         },
         "Radio 1": {
-            "device": "CABLE-A Input (VB-Audio Cable A)",
+            "device": "Speakers (Realtek High Definition Audio)",
             "sampleRate": 48000.0,
-            "volume": 1.0
+            "volume": 0.609375
         },
         "Radio 2": {
             "device": "CABLE Input (VB-Audio Virtual Cable)",
@@ -18,10 +18,10 @@
     },
     "bandPlan": "General",
     "bandPlanEnabled": true,
-    "fftHeight": 300,
-    "frequency": 99100000,
+    "fftHeight": 298,
+    "frequency": 98200000,
     "max": 0.0,
-    "maximized": false,
+    "maximized": true,
     "menuOrder": [
         "Source",
         "Radio",
@@ -32,7 +32,7 @@
         "Display"
     ],
     "menuWidth": 300,
-    "min": -72.05882263183594,
+    "min": -53.676475524902344,
     "showWaterfall": true,
     "source": "",
     "sourceSettings": {},

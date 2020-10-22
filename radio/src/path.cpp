@@ -36,7 +36,7 @@ void SigPath::init(std::string vfoName, uint64_t sampleRate, int blockSize) {
     // TODO: Add a mono to stereo for different modes
 
     squelch.init(vfo->output, 800);
-    squelch.level = 40;
+    squelch.level = -100.0;
     squelch.onCount = 1;
     squelch.offCount = 2560;
 

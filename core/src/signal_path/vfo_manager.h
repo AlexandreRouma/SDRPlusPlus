@@ -18,6 +18,7 @@ public:
         void setSampleRate(double sampleRate, double bandwidth);
         void setReference(int ref);
         int getOutputBlockSize();
+        void setSnapInterval(double interval);
 
         dsp::stream<dsp::complex_t>* output;
 

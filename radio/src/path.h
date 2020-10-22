@@ -46,11 +46,12 @@ public:
 
     dsp::FMDeemphasis deemp;
     dsp::Squelch squelch;
+    VFOManager::VFO* vfo;
 
 private:
     static int sampleRateChangeHandler(void* ctx, double sampleRate);
 
-    VFOManager::VFO* vfo;
+    
     
     dsp::stream<dsp::complex_t> input;
 

@@ -26,6 +26,7 @@ public:
         sigPath.init(name, 200000, 1000);
         sigPath.start();
         sigPath.setDemodulator(SigPath::DEMOD_FM, bandWidth);
+        sigPath.vfo->setSnapInterval(100000.0);
         gui::menu.registerEntry(name, menuHandler, this);
 
         ScriptManager::ScriptRunHandler_t handler;
@@ -121,12 +122,19 @@ private:
             _this->sigPath.setBandwidth(_this->bandWidth);
         }
 
+        ImGui::Text("Squelch");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuColumnWidth - ImGui::GetCursorPosX());
         ImGui::SliderFloat(CONCAT("##_squelch_select_", _this->name), &_this->sigPath.squelch.level, -100, 0);
 
         ImGui::PopItemWidth();
 
         ImGui::Text("Snap Interval");
+        ImGui::SameLine();
         ImGui::SetNextItemWidth(menuColumnWidth - ImGui::GetCursorPosX());
+        if (ImGui::InputDouble(CONCAT("##_snap_select_", _this->name), &_this->snapInterval)) {
+            _this->sigPath.vfo->setSnapInterval(_this->snapInterval);
+        }
     }
 
     static void scriptCreateHandler(void* ctx, duk_context* dukCtx, duk_idx_t objId) {
