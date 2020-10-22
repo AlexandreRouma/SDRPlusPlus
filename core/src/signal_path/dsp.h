@@ -19,9 +19,12 @@ public:
     void setSampleRate(double sampleRate);
     void setDCBiasCorrection(bool enabled);
     void setFFTRate(double rate);
+    double getSampleRate();
     dsp::VFO* addVFO(std::string name, double outSampleRate, double bandwidth, double offset);
     void removeVFO(std::string name);
     void setInput(dsp::stream<dsp::complex_t>* input);
+    void bindIQStream(dsp::stream<dsp::complex_t>* stream);
+    void unbindIQStream(dsp::stream<dsp::complex_t>* stream);
 
 private:
     struct VFO_t {

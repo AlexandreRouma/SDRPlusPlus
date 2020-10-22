@@ -54,6 +54,10 @@ void SignalPath::setSampleRate(double sampleRate) {
     dynSplit.start();
 }
 
+double SignalPath::getSampleRate() {
+    return sampleRate;
+}
+
 void SignalPath::start() {
     dcBiasRemover.start();
     split.start();
@@ -103,4 +107,16 @@ void SignalPath::setInput(dsp::stream<dsp::complex_t>* input) {
     dcBiasRemover.stop();
     dcBiasRemover.setInput(input);
     dcBiasRemover.start();
+}
+
+void SignalPath::bindIQStream(dsp::stream<dsp::complex_t>* stream) {
+    dynSplit.stop();
+    dynSplit.bind(stream);
+    dynSplit.start();
+}
+
+void SignalPath::unbindIQStream(dsp::stream<dsp::complex_t>* stream) {
+    dynSplit.stop();
+    dynSplit.unbind(stream);
+    dynSplit.start();
 }
