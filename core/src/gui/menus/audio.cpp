@@ -79,7 +79,7 @@ namespace audiomenu {
             deviceId = stream->audio->getDeviceId();
 
             ImGui::SetCursorPosX((menuColumnWidth / 2.0f) - (ImGui::CalcTextSize(name.c_str()).x / 2.0f));
-            ImGui::Text(name.c_str());
+            ImGui::Text("%s", name.c_str());
 
             ImGui::PushItemWidth(menuColumnWidth);
             bool running = stream->running;

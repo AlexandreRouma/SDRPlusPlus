@@ -412,7 +412,7 @@ void drawWindow() {
         if(ImGui::CollapsingHeader("Debug")) {
             ImGui::Text("Frame time: %.3f ms/frame", 1000.0 / ImGui::GetIO().Framerate);
             ImGui::Text("Framerate: %.1f FPS", ImGui::GetIO().Framerate);
-            ImGui::Text("Center Frequency: %.0 Hz", gui::waterfall.getCenterFrequency());
+            ImGui::Text("Center Frequency: %.0f Hz", gui::waterfall.getCenterFrequency());
             ImGui::Text("Source name: %s", sourceName.c_str());
             if (ImGui::Checkbox("Test technique", &dcbias.val)) {
                 sigpath::signalPath.setDCBiasCorrection(dcbias.val);
