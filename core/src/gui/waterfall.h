@@ -51,6 +51,8 @@ namespace ImGui {
     public:
         WaterFall();
 
+        void init();
+
         void draw();
         void pushFFT(std::vector<float> data, int n);
 

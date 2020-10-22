@@ -107,6 +107,10 @@ namespace ImGui {
         updatePallette(COLOR_MAP, 13);
     }
 
+    void WaterFall::init() {
+        glGenTextures(1, &textureId);
+    }
+
     void WaterFall::drawFFT() {
         // Calculate scaling factor
         float startLine = floorf(fftMax / vRange) * vRange;
@@ -361,7 +365,6 @@ namespace ImGui {
     }
 
     void WaterFall::updateWaterfallTexture() {
-        glGenTextures(1, &textureId);
         glBindTexture(GL_TEXTURE_2D, textureId);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

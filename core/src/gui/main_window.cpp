@@ -88,7 +88,7 @@ bool showMenu = true;
 dsp::stream<dsp::complex_t> dummyStream;
 
 void windowInit() {
-    spdlog::info("Initializing SoapySDR");
+    gui::waterfall.init();
 
     credits::init();
 
