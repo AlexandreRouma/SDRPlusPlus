@@ -3,3 +3,4 @@ build/
 *.old
 *.dll
 *.exe
+*.zip

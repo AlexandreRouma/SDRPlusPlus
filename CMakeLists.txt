@@ -1,65 +1,35 @@
-cmake_minimum_required(VERSION 3.9)
-project(sdrpp)
+cmake_minimum_required(VERSION 3.13)
+project(sdrpp_core)
 
-add_subdirectory("modules/radio")
-add_subdirectory("modules/recorder")
+# Cross platform modules
+add_subdirectory("core")
+add_subdirectory("radio")
+add_subdirectory("recorder") 
+add_subdirectory("soapy")
+add_subdirectory("file_source")
+add_subdirectory("rtl_tcp_source")
+add_subdirectory("demo")
 
 if (MSVC)
     set(CMAKE_CXX_FLAGS "-O2 /std:c++17")
-    link_directories(sdrpp "C:/Program Files/PothosSDR/lib/")
-    include_directories(sdrpp "C:/Program Files/PothosSDR/include/volk/")
-    include_directories(sdrpp "C:/Program Files/PothosSDR/include/")
-    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 else()
-    set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -fpermissive -fsanitize=address -g")
-    # set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -fpermissive")
-    include_directories(sdrpp "/usr/include/volk")
-    link_libraries(pthread)
-    link_libraries(GL)
-    link_libraries(GLEW)
-    link_libraries(glfw)
-    link_libraries(fftw3)
-    link_libraries(fftw3f)
-    link_libraries(portaudio)
-    link_libraries(X11)
-    link_libraries(Xxf86vm)
-    link_libraries(dl)
+    set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
 endif (MSVC)
 
-link_libraries(volk)
-link_libraries(SoapySDR)
+add_executable(sdrpp "src/main.cpp" "win32/resources.rc")
+target_link_libraries(sdrpp PRIVATE sdrpp_core)
 
-# Main code
-include_directories(sdrpp "src/")
-include_directories(sdrpp "src/imgui")
-file(GLOB SRC "src/*.cpp")
-file(GLOB IMGUI "src/imgui/*.cpp")
-
-# If on windows, set the executable icon
+# Copy dynamic libs over
 if (MSVC)
-    set(SRC ${SRC} "win32/resources.rc")
+    add_custom_target(do_always ALL xcopy /s \"$<TARGET_FILE_DIR:sdrpp_core>\\*.dll\" \"$<TARGET_FILE_DIR:sdrpp>\" /Y)
 endif (MSVC)
 
-add_executable(sdrpp ${SRC} ${IMGUI})
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    add_custom_target(do_always ALL cp \"$<TARGET_FILE_DIR:sdrpp_core>/sdrpp_core.so\" \"$<TARGET_FILE_DIR:sdrpp>\")
+endif ()
 
-if (MSVC)
-    # Glew
-    find_package(GLEW REQUIRED)
-    target_link_libraries(sdrpp PRIVATE GLEW::GLEW)
-
-    # GLFW3
-    find_package(glfw3 CONFIG REQUIRED)
-    target_link_libraries(sdrpp PRIVATE glfw)
-
-    # FFTW3
-    find_package(FFTW3 CONFIG REQUIRED)
-    target_link_libraries(sdrpp PRIVATE FFTW3::fftw3)
-    find_package(FFTW3f CONFIG REQUIRED)
-    target_link_libraries(sdrpp PRIVATE FFTW3::fftw3f)
-
-    # PortAudio
-    find_package(portaudio CONFIG REQUIRED)
-    target_link_libraries(sdrpp PRIVATE portaudio portaudio_static)
-endif (MSVC)
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    add_custom_target(do_always ALL cp \"$<TARGET_FILE_DIR:sdrpp_core>/sdrpp_core.dylib\" \"$<TARGET_FILE_DIR:sdrpp>\")
+endif ()
 
 # cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/Users/Alex/vcpkg/scripts/buildsystems/vcpkg.cmake" -G "Visual Studio 15 2017 Win64"

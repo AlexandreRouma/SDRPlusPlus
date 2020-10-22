@@ -1,4 +1,6 @@
 {
-    "Radio": "../build/modules/radio/Release/radio.dll",
-    "Recorder": "../build/modules/recorder/Release/recorder.dll"
+    "Radio": "./radio/Release/radio.dll",
+    "Recorder": "./recorder/Release/recorder.dll",
+    "Soapy": "./soapy/Release/soapy.dll",
+    "RTLTCPSource": "./rtl_tcp_source/Release/rtl_tcp_source.dll"
 }

@@ -1,0 +1,29 @@
+{
+    "device": "Generic RTL2832U OEM :: 00000001",
+    "devices": {
+        "AirSpy HF+ [c852435de0224af7]": {
+            "gains": {
+                "LNA": 6.0,
+                "RF": 0.0
+            },
+            "sampleRate": 768000.0
+        },
+        "Generic RTL2832U OEM :: 00000001": {
+            "gains": {
+                "TUNER": 49.599998474121094
+            },
+            "sampleRate": 2560000.0
+        },
+        "HackRF One #0 901868dc282c8f8b": {
+            "gains": {
+                "AMP": 0.0,
+                "LNA": 24.711999893188477,
+                "VGA": 14.282999992370605
+            },
+            "sampleRate": 8000000.0
+        },
+        "PulseAudio": {
+            "sampleRate": 96000.0
+        }
+    }
+}

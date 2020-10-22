@@ -3,31 +3,41 @@
         "Radio": {
             "device": "Speakers (Realtek High Definiti",
             "sampleRate": 48000.0,
-            "volume": 0.4032258093357086
+            "volume": 0.60546875
+        },
+        "Radio 1": {
+            "device": "Speakers (Realtek High Definition Audio)",
+            "sampleRate": 48000.0,
+            "volume": 0.609375
+        },
+        "Radio 2": {
+            "device": "CABLE Input (VB-Audio Virtual Cable)",
+            "sampleRate": 48000.0,
+            "volume": 1.0
         }
     },
     "bandPlan": "General",
     "bandPlanEnabled": true,
-    "fftHeight": 300,
+    "fftHeight": 298,
     "frequency": 100100000,
     "max": 0.0,
-    "maximized": false,
+    "maximized": true,
+    "menuOrder": [
+        "Source",
+        "Radio",
+        "Recorder",
+        "Audio",
+        "Scripting",
+        "Band Plan",
+        "Display"
+    ],
     "menuWidth": 300,
-    "min": -52.20588302612305,
+    "min": -53.676475524902344,
     "showWaterfall": true,
-    "source": "HackRF One #0 901868dc282c8f8b",
-    "sourceSettings": {
-        "HackRF One #0 901868dc282c8f8b": {
-            "gains": {
-                "AMP": 0.0,
-                "LNA": 24.503000259399414,
-                "VGA": 16.229999542236328
-            },
-            "sampleRate": 8000000
-        }
-    },
+    "source": "",
+    "sourceSettings": {},
     "windowSize": {
-        "h": 725,
+        "h": 720,
         "w": 1280
     }
 }
