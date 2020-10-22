@@ -6,7 +6,7 @@ if (MSVC)
     set(CMAKE_CXX_FLAGS "-O2 /std:c++17")
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 else()
-    set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -fpermissive")
+    set(CMAKE_CXX_FLAGS "-g -O3 -std=c++17 -fpermissive")
 endif (MSVC)
 add_definitions(-DSDRPP_IS_CORE)
 
@@ -75,6 +75,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_link_libraries(sdrpp_core PUBLIC X11)
     target_link_libraries(sdrpp_core PUBLIC Xxf86vm)
     target_link_libraries(sdrpp_core PUBLIC dl)
+    target_link_libraries(sdrpp_core PUBLIC stdc++fs)
 endif ()
 
 

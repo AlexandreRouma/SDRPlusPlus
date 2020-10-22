@@ -139,7 +139,9 @@ int sdrpp_main() {
         glfwMaximizeWindow(window);
     }
 
+#if (GLFW_VERSION_MINOR == 3) && (GLFW_VERSION_MINOR >= 2)
     glfwSetWindowMaximizeCallback(window, maximized_callback);
+#endif
 
     // Load app icon
     GLFWimage icons[10];
