@@ -271,7 +271,7 @@ private:
 
         int i = 0;
         for (auto gain : _this->gainList) {
-            ImGui::Text((gain + " gain").c_str());
+            ImGui::Text("%s gain", gain.c_str());
             ImGui::SameLine();
             ImGui::SetCursorPosX(gainNameLen);
             ImGui::SetNextItemWidth(menuWidth - gainNameLen);
