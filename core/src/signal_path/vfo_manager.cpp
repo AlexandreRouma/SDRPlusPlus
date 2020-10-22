@@ -68,7 +68,7 @@ void VFOManager::deleteVFO(VFOManager::VFO* vfo) {
     std::string name = "";
     for (auto const& [_name, _vfo] : vfos) {
         if (_vfo == vfo) {
-            name == _name;
+            name = _name;
             break;
         }
     }
