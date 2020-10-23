@@ -19,9 +19,15 @@ add_library(soapy SHARED ${SRC})
 target_link_libraries(soapy PRIVATE sdrpp_core)
 set_target_properties(soapy PROPERTIES PREFIX "")
 
-target_link_libraries(soapy PUBLIC SoapySDR)
-
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    target_include_directories(soapy PUBLIC /usr/local/opt/soapysdr/include)
-    target_link_directories(soapy PUBLIC /usr/local/opt/soapysdr/lib)
+    find_package(PkgConfig)
+    find_package(OpenGL REQUIRED)
+
+    pkg_check_modules(SOAPY REQUIRED soapysdr)
+
+    target_include_directories(soapy PUBLIC ${SOAPY_INCLUDE_DIRS})
+    target_link_directories(soapy PUBLIC ${SOAPY_LIBRARY_DIRS})
+    target_link_libraries(soapy PUBLIC ${SOAPY_LIBRARIES})
+else ()
+    target_link_libraries(soapy PUBLIC SoapySDR)
 endif ()
