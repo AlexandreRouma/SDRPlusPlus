@@ -36,7 +36,6 @@ if (MSVC)
     target_include_directories(sdrpp_core PUBLIC "C:/Program Files/PothosSDR/include/")
 
     # Volk
-    target_include_directories(sdrpp_core PUBLIC "C:/Program Files/PothosSDR/include/volk/")
     target_link_libraries(sdrpp_core PUBLIC volk)
     
     # SoapySDR
@@ -65,8 +64,6 @@ if (MSVC)
 endif (MSVC)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    target_include_directories(sdrpp_core PUBLIC "/usr/include/volk")
-
     target_link_libraries(sdrpp_core PUBLIC pthread)
     target_link_libraries(sdrpp_core PUBLIC GL)
     target_link_libraries(sdrpp_core PUBLIC GLEW)
@@ -96,7 +93,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         ${GLEW_INCLUDE_DIRS}
         ${FFTW3_INCLUDE_DIRS}
         ${GLFW3_INCLUDE_DIRS}
-        ${VOLK_INCLUDE_DIRS} ${VOLK_INCLUDE_DIRS}/volk
+        ${VOLK_INCLUDE_DIRS}
         ${PORTAUDIO_INCLUDE_DIRS}
         )
 
