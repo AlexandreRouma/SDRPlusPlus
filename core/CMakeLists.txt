@@ -11,16 +11,10 @@ endif (MSVC)
 add_definitions(-DSDRPP_IS_CORE)
 
 # Main code
-file(GLOB SRC "src/*.cpp")
-file(GLOB GUI "src/gui/*.cpp")
-file(GLOB MENUS "src/gui/menus/*.cpp")
-file(GLOB DIALOGS "src/gui/dialogs/*.cpp")
-file(GLOB SIGPATH "src/signal_path/*.cpp")
-file(GLOB IMGUI "src/imgui/*.cpp")
-file(GLOB DUKTAPE "src/duktape/*.c")
+file(GLOB_RECURSE SRC "src/*.cpp" "src/*.c")
 
 # Add code to dyn lib
-add_library(sdrpp_core SHARED ${SRC} ${GUI} ${MENUS} ${DIALOGS} ${SIGPATH} ${IMGUI} ${DUKTAPE})
+add_library(sdrpp_core SHARED ${SRC})
 set_target_properties(sdrpp_core PROPERTIES PREFIX "")
 
 # Include core headers
@@ -61,29 +55,11 @@ if (MSVC)
 
     target_link_libraries(sdrpp_core PUBLIC volk)
 
-endif (MSVC)
-
-if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    target_link_libraries(sdrpp_core PUBLIC pthread)
-    target_link_libraries(sdrpp_core PUBLIC GL)
-    target_link_libraries(sdrpp_core PUBLIC GLEW)
-    target_link_libraries(sdrpp_core PUBLIC glfw)
-    target_link_libraries(sdrpp_core PUBLIC fftw3)
-    target_link_libraries(sdrpp_core PUBLIC fftw3f)
-    target_link_libraries(sdrpp_core PUBLIC portaudio)
-    target_link_libraries(sdrpp_core PUBLIC X11)
-    target_link_libraries(sdrpp_core PUBLIC Xxf86vm)
-    target_link_libraries(sdrpp_core PUBLIC dl)
-    target_link_libraries(sdrpp_core PUBLIC stdc++fs)
-    target_link_libraries(sdrpp_core PUBLIC volk)
-endif ()
-
-
-if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+else()
     find_package(PkgConfig)
     find_package(OpenGL REQUIRED)
 
-    pkg_check_modules(GLEW REQUIRED GLEW)
+    pkg_check_modules(GLEW REQUIRED glew)
     pkg_check_modules(FFTW3 REQUIRED fftw3f)
     pkg_check_modules(VOLK REQUIRED volk)
     pkg_check_modules(GLFW3 REQUIRED glfw3)
@@ -114,8 +90,15 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         ${PORTAUDIO_STATIC_LIBRARIES}
         )
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+        target_link_libraries(sdrpp_core PUBLIC stdc++fs)
+    endif ()
+
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
+    endif ()
+
 endif ()
 
 set(CORE_FILES ${RUNTIME_OUTPUT_DIRECTORY} PARENT_SCOPE)
