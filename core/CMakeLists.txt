@@ -44,8 +44,6 @@ if (MSVC)
     target_link_libraries(sdrpp_core PUBLIC glfw)
 
     # FFTW3
-    find_package(FFTW3 CONFIG REQUIRED)
-    target_link_libraries(sdrpp_core PUBLIC FFTW3::fftw3)
     find_package(FFTW3f CONFIG REQUIRED)
     target_link_libraries(sdrpp_core PUBLIC FFTW3::fftw3f)
 
