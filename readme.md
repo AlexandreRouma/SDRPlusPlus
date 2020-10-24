@@ -63,18 +63,35 @@ comming soon :)
 
 # Building on OSX
 ## Install requirements
+
 ```
 brew tap pothosware/homebrew-pothos
 brew install volk glew glfw fftw portaudio
 brew install soapysdr
 ```
 You can install additional soapy device support based on your hardware.
-
 ## The build
+
 ```
 mkdir build
 cd build
 cmake ..
+cmake --build . --config Release
+```
+
+# Building on OpenBSD
+## Install requirements
+
+```
+pkg_add fftw3-float glew glfw portaudio-svn
+
+# install volk and SoapySDR manually
+```
+## The build
+```
+mkdir build
+cd build
+cmake --clang ..
 cmake --build . --config Release
 ```
 
