@@ -1,6 +1,6 @@
 {
-    "Radio": "./radio/radio.so",
-    "Recorder": "./recorder/recorder.so",
-    "Soapy": "./soapy/soapy.so",
-    "RTLTCPSource": "./rtl_tcp_source/rtl_tcp_source.so"
+    "Radio": "./radio/Release/radio.dll",
+    "Recorder": "./recorder/Release/recorder.dll",
+    "Soapy": "./soapy/Release/soapy.dll",
+    "RTLTCPSource": "./rtl_tcp_source/Release/rtl_tcp_source.dll"
 }

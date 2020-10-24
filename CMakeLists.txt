@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(sdrpp_core)
+project(sdrpp)
 
 # Cross platform modules
 add_subdirectory("core")
