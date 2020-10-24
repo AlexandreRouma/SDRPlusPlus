@@ -99,6 +99,17 @@ cmake ..
 cmake --build . --config Release
 ```
 
+Modify root_dev/modules_list.json
+If the content is different than the following, change it.
+```
+{
+    "Radio": "./radio/radio.dylib",
+    "Recorder": "./recorder/recorder.dylib",
+    "Soapy": "./soapy/soapy.dylib",
+    "RTLTCPSource": "./rtl_tcp_source/rtl_tcp_source.dylib"
+}
+```
+
 # Building on OpenBSD
 ## Install requirements
 ```
@@ -119,17 +130,18 @@ cp -Rf root root_dev # if are in dev
 mv root/modules ./
 ```
 
-## Run SDRPP with `build/sdrpp`.
 Modify root_dev/modules_list.json
-If the content is different than the following, change it.
+Change it accordingly to use .so dynamic lib extension.
 ```
 {
-    "Radio": "./radio/radio.dylib",
-    "Recorder": "./recorder/recorder.dylib",
-    "Soapy": "./soapy/soapy.dylib",
-    "RTLTCPSource": "./rtl_tcp_source/rtl_tcp_source.dylib"
+    "Radio": "./radio/radio.so",
+    "Recorder": "./recorder/recorder.so",
+    "Soapy": "./soapy/soapy.so",
+    "RTLTCPSource": "./rtl_tcp_source/rtl_tcp_source.so"
 }
 ```
+
+Run SDRPP with `build/sdrpp`.
 
 # Contributing
 
