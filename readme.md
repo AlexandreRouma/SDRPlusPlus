@@ -59,7 +59,28 @@ The last step of the build process is copying the `bandplans` and `res` director
 If you followed the steps above, it should be `build/Release`.
 
 # Building on Linux
-comming soon :)
+## install requirements
+On Debian/Ubtuntu system:
+apt install libglew-dev libglfw3-dev libfftw3-dev libvolk1-dev portaudio19-dev libsoapysdr-dev gcc
+
+## The build
+```
+mkdir build
+cd build
+cmake ..
+make
+```
+
+## Modify root_dev/modules_list.json
+If the content is different than the following, change it.
+```
+{
+    "Radio": "./radio/radio.so",
+    "Recorder": "./recorder/recorder.so",
+    "Soapy": "./soapy/soapy.so",
+    "RTLTCPSource": "./rtl_tcp_source/rtl_tcp_source.so"
+}
+```
 
 # Building on OSX
 ## Install requirements
@@ -99,6 +120,17 @@ mv root/modules ./
 ```
 
 Run SDRPP with `build/sdrpp`.
+=======
+## Modify root_dev/modules_list.json
+If the content is different than the following, change it.
+```
+{
+    "Radio": "./radio/radio.dylib",
+    "Recorder": "./recorder/recorder.dylib",
+    "Soapy": "./soapy/soapy.dylib",
+    "RTLTCPSource": "./rtl_tcp_source/rtl_tcp_source.dylib"
+}
+```
 
 # Contributing
 
