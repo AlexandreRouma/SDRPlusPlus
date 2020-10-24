@@ -100,11 +100,13 @@ int sdrpp_main() {
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync
 
+#if (GLFW_VERSION_MAJOR == 3) && (GLFW_VERSION_MINOR >= 3)
     if (maximized) {
         glfwMaximizeWindow(window);
     }
 
     glfwSetWindowMaximizeCallback(window, maximized_callback);
+#endif
 
     // Load app icon
     GLFWimage icons[10];

@@ -2,7 +2,7 @@
 #include <thread>
 #include <dsp/stream.h>
 #include <dsp/types.h>
-#include <volk.h>
+#include <volk/volk.h>
 
 #ifndef M_PI
 #define M_PI    3.1415926535f

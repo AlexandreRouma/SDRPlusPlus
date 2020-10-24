@@ -4,3 +4,4 @@ build/
 *.dll
 *.exe
 *.zip
+.DS_Store
