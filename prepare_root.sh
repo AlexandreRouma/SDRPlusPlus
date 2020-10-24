@@ -1,3 +1,3 @@
 #!/bin/sh
 
-cp build/modules/*/*.so root/modules
+cp build/*/*.so root/modules
