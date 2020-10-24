@@ -11,7 +11,7 @@ namespace audio {
         astr->audio->init(1);
         astr->deviceId = astr->audio->getDeviceId();
         double sampleRate = astr->audio->devices[astr->deviceId].sampleRates[0];
-        int blockSize = sampleRate / 200; // default block size
+        int blockSize = sampleRate / 200.0; // default block size
         astr->monoAudioStream = new dsp::stream<float>(blockSize * 2);
         astr->audio->setBlockSize(blockSize);
         astr->audio->setStreamType(io::AudioSink::MONO);
@@ -38,7 +38,7 @@ namespace audio {
         astr->audio = new io::AudioSink;
         astr->audio->init(1);
         double sampleRate = astr->audio->devices[astr->audio->getDeviceId()].sampleRates[0];
-        int blockSize = sampleRate / 200; // default block size
+        int blockSize = sampleRate / 200.0; // default block size
         astr->stereoAudioStream = new dsp::stream<dsp::StereoFloat_t>(blockSize * 2);
         astr->audio->setBlockSize(blockSize);
         astr->audio->setStreamType(io::AudioSink::STEREO);

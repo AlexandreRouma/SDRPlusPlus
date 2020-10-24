@@ -176,4 +176,76 @@ namespace dsp {
         }
 
     };
+
+
+
+
+
+    template <class T>
+    class Reshaper {
+    public:
+        Reshaper() {
+
+        }
+
+        void init(int outBlockSize, dsp::stream<T>* input) {
+            outputBlockSize = outBlockSize;
+            in = input;
+            out.init(outputBlockSize * 2);
+        }
+
+        void setOutputBlockSize(int blockSize) {
+            if (running) {
+                return;
+            }
+            outputBlockSize = blockSize;
+            out.setMaxLatency(outputBlockSize * 2);
+        }
+
+        void setInput(dsp::stream<T>* input) {
+            if (running) {
+                return;
+            }
+            in = input;
+        }
+
+        void start() {
+            if (running) {
+                return;
+            }
+            workerThread = std::thread(_worker, this);
+            running = true;
+        }
+
+        void stop() {
+            if (!running) {
+                return;
+            }
+            in->stopReader();
+            out.stopWriter();
+            workerThread.join();
+            in->clearReadStop();
+            out.clearWriteStop();
+            running = false;
+        }
+
+        dsp::stream<T> out;
+
+    private:
+        static void _worker(Reshaper* _this) {
+            T* buf = new T[_this->outputBlockSize];
+            while (true) {
+                if (_this->in->read(buf, _this->outputBlockSize) < 0) { break; }
+                if (_this->out.write(buf, _this->outputBlockSize) < 0) { break; }
+            }
+            delete[] buf;
+        }
+
+        int outputBlockSize;
+        bool running = false;
+        std::thread workerThread;
+
+        dsp::stream<T>* in;
+        
+    };
 };

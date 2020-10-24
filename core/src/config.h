@@ -8,6 +8,11 @@ using nlohmann::json;
 
 #define DEV_BUILD
 
+
+#define SDRPP_RESOURCE_DIR      "/usr/local/"
+
+
+
 #ifndef ROOT_DIR
 #ifdef DEV_BUILD
 #define ROOT_DIR    "../root_dev"
@@ -29,10 +34,19 @@ public:
     void aquire();
     void release(bool changed = false);
 
+    // static void setResourceDir(std::string path);
+    // static std::string getResourceDir();
+
+    // static void setConfigDir(std::string path);
+    // static std::string getConfigDir();
+
     json conf;
     
 private:
     static void autoSaveWorker(ConfigManager* _this);
+
+    //static std::string resDir;
+    //static std::string configDir;
 
     std::string path = "";
     bool changed = false;

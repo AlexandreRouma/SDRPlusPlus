@@ -3,6 +3,8 @@
 #include <dsp/stream.h>
 #include <dsp/types.h>
 #include <vector>
+#include <spdlog/spdlog.h>
+
 
 namespace dsp {
     class HandlerSink {
@@ -61,18 +63,19 @@ namespace dsp {
         bool running = false;
     };
 
+    template <class T>
     class NullSink {
     public:
         NullSink() {
             
         }
 
-        NullSink(stream<complex_t>* input, int bufferSize) {
+        NullSink(stream<T>* input, int bufferSize) {
             _in = input;
             _bufferSize = bufferSize;
         }
 
-        void init(stream<complex_t>* input, int bufferSize) {
+        void init(stream<T>* input, int bufferSize) {
             _in = input;
             _bufferSize = bufferSize;
         }
@@ -85,13 +88,14 @@ namespace dsp {
 
     private:
         static void _worker(NullSink* _this) {
-            complex_t* buf = new complex_t[_this->_bufferSize];
+            T* buf = new T[_this->_bufferSize];
             while (true) {
+                //spdlog::info("NS: Reading...");
                 _this->_in->read(buf, _this->_bufferSize);
             }
         }
 
-        stream<complex_t>* _in;
+        stream<T>* _in;
         int _bufferSize;
         std::thread _workerThread;
     };
@@ -113,6 +117,7 @@ namespace dsp {
         }
 
         void start() {
+            spdlog::info("NS: Starting...");
             _workerThread = std::thread(_worker, this);
         }
 
@@ -120,8 +125,10 @@ namespace dsp {
 
     private:
         static void _worker(FloatNullSink* _this) {
+            spdlog::info("NS: Started!");
             float* buf = new float[_this->_bufferSize];
             while (true) {
+                spdlog::info("NS: Reading...");
                 _this->_in->read(buf, _this->_bufferSize);
             }
         }

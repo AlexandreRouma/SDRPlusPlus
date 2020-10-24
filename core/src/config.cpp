@@ -75,3 +75,36 @@ void ConfigManager::autoSaveWorker(ConfigManager* _this) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 }
+
+// void ConfigManager::setResourceDir(std::string path) {
+//     if (!std::filesystem::exists(path)) {
+//         spdlog::error("Resource directory '{0}' does not exist", path);
+//         return;
+//     }
+//     if (!std::filesystem::is_regular_file(path)) {
+//         spdlog::error("Resource directory '{0}' is not a directory", path);
+//         return;
+//     }
+//     resDir = path;
+// }
+
+// std::string ConfigManager::getResourceDir() {
+//     return resDir;
+// }
+
+// void ConfigManager::setConfigDir(std::string path) {
+//     if (!std::filesystem::exists(path)) {
+//         spdlog::error("Resource directory '{0}' does not exist", path);
+//         return;
+//     }
+//     if (!std::filesystem::is_regular_file(path)) {
+//         spdlog::error("Resource directory '{0}' is not a directory", path);
+//         return;
+//     }
+//     resDir = path;
+// }
+
+// std::string ConfigManager::getConfigDir() {
+//     return configDir;
+// }
+

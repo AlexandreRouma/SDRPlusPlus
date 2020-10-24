@@ -66,7 +66,6 @@ void fftHandler(dsp::complex_t* samples) {
     _data.clear();
 }
 
-dsp::NullSink sink;
 watcher<uint64_t> freq((uint64_t)90500000);
 watcher<double> vfoFreq(92000000.0);
 float dummyVolume = 1.0;
