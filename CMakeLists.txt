@@ -25,6 +25,11 @@ if (MSVC)
     add_custom_target(do_always_volk ALL xcopy /s \"C:/Program Files/PothosSDR/bin\\volk.dll\" \"$<TARGET_FILE_DIR:sdrpp>\" /Y)
 endif (MSVC)
 
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD")
+    add_custom_target(do_always ALL cp \"$<TARGET_FILE_DIR:sdrpp_core>/sdrpp_core.so\" \"$<TARGET_FILE_DIR:sdrpp>\")
+endif ()
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_custom_target(do_always ALL cp \"$<TARGET_FILE_DIR:sdrpp_core>/sdrpp_core.so\" \"$<TARGET_FILE_DIR:sdrpp>\")
 endif ()
