@@ -99,6 +99,28 @@ cmake ..
 cmake --build . --config Release
 ```
 
+# Building on OpenBSD
+## Install requirements
+```
+pkg_add fftw3-float glew glfw portaudio-svn
+
+# install volk and SoapySDR manually
+```
+
+## The build
+```
+mkdir build
+cd build
+cmake --clang ..
+make
+cd ..
+./prepare_root.sh
+cp -Rf root root_dev # if are in dev
+mv root/modules ./
+```
+
+Run SDRPP with `build/sdrpp`.
+=======
 ## Modify root_dev/modules_list.json
 If the content is different than the following, change it.
 ```
