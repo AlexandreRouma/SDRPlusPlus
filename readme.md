@@ -119,9 +119,8 @@ cp -Rf root root_dev # if are in dev
 mv root/modules ./
 ```
 
-Run SDRPP with `build/sdrpp`.
-=======
-## Modify root_dev/modules_list.json
+## Run SDRPP with `build/sdrpp`.
+Modify root_dev/modules_list.json
 If the content is different than the following, change it.
 ```
 {
