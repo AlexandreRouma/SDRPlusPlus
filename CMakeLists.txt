@@ -5,15 +5,23 @@ project(sdrpp)
 add_subdirectory("core")
 add_subdirectory("radio")
 add_subdirectory("recorder") 
-add_subdirectory("soapy")
 add_subdirectory("file_source")
 add_subdirectory("rtl_tcp_source")
 add_subdirectory("demo")
 
 if (MSVC)
     set(CMAKE_CXX_FLAGS "-O2 /std:c++17")
+    add_subdirectory("soapy")
 else()
     set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
+
+    find_package(PkgConfig)
+
+    pkg_check_modules(SOAPY SoapySDR)
+
+    if (${SOAPY_FOUND})
+        add_subdirectory("soapy")
+    endif ()
 endif (MSVC)
 
 add_executable(sdrpp "src/main.cpp" "win32/resources.rc")
