@@ -54,6 +54,7 @@ public:
         int iResult = getaddrinfo(host, buf, &hints, &result);
         if (iResult != 0) {
             // TODO: log error
+            printf("A");
             WSACleanup();
             return false;
         }
@@ -63,6 +64,7 @@ public:
 
         if (sock == INVALID_SOCKET) {
             // TODO: log error
+            printf("B");
             freeaddrinfo(result);
             WSACleanup();
             return false;
@@ -70,6 +72,7 @@ public:
 
         iResult = connect(sock, ptr->ai_addr, (int)ptr->ai_addrlen);
         if (iResult == SOCKET_ERROR) {
+            printf("C");
             closesocket(sock);
             freeaddrinfo(result);
             WSACleanup();
@@ -95,6 +98,8 @@ public:
 #endif
 
         connected = true;
+
+        printf("Connected");
 
         return true;
     }
