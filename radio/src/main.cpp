@@ -122,11 +122,6 @@ private:
             _this->sigPath.setBandwidth(_this->bandWidth);
         }
 
-        ImGui::Text("Squelch");
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(menuColumnWidth - ImGui::GetCursorPosX());
-        ImGui::SliderFloat(CONCAT("##_squelch_select_", _this->name), &_this->sigPath.squelch.level, -100, 0);
-
         ImGui::PopItemWidth();
 
         ImGui::Text("Snap Interval");

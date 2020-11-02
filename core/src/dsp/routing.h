@@ -1,310 +1,102 @@
 #pragma once
-#include <thread>
-#include <dsp/stream.h>
-#include <dsp/types.h>
-#include <vector>
-#include <spdlog/spdlog.h>
+#include <dsp/block.h>
+#include <cstring>
 
 namespace dsp {
-    class Splitter {
-    public:
-        Splitter() {
-            
-        }
-
-        Splitter(stream<complex_t>* input, int bufferSize) {
-            _in = input;
-            _bufferSize = bufferSize;
-            output_a.init(bufferSize);
-            output_b.init(bufferSize);
-        }
-
-        void init(stream<complex_t>* input, int bufferSize) {
-            _in = input;
-            _bufferSize = bufferSize;
-            output_a.init(bufferSize);
-            output_b.init(bufferSize);
-        }
-
-        void start() {
-            if (running) {
-                return;
-            }
-            _workerThread = std::thread(_worker, this);
-            running = true;
-        }
-
-        void stop() {
-            if (!running) {
-                return;
-            }
-            _in->stopReader();
-            output_a.stopWriter();
-            output_b.stopWriter();
-            _workerThread.join();
-            _in->clearReadStop();
-            output_a.clearWriteStop();
-            output_b.clearWriteStop();
-            running = false;
-        }
-
-        void setBlockSize(int blockSize) {
-            if (running) {
-                return;
-            }
-            _bufferSize = blockSize;
-            output_a.setMaxLatency(blockSize * 2);
-            output_b.setMaxLatency(blockSize * 2);
-        }
-
-        stream<complex_t> output_a;
-        stream<complex_t> output_b;
-
-    private:
-        static void _worker(Splitter* _this) {
-            complex_t* buf = new complex_t[_this->_bufferSize];
-            while (true) {
-                if (_this->_in->read(buf, _this->_bufferSize) < 0) { break; };
-                if (_this->output_a.write(buf, _this->_bufferSize) < 0) { break; };
-                if (_this->output_b.write(buf, _this->_bufferSize) < 0) { break; };
-            }
-            delete[] buf;
-        }
-
-        stream<complex_t>* _in;
-        int _bufferSize;
-        std::thread _workerThread;
-        bool running = false;
-    };
-
     template <class T>
-    class DynamicSplitter {
+    class Splitter : public generic_block<Splitter<T>> {
     public:
-        DynamicSplitter() {
-            
+        Splitter() {}
+
+        Splitter(stream<T>* in) { init(in); }
+
+        ~Splitter() { generic_block<Splitter>::stop(); }
+
+        void init(stream<T>* in) {
+            _in = in;
+            generic_block<Splitter>::registerInput(_in);
         }
 
-        DynamicSplitter(stream<T>* input, int bufferSize) {
-            _in = input;
-            _bufferSize = bufferSize;
+        void setInput(stream<T>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<Splitter>::ctrlMtx);
+            generic_block<Splitter>::tempStop();
+            generic_block<Splitter>::unregisterInput(_in);
+            _in = in;
+            generic_block<Splitter>::registerInput(_in);
+            generic_block<Splitter>::tempStart();
         }
 
-        void init(stream<T>* input, int bufferSize) {
-            _in = input;
-            _bufferSize = bufferSize;
+        void bindStream(stream<T>* stream) {
+            std::lock_guard<std::mutex> lck(generic_block<Splitter>::ctrlMtx);
+            generic_block<Splitter>::tempStop();
+            out.push_back(stream);
+            generic_block<Splitter>::registerOutput(stream);
+            generic_block<Splitter>::tempStart();
         }
 
-        void start() {
-            if (running) {
-                return;
-            }
-            _workerThread = std::thread(_worker, this);
-            running = true;
-        }
-
-        void stop() {
-            if (!running) {
-                return;
-            }
-            _in->stopReader();
-            int outputCount = outputs.size();
-            for (int i = 0; i < outputCount; i++) {
-                outputs[i]->stopWriter();
-            }
-            _workerThread.join();
-            _in->clearReadStop();
-            for (int i = 0; i < outputCount; i++) {
-                outputs[i]->clearWriteStop();
-            }
-            running = false;
-        }
-
-        void setBlockSize(int blockSize) {
-            if (running) {
-                return;
-            }
-            _bufferSize = blockSize;
-            int outputCount = outputs.size();
-            for (int i = 0; i < outputCount; i++) {
-                outputs[i]->setMaxLatency(blockSize * 2);
-            }
-        }
-
-        void bind(stream<T>* stream) {
-            if (running) {
-                return;
-            }
-            outputs.push_back(stream);
-        }
-
-        void unbind(stream<T>* stream) {
-            if (running) {
-                return;
-            }
-            int outputCount = outputs.size();
-            for (int i = 0; i < outputCount; i++) {
-                if (outputs[i] == stream) {
-                    outputs.erase(outputs.begin() + i);
-                    return;
-                }
-            }
+        void unbindStream(stream<T>* stream) {
+            std::lock_guard<std::mutex> lck(generic_block<Splitter>::ctrlMtx);
+            generic_block<Splitter>::tempStop();
+            generic_block<Splitter>::unregisterOutput(stream);
+            out.erase(std::remove(out.begin(), out.end(), stream), out.end());
+            generic_block<Splitter>::tempStart();
         }
 
     private:
-        static void _worker(DynamicSplitter* _this) {
-            T* buf = new T[_this->_bufferSize];
-            int outputCount = _this->outputs.size();
-            while (true) {
-                if (_this->_in->read(buf, _this->_bufferSize) < 0) { break; };
-                for (int i = 0; i < outputCount; i++) {
-                    if (_this->outputs[i]->write(buf, _this->_bufferSize) < 0) { break; };
-                }
+        int run() {
+            // TODO: If too slow, buffering might be necessary
+            int count = _in->read();
+            if (count < 0) { return -1; }
+            for (const auto& stream : out) {
+                if (stream->aquire() < 0) { return -1; } 
+                memcpy(stream->data, _in->data, count * sizeof(T));
+                stream->write(count);
             }
-            delete[] buf;
+            _in->flush();
+            return count;
         }
 
         stream<T>* _in;
-        int _bufferSize;
-        std::thread _workerThread;
-        bool running = false;
-        std::vector<stream<T>*> outputs;
+        std::vector<stream<T>*> out;
+
     };
 
-
-    class MonoToStereo {
+    template <class T>
+    class Reshaper : public generic_block<Reshaper<T>> {
     public:
-        MonoToStereo() {
-            
+        Reshaper() {}
+
+        Reshaper(stream<T>* in) { init(in); }
+
+        ~Reshaper() { generic_block<Reshaper<T>>::stop(); }
+
+        void init(stream<T>* in) {
+            _in = in;
+            buffer = (T*)volk_malloc(STREAM_BUFFER_SIZE * sizeof(T), volk_get_alignment());
+            generic_block<Reshaper<T>>::registerInput(_in);
+            generic_block<Reshaper<T>>::registerOutput(&out);
         }
 
-        MonoToStereo(stream<float>* input, int bufferSize) {
-            _in = input;
-            _bufferSize = bufferSize;
-            output.init(bufferSize * 2);
+        void setInput(stream<T>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<Reshaper<T>>::ctrlMtx);
+            generic_block<Reshaper<T>>::tempStop();
+            _in = in;
+            generic_block<Reshaper<T>>::tempStart();
         }
 
-        void init(stream<float>* input, int bufferSize) {
-            _in = input;
-            _bufferSize = bufferSize;
-            output.init(bufferSize * 2);
+        int run() {
+            int count = _in->read();
+            _in->flush();
+            return count;
         }
 
-        void start() {
-            if (running) {
-                return;
-            }
-            _workerThread = std::thread(_worker, this);
-            running = true;
-        }
-
-        void stop() {
-            if (!running) {
-                return;
-            }
-            _in->stopReader();
-            output.stopWriter();
-            _workerThread.join();
-            _in->clearReadStop();
-            output.clearWriteStop();
-            running = false;
-        }
-
-        void setBlockSize(int blockSize) {
-            if (running) {
-                return;
-            }
-            _bufferSize = blockSize;
-            output.setMaxLatency(blockSize * 2);
-        }
-
-        stream<StereoFloat_t> output;
+        stream<T> out;
 
     private:
-        static void _worker(MonoToStereo* _this) {
-            float* inBuf = new float[_this->_bufferSize];
-            StereoFloat_t* outBuf = new StereoFloat_t[_this->_bufferSize];
-            while (true) {
-                if (_this->_in->read(inBuf, _this->_bufferSize) < 0) { break; };
-                for (int i = 0; i < _this->_bufferSize; i++) {
-                    outBuf[i].l = inBuf[i];
-                    outBuf[i].r = inBuf[i];
-                }
-                if (_this->output.write(outBuf, _this->_bufferSize) < 0) { break; };
-            }
-            delete[] inBuf;
-            delete[] outBuf;
-        }
+        stream<T>* _in;
+        T* buffer;
+        int _outBlockSize;
+        int readCount;
 
-        stream<float>* _in;
-        int _bufferSize;
-        std::thread _workerThread;
-        bool running = false;
     };
-
-    class StereoToMono {
-    public:
-        StereoToMono() {
-            
-        }
-
-        StereoToMono(stream<StereoFloat_t>* input, int bufferSize) {
-            _in = input;
-            _bufferSize = bufferSize;
-        }
-
-        void init(stream<StereoFloat_t>* input, int bufferSize) {
-            _in = input;
-            _bufferSize = bufferSize;
-        }
-
-        void start() {
-            if (running) {
-                return;
-            }
-            _workerThread = std::thread(_worker, this);
-            running = true;
-        }
-
-        void stop() {
-            if (!running) {
-                return;
-            }
-            _in->stopReader();
-            output.stopWriter();
-            _workerThread.join();
-            _in->clearReadStop();
-            output.clearWriteStop();
-            running = false;
-        }
-
-        void setBlockSize(int blockSize) {
-            if (running) {
-                return;
-            }
-            _bufferSize = blockSize;
-            output.setMaxLatency(blockSize * 2);
-        }
-
-        stream<float> output;
-
-    private:
-        static void _worker(StereoToMono* _this) {
-            StereoFloat_t* inBuf = new StereoFloat_t[_this->_bufferSize];
-            float* outBuf = new float[_this->_bufferSize];
-            while (true) {
-                if (_this->_in->read(inBuf, _this->_bufferSize) < 0) { break; };
-                for (int i = 0; i < _this->_bufferSize; i++) {
-                    outBuf[i] = (inBuf[i].l + inBuf[i].r) / 2.0f;
-                }
-                if (_this->output.write(outBuf, _this->_bufferSize) < 0) { break; };
-            }
-            delete[] inBuf;
-            delete[] outBuf;
-        }
-
-        stream<StereoFloat_t>* _in;
-        int _bufferSize;
-        std::thread _workerThread;
-        bool running = false;
-    };
-};
+}

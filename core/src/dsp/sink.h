@@ -1,140 +1,99 @@
 #pragma once
-#include <thread>
-#include <dsp/stream.h>
-#include <dsp/types.h>
-#include <vector>
-#include <spdlog/spdlog.h>
-
+#include <dsp/block.h>
+#include <dsp/buffer.h>
 
 namespace dsp {
-    class HandlerSink {
+    template <class T>
+    class HandlerSink : public generic_block<HandlerSink<T>> {
     public:
-        HandlerSink() {
-            
-        }
+        HandlerSink() {}
 
-        HandlerSink(stream<complex_t>* input, complex_t* buffer, int bufferSize, void handler(complex_t*)) {
-            _in = input;
-            _bufferSize = bufferSize;
-            _buffer = buffer;
+        HandlerSink(stream<T>* in, void (*handler)(T* data, int count, void* ctx), void* ctx) { init(in, handler, ctx); }
+
+        ~HandlerSink() { generic_block<HandlerSink<T>>::stop(); }
+
+        void init(stream<T>* in, void (*handler)(T* data, int count, void* ctx), void* ctx) {
+            _in = in;
             _handler = handler;
+            _ctx = ctx;
+            generic_block<HandlerSink<T>>::registerInput(_in);
         }
 
-        void init(stream<complex_t>* input, complex_t* buffer, int bufferSize, void handler(complex_t*)) {
-            _in = input;
-            _bufferSize = bufferSize;
-            _buffer = buffer;
+        void setInput(stream<T>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<HandlerSink<T>>::ctrlMtx);
+            generic_block<HandlerSink<T>>::tempStop();
+            _in = in;
+            generic_block<HandlerSink<T>>::tempStart();
+        }
+
+        void setHandler(void (*handler)(T* data, int count, void* ctx), void* ctx) {
+            std::lock_guard<std::mutex> lck(generic_block<HandlerSink<T>>::ctrlMtx);
+            generic_block<HandlerSink<T>>::tempStop();
             _handler = handler;
+            _ctx = ctx;
+            generic_block<HandlerSink<T>>::tempStart();
         }
 
-        void start() {
-            if (running) {
-                return;
-            }
-            _workerThread = std::thread(_worker, this);
-            running = true;
+        int run() {
+            count = _in->read();
+            if (count < 0) { return -1; }
+            _handler(_in->data, count, _ctx);
+            _in->flush();
+            return count;
         }
-
-        void stop() {
-            if (!running) {
-                return;
-            }
-            _in->stopReader();
-            _workerThread.join();
-            _in->clearReadStop();
-            running = false;
-        }
-
-        bool bypass;
 
     private:
-        static void _worker(HandlerSink* _this) {
-            while (true) {
-                if (_this->_in->read(_this->_buffer, _this->_bufferSize) < 0) { break; };
-                _this->_handler(_this->_buffer);
-            }
-        }
+        int count;
+        stream<T>* _in;
+        void (*_handler)(T* data, int count, void* ctx);
+        void* _ctx;
 
-        stream<complex_t>* _in;
-        int _bufferSize;
-        complex_t* _buffer;
-        std::thread _workerThread;
-        void (*_handler)(complex_t*);
-        bool running = false;
     };
 
     template <class T>
-    class NullSink {
+    class RingBufferSink : public generic_block<RingBufferSink<T>> {
     public:
-        NullSink() {
-            
+        RingBufferSink() {}
+
+        RingBufferSink(stream<T>* in) { init(in); }
+
+        ~RingBufferSink() { generic_block<RingBufferSink<T>>::stop(); }
+
+        void init(stream<T>* in) {
+            _in = in;
+            generic_block<RingBufferSink<T>>::registerInput(_in);
         }
 
-        NullSink(stream<T>* input, int bufferSize) {
-            _in = input;
-            _bufferSize = bufferSize;
+        void setInput(stream<T>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<RingBufferSink<T>>::ctrlMtx);
+            generic_block<RingBufferSink<T>>::tempStop();
+            _in = in;
+            generic_block<RingBufferSink<T>>::tempStart();
         }
 
-        void init(stream<T>* input, int bufferSize) {
-            _in = input;
-            _bufferSize = bufferSize;
+        int run() {
+            count = _in->read();
+            if (count < 0) { return -1; }
+            if (data.write(_in->data, count) < 0) { return -1; }
+            _in->flush();
+            return count;
         }
 
-        void start() {
-            _workerThread = std::thread(_worker, this);
-        }
-
-        bool bypass;
+        RingBuffer<T> data;
 
     private:
-        static void _worker(NullSink* _this) {
-            T* buf = new T[_this->_bufferSize];
-            while (true) {
-                //spdlog::info("NS: Reading...");
-                _this->_in->read(buf, _this->_bufferSize);
+        void doStop() {
+            _in->stopReader();
+            data.stopWriter();
+            if (generic_block<RingBufferSink<T>>::workerThread.joinable()) {
+                generic_block<RingBufferSink<T>>::workerThread.join();
             }
+            _in->clearReadStop();
+            data.clearWriteStop();
         }
 
+        int count;
         stream<T>* _in;
-        int _bufferSize;
-        std::thread _workerThread;
+
     };
-
-    class FloatNullSink {
-    public:
-        FloatNullSink() {
-            
-        }
-
-        FloatNullSink(stream<float>* input, int bufferSize) {
-            _in = input;
-            _bufferSize = bufferSize;
-        }
-
-        void init(stream<float>* input, int bufferSize) {
-            _in = input;
-            _bufferSize = bufferSize;
-        }
-
-        void start() {
-            spdlog::info("NS: Starting...");
-            _workerThread = std::thread(_worker, this);
-        }
-
-        bool bypass;
-
-    private:
-        static void _worker(FloatNullSink* _this) {
-            spdlog::info("NS: Started!");
-            float* buf = new float[_this->_bufferSize];
-            while (true) {
-                spdlog::info("NS: Reading...");
-                _this->_in->read(buf, _this->_bufferSize);
-            }
-        }
-
-        stream<float>* _in;
-        int _bufferSize;
-        std::thread _workerThread;
-    };
-};
+}

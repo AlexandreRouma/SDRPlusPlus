@@ -47,7 +47,7 @@ int fftSize = 8192 * 8;
 
 std::vector<float> _data;
 std::vector<float> fftTaps;
-void fftHandler(dsp::complex_t* samples) {
+void fftHandler(dsp::complex_t* samples, int count, void* ctx) {
     fftwf_execute(p);
     int half = fftSize / 2;
 
@@ -414,7 +414,7 @@ void drawWindow() {
             ImGui::Text("Center Frequency: %.0f Hz", gui::waterfall.getCenterFrequency());
             ImGui::Text("Source name: %s", sourceName.c_str());
             if (ImGui::Checkbox("Test technique", &dcbias.val)) {
-                sigpath::signalPath.setDCBiasCorrection(dcbias.val);
+                //sigpath::signalPath.setDCBiasCorrection(dcbias.val);
             }
             ImGui::Spacing();
         }

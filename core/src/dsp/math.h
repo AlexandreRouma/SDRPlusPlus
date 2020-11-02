@@ -1,85 +1,107 @@
 #pragma once
-#include <thread>
-#include <dsp/stream.h>
-#include <dsp/types.h>
+#include <dsp/block.h>
 #include <volk/volk.h>
 
-#ifndef M_PI
-#define M_PI    3.1415926535f
-#endif
-
 namespace dsp {
-    class Multiplier {
+    template <class T>
+    class Add : public generic_block<Add<T>> {
     public:
-        Multiplier() {
-            
-        }
+        Add() {}
 
-        Multiplier(stream<complex_t>* a, stream<complex_t>* b, int blockSize) : output(blockSize * 2) {
+        Add(stream<T>* a, stream<T>* b) { init(a, b); }
+
+        ~Add() { generic_block<Add>::stop(); }
+
+        void init(stream<T>* a, stream<T>* b) {
             _a = a;
             _b = b;
-            _blockSize = blockSize;
+            generic_block<Add>::registerInput(a);
+            generic_block<Add>::registerInput(b);
+            generic_block<Add>::registerOutput(&out);
         }
 
-        void init(stream<complex_t>* a, stream<complex_t>* b, int blockSize) {
-            output.init(blockSize * 2);
-            _a = a;
-            _b = b;
-            _blockSize = blockSize;
-        }
-
-        void start() {
-            if (running) {
-                return;
+        int run() {
+            a_count = _a->read();
+            if (a_count < 0) { return -1; }
+            b_count = _b->read();
+            if (b_count < 0) { return -1; }
+            if (a_count != b_count) {
+                _a->flush();
+                _b->flush();
+                return 0;
             }
-            running = true;
-            _workerThread = std::thread(_worker, this);
-        }
 
-        void stop() {
-            if (!running) {
-                return;
+            if (out.aquire() < 0) { return -1; }
+            if constexpr (std::is_same_v<T, complex_t> || std::is_same_v<T, stereo_t>) {
+                volk_32fc_x2_add_32fc(out.data, _a->data, _b->data, a_count);
             }
-            _a->stopReader();
-            _b->stopReader();
-            output.stopWriter();
-            _workerThread.join();
-            running = false;
-            _a->clearReadStop();
-            _b->clearReadStop();
-            output.clearWriteStop();
-        }
-
-        void setBlockSize(int blockSize) {
-            if (running) {
-                return;
+            else {
+                volk_32f_x2_add_32f(out.data, _a->data, _b->data, a_count);
             }
-            _blockSize = blockSize;
-            output.setMaxLatency(blockSize * 2);
+
+            _a->flush();
+            _b->flush();
+            out.write(a_count);
+            return a_count;
         }
 
-        stream<complex_t> output;
+        stream<T> out;
 
     private:
-        static void _worker(Multiplier* _this) {
-            complex_t* aBuf = (complex_t*)volk_malloc(sizeof(complex_t) * _this->_blockSize, volk_get_alignment());
-            complex_t* bBuf = (complex_t*)volk_malloc(sizeof(complex_t) * _this->_blockSize, volk_get_alignment());
-            complex_t* outBuf = (complex_t*)volk_malloc(sizeof(complex_t) * _this->_blockSize, volk_get_alignment());
-            while (true) {
-                if (_this->_a->read(aBuf, _this->_blockSize) < 0) { break; };
-                if (_this->_b->read(bBuf, _this->_blockSize) < 0) { break; };
-                volk_32fc_x2_multiply_32fc((lv_32fc_t*)outBuf, (lv_32fc_t*)aBuf, (lv_32fc_t*)bBuf, _this->_blockSize);
-                if (_this->output.write(outBuf, _this->_blockSize) < 0) { break; };
-            }
-            volk_free(aBuf);
-            volk_free(bBuf);
-            volk_free(outBuf);
+        int a_count, b_count;
+        stream<T>* _a;
+        stream<T>* _b;
+
+    };
+
+    template <class T>
+    class Multiply : public generic_block<Multiply<T>> {
+    public:
+        Multiply() {}
+
+        Multiply(stream<T>* a, stream<T>* b) { init(a, b); }
+
+        ~Multiply() { generic_block<Multiply>::stop(); }
+
+        void init(stream<T>* a, stream<T>* b) {
+            _a = a;
+            _b = b;
+            generic_block<Multiply>::registerInput(a);
+            generic_block<Multiply>::registerInput(b);
+            generic_block<Multiply>::registerOutput(&out);
         }
 
-        stream<complex_t>* _a;
-        stream<complex_t>* _b;
-        int _blockSize;
-        bool running = false;
-        std::thread _workerThread;
+        int run() {
+            a_count = _a->read();
+            if (a_count < 0) { return -1; }
+            b_count = _b->read();
+            if (b_count < 0) { return -1; }
+            if (a_count != b_count) {
+                _a->flush();
+                _b->flush();
+                return 0;
+            }
+
+            if (out.aquire() < 0) { return -1; }
+            if constexpr (std::is_same_v<T, complex_t>) {
+                volk_32fc_x2_multiply_32fc(out.data, _a->data, _b->data, a_count);
+            }
+            else {
+                volk_32f_x2_multiply_32f(out.data, _a->data, _b->data, a_count);
+            }
+
+            _a->flush();
+            _b->flush();
+            out.write(a_count);
+            return a_count;
+        }
+
+        stream<T> out;
+
+    private:
+        int a_count, b_count;
+        stream<T>* _a;
+        stream<T>* _b;
+
     };
-};
+}

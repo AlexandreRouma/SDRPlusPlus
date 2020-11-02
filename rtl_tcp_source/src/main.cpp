@@ -21,8 +21,6 @@ public:
     RTLTCPSourceModule(std::string name) {
         this->name = name;
 
-        stream.init(100);
-
         sampleRate = 2560000.0;
 
         handler.ctx = this;
@@ -143,22 +141,19 @@ private:
         RTLTCPSourceModule* _this = (RTLTCPSourceModule*)ctx;
         int blockSize = _this->sampleRate / 200.0;
         uint8_t* inBuf = new uint8_t[blockSize * 2];
-        dsp::complex_t* outBuf = new dsp::complex_t[blockSize];
-
-        _this->stream.setMaxLatency(blockSize * 2);
 
         while (true) {
             // Read samples here
             _this->client.receiveData(inBuf, blockSize * 2);
+            if (_this->stream.aquire() < 0) { break; }
             for (int i = 0; i < blockSize; i++) {
-                outBuf[i].q = ((double)inBuf[i * 2] - 128.0) / 128.0;
-                outBuf[i].i = ((double)inBuf[(i * 2) + 1] - 128.0) / 128.0;
+                _this->stream.data[i].q = ((double)inBuf[i * 2] - 128.0) / 128.0;
+                _this->stream.data[i].i = ((double)inBuf[(i * 2) + 1] - 128.0) / 128.0;
             }
-            if (_this->stream.write(outBuf, blockSize) < 0) { break; };
+            _this->stream.write(blockSize);
         }
 
         delete[] inBuf;
-        delete[] outBuf;
     }
 
     std::string name;

@@ -6,7 +6,6 @@
 #include <dsp/demodulator.h>
 #include <dsp/routing.h>
 #include <dsp/sink.h>
-#include <dsp/correction.h>
 #include <dsp/vfo.h>
 #include <map>
 #include <module.h>
@@ -14,10 +13,9 @@
 class SignalPath {
 public:
     SignalPath();
-    void init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream<dsp::complex_t>* input, dsp::complex_t* fftBuffer, void fftHandler(dsp::complex_t*));
+    void init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream<dsp::complex_t>* input, dsp::complex_t* fftBuffer, void fftHandler(dsp::complex_t*,int,void*));
     void start();
     void setSampleRate(double sampleRate);
-    void setDCBiasCorrection(bool enabled);
     void setFFTRate(double rate);
     double getSampleRate();
     dsp::VFO* addVFO(std::string name, double outSampleRate, double bandwidth, double offset);
@@ -32,15 +30,14 @@ private:
         dsp::VFO* vfo;
     };
 
-    dsp::DCBiasRemover dcBiasRemover;
-    dsp::Splitter split;
+    dsp::Splitter<dsp::complex_t> split;
 
     // FFT
-    dsp::BlockDecimator fftBlockDec;
-    dsp::HandlerSink fftHandlerSink;
+    dsp::stream<dsp::complex_t> fftStream;
+    dsp::Reshaper<dsp::complex_t> reshape;
+    dsp::HandlerSink<dsp::complex_t> fftHandlerSink;
 
     // VFO
-    dsp::DynamicSplitter<dsp::complex_t> dynSplit;
     std::map<std::string, VFO_t> vfos;
 
     double sampleRate;

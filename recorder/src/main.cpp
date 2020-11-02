@@ -104,8 +104,7 @@ private:
                     _this->samplesWritten = 0;
                     _this->sampleRate = sigpath::signalPath.getSampleRate();
                     _this->writer = new WavWriter(ROOT_DIR "/recordings/" + genFileName("baseband_"), 16, 2, _this->sampleRate);
-                    _this->iqStream = new dsp::stream<dsp::complex_t>();
-                    _this->iqStream->init(_this->sampleRate / 200.0);
+                    _this->iqStream = new dsp::stream<dsp::complex_t>;
                     sigpath::signalPath.bindIQStream(_this->iqStream);
                     _this->workerThread = std::thread(_iqWriteWorker, _this);
                     _this->recording = true;
@@ -176,20 +175,18 @@ private:
     }
 
     static void _audioWriteWorker(RecorderModule* _this) {
-        dsp::StereoFloat_t* floatBuf = new dsp::StereoFloat_t[1024];
-        int16_t* sampleBuf = new int16_t[2048];
+        int16_t* sampleBuf = new int16_t[STREAM_BUFFER_SIZE * 2];
         while (true) {
-            if (_this->audioStream->read(floatBuf, 1024) < 0) {
-                break;
-            }
+            int count = _this->audioStream->read();
+            if (count < 0) { break; }
             for (int i = 0; i < 1024; i++) {
-                sampleBuf[(i * 2) + 0] = floatBuf[i].l * 0x7FFF;
-                sampleBuf[(i * 2) + 1] = floatBuf[i].r * 0x7FFF;
+                sampleBuf[(i * 2) + 0] = _this->audioStream->data[i].l * 0x7FFF;
+                sampleBuf[(i * 2) + 1] = _this->audioStream->data[i].r * 0x7FFF;
             }
+            _this->audioStream->flush();
             _this->samplesWritten += 1024;
             _this->writer->writeSamples(sampleBuf, 2048 * sizeof(int16_t));
         }
-        delete[] floatBuf;
         delete[] sampleBuf;
     }
 
@@ -197,13 +194,13 @@ private:
         dsp::complex_t* iqBuf = new dsp::complex_t[1024];
         int16_t* sampleBuf = new int16_t[2048];
         while (true) {
-            if (_this->iqStream->read(iqBuf, 1024) < 0) {
-                break;
-            }
+            int count = _this->iqStream->read();
+            if (count < 0) { break; }
             for (int i = 0; i < 1024; i++) {
-                sampleBuf[(i * 2) + 0] = iqBuf[i].q * 0x7FFF;
-                sampleBuf[(i * 2) + 1] = iqBuf[i].i * 0x7FFF;
+                sampleBuf[(i * 2) + 0] = _this->iqStream->data[i].q * 0x7FFF;
+                sampleBuf[(i * 2) + 1] = _this->iqStream->data[i].i * 0x7FFF;
             }
+            _this->iqStream->flush();
             _this->samplesWritten += 1024;
             _this->writer->writeSamples(sampleBuf, 2048 * sizeof(int16_t));
         }
@@ -212,7 +209,7 @@ private:
     }
 
     std::string name;
-    dsp::stream<dsp::StereoFloat_t>* audioStream;
+    dsp::stream<dsp::stereo_t>* audioStream;
     dsp::stream<dsp::complex_t>* iqStream;
     WavWriter* writer;
     std::thread workerThread;

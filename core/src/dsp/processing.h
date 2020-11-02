@@ -2,36 +2,28 @@
 #include <dsp/block.h>
 
 namespace dsp {
-    class SineSource : public generic_block<SineSource> {
+    class FrequencyXlator : public generic_block<FrequencyXlator> {
     public:
-        SineSource() {}
+        FrequencyXlator() {}
 
-        SineSource(int blockSize, float sampleRate, float freq) { init(blockSize, sampleRate, freq); }
+        FrequencyXlator(stream<complex_t>* in, float sampleRate, float freq) { init(in, sampleRate, freq); }
 
-        ~SineSource() { generic_block<SineSource>::stop(); }
+        ~FrequencyXlator() { generic_block<FrequencyXlator>::stop(); }
 
-        void init(int blockSize, float sampleRate, float freq) {
-            _blockSize = blockSize;
+        void init(stream<complex_t>* in, float sampleRate, float freq) {
+            _in = in;
             _sampleRate = sampleRate;
             _freq = freq;
-            zeroPhase = (lv_32fc_t*)volk_malloc(STREAM_BUFFER_SIZE * sizeof(lv_32fc_t), volk_get_alignment());
-            for (int i = 0; i < STREAM_BUFFER_SIZE; i++) {
-                zeroPhase[i] = lv_cmake(1.0f, 0.0f);
-            }
             phase = lv_cmake(1.0f, 0.0f);
             phaseDelta = lv_cmake(std::cos((_freq / _sampleRate) * 2.0f * FL_M_PI), std::sin((_freq / _sampleRate) * 2.0f * FL_M_PI));
-            generic_block<SineSource>::registerOutput(&out);
+            generic_block<FrequencyXlator>::registerOutput(&out);
         }
 
-        void setBlockSize(int blockSize) {
-            std::lock_guard<std::mutex> lck(generic_block<SineSource>::ctrlMtx);
-            generic_block<SineSource>::tempStop();
-            _blockSize = blockSize;
-            generic_block<SineSource>::tempStart();
-        }
-
-        int getBlockSize() {
-            return _blockSize;
+        void setInputSize(stream<complex_t>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<FrequencyXlator>::ctrlMtx);
+            generic_block<FrequencyXlator>::tempStop();
+            _in = in;
+            generic_block<FrequencyXlator>::tempStart();
         }
 
         void setSampleRate(float sampleRate) {
@@ -55,21 +47,27 @@ namespace dsp {
         }
 
         int run() {
+            count = _in->read();
+            if (count < 0) { return -1; }
+
             if (out.aquire() < 0) { return -1; }
-            volk_32fc_s32fc_x2_rotator_32fc((lv_32fc_t*)out.data, zeroPhase, phaseDelta, &phase, _blockSize);
-            out.write(_blockSize);
-            return _blockSize;
+
+            volk_32fc_s32fc_x2_rotator_32fc((lv_32fc_t*)out.data, (lv_32fc_t*)_in->data, phaseDelta, &phase, count);
+
+            _in->flush();
+            out.write(count);
+            return count;
         }
 
         stream<complex_t> out;
 
     private:
-        int _blockSize;
+        int count;
         float _sampleRate;
         float _freq;
         lv_32fc_t phaseDelta;
         lv_32fc_t phase;
-        lv_32fc_t* zeroPhase;
+        stream<complex_t>* _in;
 
     };
 }

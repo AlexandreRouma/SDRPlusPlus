@@ -6,9 +6,10 @@
 #include <dsp/demodulator.h>
 #include <dsp/routing.h>
 #include <dsp/sink.h>
-#include <dsp/correction.h>
 #include <dsp/vfo.h>
 #include <dsp/block.h>
+#include <dsp/window.h>
+#include <dsp/audio.h>
 #include <io/audio.h>
 #include <module.h>
 #include <signal_path/signal_path.h>
@@ -44,28 +45,23 @@ public:
     };
 
 
-    dsp::FMDeemphasis deemp;
-    dsp::Squelch squelch;
+    dsp::BFMDeemp deemp;
     VFOManager::VFO* vfo;
 
 private:
     static int sampleRateChangeHandler(void* ctx, double sampleRate);
 
-    
-    
     dsp::stream<dsp::complex_t> input;
 
-    
-
     // Demodulators
-    dsp::FMDemodulator demod;
-    dsp::AMDemodulator amDemod;
+    dsp::FMDemod demod;
+    dsp::AMDemod amDemod;
     dsp::SSBDemod ssbDemod;
-    dsp::ComplexToStereo cpx2stereo;
 
     // Audio output
     dsp::MonoToStereo m2s;
-    dsp::FIRResampler<float> audioResamp;
+    dsp::filter_window::BlackmanWindow audioWin;
+    dsp::PolyphaseResampler<float> audioResamp;
 
     std::string vfoName;
 

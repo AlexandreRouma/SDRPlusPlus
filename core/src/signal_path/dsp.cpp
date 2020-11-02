@@ -4,54 +4,43 @@ SignalPath::SignalPath() {
     
 }
 
-void SignalPath::init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream<dsp::complex_t>* input, dsp::complex_t* fftBuffer, void fftHandler(dsp::complex_t*)) {
+void SignalPath::init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream<dsp::complex_t>* input, dsp::complex_t* fftBuffer, void fftHandler(dsp::complex_t*,int,void*)) {
     this->sampleRate = sampleRate;
     this->fftRate = fftRate;
     this->fftSize = fftSize;
     inputBlockSize = sampleRate / 200.0f;
 
-    dcBiasRemover.init(input, 32000);
-    dcBiasRemover.bypass = true;
-    split.init(&dcBiasRemover.output, 32000);
+    split.init(input);
 
-    fftBlockDec.init(&split.output_a, (sampleRate / fftRate) - fftSize, fftSize);
-    fftHandlerSink.init(&fftBlockDec.output, fftBuffer, fftSize, fftHandler);
-
-    dynSplit.init(&split.output_b, 32000);
+    reshape.init(&fftStream);
+    fftHandlerSink.init(&reshape.out, fftHandler, NULL);
 }
 
 void SignalPath::setSampleRate(double sampleRate) {
     this->sampleRate = sampleRate;
-    inputBlockSize = sampleRate / 200.0f;
 
-    dcBiasRemover.stop();
     split.stop();
-    fftBlockDec.stop();
-    fftHandlerSink.stop();
-    dynSplit.stop();
+    //fftBlockDec.stop();
+    //fftHandlerSink.stop();
 
     for (auto const& [name, vfo] : vfos) {
         vfo.vfo->stop();
     }
 
-    dcBiasRemover.setBlockSize(inputBlockSize);
-    split.setBlockSize(inputBlockSize);
-    int skip = (sampleRate / fftRate) - fftSize;
-    fftBlockDec.setSkip(skip);
-    dynSplit.setBlockSize(inputBlockSize);
+    // Claculate skip to maintain a constant fft rate
+    //int skip = (sampleRate / fftRate) - fftSize;
+    //fftBlockDec.setSkip(skip);
 
-    // TODO: Tell modules that the block size has changed
+    // TODO: Tell modules that the block size has changed (maybe?)
 
     for (auto const& [name, vfo] : vfos) {
-        vfo.vfo->setInputSampleRate(sampleRate, inputBlockSize);
+        vfo.vfo->setInSampleRate(sampleRate);
         vfo.vfo->start();
     }
 
-    fftHandlerSink.start();
-    fftBlockDec.start();
+    //fftHandlerSink.start();
+    //fftBlockDec.start();
     split.start();
-    dcBiasRemover.start();
-    dynSplit.start();
 }
 
 double SignalPath::getSampleRate() {
@@ -59,32 +48,23 @@ double SignalPath::getSampleRate() {
 }
 
 void SignalPath::start() {
-    dcBiasRemover.start();
     split.start();
-
-    fftBlockDec.start();
+    reshape.start();
     fftHandlerSink.start();
-
-    dynSplit.start();
-}
-
-void SignalPath::setDCBiasCorrection(bool enabled) {
-    dcBiasRemover.bypass = !enabled;
 }
 
 dsp::VFO* SignalPath::addVFO(std::string name, double outSampleRate, double bandwidth, double offset) {
     if (vfos.find(name) != vfos.end()) {
         return NULL;
     }
-    dynSplit.stop();
+
     VFO_t vfo;
-    vfo.inputStream = new dsp::stream<dsp::complex_t>(inputBlockSize * 2);
-    dynSplit.bind(vfo.inputStream);
+    vfo.inputStream = new dsp::stream<dsp::complex_t>;
+    split.bindStream(vfo.inputStream);
     vfo.vfo = new dsp::VFO();
-    vfo.vfo->init(vfo.inputStream, sampleRate, outSampleRate, bandwidth, offset, inputBlockSize);
+    vfo.vfo->init(vfo.inputStream, offset, sampleRate, outSampleRate, bandwidth);
     vfo.vfo->start();
     vfos[name] = vfo;
-    dynSplit.start();
     return vfo.vfo;
 }
 
@@ -93,30 +73,22 @@ void SignalPath::removeVFO(std::string name) {
         return;
         
     }
-    dynSplit.stop();
     VFO_t vfo = vfos[name];
     vfo.vfo->stop();
-    dynSplit.unbind(vfo.inputStream);
+    split.unbindStream(vfo.inputStream);
     delete vfo.vfo;
     delete vfo.inputStream;
-    dynSplit.start();
     vfos.erase(name);
 }
 
 void SignalPath::setInput(dsp::stream<dsp::complex_t>* input) {
-    dcBiasRemover.stop();
-    dcBiasRemover.setInput(input);
-    dcBiasRemover.start();
+    split.setInput(input);
 }
 
 void SignalPath::bindIQStream(dsp::stream<dsp::complex_t>* stream) {
-    dynSplit.stop();
-    dynSplit.bind(stream);
-    dynSplit.start();
+    split.bindStream(stream);
 }
 
 void SignalPath::unbindIQStream(dsp::stream<dsp::complex_t>* stream) {
-    dynSplit.stop();
-    dynSplit.unbind(stream);
-    dynSplit.start();
+    split.unbindStream(stream);
 }

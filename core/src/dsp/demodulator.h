@@ -1,424 +1,260 @@
 #pragma once
-#include <thread>
-#include <dsp/stream.h>
-#include <dsp/types.h>
-#include <dsp/source.h>
-#include <dsp/math.h>
+#include <dsp/block.h>
+#include <spdlog/spdlog.h>
 
-/*
-    TODO:
-        - Add a sample rate ajustment function to all demodulators
-*/
-
-#define FAST_ATAN2_COEF1 3.1415926535f / 4.0f
-#define FAST_ATAN2_COEF2 3.0f * FAST_ATAN2_COEF1
+#define FAST_ATAN2_COEF1    FL_M_PI / 4.0f
+#define FAST_ATAN2_COEF2    3.0f * FAST_ATAN2_COEF1
 
 inline float fast_arctan2(float y, float x) {
-   float abs_y = fabs(y) + (1e-10);
-   float r, angle;
-   if (x>=0) {
-      r = (x - abs_y) / (x + abs_y);
-      angle = FAST_ATAN2_COEF1 - FAST_ATAN2_COEF1 * r;
-   }
-   else {
-      r = (x + abs_y) / (abs_y - x);
-      angle = FAST_ATAN2_COEF2 - FAST_ATAN2_COEF1 * r;
-   }
-   if (y < 0) {
-       return -angle;
-   }
+    float abs_y = fabsf(y);
+    float r, angle;
+    if (x == 0.0f && y == 0.0f) { return 0.0f; }
+    if (x>=0.0f) {
+        r = (x - abs_y) / (x + abs_y);
+        angle = FAST_ATAN2_COEF1 - FAST_ATAN2_COEF1 * r;
+    }
+    else {
+        r = (x + abs_y) / (abs_y - x);
+        angle = FAST_ATAN2_COEF2 - FAST_ATAN2_COEF1 * r;
+    }
+    if (y < 0.0f) {
+        return -angle;
+    }
    return angle;
 }
 
 namespace dsp {
-    class FMDemodulator {
+    class FMDemod : public generic_block<FMDemod> {
     public:
-        FMDemodulator() {
-            
-        }
+        FMDemod() {}
 
-        FMDemodulator(stream<complex_t>* in, float deviation, long sampleRate, int blockSize) : output(blockSize * 2) {
-            running = false;
-            _input = in;
-            _blockSize = blockSize;
-            _phase = 0.0f;
-            _deviation = deviation;
+        FMDemod(stream<complex_t>* in, float sampleRate, float deviation) { init(in, sampleRate, deviation); }
+
+        ~FMDemod() { generic_block<FMDemod>::stop(); }
+
+        void init(stream<complex_t>* in, float sampleRate, float deviation) {
+            _in = in;
             _sampleRate = sampleRate;
-            _phasorSpeed = (2 * 3.1415926535) / (sampleRate / deviation);
+            _deviation = deviation;
+            phasorSpeed = (_sampleRate / _deviation) / (2 * FL_M_PI);
+            generic_block<FMDemod>::registerInput(_in);
+            generic_block<FMDemod>::registerOutput(&out);
         }
 
-        void init(stream<complex_t>* in, float deviation, long sampleRate, int blockSize) {
-            output.init(blockSize * 2);
-            running = false;
-            _input = in;
-            _blockSize = blockSize;
-            _phase = 0.0f;
-            _phasorSpeed = (2 * 3.1415926535) / (sampleRate / deviation);
-        }
-
-        void start() {
-            if (running) {
-                return;
-            }
-            running = true;
-            _workerThread = std::thread(_worker, this);
-        }
-
-        void stop() {
-            if (!running) {
-                return;
-            }
-            _input->stopReader();
-            output.stopWriter();
-            _workerThread.join();
-            running = false;
-            _input->clearReadStop();
-            output.clearWriteStop();
-        }
-
-        void setBlockSize(int blockSize) {
-            if (running) {
-                return;
-            }
-            _blockSize = blockSize;
-            output.setMaxLatency(_blockSize * 2);
+        void setInput(stream<complex_t>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<FMDemod>::ctrlMtx);
+            generic_block<FMDemod>::tempStop();
+            _in = in;
+            generic_block<FMDemod>::tempStart();
         }
 
         void setSampleRate(float sampleRate) {
+            std::lock_guard<std::mutex> lck(generic_block<FMDemod>::ctrlMtx);
+            generic_block<FMDemod>::tempStop();
             _sampleRate = sampleRate;
-            _phasorSpeed = (2 * 3.1415926535) / (sampleRate / _deviation);
+            phasorSpeed = (_sampleRate / _deviation) / (2 * FL_M_PI);
+            generic_block<FMDemod>::tempStart();
+        }
+
+        float getSampleRate() {
+            return _sampleRate;
         }
 
         void setDeviation(float deviation) {
+            std::lock_guard<std::mutex> lck(generic_block<FMDemod>::ctrlMtx);
+            generic_block<FMDemod>::tempStop();
             _deviation = deviation;
-            _phasorSpeed = (2 * 3.1415926535) / (_sampleRate / _deviation);
+            phasorSpeed = (_sampleRate / _deviation) / (2 * FL_M_PI);
+            generic_block<FMDemod>::tempStart();
         }
 
-        stream<float> output;
+        float getDeviation() {
+            return _deviation;
+        }
+
+        int run() {
+            count = _in->read();
+            if (count < 0) { return -1; }
+
+            // This is somehow faster than volk...
+
+            float diff, currentPhase;
+
+            if (out.aquire() < 0) { return -1; } 
+            for (int i = 0; i < count; i++) {
+                currentPhase = fast_arctan2(_in->data[i].i, _in->data[i].q);
+                diff = currentPhase - phase;
+                if (diff > FL_M_PI)        { out.data[i] = (diff - 2 * FL_M_PI) * phasorSpeed; }
+                else if (diff <= -FL_M_PI) { out.data[i] = (diff + 2 * FL_M_PI) * phasorSpeed; }
+                phase = currentPhase;
+            }
+
+            _in->flush();
+            out.write(count);
+            return count;
+        }
+
+        stream<float> out;
 
     private:
-        static void _worker(FMDemodulator* _this) {
-            complex_t* inBuf = new complex_t[_this->_blockSize];
-            float* outBuf = new float[_this->_blockSize];
-            float diff = 0;
-            float currentPhase = 0;
-            while (true) {
-                if (_this->_input->read(inBuf, _this->_blockSize) < 0) { return; };
-                for (int i = 0; i < _this->_blockSize; i++) {
-                    currentPhase = fast_arctan2(inBuf[i].i, inBuf[i].q);
-                    diff = currentPhase - _this->_phase;
-                    if (diff > 3.1415926535f)        { diff -= 2 * 3.1415926535f; }
-                    else if (diff <= -3.1415926535f) { diff += 2 * 3.1415926535f; }
-                    outBuf[i] = diff / _this->_phasorSpeed;
-                    _this->_phase = currentPhase;
-                }
-                if (_this->output.write(outBuf, _this->_blockSize) < 0) { return; };
-            }
-        }
+        int count;
+        float phase, phasorSpeed, _sampleRate, _deviation;
+        stream<complex_t>* _in;
 
-        stream<complex_t>* _input;
-        bool running;
-        int _blockSize;
-        float _phase;
-        float _phasorSpeed;
-        float _deviation;
-        float _sampleRate;
-        std::thread _workerThread;
     };
 
-
-    class AMDemodulator {
+    class AMDemod : public generic_block<AMDemod> {
     public:
-        AMDemodulator() {
-            
+        AMDemod() {}
+
+        AMDemod(stream<complex_t>* in) { init(in); }
+
+        ~AMDemod() { generic_block<AMDemod>::stop(); }
+
+        void init(stream<complex_t>* in) {
+            _in = in;
+            generic_block<AMDemod>::registerInput(_in);
+            generic_block<AMDemod>::registerOutput(&out);
         }
 
-        AMDemodulator(stream<complex_t>* in, int blockSize) : output(blockSize * 2) {
-            running = false;
-            _input = in;
-            _blockSize = blockSize;
+        void setInput(stream<complex_t>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<AMDemod>::ctrlMtx);
+            generic_block<AMDemod>::tempStop();
+            _in = in;
+            generic_block<AMDemod>::tempStart();
         }
 
-        void init(stream<complex_t>* in, int blockSize) {
-            output.init(blockSize * 2);
-            running = false;
-            _input = in;
-            _blockSize = blockSize;
+        int run() {
+            count = _in->read();
+            if (count < 0) { return -1; }
+
+            if (out.aquire() < 0) { return -1; } 
+            volk_32fc_magnitude_32f(out.data, (lv_32fc_t*)_in->data, count);
+
+            _in->flush();
+            out.write(count);
+            return count;
         }
 
-        void start() {
-            if (running) {
-                return;
-            }
-            running = true;
-            _workerThread = std::thread(_worker, this);
-        }
-
-        void stop() {
-            if (!running) {
-                return;
-            }
-            _input->stopReader();
-            output.stopWriter();
-            _workerThread.join();
-            running = false;
-            _input->clearReadStop();
-            output.clearWriteStop();
-        }
-
-        void setBlockSize(int blockSize) {
-            if (running) {
-                return;
-            }
-            _blockSize = blockSize;
-            output.setMaxLatency(_blockSize * 2);
-        }
-
-        stream<float> output;
+        stream<float> out;
 
     private:
-        static void _worker(AMDemodulator* _this) {
-            complex_t* inBuf = new complex_t[_this->_blockSize];
-            float* outBuf = new float[_this->_blockSize];
-            float min, max, amp;
-            while (true) {
-                if (_this->_input->read(inBuf, _this->_blockSize) < 0) { break; };
-                min = INFINITY;
-                max = 0.0f;
-                for (int i = 0; i < _this->_blockSize; i++) {
-                    outBuf[i] = sqrt((inBuf[i].i*inBuf[i].i) + (inBuf[i].q*inBuf[i].q));
-                    if (outBuf[i] < min) {
-                        min = outBuf[i];
-                    }
-                    if (outBuf[i] > max) {
-                        max = outBuf[i];
-                    }
-                }
-                amp = (max - min) / 2.0f;
-                for (int i = 0; i < _this->_blockSize; i++) {
-                    outBuf[i] = (outBuf[i] - min - amp) / amp;
-                }
-                if (_this->output.write(outBuf, _this->_blockSize) < 0) { break; };
-            }
-            delete[] inBuf;
-            delete[] outBuf;
-        }
+        int count;
+        stream<complex_t>* _in;
 
-        stream<complex_t>* _input;
-        bool running;
-        int _blockSize;
-        std::thread _workerThread;
     };
 
-    class SSBDemod {
+    class SSBDemod : public generic_block<SSBDemod> {
     public:
-        SSBDemod() {
+        SSBDemod() {}
 
-        }
+        SSBDemod(stream<complex_t>* in, float sampleRate, float bandWidth, int mode) { init(in, sampleRate, bandWidth, mode); }
 
-        void init(stream<complex_t>* input, float sampleRate, float bandWidth, int blockSize) {
-            _blockSize = blockSize;
-            _bandWidth = bandWidth;
-            _mode = MODE_USB;
-            output.init(blockSize * 2);
-            lo.init(bandWidth / 2.0f, sampleRate, blockSize);
-            mixer.init(input, &lo.output, blockSize);
-            lo.start();
-        }
-
-        void start() {
-            mixer.start();
-            _workerThread = std::thread(_worker, this);
-            running = true;
-        }
-
-        void stop() {
-            mixer.stop();
-            mixer.output.stopReader();
-            output.stopWriter();
-            _workerThread.join();
-            mixer.output.clearReadStop();
-            output.clearWriteStop();
-            running = false;
-        }
-
-        void setBlockSize(int blockSize) {
-            if (running) {
-                return;
-            }
-            _blockSize = blockSize;
-        }
-
-        void setMode(int mode) {
-            if (mode < 0 && mode >= _MODE_COUNT) {
-                return;
-            }
-            _mode = mode;
-            if (mode == MODE_USB) {
-                lo.setFrequency(_bandWidth / 2.0f);
-            }
-            else if (mode == MODE_LSB) {
-                lo.setFrequency(-_bandWidth / 2.0f);
-            }
-            else if (mode == MODE_LSB) {
-                lo.setFrequency(0);
-            }
-        }
-
-        void setBandwidth(float bandwidth) {
-            _bandWidth = bandwidth;
-            if (_mode == MODE_USB) {
-                lo.setFrequency(_bandWidth / 2.0f);
-            }
-            else if (_mode == MODE_LSB) {
-                lo.setFrequency(-_bandWidth / 2.0f);
-            }
-        }
-
-        stream<float> output;
+        ~SSBDemod() { generic_block<SSBDemod>::stop(); }
 
         enum {
             MODE_USB,
             MODE_LSB,
-            MODE_DSB,
-            _MODE_COUNT
+            MODE_DSB
         };
 
-    private:
-        static void _worker(SSBDemod* _this) {
-            complex_t* inBuf = new complex_t[_this->_blockSize];
-            float* outBuf = new float[_this->_blockSize];
-
-            float min, max, factor;
-
-            while (true) {
-                if (_this->mixer.output.read(inBuf, _this->_blockSize) < 0) { break; };
-                min = INFINITY;
-                max = -INFINITY;
-                for (int i = 0; i < _this->_blockSize; i++) {
-                    outBuf[i] = inBuf[i].q;
-                    if (inBuf[i].q < min) {
-                        min = inBuf[i].q;
-                    }
-                    if (inBuf[i].q > max) {
-                        max = inBuf[i].q;
-                    }
-                }
-                factor = (max - min) / 2;
-                for (int i = 0; i < _this->_blockSize; i++) {
-                    outBuf[i] /= factor;
-                }
-                if (_this->output.write(outBuf, _this->_blockSize) < 0) { break; };
+        void init(stream<complex_t>* in, float sampleRate, float bandWidth, int mode) {
+            _in = in;
+            _sampleRate = sampleRate;
+            _bandWidth = bandWidth;
+            _mode = mode;
+            phase = lv_cmake(1.0f, 0.0f);
+            switch (_mode) {
+            case MODE_USB:
+                phaseDelta = lv_cmake(std::cos((_bandWidth / _sampleRate) * FL_M_PI), std::sin((_bandWidth / _sampleRate) * FL_M_PI));
+                break;
+            case MODE_LSB:
+                phaseDelta = lv_cmake(std::cos(-(_bandWidth / _sampleRate) * FL_M_PI), std::sin(-(_bandWidth / _sampleRate) * FL_M_PI));
+                break;
+            case MODE_DSB:
+                phaseDelta = lv_cmake(1.0f, 0.0f);
+                break;
             }
-
-            delete[] inBuf;
-            delete[] outBuf;
+            generic_block<SSBDemod>::registerInput(_in);
+            generic_block<SSBDemod>::registerOutput(&out);
         }
 
-        std::thread _workerThread;
-        SineSource lo;
-        Multiplier mixer;
-        int _blockSize;
-        float _bandWidth;
+        void setInput(stream<complex_t>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<SSBDemod>::ctrlMtx);
+            generic_block<SSBDemod>::tempStop();
+            _in = in;
+            generic_block<SSBDemod>::tempStart();
+        }
+
+        void setSampleRate(float sampleRate) {
+            // No need to restart
+            _sampleRate = sampleRate;
+            switch (_mode) {
+            case MODE_USB:
+                phaseDelta = lv_cmake(std::cos((_bandWidth / _sampleRate) * FL_M_PI), std::sin((_bandWidth / _sampleRate) * FL_M_PI));
+                break;
+            case MODE_LSB:
+                phaseDelta = lv_cmake(std::cos(-(_bandWidth / _sampleRate) * FL_M_PI), std::sin(-(_bandWidth / _sampleRate) * FL_M_PI));
+                break;
+            case MODE_DSB:
+                phaseDelta = lv_cmake(1.0f, 0.0f);
+                break;
+            }
+        }
+
+        void setBandWidth(float bandWidth) {
+            // No need to restart
+            _bandWidth = bandWidth;
+            switch (_mode) {
+            case MODE_USB:
+                phaseDelta = lv_cmake(std::cos((_bandWidth / _sampleRate) * FL_M_PI), std::sin((_bandWidth / _sampleRate) * FL_M_PI));
+                break;
+            case MODE_LSB:
+                phaseDelta = lv_cmake(std::cos(-(_bandWidth / _sampleRate) * FL_M_PI), std::sin(-(_bandWidth / _sampleRate) * FL_M_PI));
+                break;
+            case MODE_DSB:
+                phaseDelta = lv_cmake(1.0f, 0.0f);
+                break;
+            }
+        }
+
+        void setMode(int mode) {
+            _mode = mode;
+            switch (_mode) {
+            case MODE_USB:
+                phaseDelta = lv_cmake(std::cos((_bandWidth / _sampleRate) * FL_M_PI), std::sin((_bandWidth / _sampleRate) * FL_M_PI));
+                break;
+            case MODE_LSB:
+                phaseDelta = lv_cmake(std::cos(-(_bandWidth / _sampleRate) * FL_M_PI), std::sin(-(_bandWidth / _sampleRate) * FL_M_PI));
+                break;
+            case MODE_DSB:
+                phaseDelta = lv_cmake(1.0f, 0.0f);
+                break;
+            }
+        }
+
+        int run() {
+            count = _in->read();
+            if (count < 0) { return -1; }
+
+            if (out.aquire() < 0) { return -1; } 
+            volk_32fc_s32fc_x2_rotator_32fc((lv_32fc_t*)out.data, (lv_32fc_t*)_in->data, phaseDelta, &phase, count);
+            volk_32fc_deinterleave_real_32f(out.data, (lv_32fc_t*)_in->data, count);
+
+            _in->flush();
+            out.write(count);
+            return count;
+        }
+
+        stream<float> out;
+
+    private:
+        int count;
         int _mode;
-        bool running = false;
+        float _sampleRate, _bandWidth;
+        stream<complex_t>* _in;
+        lv_32fc_t phase;
+        lv_32fc_t phaseDelta;
+
     };
-
-
-
-
-
-    // class CWDemod {
-    // public:
-    //     CWDemod() {
-
-    //     }
-
-    //     void init(stream<complex_t>* input, float sampleRate, float bandWidth, int blockSize) {
-    //         _blockSize = blockSize;
-    //         _bandWidth = bandWidth;
-    //         _mode = MODE_USB;
-    //         output.init(blockSize * 2);
-    //         lo.init(bandWidth / 2.0f, sampleRate, blockSize);
-    //         mixer.init(input, &lo.output, blockSize);
-    //         lo.start();
-    //     }
-
-    //     void start() {
-    //         mixer.start();
-    //         _workerThread = std::thread(_worker, this);
-    //         running = true;
-    //     }
-
-    //     void stop() {
-    //         mixer.stop();
-    //         mixer.output.stopReader();
-    //         output.stopWriter();
-    //         _workerThread.join();
-    //         mixer.output.clearReadStop();
-    //         output.clearWriteStop();
-    //         running = false;
-    //     }
-
-    //     void setBlockSize(int blockSize) {
-    //         if (running) {
-    //             return;
-    //         }
-    //         _blockSize = blockSize;
-    //     }
-
-    //     void setMode(int mode) {
-    //         if (mode < 0 && mode >= _MODE_COUNT) {
-    //             return;
-    //         }
-    //         _mode = mode;
-    //         if (mode == MODE_USB) {
-    //             lo.setFrequency(_bandWidth / 2.0f);
-    //         }
-    //         else if (mode == MODE_LSB) {
-    //             lo.setFrequency(-_bandWidth / 2.0f);
-    //         }
-    //     }
-
-    //     stream<float> output;
-
-    // private:
-    //     static void _worker(CWDemod* _this) {
-    //         complex_t* inBuf = new complex_t[_this->_blockSize];
-    //         float* outBuf = new float[_this->_blockSize];
-
-    //         float min, max, factor;
-
-    //         while (true) {
-    //             if (_this->mixer.output.read(inBuf, _this->_blockSize) < 0) { break; };
-    //             min = INFINITY;
-    //             max = -INFINITY;
-    //             for (int i = 0; i < _this->_blockSize; i++) {
-    //                 outBuf[i] = inBuf[i].q;
-    //                 if (inBuf[i].q < min) {
-    //                     min = inBuf[i].q;
-    //                 }
-    //                 if (inBuf[i].q > max) {
-    //                     max = inBuf[i].q;
-    //                 }
-    //             }
-    //             factor = (max - min) / 2;
-    //             for (int i = 0; i < _this->_blockSize; i++) {
-    //                 outBuf[i] /= factor;
-    //             }
-    //             if (_this->output.write(outBuf, _this->_blockSize) < 0) { break; };
-    //         }
-
-    //         delete[] inBuf;
-    //         delete[] outBuf;
-    //     }
-
-    //     std::thread _workerThread;
-    //     SineSource lo;
-    //     Multiplier mixer;
-    //     int _blockSize;
-    //     float _bandWidth;
-    //     int _mode;
-    //     bool running = false;
-    // };
-};
+}

@@ -20,8 +20,6 @@ public:
     FileSourceModule(std::string name) {
         this->name = name;
 
-        stream.init(100);
-
         handler.ctx = this;
         handler.selectHandler = menuSelected;
         handler.deselectHandler = menuDeselected;
@@ -84,22 +82,19 @@ private:
         double sampleRate = _this->reader->getSampleRate();
         int blockSize = sampleRate / 200.0;
         int16_t* inBuf = new int16_t[blockSize * 2];
-        dsp::complex_t* outBuf = new dsp::complex_t[blockSize];
-
-        _this->stream.setMaxLatency(blockSize * 2);
 
         while (true) {
             _this->reader->readSamples(inBuf, blockSize * 2 * sizeof(int16_t));
+            if (_this->stream.aquire() < 0) { break; };
             for (int i = 0; i < blockSize; i++) {
-                outBuf[i].q = (float)inBuf[i * 2] / (float)0x7FFF;
-                outBuf[i].i = (float)inBuf[(i * 2) + 1] / (float)0x7FFF;
+                _this->stream.data[i].q = (float)inBuf[i * 2] / (float)0x7FFF;
+                _this->stream.data[i].i = (float)inBuf[(i * 2) + 1] / (float)0x7FFF;
             }
-            if (_this->stream.write(outBuf, blockSize) < 0) { break; };
+            _this->stream.write(blockSize);
             //std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
 
         delete[] inBuf;
-        delete[] outBuf;
     }
 
     std::string name;

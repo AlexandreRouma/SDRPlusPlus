@@ -5,6 +5,7 @@
 #include <fstream>
 #include <portaudio.h>
 #include <spdlog/spdlog.h>
+#include <dsp/sink.h>
 
 namespace io {
     class AudioSink {
@@ -30,7 +31,7 @@ namespace io {
         AudioSink(int bufferSize) {
             _bufferSize = bufferSize;
             monoBuffer = new float[_bufferSize];
-            stereoBuffer = new dsp::StereoFloat_t[_bufferSize];
+            stereoBuffer = new dsp::stereo_t[_bufferSize];
             _volume = 1.0f;
             Pa_Initialize();
 
@@ -81,7 +82,7 @@ namespace io {
         void init(int bufferSize) {
             _bufferSize = bufferSize;
             monoBuffer = new float[_bufferSize];
-            stereoBuffer = new dsp::StereoFloat_t[_bufferSize];
+            stereoBuffer = new dsp::stereo_t[_bufferSize];
             _volume = 1.0f;
             Pa_Initialize();
 
@@ -130,11 +131,11 @@ namespace io {
         }
 
         void setMonoInput(dsp::stream<float>* input) {
-            _monoInput = input;
+            monoSink.setInput(input);
         }
 
-        void setStereoInput(dsp::stream<dsp::StereoFloat_t>* input) {
-            _stereoInput = input;
+        void setStereoInput(dsp::stream<dsp::stereo_t>* input) {
+            stereoSink.setInput(input);
         }
 
         void setVolume(float volume) {
@@ -158,10 +159,12 @@ namespace io {
             if (streamType == MONO) {
                 err = Pa_OpenStream(&stream, NULL, &outputParams, _sampleRate, _bufferSize, 0,
                                 (dev.channels == 2) ? _mono_to_stereo_callback : _mono_to_mono_callback, this);
+                monoSink.start();                
             }
             else {
                 err = Pa_OpenStream(&stream, NULL, &outputParams, _sampleRate, _bufferSize, 0,
                                 (dev.channels == 2) ? _stereo_to_stereo_callback : _stereo_to_mono_callback, this);
+                stereoSink.start();
             }
             
             if (err != 0) {
@@ -182,18 +185,20 @@ namespace io {
                 return;
             }
             if (streamType == MONO) {
-                _monoInput->stopReader();
+                monoSink.stop();
+                monoSink.data.stopReader();
             }
             else {
-                _stereoInput->stopReader();
+                stereoSink.stop();
+                stereoSink.data.stopReader();
             }
             Pa_StopStream(stream);
             Pa_CloseStream(stream);
             if (streamType == MONO) {
-                _monoInput->clearReadStop();
+                monoSink.data.clearReadStop();
             }
             else {
-                _stereoInput->clearReadStop();
+                stereoSink.data.clearReadStop();
             }
             running = false;
         }
@@ -206,7 +211,7 @@ namespace io {
             delete[] monoBuffer;
             delete[] stereoBuffer;
             monoBuffer = new float[_bufferSize];
-            stereoBuffer = new dsp::StereoFloat_t[_bufferSize];
+            stereoBuffer = new dsp::stereo_t[_bufferSize];
         }
 
         void setSampleRate(float sampleRate) {
@@ -248,7 +253,7 @@ namespace io {
                                       PaStreamCallbackFlags statusFlags, void *userData ) {
             AudioSink* _this = (AudioSink*)userData;
             float* outbuf = (float*)output;
-            if (_this->_monoInput->read(_this->monoBuffer, frameCount) < 0) {
+            if (_this->monoSink.data.read(_this->monoBuffer, frameCount) < 0) {
                 memset(outbuf, 0, sizeof(float) * frameCount);
                 return 0;
             }
@@ -266,9 +271,9 @@ namespace io {
                                       const PaStreamCallbackTimeInfo* timeInfo, 
                                       PaStreamCallbackFlags statusFlags, void *userData ) {
             AudioSink* _this = (AudioSink*)userData;
-            dsp::StereoFloat_t* outbuf = (dsp::StereoFloat_t*)output;
-            if (_this->_stereoInput->read(_this->stereoBuffer, frameCount) < 0) {
-                memset(outbuf, 0, sizeof(dsp::StereoFloat_t) * frameCount);
+            dsp::stereo_t* outbuf = (dsp::stereo_t*)output;
+            if (_this->stereoSink.data.read(_this->stereoBuffer, frameCount) < 0) {
+                memset(outbuf, 0, sizeof(dsp::stereo_t) * frameCount);
                 return 0;
             }
 
@@ -288,9 +293,9 @@ namespace io {
                                       const PaStreamCallbackTimeInfo* timeInfo, 
                                       PaStreamCallbackFlags statusFlags, void *userData ) {
             AudioSink* _this = (AudioSink*)userData;
-            dsp::StereoFloat_t* outbuf = (dsp::StereoFloat_t*)output;
-            if (_this->_monoInput->read(_this->monoBuffer, frameCount) < 0) {
-                memset(outbuf, 0, sizeof(dsp::StereoFloat_t) * frameCount);
+            dsp::stereo_t* outbuf = (dsp::stereo_t*)output;
+            if (_this->monoSink.data.read(_this->monoBuffer, frameCount) < 0) {
+                memset(outbuf, 0, sizeof(dsp::stereo_t) * frameCount);
                 return 0;
             }
             
@@ -309,7 +314,7 @@ namespace io {
                                       PaStreamCallbackFlags statusFlags, void *userData ) {
             AudioSink* _this = (AudioSink*)userData;
             float* outbuf = (float*)output;
-            if (_this->_stereoInput->read(_this->stereoBuffer, frameCount) < 0) {
+            if (_this->stereoSink.data.read(_this->stereoBuffer, frameCount) < 0) {
                 memset(outbuf, 0, sizeof(float) * frameCount);
                 return 0;
             }
@@ -338,10 +343,10 @@ namespace io {
         int defaultDev;
         double _sampleRate;
         int _bufferSize;
-        dsp::stream<float>* _monoInput;
-        dsp::stream<dsp::StereoFloat_t>* _stereoInput;
+        dsp::RingBufferSink<float> monoSink;
+        dsp::RingBufferSink<dsp::stereo_t> stereoSink;
         float* monoBuffer;
-        dsp::StereoFloat_t* stereoBuffer;
+        dsp::stereo_t* stereoBuffer;
         float _volume = 1.0f;
         PaStream *stream;
         bool running = false;

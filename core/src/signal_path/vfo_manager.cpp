@@ -8,7 +8,7 @@ VFOManager::VFO::VFO(std::string name, int reference, double offset, double band
     wtfVFO->setReference(reference);
     wtfVFO->setBandwidth(bandwidth);
     wtfVFO->setOffset(offset);
-    output = dspVFO->output;
+    output = dspVFO->out;
     gui::waterfall.vfos[name] = wtfVFO;
 }
 
@@ -34,7 +34,7 @@ void VFOManager::VFO::setBandwidth(double bandwidth) {
 }
 
 void VFOManager::VFO::setSampleRate(double sampleRate, double bandwidth) {
-    dspVFO->setOutputSampleRate(sampleRate, bandwidth);
+    dspVFO->setOutSampleRate(sampleRate, bandwidth);
     wtfVFO->setBandwidth(bandwidth);
 }
 
@@ -43,7 +43,8 @@ void VFOManager::VFO::setReference(int ref) {
 }
 
 int VFOManager::VFO::getOutputBlockSize() {
-    return dspVFO->getOutputBlockSize();
+    // NOTE: This shouldn't be needed anymore
+    return 1; //dspVFO->getOutputBlockSize();
 }
 
 void VFOManager::VFO::setSnapInterval(double interval) {

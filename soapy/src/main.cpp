@@ -31,8 +31,6 @@ public:
 
         refresh();
 
-        stream.init(100);
-
         // Select default device
         config.aquire();
         std::string devName = config.conf["device"];
@@ -208,7 +206,9 @@ private:
         _this->running = false;
         _this->dev->deactivateStream(_this->devStream);
         _this->dev->closeStream(_this->devStream);
+        _this->stream.stopWriter();
         _this->workerThread.join();
+        _this->stream.clearWriteStop();
         SoapySDR::Device::unmake(_this->dev);
         
         spdlog::info("SoapyModule '{0}': Stop!", _this->name);
@@ -289,18 +289,17 @@ private:
     static void _worker(SoapyModule* _this) {
         spdlog::info("SOAPY: WORKER STARTED {0}", _this->sampleRate);
         int blockSize = _this->sampleRate / 200.0f;
-        dsp::complex_t* buf = new dsp::complex_t[blockSize];
         int flags = 0;
         long long timeMs = 0;
         
         while (_this->running) {
-            int res = _this->dev->readStream(_this->devStream, (void**)&buf, blockSize, flags, timeMs);
+            if (_this->stream.aquire() < 0) { break; }
+            int res = _this->dev->readStream(_this->devStream, (void**)&_this->stream.data, blockSize, flags, timeMs);
             if (res < 1) {
                 continue;
             } 
-            _this->stream.write(buf, res);
+            _this->stream.write(res);
         }
-        delete[] buf;
     }
 
     std::string name;

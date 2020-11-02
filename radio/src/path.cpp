@@ -11,12 +11,17 @@ int SigPath::sampleRateChangeHandler(void* ctx, double sampleRate) {
     _this->audioResamp.stop();
     _this->deemp.stop();
     float bw = std::min<float>(_this->bandwidth, sampleRate / 2.0f);
-    _this->audioResamp.setOutputSampleRate(sampleRate, bw, bw);
-    _this->deemp.setBlockSize(_this->audioResamp.getOutputBlockSize());
-    _this->deemp.setSamplerate(sampleRate);
+
+    
+    _this->audioResamp.setOutSampleRate(sampleRate);
+    _this->audioWin.setSampleRate(_this->sampleRate * _this->audioResamp.getInterpolation());
+    _this->audioResamp.updateWindow(&_this->audioWin);
+
+    _this->deemp.setSampleRate(sampleRate);
     _this->audioResamp.start();
     _this->deemp.start();
-    return _this->audioResamp.getOutputBlockSize();
+    // Note: returning a block size should not be needed anymore
+    return 1;
 }
 
 void SigPath::init(std::string vfoName, uint64_t sampleRate, int blockSize) {
@@ -35,21 +40,18 @@ void SigPath::init(std::string vfoName, uint64_t sampleRate, int blockSize) {
     // TODO: ajust deemphasis for different output sample rates
     // TODO: Add a mono to stereo for different modes
 
-    squelch.init(vfo->output, 800);
-    squelch.level = -100.0;
-    squelch.onCount = 1;
-    squelch.offCount = 2560;
+    demod.init(vfo->output, 200000, 100000);
+    amDemod.init(vfo->output);
+    ssbDemod.init(vfo->output, 6000, 3000, dsp::SSBDemod::MODE_USB);
 
-    demod.init(squelch.out[0], 100000, 200000, 800);
-    amDemod.init(squelch.out[0], 50);
-    ssbDemod.init(squelch.out[0], 6000, 3000, 22);
-    cpx2stereo.init(squelch.out[0], 22);
+    audioWin.init(24000, 24000, 200000);
+    audioResamp.init(&demod.out, &audioWin, 200000, 48000);
+    audioWin.setSampleRate(audioResamp.getInterpolation() * 200000);
+    audioResamp.updateWindow(&audioWin);
+
+    deemp.init(&audioResamp.out, 48000, 50e-6);
     
-    audioResamp.init(&demod.output, 200000, 48000, 800);
-    deemp.init(&audioResamp.output, 800, 50e-6, 48000);
-    
-    outputSampleRate = audio::registerMonoStream(&deemp.output, vfoName, vfoName, sampleRateChangeHandler, this);
-    audio::setBlockSize(vfoName, audioResamp.getOutputBlockSize());
+    outputSampleRate = audio::registerMonoStream(&deemp.out, vfoName, vfoName, sampleRateChangeHandler, this);
 
     setDemodulator(_demod, bandwidth);
 }
@@ -90,27 +92,27 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
     else if (_demod == DEMOD_DSB) {
         ssbDemod.stop();
     }
-    else if (_demod == DEMOD_RAW) {
-        cpx2stereo.stop();
-    }
     else {
         spdlog::error("UNIMPLEMENTED DEMODULATOR IN SigPath::setDemodulator (stop)");
     }
     _demod = demId;
-    
-    squelch.stop();
 
     // Set input of the audio resampler
     // TODO: Set bandwidth from argument
     if (demId == DEMOD_FM) {
         demodOutputSamplerate = 200000;
         vfo->setSampleRate(200000, bandwidth);
-        demod.setBlockSize(vfo->getOutputBlockSize());
         demod.setSampleRate(200000);
         demod.setDeviation(bandwidth / 2.0f);
-        audioResamp.setInput(&demod.output);
+        audioResamp.setInput(&demod.out);
         audioBw = std::min<float>(bandwidth, outputSampleRate / 2.0f);
-        audioResamp.setInputSampleRate(200000, vfo->getOutputBlockSize(), audioBw, audioBw);
+
+        audioResamp.setInSampleRate(200000);
+        audioWin.setSampleRate(200000 * audioResamp.getInterpolation());
+        audioWin.setCutoff(audioBw);
+        audioWin.setTransWidth(audioBw);
+        audioResamp.updateWindow(&audioWin);
+
         deemp.bypass = (_deemp == DEEMP_NONE);
         vfo->setReference(ImGui::WaterfallVFO::REF_CENTER);
         demod.start();
@@ -118,12 +120,17 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
     else if (demId == DEMOD_NFM) {
         demodOutputSamplerate = 16000;
         vfo->setSampleRate(16000, bandwidth);
-        demod.setBlockSize(vfo->getOutputBlockSize());
         demod.setSampleRate(16000);
         demod.setDeviation(bandwidth / 2.0f);
-        audioResamp.setInput(&demod.output);
+        audioResamp.setInput(&demod.out);
         audioBw = std::min<float>(bandwidth, outputSampleRate / 2.0f);
-        audioResamp.setInputSampleRate(16000, vfo->getOutputBlockSize(), audioBw, audioBw);
+        
+        audioResamp.setInSampleRate(16000);
+        audioWin.setSampleRate(16000 * audioResamp.getInterpolation());
+        audioWin.setCutoff(audioBw);
+        audioWin.setTransWidth(audioBw);
+        audioResamp.updateWindow(&audioWin);
+
         deemp.bypass = true;
         vfo->setReference(ImGui::WaterfallVFO::REF_CENTER);
         demod.start();
@@ -131,10 +138,15 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
     else if (demId == DEMOD_AM) {
         demodOutputSamplerate = 125000;
         vfo->setSampleRate(12500, bandwidth);
-        amDemod.setBlockSize(vfo->getOutputBlockSize());
-        audioResamp.setInput(&amDemod.output);
+        audioResamp.setInput(&amDemod.out);
         audioBw = std::min<float>(bandwidth, outputSampleRate / 2.0f);
-        audioResamp.setInputSampleRate(12500, vfo->getOutputBlockSize(), audioBw, audioBw);
+        
+        audioResamp.setInSampleRate(12500);
+        audioWin.setSampleRate(12500 * audioResamp.getInterpolation());
+        audioWin.setCutoff(audioBw);
+        audioWin.setTransWidth(audioBw);
+        audioResamp.updateWindow(&audioWin);
+
         deemp.bypass = true;
         vfo->setReference(ImGui::WaterfallVFO::REF_CENTER);
         amDemod.start();
@@ -142,11 +154,16 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
     else if (demId == DEMOD_USB) {
         demodOutputSamplerate = 6000;
         vfo->setSampleRate(6000, bandwidth);
-        ssbDemod.setBlockSize(vfo->getOutputBlockSize());
         ssbDemod.setMode(dsp::SSBDemod::MODE_USB);
-        audioResamp.setInput(&ssbDemod.output);
+        audioResamp.setInput(&ssbDemod.out);
         audioBw = std::min<float>(bandwidth, outputSampleRate / 2.0f);
-        audioResamp.setInputSampleRate(6000, vfo->getOutputBlockSize(), audioBw, audioBw);
+        
+        audioResamp.setInSampleRate(6000);
+        audioWin.setSampleRate(6000 * audioResamp.getInterpolation());
+        audioWin.setCutoff(audioBw);
+        audioWin.setTransWidth(audioBw);
+        audioResamp.updateWindow(&audioWin);
+
         deemp.bypass = true;
         vfo->setReference(ImGui::WaterfallVFO::REF_LOWER);
         ssbDemod.start();
@@ -154,11 +171,16 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
     else if (demId == DEMOD_LSB) {
         demodOutputSamplerate = 6000;
         vfo->setSampleRate(6000, bandwidth);
-        ssbDemod.setBlockSize(vfo->getOutputBlockSize());
         ssbDemod.setMode(dsp::SSBDemod::MODE_LSB);
-        audioResamp.setInput(&ssbDemod.output);
+        audioResamp.setInput(&ssbDemod.out);
         audioBw = std::min<float>(bandwidth, outputSampleRate / 2.0f);
-        audioResamp.setInputSampleRate(6000, vfo->getOutputBlockSize(), audioBw, audioBw);
+        
+        audioResamp.setInSampleRate(6000);
+        audioWin.setSampleRate(6000 * audioResamp.getInterpolation());
+        audioWin.setCutoff(audioBw);
+        audioWin.setTransWidth(audioBw);
+        audioResamp.updateWindow(&audioWin);
+
         deemp.bypass = true;
         vfo->setReference(ImGui::WaterfallVFO::REF_UPPER);
         ssbDemod.start();
@@ -166,33 +188,23 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
     else if (demId == DEMOD_DSB) {
         demodOutputSamplerate = 6000;
         vfo->setSampleRate(6000, bandwidth);
-        ssbDemod.setBlockSize(vfo->getOutputBlockSize());
         ssbDemod.setMode(dsp::SSBDemod::MODE_DSB);
-        audioResamp.setInput(&ssbDemod.output);
+        audioResamp.setInput(&ssbDemod.out);
         audioBw = std::min<float>(bandwidth, outputSampleRate / 2.0f);
-        audioResamp.setInputSampleRate(6000, vfo->getOutputBlockSize(), audioBw, audioBw);
+        
+        audioResamp.setInSampleRate(6000);
+        audioWin.setSampleRate(6000 * audioResamp.getInterpolation());
+        audioWin.setCutoff(audioBw);
+        audioWin.setTransWidth(audioBw);
+        audioResamp.updateWindow(&audioWin);
+
         deemp.bypass = true;
         vfo->setReference(ImGui::WaterfallVFO::REF_CENTER);
         ssbDemod.start();
     }
-    else if (demId == DEMOD_RAW) {
-        demodOutputSamplerate = 10000;
-        vfo->setSampleRate(10000, bandwidth);
-        cpx2stereo.setBlockSize(vfo->getOutputBlockSize());
-        //audioResamp.setInput(&cpx2stereo.output);
-        audioBw = std::min<float>(bandwidth, outputSampleRate / 2.0f);
-        audioResamp.setInputSampleRate(10000, vfo->getOutputBlockSize(), audioBw, audioBw);
-        vfo->setReference(ImGui::WaterfallVFO::REF_LOWER);
-        cpx2stereo.start();
-    }
     else {
         spdlog::error("UNIMPLEMENTED DEMODULATOR IN SigPath::setDemodulator (start): {0}", demId);
     }
-
-    squelch.setBlockSize(vfo->getOutputBlockSize());
-    squelch.start();
-
-    deemp.setBlockSize(audioResamp.getOutputBlockSize());
 
     audioResamp.start();
     deemp.start();
@@ -237,17 +249,17 @@ void SigPath::setBandwidth(float bandWidth) {
     }
     else if (_demod == DEMOD_USB) {
         ssbDemod.stop();
-        ssbDemod.setBandwidth(bandwidth);
+        ssbDemod.setBandWidth(bandwidth);
         ssbDemod.start();
     }
     else if (_demod == DEMOD_LSB) {
         ssbDemod.stop();
-        ssbDemod.setBandwidth(bandwidth);
+        ssbDemod.setBandWidth(bandwidth);
         ssbDemod.start();
     }
     else if (_demod == DEMOD_DSB) {
         ssbDemod.stop();
-        ssbDemod.setBandwidth(bandwidth);
+        ssbDemod.setBandWidth(bandwidth);
         ssbDemod.start();
     }
     else if (_demod == DEMOD_RAW) {
@@ -260,15 +272,16 @@ void SigPath::setBandwidth(float bandWidth) {
     if (audioBw != _audioBw) {
         audioBw = _audioBw;
         audioResamp.stop();
-        audioResamp.setFilterParams(audioBw, audioBw);
-        audioResamp.setBlockSize(vfo->getOutputBlockSize());
-        //audioResamp.setInputSampleRate(demodOutputSamplerate, vfo->getOutputBlockSize(), audioBw, audioBw);
+
+        audioWin.setCutoff(audioBw);
+        audioWin.setTransWidth(audioBw);
+        audioResamp.updateWindow(&audioWin);
+
         audioResamp.start();
     }
 }
 
 void SigPath::start() {
-    squelch.start();
     demod.start();
     audioResamp.start();
     deemp.start();
