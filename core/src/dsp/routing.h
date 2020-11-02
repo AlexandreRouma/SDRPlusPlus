@@ -1,6 +1,7 @@
 #pragma once
 #include <dsp/block.h>
 #include <cstring>
+#include <spdlog/spdlog.h>
 
 namespace dsp {
     template <class T>

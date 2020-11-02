@@ -3,7 +3,7 @@
         "Radio": {
             "device": "default",
             "sampleRate": 48000.0,
-            "volume": 0.0
+            "volume": 1.0
         },
         "Radio 1": {
             "device": "Speakers (Realtek High Definition Audio)",
@@ -18,7 +18,7 @@
     },
     "bandPlan": "General",
     "bandPlanEnabled": true,
-    "fftHeight": 298,
+    "fftHeight": 296,
     "frequency": 99000000,
     "max": 0.0,
     "maximized": false,

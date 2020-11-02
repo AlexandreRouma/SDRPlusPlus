@@ -23,18 +23,18 @@ namespace dsp {
             _inSampleRate = inSampleRate;
             _outSampleRate = outSampleRate;
 
+            int _gcd = std::gcd((int)_inSampleRate, (int)_outSampleRate);
+            _interp = _outSampleRate / _gcd;
+            _decim = _inSampleRate / _gcd;
+
             tapCount = _window->getTapCount();
             taps = (float*)volk_malloc(tapCount * sizeof(float), volk_get_alignment());
             _window->createTaps(taps, tapCount);
             for (int i = 0; i < tapCount / 2; i++) {
                 float tap = taps[tapCount - i - 1];
-                taps[tapCount - i - 1] = taps[i];
-                taps[i] = tap;
+                taps[tapCount - i - 1] = taps[i] * (float)_interp;
+                taps[i] = tap * (float)_interp;
             }
-
-            int _gcd = std::gcd((int)_inSampleRate, (int)_outSampleRate);
-            _interp = _outSampleRate / _gcd;
-            _decim = _inSampleRate / _gcd;
 
             buffer = (T*)volk_malloc(STREAM_BUFFER_SIZE * sizeof(T) * 2, volk_get_alignment());
             bufStart = &buffer[tapCount];
@@ -80,6 +80,8 @@ namespace dsp {
         }
 
         void updateWindow(dsp::filter_window::generic_window* window) {
+            std::lock_guard<std::mutex> lck(generic_block<PolyphaseResampler<T>>::ctrlMtx);
+            generic_block<PolyphaseResampler<T>>::tempStop();
             _window = window;
             volk_free(taps);
             tapCount = window->getTapCount();
@@ -87,9 +89,10 @@ namespace dsp {
             window->createTaps(taps, tapCount);
             for (int i = 0; i < tapCount / 2; i++) {
                 float tap = taps[tapCount - i - 1];
-                taps[tapCount - i - 1] = taps[i];
-                taps[i] = tap;
+                taps[tapCount - i - 1] = taps[i] * (float)_interp;
+                taps[i] = tap * (float)_interp;
             }
+            generic_block<PolyphaseResampler<T>>::tempStart();
         }
 
         int calcOutSize(int in) {
@@ -97,10 +100,8 @@ namespace dsp {
         }
 
         int run() {
-            if constexpr (std::is_same_v<T, float>) { spdlog::warn("--------- RESAMP START --------"); }
             count = _in->read();
             if (count < 0) {
-                if constexpr (std::is_same_v<T, float>) { spdlog::warn("--------- RESAMP STOP --------"); }
                 return -1;
             }
 
@@ -114,16 +115,21 @@ namespace dsp {
                 return -1;
             }
             int outIndex = 0;
-            if constexpr (std::is_same_v<T, float>) {
-                for (int i = 0; outIndex < outCount; i += _decim) {
-                    out.data[outIndex] = 0;
-                    for (int j = i % _interp; j < tapCount; j += _interp) {
-                        out.data[outIndex] += buffer[((i - j) / _interp) + tapCount] * taps[j];
-                    }
-                    outIndex++;
-                }
-            }
+            // if constexpr (std::is_same_v<T, float>) {
+            //     // for (int i = 0; outIndex < outCount; i += _decim) {
+            //     //     out.data[outIndex] = 0;
+            //     //     for (int j = i % _interp; j < tapCount; j += _interp) {
+            //     //         out.data[outIndex] += buffer[((i - j) / _interp) + tapCount] * taps[j];
+            //     //     }
+            //     //     outIndex++;
+            //     // }
+            //     for (int i = 0; i < outCount; i++) {
+            //         out.data[i] = 1.0f;
+            //     }
+            // }
             if constexpr (std::is_same_v<T, complex_t>) {
+                static_assert(std::is_same_v<T, complex_t>);
+                spdlog::warn("{0}", outCount);
                 for (int i = 0; outIndex < outCount; i += _decim) {
                     out.data[outIndex].i = 0;
                     out.data[outIndex].q = 0;
@@ -134,7 +140,7 @@ namespace dsp {
                     outIndex++;
                 }
             }
-            out.write(count);
+            out.write(outCount);
 
             memmove(buffer, &buffer[count], tapCount * sizeof(T));
 

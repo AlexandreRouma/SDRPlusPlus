@@ -1,6 +1,8 @@
 #pragma once
 #include <dsp/block.h>
 
+#include <spdlog/spdlog.h>
+
 namespace dsp {
     class FrequencyXlator : public generic_block<FrequencyXlator> {
     public:

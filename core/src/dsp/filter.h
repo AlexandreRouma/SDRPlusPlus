@@ -2,6 +2,8 @@
 #include <dsp/block.h>
 #include <dsp/window.h>
 
+#include <spdlog/spdlog.h>
+
 namespace dsp {
 
     template <class T>
@@ -133,8 +135,9 @@ namespace dsp {
             count = _in->read();
             if (count < 0) { return -1; }
 
-            if (bypass) {
-                if (out.aquire() < 0) { return -1; } 
+            if (bypass || true) {
+                if (out.aquire() < 0) { return -1; }
+                memcpy(out.data, _in->data, count * sizeof(float));
                 _in->flush();
                 out.write(count);
             }

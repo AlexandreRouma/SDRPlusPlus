@@ -286,5 +286,6 @@ void SigPath::start() {
     demod.start();
     audioResamp.start();
     deemp.start();
+    //ns.start();
     audio::startStream(vfoName);
 }

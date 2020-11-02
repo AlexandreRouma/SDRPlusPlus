@@ -63,6 +63,7 @@ namespace dsp {
 
         void init(stream<T>* in) {
             _in = in;
+            data.init(480); // TODO: Use an argument
             generic_block<RingBufferSink<T>>::registerInput(_in);
         }
 

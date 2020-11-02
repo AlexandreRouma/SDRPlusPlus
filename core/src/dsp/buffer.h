@@ -1,7 +1,7 @@
 #pragma once
 #include <dsp/block.h>
 
-#define RING_BUF_SZ
+#define RING_BUF_SZ 1000000
 
 namespace dsp {
     template <class T>

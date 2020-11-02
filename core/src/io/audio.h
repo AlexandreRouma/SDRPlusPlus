@@ -28,62 +28,17 @@ namespace io {
             
         }
 
-        AudioSink(int bufferSize) {
-            _bufferSize = bufferSize;
-            monoBuffer = new float[_bufferSize];
-            stereoBuffer = new dsp::stereo_t[_bufferSize];
-            _volume = 1.0f;
-            Pa_Initialize();
-
-            devTxtList = "";
-            int devCount = Pa_GetDeviceCount();
-            devIndex = Pa_GetDefaultOutputDevice();
-            const PaDeviceInfo *deviceInfo;
-            PaStreamParameters outputParams;
-            outputParams.sampleFormat = paFloat32;
-            outputParams.hostApiSpecificStreamInfo = NULL;
-            for(int i = 0; i < devCount; i++) {
-                deviceInfo = Pa_GetDeviceInfo(i);
-                if (deviceInfo->maxOutputChannels < 1) {
-                    continue;
-                }
-                AudioDevice_t dev;
-                dev.name = deviceInfo->name;
-                dev.index = i;
-                dev.channels = std::min<int>(deviceInfo->maxOutputChannels, 2);
-                dev.sampleRates.clear();
-                dev.txtSampleRates = "";
-                for (int j = 0; j < 6; j++) {
-                    outputParams.channelCount = dev.channels;
-                    outputParams.device = dev.index;
-                    outputParams.suggestedLatency = deviceInfo->defaultLowOutputLatency;
-                    PaError err = Pa_IsFormatSupported(NULL, &outputParams, POSSIBLE_SAMP_RATE[j]);
-                    if (err != paFormatIsSupported) {
-                        continue;
-                    }
-                    dev.sampleRates.push_back(POSSIBLE_SAMP_RATE[j]);
-                    dev.txtSampleRates += std::to_string((int)POSSIBLE_SAMP_RATE[j]);
-                    dev.txtSampleRates += '\0';
-                }
-                if (dev.sampleRates.size() == 0) {
-                    continue;
-                }
-                if (i == devIndex) {
-                    devListIndex = devices.size();
-                    defaultDev = devListIndex;
-                }
-                devices.push_back(dev);
-                deviceNames.push_back(deviceInfo->name);
-                devTxtList += deviceInfo->name;
-                devTxtList += '\0';
-            }
-        }
+        AudioSink(int bufferSize) { init(bufferSize); }
 
         void init(int bufferSize) {
             _bufferSize = bufferSize;
             monoBuffer = new float[_bufferSize];
             stereoBuffer = new dsp::stereo_t[_bufferSize];
             _volume = 1.0f;
+
+            monoSink.init(&monoDummy);
+            stereoSink.init(&stereoDummy);
+
             Pa_Initialize();
 
             devTxtList = "";
@@ -343,6 +298,8 @@ namespace io {
         int defaultDev;
         double _sampleRate;
         int _bufferSize;
+        dsp::stream<float> monoDummy;
+        dsp::stream<dsp::stereo_t> stereoDummy;
         dsp::RingBufferSink<float> monoSink;
         dsp::RingBufferSink<dsp::stereo_t> stereoSink;
         float* monoBuffer;

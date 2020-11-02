@@ -1,6 +1,8 @@
 #pragma once
 #include <dsp/block.h>
 
+#include <spdlog/spdlog.h>
+
 #define FAST_ATAN2_COEF1    FL_M_PI / 4.0f
 #define FAST_ATAN2_COEF2    3.0f * FAST_ATAN2_COEF1
 
