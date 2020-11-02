@@ -22,7 +22,9 @@ namespace dsp {
         void setInput(stream<T>* in) {
             std::lock_guard<std::mutex> lck(generic_block<HandlerSink<T>>::ctrlMtx);
             generic_block<HandlerSink<T>>::tempStop();
+            generic_block<HandlerSink<T>>::unregisterInput(_in);
             _in = in;
+            generic_block<HandlerSink<T>>::registerInput(_in);
             generic_block<HandlerSink<T>>::tempStart();
         }
 
@@ -67,7 +69,9 @@ namespace dsp {
         void setInput(stream<T>* in) {
             std::lock_guard<std::mutex> lck(generic_block<RingBufferSink<T>>::ctrlMtx);
             generic_block<RingBufferSink<T>>::tempStop();
+            generic_block<RingBufferSink<T>>::unregisterInput(_in);
             _in = in;
+            generic_block<RingBufferSink<T>>::registerInput(_in);
             generic_block<RingBufferSink<T>>::tempStart();
         }
 
@@ -114,7 +118,9 @@ namespace dsp {
         void setInput(stream<T>* in) {
             std::lock_guard<std::mutex> lck(generic_block<NullSink<T>>::ctrlMtx);
             generic_block<NullSink<T>>::tempStop();
+            generic_block<NullSink<T>>::unregisterInput(_in);
             _in = in;
+            generic_block<NullSink<T>>::registerInput(_in);
             generic_block<NullSink<T>>::tempStart();
         }
 

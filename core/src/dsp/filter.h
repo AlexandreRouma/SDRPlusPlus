@@ -1,7 +1,6 @@
 #pragma once
 #include <dsp/block.h>
 #include <dsp/window.h>
-#include <spdlog/spdlog.h>
 
 namespace dsp {
 
@@ -34,7 +33,9 @@ namespace dsp {
         void setInput(stream<T>* in) {
             std::lock_guard<std::mutex> lck(generic_block<FIR<T>>::ctrlMtx);
             generic_block<FIR<T>>::tempStop();
+            generic_block<FIR<T>>::unregisterInput(_in);
             _in = in;
+            generic_block<FIR<T>>::registerInput(_in);
             generic_block<FIR<T>>::tempStart();
         }
 
@@ -110,7 +111,9 @@ namespace dsp {
         void setInput(stream<float>* in) {
             std::lock_guard<std::mutex> lck(generic_block<BFMDeemp>::ctrlMtx);
             generic_block<BFMDeemp>::tempStop();
+            generic_block<BFMDeemp>::unregisterInput(_in);
             _in = in;
+            generic_block<BFMDeemp>::registerInput(_in);
             generic_block<BFMDeemp>::tempStart();
         }
 
@@ -127,11 +130,8 @@ namespace dsp {
         }
 
         int run() {
-            spdlog::warn("+++++++++++++ DEEMP READING");
             count = _in->read();
-            if (count < 0) { spdlog::warn("++++++++++ DEEMP EXIT"); return -1; }
-
-            spdlog::warn("+++++++++++++ DEEMP PROC");
+            if (count < 0) { return -1; }
 
             if (bypass) {
                 if (out.aquire() < 0) { return -1; } 
@@ -148,8 +148,6 @@ namespace dsp {
                 out.data[i] = (alpha * _in->data[i]) + ((1 - alpha) * out.data[i - 1]);
             }
             lastOut = out.data[count - 1];
-
-            spdlog::warn("+++++++++++++ DEEMP DONE");
 
             _in->flush();
             out.write(count);

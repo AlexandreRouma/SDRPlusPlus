@@ -39,7 +39,6 @@ namespace dsp {
                 std::lock_guard<std::mutex> lck(sigMtx);
                 contentSize = size;
                 dataReady = true;
-                lck.~lock_guard();
             }
             cv.notify_one();
         }
@@ -56,7 +55,6 @@ namespace dsp {
             {
                 std::lock_guard<std::mutex> lck(sigMtx);
                 dataReady = false;
-                lck.~lock_guard();
             }
             cv.notify_one();
         }
@@ -65,7 +63,6 @@ namespace dsp {
             {
                 std::lock_guard<std::mutex> lck(sigMtx);
                 readerStop = true;
-                lck.~lock_guard();
             }
             cv.notify_one();
         }
@@ -78,7 +75,6 @@ namespace dsp {
             {
                 std::lock_guard<std::mutex> lck(sigMtx);
                 writerStop = true;
-                lck.~lock_guard();
             }
             cv.notify_one();
         }

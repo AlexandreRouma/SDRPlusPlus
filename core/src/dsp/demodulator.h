@@ -1,6 +1,5 @@
 #pragma once
 #include <dsp/block.h>
-#include <spdlog/spdlog.h>
 
 #define FAST_ATAN2_COEF1    FL_M_PI / 4.0f
 #define FAST_ATAN2_COEF2    3.0f * FAST_ATAN2_COEF1
@@ -44,7 +43,9 @@ namespace dsp {
         void setInput(stream<complex_t>* in) {
             std::lock_guard<std::mutex> lck(generic_block<FMDemod>::ctrlMtx);
             generic_block<FMDemod>::tempStop();
+            generic_block<FMDemod>::unregisterInput(_in);
             _in = in;
+            generic_block<FMDemod>::registerInput(_in);
             generic_block<FMDemod>::tempStart();
         }
 
@@ -120,7 +121,9 @@ namespace dsp {
         void setInput(stream<complex_t>* in) {
             std::lock_guard<std::mutex> lck(generic_block<AMDemod>::ctrlMtx);
             generic_block<AMDemod>::tempStop();
+            generic_block<AMDemod>::unregisterInput(_in);
             _in = in;
+            generic_block<AMDemod>::registerInput(_in);
             generic_block<AMDemod>::tempStart();
         }
 
@@ -182,7 +185,9 @@ namespace dsp {
         void setInput(stream<complex_t>* in) {
             std::lock_guard<std::mutex> lck(generic_block<SSBDemod>::ctrlMtx);
             generic_block<SSBDemod>::tempStop();
+            generic_block<SSBDemod>::unregisterInput(_in);
             _in = in;
+            generic_block<SSBDemod>::registerInput(_in);
             generic_block<SSBDemod>::tempStart();
         }
 

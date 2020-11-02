@@ -80,7 +80,9 @@ namespace dsp {
         void setInput(stream<T>* in) {
             std::lock_guard<std::mutex> lck(generic_block<Reshaper<T>>::ctrlMtx);
             generic_block<Reshaper<T>>::tempStop();
+            generic_block<Reshaper<T>>::unregisterInput(_in);
             _in = in;
+            generic_block<Reshaper<T>>::registerInput(_in);
             generic_block<Reshaper<T>>::tempStart();
         }
 

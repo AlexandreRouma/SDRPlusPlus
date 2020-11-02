@@ -16,13 +16,16 @@ namespace dsp {
             _freq = freq;
             phase = lv_cmake(1.0f, 0.0f);
             phaseDelta = lv_cmake(std::cos((_freq / _sampleRate) * 2.0f * FL_M_PI), std::sin((_freq / _sampleRate) * 2.0f * FL_M_PI));
+            generic_block<FrequencyXlator>::registerInput(_in);
             generic_block<FrequencyXlator>::registerOutput(&out);
         }
 
         void setInputSize(stream<complex_t>* in) {
             std::lock_guard<std::mutex> lck(generic_block<FrequencyXlator>::ctrlMtx);
             generic_block<FrequencyXlator>::tempStop();
+            generic_block<FrequencyXlator>::unregisterInput(_in);
             _in = in;
+            generic_block<FrequencyXlator>::registerInput(_in);
             generic_block<FrequencyXlator>::tempStart();
         }
 

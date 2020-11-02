@@ -1,8 +1,7 @@
 #pragma once
 #include <dsp/block.h>
 #include <dsp/window.h>
-
-#include <spdlog/spdlog.h>
+#include <numeric>
 
 namespace dsp {
     template <class T>
@@ -46,7 +45,9 @@ namespace dsp {
         void setInput(stream<T>* in) {
             std::lock_guard<std::mutex> lck(generic_block<PolyphaseResampler<T>>::ctrlMtx);
             generic_block<PolyphaseResampler<T>>::tempStop();
+            generic_block<PolyphaseResampler<T>>::unregisterInput(_in);
             _in = in;
+            generic_block<PolyphaseResampler<T>>::registerInput(_in);
             generic_block<PolyphaseResampler<T>>::tempStart();
         }
 
@@ -96,9 +97,10 @@ namespace dsp {
         }
 
         int run() {
-            if constexpr (std::is_same_v<T, float>) { spdlog::warn("======= RESAMP WAITING ========"); }
+            if constexpr (std::is_same_v<T, float>) { spdlog::warn("--------- RESAMP START --------"); }
             count = _in->read();
             if (count < 0) {
+                if constexpr (std::is_same_v<T, float>) { spdlog::warn("--------- RESAMP STOP --------"); }
                 return -1;
             }
 
@@ -106,8 +108,6 @@ namespace dsp {
 
             memcpy(bufStart, _in->data, count * sizeof(T));
             _in->flush();
-
-            if constexpr (std::is_same_v<T, float>) { spdlog::warn("======= RESAMP GOT DATA ========"); }
 
             // Write to output
             if (out.aquire() < 0) {
@@ -135,8 +135,6 @@ namespace dsp {
                 }
             }
             out.write(count);
-
-            if constexpr (std::is_same_v<T, float>) { spdlog::warn("======= RESAMP WRITTEN ========"); }
 
             memmove(buffer, &buffer[count], tapCount * sizeof(T));
 

@@ -20,15 +20,17 @@ namespace dsp {
             if (running) {
                 return;
             }
+            running = true;
             doStart();
         }
 
         virtual void stop() {
             std::lock_guard<std::mutex> lck(ctrlMtx);
-            if (!running && !tempStopped) {
+            if (!running) {
                 return;
             }
             doStop();
+            running = false;
         }
 
         virtual int calcOutSize(int inSize) { return inSize; }
@@ -67,7 +69,6 @@ namespace dsp {
         }
 
         virtual void doStart() {
-            running = true;
             workerThread = std::thread(&generic_block::workerLoop, this);
         }
 

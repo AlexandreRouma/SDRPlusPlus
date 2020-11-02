@@ -1,6 +1,5 @@
 #pragma once
 #include <dsp/block.h>
-#include <spdlog/spdlog.h>
 
 namespace dsp {
     class MonoToStereo : public generic_block<MonoToStereo> {
@@ -20,7 +19,9 @@ namespace dsp {
         void setInput(stream<float>* in) {
             std::lock_guard<std::mutex> lck(generic_block<MonoToStereo>::ctrlMtx);
             generic_block<MonoToStereo>::tempStop();
+            generic_block<MonoToStereo>::unregisterInput(_in);
             _in = in;
+            generic_block<MonoToStereo>::registerInput(_in);
             generic_block<MonoToStereo>::tempStart();
         }
 
@@ -64,7 +65,9 @@ namespace dsp {
         void setInput(stream<stereo_t>* in) {
             std::lock_guard<std::mutex> lck(generic_block<StereoToMono>::ctrlMtx);
             generic_block<StereoToMono>::tempStop();
+            generic_block<StereoToMono>::unregisterInput(_in);
             _in = in;
+            generic_block<StereoToMono>::registerInput(_in);
             generic_block<StereoToMono>::tempStart();
         }
 
