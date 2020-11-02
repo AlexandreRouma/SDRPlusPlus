@@ -63,6 +63,10 @@ private:
     dsp::filter_window::BlackmanWindow audioWin;
     dsp::PolyphaseResampler<float> audioResamp;
 
+    // Debug
+    dsp::NullSink<float> ns;
+    dsp::stream<float> DUMMY_STREAM;
+
     std::string vfoName;
 
     float sampleRate;

@@ -96,4 +96,38 @@ namespace dsp {
         stream<T>* _in;
 
     };
+
+    template <class T>
+    class NullSink : public generic_block<NullSink<T>> {
+    public:
+        NullSink() {}
+
+        NullSink(stream<T>* in) { init(in); }
+
+        ~NullSink() { generic_block<NullSink<T>>::stop(); }
+
+        void init(stream<T>* in) {
+            _in = in;
+            generic_block<NullSink<T>>::registerInput(_in);
+        }
+
+        void setInput(stream<T>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<NullSink<T>>::ctrlMtx);
+            generic_block<NullSink<T>>::tempStop();
+            _in = in;
+            generic_block<NullSink<T>>::tempStart();
+        }
+
+        int run() {
+            count = _in->read();
+            if (count < 0) { return -1; }
+            _in->flush();
+            return count;
+        }
+
+    private:
+        int count;
+        stream<T>* _in;
+
+    };
 }

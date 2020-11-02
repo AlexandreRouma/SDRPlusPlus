@@ -1,5 +1,6 @@
 #include <path.h>
 #include <signal_path/audio.h>
+#include <spdlog/spdlog.h>
 
 SigPath::SigPath() {
     
@@ -45,11 +46,13 @@ void SigPath::init(std::string vfoName, uint64_t sampleRate, int blockSize) {
     ssbDemod.init(vfo->output, 6000, 3000, dsp::SSBDemod::MODE_USB);
 
     audioWin.init(24000, 24000, 200000);
-    audioResamp.init(&demod.out, &audioWin, 200000, 48000);
+    audioResamp.init(&DUMMY_STREAM, &audioWin, 200000, 48000);
     audioWin.setSampleRate(audioResamp.getInterpolation() * 200000);
     audioResamp.updateWindow(&audioWin);
 
     deemp.init(&audioResamp.out, 48000, 50e-6);
+
+    ns.init(&demod.out);
     
     outputSampleRate = audio::registerMonoStream(&deemp.out, vfoName, vfoName, sampleRateChangeHandler, this);
 
@@ -284,6 +287,7 @@ void SigPath::setBandwidth(float bandWidth) {
 void SigPath::start() {
     demod.start();
     audioResamp.start();
-    deemp.start();
+    //deemp.start();
+    ns.start();
     audio::startStream(vfoName);
 }

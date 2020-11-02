@@ -35,10 +35,13 @@ namespace dsp {
         }
 
         void write(int size) {
-            std::lock_guard<std::mutex> lck(sigMtx);
-            contentSize = size;
-            dataReady = true;
-            cv.notify_all();
+            {
+                std::lock_guard<std::mutex> lck(sigMtx);
+                contentSize = size;
+                dataReady = true;
+                lck.~lock_guard();
+            }
+            cv.notify_one();
         }
 
         int read() {
@@ -50,15 +53,21 @@ namespace dsp {
         }
 
         void flush() {
-            std::lock_guard<std::mutex> lck(sigMtx);
-            dataReady = false;
-            cv.notify_all();
+            {
+                std::lock_guard<std::mutex> lck(sigMtx);
+                dataReady = false;
+                lck.~lock_guard();
+            }
+            cv.notify_one();
         }
 
         void stopReader() {
-            std::lock_guard<std::mutex> lck(sigMtx);
-            readerStop = true;
-            cv.notify_all();
+            {
+                std::lock_guard<std::mutex> lck(sigMtx);
+                readerStop = true;
+                lck.~lock_guard();
+            }
+            cv.notify_one();
         }
 
         void clearReadStop() {
@@ -66,9 +75,12 @@ namespace dsp {
         }
 
         void stopWriter() {
-            std::lock_guard<std::mutex> lck(sigMtx);
-            writerStop = true;
-            cv.notify_all();
+            {
+                std::lock_guard<std::mutex> lck(sigMtx);
+                writerStop = true;
+                lck.~lock_guard();
+            }
+            cv.notify_one();
         }
 
         void clearWriteStop() {
@@ -80,12 +92,12 @@ namespace dsp {
     private:
         void waitReady() {
             std::unique_lock<std::mutex> lck(sigMtx);
-            cv.wait(lck, [this]{ return !dataReady || writerStop; });
+            cv.wait(lck, [this]{ return (!dataReady || writerStop); });
         }
 
         void waitData() {
             std::unique_lock<std::mutex> lck(sigMtx);
-            cv.wait(lck, [this]{ return dataReady || readerStop; });
+            cv.wait(lck, [this]{ return (dataReady || readerStop); });
         }
 
         std::mutex sigMtx;

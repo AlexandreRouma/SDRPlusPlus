@@ -1,7 +1,7 @@
 #pragma once
 #include <dsp/block.h>
 #include <dsp/window.h>
-#include <spdlog/
+#include <spdlog/spdlog.h>
 
 namespace dsp {
 
@@ -127,8 +127,11 @@ namespace dsp {
         }
 
         int run() {
+            spdlog::warn("+++++++++++++ DEEMP READING");
             count = _in->read();
-            if (count < 0) { return -1; }
+            if (count < 0) { spdlog::warn("++++++++++ DEEMP EXIT"); return -1; }
+
+            spdlog::warn("+++++++++++++ DEEMP PROC");
 
             if (bypass) {
                 if (out.aquire() < 0) { return -1; } 
@@ -145,6 +148,8 @@ namespace dsp {
                 out.data[i] = (alpha * _in->data[i]) + ((1 - alpha) * out.data[i - 1]);
             }
             lastOut = out.data[count - 1];
+
+            spdlog::warn("+++++++++++++ DEEMP DONE");
 
             _in->flush();
             out.write(count);

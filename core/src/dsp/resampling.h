@@ -96,16 +96,23 @@ namespace dsp {
         }
 
         int run() {
+            if constexpr (std::is_same_v<T, float>) { spdlog::warn("======= RESAMP WAITING ========"); }
             count = _in->read();
-            if (count < 0) { return -1; }
+            if (count < 0) {
+                return -1;
+            }
 
             int outCount = calcOutSize(count);
 
             memcpy(bufStart, _in->data, count * sizeof(T));
             _in->flush();
 
+            if constexpr (std::is_same_v<T, float>) { spdlog::warn("======= RESAMP GOT DATA ========"); }
+
             // Write to output
-            if (out.aquire() < 0) { return -1; }
+            if (out.aquire() < 0) {
+                return -1;
+            }
             int outIndex = 0;
             if constexpr (std::is_same_v<T, float>) {
                 for (int i = 0; outIndex < outCount; i += _decim) {
@@ -128,6 +135,8 @@ namespace dsp {
                 }
             }
             out.write(count);
+
+            if constexpr (std::is_same_v<T, float>) { spdlog::warn("======= RESAMP WRITTEN ========"); }
 
             memmove(buffer, &buffer[count], tapCount * sizeof(T));
 
