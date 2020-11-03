@@ -92,6 +92,7 @@ namespace dsp {
                 taps[tapCount - i - 1] = taps[i] * (float)_interp;
                 taps[i] = tap * (float)_interp;
             }
+            bufStart = &buffer[tapCount];
             generic_block<PolyphaseResampler<T>>::tempStart();
         }
 
@@ -99,7 +100,7 @@ namespace dsp {
             return (in * _interp) / _decim;
         }
 
-        int run() {
+        virtual int run() override {
             count = _in->read();
             if (count < 0) {
                 return -1;
@@ -107,7 +108,7 @@ namespace dsp {
 
             int outCount = calcOutSize(count);
 
-            memcpy(bufStart, _in->data, count * sizeof(T));
+            memcpy(&buffer[tapCount], _in->data, count * sizeof(T));
             _in->flush();
 
             // Write to output
@@ -115,21 +116,19 @@ namespace dsp {
                 return -1;
             }
             int outIndex = 0;
-            // if constexpr (std::is_same_v<T, float>) {
-            //     // for (int i = 0; outIndex < outCount; i += _decim) {
-            //     //     out.data[outIndex] = 0;
-            //     //     for (int j = i % _interp; j < tapCount; j += _interp) {
-            //     //         out.data[outIndex] += buffer[((i - j) / _interp) + tapCount] * taps[j];
-            //     //     }
-            //     //     outIndex++;
-            //     // }
-            //     for (int i = 0; i < outCount; i++) {
-            //         out.data[i] = 1.0f;
-            //     }
-            // }
+            if constexpr (std::is_same_v<T, float>) {
+                for (int i = 0; i < count; i++) {
+                    buffer[tapCount + i] = 1.0f;
+                }
+                for (int i = 0; outIndex < outCount; i += _decim) {
+                    out.data[outIndex] = 0;
+                    for (int j = i % _interp; j < tapCount; j += _interp) {
+                        out.data[outIndex] += buffer[((i - j) / _interp) + tapCount] * taps[j];
+                    }
+                    outIndex++;
+                }
+            }
             if constexpr (std::is_same_v<T, complex_t>) {
-                static_assert(std::is_same_v<T, complex_t>);
-                spdlog::warn("{0}", outCount);
                 for (int i = 0; outIndex < outCount; i += _decim) {
                     out.data[outIndex].i = 0;
                     out.data[outIndex].q = 0;

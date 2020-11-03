@@ -69,7 +69,7 @@ namespace dsp {
         }
 
         virtual void doStart() {
-            workerThread = std::thread(&generic_block::workerLoop, this);
+            workerThread = std::thread(&generic_block<BLOCK>::workerLoop, this);
         }
 
         virtual void doStop() {

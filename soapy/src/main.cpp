@@ -287,7 +287,6 @@ private:
     }
 
     static void _worker(SoapyModule* _this) {
-        spdlog::info("SOAPY: WORKER STARTED {0}", _this->sampleRate);
         int blockSize = _this->sampleRate / 200.0f;
         int flags = 0;
         long long timeMs = 0;
@@ -297,7 +296,7 @@ private:
             int res = _this->dev->readStream(_this->devStream, (void**)&_this->stream.data, blockSize, flags, timeMs);
             if (res < 1) {
                 continue;
-            } 
+            }
             _this->stream.write(res);
         }
     }
