@@ -1,9 +1,9 @@
 {
     "audio": {
         "Radio": {
-            "device": "default",
+            "device": "Speakers (Realtek High Definiti",
             "sampleRate": 48000.0,
-            "volume": 1.0
+            "volume": 0.51953125
         },
         "Radio 1": {
             "device": "Speakers (Realtek High Definition Audio)",

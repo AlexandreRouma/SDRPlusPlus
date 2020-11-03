@@ -29,14 +29,10 @@ namespace dsp {
 
             tapCount = _window->getTapCount();
             taps = (float*)volk_malloc(tapCount * sizeof(float), volk_get_alignment());
-            _window->createTaps(taps, tapCount);
-            for (int i = 0; i < tapCount / 2; i++) {
-                float tap = taps[tapCount - i - 1];
-                taps[tapCount - i - 1] = taps[i] * (float)_interp;
-                taps[i] = tap * (float)_interp;
-            }
+            _window->createTaps(taps, tapCount, _interp);
 
             buffer = (T*)volk_malloc(STREAM_BUFFER_SIZE * sizeof(T) * 2, volk_get_alignment());
+            memset(buffer, 0, STREAM_BUFFER_SIZE * sizeof(T) * 2);
             bufStart = &buffer[tapCount];
             generic_block<PolyphaseResampler<T>>::registerInput(_in);
             generic_block<PolyphaseResampler<T>>::registerOutput(&out);
@@ -86,12 +82,7 @@ namespace dsp {
             volk_free(taps);
             tapCount = window->getTapCount();
             taps = (float*)volk_malloc(tapCount * sizeof(float), volk_get_alignment());
-            window->createTaps(taps, tapCount);
-            for (int i = 0; i < tapCount / 2; i++) {
-                float tap = taps[tapCount - i - 1];
-                taps[tapCount - i - 1] = taps[i] * (float)_interp;
-                taps[i] = tap * (float)_interp;
-            }
+            window->createTaps(taps, tapCount, _interp);
             bufStart = &buffer[tapCount];
             generic_block<PolyphaseResampler<T>>::tempStart();
         }
@@ -117,9 +108,6 @@ namespace dsp {
             }
             int outIndex = 0;
             if constexpr (std::is_same_v<T, float>) {
-                for (int i = 0; i < count; i++) {
-                    buffer[tapCount + i] = 1.0f;
-                }
                 for (int i = 0; outIndex < outCount; i += _decim) {
                     out.data[outIndex] = 0;
                     for (int j = i % _interp; j < tapCount; j += _interp) {

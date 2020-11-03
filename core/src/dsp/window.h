@@ -6,7 +6,7 @@ namespace dsp {
         class generic_window {
         public:
             virtual int getTapCount() { return -1; }
-            virtual void createTaps(float* taps, int tapCount) {}
+            virtual void createTaps(float* taps, int tapCount, float factor = 1.0f) {}
         };
 
         class BlackmanWindow : public filter_window::generic_window {
@@ -48,7 +48,7 @@ namespace dsp {
                 return _M;
             }
 
-            void createTaps(float* taps, int tapCount) {
+            void createTaps(float* taps, int tapCount, float factor = 1.0f) {
                 float fc = _cutoff / _sampleRate;
                 if (fc > 1.0f) {
                     fc = 1.0f;
@@ -59,10 +59,11 @@ namespace dsp {
                 for (int i = 0; i < tapCount; i++) {
                     val = (sin(2.0f * FL_M_PI * fc * ((float)i - (tc / 2))) / ((float)i - (tc / 2))) * 
                         (0.42f - (0.5f * cos(2.0f * FL_M_PI / tc)) + (0.8f * cos(4.0f * FL_M_PI / tc)));
-                    taps[tapCount - i - 1] = val; // tapCount - i - 1
+                    taps[i] = val; // tapCount - i - 1
                     sum += val;
                 }
                 for (int i = 0; i < tapCount; i++) {
+                    taps[i] *= factor;
                     taps[i] /= sum;
                 }
             }

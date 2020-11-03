@@ -37,7 +37,7 @@ namespace dsp {
             _in = in;
             _sampleRate = sampleRate;
             _deviation = deviation;
-            phasorSpeed = (_sampleRate / _deviation) / (2 * FL_M_PI);
+            phasorSpeed = (2 * FL_M_PI) / (_sampleRate / _deviation);
             generic_block<FMDemod>::registerInput(_in);
             generic_block<FMDemod>::registerOutput(&out);
         }
@@ -55,7 +55,7 @@ namespace dsp {
             std::lock_guard<std::mutex> lck(generic_block<FMDemod>::ctrlMtx);
             generic_block<FMDemod>::tempStop();
             _sampleRate = sampleRate;
-            phasorSpeed = (_sampleRate / _deviation) / (2 * FL_M_PI);
+            phasorSpeed = (2 * FL_M_PI) / (_sampleRate / _deviation);
             generic_block<FMDemod>::tempStart();
         }
 
@@ -67,7 +67,7 @@ namespace dsp {
             std::lock_guard<std::mutex> lck(generic_block<FMDemod>::ctrlMtx);
             generic_block<FMDemod>::tempStop();
             _deviation = deviation;
-            phasorSpeed = (_sampleRate / _deviation) / (2 * FL_M_PI);
+            phasorSpeed = (2 * FL_M_PI) / (_sampleRate / _deviation);
             generic_block<FMDemod>::tempStart();
         }
 
@@ -87,8 +87,9 @@ namespace dsp {
             for (int i = 0; i < count; i++) {
                 currentPhase = fast_arctan2(_in->data[i].i, _in->data[i].q);
                 diff = currentPhase - phase;
-                if (diff > FL_M_PI)        { out.data[i] = (diff - 2 * FL_M_PI) * phasorSpeed; }
-                else if (diff <= -FL_M_PI) { out.data[i] = (diff + 2 * FL_M_PI) * phasorSpeed; }
+                if (diff > 3.1415926535f)        { diff -= 2 * 3.1415926535f; }
+                else if (diff <= -3.1415926535f) { diff += 2 * 3.1415926535f; }
+                out.data[i] = diff / phasorSpeed;
                 phase = currentPhase;
             }
 

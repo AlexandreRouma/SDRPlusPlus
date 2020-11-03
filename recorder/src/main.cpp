@@ -179,13 +179,13 @@ private:
         while (true) {
             int count = _this->audioStream->read();
             if (count < 0) { break; }
-            for (int i = 0; i < 1024; i++) {
+            for (int i = 0; i < 240; i++) {
                 sampleBuf[(i * 2) + 0] = _this->audioStream->data[i].l * 0x7FFF;
                 sampleBuf[(i * 2) + 1] = _this->audioStream->data[i].r * 0x7FFF;
             }
             _this->audioStream->flush();
-            _this->samplesWritten += 1024;
-            _this->writer->writeSamples(sampleBuf, 2048 * sizeof(int16_t));
+            _this->samplesWritten += 240;
+            _this->writer->writeSamples(sampleBuf, 480 * sizeof(int16_t));
         }
         delete[] sampleBuf;
     }
