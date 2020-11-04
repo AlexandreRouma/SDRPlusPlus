@@ -98,6 +98,7 @@ namespace dsp {
             generic_block<Reshaper<T>>::tempStop();
             generic_block<Reshaper<T>>::unregisterInput(_in);
             _keep = keep;
+            ringBuf.setMaxLatency(keep * 2);
             generic_block<Reshaper<T>>::registerInput(_in);
             generic_block<Reshaper<T>>::tempStart();
         }
@@ -116,6 +117,7 @@ namespace dsp {
             if (count < 0) { return -1; }
             ringBuf.write(_in->data, count);
             _in->flush();
+            return count;
         }
 
         stream<T> out;
