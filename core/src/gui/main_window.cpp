@@ -48,6 +48,10 @@ int fftSize = 8192 * 8;
 std::vector<float> _data;
 std::vector<float> fftTaps;
 void fftHandler(dsp::complex_t* samples, int count, void* ctx) {
+    if (count < fftSize) {
+        return;
+    }
+    memcpy(fft_in, samples, count * sizeof(dsp::complex_t));
     fftwf_execute(p);
     int half = fftSize / 2;
 

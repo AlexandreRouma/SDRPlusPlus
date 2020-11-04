@@ -12,7 +12,8 @@ void SignalPath::init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream
 
     split.init(input);
 
-    reshape.init(&fftStream);
+    reshape.init(&fftStream, fftSize, (sampleRate / fftRate) - fftSize);
+    split.bindStream(&fftStream);
     fftHandlerSink.init(&reshape.out, fftHandler, NULL);
 }
 
@@ -20,16 +21,14 @@ void SignalPath::setSampleRate(double sampleRate) {
     this->sampleRate = sampleRate;
 
     split.stop();
-    //fftBlockDec.stop();
-    //fftHandlerSink.stop();
 
     for (auto const& [name, vfo] : vfos) {
         vfo.vfo->stop();
     }
 
     // Claculate skip to maintain a constant fft rate
-    //int skip = (sampleRate / fftRate) - fftSize;
-    //fftBlockDec.setSkip(skip);
+    int skip = (sampleRate / fftRate) - fftSize;
+    reshape.setSkip(skip);
 
     // TODO: Tell modules that the block size has changed (maybe?)
 
@@ -38,8 +37,6 @@ void SignalPath::setSampleRate(double sampleRate) {
         vfo.vfo->start();
     }
 
-    //fftHandlerSink.start();
-    //fftBlockDec.start();
     split.start();
 }
 

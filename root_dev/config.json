@@ -3,7 +3,7 @@
         "Radio": {
             "device": "Speakers (Realtek High Definiti",
             "sampleRate": 48000.0,
-            "volume": 0.51953125
+            "volume": 0.7265625
         },
         "Radio 1": {
             "device": "Speakers (Realtek High Definition Audio)",
@@ -32,7 +32,7 @@
         "Display"
     ],
     "menuWidth": 300,
-    "min": -100.0,
+    "min": -52.20588302612305,
     "showWaterfall": true,
     "source": "",
     "sourceSettings": {},
