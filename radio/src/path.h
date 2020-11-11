@@ -1,18 +1,13 @@
 #pragma once
-#include <dsp/filter.h>
 #include <dsp/resampling.h>
-#include <dsp/source.h>
-#include <dsp/math.h>
 #include <dsp/demodulator.h>
-#include <dsp/routing.h>
-#include <dsp/sink.h>
-#include <dsp/vfo.h>
-#include <dsp/block.h>
+#include <dsp/filter.h>
 #include <dsp/window.h>
 #include <dsp/audio.h>
 #include <io/audio.h>
 #include <module.h>
 #include <signal_path/signal_path.h>
+#include <dsp/processing.h>
 
 class SigPath {
 public:
@@ -58,12 +53,13 @@ private:
     dsp::AMDemod amDemod;
     dsp::SSBDemod ssbDemod;
 
+    // Gain control
+    dsp::AGC agc;
+
     // Audio output
     dsp::MonoToStereo m2s;
     dsp::filter_window::BlackmanWindow audioWin;
     dsp::PolyphaseResampler<float> audioResamp;
-
-    dsp::NullSink<float> ns;
 
     std::string vfoName;
 

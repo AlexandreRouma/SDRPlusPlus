@@ -2,6 +2,7 @@
 #include <dsp/block.h>
 #include <dsp/window.h>
 #include <numeric>
+#include <string.h>
 
 namespace dsp {
     template <class T>

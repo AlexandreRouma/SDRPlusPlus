@@ -1,8 +1,7 @@
 #pragma once
 #include <dsp/block.h>
 #include <dsp/window.h>
-
-#include <spdlog/spdlog.h>
+#include <string.h>
 
 namespace dsp {
 

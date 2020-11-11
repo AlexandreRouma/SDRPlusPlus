@@ -1,7 +1,7 @@
 #pragma once
 #include <dsp/block.h>
 #include <dsp/buffer.h>
-#include <cstring>
+#include <string.h>
 #include <numeric>
 #include <spdlog/spdlog.h>
 

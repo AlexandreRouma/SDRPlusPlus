@@ -1,13 +1,8 @@
 #pragma once
-#include <dsp/filter.h>
-#include <dsp/resampling.h>
-#include <dsp/source.h>
-#include <dsp/math.h>
-#include <dsp/demodulator.h>
 #include <dsp/routing.h>
-#include <dsp/sink.h>
 #include <dsp/vfo.h>
 #include <map>
+#include <dsp/sink.h>
 #include <module.h>
 
 class SignalPath {

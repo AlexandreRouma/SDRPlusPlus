@@ -1,7 +1,7 @@
 #pragma once
 #include <dsp/block.h>
-
-#include <spdlog/spdlog.h>
+#include <fftw3.h>
+#include <string.h>
 
 namespace dsp {
     class FrequencyXlator : public generic_block<FrequencyXlator> {
@@ -73,6 +73,58 @@ namespace dsp {
         lv_32fc_t phaseDelta;
         lv_32fc_t phase;
         stream<complex_t>* _in;
+
+    };
+
+    class AGC : public generic_block<AGC> {
+    public:
+        AGC() {}
+
+        AGC(stream<float>* in, float ratio) { init(in, ratio); }
+
+        ~AGC() { generic_block<AGC>::stop(); }
+
+        void init(stream<float>* in, float ratio) {
+            _in = in;
+            _ratio = ratio;
+            generic_block<AGC>::registerInput(_in);
+            generic_block<AGC>::registerOutput(&out);
+        }
+
+        void setInputSize(stream<float>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<AGC>::ctrlMtx);
+            generic_block<AGC>::tempStop();
+            generic_block<AGC>::unregisterInput(_in);
+            _in = in;
+            generic_block<AGC>::registerInput(_in);
+            generic_block<AGC>::tempStart();
+        }
+
+        int run() {
+            count = _in->read();
+            if (count < 0) { return -1; }
+
+            if (out.aquire() < 0) { return -1; }
+
+            for (int i = 0; i < count; i++) {
+                level = (fabsf(_in->data[i]) * _ratio) + (level * (1.0f - _ratio));
+                out.data[i] = _in->data[i] / level;
+            }
+
+            
+
+            _in->flush();
+            out.write(count);
+            return count;
+        }
+
+        stream<float> out;
+
+    private:
+        int count;
+        float level = 1.0f;
+        float _ratio;
+        stream<float>* _in;
 
     };
 }

@@ -45,6 +45,8 @@ void SigPath::init(std::string vfoName, uint64_t sampleRate, int blockSize) {
     amDemod.init(vfo->output);
     ssbDemod.init(vfo->output, 6000, 3000, dsp::SSBDemod::MODE_USB);
 
+    agc.init(&amDemod.out, 1.0f / 125.0f);
+
     audioWin.init(24000, 24000, 200000);
     audioResamp.init(&demod.out, &audioWin, 200000, 48000);
     audioWin.setSampleRate(audioResamp.getInterpolation() * 200000);
@@ -82,6 +84,7 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
         demod.stop();
     }
     else if (_demod == DEMOD_AM) {
+        agc.stop();
         amDemod.stop();
     }
     else if (_demod == DEMOD_USB) {
@@ -139,7 +142,7 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
     else if (demId == DEMOD_AM) {
         demodOutputSamplerate = 125000;
         vfo->setSampleRate(12500, bandwidth);
-        audioResamp.setInput(&amDemod.out);
+        audioResamp.setInput(&agc.out);
         audioBw = std::min<float>(bandwidth, outputSampleRate / 2.0f);
         
         audioResamp.setInSampleRate(12500);
@@ -150,6 +153,7 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
 
         deemp.bypass = true;
         vfo->setReference(ImGui::WaterfallVFO::REF_CENTER);
+        agc.start();
         amDemod.start();
     }
     else if (demId == DEMOD_USB) {

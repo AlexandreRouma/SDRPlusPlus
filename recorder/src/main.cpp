@@ -179,32 +179,30 @@ private:
         while (true) {
             int count = _this->audioStream->read();
             if (count < 0) { break; }
-            for (int i = 0; i < 240; i++) {
+            for (int i = 0; i < count; i++) {
                 sampleBuf[(i * 2) + 0] = _this->audioStream->data[i].l * 0x7FFF;
                 sampleBuf[(i * 2) + 1] = _this->audioStream->data[i].r * 0x7FFF;
             }
             _this->audioStream->flush();
-            _this->samplesWritten += 240;
-            _this->writer->writeSamples(sampleBuf, 480 * sizeof(int16_t));
+            _this->samplesWritten += count;
+            _this->writer->writeSamples(sampleBuf, count * sizeof(int16_t) * 2);
         }
         delete[] sampleBuf;
     }
 
     static void _iqWriteWorker(RecorderModule* _this) {
-        dsp::complex_t* iqBuf = new dsp::complex_t[1024];
-        int16_t* sampleBuf = new int16_t[2048];
+        int16_t* sampleBuf = new int16_t[STREAM_BUFFER_SIZE];
         while (true) {
             int count = _this->iqStream->read();
             if (count < 0) { break; }
-            for (int i = 0; i < 1024; i++) {
+            for (int i = 0; i < count; i++) {
                 sampleBuf[(i * 2) + 0] = _this->iqStream->data[i].q * 0x7FFF;
                 sampleBuf[(i * 2) + 1] = _this->iqStream->data[i].i * 0x7FFF;
             }
             _this->iqStream->flush();
-            _this->samplesWritten += 1024;
-            _this->writer->writeSamples(sampleBuf, 2048 * sizeof(int16_t));
+            _this->samplesWritten += count;
+            _this->writer->writeSamples(sampleBuf, count * sizeof(int16_t) * 2);
         }
-        delete[] iqBuf;
         delete[] sampleBuf;
     }
 

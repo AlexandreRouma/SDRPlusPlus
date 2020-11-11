@@ -4,4 +4,5 @@ namespace sigpath {
     SignalPath signalPath;
     VFOManager vfoManager;
     SourceManager sourceManager;
+    SinkManager sinkManager;
 };

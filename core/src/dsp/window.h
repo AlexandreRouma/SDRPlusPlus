@@ -27,7 +27,7 @@ namespace dsp {
             void setCutoff(float cutoff) {
                 _cutoff = cutoff;
             }
-
+            
             void setTransWidth(float transWidth) {
                 _transWidth = transWidth;
             }

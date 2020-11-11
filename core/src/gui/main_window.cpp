@@ -7,13 +7,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <imgui_plot.h>
-#include <dsp/resampling.h>
-#include <dsp/demodulator.h>
-#include <dsp/filter.h>
 #include <thread>
 #include <complex>
-#include <dsp/source.h>
-#include <dsp/math.h>
 #include <gui/waterfall.h>
 #include <gui/frequency_select.h>
 #include <fftw3.h>

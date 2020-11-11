@@ -1,5 +1,6 @@
 #pragma once
 #include <dsp/block.h>
+#include <volk/volk.h>
 
 #include <spdlog/spdlog.h>
 
@@ -138,6 +139,14 @@ namespace dsp {
             volk_32fc_magnitude_32f(out.data, (lv_32fc_t*)_in->data, count);
 
             _in->flush();
+
+            volk_32f_accumulator_s32f(&avg, out.data, count);
+            avg /= (float)count;
+
+            for (int i = 0; i < count; i++) {
+                out.data[i] -= avg;
+            }
+
             out.write(count);
             return count;
         }
@@ -145,6 +154,7 @@ namespace dsp {
         stream<float> out;
 
     private:
+        float avg;
         int count;
         stream<complex_t>* _in;
 
