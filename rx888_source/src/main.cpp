@@ -11,6 +11,9 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
+#define ADC_RATE        32000000
+#define XFER_TIMEOUT    5000
+
 #define SEL0 (8)  		//   SEL0  GPIO26
 #define SEL1 (16) 		//   SEL1  GPIO27
 
@@ -33,7 +36,10 @@ public:
 
         Si5351init();
 
-        sampleRate = 8000000;
+        decimation = 5;
+        sampleRate = (ADC_RATE >> (decimation - 1));
+        freq = sampleRate / 2;
+        
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
@@ -79,7 +85,7 @@ private:
         Bgpio[0] = 0x17 | SEL0 & (~SEL1);
 	    Bgpio[1] = 0x00;
 
-        si5351aSetFrequency(sampleRate * 2, 0);
+        si5351aSetFrequency(ADC_RATE, 0);
         fx3Control(GPIOFX3, Bgpio);
 
         running = true;
@@ -103,52 +109,101 @@ private:
     
     static void menuHandler(void* ctx) {
         RX888SourceModule* _this = (RX888SourceModule*)ctx;
-        
-        ImGui::Text("RX888 source");
+        if (ImGui::InputInt("Decimation", &_this->decimation)) {
+            _this->sampleRate = (ADC_RATE >> (_this->decimation - 1));
+            core::setInputSampleRate(_this->sampleRate);
+        }
     }
 
     static void _worker(RX888SourceModule* _this) {
-        int blockSize = _this->sampleRate / 200.0f;
-        if ((blockSize % 2) != 0) { blockSize++; }
-        int flags = 0;
-        long long timeMs = 0;
+        // Calculate hardware block siz
+        int realBlockSize = ADC_RATE / 200;
+        int i;
+        for (i = 1; i < realBlockSize; i = (i << 1));
+        realBlockSize = (i >> 1);
+        int realDataSize = realBlockSize * sizeof(int16_t);
 
-        int16_t* buffer = new int16_t[blockSize * 2];
+        spdlog::info("Real block size: {0}", realBlockSize);
 
+        // Calculate software block size based on decimation
+        int blockSize = realBlockSize;
+        
+        // Allocate buffers and state variables
+        int16_t* buffer = new int16_t[realBlockSize];
+        dsp::complex_t* iqbuffer = new dsp::complex_t[realBlockSize * 2];
+        lv_32fc_t phase = lv_cmake(1.0f, 0.0f);
+
+        // Initialize transfer
         long pktSize = EndPt->MaxPktSize;
-        EndPt->SetXferSize(blockSize * 2);
-        long ppx = blockSize * 2 / pktSize;
-
+        EndPt->SetXferSize(realDataSize);
+        long ppx = realDataSize / pktSize;
         OVERLAPPED inOvLap;
         inOvLap.hEvent = CreateEvent(NULL, false, false, NULL);
-        auto context = EndPt->BeginDataXfer((PUCHAR)buffer, blockSize, &inOvLap);
-        
-        fx3Control(STARTFX3);
-        
-        while (_this->running) {
-            //if (_this->stream.aquire() < 0) { break; }
-            
+        auto context = EndPt->BeginDataXfer((PUCHAR)buffer, realBlockSize * 2, &inOvLap);
 
-            LONG rLen = blockSize * 2;
-            if (!EndPt->WaitForXfer(&inOvLap, 5000)) {
+        // Check weather the transfer begin was successful
+        if (EndPt->NtStatus || EndPt->UsbdStatus) {
+            spdlog::error("Xfer request rejected. 1 STATUS = {0} {1}", EndPt->NtStatus, EndPt->UsbdStatus);
+            return;
+        }
+
+        // Start the USB chip
+        fx3Control(STARTFX3);
+
+        // Data loop
+        while (_this->running) {
+            // Wait for the transfer to begin and about if timeout
+            LONG rLen = realBlockSize * 2;
+            if (!EndPt->WaitForXfer(&inOvLap, XFER_TIMEOUT)) {
                 spdlog::error("Transfer aborted");
                 EndPt->Abort();
                 if (EndPt->LastError == ERROR_IO_PENDING) {
-                    WaitForSingleObject(inOvLap.hEvent, 5000);
+                    WaitForSingleObject(inOvLap.hEvent, XFER_TIMEOUT);
                 }
                 break;
             }
 
+            // Check if the incomming data is bulk I/Q and end transfer
             if (EndPt->Attributes == 2) {
                 if (EndPt->FinishDataXfer((PUCHAR)buffer, rLen, &inOvLap, context)) {
-                    spdlog::warn("{0}", rLen);
+                    // Convert real data to I/Q data
+                    for (int i = 0; i < realBlockSize; i++) {
+                        iqbuffer[i].q = (float)buffer[i] / 32768.0f;
+                    }
+
+                    // Calculate the traslation frequency based on the tuning
+                    float delta = -(_this->freq / (float)ADC_RATE) * 2.0f * FL_M_PI;
+                    lv_32fc_t phaseDelta = lv_cmake(std::cos(delta), std::sin(delta));
+
+                    // Apply translation
+                    if (_this->stream.aquire() < 0) { break; }
+                    volk_32fc_s32fc_x2_rotator_32fc((lv_32fc_t*)_this->stream.data, (lv_32fc_t*)iqbuffer, phaseDelta, &phase, realBlockSize);
+
+                    // Decimate
+                    blockSize = realBlockSize;
+                    for (int d = 0; d < (_this->decimation - 1); d++) {
+                        blockSize = (blockSize >> 1);
+                        for (int i = 0; i < blockSize; i++) {
+                            _this->stream.data[i].i = (_this->stream.data[i*2].i + _this->stream.data[(i*2)+1].i) * 0.5f;
+                            _this->stream.data[i].q = (_this->stream.data[i*2].q + _this->stream.data[(i*2)+1].q) * 0.5f;
+                        }
+                    }
+
+                    // Write to output stream
+                    _this->stream.write(blockSize);
                 }
             }
 
-            context = EndPt->BeginDataXfer((PUCHAR)buffer, blockSize, &inOvLap);
+            // Start next transfer
+            context = EndPt->BeginDataXfer((PUCHAR)buffer, realBlockSize * 2, &inOvLap);
         }
 
+        // Stop FX3 chip
+        fx3Control(STOPFX3);
+
+        // Deallocate buffers
         delete[] buffer;
+        delete[] iqbuffer;
     }
 
     std::string name;
@@ -157,6 +212,7 @@ private:
     std::thread workerThread;
     double freq;
     double sampleRate;
+    int decimation;
     bool running = false;
 };
 

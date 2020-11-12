@@ -54,6 +54,7 @@ private:
             _this->bandWidth = 16000;
             _this->bandWidthMin = 8000;
             _this->bandWidthMax = 16000;
+            _this->snapInterval = 10000;
             _this->sigPath.setDemodulator(SigPath::DEMOD_NFM, _this->bandWidth);
         }
         if (ImGui::RadioButton(CONCAT("WFM##_", _this->name), _this->demod == 1) && _this->demod != 1) {
@@ -61,6 +62,7 @@ private:
             _this->bandWidth = 200000;
             _this->bandWidthMin = 100000;
             _this->bandWidthMax = 200000;
+            _this->snapInterval = 100000;
             _this->sigPath.setDemodulator(SigPath::DEMOD_FM, _this->bandWidth); 
         }
         ImGui::NextColumn();
@@ -69,6 +71,7 @@ private:
             _this->bandWidth = 12500;
             _this->bandWidthMin = 1500;
             _this->bandWidthMax = 12500;
+            _this->snapInterval = 1000;
             _this->sigPath.setDemodulator(SigPath::DEMOD_AM, _this->bandWidth); 
         }
         if (ImGui::RadioButton(CONCAT("DSB##_", _this->name), _this->demod == 3) && _this->demod != 3)  {
@@ -76,6 +79,7 @@ private:
             _this->bandWidth = 6000;
             _this->bandWidthMin = 3000;
             _this->bandWidthMax = 6000;
+            _this->snapInterval = 1000;
             _this->sigPath.setDemodulator(SigPath::DEMOD_DSB, _this->bandWidth); 
         }
         ImGui::NextColumn();
@@ -84,6 +88,7 @@ private:
             _this->bandWidth = 3000;
             _this->bandWidthMin = 1500;
             _this->bandWidthMax = 3000;
+            _this->snapInterval = 1000;
             _this->sigPath.setDemodulator(SigPath::DEMOD_USB, _this->bandWidth); 
         }
         if (ImGui::RadioButton(CONCAT("CW##_", _this->name), _this->demod == 5) && _this->demod != 5) { _this->demod = 5; };
@@ -93,6 +98,7 @@ private:
             _this->bandWidth = 3000;
             _this->bandWidthMin = 1500;
             _this->bandWidthMax = 3000;
+            _this->snapInterval = 1000;
             _this->sigPath.setDemodulator(SigPath::DEMOD_LSB, _this->bandWidth);
         }
         if (ImGui::RadioButton(CONCAT("RAW##_", _this->name), _this->demod == 7) && _this->demod != 7) {
@@ -100,9 +106,11 @@ private:
             _this->bandWidth = 10000;
             _this->bandWidthMin = 3000;
             _this->bandWidthMax = 10000;
+            _this->snapInterval = 1;
             _this->sigPath.setDemodulator(SigPath::DEMOD_RAW, _this->bandWidth);
         };
         ImGui::Columns(1, CONCAT("EndRadioModeColumns##_", _this->name), false);
+        _this->sigPath.vfo->setSnapInterval(_this->snapInterval);
 
         ImGui::EndGroup();
 
