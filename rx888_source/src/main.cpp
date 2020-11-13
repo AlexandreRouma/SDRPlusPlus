@@ -11,7 +11,7 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-#define ADC_RATE        32000000
+#define ADC_RATE        64000000
 #define XFER_TIMEOUT    5000
 
 #define SEL0 (8)  		//   SEL0  GPIO26
@@ -89,13 +89,21 @@ private:
         fx3Control(GPIOFX3, Bgpio);
 
         running = true;
+        usbThread = std::thread(_usbWorker, this);
         workerThread = std::thread(_worker, this);
     }
     
     static void stop(void* ctx) {
         RX888SourceModule* _this = (RX888SourceModule*)ctx;
         _this->running = false;
+        _this->realStream.stopWriter();
+        _this->realStream.stopReader();
+        _this->stream.stopWriter();
+        _this->usbThread.join();
         _this->workerThread.join();
+        _this->realStream.clearWriteStop();
+        _this->realStream.clearReadStop();
+        _this->stream.clearWriteStop();
         spdlog::info("RX888SourceModule '{0}': Stop!", _this->name);
     }
     
@@ -115,7 +123,7 @@ private:
         }
     }
 
-    static void _worker(RX888SourceModule* _this) {
+    static void _usbWorker(RX888SourceModule* _this) {
         // Calculate hardware block siz
         int realBlockSize = ADC_RATE / 200;
         int i;
@@ -123,15 +131,9 @@ private:
         realBlockSize = (i >> 1);
         int realDataSize = realBlockSize * sizeof(int16_t);
 
-        spdlog::info("Real block size: {0}", realBlockSize);
-
-        // Calculate software block size based on decimation
-        int blockSize = realBlockSize;
-        
-        // Allocate buffers and state variables
         int16_t* buffer = new int16_t[realBlockSize];
-        dsp::complex_t* iqbuffer = new dsp::complex_t[realBlockSize * 2];
-        lv_32fc_t phase = lv_cmake(1.0f, 0.0f);
+
+        spdlog::info("Real block size: {0}", realBlockSize);
 
         // Initialize transfer
         long pktSize = EndPt->MaxPktSize;
@@ -139,11 +141,13 @@ private:
         long ppx = realDataSize / pktSize;
         OVERLAPPED inOvLap;
         inOvLap.hEvent = CreateEvent(NULL, false, false, NULL);
-        auto context = EndPt->BeginDataXfer((PUCHAR)buffer, realBlockSize * 2, &inOvLap);
+        
+        auto context = EndPt->BeginDataXfer((PUCHAR)buffer, realDataSize, &inOvLap);
 
         // Check weather the transfer begin was successful
         if (EndPt->NtStatus || EndPt->UsbdStatus) {
             spdlog::error("Xfer request rejected. 1 STATUS = {0} {1}", EndPt->NtStatus, EndPt->UsbdStatus);
+            delete[] buffer;
             return;
         }
 
@@ -153,7 +157,7 @@ private:
         // Data loop
         while (_this->running) {
             // Wait for the transfer to begin and about if timeout
-            LONG rLen = realBlockSize * 2;
+            LONG rLen = realDataSize;
             if (!EndPt->WaitForXfer(&inOvLap, XFER_TIMEOUT)) {
                 spdlog::error("Transfer aborted");
                 EndPt->Abort();
@@ -166,31 +170,9 @@ private:
             // Check if the incomming data is bulk I/Q and end transfer
             if (EndPt->Attributes == 2) {
                 if (EndPt->FinishDataXfer((PUCHAR)buffer, rLen, &inOvLap, context)) {
-                    // Convert real data to I/Q data
-                    for (int i = 0; i < realBlockSize; i++) {
-                        iqbuffer[i].q = (float)buffer[i] / 32768.0f;
-                    }
-
-                    // Calculate the traslation frequency based on the tuning
-                    float delta = -(_this->freq / (float)ADC_RATE) * 2.0f * FL_M_PI;
-                    lv_32fc_t phaseDelta = lv_cmake(std::cos(delta), std::sin(delta));
-
-                    // Apply translation
-                    if (_this->stream.aquire() < 0) { break; }
-                    volk_32fc_s32fc_x2_rotator_32fc((lv_32fc_t*)_this->stream.data, (lv_32fc_t*)iqbuffer, phaseDelta, &phase, realBlockSize);
-
-                    // Decimate
-                    blockSize = realBlockSize;
-                    for (int d = 0; d < (_this->decimation - 1); d++) {
-                        blockSize = (blockSize >> 1);
-                        for (int i = 0; i < blockSize; i++) {
-                            _this->stream.data[i].i = (_this->stream.data[i*2].i + _this->stream.data[(i*2)+1].i) * 0.5f;
-                            _this->stream.data[i].q = (_this->stream.data[i*2].q + _this->stream.data[(i*2)+1].q) * 0.5f;
-                        }
-                    }
-
-                    // Write to output stream
-                    _this->stream.write(blockSize);
+                    if (_this->realStream.aquire() < 0) { return; }
+                    memcpy(_this->realStream.data, buffer, rLen);
+                    _this->realStream.write(rLen / 2);
                 }
             }
 
@@ -198,17 +180,63 @@ private:
             context = EndPt->BeginDataXfer((PUCHAR)buffer, realBlockSize * 2, &inOvLap);
         }
 
+        delete[] buffer;
+
+        // Stop FX3 chip
+        fx3Control(STOPFX3);
+    }
+
+    static void _worker(RX888SourceModule* _this) {
+        dsp::complex_t* iqbuffer = new dsp::complex_t[STREAM_BUFFER_SIZE];
+        lv_32fc_t phase = lv_cmake(1.0f, 0.0f);
+
+        // Read from real stream
+        int count = _this->realStream.read();
+        int blockSize = count;
+
+        while (count >= 0) {
+            for (int i = 0; i < count; i++) {
+                iqbuffer[i].q = (float)_this->realStream.data[i] / 32768.0f;
+            }
+            _this->realStream.flush();
+
+            // Calculate the traslation frequency based on the tuning
+            float delta = -(_this->freq / (float)ADC_RATE) * 2.0f * FL_M_PI;
+            lv_32fc_t phaseDelta = lv_cmake(std::cos(delta), std::sin(delta));
+
+            // Apply translation
+            if (_this->stream.aquire() < 0) { break; }
+            volk_32fc_s32fc_x2_rotator_32fc((lv_32fc_t*)_this->stream.data, (lv_32fc_t*)iqbuffer, phaseDelta, &phase, count);
+
+            // Decimate
+            blockSize = count;
+            for (int d = 0; d < (_this->decimation - 1); d++) {
+                blockSize = (blockSize >> 1);
+                for (int i = 0; i < blockSize; i++) {
+                    _this->stream.data[i].i = (_this->stream.data[i*2].i + _this->stream.data[(i*2)+1].i) * 0.5f;
+                    _this->stream.data[i].q = (_this->stream.data[i*2].q + _this->stream.data[(i*2)+1].q) * 0.5f;
+                }
+            }
+
+            // Write to output stream
+            _this->stream.write(blockSize);
+
+            // Read from real stream
+            count = _this->realStream.read();
+        }
+
         // Stop FX3 chip
         fx3Control(STOPFX3);
 
         // Deallocate buffers
-        delete[] buffer;
         delete[] iqbuffer;
     }
 
     std::string name;
     dsp::stream<dsp::complex_t> stream;
+    dsp::stream<int16_t> realStream;
     SourceManager::SourceHandler handler;
+    std::thread usbThread;
     std::thread workerThread;
     double freq;
     double sampleRate;
