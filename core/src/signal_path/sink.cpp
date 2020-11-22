@@ -1,5 +1,6 @@
 #include <signal_path/sink.h>
 #include <spdlog/spdlog.h>
+#include <imgui/imgui.h>
 #include <core.h>
 
 SinkManager::SinkManager() {
@@ -11,6 +12,14 @@ SinkManager::Stream::Stream(dsp::stream<dsp::stereo_t>* in, const Event<float>::
     srChange.bindHandler(srChangeHandler);
     _sampleRate = sampleRate;
     splitter.init(_in);
+}
+
+void SinkManager::Stream::start() {
+    sink->start();
+}
+
+void SinkManager::Stream::stop() {
+    sink->stop();
 }
 
 void SinkManager::Stream::setInput(dsp::stream<dsp::stereo_t>* in) {
@@ -42,6 +51,7 @@ void SinkManager::registerSinkProvider(std::string name, SinkProvider provider) 
         return;
     }
     providers[name] = provider;
+    providerNames.push_back(name);
 }
 
 void SinkManager::registerStream(std::string name, SinkManager::Stream* stream) {
@@ -75,6 +85,22 @@ void SinkManager::unregisterStream(std::string name) {
     delete stream;
 }
 
+void SinkManager::startStream(std::string name) {
+    if (streams.find(name) == streams.end()) {
+        spdlog::error("Cannot start stream '{0}', this stream doesn't exist", name);
+        return;
+    }
+    streams[name]->start();
+}
+
+void SinkManager::stopStream(std::string name) {
+    if (streams.find(name) == streams.end()) {
+        spdlog::error("Cannot stop stream '{0}', this stream doesn't exist", name);
+        return;
+    }
+    streams[name]->stop();
+}
+
 dsp::stream<dsp::stereo_t>* SinkManager::bindStream(std::string name) {
     if (streams.find(name) == streams.end()) {
         spdlog::error("Cannot bind to stream '{0}'. Stream doesn't exist", name);
@@ -91,8 +117,37 @@ void SinkManager::unbindStream(std::string name, dsp::stream<dsp::stereo_t>* str
     streams[name]->unbindStream(stream);
 }
 
+void SinkManager::setStreamSink(std::string name, std::string providerName) {
+
+}
+
 void SinkManager::showMenu() {
+    float menuWidth = ImGui::GetContentRegionAvailWidth();
+    int count = 0;
+    int maxCount = streams.size();
+    
+    std::string provStr = "";
+    for (auto const& [name, provider] : providers) {
+        provStr += name;
+        provStr += '\0';
+    }
+
     for (auto const& [name, stream] : streams) {
-        
+        ImGui::SetCursorPosX((menuWidth / 2.0f) - (ImGui::CalcTextSize(name.c_str()).x / 2.0f));
+        ImGui::Text("%s", name.c_str());
+
+        if (ImGui::Combo("", &stream->providerId, provStr.c_str())) {
+            
+        }
+
+        stream->sink->menuHandler();
+
+        ImGui::PopItemWidth();
+        count++;
+        if (count < maxCount) {
+            ImGui::Spacing();
+            ImGui::Separator();
+        }
+        ImGui::Spacing();
     }
 }

@@ -8,7 +8,7 @@ add_subdirectory("recorder")
 add_subdirectory("soapy")
 add_subdirectory("file_source")
 add_subdirectory("rtl_tcp_source")
-# add_subdirectory("audio_sink")
+add_subdirectory("audio_sink")
 add_subdirectory("rx888_source")
 add_subdirectory("demo")
 

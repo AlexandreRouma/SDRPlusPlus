@@ -11,7 +11,7 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-#define ADC_RATE        64000000
+#define ADC_RATE        128000000
 #define XFER_TIMEOUT    5000
 
 #define SEL0 (8)  		//   SEL0  GPIO26
@@ -170,7 +170,7 @@ private:
             // Check if the incomming data is bulk I/Q and end transfer
             if (EndPt->Attributes == 2) {
                 if (EndPt->FinishDataXfer((PUCHAR)buffer, rLen, &inOvLap, context)) {
-                    if (_this->realStream.aquire() < 0) { return; }
+                    if (_this->realStream.aquire() < 0) { break; }
                     memcpy(_this->realStream.data, buffer, rLen);
                     _this->realStream.write(rLen / 2);
                 }

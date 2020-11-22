@@ -1,5 +1,5 @@
 {
-    "device": "Generic RTL2832U OEM :: 00000001",
+    "device": "CABLE Output (VB-Audio Virtual Cable)",
     "devices": {
         "AirSpy HF+ [c852435de0224af7]": {
             "gains": {
@@ -7,6 +7,9 @@
                 "RF": 0.0
             },
             "sampleRate": 768000.0
+        },
+        "CABLE Output (VB-Audio Virtual Cable)": {
+            "sampleRate": 96000.0
         },
         "Default Device": {
             "sampleRate": 32000.0

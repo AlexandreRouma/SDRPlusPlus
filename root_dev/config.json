@@ -3,7 +3,7 @@
         "Radio": {
             "device": "Speakers (Realtek High Definiti",
             "sampleRate": 48000.0,
-            "volume": 0.385185182094574
+            "volume": 0.39259257912635803
         },
         "Radio 1": {
             "device": "Speakers (Realtek High Definition Audio)",
@@ -20,7 +20,7 @@
     "bandPlanEnabled": true,
     "defaultSink": "Audio",
     "fftHeight": 296,
-    "frequency": 14004144,
+    "frequency": 7300000,
     "max": 0.0,
     "maximized": true,
     "menuOrder": [
@@ -33,7 +33,7 @@
         "Display"
     ],
     "menuWidth": 300,
-    "min": -63.235294342041016,
+    "min": -74.26470184326172,
     "showWaterfall": true,
     "source": "",
     "sourceSettings": {},
