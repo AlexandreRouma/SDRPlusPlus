@@ -65,7 +65,7 @@ private:
         }
         
         // TODO: INIT CONTEXT HERE
-        _this->ctx = iio_create_context_from_uri("ip:192.168.2.1");
+        _this->ctx = iio_create_context_from_uri(_this->ip);
         if (_this->ctx == NULL) {
             spdlog::error("Could not open pluto");
             return;
@@ -127,11 +127,10 @@ private:
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
         float menuWidth = ImGui::GetContentRegionAvailWidth();
 
-        char test[] = "192.168.2.1";
         ImGui::Text("IP");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        ImGui::InputText("", test, 16);
+        ImGui::InputText("", &_this->ip[3], 16);
         
         // SELECT PLUTO HERE
         ImGui::Text("Gain Mode");
@@ -199,7 +198,7 @@ private:
     struct iio_device *dev = NULL;
     bool running = false;
     double freq;
-    char ip[1024] = "localhost";
+    char ip[1024] = "ip:192.168.2.1";
     int port = 1234;
     int gainMode = 0;
     float gain = 0;
