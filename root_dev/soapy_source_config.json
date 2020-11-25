@@ -1,6 +1,12 @@
 {
-    "device": "CABLE Output (VB-Audio Virtual Cable)",
+    "device": "",
     "devices": {
+        "": {
+            "gains": {
+                "PGA": 0.0
+            },
+            "sampleRate": 4000000.0
+        },
         "AirSpy HF+ [c852435de0224af7]": {
             "gains": {
                 "LNA": 6.0,

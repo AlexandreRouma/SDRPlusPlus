@@ -5,5 +5,6 @@
     "RTLTCPSource": "./rtl_tcp_source/Release/rtl_tcp_source.dll",
     "FileSource": "./file_source/Release/file_source.dll",
     "RX888Source": "./rx888_source/Release/rx888_source.dll",
+    "PlutoSDRSource": "./plutosdr_source/Release/plutosdr_source.dll",
     "AudioSink": "./audio_sink/Release/audio_sink.dll"
 }
