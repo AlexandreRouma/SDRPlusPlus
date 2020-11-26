@@ -21,6 +21,7 @@ if (MSVC)
     target_include_directories(sdrpp_core PUBLIC "C:/Program Files/PothosSDR/include/")
 
     target_link_libraries(plutosdr_source PUBLIC libiio)
+    target_link_libraries(plutosdr_source PUBLIC libad9361)
 else (MSVC)
     find_package(PkgConfig)
 

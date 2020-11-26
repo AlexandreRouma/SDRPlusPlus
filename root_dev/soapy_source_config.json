@@ -5,12 +5,12 @@
             "gains": {
                 "PGA": 0.0
             },
-            "sampleRate": 4000000.0
+            "sampleRate": 8000000.0
         },
         "AirSpy HF+ [c852435de0224af7]": {
             "gains": {
-                "LNA": 6.0,
-                "RF": 0.0
+                "LNA": 5.989999771118164,
+                "RF": 6.0
             },
             "sampleRate": 768000.0
         },
@@ -22,17 +22,17 @@
         },
         "Generic RTL2832U OEM :: 00000001": {
             "gains": {
-                "TUNER": 7.244999885559082
+                "TUNER": 0.0
             },
-            "sampleRate": 250000.0
+            "sampleRate": 2560000.0
         },
         "HackRF One #0 901868dc282c8f8b": {
             "gains": {
                 "AMP": 0.0,
                 "LNA": 24.711999893188477,
-                "VGA": 16.02899932861328
+                "VGA": 21.749000549316406
             },
-            "sampleRate": 8000000.0
+            "sampleRate": 2000000.0
         },
         "Microphone (Realtek High Definition Audio)": {
             "sampleRate": 96000.0

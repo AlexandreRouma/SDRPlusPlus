@@ -3,6 +3,7 @@
 SDR++ is a cross-platform and open source SDR software with the aim of being bloat free and simple to use.
 
 ## Current Features
+
 * Uses SoapySDR for wide hardware support
 * Hardware accelerated graphics (OpenGL + ImGui)
 * SIMD accelerated DSP (parts of the DSP are still missing)
@@ -10,12 +11,14 @@ SDR++ is a cross-platform and open source SDR software with the aim of being blo
 * Full waterfall update when possible. Makes browsing signals easier and more pleasant
 
 ## Comming soon
+
 * Multi-VFO
 * Plugins
 * Digital demodulators and decoders
 * Quick replay (replay last n seconds, cool if you missed a short signal)
 
 ## Small things to add
+
 * Switchable bandwidth for demodulators
 * Switchable audio output device and sample rate
 * Recording
@@ -29,6 +32,7 @@ SDR++ is a cross-platform and open source SDR software with the aim of being blo
 * Input filter bandwidth option
 
 ## Known issues (please check before reporting)
+
 * Random crashes (yikes)
 * Gains aren't stepped
 * The default gains might contain a bogus value before being adjusted
@@ -38,6 +42,7 @@ SDR++ is a cross-platform and open source SDR software with the aim of being blo
 
 # Building on Windows
 ## Requirements
+
 * cmake
 * vcpkg (for the packages listed below)
 * fftw3
