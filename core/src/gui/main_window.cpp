@@ -72,7 +72,7 @@ float* volume = &dummyVolume;
 float fftMin = -70.0;
 float fftMax = 0.0;
 watcher<double> offset(0.0, true);
-watcher<float> bw(8000000.0, true);
+float bw = 8000000;
 bool playing = false;
 watcher<bool> dcbias(false, false);
 bool showCredits = false;
@@ -101,6 +101,10 @@ void windowInit() {
     gui::menu.registerEntry("Display", displaymenu::draw, NULL);
     
     gui::freqSelect.init();
+
+    // Set default values for waterfall in case no source init's it
+    gui::waterfall.setBandwidth(8000000);
+    gui::waterfall.setViewBandwidth(8000000);
     
     fft_in = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * fftSize);
     fft_out = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * fftSize);
@@ -146,9 +150,7 @@ void windowInit() {
     gui::freqSelect.frequencyChanged = false;
     sigpath::sourceManager.tune(frequency);
     gui::waterfall.setCenterFrequency(frequency);
-    gui::waterfall.setBandwidth(8000000);
-    gui::waterfall.setViewBandwidth(8000000);
-    bw.val = 8000000;
+    bw = gui::waterfall.getBandwidth();
     gui::waterfall.vfoFreqChanged = false;
     gui::waterfall.centerFreqMoved = false;
     gui::waterfall.selectFirstVFO();
@@ -446,7 +448,10 @@ void drawWindow() {
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Zoom").x / 2.0));
     ImGui::Text("Zoom");
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10);
-    ImGui::VSliderFloat("##_7_", ImVec2(20.0, 150.0), &bw.val, gui::waterfall.getBandwidth(), 1000.0, "");
+    if (ImGui::VSliderFloat("##_7_", ImVec2(20.0, 150.0), &bw, gui::waterfall.getBandwidth(), 1000.0, "")) {
+        gui::waterfall.setViewBandwidth(bw);
+        gui::waterfall.setViewOffset(vfo->centerOffset); // center vfo on screen
+    }
 
     ImGui::NewLine();
 
@@ -474,11 +479,6 @@ void drawWindow() {
 
     ImGui::EndChild();
 
-    if (bw.changed()) {
-        gui::waterfall.setViewBandwidth(bw.val);
-        gui::waterfall.setViewOffset(vfo->centerOffset);
-    }
-
     gui::waterfall.setFFTMin(fftMin);
     gui::waterfall.setFFTMax(fftMax);
     gui::waterfall.setWaterfallMin(fftMin);
@@ -490,4 +490,8 @@ void drawWindow() {
     if (showCredits) {
         credits::show();
     }
+}
+
+void setViewBandwidthSlider(float bandwidth) {
+    bw = bandwidth;
 }

@@ -5,3 +5,4 @@
 
 void windowInit();
 void drawWindow();
+void setViewBandwidthSlider(float bandwidth);

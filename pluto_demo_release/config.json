@@ -3,17 +3,7 @@
         "Radio": {
             "device": "Speakers (Realtek High Definiti",
             "sampleRate": 48000.0,
-            "volume": 0.4609375
-        },
-        "Radio 1": {
-            "device": "Speakers (Realtek High Definition Audio)",
-            "sampleRate": 48000.0,
-            "volume": 0.609375
-        },
-        "Radio 2": {
-            "device": "CABLE Input (VB-Audio Virtual Cable)",
-            "sampleRate": 48000.0,
-            "volume": 1.0
+            "volume": 0.69921875
         }
     },
     "bandPlan": "General",
@@ -28,15 +18,12 @@
         "Radio",
         "Recorder",
         "Audio",
-        "Scripting",
         "Band Plan",
         "Display"
     ],
     "menuWidth": 300,
-    "min": -70.5882339477539,
+    "min": -70.0,
     "showWaterfall": true,
-    "source": "",
-    "sourceSettings": {},
     "windowSize": {
         "h": 720,
         "w": 1280

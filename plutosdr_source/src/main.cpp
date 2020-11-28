@@ -23,12 +23,20 @@ const char* gainModes[] = {
 
 const char* gainModesTxt = "Manual\0Fast Attack\0Slow Attack\0Hybrid\0";
 
+ConfigManager config;
+
 class PlutoSDRSourceModule {
 public:
     PlutoSDRSourceModule(std::string name) {
         this->name = name;
 
-        sampleRate = 4000000.0;	            
+        config.aquire();
+        std::string _ip = config.conf["IP"];
+        strcpy(&ip[3], _ip.c_str());
+        sampleRate = config.conf["sampleRate"];
+        gainMode = config.conf["gainMode"];
+        gain = config.conf["gain"];   
+        config.release();     
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
@@ -136,7 +144,11 @@ private:
         ImGui::Text("IP");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        ImGui::InputText(CONCAT("##_pluto_ip_", _this->name), &_this->ip[3], 16);
+        if (ImGui::InputText(CONCAT("##_pluto_ip_", _this->name), &_this->ip[3], 16)) {
+            config.aquire();
+            config.conf["IP"] = &_this->ip[3];
+            config.release(true);
+        }
         
         ImGui::Text("Samplerate");
         ImGui::SameLine();
@@ -144,6 +156,9 @@ private:
         if (_this->running) { style::beginDisabled(); }
         if (ImGui::InputFloat(CONCAT("##_samplerate_select_", _this->name), &_this->sampleRate, 1, 1000, 0)) {
             core::setInputSampleRate(_this->sampleRate);
+            config.aquire();
+            config.conf["sampleRate"] = _this->sampleRate;
+            config.release(true);
         }
         if (_this->running) { style::endDisabled(); }
 
@@ -154,6 +169,9 @@ private:
             if (_this->running) {
                 iio_channel_attr_write(iio_device_find_channel(_this->phy, "voltage0", false), "gain_control_mode", gainModes[_this->gainMode]);
             }
+            config.aquire();
+            config.conf["gainMode"] = _this->gainMode;
+            config.release(true);
         }
 
         ImGui::Text("PGA Gain");
@@ -162,9 +180,11 @@ private:
         if (_this->gainMode) { style::beginDisabled(); }
         if (ImGui::SliderFloat(CONCAT("##_gain_select_", _this->name), &_this->gain, 0, 76)) {
             if (_this->running) {
-                // SET PLUTO GAIN HERE
                 iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "voltage0", false),"hardwaregain", round(_this->gain));
             }
+            config.aquire();
+            config.conf["gain"] = _this->gain;
+            config.release(true);
         }
         if (_this->gainMode) { style::endDisabled(); }
     }
@@ -218,13 +238,19 @@ private:
     bool ipMode = true;
     double freq;
     char ip[1024] = "ip:192.168.2.1";
-    int port = 1234;
     int gainMode = 0;
     float gain = 0;
 };
 
 MOD_EXPORT void _INIT_() {
-   // Do your one time init here
+    json defConf;
+    defConf["IP"] = "192.168.2.1";
+    defConf["sampleRate"] = 4000000.0f;
+    defConf["gainMode"] = 0;
+    defConf["gain"] = 0.0f;
+    config.setPath(ROOT_DIR "/plutosdr_source_config.json");
+    config.load(defConf);
+    config.enableAutoSave();
 }
 
 MOD_EXPORT void* _CREATE_INSTANCE_(std::string name) {
@@ -236,5 +262,6 @@ MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
 }
 
 MOD_EXPORT void _STOP_() {
-    // Do your one shutdown here
+    config.disableAutoSave();
+    config.save();
 }
