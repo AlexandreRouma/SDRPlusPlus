@@ -3,8 +3,12 @@
 #include <imgui/imgui.h>
 #include <core.h>
 
+#define CONCAT(a, b) ((std::string(a) + b).c_str())
+
 SinkManager::SinkManager() {
-    
+    SinkManager::SinkProvider prov;
+    prov.create = SinkManager::NullSink::create;
+    registerSinkProvider("None", prov);
 }
 
 SinkManager::Stream::Stream(dsp::stream<dsp::stereo_t>* in, const Event<float>::EventHandler& srChangeHandler, float sampleRate) {
@@ -15,11 +19,19 @@ SinkManager::Stream::Stream(dsp::stream<dsp::stereo_t>* in, const Event<float>::
 }
 
 void SinkManager::Stream::start() {
+    if (running) {
+        return;
+    }
     sink->start();
+    running = true;
 }
 
 void SinkManager::Stream::stop() {
+    if (!running) {
+        return;
+    }
     sink->stop();
+    running = false;
 }
 
 void SinkManager::Stream::setInput(dsp::stream<dsp::stereo_t>* in) {
@@ -72,7 +84,7 @@ void SinkManager::registerStream(std::string name, SinkManager::Stream* stream) 
         provider = providers[providerName];
     }
 
-    stream->sink = provider.create(stream, provider.ctx);
+    stream->sink = provider.create(stream, name, provider.ctx);
 }
 
 void SinkManager::unregisterStream(std::string name) {
@@ -136,8 +148,16 @@ void SinkManager::showMenu() {
         ImGui::SetCursorPosX((menuWidth / 2.0f) - (ImGui::CalcTextSize(name.c_str()).x / 2.0f));
         ImGui::Text("%s", name.c_str());
 
-        if (ImGui::Combo("", &stream->providerId, provStr.c_str())) {
-            
+        if (ImGui::Combo(CONCAT("##_sdrpp_sink_select_", name), &stream->providerId, provStr.c_str())) {
+            if (stream->running) {
+                stream->sink->stop();
+            }
+            delete stream->sink;
+            SinkManager::SinkProvider prov = providers[providerNames[stream->providerId]];
+            stream->sink = prov.create(stream, name, prov.ctx);
+            if (stream->running) {
+                stream->sink->start();
+            }
         }
 
         stream->sink->menuHandler();

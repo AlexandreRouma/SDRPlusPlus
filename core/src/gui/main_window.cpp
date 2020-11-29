@@ -26,6 +26,7 @@
 #include <gui/menus/source.h>
 #include <gui/menus/display.h>
 #include <gui/menus/bandplan.h>
+#include <gui/menus/sink.h>
 #include <gui/menus/audio.h>
 #include <gui/menus/scripting.h>
 #include <gui/dialogs/credits.h>
@@ -95,6 +96,7 @@ void windowInit() {
     core::configManager.release();
 
     gui::menu.registerEntry("Source", sourecmenu::draw, NULL);
+    gui::menu.registerEntry("Sinks", sinkmenu::draw, NULL);
     gui::menu.registerEntry("Audio", audiomenu::draw, NULL);
     gui::menu.registerEntry("Scripting", scriptingmenu::draw, NULL);
     gui::menu.registerEntry("Band Plan", bandplanmenu::draw, NULL);
@@ -117,6 +119,7 @@ void windowInit() {
     mod::loadFromList(ROOT_DIR "/module_list.json");
 
     sourecmenu::init();
+    sinkmenu::init();
     audiomenu::init();
     scriptingmenu::init();
     bandplanmenu::init();

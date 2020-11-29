@@ -4,6 +4,7 @@
 #include <dsp/stream.h>
 #include <dsp/types.h>
 #include <dsp/routing.h>
+#include <dsp/sink.h>
 #include <mutex>
 #include <event.h>
 #include <vector>
@@ -34,23 +35,34 @@ public:
         friend SinkManager;
         friend SinkManager::Sink;
 
-        Event<float> srChange;
-        SinkManager::Sink* sink;
-        int providerId = 0;
+        Event<float> srChange;        
 
     private:
         void setSampleRate(float sampleRate);
 
         dsp::stream<dsp::stereo_t>* _in;
         dsp::Splitter<dsp::stereo_t> splitter;
+        SinkManager::Sink* sink;
         std::mutex ctrlMtx;
         float _sampleRate;
-
+        int providerId = 0;
+        bool running = false;
     };
 
     struct SinkProvider {
-        SinkManager::Sink* (*create)(SinkManager::Stream* stream, void* ctx);
+        SinkManager::Sink* (*create)(SinkManager::Stream* stream, std::string streamName, void* ctx);
         void* ctx;
+    };
+
+    class NullSink : SinkManager::Sink {
+    public:
+        void start() {}
+        void stop() {}
+        void menuHandler() {}
+
+        static SinkManager::Sink* create(SinkManager::Stream* stream, std::string streamName, void* ctx) {
+            return new SinkManager::NullSink;
+        }
     };
 
     void registerSinkProvider(std::string name, SinkProvider provider);
