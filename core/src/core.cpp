@@ -155,23 +155,24 @@ int sdrpp_main() {
 
 
     // ====================================================
-    // // glfwPollEvents();
-    // ImGui_ImplOpenGL3_NewFrame();
-    // // ImGui_ImplGlfw_NewFrame();
-    // // ImGui::NewFrame();
+    glfwPollEvents();
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
 
-    // // ImGui::ShowDemoWindow();
+    ImGui::Begin("Main", NULL, WINDOW_FLAGS);
+    ImGui::ShowDemoWindow();
+    ImGui::End();
 
-    // // ImGui::Render();
-    // int display_w, display_h;
-    // glfwGetFramebufferSize(window, &display_w, &display_h);
-    // glViewport(0, 0, display_w, display_h);
-    // glClearColor(0.0666f, 0.0666f, 0.0666f, 1.0f);
-    // //glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
-    // glClear(GL_COLOR_BUFFER_BIT);
-    // // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    ImGui::Render();
+    int display_w, display_h;
+    glfwGetFramebufferSize(window, &display_w, &display_h);
+    glViewport(0, 0, display_w, display_h);
+    glClearColor(0.0666f, 0.0666f, 0.0666f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    // glfwSwapBuffers(window);
+    glfwSwapBuffers(window);
     // ====================================================
 
     spdlog::info("Loading icons");

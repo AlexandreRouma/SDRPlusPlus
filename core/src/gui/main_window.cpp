@@ -119,17 +119,14 @@ void windowInit() {
     bandplanmenu::init();
     displaymenu::init();
 
-    // Load last source configuration
-    // Also add a loading screen
-    // Adjustable "snap to grid" for each VFO
-    // Finish the recorder module
+    // TODO for 0.2.5
+    // Add a loading screen
+    // Add "select folder" option for the recorder module
     // Add squelsh
-    // Bandwidth ajustment
     // CW and RAW modes;
     // Bring VFO to a visible place when changing sample rate if it's smaller
-    // Add save config for modules
-    // Do VFO in two steps: First sample rate conversion, then filtering
 
+    // TODO for 0.2.6
     // And a module add/remove/change order menu
 
     // Update UI settings
