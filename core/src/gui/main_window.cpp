@@ -309,6 +309,7 @@ void drawWindow() {
     if (ImGui::ImageButton(icons::MENU, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
         showMenu = !showMenu;
     }
+    ImGui::PopID();
 
     ImGui::SameLine();
 
@@ -318,6 +319,7 @@ void drawWindow() {
             sigpath::sourceManager.stop();
             playing = false;
         }
+        ImGui::PopID();
     }
     else { // TODO: Might need to check if there even is a device
         ImGui::PushID(ImGui::GetID("sdrpp_play_btn"));
@@ -327,6 +329,7 @@ void drawWindow() {
             sigpath::sourceManager.tune(gui::waterfall.getCenterFrequency());
             playing = true;
         }
+        ImGui::PopID();
     }
 
     ImGui::SameLine();
