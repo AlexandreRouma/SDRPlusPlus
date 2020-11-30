@@ -79,18 +79,14 @@ private:
         ImGui::BeginGroup();
 
         // TODO: Change VFO ref in signal path
-
-        ImGui::Columns(3, CONCAT("RecordModeColumns##_", _this->name), false);
+        // TODO: Add VFO record
+        ImGui::Columns(2, CONCAT("RecordModeColumns##_", _this->name), false);
         if (ImGui::RadioButton(CONCAT("Baseband##_", _this->name), _this->recMode == 0) && _this->recMode != 0) { 
             _this->recMode = 0;
         }
         ImGui::NextColumn();
         if (ImGui::RadioButton(CONCAT("Audio##_", _this->name), _this->recMode == 1) && _this->recMode != 1) {
             _this->recMode = 1;
-        }
-        ImGui::NextColumn();
-        if (ImGui::RadioButton(CONCAT("VFO##_", _this->name), _this->recMode == 2) && _this->recMode != 2) {
-            _this->recMode = 2;
         }
         ImGui::Columns(1, CONCAT("EndRecordModeColumns##_", _this->name), false);
 
@@ -209,6 +205,7 @@ private:
     dsp::stream<dsp::stereo_t>* audioStream;
     dsp::stream<dsp::complex_t>* iqStream;
     WavWriter* writer;
+    VFOManager::VFO* vfo;
     std::thread workerThread;
     bool recording;
     time_t startTime;
@@ -217,6 +214,7 @@ private:
     int selectedStreamId;
     uint64_t samplesWritten;
     float sampleRate;
+    float vfoSampleRate = 200000;
     int recMode = 0;
 
 };
