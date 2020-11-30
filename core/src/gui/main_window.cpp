@@ -305,20 +305,23 @@ void drawWindow() {
     int height = vMax.y - vMin.y;
 
     // To Bar
-    if (ImGui::ImageButton(icons::MENU, ImVec2(40, 40), ImVec2(0, 0), ImVec2(1, 1), 0)) {
+    ImGui::PushID(ImGui::GetID("sdrpp_menu_btn"));
+    if (ImGui::ImageButton(icons::MENU, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
         showMenu = !showMenu;
     }
 
     ImGui::SameLine();
 
     if (playing) {
-        if (ImGui::ImageButton(icons::STOP, ImVec2(40, 40), ImVec2(0, 0), ImVec2(1, 1), 0)) {
+        ImGui::PushID(ImGui::GetID("sdrpp_stop_btn"));
+        if (ImGui::ImageButton(icons::STOP, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
             sigpath::sourceManager.stop();
             playing = false;
         }
     }
     else { // TODO: Might need to check if there even is a device
-        if (ImGui::ImageButton(icons::PLAY, ImVec2(40, 40), ImVec2(0, 0), ImVec2(1, 1), 0)) {
+        ImGui::PushID(ImGui::GetID("sdrpp_play_btn"));
+        if (ImGui::ImageButton(icons::PLAY, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
             sigpath::sourceManager.start();
             // TODO: tune in module instead
             sigpath::sourceManager.tune(gui::waterfall.getCenterFrequency());
@@ -328,8 +331,8 @@ void drawWindow() {
 
     ImGui::SameLine();
 
-    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
-    sigpath::sinkManager.showVolumeSlider(gui::waterfall.selectedVFO, "##_sdrpp_main_volume_", 200);
+    //ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
+    sigpath::sinkManager.showVolumeSlider(gui::waterfall.selectedVFO, "##_sdrpp_main_volume_", 248, 30, 5);
 
     ImGui::SameLine();
 

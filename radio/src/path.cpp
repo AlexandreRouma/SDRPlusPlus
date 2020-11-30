@@ -106,6 +106,7 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
         demod.setDeviation(bandwidth / 2.0f);
         audioResamp.setInput(&demod.out);
         audioBw = std::min<float>(bandwidth, outputSampleRate / 2.0f);
+        audioBw = std::min<float>(audioBw, 16000.0f);
 
         audioResamp.setInSampleRate(200000);
         audioWin.setSampleRate(200000 * audioResamp.getInterpolation());
