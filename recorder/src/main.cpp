@@ -6,7 +6,6 @@
 #include <dsp/stream.h>
 #include <thread>
 #include <ctime>
-#include <signal_path/audio.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
 #include <config.h>
@@ -51,7 +50,7 @@ private:
         RecorderModule* _this = (RecorderModule*)ctx;
         float menuColumnWidth = ImGui::GetContentRegionAvailWidth();
 
-        std::vector<std::string> streamNames = audio::getStreamNameList();
+        std::vector<std::string> streamNames = sigpath::sinkManager.getStreamNames();
         std::string nameList;
         for (std::string name : streamNames) {
             nameList += name;
@@ -147,9 +146,9 @@ private:
             if (!_this->recording) {
                 if (ImGui::Button("Record", ImVec2(menuColumnWidth, 0))) {
                     _this->samplesWritten = 0;
-                    _this->sampleRate = 48000;
-                    _this->writer = new WavWriter(ROOT_DIR "/recordings/" + genFileName("audio_"), 16, 2, 48000);
-                    _this->audioStream = audio::bindToStreamStereo(_this->selectedStreamName, streamRemovedHandler, sampleRateChanged, _this);
+                    _this->sampleRate = sigpath::sinkManager.getStreamSampleRate(_this->selectedStreamName);
+                    _this->writer = new WavWriter(ROOT_DIR "/recordings/" + genFileName("audio_"), 16, 2, _this->sampleRate);
+                    _this->audioStream = sigpath::sinkManager.bindStream(_this->selectedStreamName);
                     _this->workerThread = std::thread(_audioWriteWorker, _this);
                     _this->recording = true;
                     _this->startTime = time(0);
@@ -161,7 +160,7 @@ private:
                     _this->audioStream->stopReader();
                     _this->workerThread.join();
                     _this->audioStream->clearReadStop();
-                    audio::unbindFromStreamStereo(_this->selectedStreamName, _this->audioStream);
+                    sigpath::sinkManager.unbindStream(_this->selectedStreamName, _this->audioStream);
                     _this->writer->close();
                     delete _this->writer;
                     _this->recording = false;

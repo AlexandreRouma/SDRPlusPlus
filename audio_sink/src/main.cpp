@@ -22,10 +22,9 @@ public:
     AudioSink(SinkManager::Stream* stream, std::string streamName) {
         _stream = stream;
         _streamName = streamName;
-        audioStream = _stream->bindStream();
-        s2m.init(audioStream);
+        s2m.init(_stream->sinkOut);
         monoRB.init(&s2m.out);
-        stereoRB.init(audioStream);
+        stereoRB.init(_stream->sinkOut);
 
         // Initialize PortAudio
         Pa_Initialize();
@@ -68,7 +67,11 @@ public:
                 defaultDev = devListId;
             }
             dev.srId = 0;
-            devices.push_back(dev);
+
+            AudioDevice_t* _dev = new AudioDevice_t;
+            *_dev = dev;
+            devices.push_back(_dev);
+
             deviceNames.push_back(deviceInfo->name);
             txtDevList += deviceInfo->name;
             txtDevList += '\0';
@@ -78,7 +81,9 @@ public:
     }
 
     ~AudioSink() {
-        
+        for (auto const& dev : devices) {
+            delete dev;
+        }
     }
 
     void start() {
@@ -98,6 +103,9 @@ public:
     }
     
     void menuHandler() {
+        float menuWidth = ImGui::GetContentRegionAvailWidth();
+
+        ImGui::SetNextItemWidth(menuWidth);
         if (ImGui::Combo(("##_audio_sink_dev_"+_streamName).c_str(), &devListId, txtDevList.c_str())) {
             // TODO: Load SR from config
             if (running) {
@@ -107,9 +115,11 @@ public:
             // TODO: Save to config
         }
 
-        AudioDevice_t dev = devices[devListId];
+        AudioDevice_t* dev = devices[devListId];
 
-        if (ImGui::Combo(("##_audio_sink_sr_"+_streamName).c_str(), &dev.srId, txtDevList.c_str())) {
+        ImGui::SetNextItemWidth(menuWidth);
+        if (ImGui::Combo(("##_audio_sink_sr_"+_streamName).c_str(), &dev->srId, dev->txtSampleRates.c_str())) {
+            _stream->setSampleRate(dev->sampleRates[dev->srId]);
             if (running) {
                 doStop();
                 doStart();
@@ -121,25 +131,27 @@ public:
 private:
     void doStart() {
         const PaDeviceInfo *deviceInfo;
-        AudioDevice_t dev = devices[devListId];
+        AudioDevice_t* dev = devices[devListId];
         PaStreamParameters outputParams;
-        deviceInfo = Pa_GetDeviceInfo(dev.index);
+        deviceInfo = Pa_GetDeviceInfo(dev->index);
         outputParams.channelCount = 2;
         outputParams.sampleFormat = paFloat32;
         outputParams.hostApiSpecificStreamInfo = NULL;
-        outputParams.device = dev.index;
+        outputParams.device = dev->index;
         outputParams.suggestedLatency = Pa_GetDeviceInfo(outputParams.device)->defaultLowOutputLatency;
         PaError err;
 
-        float sampleRate = dev.sampleRates[dev.srId];
+        float sampleRate = dev->sampleRates[dev->srId];
         int bufferSize = sampleRate / 60.0f;
 
-        if (dev.channels == 2) {
+        if (dev->channels == 2) {
             stereoRB.data.setMaxLatency(bufferSize * 2);
+            stereoRB.start();
             err = Pa_OpenStream(&stream, NULL, &outputParams, sampleRate, bufferSize, 0, _stereo_cb, this);
         }
         else {
             monoRB.data.setMaxLatency(bufferSize * 2);
+            monoRB.start();
             err = Pa_OpenStream(&stream, NULL, &outputParams, sampleRate, bufferSize, 0, _mono_cb, this);
         }
 
@@ -158,6 +170,8 @@ private:
     }
 
     void doStop() {
+        monoRB.stop();
+        stereoRB.stop();
         monoRB.data.stopReader();
         stereoRB.data.stopReader();
         Pa_StopStream(stream);
@@ -181,7 +195,6 @@ private:
     }
     
     SinkManager::Stream* _stream;
-    dsp::stream<dsp::stereo_t>* audioStream;
     dsp::StereoToMono s2m;
     dsp::RingBufferSink<float> monoRB;
     dsp::RingBufferSink<dsp::stereo_t> stereoRB;
@@ -204,7 +217,7 @@ private:
         11025.0f
     };
 
-    std::vector<AudioDevice_t> devices;
+    std::vector<AudioDevice_t*> devices;
     std::vector<std::string> deviceNames;
     std::string txtDevList;
 

@@ -18,7 +18,6 @@
     },
     "bandPlan": "General",
     "bandPlanEnabled": true,
-    "defaultSink": "Audio",
     "fftHeight": 296,
     "frequency": 99000000,
     "max": 0.0,
@@ -35,9 +34,17 @@
     ],
     "menuWidth": 300,
     "min": -70.5882339477539,
+    "offset": 0.0,
     "showWaterfall": true,
-    "source": "",
+    "source": "PlutoSDR",
     "sourceSettings": {},
+    "streams": {
+        "Radio": {
+            "muted": false,
+            "sink": "Audio",
+            "volume": 0.65625
+        }
+    },
     "windowSize": {
         "h": 720,
         "w": 1280

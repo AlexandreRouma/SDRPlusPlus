@@ -18,7 +18,6 @@
 #include <watcher.h>
 #include <module.h>
 #include <signal_path/vfo_manager.h>
-#include <signal_path/audio.h>
 #include <gui/style.h>
 #include <config.h>
 #include <signal_path/signal_path.h>
@@ -27,7 +26,6 @@
 #include <gui/menus/display.h>
 #include <gui/menus/bandplan.h>
 #include <gui/menus/sink.h>
-#include <gui/menus/audio.h>
 #include <gui/menus/scripting.h>
 #include <gui/dialogs/credits.h>
 #include <signal_path/source.h>
@@ -68,8 +66,6 @@ void fftHandler(dsp::complex_t* samples, int count, void* ctx) {
 
 watcher<uint64_t> freq((uint64_t)90500000);
 watcher<double> vfoFreq(92000000.0);
-float dummyVolume = 1.0;
-float* volume = &dummyVolume;
 float fftMin = -70.0;
 float fftMax = 0.0;
 watcher<double> offset(0.0, true);
@@ -97,7 +93,6 @@ void windowInit() {
 
     gui::menu.registerEntry("Source", sourecmenu::draw, NULL);
     gui::menu.registerEntry("Sinks", sinkmenu::draw, NULL);
-    gui::menu.registerEntry("Audio", audiomenu::draw, NULL);
     gui::menu.registerEntry("Scripting", scriptingmenu::draw, NULL);
     gui::menu.registerEntry("Band Plan", bandplanmenu::draw, NULL);
     gui::menu.registerEntry("Display", displaymenu::draw, NULL);
@@ -120,7 +115,6 @@ void windowInit() {
 
     sourecmenu::init();
     sinkmenu::init();
-    audiomenu::init();
     scriptingmenu::init();
     bandplanmenu::init();
     displaymenu::init();
@@ -271,10 +265,6 @@ void drawWindow() {
         gui::waterfall.selectedVFOChanged = false;
         gui::freqSelect.setFrequency(vfo->generalOffset + gui::waterfall.getCenterFrequency());
         gui::freqSelect.frequencyChanged = false;
-        audioStreamName = audio::getNameFromVFO(gui::waterfall.selectedVFO);
-        if (audioStreamName != "") {
-            volume = &audio::streams[audioStreamName]->volume;
-        }
         core::configManager.aquire();
         core::configManager.conf["frequency"] = gui::freqSelect.frequency;
         core::configManager.release(true);
@@ -339,19 +329,7 @@ void drawWindow() {
     ImGui::SameLine();
 
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
-    ImGui::SetNextItemWidth(200);
-    if (ImGui::SliderFloat("##_2_", volume, 0.0, 1.0, "")) {
-        if (audioStreamName != "") {
-            core::configManager.aquire();
-            if (!core::configManager.conf["audio"].contains(audioStreamName)) {
-                //saveAudioConfig(audioStreamName);
-                // TODO: FIX THIS SHIT
-            }
-            audio::streams[audioStreamName]->audio->setVolume(*volume);
-            core::configManager.conf["audio"][audioStreamName]["volume"] = *volume;
-            core::configManager.release(true);
-        }
-    }
+    sigpath::sinkManager.showVolumeSlider(gui::waterfall.selectedVFO, "##_sdrpp_main_volume_", 200);
 
     ImGui::SameLine();
 

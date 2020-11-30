@@ -4,19 +4,16 @@
 #include <dsp/filter.h>
 #include <dsp/window.h>
 #include <dsp/audio.h>
-#include <io/audio.h>
 #include <module.h>
 #include <signal_path/signal_path.h>
 #include <dsp/processing.h>
+#include <signal_path/sink.h>
 
 class SigPath {
 public:
     SigPath();
-    void init(std::string vfoName, uint64_t sampleRate, int blockSize);
+    void init(std::string vfoName);
     void start();
-    void setSampleRate(float sampleRate);
-    void setVFOFrequency(uint64_t frequency);
-    void updateBlockSize();
     void setDemodulator(int demod, float bandWidth);
     void setDeemphasis(int deemph);
     void setBandwidth(float bandWidth);
@@ -44,7 +41,7 @@ public:
     VFOManager::VFO* vfo;
 
 private:
-    static int sampleRateChangeHandler(void* ctx, double sampleRate);
+    static void sampleRateChangeHandler(float _sampleRate, void* ctx);
 
     dsp::stream<dsp::complex_t> input;
 
@@ -57,17 +54,17 @@ private:
     dsp::AGC agc;
 
     // Audio output
-    dsp::MonoToStereo m2s;
     dsp::filter_window::BlackmanWindow audioWin;
     dsp::PolyphaseResampler<float> audioResamp;
+    dsp::MonoToStereo m2s;
+    SinkManager::Stream stream;
 
     std::string vfoName;
 
-    float sampleRate;
+    // TODO: FIx all this sample rate BS (multiple names for same thing)
     float bandwidth;
     float demodOutputSamplerate;
     float outputSampleRate;
-    int blockSize;
     int _demod;
     int _deemp;
     float audioBw;

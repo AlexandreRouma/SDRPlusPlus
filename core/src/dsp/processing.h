@@ -1,6 +1,7 @@
 #pragma once
 #include <dsp/block.h>
 #include <fftw3.h>
+#include <volk/volk.h>
 #include <string.h>
 
 namespace dsp {
@@ -125,6 +126,87 @@ namespace dsp {
         float level = 1.0f;
         float _ratio;
         stream<float>* _in;
+
+    };
+
+    template <class T>
+    class Volume : public generic_block<Volume<T>> {
+    public:
+        Volume() {}
+
+        Volume(stream<T>* in, float volume) { init(in, volume); }
+
+        ~Volume() { generic_block<Volume<T>>::stop(); }
+
+        void init(stream<T>* in, float volume) {
+            _in = in;
+            _volume = volume;
+            generic_block<Volume<T>>::registerInput(_in);
+            generic_block<Volume<T>>::registerOutput(&out);
+        }
+
+        void setInputSize(stream<T>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<Volume<T>>::ctrlMtx);
+            generic_block<Volume<T>>::tempStop();
+            generic_block<Volume<T>>::unregisterInput(_in);
+            _in = in;
+            generic_block<Volume<T>>::registerInput(_in);
+            generic_block<Volume<T>>::tempStart();
+        }
+
+        void setVolume(float volume) {
+            _volume = volume;
+            level = powf(_volume, 2);
+        }
+
+        float getVolume() {
+            return _volume;
+        }
+
+        void setMuted(bool muted) {
+            _muted = muted;
+        }
+
+        bool getMuted() {
+            return _muted;
+        }
+
+        int run() {
+            count = _in->read();
+            if (count < 0) { return -1; }
+
+            if (out.aquire() < 0) { return -1; }
+
+            if (_muted) {
+                if constexpr (std::is_same_v<T, stereo_t>) {
+                    memset(out.data, 0, sizeof(stereo_t) * count);
+                }
+                else {
+                    memset(out.data, 0, sizeof(float) * count);
+                }
+            }
+            else {
+                if constexpr (std::is_same_v<T, stereo_t>) {
+                    volk_32f_s32f_multiply_32f((float*)out.data, (float*)_in->data, level, count * 2);
+                }
+                else {
+                    volk_32f_s32f_multiply_32f((float*)out.data, (float*)_in->data, level, count);
+                }
+            }
+
+            _in->flush();
+            out.write(count);
+            return count;
+        }
+
+        stream<T> out;
+
+    private:
+        int count;
+        float level = 1.0f;
+        float _volume = 1.0f;
+        bool _muted = false;
+        stream<T>* _in;
 
     };
 }

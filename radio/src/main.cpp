@@ -23,7 +23,7 @@ public:
         bandWidth = 200000;
         bandWidthMin = 100000;
         bandWidthMax = 200000;
-        sigPath.init(name, 200000, 1000);
+        sigPath.init(name);
         sigPath.start();
         sigPath.setDemodulator(SigPath::DEMOD_FM, bandWidth);
         sigPath.vfo->setSnapInterval(100000.0);

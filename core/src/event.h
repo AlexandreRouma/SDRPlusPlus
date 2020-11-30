@@ -9,6 +9,7 @@ public:
     ~Event() {}
 
     struct EventHandler {
+        EventHandler() {}
         EventHandler(void (*handler)(T, void*), void* ctx) {
             this->handler = handler;
             this->ctx = ctx;

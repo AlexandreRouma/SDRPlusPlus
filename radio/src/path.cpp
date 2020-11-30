@@ -1,33 +1,28 @@
 #include <path.h>
-#include <signal_path/audio.h>
 #include <spdlog/spdlog.h>
 
 SigPath::SigPath() {
     
 }
 
-int SigPath::sampleRateChangeHandler(void* ctx, double sampleRate) {
+void SigPath::sampleRateChangeHandler(float _sampleRate, void* ctx) {
     SigPath* _this = (SigPath*)ctx;
-    _this->outputSampleRate = sampleRate;
+    _this->outputSampleRate = _sampleRate;
     _this->audioResamp.stop();
     _this->deemp.stop();
-    float bw = std::min<float>(_this->bandwidth, sampleRate / 2.0f);
+    float bw = std::min<float>(_this->bandwidth, _sampleRate / 2.0f);
 
     
-    _this->audioResamp.setOutSampleRate(sampleRate);
-    _this->audioWin.setSampleRate(_this->sampleRate * _this->audioResamp.getInterpolation());
+    _this->audioResamp.setOutSampleRate(_sampleRate);
+    _this->audioWin.setSampleRate(_this->demodOutputSamplerate * _this->audioResamp.getInterpolation());
     _this->audioResamp.updateWindow(&_this->audioWin);
 
-    _this->deemp.setSampleRate(sampleRate);
+    _this->deemp.setSampleRate(_sampleRate);
     _this->audioResamp.start();
     _this->deemp.start();
-    // Note: returning a block size should not be needed anymore
-    return 1;
 }
 
-void SigPath::init(std::string vfoName, uint64_t sampleRate, int blockSize) {
-    this->sampleRate = sampleRate;
-    this->blockSize = blockSize;
+void SigPath::init(std::string vfoName) {
     this->vfoName = vfoName;
 
     vfo = sigpath::vfoManager.createVFO(vfoName, ImGui::WaterfallVFO::REF_CENTER, 0, 200000, 200000, 1000);
@@ -36,6 +31,7 @@ void SigPath::init(std::string vfoName, uint64_t sampleRate, int blockSize) {
     _deemp = DEEMP_50US;
     bandwidth = 200000;
     demodOutputSamplerate = 200000;
+    outputSampleRate = 48000;
 
     // TODO: Set default VFO options
     // TODO: ajust deemphasis for different output sample rates
@@ -53,16 +49,16 @@ void SigPath::init(std::string vfoName, uint64_t sampleRate, int blockSize) {
     audioResamp.updateWindow(&audioWin);
 
     deemp.init(&audioResamp.out, 48000, 50e-6);
-    
-    outputSampleRate = audio::registerMonoStream(&deemp.out, vfoName, vfoName, sampleRateChangeHandler, this);
 
-    setDemodulator(_demod, bandwidth);
-}
+    m2s.setInput(&deemp.out);
 
-void SigPath::setSampleRate(float sampleRate) {
-    this->sampleRate = sampleRate;
+    Event<float>::EventHandler evHandler;
+    evHandler.handler = sampleRateChangeHandler;
+    evHandler.ctx = this;
+    stream.init(&m2s.out, evHandler, outputSampleRate);
 
-    // Reset the demodulator and audio systems
+    sigpath::sinkManager.registerStream(vfoName, &stream);
+
     setDemodulator(_demod, bandwidth);
 }
 
@@ -215,10 +211,6 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
     deemp.start();
 }
 
-void SigPath::updateBlockSize() {
-    setDemodulator(_demod, bandwidth);
-}
-
 void SigPath::setDeemphasis(int deemph) {
     _deemp = deemph;
     deemp.stop();
@@ -290,6 +282,6 @@ void SigPath::start() {
     demod.start();
     audioResamp.start();
     deemp.start();
-    //ns.start();
-    audio::startStream(vfoName);
+    m2s.start();
+    stream.start();
 }
