@@ -1,5 +1,5 @@
 {
-    "device": "",
+    "device": "Generic RTL2832U OEM :: 00000001",
     "devices": {
         "": {
             "gains": {
@@ -22,7 +22,7 @@
         },
         "Generic RTL2832U OEM :: 00000001": {
             "gains": {
-                "TUNER": 0.0
+                "TUNER": 23.406999588012695
             },
             "sampleRate": 2560000.0
         },

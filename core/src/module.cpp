@@ -3,6 +3,7 @@
 #include <spdlog/spdlog.h>
 #include <json.hpp>
 #include <fstream>
+#include <gui/dialogs/loading_screen.h>
 
 using nlohmann::json;
 
@@ -88,6 +89,12 @@ namespace mod {
 
         std::map<std::string, std::string> list = data.get<std::map<std::string, std::string>>();
         for (auto const& [name, file] : list) {
+            std::string msg = "Loading ";
+            msg += name;
+            msg += " (";
+            msg += file;
+            msg += ")";
+            LoadingScreen::show(msg);
             spdlog::info("Loading {0} ({1})", name, file);
             loadModule(file, name);
         }

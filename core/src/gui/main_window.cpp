@@ -29,6 +29,7 @@
 #include <gui/menus/scripting.h>
 #include <gui/dialogs/credits.h>
 #include <signal_path/source.h>
+#include <gui/dialogs/loading_screen.h>
 
 std::thread worker;
 std::mutex fft_mtx;
@@ -83,6 +84,7 @@ bool showMenu = true;
 dsp::stream<dsp::complex_t> dummyStream;
 
 void windowInit() {
+    LoadingScreen::show("Initializing UI");
     gui::waterfall.init();
 
     credits::init();
@@ -130,6 +132,7 @@ void windowInit() {
     // And a module add/remove/change order menu
 
     // Update UI settings
+    LoadingScreen::show("Loading configuration");
     core::configManager.aquire();
     fftMin = core::configManager.conf["min"];
     fftMax = core::configManager.conf["max"];

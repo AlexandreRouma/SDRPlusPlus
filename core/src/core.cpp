@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 #include <gui/main_window.h>
 #include <gui/style.h>
+#include <gui/gui.h>
 #include <gui/icons.h>
 #include <version.h>
 #include <spdlog/spdlog.h>
@@ -153,34 +154,17 @@ int sdrpp_main() {
 
     style::setDarkStyle();
 
+    LoadingScreen::setWindow(window);
 
-    // ====================================================
-    glfwPollEvents();
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-
-    ImGui::Begin("Main", NULL, WINDOW_FLAGS);
-    ImGui::ShowDemoWindow();
-    ImGui::End();
-
-    ImGui::Render();
-    int display_w, display_h;
-    glfwGetFramebufferSize(window, &display_w, &display_h);
-    glViewport(0, 0, display_w, display_h);
-    glClearColor(0.0666f, 0.0666f, 0.0666f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-    glfwSwapBuffers(window);
-    // ====================================================
-
+    LoadingScreen::show("Loading icons");
     spdlog::info("Loading icons");
     icons::load();
 
+    LoadingScreen::show("Loading band plans");
     spdlog::info("Loading band plans");
     bandplan::loadFromDir(ROOT_DIR "/bandplans");
 
+    LoadingScreen::show("Loading band plan colors");
     spdlog::info("Loading band plans color table");
     bandplan::loadColorTable(ROOT_DIR "/band_colors.json");
 

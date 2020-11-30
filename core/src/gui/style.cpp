@@ -4,6 +4,10 @@
 #include <config.h>
 
 namespace style {
+    ImFont* baseFont;
+    ImFont* bigFont;
+    ImFont* hugeFont;
+
     void setDefaultStyle() {
         ImGui::GetStyle().WindowRounding = 0.0f;
         ImGui::GetStyle().ChildRounding = 0.0f;
@@ -12,7 +16,9 @@ namespace style {
         ImGui::GetStyle().PopupRounding = 0.0f;
         ImGui::GetStyle().ScrollbarRounding = 0.0f;
 
-        ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(ROOT_DIR "/res/fonts/Roboto-Medium.ttf")).c_str(), 16.0f);
+        baseFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(ROOT_DIR "/res/fonts/Roboto-Medium.ttf")).c_str(), 16.0f);
+        bigFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(ROOT_DIR "/res/fonts/Roboto-Medium.ttf")).c_str(), 42.0f);
+        hugeFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(ROOT_DIR "/res/fonts/Roboto-Medium.ttf")).c_str(), 128.0f);
 
         ImGui::StyleColorsDark();
         //ImGui::StyleColorsLight();
@@ -30,7 +36,9 @@ namespace style {
         ImGui::GetStyle().PopupRounding = 0.0f;
         ImGui::GetStyle().ScrollbarRounding = 0.0f;
 
-        ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(ROOT_DIR "/res/fonts/Roboto-Medium.ttf")).c_str(), 16.0f);
+        baseFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(ROOT_DIR "/res/fonts/Roboto-Medium.ttf")).c_str(), 16.0f);
+        bigFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(ROOT_DIR "/res/fonts/Roboto-Medium.ttf")).c_str(), 42.0f);
+        hugeFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(ROOT_DIR "/res/fonts/Roboto-Medium.ttf")).c_str(), 128.0f);
 
         ImGui::StyleColorsDark();
 

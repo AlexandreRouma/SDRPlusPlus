@@ -1,5 +1,6 @@
 #include <gui/frequency_select.h>
 #include <config.h>
+#include <gui/style.h>
 
 bool isInArea(ImVec2 val, ImVec2 min, ImVec2 max) {
     return val.x >= min.x && val.x < max.x && val.y >= min.y && val.y < max.y;
@@ -10,7 +11,6 @@ FrequencySelect::FrequencySelect() {
 }
 
 void FrequencySelect::init() {
-    font = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(ROOT_DIR "/res/fonts/Roboto-Medium.ttf")).c_str(), 42.0f);
     for (int i = 0; i < 12; i++) {
         digits[i] = 0;
         
@@ -76,7 +76,7 @@ void FrequencySelect::draw() {
     widgetEndPos.y += window->Pos.y - 3;
     widgetSize = ImVec2(widgetEndPos.x - widgetPos.x, widgetEndPos.y - widgetPos.y);
 
-    ImGui::PushFont(font);
+    ImGui::PushFont(style::bigFont);
 
     if (widgetPos.x != lastWidgetPos.x || widgetPos.y != lastWidgetPos.y) {
         lastWidgetPos = widgetPos;

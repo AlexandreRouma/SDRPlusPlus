@@ -40,7 +40,7 @@
     "sourceSettings": {},
     "streams": {
         "Radio": {
-            "muted": false,
+            "muted": true,
             "sink": "Audio",
             "volume": 0.65625
         }

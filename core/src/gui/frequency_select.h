@@ -27,7 +27,6 @@ private:
     ImVec2 lastWidgetSize;
 
     ImGuiWindow* window;
-    ImFont* font;
 
     int digits[12];
     ImVec2 digitBottomMins[12];
