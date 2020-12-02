@@ -9,7 +9,7 @@ SDR++ is a cross-platform and open source SDR software with the aim of being blo
 * Cross-platform
 * Full waterfall update when possible. Makes browsing signals easier and more pleasant
 
-## Comming soon
+## Coming soon
 * Multi-VFO
 * Plugins
 * Digital demodulators and decoders
@@ -59,10 +59,10 @@ The last step of the build process is copying the `bandplans` and `res` director
 If you followed the steps above, it should be `build/Release`.
 
 # Building on Linux
-comming soon :)
+coming soon :)
 
 # Building on OSX
-comming soon as well :)
+coming soon as well :)
 
 # Contributing
 Feel free to issue pull request and report bugs via the github issues.
