@@ -127,6 +127,7 @@ void windowInit() {
     // Add squelsh
     // CW and RAW modes;
     // Bring VFO to a visible place when changing sample rate if it's smaller
+    // Use DUK_USE_DATE_NOW_WINDOWS for windows 7 support
 
     // TODO for 0.2.6
     // And a module add/remove/change order menu

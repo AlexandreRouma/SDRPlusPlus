@@ -114,23 +114,23 @@ private:
 
         ImGui::EndGroup();
 
-        ImGui::Text("WFM Deemphasis");
-        ImGui::SameLine();
-        ImGui::PushItemWidth(menuColumnWidth - ImGui::GetCursorPosX());
-        if (ImGui::Combo(CONCAT("##_deemp_select_", _this->name), &_this->deemp, DEEMP_LIST)) {
-            _this->sigPath.setDeemphasis(_this->deemp);
+        if (_this->demod == 1) {
+            ImGui::Text("WFM Deemphasis");
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(menuColumnWidth - ImGui::GetCursorPosX());
+            if (ImGui::Combo(CONCAT("##_deemp_select_", _this->name), &_this->deemp, DEEMP_LIST)) {
+                _this->sigPath.setDeemphasis(_this->deemp);
+            }
         }
-        ImGui::PopItemWidth();
+        
 
         ImGui::Text("Bandwidth");
         ImGui::SameLine();
-        ImGui::PushItemWidth(menuColumnWidth - ImGui::GetCursorPosX());
+        ImGui::SetNextItemWidth(menuColumnWidth - ImGui::GetCursorPosX());
         if (ImGui::InputInt(CONCAT("##_bw_select_", _this->name), &_this->bandWidth, 100, 1000)) {
             _this->bandWidth = std::clamp<int>(_this->bandWidth, _this->bandWidthMin, _this->bandWidthMax);
             _this->sigPath.setBandwidth(_this->bandWidth);
         }
-
-        ImGui::PopItemWidth();
 
         ImGui::Text("Snap Interval");
         ImGui::SameLine();

@@ -99,7 +99,6 @@ int sdrpp_main() {
     if (window == NULL)
         return 1;
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(1); // Enable vsync
 
 #if (GLFW_VERSION_MAJOR == 3) && (GLFW_VERSION_MINOR >= 3)
     if (maximized) {
@@ -240,6 +239,7 @@ int sdrpp_main() {
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+        glfwSwapInterval(1); // Enable vsync
         glfwSwapBuffers(window);
     }
 

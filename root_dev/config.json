@@ -21,10 +21,11 @@
     "fftHeight": 296,
     "frequency": 99000000,
     "max": 0.0,
-    "maximized": false,
+    "maximized": true,
     "menuOrder": [
         "Source",
-        "Radio",
+        "Radio 1",
+        "Radio 2",
         "Recorder",
         "Sinks",
         "Audio",
@@ -33,16 +34,26 @@
         "Display"
     ],
     "menuWidth": 300,
-    "min": -70.5882339477539,
+    "min": -53.676475524902344,
     "offset": 0.0,
     "showWaterfall": true,
-    "source": "PlutoSDR",
+    "source": "SoapySDR",
     "sourceSettings": {},
     "streams": {
         "Radio": {
+            "muted": false,
+            "sink": "Audio",
+            "volume": 0.5306122303009033
+        },
+        "Radio 1": {
             "muted": true,
             "sink": "Audio",
-            "volume": 0.65625
+            "volume": 0.625
+        },
+        "Radio 2": {
+            "muted": false,
+            "sink": "Audio",
+            "volume": 1.0
         }
     },
     "windowSize": {

@@ -92,7 +92,7 @@ namespace dsp {
             generic_block<AGC>::registerOutput(&out);
         }
 
-        void setInputSize(stream<float>* in) {
+        void setInput(stream<float>* in) {
             std::lock_guard<std::mutex> lck(generic_block<AGC>::ctrlMtx);
             generic_block<AGC>::tempStop();
             generic_block<AGC>::unregisterInput(_in);

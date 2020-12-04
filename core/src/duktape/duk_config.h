@@ -62,6 +62,8 @@
 #if !defined(DUK_CONFIG_H_INCLUDED)
 #define DUK_CONFIG_H_INCLUDED
 
+#define DUK_USE_DATE_NOW_WINDOWS
+
 /*
  *  Intermediate helper defines
  */

@@ -84,12 +84,15 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
         amDemod.stop();
     }
     else if (_demod == DEMOD_USB) {
+        agc.stop();
         ssbDemod.stop();
     }
     else if (_demod == DEMOD_LSB) {
+        agc.stop();
         ssbDemod.stop();
     }
     else if (_demod == DEMOD_DSB) {
+        agc.stop();
         ssbDemod.stop();
     }
     else {
@@ -139,6 +142,7 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
     else if (demId == DEMOD_AM) {
         demodOutputSamplerate = 125000;
         vfo->setSampleRate(12500, bandwidth);
+        agc.setInput(&amDemod.out);
         audioResamp.setInput(&agc.out);
         audioBw = std::min<float>(bandwidth, outputSampleRate / 2.0f);
         
@@ -157,7 +161,8 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
         demodOutputSamplerate = 6000;
         vfo->setSampleRate(6000, bandwidth);
         ssbDemod.setMode(dsp::SSBDemod::MODE_USB);
-        audioResamp.setInput(&ssbDemod.out);
+        agc.setInput(&ssbDemod.out);
+        audioResamp.setInput(&agc.out);
         audioBw = std::min<float>(bandwidth, outputSampleRate / 2.0f);
         
         audioResamp.setInSampleRate(6000);
@@ -168,13 +173,15 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
 
         deemp.bypass = true;
         vfo->setReference(ImGui::WaterfallVFO::REF_LOWER);
+        agc.start();
         ssbDemod.start();
     }
     else if (demId == DEMOD_LSB) {
         demodOutputSamplerate = 6000;
         vfo->setSampleRate(6000, bandwidth);
         ssbDemod.setMode(dsp::SSBDemod::MODE_LSB);
-        audioResamp.setInput(&ssbDemod.out);
+        agc.setInput(&ssbDemod.out);
+        audioResamp.setInput(&agc.out);
         audioBw = std::min<float>(bandwidth, outputSampleRate / 2.0f);
         
         audioResamp.setInSampleRate(6000);
@@ -185,13 +192,15 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
 
         deemp.bypass = true;
         vfo->setReference(ImGui::WaterfallVFO::REF_UPPER);
+        agc.start();
         ssbDemod.start();
     }
     else if (demId == DEMOD_DSB) {
         demodOutputSamplerate = 6000;
         vfo->setSampleRate(6000, bandwidth);
         ssbDemod.setMode(dsp::SSBDemod::MODE_DSB);
-        audioResamp.setInput(&ssbDemod.out);
+        agc.setInput(&ssbDemod.out);
+        audioResamp.setInput(&agc.out);
         audioBw = std::min<float>(bandwidth, outputSampleRate / 2.0f);
         
         audioResamp.setInSampleRate(6000);
@@ -202,6 +211,7 @@ void SigPath::setDemodulator(int demId, float bandWidth) {
 
         deemp.bypass = true;
         vfo->setReference(ImGui::WaterfallVFO::REF_CENTER);
+        agc.start();
         ssbDemod.start();
     }
     else {

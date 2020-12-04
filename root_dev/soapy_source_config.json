@@ -1,5 +1,5 @@
 {
-    "device": "Generic RTL2832U OEM :: 00000001",
+    "device": "HackRF One #0 901868dc282c8f8b",
     "devices": {
         "": {
             "gains": {
@@ -29,10 +29,10 @@
         "HackRF One #0 901868dc282c8f8b": {
             "gains": {
                 "AMP": 0.0,
-                "LNA": 24.711999893188477,
-                "VGA": 21.749000549316406
+                "LNA": 23.415000915527344,
+                "VGA": 16.332000732421875
             },
-            "sampleRate": 2000000.0
+            "sampleRate": 8000000.0
         },
         "Microphone (Realtek High Definition Audio)": {
             "sampleRate": 96000.0
