@@ -1,4 +1,4 @@
-#include <gui/bandplan.h>
+#include <gui/widgets/bandplan.h>
 #include <fstream>
 #include <spdlog/spdlog.h>
 #include <filesystem>

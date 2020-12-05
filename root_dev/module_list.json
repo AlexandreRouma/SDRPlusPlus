@@ -1,6 +1,5 @@
 {
-    "Radio 1": "./radio/Release/radio.dll",
-    "Radio 2": "./radio/Release/radio.dll",
+    "Radio": "./radio/Release/radio.dll",
     "Recorder": "./recorder/Release/recorder.dll",
     "Soapy": "./soapy/Release/soapy.dll",
     "RTLTCPSource": "./rtl_tcp_source/Release/rtl_tcp_source.dll",

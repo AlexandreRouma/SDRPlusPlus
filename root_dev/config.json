@@ -21,11 +21,10 @@
     "fftHeight": 296,
     "frequency": 99000000,
     "max": 0.0,
-    "maximized": true,
+    "maximized": false,
     "menuOrder": [
         "Source",
-        "Radio 1",
-        "Radio 2",
+        "Radio",
         "Recorder",
         "Sinks",
         "Audio",
@@ -34,10 +33,10 @@
         "Display"
     ],
     "menuWidth": 300,
-    "min": -53.676475524902344,
+    "min": -72.05882263183594,
     "offset": 0.0,
     "showWaterfall": true,
-    "source": "SoapySDR",
+    "source": "PlutoSDR",
     "sourceSettings": {},
     "streams": {
         "Radio": {

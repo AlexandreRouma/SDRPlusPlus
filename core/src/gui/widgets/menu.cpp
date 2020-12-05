@@ -1,4 +1,4 @@
-#include <gui/menu.h>
+#include <gui/widgets/menu.h>
 #include <imgui/imgui.h>
 
 Menu::Menu() {

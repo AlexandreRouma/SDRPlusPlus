@@ -10,7 +10,7 @@
 #include <gui/icons.h>
 #include <version.h>
 #include <spdlog/spdlog.h>
-#include <gui/bandplan.h>
+#include <gui/widgets/bandplan.h>
 #include <module.h>
 #include <stb_image.h>
 #include <config.h>

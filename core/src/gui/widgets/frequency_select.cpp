@@ -1,4 +1,4 @@
-#include <gui/frequency_select.h>
+#include <gui/widgets/frequency_select.h>
 #include <config.h>
 #include <gui/style.h>
 

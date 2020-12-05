@@ -1,4 +1,4 @@
-#include <gui/waterfall.h>
+#include <gui/widgets/waterfall.h>
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <GL/glew.h>
@@ -564,6 +564,14 @@ namespace ImGui {
         double currentRatio = viewBandwidth / wholeBandwidth;
         wholeBandwidth = bandWidth;
         setViewBandwidth(bandWidth * currentRatio);
+        for (auto const& [name, vfo] : vfos) {
+            if (vfo->lowerOffset < -(bandWidth / 2)) {
+                vfo->setCenterOffset(-(bandWidth / 2));
+            }
+            if (vfo->upperOffset > (bandWidth / 2)) {
+                vfo->setCenterOffset(bandWidth / 2);
+            }
+        }
         updateAllVFOs();
     }
 

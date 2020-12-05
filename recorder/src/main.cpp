@@ -7,8 +7,11 @@
 #include <thread>
 #include <ctime>
 #include <gui/gui.h>
+#include <filesystem>
 #include <signal_path/signal_path.h>
 #include <config.h>
+#include <gui/style.h>
+#include <regex>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -30,6 +33,11 @@ void sampleRateChanged(void* ctx, double sampleRate, int blockSize) {
 
 }
 
+std::string expandString(std::string input) {
+    input = std::regex_replace(input, std::regex("%ROOT%"), ROOT_DIR);
+    return std::regex_replace(input, std::regex("//"), "/");
+}
+
 class RecorderModule {
 public:
     RecorderModule(std::string name) {
@@ -38,6 +46,7 @@ public:
         selectedStreamName = "";
         selectedStreamId = 0;
         lastNameList = "";
+        strcpy(path, "%ROOT%/recordings");
         gui::menu.registerEntry(name, menuHandler, this);
     }
 
@@ -77,6 +86,27 @@ private:
         }
 
         ImGui::BeginGroup();
+        if (_this->recording) { style::beginDisabled(); }
+        ImGui::SetNextItemWidth(menuColumnWidth);
+        bool lastPathValid = _this->pathValid;
+        if (!lastPathValid) {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+        }
+        if (ImGui::InputText(CONCAT("##_recorder_path_", _this->name), _this->path, 4095)) {
+            std::string expandedPath = expandString(_this->path);
+            if (!std::filesystem::exists(expandedPath)) {
+                _this->pathValid = false;
+            }
+            else if (!std::filesystem::is_directory(expandedPath)) {
+                _this->pathValid = false;
+            }
+            else {
+                _this->pathValid = true;
+            }
+        }
+        if (!lastPathValid) {
+            ImGui::PopStyleColor();
+        }
 
         // TODO: Change VFO ref in signal path
         // TODO: Add VFO record
@@ -88,6 +118,7 @@ private:
         if (ImGui::RadioButton(CONCAT("Audio##_", _this->name), _this->recMode == 1) && _this->recMode != 1) {
             _this->recMode = 1;
         }
+        if (_this->recording) { style::endDisabled(); }
         ImGui::Columns(1, CONCAT("EndRecordModeColumns##_", _this->name), false);
 
         ImGui::EndGroup();
@@ -95,16 +126,19 @@ private:
         if (_this->recMode == 0) {
             ImGui::PushItemWidth(menuColumnWidth);
             if (!_this->recording) {
+                if (!_this->pathValid) { style::beginDisabled(); }
                 if (ImGui::Button("Record", ImVec2(menuColumnWidth, 0))) {
+                    std::string expandedPath = expandString(std::string(_this->path) + genFileName("/baseband_"));
                     _this->samplesWritten = 0;
                     _this->sampleRate = sigpath::signalPath.getSampleRate();
-                    _this->writer = new WavWriter(ROOT_DIR "/recordings/" + genFileName("baseband_"), 16, 2, _this->sampleRate);
+                    _this->writer = new WavWriter(expandedPath, 16, 2, _this->sampleRate);
                     _this->iqStream = new dsp::stream<dsp::complex_t>;
                     sigpath::signalPath.bindIQStream(_this->iqStream);
                     _this->workerThread = std::thread(_iqWriteWorker, _this);
                     _this->recording = true;
                     _this->startTime = time(0);
                 }
+                if (!_this->pathValid) { style::endDisabled(); }
                 ImGui::TextColored(ImGui::GetStyleColorVec4(ImGuiCol_Text), "Idle --:--:--");
             }
             else {
@@ -140,15 +174,18 @@ private:
                 ImGui::PopStyleColor(3);
             }
             if (!_this->recording) {
+                if (!_this->pathValid) { style::beginDisabled(); }
                 if (ImGui::Button("Record", ImVec2(menuColumnWidth, 0))) {
+                    std::string expandedPath = expandString(std::string(_this->path) + genFileName("/audio_"));
                     _this->samplesWritten = 0;
                     _this->sampleRate = sigpath::sinkManager.getStreamSampleRate(_this->selectedStreamName);
-                    _this->writer = new WavWriter(ROOT_DIR "/recordings/" + genFileName("audio_"), 16, 2, _this->sampleRate);
+                    _this->writer = new WavWriter(expandedPath, 16, 2, _this->sampleRate);
                     _this->audioStream = sigpath::sinkManager.bindStream(_this->selectedStreamName);
                     _this->workerThread = std::thread(_audioWriteWorker, _this);
                     _this->recording = true;
                     _this->startTime = time(0);
                 }
+                if (!_this->pathValid) { style::endDisabled(); }
                 ImGui::TextColored(ImGui::GetStyleColorVec4(ImGuiCol_Text), "Idle --:--:--");
             }
             else {
@@ -202,6 +239,8 @@ private:
     }
 
     std::string name;
+    char path[4096];
+    bool pathValid = true;
     dsp::stream<dsp::stereo_t>* audioStream;
     dsp::stream<dsp::complex_t>* iqStream;
     WavWriter* writer;

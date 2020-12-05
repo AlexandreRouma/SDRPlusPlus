@@ -9,12 +9,12 @@
 #include <imgui_plot.h>
 #include <thread>
 #include <complex>
-#include <gui/waterfall.h>
-#include <gui/frequency_select.h>
+#include <gui/widgets/waterfall.h>
+#include <gui/widgets/frequency_select.h>
 #include <fftw3.h>
 #include <signal_path/dsp.h>
 #include <gui/icons.h>
-#include <gui/bandplan.h>
+#include <gui/widgets/bandplan.h>
 #include <watcher.h>
 #include <module.h>
 #include <signal_path/vfo_manager.h>
@@ -122,12 +122,13 @@ void windowInit() {
     displaymenu::init();
 
     // TODO for 0.2.5
-    // Add a loading screen
-    // Add "select folder" option for the recorder module
-    // Add squelsh
-    // CW and RAW modes;
-    // Bring VFO to a visible place when changing sample rate if it's smaller
-    // Use DUK_USE_DATE_NOW_WINDOWS for windows 7 support
+    // Add "select folder" option for the file source
+    // Fix SSB demod
+    // FIX AUDIO ISSUE ON BOTH LINUX AND SOMETIMES WINDOWS (probly the ring buffer, though double buffering could help)
+    // Rewrite radio module with CW and RAW modes
+    // Add default main config to avoid having to ship one
+    // Have a good directory system on both linux and windows
+    // Switch to double buffering
 
     // TODO for 0.2.6
     // And a module add/remove/change order menu

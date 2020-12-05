@@ -1,5 +1,5 @@
 #include <gui/menus/bandplan.h>
-#include <gui/bandplan.h>
+#include <gui/widgets/bandplan.h>
 #include <gui/gui.h>
 #include <core.h>
 
