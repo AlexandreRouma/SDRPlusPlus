@@ -19,7 +19,7 @@
     "bandPlan": "General",
     "bandPlanEnabled": true,
     "fftHeight": 296,
-    "frequency": 99000000,
+    "frequency": 98930000,
     "max": 0.0,
     "maximized": false,
     "menuOrder": [
@@ -36,13 +36,13 @@
     "min": -72.05882263183594,
     "offset": 0.0,
     "showWaterfall": true,
-    "source": "PlutoSDR",
+    "source": "SoapySDR",
     "sourceSettings": {},
     "streams": {
         "Radio": {
             "muted": false,
             "sink": "Audio",
-            "volume": 0.5306122303009033
+            "volume": 0.4183673560619354
         },
         "Radio 1": {
             "muted": true,

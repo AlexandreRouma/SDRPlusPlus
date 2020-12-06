@@ -125,13 +125,14 @@ void windowInit() {
     // Add "select folder" option for the file source
     // Fix SSB demod
     // FIX AUDIO ISSUE ON BOTH LINUX AND SOMETIMES WINDOWS (probly the ring buffer, though double buffering could help)
-    // Rewrite radio module with CW and RAW modes
+    // Add CW mode to radio module
     // Add default main config to avoid having to ship one
     // Have a good directory system on both linux and windows
     // Switch to double buffering
 
     // TODO for 0.2.6
-    // And a module add/remove/change order menu
+    // Add a module add/remove/change order menu
+    // Change the way fft samples are stored to make it less CPU intensive
 
     // Update UI settings
     LoadingScreen::show("Loading configuration");

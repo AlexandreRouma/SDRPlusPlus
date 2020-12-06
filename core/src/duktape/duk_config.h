@@ -62,7 +62,9 @@
 #if !defined(DUK_CONFIG_H_INCLUDED)
 #define DUK_CONFIG_H_INCLUDED
 
+#ifdef _WIN32
 #define DUK_USE_DATE_NOW_WINDOWS
+#endif
 
 /*
  *  Intermediate helper defines

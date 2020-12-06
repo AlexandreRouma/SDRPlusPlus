@@ -105,7 +105,7 @@ namespace dsp {
         float _offset, _inSampleRate, _outSampleRate, _bandWidth;
         filter_window::BlackmanWindow win;
         stream<complex_t>* _in;
-        FrequencyXlator xlator;
+        FrequencyXlator<complex_t> xlator;
         PolyphaseResampler<complex_t> resamp;
 
     };
