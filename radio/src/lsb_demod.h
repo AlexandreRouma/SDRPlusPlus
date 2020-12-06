@@ -101,9 +101,9 @@ public:
             setBandwidth(bw);
         }
 
-        ImGui::SetNextItemWidth(menuWidth - ImGui::CalcTextSize("Snap Interval").x - 8);
         ImGui::Text("Snap Interval");
         ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::InputFloat(("##_radio_lsb_snap_" + uiPrefix).c_str(), &snapInterval, 1, 100, 0)) {
             setSnapInterval(snapInterval);
         }
