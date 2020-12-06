@@ -5,6 +5,7 @@
 #include <signal_path/sink.h>
 #include <portaudio.h>
 #include <dsp/audio.h>
+#include <spdlog/spdlog.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -143,6 +144,8 @@ private:
 
         float sampleRate = dev->sampleRates[dev->srId];
         int bufferSize = sampleRate / 60.0f;
+
+        spdlog::warn("Audio SamplRate: {0}", sampleRate);
 
         if (dev->channels == 2) {
             stereoRB.data.setMaxLatency(bufferSize * 2);
