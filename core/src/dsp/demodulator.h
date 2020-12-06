@@ -166,7 +166,10 @@ namespace dsp {
 
         SSBDemod(stream<complex_t>* in, float sampleRate, float bandWidth, int mode) { init(in, sampleRate, bandWidth, mode); }
 
-        ~SSBDemod() { generic_block<SSBDemod>::stop(); }
+        ~SSBDemod() {
+            generic_block<SSBDemod>::stop();
+            delete[] buffer;
+        }
 
         enum {
             MODE_USB,
@@ -191,6 +194,7 @@ namespace dsp {
                 phaseDelta = lv_cmake(1.0f, 0.0f);
                 break;
             }
+            buffer = new lv_32fc_t[STREAM_BUFFER_SIZE];
             generic_block<SSBDemod>::registerInput(_in);
             generic_block<SSBDemod>::registerOutput(&out);
         }
@@ -256,8 +260,8 @@ namespace dsp {
             if (count < 0) { return -1; }
 
             if (out.aquire() < 0) { return -1; } 
-            volk_32fc_s32fc_x2_rotator_32fc((lv_32fc_t*)out.data, (lv_32fc_t*)_in->data, phaseDelta, &phase, count);
-            volk_32fc_deinterleave_real_32f(out.data, (lv_32fc_t*)_in->data, count);
+            volk_32fc_s32fc_x2_rotator_32fc(buffer, (lv_32fc_t*)_in->data, phaseDelta, &phase, count);
+            volk_32fc_deinterleave_real_32f(out.data, buffer, count);
 
             _in->flush();
             out.write(count);
@@ -271,6 +275,7 @@ namespace dsp {
         int _mode;
         float _sampleRate, _bandWidth;
         stream<complex_t>* _in;
+        lv_32fc_t* buffer;
         lv_32fc_t phase;
         lv_32fc_t phaseDelta;
 

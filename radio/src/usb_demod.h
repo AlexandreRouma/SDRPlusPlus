@@ -24,7 +24,7 @@ public:
 
         agc.init(&demod.out, 1.0f / 125.0f);
 
-        float audioBW = std::min<float>(audioSampRate / 2.0f, bw / 2.0f);
+        float audioBW = std::min<float>(audioSampRate / 2.0f, bw);
         win.init(audioBW, audioBW, bbSampRate);
         resamp.init(&agc.out, &win, bbSampRate, audioSampRate);
         win.setSampleRate(bbSampRate * resamp.getInterpolation());
@@ -73,7 +73,7 @@ public:
             resamp.stop();
         }
         audioSampRate = sampleRate;
-        float audioBW = std::min<float>(audioSampRate / 2.0f, bw / 2.0f);
+        float audioBW = std::min<float>(audioSampRate / 2.0f, bw);
         resamp.setOutSampleRate(audioSampRate);
         win.setSampleRate(bbSampRate * resamp.getInterpolation());
         win.setCutoff(audioBW);

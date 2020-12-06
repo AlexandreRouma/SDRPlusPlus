@@ -145,8 +145,6 @@ private:
         float sampleRate = dev->sampleRates[dev->srId];
         int bufferSize = sampleRate / 60.0f;
 
-        spdlog::warn("Audio SamplRate: {0}", sampleRate);
-
         if (dev->channels == 2) {
             stereoRB.data.setMaxLatency(bufferSize * 2);
             stereoRB.start();

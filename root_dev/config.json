@@ -19,7 +19,7 @@
     "bandPlan": "General",
     "bandPlanEnabled": true,
     "fftHeight": 296,
-    "frequency": 96400000,
+    "frequency": 95000000,
     "max": 0.0,
     "maximized": false,
     "menuOrder": [
@@ -33,7 +33,7 @@
         "Display"
     ],
     "menuWidth": 300,
-    "min": -72.05882263183594,
+    "min": -54.41176986694336,
     "offset": 0.0,
     "showWaterfall": true,
     "source": "SoapySDR",
@@ -42,7 +42,7 @@
         "Radio": {
             "muted": false,
             "sink": "Audio",
-            "volume": 0.6858407258987427
+            "volume": 0.831632673740387
         },
         "Radio 1": {
             "muted": true,
