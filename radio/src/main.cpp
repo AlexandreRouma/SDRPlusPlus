@@ -123,6 +123,7 @@ private:
         currentDemod->setAudioSampleRate(audioSampRate);
         stream.setInput(currentDemod->getOutput());
         currentDemod->select();
+        vfo->output->flush();
         currentDemod->start();
     }
 

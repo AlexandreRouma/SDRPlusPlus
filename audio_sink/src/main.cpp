@@ -142,7 +142,7 @@ private:
         PaError err;
 
         float sampleRate = dev->sampleRates[dev->srId];
-        int bufferSize = sampleRate / 60.0f;
+        int bufferSize = sampleRate / 200.0f;
 
         if (dev->channels == 2) {
             stereoRB.data.setMaxLatency(bufferSize * 2);

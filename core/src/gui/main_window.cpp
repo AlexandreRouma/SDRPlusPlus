@@ -125,7 +125,6 @@ void windowInit() {
     // Add "select folder" option for the file source
     // Fix SSB demod
     // FIX AUDIO ISSUE ON BOTH LINUX AND SOMETIMES WINDOWS (probly the ring buffer, though double buffering could help)
-    // Add CW mode to radio module
     // Add default main config to avoid having to ship one
     // Have a good directory system on both linux and windows
     // Switch to double buffering

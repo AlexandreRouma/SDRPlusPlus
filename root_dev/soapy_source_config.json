@@ -32,7 +32,7 @@
                 "LNA": 23.415000915527344,
                 "VGA": 16.332000732421875
             },
-            "sampleRate": 2000000.0
+            "sampleRate": 8000000.0
         },
         "Microphone (Realtek High Definition Audio)": {
             "sampleRate": 96000.0
