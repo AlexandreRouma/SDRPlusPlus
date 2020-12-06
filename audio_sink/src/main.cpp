@@ -142,17 +142,17 @@ private:
         PaError err;
 
         float sampleRate = dev->sampleRates[dev->srId];
-        int bufferSize = sampleRate / 200.0f;
+        int bufferSize = sampleRate / 60.0f;
 
         if (dev->channels == 2) {
             stereoRB.data.setMaxLatency(bufferSize * 2);
             stereoRB.start();
-            err = Pa_OpenStream(&stream, NULL, &outputParams, sampleRate, bufferSize, 0, _stereo_cb, this);
+            err = Pa_OpenStream(&stream, NULL, &outputParams, sampleRate, paFramesPerBufferUnspecified, 0, _stereo_cb, this);
         }
         else {
             monoRB.data.setMaxLatency(bufferSize * 2);
             monoRB.start();
-            err = Pa_OpenStream(&stream, NULL, &outputParams, sampleRate, bufferSize, 0, _mono_cb, this);
+            err = Pa_OpenStream(&stream, NULL, &outputParams, sampleRate, paFramesPerBufferUnspecified, 0, _mono_cb, this);
         }
 
         if (err != 0) {
