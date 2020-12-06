@@ -2,6 +2,7 @@
 #include <dsp/block.h>
 #include <fftw3.h>
 #include <volk/volk.h>
+#include <spdlog/spdlog.h>
 #include <string.h>
 
 namespace dsp {
