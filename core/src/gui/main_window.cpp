@@ -123,9 +123,8 @@ void windowInit() {
 
     // TODO for 0.2.5
     // Add "select folder" option for the file source
-    // FIX AUDIO ISSUE ON BOTH LINUX AND SOMETIMES WINDOWS (probly the ring buffer, though double buffering could help)
     // Add default main config to avoid having to ship one
-    // Have a good directory system on both linux and windows
+    // Have a good directory system on both linux and windows (should fix occassional underruns)
     // Switch to double buffering
 
     // TODO for 0.2.6

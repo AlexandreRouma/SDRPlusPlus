@@ -18,11 +18,12 @@
             "sampleRate": 96000.0
         },
         "Default Device": {
-            "sampleRate": 32000.0
+            "sampleRate": 192000.0
         },
         "Generic RTL2832U OEM :: 00000001": {
+            "agc": false,
             "gains": {
-                "TUNER": 23.406999588012695
+                "TUNER": 37.3390007019043
             },
             "sampleRate": 2560000.0
         },

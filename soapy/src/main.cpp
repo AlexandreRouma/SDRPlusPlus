@@ -114,19 +114,21 @@ private:
 
         SoapySDR::Device* dev = SoapySDR::Device::make(devArgs);
 
-        gainList = dev->listGains(SOAPY_SDR_RX, 0);
+        gainList = dev->listGains(SOAPY_SDR_RX, channelId);
         delete[] uiGains;
         uiGains = new float[gainList.size()];
         for (auto gain : gainList) {
-            gainRanges.push_back(dev->getGainRange(SOAPY_SDR_RX, 0, gain));
+            gainRanges.push_back(dev->getGainRange(SOAPY_SDR_RX, channelId, gain));
         }
 
-        sampleRates = dev->listSampleRates(SOAPY_SDR_RX, 0);
+        sampleRates = dev->listSampleRates(SOAPY_SDR_RX, channelId);
         txtSrList = "";
         for (double sr : sampleRates) {
             txtSrList += std::to_string((int)sr);
             txtSrList += '\0';
         }
+
+        hasAgc = dev->hasGainMode(SOAPY_SDR_RX, channelId);
 
         SoapySDR::Device::unmake(dev);
 
@@ -137,15 +139,32 @@ private:
                 if (config.conf["devices"][name]["gains"].contains(gain)) {
                     uiGains[i] = config.conf["devices"][name]["gains"][gain];
                 }
+                else {
+                    uiGains[i] = gainRanges[i].minimum();
+                }
                 i++;
             }
-            selectSampleRate(config.conf["devices"][name]["sampleRate"]);
+            if (hasAgc && config.conf["devices"][name].contains("agc")) {
+                agc = config.conf["devices"][name]["agc"];
+            }
+            else {
+                agc = false;
+            }
+            if (config.conf["devices"][name].contains("sampleRate")) {
+                selectSampleRate(config.conf["devices"][name]["sampleRate"]);
+            }
+            else {
+                selectSampleRate(sampleRates[0]);
+            }
         }
         else {
             int i = 0;
             for (auto gain : gainList) {
                 uiGains[i] = gainRanges[i].minimum();
                 i++;
+            }
+            if (hasAgc) {
+                agc = false;
             }
             selectSampleRate(sampleRates[0]); // Select default
         }
@@ -160,6 +179,9 @@ private:
         for (auto gain : gainList) {
             conf["gains"][gain] = uiGains[i];
             i++;
+        }
+        if (hasAgc) {
+            conf["agc"] = agc;
         }
         config.aquire();
         config.conf["devices"][devArgs["label"]] = conf;
@@ -184,15 +206,19 @@ private:
         SoapyModule* _this = (SoapyModule*)ctx;
         _this->dev = SoapySDR::Device::make(_this->devArgs);
 
-        _this->dev->setSampleRate(SOAPY_SDR_RX, 0, _this->sampleRate);
+        _this->dev->setSampleRate(SOAPY_SDR_RX, _this->channelId, _this->sampleRate);
 
         int i = 0;
         for (auto gain : _this->gainList) {
-            _this->dev->setGain(SOAPY_SDR_RX, 0, gain, _this->uiGains[i]);
+            _this->dev->setGain(SOAPY_SDR_RX, _this->channelId, gain, _this->uiGains[i]);
             i++;
         }
 
-        _this->dev->setFrequency(SOAPY_SDR_RX, 0, _this->freq);
+        if (_this->hasAgc) {
+            _this->dev->setGainMode(SOAPY_SDR_RX, _this->channelId,  _this->agc);
+        }
+
+        _this->dev->setFrequency(SOAPY_SDR_RX, _this->channelId, _this->freq);
 
         _this->devStream = _this->dev->setupStream(SOAPY_SDR_RX, "CF32");
         _this->dev->activateStream(_this->devStream);
@@ -218,11 +244,10 @@ private:
         SoapyModule* _this = (SoapyModule*)ctx;
         _this->freq = freq;
         if (_this->running) {
-            _this->dev->setFrequency(SOAPY_SDR_RX, 0, freq);
+            _this->dev->setFrequency(SOAPY_SDR_RX, _this->channelId, freq);
         }
         spdlog::info("SoapyModule '{0}': Tune: {1}!", _this->name, freq);
     }
-    
     
     static void menuHandler(void* ctx) {
         SoapyModule* _this = (SoapyModule*)ctx;
@@ -269,6 +294,21 @@ private:
         }
         gainNameLen += 5.0f;
 
+        if (_this->hasAgc) {
+            if (ImGui::Checkbox((std::string("AGC##_agc_sel_") + _this->name).c_str(), &_this->agc)) {
+                if (_this->running) { _this->dev->setGainMode(SOAPY_SDR_RX, _this->channelId, _this->agc); }
+                // When disabled, reset the gains
+                if (!_this->agc) {
+                    int i = 0;
+                    for (auto gain : _this->gainList) {
+                        _this->dev->setGain(SOAPY_SDR_RX, _this->channelId, gain, _this->uiGains[i]);
+                        i++;
+                    }
+                }
+                _this->saveCurrent();
+            }
+        }
+
         int i = 0;
         for (auto gain : _this->gainList) {
             ImGui::Text("%s gain", gain.c_str());
@@ -278,7 +318,7 @@ private:
             if (ImGui::SliderFloat((gain + std::string("##_gain_sel_") + _this->name).c_str(), &_this->uiGains[i], 
                                 _this->gainRanges[i].minimum(), _this->gainRanges[i].maximum())) {
                 if (_this->running) {
-                    _this->dev->setGain(SOAPY_SDR_RX, 0, gain, _this->uiGains[i]);
+                    _this->dev->setGain(SOAPY_SDR_RX, _this->channelId, gain, _this->uiGains[i]);
                 }
                 _this->saveCurrent();
             }
@@ -315,9 +355,13 @@ private:
     double freq;
     double sampleRate;
     bool running = false;
+    bool hasAgc = false;
+    bool agc = false;
     std::vector<double> sampleRates;
     int srId = -1;
     float* uiGains;
+    int channelCount = 1;
+    int channelId = 0;
     std::vector<std::string> gainList;
     std::vector<SoapySDR::Range> gainRanges;
 };
