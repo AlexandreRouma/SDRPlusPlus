@@ -164,7 +164,7 @@ void SinkManager::setStreamSink(std::string name, std::string providerName) {
     spdlog::warn("setStreamSink is NOT implemented!!!");
 }
 
-void SinkManager::showVolumeSlider(std::string name, std::string prefix, float width, float btnHeight, int btwBorder) {
+void SinkManager::showVolumeSlider(std::string name, std::string prefix, float width, float btnHeight, int btwBorder, bool sameLine) {
     // TODO: Replace map with some hashmap for it to be faster
     float height = ImGui::GetTextLineHeightWithSpacing() + 2;
     float sliderHeight = height;
@@ -185,6 +185,7 @@ void SinkManager::showVolumeSlider(std::string name, std::string prefix, float w
         ImGui::SetCursorPosY(ypos + ((height - sliderHeight) / 2.0f) + btwBorder);
         ImGui::SliderFloat((prefix + name).c_str(), &dummy, 0.0f, 1.0f, "");
         style::endDisabled();
+        if (sameLine) { ImGui::SetCursorPosY(ypos); }
         return;
     }
 
@@ -221,6 +222,7 @@ void SinkManager::showVolumeSlider(std::string name, std::string prefix, float w
         saveStreamConfig(name);
         core::configManager.release(true);
     }
+    if (sameLine) { ImGui::SetCursorPosY(ypos); }
     //ImGui::SetCursorPosY(ypos);
 }
 

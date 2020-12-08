@@ -99,7 +99,7 @@ public:
 
     void setStreamSink(std::string name, std::string providerName);
 
-    void showVolumeSlider(std::string name, std::string prefix, float width, float btnHeight = -1.0f, int btwBorder = 0);
+    void showVolumeSlider(std::string name, std::string prefix, float width, float btnHeight = -1.0f, int btwBorder = 0, bool sameLine = false);
 
     dsp::stream<dsp::stereo_t>* bindStream(std::string name);
     void unbindStream(std::string name, dsp::stream<dsp::stereo_t>* stream);

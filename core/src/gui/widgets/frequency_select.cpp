@@ -151,7 +151,10 @@ void FrequencySelect::draw() {
     frequency = freq;
 
     ImGui::PopFont();
-    ImGui::NewLine();
+
+    ImGui::SetCursorPosX(digitBottomMaxs[11].x + 17);
+
+    //ImGui::NewLine();
 }
 
 void FrequencySelect::setFrequency(uint64_t freq) {

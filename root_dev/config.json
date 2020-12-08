@@ -1,9 +1,9 @@
 {
     "bandPlan": "General",
     "bandPlanEnabled": true,
-    "centerTuning": false,
+    "centerTuning": true,
     "fftHeight": 300,
-    "frequency": 100100000,
+    "frequency": 99000000,
     "max": 0.0,
     "maximized": false,
     "menuOrder": [
@@ -41,7 +41,7 @@
         "Radio": {
             "muted": false,
             "sink": "Audio",
-            "volume": 0.29591837525367737
+            "volume": 0.47959184646606445
         },
         "Radio 1": {
             "muted": false,

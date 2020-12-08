@@ -163,6 +163,8 @@ void windowInit() {
     // Add default main config to avoid having to ship one
     // Have a good directory system on both linux and windows (should fix occassional underruns)
     // Switch to double buffering
+    // Fix gain not updated on startup, soapysdr
+    // Fix memory leak when enabling and disabling repeatedly
 
     // TODO for 0.2.6
     // Add a module add/remove/change order menu
@@ -232,6 +234,7 @@ void setVFO(double freq) {
     if (centerTuning) {
         gui::waterfall.setViewOffset((BW / 2.0) - (viewBW / 2.0));
         gui::waterfall.setCenterFrequency(freq);
+        gui::waterfall.setViewOffset(0);
         sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, 0);
         sigpath::sourceManager.tune(freq);
         return;
@@ -310,6 +313,9 @@ void drawWindow() {
 
     if (vfo != NULL) {
         if (vfo->centerOffsetChanged) {
+            if (centerTuning) {
+                setVFO(gui::waterfall.getCenterFrequency() + vfo->generalOffset);
+            }
             gui::freqSelect.setFrequency(gui::waterfall.getCenterFrequency() + vfo->generalOffset);
             gui::freqSelect.frequencyChanged = false;
             core::configManager.aquire();
@@ -401,11 +407,36 @@ void drawWindow() {
     ImGui::SameLine();
 
     //ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
-    sigpath::sinkManager.showVolumeSlider(gui::waterfall.selectedVFO, "##_sdrpp_main_volume_", 248, 30, 5);
+    sigpath::sinkManager.showVolumeSlider(gui::waterfall.selectedVFO, "##_sdrpp_main_volume_", 248, 30, 5, true);
 
     ImGui::SameLine();
 
     gui::freqSelect.draw();
+
+    //ImGui::SameLine();
+
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 9);
+    if (centerTuning) {
+        ImGui::PushID(ImGui::GetID("sdrpp_ena_st_btn"));
+        if (ImGui::ImageButton(icons::CENTER_TUNING, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
+            centerTuning = false;
+            core::configManager.aquire();
+            core::configManager.conf["centerTuning"] = centerTuning;
+            core::configManager.release(true);
+        }
+        ImGui::PopID();
+    }
+    else { // TODO: Might need to check if there even is a device
+        ImGui::PushID(ImGui::GetID("sdrpp_dis_st_btn"));
+        if (ImGui::ImageButton(icons::NORMAL_TUNING, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
+            centerTuning = true;
+            setVFO(gui::freqSelect.frequency);
+            core::configManager.aquire();
+            core::configManager.conf["centerTuning"] = centerTuning;
+            core::configManager.release(true);
+        }
+        ImGui::PopID();
+    }
 
     ImGui::SameLine();
 
