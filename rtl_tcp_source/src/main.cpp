@@ -1,7 +1,7 @@
 #include <rtltcp_client.h>
 #include <imgui.h>
 #include <spdlog/spdlog.h>
-#include <module.h>
+#include <new_module.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
 #include <core.h>
@@ -9,14 +9,15 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-MOD_INFO {
-    /* Name:        */ "rtl_tcp_source",
-    /* Description: */ "RTL-TCP input module for SDR++",
-    /* Author:      */ "Ryzerth",
-    /* Version:     */ "0.1.0"
+SDRPP_MOD_INFO {
+    /* Name:            */ "rtl_tcp_source",
+    /* Description:     */ "RTL-TCP source module for SDR++",
+    /* Author:          */ "Ryzerth",
+    /* Version:         */ 0, 1, 0,
+    /* Max instances    */ 1
 };
 
-class RTLTCPSourceModule {
+class RTLTCPSourceModule : public ModuleManager::Instance {
 public:
     RTLTCPSourceModule(std::string name) {
         this->name = name;
@@ -32,12 +33,22 @@ public:
         handler.tuneHandler = tune;
         handler.stream = &stream;
         sigpath::sourceManager.registerSource("RTL-TCP", &handler);
-
-        spdlog::info("RTLTCPSourceModule '{0}': Instance created!", name);
     }
 
     ~RTLTCPSourceModule() {
-        spdlog::info("RTLTCPSourceModule '{0}': Instance deleted!", name);
+        
+    }
+
+    void enable() {
+        enabled = true;
+    }
+
+    void disable() {
+        enabled = false;
+    }
+
+    bool isEnabled() {
+        return enabled;
     }
 
 private:
@@ -157,6 +168,7 @@ private:
     }
 
     std::string name;
+    bool enabled = true;
     dsp::stream<dsp::complex_t> stream;
     double sampleRate;
     SourceManager::SourceHandler handler;
@@ -176,14 +188,14 @@ MOD_EXPORT void _INIT_() {
    // Do your one time init here
 }
 
-MOD_EXPORT void* _CREATE_INSTANCE_(std::string name) {
+MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
     return new RTLTCPSourceModule(name);
 }
 
-MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
+MOD_EXPORT void _DELETE_INSTANCE_(ModuleManager::Instance* instance) {
     delete (RTLTCPSourceModule*)instance;
 }
 
-MOD_EXPORT void _STOP_() {
+MOD_EXPORT void _END_() {
     // Do your one shutdown here
 }

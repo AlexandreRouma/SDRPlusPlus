@@ -13,7 +13,11 @@ VFOManager::VFO::VFO(std::string name, int reference, double offset, double band
 }
 
 VFOManager::VFO::~VFO() {
+    dspVFO->stop();
     gui::waterfall.vfos.erase(name);
+    if (gui::waterfall.selectedVFO == name) {
+        gui::waterfall.selectFirstVFO();
+    }
     sigpath::signalPath.removeVFO(name);
     delete wtfVFO;
 }
@@ -76,6 +80,7 @@ void VFOManager::deleteVFO(VFOManager::VFO* vfo) {
     if (name == "") {
         return;
     }
+    delete vfo;
     vfos.erase(name);
 }
 

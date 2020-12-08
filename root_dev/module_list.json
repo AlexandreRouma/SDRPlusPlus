@@ -1,8 +1,0 @@
-{
-    "Radio": "./radio/Release/radio.dll",
-    "Recorder": "./recorder/Release/recorder.dll",
-    "Soapy": "./soapy/Release/soapy.dll",
-    "RTLTCPSource": "./rtl_tcp_source/Release/rtl_tcp_source.dll",
-    "PlutoSDRSource": "./plutosdr_source/Release/plutosdr_source.dll",
-    "AudioSink": "./audio_sink/Release/audio_sink.dll"
-}

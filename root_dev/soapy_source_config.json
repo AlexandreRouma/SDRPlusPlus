@@ -8,9 +8,10 @@
             "sampleRate": 8000000.0
         },
         "AirSpy HF+ [c852435de0224af7]": {
+            "agc": false,
             "gains": {
-                "LNA": 5.989999771118164,
-                "RF": 6.0
+                "LNA": 6.0,
+                "RF": 0.0
             },
             "sampleRate": 768000.0
         },

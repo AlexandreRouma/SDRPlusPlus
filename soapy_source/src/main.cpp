@@ -1,6 +1,6 @@
 #include <imgui.h>
 #include <spdlog/spdlog.h>
-#include <module.h>
+#include <new_module.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
 #include <SoapySDR/Device.hpp>
@@ -11,16 +11,17 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-MOD_INFO {
-    /* Name:        */ "soapy",
-    /* Description: */ "SoapySDR input module for SDR++",
-    /* Author:      */ "Ryzerth",
-    /* Version:     */ "0.1.0"
+SDRPP_MOD_INFO {
+    /* Name:            */ "soapy_source",
+    /* Description:     */ "SoapySDR source module for SDR++",
+    /* Author:          */ "Ryzerth",
+    /* Version:         */ 0, 1, 5,
+    /* Max instances    */ 1
 };
 
 ConfigManager config;
 
-class SoapyModule {
+class SoapyModule : public ModuleManager::Instance {
 public:
     SoapyModule(std::string name) {
         this->name = name;
@@ -50,6 +51,23 @@ public:
         spdlog::info("SoapyModule '{0}': Instance created!", name);
     }
 
+    ~SoapyModule() {
+        spdlog::info("SoapyModule '{0}': Instance deleted!", name);
+    }
+
+    void enable() {
+        enabled = true;
+    }
+
+    void disable() {
+        enabled = false;
+    }
+
+    bool isEnabled() {
+        return enabled;
+    }
+
+private:
     void refresh() {
         devList = SoapySDR::Device::enumerate();
         txtDevList = "";
@@ -61,11 +79,6 @@ public:
         }
     }
 
-    ~SoapyModule() {
-        spdlog::info("SoapyModule '{0}': Instance deleted!", name);
-    }
-
-private:
     void selectSampleRate(double samplerate) {
         spdlog::info("Setting sample rate to {0}", samplerate);
         if (sampleRates.size() == 0) {
@@ -342,6 +355,7 @@ private:
     }
 
     std::string name;
+    bool enabled = true;
     dsp::stream<dsp::complex_t> stream;
     SoapySDR::Stream* devStream;
     SourceManager::SourceHandler handler;
@@ -375,15 +389,15 @@ MOD_EXPORT void _INIT_() {
    config.enableAutoSave();
 }
 
-MOD_EXPORT void* _CREATE_INSTANCE_(std::string name) {
+MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
     return new SoapyModule(name);
 }
 
-MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
+MOD_EXPORT void _DELETE_INSTANCE_(ModuleManager::Instance* instance) {
     delete (SoapyModule*)instance;
 }
 
-MOD_EXPORT void _STOP_() {
+MOD_EXPORT void _END_() {
     config.disableAutoSave();
     config.save();
 }

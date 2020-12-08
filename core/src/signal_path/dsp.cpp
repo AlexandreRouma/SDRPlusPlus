@@ -50,6 +50,12 @@ void SignalPath::start() {
     fftHandlerSink.start();
 }
 
+void SignalPath::stop() {
+    split.stop();
+    reshape.stop();
+    fftHandlerSink.stop();
+}
+
 dsp::VFO* SignalPath::addVFO(std::string name, double outSampleRate, double bandwidth, double offset) {
     if (vfos.find(name) != vfos.end()) {
         return NULL;

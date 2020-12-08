@@ -7,6 +7,10 @@ ConfigManager::ConfigManager() {
 
 }
 
+ConfigManager::~ConfigManager() {
+    disableAutoSave();
+}
+
 void ConfigManager::setPath(std::string file) {
     path = file;
 }
@@ -42,13 +46,17 @@ void ConfigManager::save(bool lock) {
 }
 
 void ConfigManager::enableAutoSave() {
-    autoSaveEnabled = true;
-    autoSaveThread = std::thread(autoSaveWorker, this);
+    if (!autoSaveEnabled) {
+        autoSaveEnabled = true;
+        autoSaveThread = std::thread(autoSaveWorker, this);
+    }
 }
 
 void ConfigManager::disableAutoSave() {
-    autoSaveEnabled = false;
-    autoSaveThread.join();
+    if (autoSaveEnabled) {
+        autoSaveEnabled = false;
+        autoSaveThread.join();
+    }
 }
 
 void ConfigManager::aquire() {

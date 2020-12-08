@@ -1,6 +1,6 @@
 #include <imgui.h>
 #include <spdlog/spdlog.h>
-#include <module.h>
+#include <new_module.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
 #include <core.h>
@@ -10,11 +10,12 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-MOD_INFO {
-    /* Name:        */ "plutosdr_source",
-    /* Description: */ "PlutoSDR input module for SDR++",
-    /* Author:      */ "Ryzerth",
-    /* Version:     */ "0.1.0"
+SDRPP_MOD_INFO {
+    /* Name:            */ "plutosdr_source",
+    /* Description:     */ "PlutoSDR source module for SDR++",
+    /* Author:          */ "Ryzerth",
+    /* Version:         */ 0, 1, 0,
+    /* Max instances    */ 1
 };
 
 const char* gainModes[] = {
@@ -25,7 +26,7 @@ const char* gainModesTxt = "Manual\0Fast Attack\0Slow Attack\0Hybrid\0";
 
 ConfigManager config;
 
-class PlutoSDRSourceModule {
+class PlutoSDRSourceModule : public ModuleManager::Instance {
 public:
     PlutoSDRSourceModule(std::string name) {
         this->name = name;
@@ -53,6 +54,18 @@ public:
 
     ~PlutoSDRSourceModule() {
         spdlog::info("PlutoSDRSourceModule '{0}': Instance deleted!", name);
+    }
+
+    void enable() {
+        enabled = true;
+    }
+
+    void disable() {
+        enabled = true;
+    }
+
+    bool isEnabled() {
+        return enabled;
     }
 
 private:
@@ -227,6 +240,7 @@ private:
     }
 
     std::string name;
+    bool enabled = true;
     dsp::stream<dsp::complex_t> stream;
     float sampleRate;
     SourceManager::SourceHandler handler;
@@ -253,15 +267,15 @@ MOD_EXPORT void _INIT_() {
     config.enableAutoSave();
 }
 
-MOD_EXPORT void* _CREATE_INSTANCE_(std::string name) {
+MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
     return new PlutoSDRSourceModule(name);
 }
 
-MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
+MOD_EXPORT void _DELETE_INSTANCE_(ModuleManager::Instance* instance) {
     delete (PlutoSDRSourceModule*)instance;
 }
 
-MOD_EXPORT void _STOP_() {
+MOD_EXPORT void _END_() {
     config.disableAutoSave();
     config.save();
 }

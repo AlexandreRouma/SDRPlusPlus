@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <new_module.h>
 
 class Menu {
 public:
@@ -10,9 +11,10 @@ public:
     struct MenuItem_t {
         void (*drawHandler)(void* ctx);
         void* ctx;
+        ModuleManager::Instance* inst;
     };
 
-    void registerEntry(std::string name, void (*drawHandler)(void* ctx), void* ctx = NULL);
+    void registerEntry(std::string name, void (*drawHandler)(void* ctx), void* ctx = NULL, ModuleManager::Instance* inst = NULL);
     void removeEntry(std::string name);
     void draw();
 

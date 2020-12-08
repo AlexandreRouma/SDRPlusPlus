@@ -15,6 +15,10 @@ namespace dsp {
     public:
         virtual void init() {}
 
+        virtual ~generic_block() {
+            stop();
+        }
+
         virtual void start() {
             std::lock_guard<std::mutex> lck(ctrlMtx);
             if (running) {

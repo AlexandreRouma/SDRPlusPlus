@@ -11,7 +11,6 @@
 #include <version.h>
 #include <spdlog/spdlog.h>
 #include <gui/widgets/bandplan.h>
-#include <module.h>
 #include <stb_image.h>
 #include <config.h>
 #include <core.h>
@@ -30,6 +29,7 @@
 namespace core {
     ConfigManager configManager;
     ScriptManager scriptManager;
+    ModuleManager moduleManager;
 
     void setInputSampleRate(double samplerate) {
         // NOTE: Zoom controls won't work

@@ -26,6 +26,7 @@ using nlohmann::json;
 class ConfigManager {
 public:
     ConfigManager();
+    ~ConfigManager();
     void setPath(std::string file);
     void load(json def, bool lock = true);
     void save(bool lock = true);

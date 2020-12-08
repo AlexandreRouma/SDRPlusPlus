@@ -195,14 +195,22 @@ namespace ImGui {
     }
 
     void WaterFall::selectFirstVFO() {
+        bool available = false;
         for (auto const& [name, vfo] : vfos) {
+            available = true;
             selectedVFO = name;
             return;
+        }
+        if (!available) {
+            selectedVFO = "";
         }
     }
 
     void WaterFall::processInputs() {
-        WaterfallVFO* vfo = vfos[selectedVFO];
+        WaterfallVFO* vfo = NULL;
+        if (selectedVFO != "") {
+            vfo = vfos[selectedVFO];
+        }
         ImVec2 mousePos = ImGui::GetMousePos();
         ImVec2 drag = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
         ImVec2 dragOrigin(mousePos.x - drag.x, mousePos.y - drag.y);
@@ -229,19 +237,21 @@ namespace ImGui {
                     return;
                 }
             }
-            int refCenter = mousePos.x - (widgetPos.x + 50);
-            if (refCenter >= 0 && refCenter < dataWidth && mousePos.y > widgetPos.y && mousePos.y < (widgetPos.y + widgetSize.y)) {
-                double off = ((((double)refCenter / ((double)dataWidth / 2.0)) - 1.0) * (viewBandwidth / 2.0)) + viewOffset;
-                off += centerFreq;
-                off = (round(off / vfo->snapInterval) * vfo->snapInterval) - centerFreq;
-                vfo->setOffset(off);
+            if (vfo != NULL) {
+                int refCenter = mousePos.x - (widgetPos.x + 50);
+                if (refCenter >= 0 && refCenter < dataWidth && mousePos.y > widgetPos.y && mousePos.y < (widgetPos.y + widgetSize.y)) {
+                    double off = ((((double)refCenter / ((double)dataWidth / 2.0)) - 1.0) * (viewBandwidth / 2.0)) + viewOffset;
+                    off += centerFreq;
+                    off = (round(off / vfo->snapInterval) * vfo->snapInterval) - centerFreq;
+                    vfo->setOffset(off);
+                }
             }
         }
 
         // Draging VFO
         if (draging && mouseInFFT) {
             int refCenter = mousePos.x - (widgetPos.x + 50);
-            if (refCenter >= 0 && refCenter < dataWidth && mousePos.y > widgetPos.y && mousePos.y < (widgetPos.y + widgetSize.y)) {
+            if (refCenter >= 0 && refCenter < dataWidth && mousePos.y > widgetPos.y && mousePos.y < (widgetPos.y + widgetSize.y) && vfo != NULL) {
                 double off = ((((double)refCenter / ((double)dataWidth / 2.0)) - 1.0) * (viewBandwidth / 2.0)) + viewOffset;
                 off += centerFreq;
                 off = (round(off / vfo->snapInterval) * vfo->snapInterval) - centerFreq;
@@ -434,7 +444,9 @@ namespace ImGui {
         widgetEndPos.y += window->Pos.y;
         widgetSize = ImVec2(widgetEndPos.x - widgetPos.x, widgetEndPos.y - widgetPos.y);
 
-        
+        if (selectedVFO == "" && vfos.size() > 0) {
+            selectFirstVFO();
+        }
 
         if (widgetPos.x != lastWidgetPos.x || widgetPos.y != lastWidgetPos.y) {
             lastWidgetPos = widgetPos;

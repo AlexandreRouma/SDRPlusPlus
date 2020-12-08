@@ -174,18 +174,18 @@ void SinkManager::showVolumeSlider(std::string name, std::string prefix, float w
 
     float ypos = ImGui::GetCursorPosY();
 
-    if (streams.find(name) == streams.end()) {
+    if (streams.find(name) == streams.end() || name == "") {
         float dummy = 0.0f;
         style::beginDisabled();
-        ImGui::SetNextItemWidth(width - height);
-        ImGui::PushID(ImGui::GetID(("sdrpp_dummy_mute_btn_" + name).c_str()));
+        ImGui::PushID(ImGui::GetID(("sdrpp_unmute_btn_" + name).c_str()));
         ImGui::ImageButton(icons::MUTED, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), btwBorder);
         ImGui::PopID();
         ImGui::SameLine();
-        ImGui::SetCursorPosY(ypos - ((height - sliderHeight) / 2.0f));
+        ImGui::SetNextItemWidth(width - height - 8);
+        ImGui::SetCursorPosY(ypos + ((height - sliderHeight) / 2.0f) + btwBorder);
         ImGui::SliderFloat((prefix + name).c_str(), &dummy, 0.0f, 1.0f, "");
-        ImGui::SetCursorPosY(ypos);
         style::endDisabled();
+        return;
     }
 
     SinkManager::Stream* stream = streams[name];

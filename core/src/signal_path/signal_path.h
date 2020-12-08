@@ -3,7 +3,7 @@
 #include <signal_path/vfo_manager.h>
 #include <signal_path/source.h>
 #include <signal_path/sink.h>
-#include <module.h>
+#include <new_module.h>
 
 namespace sigpath {
     SDRPP_EXPORT SignalPath signalPath;

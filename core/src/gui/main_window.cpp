@@ -16,7 +16,6 @@
 #include <gui/icons.h>
 #include <gui/widgets/bandplan.h>
 #include <watcher.h>
-#include <module.h>
 #include <signal_path/vfo_manager.h>
 #include <gui/style.h>
 #include <config.h>
@@ -28,6 +27,7 @@
 #include <gui/menus/sink.h>
 #include <gui/menus/scripting.h>
 #include <gui/dialogs/credits.h>
+#include <filesystem>
 #include <signal_path/source.h>
 #include <gui/dialogs/loading_screen.h>
 
@@ -81,6 +81,7 @@ bool grabbingMenu = false;
 int newWidth = 300;
 int fftHeight = 300;
 bool showMenu = true;
+bool centerTuning = false;
 dsp::stream<dsp::complex_t> dummyStream;
 
 void windowInit() {
@@ -113,7 +114,43 @@ void windowInit() {
     sigpath::signalPath.start();
 
     spdlog::info("Loading modules");
-    mod::loadFromList(ROOT_DIR "/module_list.json");
+
+    // Load modules from /module directory
+    if (std::filesystem::is_directory(ROOT_DIR "/modules")) {
+        for (const auto & file : std::filesystem::directory_iterator(ROOT_DIR "/modules")) {
+            std::string path = file.path().generic_string();
+            if (file.path().extension().generic_string() != SDRPP_MOD_EXTENTSION) {
+                continue;
+            }
+            if (!file.is_regular_file()) { continue; }
+            spdlog::info("Loading {0}", path);
+            LoadingScreen::show("Loading " + path);
+            core::moduleManager.loadModule(path);
+        }
+    }
+    else {
+        spdlog::warn("Module directory {0} does not exist, not loading modules from directory");
+    }
+
+    // Read module config
+    core::configManager.aquire();
+    std::vector<std::string> modules = core::configManager.conf["modules"];
+    std::map<std::string, std::string> modList = core::configManager.conf["moduleInstances"];
+    core::configManager.release();
+
+    // Load additional modules specified through config
+    for (auto const& path : modules) {
+        spdlog::info("Loading {0}", path);
+        LoadingScreen::show("Loading " + path);
+        core::moduleManager.loadModule(path);
+    }
+
+    // Create module instances
+    for (auto const& [name, module] : modList) {
+        spdlog::info("Initializing {0} ({1})", name, module);
+        LoadingScreen::show("Initializing " + name + " (" + module + ")");
+        core::moduleManager.createInstance(name, module);
+    }
 
     sourecmenu::init();
     sinkmenu::init();
@@ -158,10 +195,21 @@ void windowInit() {
     fftHeight = core::configManager.conf["fftHeight"];
     gui::waterfall.setFFTHeight(fftHeight);
 
+    centerTuning = core::configManager.conf["centerTuning"];
+
     core::configManager.release();
 }
 
 void setVFO(double freq) {
+    double viewBW = gui::waterfall.getViewBandwidth();
+    double BW = gui::waterfall.getBandwidth();
+    if (gui::waterfall.selectedVFO == "") {
+        gui::waterfall.setViewOffset((BW / 2.0) - (viewBW / 2.0));
+        gui::waterfall.setCenterFrequency(freq);
+        sigpath::sourceManager.tune(freq);
+        return;
+    }
+
     ImGui::WaterfallVFO* vfo = gui::waterfall.vfos[gui::waterfall.selectedVFO];
 
     double currentOff =  vfo->centerOffset;
@@ -174,14 +222,20 @@ void setVFO(double freq) {
     double vfoTop = newVFO + (vfoBW / 2.0);
 
     double view = gui::waterfall.getViewOffset();
-    double viewBW = gui::waterfall.getViewBandwidth();
     double viewBottom = view - (viewBW / 2.0);
     double viewTop = view + (viewBW / 2.0);
 
     double wholeFreq = gui::waterfall.getCenterFrequency();
-    double BW = gui::waterfall.getBandwidth();
     double bottom = -(BW / 2.0);
     double top = (BW / 2.0);
+
+    if (centerTuning) {
+        gui::waterfall.setViewOffset((BW / 2.0) - (viewBW / 2.0));
+        gui::waterfall.setCenterFrequency(freq);
+        sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, 0);
+        sigpath::sourceManager.tune(freq);
+        return;
+    }
 
     // VFO still fints in the view
     if (vfoBottom > viewBottom && vfoTop < viewTop) {
@@ -249,19 +303,24 @@ void setVFO(double freq) {
 void drawWindow() {
     ImGui::Begin("Main", NULL, WINDOW_FLAGS);
 
-    ImGui::WaterfallVFO* vfo = gui::waterfall.vfos[gui::waterfall.selectedVFO];
-
-    if (vfo->centerOffsetChanged) {
-        gui::freqSelect.setFrequency(gui::waterfall.getCenterFrequency() + vfo->generalOffset);
-        gui::freqSelect.frequencyChanged = false;
-        core::configManager.aquire();
-        core::configManager.conf["frequency"] = gui::freqSelect.frequency;
-        core::configManager.release(true);
+    ImGui::WaterfallVFO* vfo = NULL;
+    if (gui::waterfall.selectedVFO != "") {
+        vfo = gui::waterfall.vfos[gui::waterfall.selectedVFO];
     }
 
+    if (vfo != NULL) {
+        if (vfo->centerOffsetChanged) {
+            gui::freqSelect.setFrequency(gui::waterfall.getCenterFrequency() + vfo->generalOffset);
+            gui::freqSelect.frequencyChanged = false;
+            core::configManager.aquire();
+            core::configManager.conf["frequency"] = gui::freqSelect.frequency;
+            core::configManager.release(true);
+        }
+    }
+    
     sigpath::vfoManager.updateFromWaterfall(&gui::waterfall);
 
-    if (gui::waterfall.selectedVFOChanged) {
+    if (gui::waterfall.selectedVFOChanged && vfo != NULL) {
         gui::waterfall.selectedVFOChanged = false;
         gui::freqSelect.setFrequency(vfo->generalOffset + gui::waterfall.getCenterFrequency());
         gui::freqSelect.frequencyChanged = false;
@@ -273,9 +332,11 @@ void drawWindow() {
     if (gui::freqSelect.frequencyChanged) {
         gui::freqSelect.frequencyChanged = false;
         setVFO(gui::freqSelect.frequency);
-        vfo->centerOffsetChanged = false;
-        vfo->lowerOffsetChanged = false;
-        vfo->upperOffsetChanged = false;
+        if (vfo != NULL) {
+            vfo->centerOffsetChanged = false;
+            vfo->lowerOffsetChanged = false;
+            vfo->upperOffsetChanged = false;
+        }
         core::configManager.aquire();
         core::configManager.conf["frequency"] = gui::freqSelect.frequency;
         core::configManager.release(true);
@@ -284,7 +345,12 @@ void drawWindow() {
     if (gui::waterfall.centerFreqMoved) {
         gui::waterfall.centerFreqMoved = false;
         sigpath::sourceManager.tune(gui::waterfall.getCenterFrequency());
-        gui::freqSelect.setFrequency(gui::waterfall.getCenterFrequency() + vfo->generalOffset);
+        if (vfo != NULL) {
+            gui::freqSelect.setFrequency(gui::waterfall.getCenterFrequency() + vfo->generalOffset);
+        }
+        else {
+            gui::freqSelect.setFrequency(gui::waterfall.getCenterFrequency());
+        }
         core::configManager.aquire();
         core::configManager.conf["frequency"] = gui::freqSelect.frequency;
         core::configManager.release(true);
@@ -437,7 +503,9 @@ void drawWindow() {
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10);
     if (ImGui::VSliderFloat("##_7_", ImVec2(20.0, 150.0), &bw, gui::waterfall.getBandwidth(), 1000.0, "")) {
         gui::waterfall.setViewBandwidth(bw);
-        gui::waterfall.setViewOffset(vfo->centerOffset); // center vfo on screen
+        if (vfo != NULL) {
+            gui::waterfall.setViewOffset(vfo->centerOffset); // center vfo on screen
+        }
     }
 
     ImGui::NewLine();

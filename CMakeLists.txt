@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 3.13)
 project(sdrpp)
 
-# Cross platform modules
+# Core of SDR++
 add_subdirectory("core")
+
+# Cross platform modules
 add_subdirectory("radio")
 add_subdirectory("recorder") 
-add_subdirectory("soapy")
+add_subdirectory("soapy_source")
 #add_subdirectory("file_source")
 add_subdirectory("rtl_tcp_source")
 add_subdirectory("audio_sink")

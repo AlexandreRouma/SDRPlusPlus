@@ -1,5 +1,5 @@
 #include <imgui.h>
-#include <module.h>
+#include <new_module.h>
 #include <watcher.h>
 #include <wav.h>
 #include <dsp/types.h>
@@ -14,6 +14,14 @@
 #include <regex>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
+
+SDRPP_MOD_INFO {
+    /* Name:            */ "recorder",
+    /* Description:     */ "Recorder module for SDR++",
+    /* Author:          */ "Ryzerth",
+    /* Version:         */ 0, 1, 2,
+    /* Max instances    */ -1
+};
 
 // TODO: Fix this and finish module
 
@@ -38,7 +46,7 @@ std::string expandString(std::string input) {
     return std::regex_replace(input, std::regex("//"), "/");
 }
 
-class RecorderModule {
+class RecorderModule : public ModuleManager::Instance {
 public:
     RecorderModule(std::string name) {
         this->name = name;
@@ -52,6 +60,18 @@ public:
 
     ~RecorderModule() {
 
+    }
+
+    void enable() {
+        enabled = true;
+    }
+
+    void disable() {
+        enabled = false;
+    }
+
+    bool isEnabled() {
+        return enabled;
     }
 
 private:
@@ -239,6 +259,7 @@ private:
     }
 
     std::string name;
+    bool enabled = true;
     char path[4096];
     bool pathValid = true;
     dsp::stream<dsp::stereo_t>* audioStream;
@@ -266,15 +287,14 @@ MOD_EXPORT void _INIT_() {
     // Nothing here
 }
 
-MOD_EXPORT void* _CREATE_INSTANCE_(std::string name) {
-    RecorderModule* instance = new RecorderModule(name);
-    return instance;
+MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
+    return new RecorderModule(name);
 }
 
-MOD_EXPORT void _DELETE_INSTANCE_() {
-    
+MOD_EXPORT void _DELETE_INSTANCE_(ModuleManager::Instance* inst) {
+    delete (RecorderModule*)inst;
 }
 
-MOD_EXPORT void _STOP_(RecorderContext_t* ctx) {
+MOD_EXPORT void _END_(RecorderContext_t* ctx) {
     
 }

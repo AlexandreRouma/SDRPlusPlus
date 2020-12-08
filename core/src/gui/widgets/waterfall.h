@@ -104,7 +104,7 @@ namespace ImGui {
         bandplan::BandPlan_t* bandplan = NULL;
 
         std::map<std::string, WaterfallVFO*> vfos;
-        std::string selectedVFO;
+        std::string selectedVFO = "";
         bool selectedVFOChanged = false;
 
         enum {

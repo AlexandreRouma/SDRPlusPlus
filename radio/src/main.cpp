@@ -1,10 +1,11 @@
 #include <imgui.h>
-#include <module.h>
 #include <watcher.h>
 #include <config.h>
 #include <core.h>
+#include <gui/style.h>
 #include <signal_path/signal_path.h>
 #include <radio_demod.h>
+#include <new_module.h>
 #include <wfm_demod.h>
 #include <fm_demod.h>
 #include <am_demod.h>
@@ -16,19 +17,22 @@
 
 #define CONCAT(a, b)    ((std::string(a) + b).c_str())
 
-MOD_INFO {
-    /* Name:        */ "radio",
-    /* Description: */ "Radio module for SDR++",
-    /* Author:      */ "Ryzerth",
-    /* Version:     */ "0.3.0"
+SDRPP_MOD_INFO {
+    /* Name:            */ "radio",
+    /* Description:     */ "Radio module for SDR++",
+    /* Author:          */ "Ryzerth",
+    /* Version:         */ 0, 3, 0,
+    /* Max instances    */ -1
 };
 
-class RadioModule {
+class RadioModule : public ModuleManager::Instance {
 public:
     RadioModule(std::string name) {
         this->name = name;
 
         vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 200000, 200000, 1);
+
+        ns.init(vfo->output);
 
         wfmDemod.init(name, vfo, audioSampRate, 200000);
         fmDemod.init(name, vfo, audioSampRate, 12500);
@@ -50,16 +54,40 @@ public:
 
         stream.start();
 
-        gui::menu.registerEntry(name, menuHandler, this);
+        gui::menu.registerEntry(name, menuHandler, this, this);
     }
 
     ~RadioModule() {
         
     }
 
+    void enable() {
+        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 200000, 200000, 1);
+        //ns.stop();
+        currentDemod->setVFO(vfo);
+        currentDemod->select();
+        currentDemod->start();
+        enabled = true;
+    }
+
+    void disable() {
+        currentDemod->stop();
+        sigpath::vfoManager.deleteVFO(vfo);
+        //ns.setInput(vfo->output);
+        //ns.start();
+        enabled = false;
+    }
+
+    bool isEnabled() {
+        return enabled;
+    }
+
 private:
     static void menuHandler(void* ctx) {
         RadioModule* _this = (RadioModule*)ctx;
+
+        if (!_this->enabled) { style::beginDisabled(); }
+
         float menuWidth = ImGui::GetContentRegionAvailWidth();
         ImGui::BeginGroup();
 
@@ -106,6 +134,8 @@ private:
         ImGui::EndGroup();
 
         _this->currentDemod->showMenu();
+
+        if (!_this->enabled) { style::endDisabled(); }
     }
 
     static void sampleRateChangeHandler(float sampleRate, void* ctx) {
@@ -128,6 +158,7 @@ private:
     }
 
     std::string name;
+    bool enabled = true;
     int demodId = 0;
     float audioSampRate = 48000;
     Demodulator* currentDemod = NULL;
@@ -143,6 +174,8 @@ private:
     RAWDemodulator rawDemod;
     CWDemodulator cwDemod;
 
+    dsp::NullSink<dsp::complex_t> ns;
+
     Event<float>::EventHandler srChangeHandler;
     SinkManager::Stream stream;
 
@@ -152,7 +185,7 @@ MOD_EXPORT void _INIT_() {
    // Do your one time init here
 }
 
-MOD_EXPORT void* _CREATE_INSTANCE_(std::string name) {
+MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
     return new RadioModule(name);
 }
 
@@ -160,6 +193,6 @@ MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
     delete (RadioModule*)instance;
 }
 
-MOD_EXPORT void _STOP_() {
+MOD_EXPORT void _END_() {
     // Do your one shutdown here
 }

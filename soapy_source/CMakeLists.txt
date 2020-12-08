@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(soapy)
+project(soapy_source)
 
 if (MSVC)
     set(CMAKE_CXX_FLAGS "-O2 /std:c++17")
@@ -9,9 +9,9 @@ endif (MSVC)
 
 file(GLOB SRC "src/*.cpp")
 
-add_library(soapy SHARED ${SRC})
-target_link_libraries(soapy PRIVATE sdrpp_core)
-set_target_properties(soapy PROPERTIES PREFIX "")
+add_library(soapy_source SHARED ${SRC})
+target_link_libraries(soapy_source PRIVATE sdrpp_core)
+set_target_properties(soapy_source PROPERTIES PREFIX "")
 
 if (MSVC)
     # Lib path
@@ -24,7 +24,7 @@ else (MSVC)
 
     pkg_check_modules(SOAPY REQUIRED SoapySDR)
 
-    target_include_directories(soapy PUBLIC ${SOAPY_INCLUDE_DIRS})
-    target_link_directories(soapy PUBLIC ${SOAPY_LIBRARY_DIRS})
-    target_link_libraries(soapy PUBLIC ${SOAPY_LIBRARIES})
+    target_include_directories(soapy_source PUBLIC ${SOAPY_INCLUDE_DIRS})
+    target_link_directories(soapy_source PUBLIC ${SOAPY_LIBRARY_DIRS})
+    target_link_libraries(soapy_source PUBLIC ${SOAPY_LIBRARIES})
 endif (MSVC)

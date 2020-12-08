@@ -1,5 +1,5 @@
 #include <imgui.h>
-#include <module.h>
+#include <new_module.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
 #include <signal_path/sink.h>
@@ -8,6 +8,14 @@
 #include <spdlog/spdlog.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
+
+SDRPP_MOD_INFO {
+    /* Name:            */ "audio_sink",
+    /* Description:     */ "Audio sink module for SDR++",
+    /* Author:          */ "Ryzerth",
+    /* Version:         */ 0, 1, 0,
+    /* Max instances    */ 1
+};
 
 class AudioSink : SinkManager::Sink {
 public:
@@ -224,7 +232,7 @@ private:
 
 };
 
-class AudioSinkModule {
+class AudioSinkModule : public ModuleManager::Instance {
 public:
     AudioSinkModule(std::string name) {
         this->name = name;
@@ -237,12 +245,25 @@ public:
 
     }
 
+    void enable() {
+        enabled = true;
+    }
+
+    void disable() {
+        enabled = false;
+    }
+
+    bool isEnabled() {
+        return enabled;
+    }
+
 private:
     static SinkManager::Sink* create_sink(SinkManager::Stream* stream, std::string streamName, void* ctx) {
         return (SinkManager::Sink*)(new AudioSink(stream, streamName));
     }
 
     std::string name;
+    bool enabled = true;
     SinkManager::SinkProvider provider;
 
 };
@@ -261,6 +282,6 @@ MOD_EXPORT void _DELETE_INSTANCE_() {
     
 }
 
-MOD_EXPORT void _STOP_() {
+MOD_EXPORT void _END_() {
     
 }
