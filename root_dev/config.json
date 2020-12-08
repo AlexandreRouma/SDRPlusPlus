@@ -1,15 +1,14 @@
 {
     "bandPlan": "General",
     "bandPlanEnabled": true,
-    "centerTuning": true,
+    "centerTuning": false,
     "fftHeight": 300,
     "frequency": 100100000,
     "max": 0.0,
     "maximized": false,
     "menuOrder": [
         "Source",
-        "Radio 1",
-        "Radio 2",
+        "Radio",
         "Recorder",
         "Sinks",
         "Audio",
@@ -23,7 +22,7 @@
         "Audio Sink": "audio_sink",
         "PlutoSDR Source": "plutosdr_source",
         "RTL-TCP Source": "rtl_tcp_source",
-        "Radio 1": "radio",
+        "Radio": "radio",
         "Recorder": "recorder",
         "SoapySDR Source": "soapy_source"
     },
