@@ -159,10 +159,10 @@ void windowInit() {
     displaymenu::init();
 
     // TODO for 0.2.5
-    // Add "select folder" option for the file source
+    // Add "select file" option for the file source
     // Add default main config to avoid having to ship one
-    // Have a good directory system on both linux and windows (should fix occassional underruns)
-    // Switch to double buffering
+    // Have a good directory system on both linux and windows
+    // Switch to double buffering (should fix occassional underruns)
     // Fix gain not updated on startup, soapysdr
     // Fix memory leak when enabling and disabling repeatedly
 

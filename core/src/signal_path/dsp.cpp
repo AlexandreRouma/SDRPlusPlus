@@ -60,7 +60,6 @@ dsp::VFO* SignalPath::addVFO(std::string name, double outSampleRate, double band
     if (vfos.find(name) != vfos.end()) {
         return NULL;
     }
-
     VFO_t vfo;
     vfo.inputStream = new dsp::stream<dsp::complex_t>;
     split.bindStream(vfo.inputStream);
@@ -74,7 +73,6 @@ dsp::VFO* SignalPath::addVFO(std::string name, double outSampleRate, double band
 void SignalPath::removeVFO(std::string name) {
     if (vfos.find(name) == vfos.end()) {
         return;
-        
     }
     VFO_t vfo = vfos[name];
     vfo.vfo->stop();

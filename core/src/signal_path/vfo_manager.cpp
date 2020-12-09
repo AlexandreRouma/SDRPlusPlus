@@ -80,8 +80,8 @@ void VFOManager::deleteVFO(VFOManager::VFO* vfo) {
     if (name == "") {
         return;
     }
-    delete vfo;
     vfos.erase(name);
+    delete vfo;
 }
 
 void VFOManager::setOffset(std::string name, double offset) {
