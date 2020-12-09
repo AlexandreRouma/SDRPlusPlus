@@ -57,12 +57,7 @@ public:
         stream.init(wfmDemod.getOutput(), srChangeHandler, audioSampRate);
         sigpath::sinkManager.registerStream(name, &stream);
 
-        // TODO: Replace with config load
-        demodId = 1;
-        selectDemod(&wfmDemod);
-
-        // TODO: Remove the two above lines when implemented
-        // selectDemodulatorByID(demodId);
+        selectDemodById(demodId);
 
         stream.start();
 
@@ -107,39 +102,31 @@ private:
 
         ImGui::Columns(4, CONCAT("RadioModeColumns##_", _this->name), false);
         if (ImGui::RadioButton(CONCAT("NFM##_", _this->name), _this->demodId == 0) && _this->demodId != 0) { 
-            _this->demodId = 0;
-            _this->selectDemod(&_this->fmDemod);
+            _this->selectDemodById(0);
         }
         if (ImGui::RadioButton(CONCAT("WFM##_", _this->name), _this->demodId == 1) && _this->demodId != 1) {
-            _this->demodId = 1;
-            _this->selectDemod(&_this->wfmDemod);
+            _this->selectDemodById(1);
         }
         ImGui::NextColumn();
         if (ImGui::RadioButton(CONCAT("AM##_", _this->name), _this->demodId == 2) && _this->demodId != 2) {
-            _this->demodId = 2;
-            _this->selectDemod(&_this->amDemod);
+            _this->selectDemodById(2);
         }
         if (ImGui::RadioButton(CONCAT("DSB##_", _this->name), _this->demodId == 3) && _this->demodId != 3)  {
-            _this->demodId = 3;
-            _this->selectDemod(&_this->dsbDemod);
+            _this->selectDemodById(3);
         }
         ImGui::NextColumn();
         if (ImGui::RadioButton(CONCAT("USB##_", _this->name), _this->demodId == 4) && _this->demodId != 4) {
-            _this->demodId = 4;
-            _this->selectDemod(&_this->usbDemod);
+            _this->selectDemodById(4);
         }
         if (ImGui::RadioButton(CONCAT("CW##_", _this->name), _this->demodId == 5) && _this->demodId != 5) {
-            _this->demodId = 5;
-            _this->selectDemod(&_this->cwDemod);
+            _this->selectDemodById(5);
         };
         ImGui::NextColumn();
         if (ImGui::RadioButton(CONCAT("LSB##_", _this->name), _this->demodId == 6) && _this->demodId != 6) {
-            _this->demodId = 6;
-            _this->selectDemod(&_this->lsbDemod);
+            _this->selectDemodById(6);
         }
         if (ImGui::RadioButton(CONCAT("RAW##_", _this->name), _this->demodId == 7) && _this->demodId != 7) {
-            _this->demodId = 7;
-            _this->selectDemod(&_this->rawDemod);
+            _this->selectDemodById(7);
         };
         ImGui::Columns(1, CONCAT("EndRadioModeColumns##_", _this->name), false);
 
@@ -169,8 +156,19 @@ private:
         currentDemod->start();
     }
 
-    void selectDemodByID(int id) {
-        // TODO: Implement
+    void selectDemodById(int id) {
+        demodId = id;
+        if (id == 0) { selectDemod(&fmDemod); }
+        if (id == 1) { selectDemod(&wfmDemod); }
+        if (id == 2) { selectDemod(&amDemod); }
+        if (id == 3) { selectDemod(&dsbDemod); }
+        if (id == 4) { selectDemod(&usbDemod); }
+        if (id == 5) { selectDemod(&cwDemod); }
+        if (id == 6) { selectDemod(&lsbDemod); }
+        if (id == 7) { selectDemod(&rawDemod); }
+        config.aquire();
+        config.conf[name]["selectedDemodId"] = demodId;
+        config.release(true);
     }
 
     std::string name;

@@ -1,9 +1,9 @@
 {
     "bandPlan": "General",
     "bandPlanEnabled": true,
-    "centerTuning": true,
+    "centerTuning": false,
     "fftHeight": 300,
-    "frequency": 100100000,
+    "frequency": 99808000,
     "max": 0.0,
     "maximized": false,
     "menuOrder": [
