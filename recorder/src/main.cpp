@@ -25,6 +25,8 @@ SDRPP_MOD_INFO {
 
 // TODO: Fix this and finish module
 
+ConfigManager config;
+
 std::string genFileName(std::string prefix) {
     time_t now = time(0);
     tm *ltm = localtime(&now);
@@ -54,7 +56,17 @@ public:
         selectedStreamName = "";
         selectedStreamId = 0;
         lastNameList = "";
-        strcpy(path, "%ROOT%/recordings");
+
+        config.aquire();
+        if (!config.conf.contains(name)) {
+            config.conf[name]["recMode"] = 1;
+            config.conf[name]["directory"] = "%ROOT%/recordings";
+        }
+        recMode = config.conf[name]["recMode"];
+        std::string recPath = config.conf[name]["directory"];
+        strcpy(path, recPath.c_str());
+        config.release(true);
+
         gui::menu.registerEntry(name, menuHandler, this);
     }
 
@@ -122,6 +134,9 @@ private:
             }
             else {
                 _this->pathValid = true;
+                config.aquire();
+                config.conf[_this->name]["directory"] = _this->path;
+                config.release(true);
             }
         }
         if (!lastPathValid) {
@@ -133,10 +148,16 @@ private:
         ImGui::Columns(2, CONCAT("RecordModeColumns##_", _this->name), false);
         if (ImGui::RadioButton(CONCAT("Baseband##_", _this->name), _this->recMode == 0) && _this->recMode != 0) { 
             _this->recMode = 0;
+            config.aquire();
+            config.conf[_this->name]["recMode"] = _this->recMode;
+            config.release(true);
         }
         ImGui::NextColumn();
         if (ImGui::RadioButton(CONCAT("Audio##_", _this->name), _this->recMode == 1) && _this->recMode != 1) {
             _this->recMode = 1;
+            config.aquire();
+            config.conf[_this->name]["recMode"] = _this->recMode;
+            config.release(true);
         }
         if (_this->recording) { style::endDisabled(); }
         ImGui::Columns(1, CONCAT("EndRecordModeColumns##_", _this->name), false);
@@ -275,7 +296,7 @@ private:
     uint64_t samplesWritten;
     float sampleRate;
     float vfoSampleRate = 200000;
-    int recMode = 0;
+    int recMode = 1;
 
 };
 
@@ -284,7 +305,10 @@ struct RecorderContext_t {
 };
 
 MOD_EXPORT void _INIT_() {
-    // Nothing here
+    json def = json({});
+    config.setPath(ROOT_DIR "/recorder_config.json");
+    config.load(def);
+    config.enableAutoSave();
 }
 
 MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
@@ -296,5 +320,6 @@ MOD_EXPORT void _DELETE_INSTANCE_(ModuleManager::Instance* inst) {
 }
 
 MOD_EXPORT void _END_(RecorderContext_t* ctx) {
-    
+    config.disableAutoSave();
+    config.save();
 }

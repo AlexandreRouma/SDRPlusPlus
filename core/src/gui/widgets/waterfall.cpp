@@ -5,6 +5,8 @@
 #include <imutils.h>
 #include <algorithm>
 
+#include <spdlog/spdlog.h>
+
 float COLOR_MAP[][3] = {
     {0x00, 0x00, 0x20},
     {0x00, 0x00, 0x30},
@@ -152,9 +154,6 @@ namespace ImGui {
         for (int i = 1; i < dataWidth; i++) {
             double aPos = widgetPos.y + fftHeight + 10 - ((latestFFT[i - 1] - fftMin) * scaleFactor);
             double bPos = widgetPos.y + fftHeight + 10 - ((latestFFT[i] - fftMin) * scaleFactor);
-            if (aPos < fftMin && bPos < fftMin) {
-                continue;
-            }
             aPos = std::clamp<double>(aPos, widgetPos.y + 10, widgetPos.y + fftHeight + 10);
             bPos = std::clamp<double>(bPos, widgetPos.y + 10, widgetPos.y + fftHeight + 10);
             window->DrawList->AddLine(ImVec2(widgetPos.x + 49 + i, roundf(aPos)), 
