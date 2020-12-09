@@ -164,7 +164,6 @@ void windowInit() {
     // Have a good directory system on both linux and windows
     // Switch to double buffering (should fix occassional underruns)
     // Fix gain not updated on startup, soapysdr
-    // Fix memory leak when enabling and disabling repeatedly
 
     // TODO for 0.2.6
     // Add a module add/remove/change order menu

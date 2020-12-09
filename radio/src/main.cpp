@@ -25,6 +25,8 @@ SDRPP_MOD_INFO {
     /* Max instances    */ -1
 };
 
+static ConfigManager config;
+
 class RadioModule : public ModuleManager::Instance {
 public:
     RadioModule(std::string name) {
@@ -34,14 +36,21 @@ public:
 
         ns.init(vfo->output);
 
-        wfmDemod.init(name, vfo, audioSampRate, 200000);
-        fmDemod.init(name, vfo, audioSampRate, 12500);
-        amDemod.init(name, vfo, audioSampRate, 12500);
-        usbDemod.init(name, vfo, audioSampRate, 3000);
-        lsbDemod.init(name, vfo, audioSampRate, 3000);
-        dsbDemod.init(name, vfo, audioSampRate, 6000);
-        rawDemod.init(name, vfo, audioSampRate, audioSampRate);
-        cwDemod.init(name, vfo, audioSampRate, 200);
+        config.aquire();
+        if (!config.conf.contains(name)) {
+            config.conf[name]["selectedDemodId"] = 1;
+        }
+        demodId = config.conf[name]["selectedDemodId"];
+        config.release(true);
+
+        wfmDemod.init(name, vfo, audioSampRate, 200000, &config);
+        fmDemod.init(name, vfo, audioSampRate, 12500, &config);
+        amDemod.init(name, vfo, audioSampRate, 12500, &config);
+        usbDemod.init(name, vfo, audioSampRate, 3000, &config);
+        lsbDemod.init(name, vfo, audioSampRate, 3000, &config);
+        dsbDemod.init(name, vfo, audioSampRate, 6000, &config);
+        rawDemod.init(name, vfo, audioSampRate, audioSampRate, &config);
+        cwDemod.init(name, vfo, audioSampRate, 200, &config);
         
         srChangeHandler.ctx = this;
         srChangeHandler.handler = sampleRateChangeHandler;
@@ -51,6 +60,9 @@ public:
         // TODO: Replace with config load
         demodId = 1;
         selectDemod(&wfmDemod);
+
+        // TODO: Remove the two above lines when implemented
+        // selectDemodulatorByID(demodId);
 
         stream.start();
 
@@ -157,6 +169,10 @@ private:
         currentDemod->start();
     }
 
+    void selectDemodByID(int id) {
+        // TODO: Implement
+    }
+
     std::string name;
     bool enabled = true;
     int demodId = 0;
@@ -182,7 +198,10 @@ private:
 };
 
 MOD_EXPORT void _INIT_() {
-   // Do your one time init here
+    json def = json({});
+    config.setPath(ROOT_DIR "/radio_config.json");
+    config.load(def);
+    config.enableAutoSave();
 }
 
 MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
@@ -194,5 +213,6 @@ MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
 }
 
 MOD_EXPORT void _END_() {
-    // Do your one shutdown here
+    config.disableAutoSave();
+    config.save();
 }

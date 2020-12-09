@@ -5,20 +5,42 @@
 #include <dsp/filter.h>
 #include <dsp/audio.h>
 #include <string>
+#include <config.h>
 #include <imgui.h>
 
 class WFMDemodulator : public Demodulator {
 public:
     WFMDemodulator() {}
-    WFMDemodulator(std::string prefix, VFOManager::VFO* vfo, float audioSampleRate, float bandWidth) {
-        init(prefix, vfo, audioSampleRate, bandWidth);
+    WFMDemodulator(std::string prefix, VFOManager::VFO* vfo, float audioSampleRate, float bandWidth, ConfigManager* config) {
+        init(prefix, vfo, audioSampleRate, bandWidth, config);
     }
 
-    void init(std::string prefix, VFOManager::VFO* vfo, float audioSampleRate, float bandWidth) {
+    void init(std::string prefix, VFOManager::VFO* vfo, float audioSampleRate, float bandWidth, ConfigManager* config) {
         uiPrefix = prefix;
         _vfo = vfo;
         audioSampRate = audioSampleRate;
         bw = bandWidth;
+        _config = config;
+
+        _config->aquire();
+        if(_config->conf.contains(prefix)) {
+            if(!_config->conf[prefix].contains("WFM")) {
+                _config->conf[prefix]["WFM"]["bandwidth"] = bw;
+                _config->conf[prefix]["WFM"]["snapInterval"] = snapInterval;
+                _config->conf[prefix]["WFM"]["deempMode"] = deempId;
+            }
+            json conf = _config->conf[prefix]["WFM"];
+            bw = conf["bandwidth"];
+            snapInterval = conf["snapInterval"];
+            deempId = conf["deempMode"];
+        }
+        else {
+            _config->conf[prefix]["WFM"]["bandwidth"] = bw;
+            _config->conf[prefix]["WFM"]["snapInterval"] = snapInterval;
+            _config->conf[prefix]["WFM"]["deempMode"] = deempId; 
+        }
+        _config->release(true);
+        
         
         demod.init(_vfo->output, bbSampRate, bandWidth / 2.0f);
 
@@ -102,6 +124,9 @@ public:
         if (ImGui::InputFloat(("##_radio_wfm_bw_" + uiPrefix).c_str(), &bw, 1, 100, 0)) {
             bw = std::clamp<float>(bw, bwMin, bwMax);
             setBandwidth(bw);
+            _config->aquire();
+            _config->conf[uiPrefix]["WFM"]["bandwidth"] = bw;
+            _config->release(true);
         }
 
         ImGui::Text("Snap Interval");
@@ -109,6 +134,9 @@ public:
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::InputFloat(("##_radio_wfm_snap_" + uiPrefix).c_str(), &snapInterval, 1, 100, 0)) {
             setSnapInterval(snapInterval);
+            _config->aquire();
+            _config->conf[uiPrefix]["WFM"]["snapInterval"] = snapInterval;
+            _config->release(true);
         }
 
         
@@ -117,6 +145,9 @@ public:
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(("##_radio_wfm_deemp_" + uiPrefix).c_str(), &deempId, deempModes)) {
             setDeempIndex(deempId);
+            _config->aquire();
+            _config->conf[uiPrefix]["WFM"]["deempMode"] = deempId;
+            _config->release(true);
         }
     } 
 
@@ -161,5 +192,7 @@ private:
     dsp::PolyphaseResampler<float> resamp;
     dsp::BFMDeemp deemp;
     dsp::MonoToStereo m2s;
+
+    ConfigManager* _config;
 
 };
