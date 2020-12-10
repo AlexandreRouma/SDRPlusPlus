@@ -25,8 +25,8 @@ public:
         _config->aquire();
         if(_config->conf.contains(prefix)) {
             if(!_config->conf[prefix].contains("FM")) {
-                _config->conf[prefix]["FM"]["bandwidth"] = bw;
-                _config->conf[prefix]["FM"]["snapInterval"] = snapInterval;
+                if (!_config->conf[prefix]["FM"].contains("bandwidth")) { _config->conf[prefix]["FM"]["bandwidth"] = bw; }
+                if (!_config->conf[prefix]["FM"].contains("snapInterval")) { _config->conf[prefix]["FM"]["snapInterval"] = snapInterval; }
             }
             json conf = _config->conf[prefix]["FM"];
             bw = conf["bandwidth"];
@@ -37,8 +37,10 @@ public:
             _config->conf[prefix]["FM"]["snapInterval"] = snapInterval;
         }
         _config->release(true);
+
+        squelch.init(_vfo->output, squelchLevel);
         
-        demod.init(_vfo->output, bbSampRate, bandWidth / 2.0f);
+        demod.init(&squelch.out, bbSampRate, bandWidth / 2.0f);
 
         float audioBW = std::min<float>(audioSampleRate / 2.0f, bw / 2.0f);
         win.init(audioBW, audioBW, bbSampRate);
@@ -50,6 +52,7 @@ public:
     }
 
     void start() {
+        squelch.start();
         demod.start();
         resamp.start();
         m2s.start();
@@ -57,6 +60,7 @@ public:
     }
 
     void stop() {
+        squelch.stop();
         demod.stop();
         resamp.stop();
         m2s.stop();
@@ -75,7 +79,7 @@ public:
 
     void setVFO(VFOManager::VFO* vfo) {
         _vfo = vfo;
-        demod.setInput(_vfo->output);
+        squelch.setInput(_vfo->output);
     }
 
     VFOManager::VFO* getVFO() {
@@ -127,6 +131,16 @@ public:
             _config->conf[uiPrefix]["FM"]["snapInterval"] = snapInterval;
             _config->release(true);
         }
+
+        ImGui::Text("Squelch");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::SliderFloat(("##_radio_fm_deemp_" + uiPrefix).c_str(), &squelchLevel, -100.0f, 0.0f, "%.3fdB")) {
+            squelch.setLevel(squelchLevel);
+            _config->aquire();
+            _config->conf[uiPrefix]["FM"]["squelchLevel"] = squelchLevel;
+            _config->release(true);
+        }
     } 
 
 private:
@@ -150,8 +164,10 @@ private:
     float audioSampRate = 48000;
     float bw = 12500;
     bool running = false;
+    float squelchLevel = -100.0f;
 
     VFOManager::VFO* _vfo;
+    dsp::Squelch squelch;
     dsp::FMDemod demod;
     dsp::filter_window::BlackmanWindow win;
     dsp::PolyphaseResampler<float> resamp;

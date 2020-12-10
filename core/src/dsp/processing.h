@@ -219,4 +219,73 @@ namespace dsp {
         stream<T>* _in;
 
     };
+
+    class Squelch : public generic_block<Squelch> {
+    public:
+        Squelch() {}
+
+        Squelch(stream<complex_t>* in, float level) { init(in, level); }
+
+        ~Squelch() {
+            generic_block<Squelch>::stop();
+            delete[] normBuffer;
+        }
+
+        void init(stream<complex_t>* in, float level) {
+            _in = in;
+            _level = level;
+            normBuffer = new float[STREAM_BUFFER_SIZE];
+            generic_block<Squelch>::registerInput(_in);
+            generic_block<Squelch>::registerOutput(&out);
+        }
+
+        void setInput(stream<complex_t>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<Squelch>::ctrlMtx);
+            generic_block<Squelch>::tempStop();
+            generic_block<Squelch>::unregisterInput(_in);
+            _in = in;
+            generic_block<Squelch>::registerInput(_in);
+            generic_block<Squelch>::tempStart();
+        }
+
+        void setLevel(float level) {
+            _level = level;
+        }
+
+        float getLevel() {
+            return _level;
+        }
+
+        int run() {
+            count = _in->read();
+            if (count < 0) { return -1; }
+
+            if (out.aquire() < 0) { return -1; }
+            float sum = 0.0f;
+            volk_32fc_magnitude_32f(normBuffer, (lv_32fc_t*)_in->data, count);
+            volk_32f_accumulator_s32f(&sum, normBuffer, count);
+            sum /= (float)count;
+
+            if (10.0f * log10f(sum) >= _level) {
+                memcpy(out.data, _in->data, count * sizeof(complex_t));
+            }
+            else {
+                memset(out.data, 0, count * sizeof(complex_t));
+            }
+
+            _in->flush();
+            out.write(count);
+            return count; 
+        }
+
+        stream<complex_t> out;
+
+
+    private:
+        int count;
+        float* normBuffer;
+        float _level = -50.0f;
+        stream<complex_t>* _in;
+
+    };
 }

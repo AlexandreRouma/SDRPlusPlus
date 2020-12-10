@@ -35,7 +35,6 @@ std::thread worker;
 std::mutex fft_mtx;
 fftwf_complex *fft_in, *fft_out;
 fftwf_plan p;
-float* tempData;
 char buf[1024];
 
 int fftSize = 8192 * 8;
@@ -83,6 +82,7 @@ int fftHeight = 300;
 bool showMenu = true;
 bool centerTuning = false;
 dsp::stream<dsp::complex_t> dummyStream;
+bool demoWindow = false;
 
 void windowInit() {
     LoadingScreen::show("Initializing UI");
@@ -234,7 +234,7 @@ void setVFO(double freq) {
         gui::waterfall.setViewOffset((BW / 2.0) - (viewBW / 2.0));
         gui::waterfall.setCenterFrequency(freq);
         gui::waterfall.setViewOffset(0);
-        sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, 0);
+        sigpath::vfoManager.setOffset(gui::waterfall.selectedVFO, 0);
         sigpath::sourceManager.tune(freq);
         return;
     }
@@ -500,6 +500,7 @@ void drawWindow() {
             if (ImGui::Checkbox("Test technique", &dcbias.val)) {
                 //sigpath::signalPath.setDCBiasCorrection(dcbias.val);
             }
+            ImGui::Checkbox("Show demo window", &demoWindow);
             ImGui::Spacing();
         }
 
@@ -574,6 +575,10 @@ void drawWindow() {
 
     if (showCredits) {
         credits::show();
+    }
+
+    if (demoWindow) {
+        ImGui::ShowDemoWindow();
     }
 }
 

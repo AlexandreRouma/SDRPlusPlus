@@ -25,8 +25,8 @@ public:
         _config->aquire();
         if(_config->conf.contains(prefix)) {
             if(!_config->conf[prefix].contains("LSB")) {
-                _config->conf[prefix]["LSB"]["bandwidth"] = bw;
-                _config->conf[prefix]["LSB"]["snapInterval"] = snapInterval;
+                if (!_config->conf[prefix]["LSB"].contains("bandwidth")) { _config->conf[prefix]["LSB"]["bandwidth"] = bw; }
+                if (!_config->conf[prefix]["LSB"].contains("snapInterval")) { _config->conf[prefix]["LSB"]["snapInterval"] = snapInterval; }
             }
             json conf = _config->conf[prefix]["LSB"];
             bw = conf["bandwidth"];
@@ -37,8 +37,10 @@ public:
             _config->conf[prefix]["LSB"]["snapInterval"] = snapInterval;
         }
         _config->release(true);
+
+        squelch.init(_vfo->output, squelchLevel);
         
-        demod.init(_vfo->output, bbSampRate, bandWidth, dsp::SSBDemod::MODE_LSB);
+        demod.init(&squelch.out, bbSampRate, bandWidth, dsp::SSBDemod::MODE_LSB);
 
         agc.init(&demod.out, 1.0f / 125.0f);
 
@@ -52,6 +54,7 @@ public:
     }
 
     void start() {
+        squelch.start();
         demod.start();
         agc.start();
         resamp.start();
@@ -60,6 +63,7 @@ public:
     }
 
     void stop() {
+        squelch.stop();
         demod.stop();
         agc.stop();
         resamp.stop();
@@ -79,7 +83,7 @@ public:
 
     void setVFO(VFOManager::VFO* vfo) {
         _vfo = vfo;
-        demod.setInput(_vfo->output);
+        squelch.setInput(_vfo->output);
     }
 
     VFOManager::VFO* getVFO() {
@@ -131,6 +135,16 @@ public:
             _config->conf[uiPrefix]["LSB"]["snapInterval"] = snapInterval;
             _config->release(true);
         }
+
+        ImGui::Text("Squelch");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::SliderFloat(("##_radio_lsb_deemp_" + uiPrefix).c_str(), &squelchLevel, -100.0f, 0.0f, "%.3fdB")) {
+            squelch.setLevel(squelchLevel);
+            _config->aquire();
+            _config->conf[uiPrefix]["LSB"]["squelchLevel"] = squelchLevel;
+            _config->release(true);
+        }
     } 
 
 private:
@@ -153,8 +167,10 @@ private:
     float audioSampRate = 48000;
     float bw = 3000;
     bool running = false;
+    float squelchLevel = -100.0f;
 
     VFOManager::VFO* _vfo;
+    dsp::Squelch squelch;
     dsp::SSBDemod demod;
     dsp::AGC agc;
     dsp::filter_window::BlackmanWindow win;

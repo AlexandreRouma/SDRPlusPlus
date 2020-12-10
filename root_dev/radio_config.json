@@ -2,11 +2,13 @@
     "Radio": {
         "AM": {
             "bandwidth": 12500.0,
-            "snapInterval": 1000.0
+            "snapInterval": 1000.0,
+            "squelchLevel": -100.0
         },
         "CW": {
             "bandwidth": 200.0,
-            "snapInterval": 10.0
+            "snapInterval": 10.0,
+            "squelchLevel": -100.0
         },
         "DSB": {
             "bandwidth": 6000.0,
@@ -30,7 +32,8 @@
         "WFM": {
             "bandwidth": 200000.0,
             "deempMode": 0,
-            "snapInterval": 100000.0
+            "snapInterval": 100000.0,
+            "squelchLevel": -100.0
         },
         "selectedDemodId": 1
     }

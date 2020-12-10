@@ -25,24 +25,28 @@ public:
         _config->aquire();
         if(_config->conf.contains(prefix)) {
             if(!_config->conf[prefix].contains("WFM")) {
-                _config->conf[prefix]["WFM"]["bandwidth"] = bw;
-                _config->conf[prefix]["WFM"]["snapInterval"] = snapInterval;
-                _config->conf[prefix]["WFM"]["deempMode"] = deempId;
+                if (!_config->conf[prefix]["WFM"].contains("bandwidth")) { _config->conf[prefix]["WFM"]["bandwidth"] = bw; }
+                if (!_config->conf[prefix]["WFM"].contains("snapInterval")) { _config->conf[prefix]["WFM"]["snapInterval"] = snapInterval; }
+                if (!_config->conf[prefix]["WFM"].contains("deempMode")) { _config->conf[prefix]["WFM"]["deempMode"] = deempId; }
+                if (!_config->conf[prefix]["WFM"].contains("squelchLevel")) { _config->conf[prefix]["WFM"]["squelchLevel"] = squelchLevel; }
             }
             json conf = _config->conf[prefix]["WFM"];
             bw = conf["bandwidth"];
             snapInterval = conf["snapInterval"];
             deempId = conf["deempMode"];
+            squelchLevel = conf["squelchLevel"];
         }
         else {
             _config->conf[prefix]["WFM"]["bandwidth"] = bw;
             _config->conf[prefix]["WFM"]["snapInterval"] = snapInterval;
             _config->conf[prefix]["WFM"]["deempMode"] = deempId; 
+            _config->conf[prefix]["WFM"]["squelchLevel"] = squelchLevel;
         }
         _config->release(true);
         
+        squelch.init(_vfo->output, squelchLevel);
         
-        demod.init(_vfo->output, bbSampRate, bandWidth / 2.0f);
+        demod.init(&squelch.out, bbSampRate, bandWidth / 2.0f);
 
         float audioBW = std::min<float>(audioSampleRate / 2.0f, 16000.0f);
         win.init(audioBW, audioBW, bbSampRate);
@@ -56,6 +60,7 @@ public:
     }
 
     void start() {
+        squelch.start();
         demod.start();
         resamp.start();
         deemp.start();
@@ -64,6 +69,7 @@ public:
     }
 
     void stop() {
+        squelch.stop();
         demod.stop();
         resamp.stop();
         deemp.stop();
@@ -83,7 +89,7 @@ public:
 
     void setVFO(VFOManager::VFO* vfo) {
         _vfo = vfo;
-        demod.setInput(_vfo->output);
+        squelch.setInput(_vfo->output);
     }
 
     VFOManager::VFO* getVFO() {
@@ -149,6 +155,16 @@ public:
             _config->conf[uiPrefix]["WFM"]["deempMode"] = deempId;
             _config->release(true);
         }
+
+        ImGui::Text("Squelch");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::SliderFloat(("##_radio_wfm_deemp_" + uiPrefix).c_str(), &squelchLevel, -100.0f, 0.0f, "%.3fdB")) {
+            squelch.setLevel(squelchLevel);
+            _config->aquire();
+            _config->conf[uiPrefix]["WFM"]["squelchLevel"] = squelchLevel;
+            _config->release(true);
+        }
     } 
 
 private:
@@ -181,12 +197,14 @@ private:
     std::string uiPrefix;
     float snapInterval = 100000;
     float audioSampRate = 48000;
+    float squelchLevel = -100.0f;
     float bw = 200000;
     int deempId = 0;
     float tau = 50e-6;
     bool running = false;
 
     VFOManager::VFO* _vfo;
+    dsp::Squelch squelch;
     dsp::FMDemod demod;
     dsp::filter_window::BlackmanWindow win;
     dsp::PolyphaseResampler<float> resamp;

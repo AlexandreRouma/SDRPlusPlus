@@ -28,8 +28,8 @@ public:
         _config->aquire();
         if(_config->conf.contains(prefix)) {
             if(!_config->conf[prefix].contains("CW")) {
-                _config->conf[prefix]["CW"]["bandwidth"] = bw;
-                _config->conf[prefix]["CW"]["snapInterval"] = snapInterval;
+                if (!_config->conf[prefix]["CW"].contains("bandwidth")) { _config->conf[prefix]["CW"]["bandwidth"] = bw; }
+                if (!_config->conf[prefix]["CW"].contains("snapInterval")) { _config->conf[prefix]["CW"]["snapInterval"] = snapInterval; }
             }
             json conf = _config->conf[prefix]["CW"];
             bw = conf["bandwidth"];
@@ -40,10 +40,12 @@ public:
             _config->conf[prefix]["CW"]["snapInterval"] = snapInterval;
         }
         _config->release(true);
+
+        squelch.init(_vfo->output, squelchLevel);
         
         float audioBW = std::min<float>(audioSampRate / 2.0f, bw / 2.0f);
         win.init(audioBW, audioBW, bbSampRate);
-        resamp.init(vfo->output, &win, bbSampRate, audioSampRate);
+        resamp.init(&squelch.out, &win, bbSampRate, audioSampRate);
         win.setSampleRate(bbSampRate * resamp.getInterpolation());
         resamp.updateWindow(&win);
 
@@ -57,6 +59,7 @@ public:
     }
 
     void start() {
+        squelch.start();
         resamp.start();
         xlator.start();
         c2r.start();
@@ -66,6 +69,7 @@ public:
     }
 
     void stop() {
+        squelch.stop();
         resamp.stop();
         xlator.stop();
         c2r.stop();
@@ -86,7 +90,7 @@ public:
 
     void setVFO(VFOManager::VFO* vfo) {
         _vfo = vfo;
-        resamp.setInput(_vfo->output);
+        squelch.setInput(_vfo->output);
     }
 
     VFOManager::VFO* getVFO() {
@@ -141,6 +145,16 @@ public:
             _config->conf[uiPrefix]["CW"]["snapInterval"] = snapInterval;
             _config->release(true);
         }
+
+        ImGui::Text("Squelch");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::SliderFloat(("##_radio_cw_deemp_" + uiPrefix).c_str(), &squelchLevel, -100.0f, 0.0f, "%.3fdB")) {
+            squelch.setLevel(squelchLevel);
+            _config->aquire();
+            _config->conf[uiPrefix]["CW"]["squelchLevel"] = squelchLevel;
+            _config->release(true);
+        }
     } 
 
 private:
@@ -163,8 +177,10 @@ private:
     float audioSampRate = 48000;
     float bw = 200;
     bool running = false;
+    float squelchLevel = -100.0f;
 
     VFOManager::VFO* _vfo;
+    dsp::Squelch squelch;
     dsp::filter_window::BlackmanWindow win;
     dsp::PolyphaseResampler<dsp::complex_t> resamp;
     dsp::FrequencyXlator<dsp::complex_t> xlator;

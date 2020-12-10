@@ -70,10 +70,50 @@ int sdrpp_main() {
 
     spdlog::info("SDR++ v" VERSION_STR);
 
+    // ======== DEFAULT CONFIG ========
+    json defConfig;
+    defConfig["bandColors"]["amateur"] = "#FF0000FF";
+    defConfig["bandColors"]["aviation"] = "#00FF00FF";
+    defConfig["bandColors"]["broadcast"] = "#0000FFFF";
+    defConfig["bandColors"]["marine"] = "#00FFFFFF";
+    defConfig["bandColors"]["military"] = "#FFFF00FF";
+    defConfig["bandPlan"] = "General";
+    defConfig["bandPlanEnabled"] = true;
+    defConfig["centerTuning"] = true;
+    defConfig["fftHeight"] = 300;
+    defConfig["frequency"] = 100000000.0;
+    defConfig["max"] = 0.0;
+    defConfig["maximized"] = false;
+    defConfig["menuOrder"] = {
+        "Source",
+        "Radio",
+        "Recorder",
+        "Sinks",
+        "Audio",
+        "Scripting",
+        "Band Plan",
+        "Display"
+    };
+    defConfig["menuWidth"] = 300;
+    defConfig["min"] = -70.0;
+    defConfig["moduleInstances"]["Audio Sink"] = "audio_sink";
+    defConfig["moduleInstances"]["PlutoSDR Source"] = "plutosdr_source";
+    defConfig["moduleInstances"]["RTL-TCP Source"] = "rtl_tcp_source";
+    defConfig["moduleInstances"]["Radio"] = "radio";
+    defConfig["moduleInstances"]["Recorder"] = "recorder";
+    defConfig["moduleInstances"]["SoapySDR Source"] = "soapy_source";
+    defConfig["modules"] = json::array();
+    defConfig["offset"] = 0.0;
+    defConfig["showWaterfall"] = true;
+    defConfig["source"] = "";
+    defConfig["streams"] = json::object();
+    defConfig["windowSize"]["h"] = 720;
+    defConfig["windowSize"]["w"] = 1280;
+
     // Load config
     spdlog::info("Loading config");
     core::configManager.setPath(ROOT_DIR "/config.json");
-    core::configManager.load(json());
+    core::configManager.load(defConfig);
     core::configManager.enableAutoSave();
 
     // Setup window

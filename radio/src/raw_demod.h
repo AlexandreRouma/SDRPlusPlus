@@ -25,7 +25,7 @@ public:
         _config->aquire();
         if(_config->conf.contains(prefix)) {
             if(!_config->conf[prefix].contains("RAW")) {
-                _config->conf[prefix]["RAW"]["snapInterval"] = snapInterval;
+               if (!_config->conf[prefix]["RAW"].contains("snapInterval")) { _config->conf[prefix]["RAW"]["snapInterval"] = snapInterval; }
             }
             json conf = _config->conf[prefix]["RAW"];
             snapInterval = conf["snapInterval"];
@@ -34,16 +34,20 @@ public:
             _config->conf[prefix]["RAW"]["snapInterval"] = snapInterval;
         }
         _config->release(true);
+
+        squelch.init(_vfo->output, squelchLevel);
         
-        c2s.init(_vfo->output);
+        c2s.init(&squelch.out);
     }
 
     void start() {
+        squelch.start();
         c2s.start();
         running = true;
     }
 
     void stop() {
+        squelch.stop();
         c2s.stop();
         running = false;
     }
@@ -60,7 +64,7 @@ public:
 
     void setVFO(VFOManager::VFO* vfo) {
         _vfo = vfo;
-        c2s.setInput(_vfo->output);
+        squelch.setInput(_vfo->output);
     }
 
     VFOManager::VFO* getVFO() {
@@ -95,6 +99,16 @@ public:
             _config->release(true);
         }
 
+        ImGui::Text("Squelch");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::SliderFloat(("##_radio_raw_deemp_" + uiPrefix).c_str(), &squelchLevel, -100.0f, 0.0f, "%.3fdB")) {
+            squelch.setLevel(squelchLevel);
+            _config->aquire();
+            _config->conf[uiPrefix]["RAW"]["squelchLevel"] = squelchLevel;
+            _config->release(true);
+        }
+
         // TODO: Allow selection of the bandwidth
     } 
 
@@ -109,8 +123,10 @@ private:
     float audioSampRate = 48000;
     float bw = 12500;
     bool running = false;
+    float squelchLevel = -100.0f;
 
     VFOManager::VFO* _vfo;
+    dsp::Squelch squelch;
     dsp::ComplexToStereo c2s;
 
     ConfigManager* _config;

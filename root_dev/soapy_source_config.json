@@ -1,17 +1,18 @@
 {
-    "device": "HackRF One #0 901868dc282c8f8b",
+    "device": "AirSpy HF+ [c852435de0224af7]",
     "devices": {
         "": {
+            "agc": false,
             "gains": {
                 "PGA": 0.0
             },
-            "sampleRate": 8000000.0
+            "sampleRate": 4000000.0
         },
         "AirSpy HF+ [c852435de0224af7]": {
             "agc": false,
             "gains": {
                 "LNA": 6.0,
-                "RF": 0.0
+                "RF": -48.0
             },
             "sampleRate": 768000.0
         },

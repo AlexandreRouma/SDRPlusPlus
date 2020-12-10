@@ -143,6 +143,8 @@ private:
 
         hasAgc = dev->hasGainMode(SOAPY_SDR_RX, channelId);
 
+        hasIQBalance = dev->hasIQBalanceMode(SOAPY_SDR_RX, channelId);
+
         SoapySDR::Device::unmake(dev);
 
         config.aquire();
@@ -162,6 +164,12 @@ private:
             }
             else {
                 agc = false;
+            }
+            if (hasIQBalance && config.conf["devices"][name].contains("iqBalance")) {
+                iqBalance = config.conf["devices"][name]["iqBalance"];
+            }
+            else {
+                iqBalance = false;
             }
             if (config.conf["devices"][name].contains("sampleRate")) {
                 selectSampleRate(config.conf["devices"][name]["sampleRate"]);
@@ -196,6 +204,9 @@ private:
         if (hasAgc) {
             conf["agc"] = agc;
         }
+        if (hasIQBalance) {
+            conf["iqBalance"] = iqBalance;
+        }
         config.aquire();
         config.conf["devices"][devArgs["label"]] = conf;
         config.release(true);
@@ -229,6 +240,10 @@ private:
 
         if (_this->hasAgc) {
             _this->dev->setGainMode(SOAPY_SDR_RX, _this->channelId,  _this->agc);
+        }
+
+        if (_this->hasIQBalance) {
+            _this->dev->setIQBalanceMode(SOAPY_SDR_RX, _this->channelId, _this->iqBalance);
         }
 
         _this->dev->setFrequency(SOAPY_SDR_RX, _this->channelId, _this->freq);
@@ -322,6 +337,13 @@ private:
             }
         }
 
+        if (_this->hasIQBalance) {
+            if (ImGui::Checkbox((std::string("AGC##_iq_bal_sel_") + _this->name).c_str(), &_this->iqBalance)) {
+                if (_this->running) { _this->dev->setIQBalanceMode(SOAPY_SDR_RX, _this->channelId, _this->iqBalance); }
+                _this->saveCurrent();
+            }
+        }
+
         int i = 0;
         for (auto gain : _this->gainList) {
             ImGui::Text("%s gain", gain.c_str());
@@ -371,6 +393,8 @@ private:
     bool running = false;
     bool hasAgc = false;
     bool agc = false;
+    bool hasIQBalance = false;
+    bool iqBalance = false;
     std::vector<double> sampleRates;
     int srId = -1;
     float* uiGains;
