@@ -3,7 +3,7 @@
     "bandPlanEnabled": true,
     "centerTuning": false,
     "fftHeight": 300,
-    "frequency": 103600000,
+    "frequency": 99000000,
     "max": 0.0,
     "maximized": false,
     "menuOrder": [
@@ -17,7 +17,7 @@
         "Display"
     ],
     "menuWidth": 300,
-    "min": -66.17647552490234,
+    "min": -55.147056579589844,
     "moduleInstances": {
         "Audio Sink": "audio_sink",
         "PlutoSDR Source": "plutosdr_source",
@@ -36,12 +36,12 @@
     ],
     "offset": 0.0,
     "showWaterfall": true,
-    "source": "PlutoSDR",
+    "source": "SoapySDR",
     "streams": {
         "Radio": {
             "muted": false,
             "sink": "Audio",
-            "volume": 0.6785714030265808
+            "volume": 0.545918345451355
         },
         "Radio 1": {
             "muted": false,

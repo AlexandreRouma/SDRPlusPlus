@@ -53,7 +53,8 @@ namespace ImGui {
         void init();
 
         void draw();
-        void pushFFT(std::vector<float> data, int n);
+        float* getFFTBuffer();
+        void pushFFT();
 
         void updatePallette(float colors[][3], int colorCount);
 
@@ -96,6 +97,8 @@ namespace ImGui {
 
         void setFFTHeight(int height);
         int getFFTHeight();
+
+        void setRawFFTSize(int size, bool lock = true);
 
         bool centerFreqMoved = false;
         bool vfoFreqChanged = false;
@@ -155,9 +158,9 @@ namespace ImGui {
         int maxVSteps;
         int maxHSteps;
 
-        int dataWidth;          // Width of the FFT and waterfall
-        int fftHeight;          // Height of the fft graph
-        int waterfallHeight;    // Height of the waterfall
+        int dataWidth;              // Width of the FFT and waterfall
+        int fftHeight;              // Height of the fft graph
+        int waterfallHeight = 0;    // Height of the waterfall
 
         double viewBandwidth;
         double viewOffset;
@@ -180,8 +183,12 @@ namespace ImGui {
         float waterfallMin;
         float waterfallMax;
 
-        std::vector<std::vector<float>> rawFFTs;
+        //std::vector<std::vector<float>> rawFFTs;
+        int rawFFTSize;
+        float* rawFFTs = NULL;
         float* latestFFT;
+        int currentFFTLine = 0;
+        int fftLines = 0;
 
         uint32_t* waterfallFb;
 

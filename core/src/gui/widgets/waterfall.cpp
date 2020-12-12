@@ -23,7 +23,7 @@ float COLOR_MAP[][3] = {
     {0x4A, 0x00, 0x00}
 };
 
-void doZoom(int offset, int width, int outWidth, std::vector<float> data, float* out) {
+void doZoom(int offset, int width, int outWidth, float* data, float* out) {
     // NOTE: REMOVE THAT SHIT, IT'S JUST A HACKY FIX
     if (offset < 0) {
         offset = 0;
@@ -34,7 +34,7 @@ void doZoom(int offset, int width, int outWidth, std::vector<float> data, float*
 
     float factor = (float)width / (float)outWidth;
     for (int i = 0; i < outWidth; i++) {
-        out[i] = data[offset + ((float)i * factor)];
+        out[i] = data[(int)(offset + ((float)i * factor))];
     }
 }
 
@@ -281,7 +281,11 @@ namespace ImGui {
 
             lowerFreq = (centerFreq + viewOffset) - (viewBandwidth / 2.0);
             upperFreq = (centerFreq + viewOffset) + (viewBandwidth / 2.0);
-            updateWaterfallFb();
+
+            if (viewBandwidth != wholeBandwidth) {
+                updateAllVFOs();
+                updateWaterfallFb();
+            }
         }
         else {
             lastDrag = 0;
@@ -289,25 +293,26 @@ namespace ImGui {
     }
 
     void WaterFall::updateWaterfallFb() {
-        if (!waterfallVisible) {
+        if (!waterfallVisible || rawFFTs == NULL) {
             return;
         }
         double offsetRatio = viewOffset / (wholeBandwidth / 2.0);
         int drawDataSize;
         int drawDataStart;
-        int count = std::min<int>(waterfallHeight, rawFFTs.size());
+        // TODO: Maybe put on the stack for faster alloc?
         float* tempData = new float[dataWidth];
         float pixel;
         float dataRange = waterfallMax - waterfallMin;
-        int size;
-        for (int i = 0; i < count; i++) {
-            size = rawFFTs[i].size();
-            drawDataSize = (viewBandwidth / wholeBandwidth) * size;
-            drawDataStart = (((double)size / 2.0) * (offsetRatio + 1)) - (drawDataSize / 2);
-            doZoom(drawDataStart, drawDataSize, dataWidth, rawFFTs[i], tempData);
-            for (int j = 0; j < dataWidth; j++) {
-                pixel = (std::clamp<float>(tempData[j], waterfallMin, waterfallMax) - waterfallMin) / dataRange;
-                waterfallFb[(i * dataWidth) + j] = waterfallPallet[(int)(pixel * (WATERFALL_RESOLUTION - 1))];
+        int count = std::min<float>(waterfallHeight, fftLines);
+        if (rawFFTs != NULL) {
+            for (int i = 0; i < count; i++) {
+                drawDataSize = (viewBandwidth / wholeBandwidth) * rawFFTSize;
+                drawDataStart = (((double)rawFFTSize / 2.0) * (offsetRatio + 1)) - (drawDataSize / 2);
+                doZoom(drawDataStart, drawDataSize, dataWidth, &rawFFTs[((i + currentFFTLine) % waterfallHeight) * rawFFTSize], tempData);
+                for (int j = 0; j < dataWidth; j++) {
+                    pixel = (std::clamp<float>(tempData[j], waterfallMin, waterfallMax) - waterfallMin) / dataRange;
+                    waterfallFb[(i * dataWidth) + j] = waterfallPallet[(int)(pixel * (WATERFALL_RESOLUTION - 1))];
+                }
             }
         }
         delete[] tempData;
@@ -391,6 +396,8 @@ namespace ImGui {
             return;
         }
 
+        int lastWaterfallHeight = waterfallHeight;
+
         if (waterfallVisible) {
             FFTAreaHeight = std::min<int>(FFTAreaHeight, widgetSize.y - 50);
             fftHeight = FFTAreaHeight - 50;
@@ -402,12 +409,28 @@ namespace ImGui {
         dataWidth = widgetSize.x - 60.0;
         delete[] latestFFT;
 
-        if (waterfallVisible) {
-            delete[] waterfallFb;
+        // Raw FFT resize
+        fftLines = std::min<int>(fftLines, waterfallHeight);
+        if (rawFFTs != NULL) {
+            if (currentFFTLine != 0) {
+                float* tempWF = new float[currentFFTLine * rawFFTSize];
+                int moveCount = lastWaterfallHeight - currentFFTLine;
+                memcpy(tempWF, rawFFTs, currentFFTLine * rawFFTSize * sizeof(float));
+                memmove(rawFFTs, &rawFFTs[currentFFTLine * rawFFTSize], moveCount * rawFFTSize * sizeof(float));
+                memcpy(&rawFFTs[moveCount * rawFFTSize], tempWF, currentFFTLine * rawFFTSize * sizeof(float));
+                delete[] tempWF;
+            }
+            currentFFTLine = 0;
+            rawFFTs = (float*)realloc(rawFFTs, waterfallHeight * rawFFTSize * sizeof(float));
         }
+        else {
+            rawFFTs = (float*)malloc(waterfallHeight * rawFFTSize * sizeof(float));
+        }
+        // ==============
 
         latestFFT = new float[dataWidth];
         if (waterfallVisible) {
+            delete[] waterfallFb;
             waterfallFb = new uint32_t[dataWidth * waterfallHeight];
             memset(waterfallFb, 0, dataWidth * waterfallHeight * sizeof(uint32_t));
         }
@@ -504,17 +527,23 @@ namespace ImGui {
         buf_mtx.unlock();
     }
 
-    void WaterFall::pushFFT(std::vector<float> data, int n) {
+    float* WaterFall::getFFTBuffer() {
+        if (rawFFTs == NULL) { return NULL; }
         buf_mtx.lock();
+        currentFFTLine--;
+        fftLines++;
+        currentFFTLine = ((currentFFTLine + waterfallHeight) % waterfallHeight);
+        fftLines = std::min<float>(fftLines, waterfallHeight);
+        return &rawFFTs[currentFFTLine * rawFFTSize];
+    }
+
+    void WaterFall::pushFFT() {
+        if (rawFFTs == NULL) { return; }
         double offsetRatio = viewOffset / (wholeBandwidth / 2.0);
-        int drawDataSize = (viewBandwidth / wholeBandwidth) * data.size();
-        int drawDataStart = (((double)data.size() / 2.0) * (offsetRatio + 1)) - (drawDataSize / 2);
+        int drawDataSize = (viewBandwidth / wholeBandwidth) * rawFFTSize;
+        int drawDataStart = (((double)rawFFTSize / 2.0) * (offsetRatio + 1)) - (drawDataSize / 2);
         
-        doZoom(drawDataStart, drawDataSize, dataWidth, data, latestFFT);
-        rawFFTs.insert(rawFFTs.begin(), data);
-        if (rawFFTs.size() > waterfallHeight + 300) {
-            rawFFTs.resize(waterfallHeight);
-        }
+        doZoom(drawDataStart, drawDataSize, dataWidth, &rawFFTs[currentFFTLine * rawFFTSize], latestFFT);
 
         if (waterfallVisible) {
             memmove(&waterfallFb[dataWidth], waterfallFb, dataWidth * (waterfallHeight - 1) * sizeof(uint32_t));
@@ -681,6 +710,19 @@ namespace ImGui {
         for (auto const& [name, vfo] : vfos) {
             vfo->updateDrawingVars(viewBandwidth, dataWidth, viewOffset, widgetPos, fftHeight);
         }
+    }
+
+    void WaterFall::setRawFFTSize(int size, bool lock) {
+        if (lock) { buf_mtx.lock(); }
+        rawFFTSize = size;
+        if (rawFFTs != NULL) {
+            rawFFTs = (float*)realloc(rawFFTs, rawFFTSize * waterfallHeight * sizeof(float));
+        }
+        else {
+            rawFFTs = (float*)malloc(rawFFTSize * waterfallHeight * sizeof(float));
+        }
+        memset(rawFFTs, 0, rawFFTSize * waterfallHeight * sizeof(float));
+        if (lock) { buf_mtx.unlock(); }
     }
 
     void WaterfallVFO::setOffset(double offset) {

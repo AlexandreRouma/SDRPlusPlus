@@ -79,7 +79,7 @@ int sdrpp_main() {
     defConfig["bandColors"]["military"] = "#FFFF00FF";
     defConfig["bandPlan"] = "General";
     defConfig["bandPlanEnabled"] = true;
-    defConfig["centerTuning"] = true;
+    defConfig["centerTuning"] = false;
     defConfig["fftHeight"] = 300;
     defConfig["frequency"] = 100000000.0;
     defConfig["max"] = 0.0;

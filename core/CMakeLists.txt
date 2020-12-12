@@ -3,7 +3,7 @@ project(sdrpp_core)
 
 # Set compiler options
 if (MSVC)
-    set(CMAKE_CXX_FLAGS "-O2 /std:c++17")
+    set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 else()
     set(CMAKE_CXX_FLAGS "-g -O3 -std=c++17 -fpermissive")

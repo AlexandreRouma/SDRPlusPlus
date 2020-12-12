@@ -1,5 +1,5 @@
 {
-    "device": "AirSpy HF+ [c852435de0224af7]",
+    "device": "HackRF One #0 901868dc282c8f8b",
     "devices": {
         "": {
             "agc": false,
@@ -32,10 +32,10 @@
         "HackRF One #0 901868dc282c8f8b": {
             "gains": {
                 "AMP": 0.0,
-                "LNA": 23.415000915527344,
+                "LNA": 24.503000259399414,
                 "VGA": 16.332000732421875
             },
-            "sampleRate": 8000000.0
+            "sampleRate": 2000000.0
         },
         "Microphone (Realtek High Definition Audio)": {
             "sampleRate": 96000.0

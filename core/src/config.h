@@ -8,10 +8,7 @@ using nlohmann::json;
 
 #define DEV_BUILD
 
-
 #define SDRPP_RESOURCE_DIR      "/usr/local/"
-
-
 
 #ifndef ROOT_DIR
 #ifdef DEV_BUILD

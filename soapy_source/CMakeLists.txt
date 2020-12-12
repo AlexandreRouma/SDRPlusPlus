@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 project(soapy_source)
 
 if (MSVC)
-    set(CMAKE_CXX_FLAGS "-O2 /std:c++17")
+    set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")
 else()
     set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -fpermissive")
 endif (MSVC)

@@ -35,12 +35,12 @@ std::thread worker;
 std::mutex fft_mtx;
 fftwf_complex *fft_in, *fft_out;
 fftwf_plan p;
+float* tempFFT;
+float* FFTdata;
 char buf[1024];
 
 int fftSize = 8192 * 8;
 
-std::vector<float> _data;
-std::vector<float> fftTaps;
 void fftHandler(dsp::complex_t* samples, int count, void* ctx) {
     if (count < fftSize) {
         return;
@@ -49,19 +49,24 @@ void fftHandler(dsp::complex_t* samples, int count, void* ctx) {
     fftwf_execute(p);
     int half = fftSize / 2;
 
-    for (int i = 0; i < half; i++) {
-        _data.push_back(log10(std::abs(std::complex<float>(fft_out[half + i][0], fft_out[half + i][1])) / (float)fftSize) * 10.0);
-    }
-    for (int i = 0; i < half; i++) {
-        _data.push_back(log10(std::abs(std::complex<float>(fft_out[i][0], fft_out[i][1])) / (float)fftSize) * 10.0);
-    }
+    volk_32fc_s32f_power_spectrum_32f(tempFFT, (lv_32fc_t*)fft_out, fftSize, fftSize);
+    volk_32f_s32f_multiply_32f(FFTdata, tempFFT, 0.5f, fftSize);
 
-    for (int i = 5; i < fftSize; i++) {
-        _data[i] = (_data[i - 4]  + _data[i - 3] + _data[i - 2] + _data[i - 1] + _data[i]) / 5.0;
-    }
+    memcpy(tempFFT, &FFTdata[half], half * sizeof(float));
+    memmove(&FFTdata[half], FFTdata, half * sizeof(float));
+    memcpy(FFTdata, tempFFT, half * sizeof(float));
 
-    gui::waterfall.pushFFT(_data, fftSize);
-    _data.clear();
+    float* fftBuf = gui::waterfall.getFFTBuffer();
+    if (fftBuf == NULL) {
+        gui::waterfall.pushFFT();
+        return;
+    }
+    float last = FFTdata[0];
+    for (int i = 0; i < fftSize; i++) {
+        last = (FFTdata[i] * 0.1f) + (last * 0.9f);
+        fftBuf[i] = last;
+    }
+    gui::waterfall.pushFFT();
 }
 
 watcher<uint64_t> freq((uint64_t)90500000);
@@ -87,6 +92,10 @@ bool demoWindow = false;
 void windowInit() {
     LoadingScreen::show("Initializing UI");
     gui::waterfall.init();
+    gui::waterfall.setRawFFTSize(fftSize);
+
+    tempFFT = new float[fftSize];
+    FFTdata = new float[fftSize];
 
     credits::init();
 
@@ -167,7 +176,6 @@ void windowInit() {
 
     // TODO for 0.2.6
     // Add a module add/remove/change order menu
-    // Change the way fft samples are stored to make it less CPU intensive
 
     // Update UI settings
     LoadingScreen::show("Loading configuration");
