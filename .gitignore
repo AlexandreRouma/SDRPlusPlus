@@ -1,3 +1,10 @@
 build/
 .vscode/
 *.old
+*.dll
+*.exe
+*.zip
+*.wav
+.DS_Store
+sdrpp_v0.2.5_beta_x64
+sdrpp_v0.2.5_beta_x64_new_wf

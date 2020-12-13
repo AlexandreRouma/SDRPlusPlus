@@ -1,0 +1,63 @@
+{
+    "bandPlan": "General",
+    "bandPlanEnabled": true,
+    "centerTuning": false,
+    "fftHeight": 300,
+    "frequency": 99000000,
+    "max": 0.0,
+    "maximized": true,
+    "menuOrder": [
+        "Source",
+        "Radio 1",
+        "Radio 2",
+        "Recorder",
+        "Sinks",
+        "Audio",
+        "Scripting",
+        "Band Plan",
+        "Display"
+    ],
+    "menuWidth": 300,
+    "min": -55.147056579589844,
+    "moduleInstances": {
+        "Audio Sink": "audio_sink",
+        "PlutoSDR Source": "plutosdr_source",
+        "RTL-TCP Source": "rtl_tcp_source",
+        "Radio 1": "radio",
+        "Radio 2": "radio",
+        "Recorder": "recorder",
+        "SoapySDR Source": "soapy_source"
+    },
+    "modules": [
+        "./radio/Release/radio.dll",
+        "./recorder/Release/recorder.dll",
+        "./soapy_source/Release/soapy_source.dll",
+        "./rtl_tcp_source/Release/rtl_tcp_source.dll",
+        "./audio_sink/Release/audio_sink.dll",
+        "./plutosdr_source/Release/plutosdr_source.dll"
+    ],
+    "offset": 0.0,
+    "showWaterfall": true,
+    "source": "SoapySDR",
+    "streams": {
+        "Radio": {
+            "muted": false,
+            "sink": "Audio",
+            "volume": 0.545918345451355
+        },
+        "Radio 1": {
+            "muted": false,
+            "sink": "Audio",
+            "volume": 0.6377550959587097
+        },
+        "Radio 2": {
+            "muted": false,
+            "sink": "Audio",
+            "volume": 0.4292035400867462
+        }
+    },
+    "windowSize": {
+        "h": 720,
+        "w": 1280
+    }
+}

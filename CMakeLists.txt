@@ -1,59 +1,46 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.13)
 project(sdrpp)
 
+# Core of SDR++
+add_subdirectory("core")
+
+# Cross platform modules
+add_subdirectory("radio")
+add_subdirectory("recorder") 
+add_subdirectory("soapy_source")
+#add_subdirectory("file_source")
+add_subdirectory("rtl_tcp_source")
+add_subdirectory("audio_sink")
+#add_subdirectory("rx888_source")
+add_subdirectory("plutosdr_source")
+#add_subdirectory("demo")
+
 if (MSVC)
-    set(CMAKE_CXX_FLAGS "-O2 /std:c++17")
-    link_directories(sdrpp "C:/Program Files/PothosSDR/lib/")
-    include_directories(sdrpp "C:/Program Files/PothosSDR/include/volk/")
-    include_directories(sdrpp "C:/Program Files/PothosSDR/include/")
+    set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")
 else()
-    set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -fsanitize=address -g")
-    include_directories(sdrpp "/usr/include/volk")
-    link_libraries(pthread)
-    link_libraries(GL)
-    link_libraries(GLEW)
-    link_libraries(glfw)
-    link_libraries(fftw3)
-    link_libraries(fftw3f)
-    link_libraries(portaudio)
-    link_libraries(X11)
-    link_libraries(Xxf86vm)
+    set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
 endif (MSVC)
 
-link_libraries(volk)
-link_libraries(SoapySDR)
+add_executable(sdrpp "src/main.cpp" "win32/resources.rc")
+target_link_libraries(sdrpp PRIVATE sdrpp_core)
 
-# Main code
-include_directories(sdrpp "src/")
-include_directories(sdrpp "src/imgui")
-file(GLOB SRC "src/*.cpp")
-file(GLOB IMGUI "src/imgui/*.cpp")
-add_executable(sdrpp ${SRC} ${IMGUI})
-
+# Copy dynamic libs over
 if (MSVC)
-    # Glew
-    find_package(GLEW REQUIRED)
-    target_link_libraries(sdrpp PRIVATE GLEW::GLEW)
-
-    # GLFW3
-    find_package(glfw3 CONFIG REQUIRED)
-    target_link_libraries(sdrpp PRIVATE glfw)
-
-    # FFTW3
-    find_package(FFTW3 CONFIG REQUIRED)
-    target_link_libraries(sdrpp PRIVATE FFTW3::fftw3)
-    find_package(FFTW3f CONFIG REQUIRED)
-    target_link_libraries(sdrpp PRIVATE FFTW3::fftw3f)
-
-    # PortAudio
-    find_package(portaudio CONFIG REQUIRED)
-    target_link_libraries(sdrpp PRIVATE portaudio portaudio_static)
+    add_custom_target(do_always ALL xcopy /s \"$<TARGET_FILE_DIR:sdrpp_core>\\*.dll\" \"$<TARGET_FILE_DIR:sdrpp>\" /Y)
+    add_custom_target(do_always_volk ALL xcopy /s \"C:/Program Files/PothosSDR/bin\\volk.dll\" \"$<TARGET_FILE_DIR:sdrpp>\" /Y)
 endif (MSVC)
 
-# # Copy resource directories
-# if (!MSVC)
-#     add_custom_command(TARGET sdrpp POST_BUILD COMMAND cmake -E copy_directory ${CMAKE_SOURCE_DIR}/res ${CMAKE_BINARY_DIR}/res)
-#     add_custom_command(TARGET sdrpp POST_BUILD COMMAND cmake -E copy_directory ${CMAKE_SOURCE_DIR}/bandplans ${CMAKE_BINARY_DIR}/bandplans)
-# endif (MSVC)
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD")
+    add_custom_target(do_always ALL cp \"$<TARGET_FILE_DIR:sdrpp_core>/libsdrpp_core.so\" \"$<TARGET_FILE_DIR:sdrpp>\")
+endif ()
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    add_custom_target(do_always ALL cp \"$<TARGET_FILE_DIR:sdrpp_core>/libsdrpp_core.so\" \"$<TARGET_FILE_DIR:sdrpp>\")
+endif ()
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    add_custom_target(do_always ALL cp \"$<TARGET_FILE_DIR:sdrpp_core>/libsdrpp_core.dylib\" \"$<TARGET_FILE_DIR:sdrpp>\")
+endif ()
 
 # cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/Users/Alex/vcpkg/scripts/buildsystems/vcpkg.cmake" -G "Visual Studio 15 2017 Win64"

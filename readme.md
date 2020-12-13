@@ -3,6 +3,7 @@
 SDR++ is a cross-platform and open source SDR software with the aim of being bloat free and simple to use.
 
 ## Current Features
+
 * Uses SoapySDR for wide hardware support
 * Hardware accelerated graphics (OpenGL + ImGui)
 * SIMD accelerated DSP (parts of the DSP are still missing)
@@ -10,12 +11,14 @@ SDR++ is a cross-platform and open source SDR software with the aim of being blo
 * Full waterfall update when possible. Makes browsing signals easier and more pleasant
 
 ## Comming soon
+
 * Multi-VFO
 * Plugins
 * Digital demodulators and decoders
 * Quick replay (replay last n seconds, cool if you missed a short signal)
 
 ## Small things to add
+
 * Switchable bandwidth for demodulators
 * Switchable audio output device and sample rate
 * Recording
@@ -29,6 +32,7 @@ SDR++ is a cross-platform and open source SDR software with the aim of being blo
 * Input filter bandwidth option
 
 ## Known issues (please check before reporting)
+
 * Random crashes (yikes)
 * Gains aren't stepped
 * The default gains might contain a bogus value before being adjusted
@@ -38,6 +42,7 @@ SDR++ is a cross-platform and open source SDR software with the aim of being blo
 
 # Building on Windows
 ## Requirements
+
 * cmake
 * vcpkg (for the packages listed below)
 * fftw3
@@ -59,25 +64,99 @@ The last step of the build process is copying the `bandplans` and `res` director
 If you followed the steps above, it should be `build/Release`.
 
 # Building on Linux
-comming soon :)
+## install requirements
+On Debian/Ubtuntu system:
+apt install libglew-dev libglfw3-dev libfftw3-dev libvolk1-dev portaudio19-dev libsoapysdr-dev gcc
+
+## The build
+```
+mkdir build
+cd build
+cmake ..
+make
+```
+
+## Modify root_dev/modules_list.json
+If the content is different than the following, change it.
+```
+{
+    "Radio": "./radio/radio.so",
+    "Recorder": "./recorder/recorder.so",
+    "Soapy": "./soapy/soapy.so",
+    "RTLTCPSource": "./rtl_tcp_source/rtl_tcp_source.so"
+}
+```
 
 # Building on OSX
-comming soon as well :)
+## Install requirements
+```
+brew tap pothosware/homebrew-pothos
+brew install volk glew glfw fftw portaudio
+brew install soapysdr
+```
+You can install additional soapy device support based on your hardware.
+
+## The build
+```
+mkdir build
+cd build
+cmake ..
+cmake --build . --config Release
+```
+
+# Building on OpenBSD
+## Install requirements
+```
+pkg_add fftw3-float glew glfw portaudio-svn
+
+# install volk and SoapySDR manually
+```
+
+## The build
+```
+mkdir build
+cd build
+cmake --clang ..
+make
+cd ..
+./prepare_root.sh
+cp -Rf root root_dev # if are in dev
+mv root/modules ./
+```
+
+## Run SDRPP with `build/sdrpp`.
+Modify root_dev/modules_list.json
+If the content is different than the following, change it.
+```
+{
+    "Radio": "./radio/radio.dylib",
+    "Recorder": "./recorder/recorder.dylib",
+    "Soapy": "./soapy/soapy.dylib",
+    "RTLTCPSource": "./rtl_tcp_source/rtl_tcp_source.dylib"
+}
+```
 
 # Contributing
+
 Feel free to issue pull request and report bugs via the github issues.
 I will soon publish a contributing.md listing the code style to use.
 
 # Credits
-## Libaries used
-* [SoapySDR (PothosWare)](https://github.com/pothosware/SoapySDR)
-* [ImGui (ocornut)](https://github.com/ocornut/imgui)
-* [spdlog (gabime)](https://github.com/gabime/spdlog)
-* [json (nlohmann)](https://github.com/nlohmann/json)
-* [portaudio (PortAudio community)](http://www.portaudio.com/)
+
+## Patrons
+* [SignalsEverywhere](https://signalseverywhere.com/)
+* [Lee Donaghy](https://github.com/github)
 
 ## Contributors
 * [aosync](https://github.com/aosync)
 * [Benjamin Kyd](https://github.com/benkyd)
 * [Tobias Mädel](https://github.com/Manawyrm)
 * [Raov](https://twitter.com/raov_birbtog)
+* [Howard0su](https://github.com/howard0su)
+
+## Libaries used
+* [SoapySDR (PothosWare)](https://github.com/pothosware/SoapySDR)
+* [Dear ImGui (ocornut)](https://github.com/ocornut/imgui)
+* [spdlog (gabime)](https://github.com/gabime/spdlog)
+* [json (nlohmann)](https://github.com/nlohmann/json)
+* [portaudio (PortAudio community)](http://www.portaudio.com/)
