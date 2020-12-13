@@ -103,9 +103,9 @@
         },
         "WFM": {
             "bandwidth": 200000.0,
-            "deempMode": 0,
+            "deempMode": 1,
             "snapInterval": 100000.0,
-            "squelchLevel": -100.0
+            "squelchLevel": -70.2020034790039
         },
         "selectedDemodId": 1
     }

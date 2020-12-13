@@ -4,7 +4,7 @@
     "centerTuning": false,
     "fftHeight": 300,
     "frequency": 99000000,
-    "max": 0.0,
+    "max": -8.823532104492188,
     "maximized": true,
     "menuOrder": [
         "Source",
