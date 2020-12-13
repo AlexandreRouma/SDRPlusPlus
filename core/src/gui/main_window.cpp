@@ -31,6 +31,27 @@
 #include <signal_path/source.h>
 #include <gui/dialogs/loading_screen.h>
 
+// const int FFTSizes[] = {
+//     65536,
+//     32768,
+//     16384,
+//     8192,
+//     4096,
+//     2048
+// };
+
+// const char* FFTSizesStr[] = {
+//     "65536",
+//     "32768",
+//     "16384",
+//     "8192",
+//     "4096",
+//     "2048"
+// };
+
+// int fftSizeId = 0;
+int fftSize = 8192 * 8;
+
 std::thread worker;
 std::mutex fft_mtx;
 fftwf_complex *fft_in, *fft_out;
@@ -39,18 +60,15 @@ float* tempFFT;
 float* FFTdata;
 char buf[1024];
 
-int fftSize = 8192 * 8;
+
 
 void fftHandler(dsp::complex_t* samples, int count, void* ctx) {
-    if (count < fftSize) {
-        return;
-    }
     memcpy(fft_in, samples, count * sizeof(dsp::complex_t));
     fftwf_execute(p);
-    int half = fftSize / 2;
+    int half = count / 2;
 
-    volk_32fc_s32f_power_spectrum_32f(tempFFT, (lv_32fc_t*)fft_out, fftSize, fftSize);
-    volk_32f_s32f_multiply_32f(FFTdata, tempFFT, 0.5f, fftSize);
+    volk_32fc_s32f_power_spectrum_32f(tempFFT, (lv_32fc_t*)fft_out, count, count);
+    volk_32f_s32f_multiply_32f(FFTdata, tempFFT, 0.5f, count);
 
     memcpy(tempFFT, &FFTdata[half], half * sizeof(float));
     memmove(&FFTdata[half], FFTdata, half * sizeof(float));
@@ -62,7 +80,7 @@ void fftHandler(dsp::complex_t* samples, int count, void* ctx) {
         return;
     }
     float last = FFTdata[0];
-    for (int i = 0; i < fftSize; i++) {
+    for (int i = 0; i < count; i++) {
         last = (FFTdata[i] * 0.1f) + (last * 0.9f);
         fftBuf[i] = last;
     }
@@ -169,7 +187,6 @@ void windowInit() {
 
     // TODO for 0.2.5
     // Add "select file" option for the file source
-    // Add default main config to avoid having to ship one
     // Have a good directory system on both linux and windows
     // Switch to double buffering (should fix occassional underruns)
     // Fix gain not updated on startup, soapysdr

@@ -11,13 +11,15 @@ public:
     void start();
     void stop();
     void setSampleRate(double sampleRate);
-    void setFFTRate(double rate);
     double getSampleRate();
     dsp::VFO* addVFO(std::string name, double outSampleRate, double bandwidth, double offset);
     void removeVFO(std::string name);
     void setInput(dsp::stream<dsp::complex_t>* input);
     void bindIQStream(dsp::stream<dsp::complex_t>* stream);
     void unbindIQStream(dsp::stream<dsp::complex_t>* stream);
+    void setFFTSize(int size);
+    void startFFT();
+    void stopFFT();
 
 private:
     struct VFO_t {
