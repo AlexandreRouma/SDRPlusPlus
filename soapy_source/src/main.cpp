@@ -138,7 +138,6 @@ private:
         txtSrList = "";
         for (double sr : sampleRates) {
             if (sr > 1.0e3 && sr <= 1.0e6) {
-
                 txtSrList += std::to_string((sr / 1.0e3)) + " kHz";
             } else if (sr > 1.0e6) {
                 txtSrList += std::to_string((sr / 1.0e6)) + " MHz";
@@ -296,8 +295,9 @@ private:
             _this->selectSampleRate(_this->sampleRates[_this->srId]);
             _this->saveCurrent();
         }
-        ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::Button(CONCAT("Refresh##_dev_select_", _this->name))) {
+
+        if (ImGui::Button(CONCAT("Refresh##_dev_select_", _this->name),
+                          ImVec2(menuWidth - ImGui::GetCursorPosX(), 0.0))) {
             _this->refresh();
             _this->selectDevice(config.conf["device"]);
         }
