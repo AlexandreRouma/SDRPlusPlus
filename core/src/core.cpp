@@ -34,7 +34,10 @@ namespace core {
     void setInputSampleRate(double samplerate) {
         // NOTE: Zoom controls won't work
         gui::waterfall.setBandwidth(samplerate);
+        gui::waterfall.setViewOffset(0);
+        gui::waterfall.setViewBandwidth(samplerate);
         sigpath::signalPath.setSampleRate(samplerate);
+        setViewBandwidthSlider(samplerate);
     }
 };
 
