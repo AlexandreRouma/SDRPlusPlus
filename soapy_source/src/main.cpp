@@ -216,7 +216,9 @@ private:
     }
     
     static void start(void* ctx) {
-        SoapyModule* _this = (SoapyModule*)ctx;
+        auto _this = (SoapyModule*)ctx;
+        if (_this->running)
+            return;
         _this->dev = SoapySDR::Device::make(_this->devArgs);
 
         _this->dev->setSampleRate(SOAPY_SDR_RX, _this->channelId, _this->sampleRate);
@@ -241,7 +243,9 @@ private:
     }
     
     static void stop(void* ctx) {
-        SoapyModule* _this = (SoapyModule*)ctx;
+        auto _this = (SoapyModule*)ctx;
+        if (!_this->running)
+            return;
         _this->running = false;
         _this->dev->deactivateStream(_this->devStream);
         _this->dev->closeStream(_this->devStream);
