@@ -44,6 +44,7 @@ namespace LoadingScreen {
         // Contributors
         ImGui::Text("Contributors");
         ImGui::BulletText("Ryzerth (Creator)");
+        ImGui::BulletText("Alexsey Shestacov");
         ImGui::BulletText("aosync");
         ImGui::BulletText("Benjamin Kyd");
         ImGui::BulletText("Tobias Mädel");
