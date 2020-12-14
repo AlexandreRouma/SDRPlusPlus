@@ -73,7 +73,9 @@ Here is an example of module paths in `root_dev/config.json`
 "modules": [
     "./radio/radio.so",
     "./recorder/recorder.so",
-    "./soapy/soapy.so",
+    "./audio_sink/audio_sink.so",
+    "./soapy_source/soapy_source.so",
+    "./plutosdr_source/plutosdr_source.so",
     "./rtl_tcp_source/rtl_tcp_source.so"
 ]
 ```
