@@ -3,7 +3,7 @@
     "bandPlanEnabled": true,
     "centerTuning": false,
     "fftHeight": 300,
-    "frequency": 98712000,
+    "frequency": 100100000,
     "max": 0.0,
     "maximized": true,
     "menuOrder": [
@@ -17,7 +17,7 @@
         "Display"
     ],
     "menuWidth": 300,
-    "min": -55.147056579589844,
+    "min": -61.764705657958984,
     "moduleInstances": {
         "Audio Sink": "audio_sink",
         "PlutoSDR Source": "plutosdr_source",
@@ -27,16 +27,16 @@
         "SoapySDR Source": "soapy_source"
     },
     "modules": [
-        "./radio/Release/radio.dll",
-        "./recorder/Release/recorder.dll",
-        "./soapy_source/Release/soapy_source.dll",
-        "./rtl_tcp_source/Release/rtl_tcp_source.dll",
-        "./audio_sink/Release/audio_sink.dll",
-        "./plutosdr_source/Release/plutosdr_source.dll"
+        "./radio/RelWithDebInfo/radio.dll",
+        "./recorder/RelWithDebInfo/recorder.dll",
+        "./soapy_source/RelWithDebInfo/soapy_source.dll",
+        "./rtl_tcp_source/RelWithDebInfo/rtl_tcp_source.dll",
+        "./audio_sink/RelWithDebInfo/audio_sink.dll",
+        "./plutosdr_source/RelWithDebInfo/plutosdr_source.dll"
     ],
     "offset": 0.0,
     "showWaterfall": true,
-    "source": "SoapySDR",
+    "source": "PlutoSDR",
     "streams": {
         "Radio": {
             "muted": false,

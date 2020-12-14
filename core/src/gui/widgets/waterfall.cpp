@@ -151,15 +151,17 @@ namespace ImGui {
         }
 
         // Data
-        for (int i = 1; i < dataWidth; i++) {
-            double aPos = widgetPos.y + fftHeight + 10 - ((latestFFT[i - 1] - fftMin) * scaleFactor);
-            double bPos = widgetPos.y + fftHeight + 10 - ((latestFFT[i] - fftMin) * scaleFactor);
-            aPos = std::clamp<double>(aPos, widgetPos.y + 10, widgetPos.y + fftHeight + 10);
-            bPos = std::clamp<double>(bPos, widgetPos.y + 10, widgetPos.y + fftHeight + 10);
-            window->DrawList->AddLine(ImVec2(widgetPos.x + 49 + i, roundf(aPos)), 
-                                    ImVec2(widgetPos.x + 50 + i, roundf(bPos)), trace, 1.0);
-            window->DrawList->AddLine(ImVec2(widgetPos.x + 50 + i, roundf(bPos)), 
-                                    ImVec2(widgetPos.x + 50 + i, widgetPos.y + fftHeight + 10), shadow, 1.0);
+        if (latestFFT != NULL && fftLines != 0) {
+             for (int i = 1; i < dataWidth; i++) {
+                double aPos = widgetPos.y + fftHeight + 10 - ((latestFFT[i - 1] - fftMin) * scaleFactor);
+                double bPos = widgetPos.y + fftHeight + 10 - ((latestFFT[i] - fftMin) * scaleFactor);
+                aPos = std::clamp<double>(aPos, widgetPos.y + 10, widgetPos.y + fftHeight + 10);
+                bPos = std::clamp<double>(bPos, widgetPos.y + 10, widgetPos.y + fftHeight + 10);
+                window->DrawList->AddLine(ImVec2(widgetPos.x + 49 + i, roundf(aPos)), 
+                                        ImVec2(widgetPos.x + 50 + i, roundf(bPos)), trace, 1.0);
+                window->DrawList->AddLine(ImVec2(widgetPos.x + 50 + i, roundf(bPos)), 
+                                        ImVec2(widgetPos.x + 50 + i, widgetPos.y + fftHeight + 10), shadow, 1.0);
+            }
         }
 
         // X Axis
@@ -407,28 +409,33 @@ namespace ImGui {
             fftHeight =  widgetSize.y - 50;
         }
         dataWidth = widgetSize.x - 60.0;
-        delete[] latestFFT;
 
-        // Raw FFT resize
-        fftLines = std::min<int>(fftLines, waterfallHeight);
-        if (rawFFTs != NULL) {
-            if (currentFFTLine != 0) {
-                float* tempWF = new float[currentFFTLine * rawFFTSize];
-                int moveCount = lastWaterfallHeight - currentFFTLine;
-                memcpy(tempWF, rawFFTs, currentFFTLine * rawFFTSize * sizeof(float));
-                memmove(rawFFTs, &rawFFTs[currentFFTLine * rawFFTSize], moveCount * rawFFTSize * sizeof(float));
-                memcpy(&rawFFTs[moveCount * rawFFTSize], tempWF, currentFFTLine * rawFFTSize * sizeof(float));
-                delete[] tempWF;
+        if (waterfallVisible) {
+            // Raw FFT resize
+            fftLines = std::min<int>(fftLines, waterfallHeight) - 1;
+            if (rawFFTs != NULL) {
+                if (currentFFTLine != 0) {
+                    float* tempWF = new float[currentFFTLine * rawFFTSize];
+                    int moveCount = lastWaterfallHeight - currentFFTLine;
+                    memcpy(tempWF, rawFFTs, currentFFTLine * rawFFTSize * sizeof(float));
+                    memmove(rawFFTs, &rawFFTs[currentFFTLine * rawFFTSize], moveCount * rawFFTSize * sizeof(float));
+                    memcpy(&rawFFTs[moveCount * rawFFTSize], tempWF, currentFFTLine * rawFFTSize * sizeof(float));
+                    delete[] tempWF;
+                }
+                currentFFTLine = 0;
+                rawFFTs = (float*)realloc(rawFFTs, waterfallHeight * rawFFTSize * sizeof(float));
             }
-            currentFFTLine = 0;
-            rawFFTs = (float*)realloc(rawFFTs, waterfallHeight * rawFFTSize * sizeof(float));
+            else {
+                rawFFTs = (float*)malloc(waterfallHeight * rawFFTSize * sizeof(float));
+            }
+            // ==============
         }
-        else {
-            rawFFTs = (float*)malloc(waterfallHeight * rawFFTSize * sizeof(float));
-        }
-        // ==============
 
+        if (latestFFT != NULL) {
+            delete[] latestFFT;
+        }
         latestFFT = new float[dataWidth];
+
         if (waterfallVisible) {
             delete[] waterfallFb;
             waterfallFb = new uint32_t[dataWidth * waterfallHeight];
@@ -839,18 +846,24 @@ namespace ImGui {
 
     void WaterFall::showWaterfall() {
         waterfallVisible = true;
+        buf_mtx.lock();
         onResize();
+        buf_mtx.unlock();
     }
 
     void WaterFall::hideWaterfall() {
         waterfallVisible = false;
+        buf_mtx.lock();
         onResize();
+        buf_mtx.unlock();
     }
 
     void WaterFall::setFFTHeight(int height) {
         FFTAreaHeight = height;
         newFFTAreaHeight = height;
+        buf_mtx.lock();
         onResize();
+        buf_mtx.unlock();
     }
     
     int WaterFall::getFFTHeight() {
