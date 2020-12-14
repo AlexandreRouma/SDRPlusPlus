@@ -137,7 +137,13 @@ private:
         sampleRates = dev->listSampleRates(SOAPY_SDR_RX, channelId);
         txtSrList = "";
         for (double sr : sampleRates) {
-            txtSrList += std::to_string((int)sr);
+            if (sr > 1.0e3 && sr <= 1.0e6) {
+                txtSrList += std::to_string((sr / 1.0e3)) + " kHz";
+            } else if (sr > 1.0e6) {
+                txtSrList += std::to_string((sr / 1.0e6)) + " MHz";
+            } else {
+                txtSrList += std::to_string((int) sr);
+            }
             txtSrList += '\0';
         }
 
@@ -282,15 +288,16 @@ private:
             config.release(true);
         }
 
-        
+        ImGui::Text("Sample rate");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##_sr_select_", _this->name), &_this->srId, _this->txtSrList.c_str())) {
             _this->selectSampleRate(_this->sampleRates[_this->srId]);
             _this->saveCurrent();
         }
 
-        ImGui::SameLine();
-        float refreshBtnWdith = menuWidth - ImGui::GetCursorPosX();
-        if (ImGui::Button(CONCAT("Refresh##_dev_select_", _this->name), ImVec2(refreshBtnWdith, 0))) {
+        if (ImGui::Button(CONCAT("Refresh##_dev_select_", _this->name),
+                          ImVec2(menuWidth - ImGui::GetCursorPosX(), 0.0))) {
             _this->refresh();
             _this->selectDevice(config.conf["device"]);
         }
