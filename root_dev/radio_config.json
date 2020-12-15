@@ -16,7 +16,8 @@
         },
         "FM": {
             "bandwidth": 12500.0,
-            "snapInterval": 10000.0
+            "snapInterval": 10000.0,
+            "squelchLevel": -47.474998474121094
         },
         "LSB": {
             "bandwidth": 3000.0,
@@ -35,7 +36,7 @@
             "snapInterval": 100000.0,
             "squelchLevel": -100.0
         },
-        "selectedDemodId": 1
+        "selectedDemodId": 2
     },
     "Radio 1": {
         "AM": {

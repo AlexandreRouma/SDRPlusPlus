@@ -20,6 +20,7 @@
             "sampleRate": 96000.0
         },
         "Default Device": {
+            "agc": false,
             "sampleRate": 192000.0
         },
         "Generic RTL2832U OEM :: 00000001": {
