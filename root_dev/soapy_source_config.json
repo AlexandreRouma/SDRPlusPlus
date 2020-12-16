@@ -1,5 +1,5 @@
 {
-    "device": "",
+    "device": "AirSpy HF+ [c852435de0224af7]",
     "devices": {
         "": {
             "agc": true,
@@ -39,7 +39,8 @@
             "sampleRate": 8000000.0
         },
         "Microphone (Realtek High Definition Audio)": {
-            "sampleRate": 96000.0
+            "agc": false,
+            "sampleRate": 44100.0
         },
         "PulseAudio": {
             "sampleRate": 96000.0

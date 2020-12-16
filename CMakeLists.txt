@@ -14,7 +14,6 @@ add_subdirectory("rtl_tcp_source")
 add_subdirectory("audio_sink")
 #add_subdirectory("rx888_source")
 add_subdirectory("plutosdr_source")
-#add_subdirectory("demo")
 
 if (MSVC)
     set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")

@@ -3,9 +3,9 @@
     "bandPlanEnabled": true,
     "centerTuning": false,
     "fftHeight": 300,
-    "frequency": 7375000,
-    "max": -20.588237762451172,
-    "maximized": false,
+    "frequency": 7350000,
+    "max": -25.0,
+    "maximized": true,
     "menuOrder": [
         "Source",
         "Radio",
@@ -17,7 +17,7 @@
         "Display"
     ],
     "menuWidth": 300,
-    "min": -54.41176986694336,
+    "min": -63.235294342041016,
     "moduleInstances": {
         "AirspyHF+ Source": "airspyhf_source",
         "Audio Sink": "audio_sink",
@@ -43,7 +43,7 @@
         "Radio": {
             "muted": false,
             "sink": "Audio",
-            "volume": 0.12755101919174194
+            "volume": 0.13265305757522583
         },
         "Radio 1": {
             "muted": false,

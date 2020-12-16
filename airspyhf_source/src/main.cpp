@@ -113,6 +113,8 @@ public:
         int n = sampleRates[0];
         airspyhf_get_samplerates(dev, sampleRates, n);
         char buf[1024];
+        sampleRateList.clear();
+        sampleRateListTxt = "";
         for (int i = 0; i < n; i++) {
             sampleRateList.push_back(sampleRates[i]);
             sprintf(buf, "%d", sampleRates[i]);

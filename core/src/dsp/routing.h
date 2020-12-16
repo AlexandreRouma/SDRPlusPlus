@@ -158,6 +158,7 @@ namespace dsp {
             int readCount = std::min<int>(_keep + _skip, _keep);
             int skip = std::max<int>(_skip, 0);
             int delaySize = (-_skip) * sizeof(complex_t);
+            int delayCount = (-_skip);
 
             complex_t* start = &buf[std::max<int>(-_skip, 0)];
             complex_t* delayStart = &buf[_keep + _skip];
@@ -165,6 +166,10 @@ namespace dsp {
             while (true) {
                 if (delay) {
                     memmove(buf, delayStart, delaySize);
+                    for (int i = 0; i < delayCount; i++) {
+                        buf[i].i /= 10.0f;
+                        buf[i].q /= 10.0f;
+                    }
                 }
                 if (ringBuf.readAndSkip(start, readCount, skip) < 0) { break; };
                 if (out.aquire() < 0) { break; }
