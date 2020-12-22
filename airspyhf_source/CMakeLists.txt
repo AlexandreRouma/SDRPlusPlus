@@ -23,9 +23,9 @@ if (MSVC)
 else (MSVC)
     find_package(PkgConfig)
 
-    pkg_check_modules(SOAPY REQUIRED airspyhf)
+    pkg_check_modules(SOAPY REQUIRED libairspyhf)
 
-    target_include_directories(airspyhf_source PUBLIC ${AIRSPYHF_INCLUDE_DIRS})
+    target_include_directories(airspyhf_source PUBLIC ${LIBAIRSPYHF_INCLUDE_DIRS})
     target_link_directories(airspyhf_source PUBLIC ${AIRSPYHF_LIBRARY_DIRS})
-    target_link_libraries(airspyhf_source PUBLIC ${AIRSPYHF_LIBRARIES})
+    target_link_libraries(airspyhf_source PUBLIC ${LIBAIRSPYHF_LIBRARIES})
 endif (MSVC)

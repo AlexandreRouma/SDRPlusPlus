@@ -1,7 +1,7 @@
 #include <rtltcp_client.h>
 #include <imgui.h>
 #include <spdlog/spdlog.h>
-#include <new_module.h>
+#include <module.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
 #include <core.h>

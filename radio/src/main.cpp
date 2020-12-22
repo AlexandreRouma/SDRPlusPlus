@@ -5,7 +5,7 @@
 #include <gui/style.h>
 #include <signal_path/signal_path.h>
 #include <radio_demod.h>
-#include <new_module.h>
+#include <module.h>
 #include <wfm_demod.h>
 #include <fm_demod.h>
 #include <am_demod.h>

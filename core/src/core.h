@@ -1,8 +1,8 @@
 #pragma once
 #include <config.h>
-#include <new_module.h>
+#include <module.h>
 #include <scripting.h>
-#include <new_module.h>
+#include <module.h>
 
 namespace core {
     SDRPP_EXPORT ConfigManager configManager;

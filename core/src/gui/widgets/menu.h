@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <new_module.h>
+#include <module.h>
 
 class Menu {
 public:

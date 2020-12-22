@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <new_module.h>
+#include <module.h>
 
 namespace options {
     struct CMDLineOptions {

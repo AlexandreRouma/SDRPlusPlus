@@ -1,5 +1,5 @@
 #include <imgui.h>
-#include <new_module.h>
+#include <module.h>
 #include <watcher.h>
 #include <wav.h>
 #include <dsp/types.h>

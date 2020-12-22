@@ -1,0 +1,38 @@
+{
+    "Radio": {
+        "AM": {
+            "bandwidth": 12500.0,
+            "snapInterval": 1000.0
+        },
+        "CW": {
+            "bandwidth": 200.0,
+            "snapInterval": 10.0
+        },
+        "DSB": {
+            "bandwidth": 6000.0,
+            "snapInterval": 100.0
+        },
+        "FM": {
+            "bandwidth": 12500.0,
+            "snapInterval": 10000.0
+        },
+        "LSB": {
+            "bandwidth": 3000.0,
+            "snapInterval": 100.0
+        },
+        "RAW": {
+            "snapInterval": 10000.0
+        },
+        "USB": {
+            "bandwidth": 3000.0,
+            "snapInterval": 100.0
+        },
+        "WFM": {
+            "bandwidth": 200000.0,
+            "deempMode": 0,
+            "snapInterval": 100000.0,
+            "squelchLevel": -100.0
+        },
+        "selectedDemodId": 2
+    }
+}
