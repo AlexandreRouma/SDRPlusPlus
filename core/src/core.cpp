@@ -166,7 +166,7 @@ int sdrpp_main(int argc, char *argv[]) {
 
     // Load app icon
     GLFWimage icons[10];
-    icons[0].pixels = stbi_load(((std::string)(options::opts.root + "/res/icons/sdrpp.png")).c_str(), &icons[0].width, &icons[0].height, 0, 4);
+    icons[0].pixels = stbi_load(((std::string)(resDir + "/icons/sdrpp.png")).c_str(), &icons[0].width, &icons[0].height, 0, 4);
     icons[1].pixels = (unsigned char*)malloc(16 * 16 * 4); icons[1].width = icons[1].height = 16;
     icons[2].pixels = (unsigned char*)malloc(24 * 24 * 4); icons[2].width = icons[2].height = 24;
     icons[3].pixels = (unsigned char*)malloc(32 * 32 * 4); icons[3].width = icons[3].height = 32;
