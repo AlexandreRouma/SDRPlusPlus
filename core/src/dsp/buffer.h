@@ -1,5 +1,6 @@
 #pragma once
 #include <dsp/block.h>
+#include <string.h>
 
 #define RING_BUF_SZ 1000000
 

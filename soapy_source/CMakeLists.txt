@@ -19,6 +19,8 @@ if (MSVC)
 
     # Misc headers
     target_include_directories(sdrpp_core PUBLIC "C:/Program Files/PothosSDR/include/")
+
+    target_link_libraries(sdrpp_core PUBLIC SoapySDR)
 else (MSVC)
     find_package(PkgConfig)
 

@@ -46,12 +46,6 @@ if (MSVC)
     find_package(FFTW3f CONFIG REQUIRED)
     target_link_libraries(sdrpp_core PUBLIC FFTW3::fftw3f)
 
-    # PortAudio
-    find_package(portaudio CONFIG REQUIRED)
-    target_link_libraries(sdrpp_core PUBLIC portaudio portaudio_static)
-
-    target_link_libraries(sdrpp_core PUBLIC volk)
-
 else()
     find_package(PkgConfig)
     find_package(OpenGL REQUIRED)
@@ -60,32 +54,28 @@ else()
     pkg_check_modules(FFTW3 REQUIRED fftw3f)
     pkg_check_modules(VOLK REQUIRED volk)
     pkg_check_modules(GLFW3 REQUIRED glfw3)
-    pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
 
     target_include_directories(sdrpp_core PUBLIC
         ${GLEW_INCLUDE_DIRS}
         ${FFTW3_INCLUDE_DIRS}
         ${GLFW3_INCLUDE_DIRS}
         ${VOLK_INCLUDE_DIRS}
-        ${PORTAUDIO_INCLUDE_DIRS}
-        )
+    )
 
     target_link_directories(sdrpp_core PUBLIC
         ${GLEW_LIBRARY_DIRS}
         ${FFTW3_LIBRARY_DIRS}
         ${GLFW3_LIBRARY_DIRS}
         ${VOLK_LIBRARY_DIRS}
-        ${PORTAUDIO_LIBRARY_DIRS}
-        )
+    )
 
     target_link_libraries(sdrpp_core PUBLIC
         ${OPENGL_LIBRARIES}
-        ${GLEW_STATIC_LIBRARIES}
-        ${FFTW3_STATIC_LIBRARIES}
-        ${GLFW3_STATIC_LIBRARIES}
-        ${VOLK_STATIC_LIBRARIES}
-        ${PORTAUDIO_STATIC_LIBRARIES}
-        )
+        ${GLEW_LIBRARIES}
+        ${FFTW3_LIBRARIES}
+        ${GLFW3_LIBRARIES}
+        ${VOLK_LIBRARIES}
+    )
 
     if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         target_link_libraries(sdrpp_core PUBLIC stdc++fs)
