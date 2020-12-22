@@ -117,6 +117,14 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["windowSize"]["h"] = 720;
     defConfig["windowSize"]["w"] = 1280;
 
+#ifdef _WIN32
+    defConfig["modulesDirectory"] = "./modules";
+    defConfig["resourcesDirectory"] = "./res";
+#else
+    defConfig["modulesDirectory"] = "/usr/lib/sdrpp/plugins";
+    defConfig["resourcesDirectory"] = "/usr/share/sdrpp";
+#endif
+
     // Load config
     spdlog::info("Loading config");
     core::configManager.setPath(options::opts.root + "/config.json");
@@ -138,6 +146,7 @@ int sdrpp_main(int argc, char *argv[]) {
     int winWidth = core::configManager.conf["windowSize"]["w"];
     int winHeight = core::configManager.conf["windowSize"]["h"];
     maximized = core::configManager.conf["maximized"];
+    std::string resDir = core::configManager.conf["resourcesDirectory"];
     core::configManager.release();
 
     // Create window with graphics context
@@ -198,13 +207,13 @@ int sdrpp_main(int argc, char *argv[]) {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 150");
 
-    style::setDarkStyle();
+    if (!style::setDarkStyle(resDir)) { return -1; }
 
     LoadingScreen::setWindow(window);
 
     LoadingScreen::show("Loading icons");
     spdlog::info("Loading icons");
-    icons::load();
+    if (!icons::load(resDir)) { return -1; }
 
     LoadingScreen::show("Loading band plans");
     spdlog::info("Loading band plans");

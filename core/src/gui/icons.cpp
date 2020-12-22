@@ -6,6 +6,8 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <imgui/stb_image.h>
+#include <filesystem>
+#include <spdlog/spdlog.h>
 
 namespace icons {
     ImTextureID LOGO;
@@ -31,14 +33,21 @@ namespace icons {
         return texId;
     }
 
-    void load() {
-        LOGO = (ImTextureID)(uintptr_t)loadTexture(options::opts.root + "/res/icons/sdrpp.png");
-        PLAY = (ImTextureID)(uintptr_t)loadTexture(options::opts.root + "/res/icons/play.png");
-        STOP = (ImTextureID)(uintptr_t)loadTexture(options::opts.root + "/res/icons/stop.png");
-        MENU = (ImTextureID)(uintptr_t)loadTexture(options::opts.root + "/res/icons/menu.png");
-        MUTED = (ImTextureID)(uintptr_t)loadTexture(options::opts.root + "/res/icons/muted.png");
-        UNMUTED = (ImTextureID)(uintptr_t)loadTexture(options::opts.root + "/res/icons/unmuted.png");
-        NORMAL_TUNING = (ImTextureID)(uintptr_t)loadTexture(options::opts.root + "/res/icons/normal_tuning.png");
-        CENTER_TUNING = (ImTextureID)(uintptr_t)loadTexture(options::opts.root + "/res/icons/center_tuning.png");
+    bool load(std::string resDir) {
+        if (!std::filesystem::is_directory(resDir)) {
+            spdlog::error("Inavlid resource directory: {0}", resDir);
+            return false;
+        }
+
+        LOGO = (ImTextureID)(uintptr_t)loadTexture(resDir + "/icons/sdrpp.png");
+        PLAY = (ImTextureID)(uintptr_t)loadTexture(resDir + "/icons/play.png");
+        STOP = (ImTextureID)(uintptr_t)loadTexture(resDir + "/icons/stop.png");
+        MENU = (ImTextureID)(uintptr_t)loadTexture(resDir + "/icons/menu.png");
+        MUTED = (ImTextureID)(uintptr_t)loadTexture(resDir + "/icons/muted.png");
+        UNMUTED = (ImTextureID)(uintptr_t)loadTexture(resDir + "/icons/unmuted.png");
+        NORMAL_TUNING = (ImTextureID)(uintptr_t)loadTexture(resDir + "/icons/normal_tuning.png");
+        CENTER_TUNING = (ImTextureID)(uintptr_t)loadTexture(resDir + "/icons/center_tuning.png");
+
+        return true;
     }
 }

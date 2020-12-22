@@ -8,7 +8,7 @@ namespace options {
 #ifdef _WIN32
         opts.root = ".";
 #else
-        opts.root = "~/.sdrpp/";
+        opts.root = "~/.config/sdrpp";
 #endif
     }
 

@@ -120,6 +120,7 @@ void windowInit() {
 
     core::configManager.aquire();
     gui::menu.order = core::configManager.conf["menuOrder"].get<std::vector<std::string>>();
+    std::string modulesDir = core::configManager.conf["modulesDirectory"];
     core::configManager.release();
 
     gui::menu.registerEntry("Source", sourecmenu::draw, NULL);
@@ -144,8 +145,8 @@ void windowInit() {
     spdlog::info("Loading modules");
 
     // Load modules from /module directory
-    if (std::filesystem::is_directory(options::opts.root + "/modules")) {
-        for (const auto & file : std::filesystem::directory_iterator(options::opts.root + "/modules")) {
+    if (std::filesystem::is_directory(modulesDir)) {
+        for (const auto & file : std::filesystem::directory_iterator(modulesDir)) {
             std::string path = file.path().generic_string();
             if (file.path().extension().generic_string() != SDRPP_MOD_EXTENTSION) {
                 continue;
@@ -157,7 +158,7 @@ void windowInit() {
         }
     }
     else {
-        spdlog::warn("Module directory {0} does not exist, not loading modules from directory");
+        spdlog::warn("Module directory {0} does not exist, not loading modules from directory", modulesDir);
     }
 
     // Read module config

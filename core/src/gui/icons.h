@@ -14,5 +14,5 @@ namespace icons {
     extern ImTextureID CENTER_TUNING;
 
     GLuint loadTexture(std::string path);
-    void load();
+    bool load(std::string resDir);
 }
