@@ -40,6 +40,8 @@ public:
 
         refresh();
 
+        selectFirst();
+
         // config.aquire();
         // std::string serString = config.conf["device"];
         // config.release();

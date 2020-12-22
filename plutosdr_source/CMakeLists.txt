@@ -25,8 +25,8 @@ if (MSVC)
 else (MSVC)
     find_package(PkgConfig)
 
-    pkg_check_modules(SOAPY REQUIRED libiio)
-    pkg_check_modules(SOAPY REQUIRED libad9361)
+    pkg_check_modules(LIBIIO REQUIRED libiio)
+    pkg_check_modules(LIBAD9361 REQUIRED libad9361)
 
     target_include_directories(plutosdr_source PUBLIC ${LIBIIO_INCLUDE_DIRS})
     target_link_directories(plutosdr_source PUBLIC ${LIBIIO_LIBRARY_DIRS})
