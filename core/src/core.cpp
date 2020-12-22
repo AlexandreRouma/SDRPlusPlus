@@ -17,6 +17,7 @@
 #include <options.h>
 #include <duktape/duktape.h>
 #include <duktape/duk_console.h>
+#include <filesystem>
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb_image_resize.h>
@@ -77,6 +78,20 @@ int sdrpp_main(int argc, char *argv[]) {
     options::loadDefaults();
     if (!options::parse(argc, argv)) { return -1; }
 
+    // Check root directory
+    if (!std::filesystem::exists(options::opts.root)) {
+        spdlog::warn("Root directory {0} does not exist, creating it", options::opts.root);
+        if (!std::filesystem::create_directory(options::opts.root)) {
+            spdlog::error("Could not create root directory {0}", options::opts.root);
+            return -1;
+        }
+    }
+
+    if (!std::filesystem::is_directory(options::opts.root)) {
+        spdlog::error("{0} is not a directory", options::opts.root);
+        return -1;
+    }
+
     // ======== DEFAULT CONFIG ========
     json defConfig;
     defConfig["bandColors"]["amateur"] = "#FF0000FF";
@@ -103,12 +118,14 @@ int sdrpp_main(int argc, char *argv[]) {
     };
     defConfig["menuWidth"] = 300;
     defConfig["min"] = -70.0;
+
     defConfig["moduleInstances"]["Audio Sink"] = "audio_sink";
     defConfig["moduleInstances"]["PlutoSDR Source"] = "plutosdr_source";
     defConfig["moduleInstances"]["RTL-TCP Source"] = "rtl_tcp_source";
     defConfig["moduleInstances"]["Radio"] = "radio";
     defConfig["moduleInstances"]["Recorder"] = "recorder";
     defConfig["moduleInstances"]["SoapySDR Source"] = "soapy_source";
+
     defConfig["modules"] = json::array();
     defConfig["offset"] = 0.0;
     defConfig["showWaterfall"] = true;
@@ -116,6 +133,12 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["streams"] = json::object();
     defConfig["windowSize"]["h"] = 720;
     defConfig["windowSize"]["w"] = 1280;
+    
+    defConfig["bandColors"]["broadcast"] = "#0000FFFF";
+    defConfig["bandColors"]["amateur"] = "#FF0000FF";
+    defConfig["bandColors"]["aviation"] = "#00FF00FF";
+    defConfig["bandColors"]["marine"] = "#00FFFFFF";
+    defConfig["bandColors"]["military"] = "#FFFF00FF";
 
 #ifdef _WIN32
     defConfig["modulesDirectory"] = "./modules";
@@ -147,6 +170,7 @@ int sdrpp_main(int argc, char *argv[]) {
     int winHeight = core::configManager.conf["windowSize"]["h"];
     maximized = core::configManager.conf["maximized"];
     std::string resDir = core::configManager.conf["resourcesDirectory"];
+    json bandColors = core::configManager.conf["bandColors"];
     core::configManager.release();
 
     // Create window with graphics context
@@ -217,11 +241,11 @@ int sdrpp_main(int argc, char *argv[]) {
 
     LoadingScreen::show("Loading band plans");
     spdlog::info("Loading band plans");
-    bandplan::loadFromDir(options::opts.root + "/bandplans");
+    bandplan::loadFromDir(resDir + "/bandplans");
 
     LoadingScreen::show("Loading band plan colors");
     spdlog::info("Loading band plans color table");
-    bandplan::loadColorTable(options::opts.root + "/band_colors.json");
+    bandplan::loadColorTable(bandColors);
 
     windowInit();
 

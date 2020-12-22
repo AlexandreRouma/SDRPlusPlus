@@ -108,20 +108,7 @@ namespace bandplan {
         }
     }
 
-    void loadColorTable(std::string path) {
-        if (!std::filesystem::exists(path)) {
-            spdlog::error("Band Plan Color Table file does not exist");
-            return;
-        }
-        if (!std::filesystem::is_regular_file(path)) {
-            spdlog::error("Band Plan Color Table file isn't a file...");
-            return;
-        }
-        std::ifstream file(path.c_str());
-        json data;
-        file >> data;
-        file.close();
-
-        colorTable = data.get<std::map<std::string, BandPlanColor_t>>();
+    void loadColorTable(json table) {
+        colorTable = table.get<std::map<std::string, BandPlanColor_t>>();
     }
 };
