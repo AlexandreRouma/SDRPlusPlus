@@ -30,9 +30,6 @@ if (MSVC)
 
     # Volk
     target_link_libraries(sdrpp_core PUBLIC volk)
-    
-    # SoapySDR
-    target_link_libraries(sdrpp_core PUBLIC SoapySDR)
 
     # Glew
     find_package(GLEW REQUIRED)
