@@ -79,6 +79,15 @@ You will first need to edit the `root_dev/config` file to point to the modules t
 ...
 ```
 
+You also need to change the location of the resource and module directories, for development, I recommend:
+```json
+...
+"modulesDirectory": "../root_dev/modules",
+...
+"resourcesDirectory": "../root_dev/res",
+...
+```
+
 Remember that these paths will be relative to the run directory.
 
 Off cours, remember to add entries for all modules that were built and that you wish to use.
@@ -144,7 +153,12 @@ sh ./create_root.sh
 ## Running for development
 If you wish to install SDR++, skip to the next step
 
-You will first need to edit the `root_dev/config` file to point to the modules that were built. Here us a sample if what it would look like:
+First run SDR++ from the build directory to generate a default config file
+```
+./sdrpp -r ../root_dev/
+```
+
+Then, you need to edit the `root_dev/config` file to point to the modules that were built. Here us a sample if what it would look like:
 
 ```json
 ...
@@ -155,6 +169,15 @@ You will first need to edit the `root_dev/config` file to point to the modules t
     "./build/soapy_source/soapy_source.so",
     "./build/audio_sink/audio_sink.so"
 ]
+...
+```
+
+You also need to change the location of the resource and module directories, for development, I recommend:
+```json
+...
+"modulesDirectory": "../root_dev/modules",
+...
+"resourcesDirectory": "../root_dev/res",
 ...
 ```
 
