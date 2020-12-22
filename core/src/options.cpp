@@ -1,5 +1,6 @@
 #include <options.h>
 #include <spdlog/spdlog.h>
+#include <stdlib.h>
 
 namespace options {
     CMDLineOptions opts;
@@ -8,7 +9,8 @@ namespace options {
 #ifdef _WIN32
         opts.root = ".";
 #else
-        opts.root = "~/.config/sdrpp";
+        std::string homedir = getenv("HOME");
+        opts.root = homedir + "/.config/sdrpp";
 #endif
     }
 
