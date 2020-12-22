@@ -22,38 +22,113 @@ SDR++ is a cross-platform and open source SDR software with the aim of being blo
 * Switchable fft size
 * other small customisation options
 
+# Installing
+## Windows
+Download the latest release from [the Releases page](https://github.com/AlexandreRouma/SDRPlusPlus/releases) and extract to the directory of your choice.
+
+To create a desktop short, rightclick the exe and select `Send to -> Desktop (create shortcut)`, then, rename the shortcut on the desktop to whatever you want.
+
+## Linux
+TODO
+
+## MacOS
+TODO
+
+## BSD
+TODO
 
 # Building on Windows
-
-## Requirements
-
+## Install dependencies
 * cmake
-* vcpkg (for the packages listed below)
+* vcpkg
+* PothosSDR (This will install libraires for most SDRs)
+
+After this, install the following depencies using vcpkg:
 * fftw3
 * portaudio
 * glfw
 * glew
-* PothosSDR (for libvolk and SoapySDR)
 
-## The build
-
-```powershell
+## Building
+```
 mkdir build
 cd build
 cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/Users/Alex/vcpkg/scripts/buildsystems/vcpkg.cmake" -G "Visual Studio 15 2017 Win64"
 cmake --build . --config Release
 ```
 
-# Building on Linux
+## Create a new root directory
+```
+./create_root.bat
+```
 
-## install requirements
+## Running for development
+If you wish to install SDR++, skip to the next step
 
-On Debian/Ubtuntu system:
-apt install libglew-dev libglfw3-dev libfftw3-dev libvolk1-dev portaudio19-dev libsoapysdr-dev gcc
+You will first need to edit the `root_dev/config` file to point to the modules that were built. Here us a sample if what it would look like:
 
-## The build
-Replace `<N>` by the number of threads available for building (eg. 4)
+```json
+...
+"modules": [
+    "./build/radio/Release/radio.dll",
+    "./build/recorder/Release/recorder.dll",
+    "./build/rtl_tcp_source/Release/rtl_tcp_source.dll",
+    "./build/soapy_source/Release/soapy_source.dll",
+    "./build/audio_sink/Release/audio_sink.dll"
+]
+...
+```
 
+Remember that these paths will be relative to the run directory.
+
+Off cours, remember to add entries for all modules that were built and that you wish to use.
+
+Next, from the top directory, you can simply run:
+```
+./build/Release/sdrpp.exe -r root_dev
+```
+
+Or, if you wish to run from the build directory:
+```
+./Release/sdrpp.exe -r ../root_dev
+```
+
+## Installing SDR++
+If you chose to run SDR++ for development, you do not need this step.
+First, copy over the exe and DLLs from `build/Release/` to `root_dev`.
+
+Next you need to copy over all the modules that were compiled. To do so, copy the DLL file of the module (located in its build folder given below) to the `root_dev/modules` directory and other DLLs (that do not have the exact name of the modue) to the `root_dev` directory.
+
+The modules built will be some of the following (Repeat the instructions above for all you wish to use):
+* `build/radio/Release/`
+* `build/recorder/Release/`
+* `build/rtl_tcp_source/Release/`
+* `build/spyserver_source/Release/`
+* `build/soapy_source/Release/`
+* `build/airspyhf_source/Release/`
+* `build/plutosdr_source/Release/`
+* `build/audio_sink/Release/`
+
+
+
+
+# Building on Linux / BSD
+## Install dependencies
+* cmake
+* vcpkg
+* fftw3
+* glfw
+* glew
+* libvolk
+  
+Next install dependencies based on the modules you wish to build:
+* soapy_source: SoapySDR + drivers for each SDRs (see SoapySDR docs)
+* airspyhf_source: libairspyhf
+* plutosdr_source: libiio, libad9361
+* audio_sink: portaudio
+
+## Building
+replace `<N>` with the number of threads you wish to use to build
 ```sh
 mkdir build
 cd build
@@ -61,91 +136,44 @@ cmake ..
 make -j<N>
 ```
 
-## Modify root_dev/config.json
-You'll then need to set the right paths for the modules.
-This is optional. If you don't plan on modifying the modules,
-you can simply copy over their binaries (from `build/<module name>/<module name>.so`)
-to the `root_dev/modules/` directory.
+## Create a new root directory
+```sh
+sh ./create_root.sh
+```
 
-Here is an example of module paths in `root_dev/config.json`
+## Running for development
+If you wish to install SDR++, skip to the next step
+
+You will first need to edit the `root_dev/config` file to point to the modules that were built. Here us a sample if what it would look like:
 
 ```json
+...
 "modules": [
-    "./radio/radio.so",
-    "./recorder/recorder.so",
-    "./soapy/soapy.so",
-    "./rtl_tcp_source/rtl_tcp_source.so"
+    "./build/radio/radio.so",
+    "./build/recorder/recorder.so",
+    "./build/rtl_tcp_source/rtl_tcp_source.so",
+    "./build/soapy_source/soapy_source.so",
+    "./build/audio_sink/audio_sink.so"
 ]
+...
 ```
 
-# Building on OSX
-## Install requirements
-```
-brew tap pothosware/homebrew-pothos
-brew install volk glew glfw fftw portaudio
-brew install soapysdr
-```
-You can install additional soapy device support based on your hardware.
+Remember that these paths will be relative to the run directory.
 
-## The build
+Off cours, remember to add entries for all modules that were built and that you wish to use.
+
+Next, from the top directory, you can simply run:
 ```
-mkdir build
-cd build
-cmake ..
-cmake --build . --config Release
+./build/Release/sdrpp.exe -r root_dev
 ```
 
-## Configuring
-
-You'll then need to set the right paths for the modules.
-This is optional. If you don't plan on modifying the modules,
-you can simply copy over their binaries (from `build/<module name>/<module name>.so`)
-to the `root_dev/modules/` directory.
-
-Here is an example of module paths in `root_dev/config.json`
-
-```json
-"modules": [
-    "./radio/radio.so",
-    "./recorder/recorder.so",
-    "./soapy/soapy.so",
-    "./rtl_tcp_source/rtl_tcp_source.so"
-]
+Or, if you wish to run from the build directory:
+```
+./Release/sdrpp.exe -r ../root_dev
 ```
 
-# Building on OpenBSD
-## Install requirements
-
-NOTE: These instructions are outdated
-```
-pkg_add fftw3-float glew glfw portaudio-svn
-
-# install volk and SoapySDR manually
-```
-
-## The build
-```
-mkdir build
-cd build
-cmake --clang ..
-make
-cd ..
-./prepare_root.sh
-cp -Rf root root_dev # if are in dev
-mv root/modules ./
-```
-
-## Run SDRPP with `build/sdrpp`.
-Modify root_dev/modules_list.json
-If the content is different than the following, change it.
-```
-{
-    "Radio": "./radio/radio.dylib",
-    "Recorder": "./recorder/recorder.dylib",
-    "Soapy": "./soapy/soapy.dylib",
-    "RTLTCPSource": "./rtl_tcp_source/rtl_tcp_source.dylib"
-}
-```
+## Installing SDR++
+Coming soon!
 
 # Contributing
 
@@ -160,6 +188,7 @@ I will soon publish a contributing.md listing the code style to use.
 
 ## Contributors
 * [aosync](https://github.com/aosync)
+* [Alexsey Shestacov](https://github.com/wingrime)
 * [Benjamin Kyd](https://github.com/benkyd)
 * [Tobias Mädel](https://github.com/Manawyrm)
 * [Raov](https://twitter.com/raov_birbtog)
