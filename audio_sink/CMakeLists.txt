@@ -23,7 +23,7 @@ else (MSVC)
 
     pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
 
-    target_include_directories(sdrpp_core ${PORTAUDIO_INCLUDE_DIRS})
+    target_include_directories(sdrpp_core PUBLIC ${PORTAUDIO_INCLUDE_DIRS})
 
     target_link_directories(sdrpp_core PUBLIC ${PORTAUDIO_LIBRARY_DIRS})
 
