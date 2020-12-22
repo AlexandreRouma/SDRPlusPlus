@@ -14,6 +14,7 @@
 #include <dsb_demod.h>
 #include <raw_demod.h>
 #include <cw_demod.h>
+#include <options.h>
 
 #define CONCAT(a, b)    ((std::string(a) + b).c_str())
 
@@ -197,7 +198,7 @@ private:
 
 MOD_EXPORT void _INIT_() {
     json def = json({});
-    config.setPath(ROOT_DIR "/radio_config.json");
+    config.setPath(options::opts.root + "/radio_config.json");
     config.load(def);
     config.enableAutoSave();
 }

@@ -30,6 +30,7 @@
 #include <filesystem>
 #include <signal_path/source.h>
 #include <gui/dialogs/loading_screen.h>
+#include <options.h>
 
 // const int FFTSizes[] = {
 //     65536,
@@ -143,8 +144,8 @@ void windowInit() {
     spdlog::info("Loading modules");
 
     // Load modules from /module directory
-    if (std::filesystem::is_directory(ROOT_DIR "/modules")) {
-        for (const auto & file : std::filesystem::directory_iterator(ROOT_DIR "/modules")) {
+    if (std::filesystem::is_directory(options::opts.root + "/modules")) {
+        for (const auto & file : std::filesystem::directory_iterator(options::opts.root + "/modules")) {
             std::string path = file.path().generic_string();
             if (file.path().extension().generic_string() != SDRPP_MOD_EXTENTSION) {
                 continue;
@@ -594,7 +595,6 @@ void drawWindow() {
     gui::waterfall.setFFTMax(fftMax);
     gui::waterfall.setWaterfallMin(fftMin);
     gui::waterfall.setWaterfallMax(fftMax);
-
 
     ImGui::End();
 

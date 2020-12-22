@@ -10,7 +10,7 @@
     "bandPlanEnabled": true,
     "centerTuning": false,
     "fftHeight": 300,
-    "frequency": 105000000,
+    "frequency": 100004000,
     "max": 0.0,
     "maximized": false,
     "menuOrder": [
@@ -32,29 +32,13 @@
         "RTL-TCP Source": "rtl_tcp_source",
         "Radio": "radio",
         "Recorder": "recorder",
-        "SoapySDR Source": "soapy_source",
-        "SpyServer Source": "spyserver_source"
+        "SoapySDR Source": "soapy_source"
     },
-    "modules": [
-        "./radio/Release/radio.dll",
-        "./recorder/Release/recorder.dll",
-        "./soapy_source/Release/soapy_source.dll",
-        "./airspyhf_source/Release/airspyhf_source.dll",
-        "./rtl_tcp_source/Release/rtl_tcp_source.dll",
-        "./audio_sink/Release/audio_sink.dll",
-        "./plutosdr_source/Release/plutosdr_source.dll",
-        "./spyserver_source/Release/spyserver_source.dll"
-    ],
+    "modules": [],
     "offset": 0.0,
     "showWaterfall": true,
-    "source": "SoapySDR",
-    "streams": {
-        "Radio": {
-            "muted": false,
-            "sink": "Audio",
-            "volume": 0.5867347121238708
-        }
-    },
+    "source": "",
+    "streams": {},
     "windowSize": {
         "h": 720,
         "w": 1280

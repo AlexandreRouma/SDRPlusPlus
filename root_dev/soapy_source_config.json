@@ -1,49 +1,12 @@
 {
-    "device": "AirSpy HF+ [c852435de0224af7]",
+    "device": "Generic RTL2832U OEM :: 00000001",
     "devices": {
-        "": {
+        "Generic RTL2832U OEM :: 00000001": {
             "agc": true,
             "gains": {
-                "PGA": 0.0
+                "TUNER": 0.0
             },
-            "sampleRate": 4000000.0
-        },
-        "AirSpy HF+ [c852435de0224af7]": {
-            "agc": false,
-            "gains": {
-                "LNA": 6.0,
-                "RF": -48.0
-            },
-            "sampleRate": 768000.0
-        },
-        "CABLE Output (VB-Audio Virtual Cable)": {
-            "sampleRate": 96000.0
-        },
-        "Default Device": {
-            "agc": false,
-            "sampleRate": 192000.0
-        },
-        "Generic RTL2832U OEM :: 00000001": {
-            "agc": false,
-            "gains": {
-                "TUNER": 37.3390007019043
-            },
-            "sampleRate": 250000.0
-        },
-        "HackRF One #0 901868dc282c8f8b": {
-            "gains": {
-                "AMP": 0.0,
-                "LNA": 24.503000259399414,
-                "VGA": 16.332000732421875
-            },
-            "sampleRate": 8000000.0
-        },
-        "Microphone (Realtek High Definition Audio)": {
-            "agc": false,
-            "sampleRate": 44100.0
-        },
-        "PulseAudio": {
-            "sampleRate": 96000.0
+            "sampleRate": 2560000.0
         }
     }
 }

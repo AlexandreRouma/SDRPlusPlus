@@ -1,19 +1,44 @@
 cmake_minimum_required(VERSION 3.13)
 project(sdrpp)
 
+option(OPT_BUILD_RTL_TCP_SOURCE "Build RTL-TCP Source Module (no dependencies required)" ON)
+option(OPT_BUILD_SPYSERVER_SOURCE "Build SpyServer Source Module (no dependencies required)" ON)
+option(OPT_BUILD_SOAPY_SOURCE "Build SoapySDR Source Module (Depedencies: soapysdr)" ON)
+option(OPT_BUILD_AIRSPYHF_SOURCE "Build Airspy HF+ Source Module (Depedencies: libairspyhf)" ON)
+option(OPT_BUILD_PLUTOSDR_SOURCE "Build PlutoSDR Source Module (Depedencies: libiio, libad9361)" ON)
+option(OPT_BUILD_AUDIO_SINK "Build Audio Sink Module (Depedencies: portaudio)" ON)
+
 # Core of SDR++
 add_subdirectory("core")
 
-# Cross platform modules
+# Base modules
 add_subdirectory("radio")
 add_subdirectory("recorder") 
-add_subdirectory("soapy_source")
-add_subdirectory("airspyhf_source")
-#add_subdirectory("file_source")
+
+# Source modules
+if (OPT_BUILD_RTL_TCP_SOURCE)
 add_subdirectory("rtl_tcp_source")
-add_subdirectory("audio_sink")
-#add_subdirectory("rx888_source")
+endif (OPT_BUILD_RTL_TCP_SOURCE)
+
+if (OPT_BUILD_SPYSERVER_SOURCE)
+add_subdirectory("spyserver_source")
+endif (OPT_BUILD_SPYSERVER_SOURCE)
+
+if (OPT_BUILD_SOAPY_SOURCE)
+add_subdirectory("soapy_source")
+endif (OPT_BUILD_SOAPY_SOURCE)
+
+if (OPT_BUILD_AIRSPYHF_SOURCE)
+add_subdirectory("airspyhf_source")
+endif (OPT_BUILD_AIRSPYHF_SOURCE)
+
+if (OPT_BUILD_PLUTOSDR_SOURCE)
 add_subdirectory("plutosdr_source")
+endif (OPT_BUILD_PLUTOSDR_SOURCE)
+
+if (OPT_BUILD_AUDIO_SINK)
+add_subdirectory("audio_sink")
+endif (OPT_BUILD_AUDIO_SINK)
 
 if (MSVC)
     set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")

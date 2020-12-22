@@ -7,6 +7,7 @@
 #include <gui/style.h>
 #include <iio.h>
 #include <ad9361.h>
+#include <options.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -262,7 +263,7 @@ MOD_EXPORT void _INIT_() {
     defConf["sampleRate"] = 4000000.0f;
     defConf["gainMode"] = 0;
     defConf["gain"] = 0.0f;
-    config.setPath(ROOT_DIR "/plutosdr_source_config.json");
+    config.setPath(options::opts.root + "/plutosdr_source_config.json");
     config.load(defConf);
     config.enableAutoSave();
 }

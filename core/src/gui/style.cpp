@@ -2,6 +2,7 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <config.h>
+#include <options.h>
 
 namespace style {
     ImFont* baseFont;
@@ -16,9 +17,9 @@ namespace style {
         ImGui::GetStyle().PopupRounding = 0.0f;
         ImGui::GetStyle().ScrollbarRounding = 0.0f;
 
-        baseFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(ROOT_DIR "/res/fonts/Roboto-Medium.ttf")).c_str(), 16.0f);
-        bigFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(ROOT_DIR "/res/fonts/Roboto-Medium.ttf")).c_str(), 42.0f);
-        hugeFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(ROOT_DIR "/res/fonts/Roboto-Medium.ttf")).c_str(), 128.0f);
+        baseFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(options::opts.root + "/res/fonts/Roboto-Medium.ttf")).c_str(), 16.0f);
+        bigFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(options::opts.root + "/res/fonts/Roboto-Medium.ttf")).c_str(), 42.0f);
+        hugeFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(options::opts.root + "/res/fonts/Roboto-Medium.ttf")).c_str(), 128.0f);
 
         ImGui::StyleColorsDark();
         //ImGui::StyleColorsLight();
@@ -36,9 +37,9 @@ namespace style {
         ImGui::GetStyle().PopupRounding = 0.0f;
         ImGui::GetStyle().ScrollbarRounding = 0.0f;
 
-        baseFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(ROOT_DIR "/res/fonts/Roboto-Medium.ttf")).c_str(), 16.0f);
-        bigFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(ROOT_DIR "/res/fonts/Roboto-Medium.ttf")).c_str(), 42.0f);
-        hugeFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(ROOT_DIR "/res/fonts/Roboto-Medium.ttf")).c_str(), 128.0f);
+        baseFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(options::opts.root + "/res/fonts/Roboto-Medium.ttf")).c_str(), 16.0f);
+        bigFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(options::opts.root + "/res/fonts/Roboto-Medium.ttf")).c_str(), 42.0f);
+        hugeFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(options::opts.root + "/res/fonts/Roboto-Medium.ttf")).c_str(), 128.0f);
 
         ImGui::StyleColorsDark();
 

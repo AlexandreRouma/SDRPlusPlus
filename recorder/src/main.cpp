@@ -12,6 +12,7 @@
 #include <config.h>
 #include <gui/style.h>
 #include <regex>
+#include <options.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -44,7 +45,7 @@ void sampleRateChanged(void* ctx, double sampleRate, int blockSize) {
 }
 
 std::string expandString(std::string input) {
-    input = std::regex_replace(input, std::regex("%ROOT%"), ROOT_DIR);
+    input = std::regex_replace(input, std::regex("%ROOT%"), options::opts.root);
     return std::regex_replace(input, std::regex("//"), "/");
 }
 
@@ -306,7 +307,7 @@ struct RecorderContext_t {
 
 MOD_EXPORT void _INIT_() {
     json def = json({});
-    config.setPath(ROOT_DIR "/recorder_config.json");
+    config.setPath(options::opts.root + "/recorder_config.json");
     config.load(def);
     config.enableAutoSave();
 }

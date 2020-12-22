@@ -14,6 +14,7 @@
 #include <stb_image.h>
 #include <config.h>
 #include <core.h>
+#include <options.h>
 #include <duktape/duktape.h>
 #include <duktape/duk_console.h>
 
@@ -63,15 +64,18 @@ duk_ret_t test_func(duk_context *ctx) {
 }
 
 // main
-int sdrpp_main() {
+int sdrpp_main(int argc, char *argv[]) {
 #ifdef _WIN32
     //FreeConsole();
     // ConfigManager::setResourceDir("./res");
     // ConfigManager::setConfigDir(".");
 #endif
 
-
     spdlog::info("SDR++ v" VERSION_STR);
+
+    // Load default options and parse command line
+    options::loadDefaults();
+    if (!options::parse(argc, argv)) { return -1; }
 
     // ======== DEFAULT CONFIG ========
     json defConfig;
@@ -114,8 +118,8 @@ int sdrpp_main() {
     defConfig["windowSize"]["w"] = 1280;
 
     // Load config
-    spdlog::info("Loading config");
-    core::configManager.setPath(ROOT_DIR "/config.json");
+    spdlog::info("Loading config {0}");
+    core::configManager.setPath(options::opts.root + "/config.json");
     core::configManager.load(defConfig);
     core::configManager.enableAutoSave();
 
@@ -153,7 +157,7 @@ int sdrpp_main() {
 
     // Load app icon
     GLFWimage icons[10];
-    icons[0].pixels = stbi_load(((std::string)(ROOT_DIR "/res/icons/sdrpp.png")).c_str(), &icons[0].width, &icons[0].height, 0, 4);
+    icons[0].pixels = stbi_load(((std::string)(options::opts.root + "/res/icons/sdrpp.png")).c_str(), &icons[0].width, &icons[0].height, 0, 4);
     icons[1].pixels = (unsigned char*)malloc(16 * 16 * 4); icons[1].width = icons[1].height = 16;
     icons[2].pixels = (unsigned char*)malloc(24 * 24 * 4); icons[2].width = icons[2].height = 24;
     icons[3].pixels = (unsigned char*)malloc(32 * 32 * 4); icons[3].width = icons[3].height = 32;
@@ -204,11 +208,11 @@ int sdrpp_main() {
 
     LoadingScreen::show("Loading band plans");
     spdlog::info("Loading band plans");
-    bandplan::loadFromDir(ROOT_DIR "/bandplans");
+    bandplan::loadFromDir(options::opts.root + "/bandplans");
 
     LoadingScreen::show("Loading band plan colors");
     spdlog::info("Loading band plans color table");
-    bandplan::loadColorTable(ROOT_DIR "/band_colors.json");
+    bandplan::loadColorTable(options::opts.root + "/band_colors.json");
 
     windowInit();
 

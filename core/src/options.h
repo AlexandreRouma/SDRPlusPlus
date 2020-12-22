@@ -1,13 +1,14 @@
 #pragma once
 #include <string>
+#include <new_module.h>
 
 namespace options {
     struct CMDLineOptions {
         std::string root;
-        bool help;
     };
 
-    CMDLineOptions opts;
+    SDRPP_EXPORT CMDLineOptions opts;
 
-    void parse(char** argv, int argc);
+    void loadDefaults();
+    bool parse(int argc, char *argv[]);
 }

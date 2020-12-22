@@ -5,6 +5,7 @@
 #include <signal_path/signal_path.h>
 #include <core.h>
 #include <gui/style.h>
+#include <config.h>
 #include <libairspyhf/airspyhf.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
@@ -16,6 +17,8 @@ SDRPP_MOD_INFO {
     /* Version:         */ 0, 1, 0,
     /* Max instances    */ 1
 };
+
+//ConfigManager config;
 
 const char* AGG_MODES_STR = "Off\0Low\0High\0";
 
@@ -36,7 +39,10 @@ public:
         handler.stream = &stream;
 
         refresh();
-        selectFirst();
+
+        // config.aquire();
+        // std::string serString = config.conf["device"];
+        // config.release();
 
         sigpath::sourceManager.registerSource("Airspy HF+", &handler);
     }
@@ -92,9 +98,10 @@ public:
             std::string str = buf;
             if (serial == str) {
                 selectBySerial(devList[i]);
-                break;
+                return;
             }
         }
+        selectFirst();
     }
 
     void selectBySerial(uint64_t serial) {
@@ -287,7 +294,12 @@ private:
 };
 
 MOD_EXPORT void _INIT_() {
-   // Do your one time init here
+//    config.setPath(ROOT_DIR "/airspyhf_config.json");
+//    json defConf;
+//    defConf["device"] = "";
+//    defConf["devices"] = json::object();
+//    config.load(defConf);
+//    config.enableAutoSave();
 }
 
 MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
@@ -299,5 +311,6 @@ MOD_EXPORT void _DELETE_INSTANCE_(ModuleManager::Instance* instance) {
 }
 
 MOD_EXPORT void _END_() {
-    // Do your one shutdown here
+    // config.disableAutoSave();
+    // config.save();
 }
