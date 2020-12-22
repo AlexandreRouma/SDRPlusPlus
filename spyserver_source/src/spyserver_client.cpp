@@ -74,7 +74,7 @@ bool SpyServerClient::connectToSpyserver(char* host, int port) {
     unsigned long mode = 1;
     ioctlsocket(sock, FIONBIO, &mode);
 #else
-    fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL, 0) | O_NONBLOCK)
+    fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL, 0) | O_NONBLOCK);
 #endif
 
     connected = true;
@@ -117,7 +117,7 @@ int SpyServerClient::receive(char* buf, int count) {
 #ifdef _WIN32
     return checkError(recv(sock, (char*)buf, count, 0), count);
 #else
-    return checkError(read(sockfd, buf, count));
+    return checkError(read(sockfd, buf, count), count);
 #endif
 }
 
