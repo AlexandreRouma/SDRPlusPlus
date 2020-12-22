@@ -3,6 +3,8 @@
 #include <gui/icons.h>
 #include <gui/style.h>
 #include <config.h>
+#include <credits.h>
+#include <version.h>
 
 namespace credits {
     ImFont* bigFont;
@@ -29,30 +31,29 @@ namespace credits {
 
         ImGui::Columns(3, "CreditColumns", true);
 
-        // Contributors
         ImGui::Text("Contributors");
-        ImGui::BulletText("Ryzerth (Creator)");
-        ImGui::BulletText("Alexsey Shestacov");
-        ImGui::BulletText("aosync");
-        ImGui::BulletText("Benjamin Kyd");
-        ImGui::BulletText("Tobias Mädel");
-        ImGui::BulletText("Raov");
-        ImGui::BulletText("Howard0su");
+        for (int i = 0; i < sdrpp_credits::contributorCount; i++) {
+            ImGui::BulletText(sdrpp_credits::contributors[i]);
+        }
 
-        // Libraries
         ImGui::NextColumn();
         ImGui::Text("Libraries");
-        ImGui::BulletText("SoapySDR (PothosWare)");
-        ImGui::BulletText("Dear ImGui (ocornut)");
-        ImGui::BulletText("spdlog (gabime)");
-        ImGui::BulletText("json (nlohmann)");
-        ImGui::BulletText("portaudio (PA Comm.)");
+        for (int i = 0; i < sdrpp_credits::libraryCount; i++) {
+            ImGui::BulletText(sdrpp_credits::libraries[i]);
+        }
 
-        // Patrons
         ImGui::NextColumn();
         ImGui::Text("Patrons");
-        ImGui::BulletText("SignalsEverywhere");
-        ImGui::BulletText("Lee Donaghy");
+        for (int i = 0; i < sdrpp_credits::patronCount; i++) {
+            ImGui::BulletText(sdrpp_credits::patrons[i]);
+        }
+
+        ImGui::Columns(1, "CreditColumnsEnd", true);
+
+        ImGui::Spacing();
+        ImGui::Spacing();
+        ImGui::Spacing();
+        ImGui::Text("SDR++ v" VERSION_STR);
 
         ImGui::EndPopup();
         ImGui::PopStyleVar(1);

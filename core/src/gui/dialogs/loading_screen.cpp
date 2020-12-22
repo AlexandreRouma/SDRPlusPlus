@@ -6,6 +6,7 @@
 #include "imgui_impl_opengl3.h"
 #include <gui/icons.h>
 #include <gui/style.h>
+#include <credits.h>
 
 namespace LoadingScreen {
     GLFWwindow* _win;
@@ -41,30 +42,22 @@ namespace LoadingScreen {
 
         ImGui::Columns(3, "CreditColumns", true);
 
-        // Contributors
         ImGui::Text("Contributors");
-        ImGui::BulletText("Ryzerth (Creator)");
-        ImGui::BulletText("Alexsey Shestacov");
-        ImGui::BulletText("aosync");
-        ImGui::BulletText("Benjamin Kyd");
-        ImGui::BulletText("Tobias Mädel");
-        ImGui::BulletText("Raov");
-        ImGui::BulletText("Howard0su");
+        for (int i = 0; i < sdrpp_credits::contributorCount; i++) {
+            ImGui::BulletText(sdrpp_credits::contributors[i]);
+        }
 
-        // Libraries
         ImGui::NextColumn();
         ImGui::Text("Libraries");
-        ImGui::BulletText("SoapySDR (PothosWare)");
-        ImGui::BulletText("Dear ImGui (ocornut)");
-        ImGui::BulletText("spdlog (gabime)");
-        ImGui::BulletText("json (nlohmann)");
-        ImGui::BulletText("portaudio (PA Comm.)");
+        for (int i = 0; i < sdrpp_credits::libraryCount; i++) {
+            ImGui::BulletText(sdrpp_credits::libraries[i]);
+        }
 
-        // Patrons
         ImGui::NextColumn();
         ImGui::Text("Patrons");
-        ImGui::BulletText("SignalsEverywhere");
-        ImGui::BulletText("Lee Donaghy");
+        for (int i = 0; i < sdrpp_credits::patronCount; i++) {
+            ImGui::BulletText(sdrpp_credits::patrons[i]);
+        }
 
         ImGui::Columns(1, "CreditColumnsEnd", true);
 

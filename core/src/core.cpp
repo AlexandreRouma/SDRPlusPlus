@@ -118,7 +118,7 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["windowSize"]["w"] = 1280;
 
     // Load config
-    spdlog::info("Loading config {0}");
+    spdlog::info("Loading config");
     core::configManager.setPath(options::opts.root + "/config.json");
     core::configManager.load(defConfig);
     core::configManager.enableAutoSave();
