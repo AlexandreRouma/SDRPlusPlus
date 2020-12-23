@@ -40,9 +40,3 @@ jobs:
       shell: bash
       # Execute the build.  You can specify a specific target with "--target <NAME>"
       run: cmake --build . --config $BUILD_TYPE
-
-    - name: Create debian package
-      working-directory: $GITHUB_WORKSPACE
-      shell: bash
-      # Execute the build.  You can specify a specific target with "--target <NAME>"
-      run: sh make_debian_package.sh ${{runner.workspace}}/build
