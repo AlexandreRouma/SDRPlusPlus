@@ -131,9 +131,6 @@ public:
             sampleRateListTxt += '\0';
         }
 
-        blockSize = airspyhf_get_output_size(dev);
-        spdlog::info("AirspyHF block size {0}", blockSize);
-
         srId = 0;
 
         airspyhf_close(dev);
@@ -276,7 +273,6 @@ private:
     std::string name;
     airspyhf_device_t* openDev;
     bool enabled = true;
-    int blockSize = 0;
     dsp::stream<dsp::complex_t> stream;
     double sampleRate;
     SourceManager::SourceHandler handler;

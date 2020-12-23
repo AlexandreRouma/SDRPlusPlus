@@ -64,7 +64,7 @@ namespace LoadingScreen {
         ImGui::Spacing();
         ImGui::Spacing();
         ImGui::Spacing();
-        ImGui::Text(msg.c_str());
+        ImGui::Text("%s", msg.c_str());
 
         ImGui::EndPopup();
         ImGui::PopStyleVar(1);
