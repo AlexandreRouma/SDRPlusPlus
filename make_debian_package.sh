@@ -2,14 +2,14 @@
 
 # Create directory structure
 echo Create directory structure
-mkdir sdrpp
+mkdir sdrpp_deb
 mkdir sdrpp_deb/DEBIAN
 mkdir sdrpp_deb/usr
 mkdir sdrpp_deb/usr/bin
 mkdir sdrpp_deb/usr/share
 mkdir sdrpp_deb/usr/lib
 mkdir sdrpp_deb/usr/lib/sdrpp
-mkdir sdrpp_deb/usr/lib/sdrpp_deb/plugins
+mkdir sdrpp_deb/usr/lib/sdrpp/plugins
 
 # Create package info
 echo Create package info
@@ -39,4 +39,4 @@ cp $1/audio_sink/audio_sink.so sdrpp_deb/usr/lib/sdrpp_deb/plugins/
 
 # Create package
 echo Create package
-dpkg-deb --build sdrpp
+dpkg-deb --build sdrpp_deb
