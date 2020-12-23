@@ -136,6 +136,8 @@ Next install dependencies based on the modules you wish to build:
 * plutosdr_source: libiio, libad9361
 * audio_sink: portaudio
 
+Note: make sure you're using GCC 8 or later as older versions do not have `std::filesystem` built-in.
+
 ## Building
 replace `<N>` with the number of threads you wish to use to build
 ```sh

@@ -2,6 +2,8 @@
 #include <imgui.h>
 #include <gui/gui.h>
 #include <core.h>
+#include <gui/main_window.h>
+#include <gui/style.h>
 #include <signal_path/signal_path.h>
 
 namespace sourecmenu {
@@ -33,6 +35,8 @@ namespace sourecmenu {
             items += '\0';
         }
         float itemWidth = ImGui::GetContentRegionAvailWidth();
+
+        if (sdrIsRunning()) { style::beginDisabled(); }
         
         ImGui::SetNextItemWidth(itemWidth);
         if (ImGui::Combo("##source", &sourceId, items.c_str())) {
@@ -42,7 +46,10 @@ namespace sourecmenu {
             core::configManager.release(true);
         }
 
+        if (sdrIsRunning()) { style::endDisabled(); }
+
         sigpath::sourceManager.showSelectedMenu();
+
         ImGui::SetNextItemWidth(itemWidth - ImGui::CalcTextSize("Offset (Hz)").x - 10);
         if (ImGui::InputDouble("Offset (Hz)##freq_offset", &freqOffset, 1.0, 100.0)) {
             sigpath::sourceManager.setTuningOffset(freqOffset);

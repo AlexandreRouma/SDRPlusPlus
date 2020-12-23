@@ -43,6 +43,9 @@ public:
         struct addrinfo *ptr = NULL;
         struct addrinfo hints;
 
+        WSADATA wsaData;
+        WSAStartup(MAKEWORD(2,2), &wsaData);
+
         ZeroMemory( &hints, sizeof(hints) );
         hints.ai_family = AF_UNSPEC;
         hints.ai_socktype = SOCK_STREAM;
@@ -54,7 +57,7 @@ public:
         int iResult = getaddrinfo(host, buf, &hints, &result);
         if (iResult != 0) {
             // TODO: log error
-            printf("A");
+            printf("\n%s\n", gai_strerror(iResult));
             WSACleanup();
             return false;
         }

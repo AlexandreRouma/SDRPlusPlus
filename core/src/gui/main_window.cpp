@@ -611,3 +611,7 @@ void drawWindow() {
 void setViewBandwidthSlider(float bandwidth) {
     bw = bandwidth;
 }
+
+bool sdrIsRunning() {
+    return playing;
+}
