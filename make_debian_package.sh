@@ -7,6 +7,7 @@ mkdir sdrpp_deb/DEBIAN
 mkdir sdrpp_deb/usr
 mkdir sdrpp_deb/usr/bin
 mkdir sdrpp_deb/usr/share
+mkdir sdrpp_deb/usr/share/sdrpp
 mkdir sdrpp_deb/usr/lib
 mkdir sdrpp_deb/usr/lib/sdrpp
 mkdir sdrpp_deb/usr/lib/sdrpp/plugins
