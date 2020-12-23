@@ -44,19 +44,19 @@ namespace LoadingScreen {
 
         ImGui::Text("Contributors");
         for (int i = 0; i < sdrpp_credits::contributorCount; i++) {
-            ImGui::BulletText(sdrpp_credits::contributors[i]);
+            ImGui::BulletText("%s", sdrpp_credits::contributors[i]);
         }
 
         ImGui::NextColumn();
         ImGui::Text("Libraries");
         for (int i = 0; i < sdrpp_credits::libraryCount; i++) {
-            ImGui::BulletText(sdrpp_credits::libraries[i]);
+            ImGui::BulletText("%s", sdrpp_credits::libraries[i]);
         }
 
         ImGui::NextColumn();
         ImGui::Text("Patrons");
         for (int i = 0; i < sdrpp_credits::patronCount; i++) {
-            ImGui::BulletText(sdrpp_credits::patrons[i]);
+            ImGui::BulletText("%s", sdrpp_credits::patrons[i]);
         }
 
         ImGui::Columns(1, "CreditColumnsEnd", true);
