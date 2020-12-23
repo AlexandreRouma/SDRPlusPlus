@@ -34,10 +34,11 @@ echo Copy modules
 cp $1/radio/radio.so sdrpp_deb/usr/lib/sdrpp/plugins/
 cp $1/recorder/recorder.so sdrpp_deb/usr/lib/sdrpp/plugins/
 cp $1/airspyhf_source/airspyhf_source.so sdrpp_deb/usr/lib/sdrpp/plugins/
+cp $1/plutosdr_source/plutosdr_source.so sdrpp_deb/usr/lib/sdrpp/plugins/
 cp $1/rtl_tcp_source/rtl_tcp_source.so sdrpp_deb/usr/lib/sdrpp/plugins/
 cp $1/soapy_source/soapy_source.so sdrpp_deb/usr/lib/sdrpp/plugins/
 cp $1/audio_sink/audio_sink.so sdrpp_deb/usr/lib/sdrpp/plugins/
 
 # Create package
-echo Create package
+echo Create packagesudo
 dpkg-deb --build sdrpp_deb
