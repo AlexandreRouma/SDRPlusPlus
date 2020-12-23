@@ -3,39 +3,39 @@
 # Create directory structure
 echo Create directory structure
 mkdir sdrpp
-mkdir sdrpp/DEBIAN
-mkdir sdrpp/usr
-mkdir sdrpp/usr/bin
-mkdir sdrpp/usr/share
-mkdir sdrpp/usr/lib
-mkdir sdrpp/usr/lib/sdrpp
-mkdir sdrpp/usr/lib/sdrpp/plugins
+mkdir sdrpp_deb/DEBIAN
+mkdir sdrpp_deb/usr
+mkdir sdrpp_deb/usr/bin
+mkdir sdrpp_deb/usr/share
+mkdir sdrpp_deb/usr/lib
+mkdir sdrpp_deb/usr/lib/sdrpp
+mkdir sdrpp_deb/usr/lib/sdrpp_deb/plugins
 
 # Create package info
 echo Create package info
-echo Package: sdrpp >> sdrpp/DEBIAN/control
-echo Version: 0.2.5 >> sdrpp/DEBIAN/control
-echo Maintainer: Ryzerth >> sdrpp/DEBIAN/control
-echo Architecture: all >> sdrpp/DEBIAN/control
-echo Description: Bloat-free SDR receiver software >> sdrpp/DEBIAN/control
+echo Package: sdrpp >> sdrpp_deb/DEBIAN/control
+echo Version: 0.2.5 >> sdrpp_deb/DEBIAN/control
+echo Maintainer: Ryzerth >> sdrpp_deb/DEBIAN/control
+echo Architecture: all >> sdrpp_deb/DEBIAN/control
+echo Description: Bloat-free SDR receiver software >> sdrpp_deb/DEBIAN/control
 
 # Copy core files
 echo Copy core files
-cp build/sdrpp sdrpp/usr/bin/
-cp build/libsdrpp_core.so sdrpp/usr/lib/
+cp $1/sdrpp sdrpp_deb/usr/bin/
+cp $1/libsdrpp_core.so sdrpp_deb/usr/lib/
 
 # Copy reasources
 echo Copy reasources
-cp -r root/res/* sdrpp/usr/bin/
+cp -r root/res/* sdrpp_deb/usr/bin/
 
 # Copy module
 echo Copy modules
-cp build/radio/radio.so sdrpp/usr/lib/sdrpp/plugins/
-cp build/recorder/recorder.so sdrpp/usr/lib/sdrpp/plugins/
-cp build/airspyhf_source/airspyhf_source.so sdrpp/usr/lib/sdrpp/plugins/
-cp build/rtl_tcp_source/rtl_tcp_source.so sdrpp/usr/lib/sdrpp/plugins/
-cp build/soapy_source/soapy_source.so sdrpp/usr/lib/sdrpp/plugins/
-cp build/audio_sink/audio_sink.so sdrpp/usr/lib/sdrpp/plugins/
+cp $1/radio/radio.so sdrpp_deb/usr/lib/sdrpp_deb/plugins/
+cp $1/recorder/recorder.so sdrpp_deb/usr/lib/sdrpp_deb/plugins/
+cp $1/airspyhf_source/airspyhf_source.so sdrpp_deb/usr/lib/sdrpp_deb/plugins/
+cp $1/rtl_tcp_source/rtl_tcp_source.so sdrpp_deb/usr/lib/sdrpp_deb/plugins/
+cp $1/soapy_source/soapy_source.so sdrpp_deb/usr/lib/sdrpp_deb/plugins/
+cp $1/audio_sink/audio_sink.so sdrpp_deb/usr/lib/sdrpp_deb/plugins/
 
 # Create package
 echo Create package
