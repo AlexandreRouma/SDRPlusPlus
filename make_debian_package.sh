@@ -26,7 +26,7 @@ cp $1/libsdrpp_core.so sdrpp_deb/usr/lib/
 
 # Copy reasources
 echo Copy reasources
-cp -r root/res/* sdrpp_deb/usr/bin/
+cp -r root/res/* sdrpp_deb/usr/share/sdrpp/
 
 # Copy module
 echo Copy modules
