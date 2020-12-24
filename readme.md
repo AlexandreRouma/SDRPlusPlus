@@ -134,7 +134,6 @@ The modules built will be some of the following (Repeat the instructions above f
 # Building on Linux / BSD
 ## Install dependencies
 * cmake
-* vcpkg
 * fftw3
 * glfw
 * glew
