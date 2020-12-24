@@ -119,12 +119,13 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["menuWidth"] = 300;
     defConfig["min"] = -70.0;
 
-    defConfig["moduleInstances"]["Audio Sink"] = "audio_sink";
-    defConfig["moduleInstances"]["PlutoSDR Source"] = "plutosdr_source";
-    defConfig["moduleInstances"]["RTL-TCP Source"] = "rtl_tcp_source";
     defConfig["moduleInstances"]["Radio"] = "radio";
     defConfig["moduleInstances"]["Recorder"] = "recorder";
     defConfig["moduleInstances"]["SoapySDR Source"] = "soapy_source";
+    defConfig["moduleInstances"]["PlutoSDR Source"] = "plutosdr_source";
+    defConfig["moduleInstances"]["RTL-TCP Source"] = "rtl_tcp_source";
+    defConfig["moduleInstances"]["AirspyHF+ Source"] = "airspyhf_source";
+    defConfig["moduleInstances"]["Audio Sink"] = "audio_sink";
 
     defConfig["modules"] = json::array();
     defConfig["offset"] = 0.0;
