@@ -31,7 +31,15 @@ Download the latest release from [the Releases page](https://github.com/Alexandr
 To create a desktop short, rightclick the exe and select `Send to -> Desktop (create shortcut)`, then, rename the shortcut on the desktop to whatever you want.
 
 ## Linux
-TODO
+Download the latest release from [the Releases page](https://github.com/AlexandreRouma/SDRPlusPlus/releases) and extract to the directory of your choice.
+
+Then, run:
+```sh
+sudo apt install libfftw3-dev libglfw3-dev libglew-dev libvolk2-dev libsoapysdr-dev libairspyhf-dev libiio-dev libad9361-dev portaudio19-dev
+sudo dpkg -i sdrpp_debian_amd64.deb
+```
+
+If `libvolk2-dev` is not available, use `libvolk1-dev`.
 
 ## MacOS
 TODO
