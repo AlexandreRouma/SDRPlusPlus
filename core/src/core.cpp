@@ -161,10 +161,19 @@ int sdrpp_main(int argc, char *argv[]) {
         return 1;
     }
 
+#ifdef __APPLE__
+    // GL 3.2 + GLSL 150
+    const char* glsl_version = "#version 150";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
+#else
+    // GL 3.0 + GLSL 120
+    const char* glsl_version = "#version 120";
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+#endif
     
     core::configManager.aquire();
     int winWidth = core::configManager.conf["windowSize"]["w"];
@@ -230,7 +239,7 @@ int sdrpp_main(int argc, char *argv[]) {
 
     // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 150");
+    ImGui_ImplOpenGL3_Init(glsl_version);
 
     if (!style::setDarkStyle(resDir)) { return -1; }
 
