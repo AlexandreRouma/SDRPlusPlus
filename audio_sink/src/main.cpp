@@ -179,6 +179,7 @@ private:
     }
 
     void doStop() {
+        s2m.stop();
         monoRB.stop();
         stereoRB.stop();
         monoRB.data.stopReader();
