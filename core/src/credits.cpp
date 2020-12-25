@@ -6,6 +6,7 @@ namespace sdrpp_credits {
         "aosync",
         "Alexsey Shestacov",
         "Benjamin Kyd",
+        "Cropinghigh",
         "Tobias Mädel",
         "Raov",
         "Howard0su"
