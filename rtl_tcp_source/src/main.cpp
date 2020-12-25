@@ -218,12 +218,11 @@ private:
         while (true) {
             // Read samples here
             _this->client.receiveData(inBuf, blockSize * 2);
-            if (_this->stream.aquire() < 0) { break; }
             for (int i = 0; i < blockSize; i++) {
-                _this->stream.data[i].q = ((double)inBuf[i * 2] - 128.0) / 128.0;
-                _this->stream.data[i].i = ((double)inBuf[(i * 2) + 1] - 128.0) / 128.0;
+                _this->stream.writeBuf[i].q = ((double)inBuf[i * 2] - 128.0) / 128.0;
+                _this->stream.writeBuf[i].i = ((double)inBuf[(i * 2) + 1] - 128.0) / 128.0;
             }
-            _this->stream.write(blockSize);
+            if (!_this->stream.swap(blockSize)) { break; };
         }
 
         delete[] inBuf;

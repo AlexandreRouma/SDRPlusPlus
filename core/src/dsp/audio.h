@@ -29,14 +29,13 @@ namespace dsp {
             count = _in->read();
             if (count < 0) { return -1; }
 
-            if (out.aquire() < 0) { return -1; }
             for (int i = 0; i < count; i++) {
-                out.data[i].l = _in->data[i];
-                out.data[i].r = _in->data[i];
+                out.writeBuf[i].l = _in->readBuf[i];
+                out.writeBuf[i].r = _in->readBuf[i];
             }
 
             _in->flush();
-            out.write(count);
+            if (!out.swap(count)) { return -1; }
             return count;
         }
 
@@ -75,13 +74,12 @@ namespace dsp {
             count = _in->read();
             if (count < 0) { return -1; }
 
-            if (out.aquire() < 0) { return -1; }
             for (int i = 0; i < count; i++) {
-                out.data[i] = (_in->data[i].l + _in->data[i].r) / 2.0f;
+                out.writeBuf[i] = (_in->readBuf[i].l + _in->readBuf[i].r) / 2.0f;
             }
 
             _in->flush();
-            out.write(count);
+            if (!out.swap(count)) { return -1; }
             return count;
         }
 

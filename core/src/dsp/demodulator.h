@@ -83,19 +83,17 @@ namespace dsp {
             // This is somehow faster than volk...
 
             float diff, currentPhase;
-
-            if (out.aquire() < 0) { return -1; } 
             for (int i = 0; i < count; i++) {
-                currentPhase = fast_arctan2(_in->data[i].i, _in->data[i].q);
+                currentPhase = fast_arctan2(_in->readBuf[i].i, _in->readBuf[i].q);
                 diff = currentPhase - phase;
                 if (diff > 3.1415926535f)        { diff -= 2 * 3.1415926535f; }
                 else if (diff <= -3.1415926535f) { diff += 2 * 3.1415926535f; }
-                out.data[i] = diff / phasorSpeed;
+                out.writeBuf[i] = diff / phasorSpeed;
                 phase = currentPhase;
             }
 
             _in->flush();
-            out.write(count);
+            if (!out.swap(count)) { return -1; }
             return count;
         }
 
@@ -135,19 +133,18 @@ namespace dsp {
             count = _in->read();
             if (count < 0) { return -1; }
 
-            if (out.aquire() < 0) { return -1; } 
-            volk_32fc_magnitude_32f(out.data, (lv_32fc_t*)_in->data, count);
+            volk_32fc_magnitude_32f(out.writeBuf, (lv_32fc_t*)_in->readBuf, count);
 
             _in->flush();
 
-            volk_32f_accumulator_s32f(&avg, out.data, count);
+            volk_32f_accumulator_s32f(&avg, out.writeBuf, count);
             avg /= (float)count;
 
             for (int i = 0; i < count; i++) {
-                out.data[i] -= avg;
+                out.writeBuf[i] -= avg;
             }
 
-            out.write(count);
+            if (!out.swap(count)) { return -1; }
             return count;
         }
 
@@ -259,12 +256,11 @@ namespace dsp {
             count = _in->read();
             if (count < 0) { return -1; }
 
-            if (out.aquire() < 0) { return -1; } 
-            volk_32fc_s32fc_x2_rotator_32fc(buffer, (lv_32fc_t*)_in->data, phaseDelta, &phase, count);
-            volk_32fc_deinterleave_real_32f(out.data, buffer, count);
+            volk_32fc_s32fc_x2_rotator_32fc(buffer, (lv_32fc_t*)_in->readBuf, phaseDelta, &phase, count);
+            volk_32fc_deinterleave_real_32f(out.writeBuf, buffer, count);
 
             _in->flush();
-            out.write(count);
+            if (!out.swap(count)) { return -1; }
             return count;
         }
 

@@ -254,8 +254,8 @@ private:
             int count = _this->audioStream->read();
             if (count < 0) { break; }
             for (int i = 0; i < count; i++) {
-                sampleBuf[(i * 2) + 0] = _this->audioStream->data[i].l * 0x7FFF;
-                sampleBuf[(i * 2) + 1] = _this->audioStream->data[i].r * 0x7FFF;
+                sampleBuf[(i * 2) + 0] = _this->audioStream->readBuf[i].l * 0x7FFF;
+                sampleBuf[(i * 2) + 1] = _this->audioStream->readBuf[i].r * 0x7FFF;
             }
             _this->audioStream->flush();
             _this->samplesWritten += count;
@@ -270,8 +270,8 @@ private:
             int count = _this->iqStream->read();
             if (count < 0) { break; }
             for (int i = 0; i < count; i++) {
-                sampleBuf[(i * 2) + 0] = _this->iqStream->data[i].q * 0x7FFF;
-                sampleBuf[(i * 2) + 1] = _this->iqStream->data[i].i * 0x7FFF;
+                sampleBuf[(i * 2) + 0] = _this->iqStream->readBuf[i].q * 0x7FFF;
+                sampleBuf[(i * 2) + 1] = _this->iqStream->readBuf[i].i * 0x7FFF;
             }
             _this->iqStream->flush();
             _this->samplesWritten += count;

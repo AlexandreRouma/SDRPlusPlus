@@ -52,24 +52,21 @@ namespace dsp {
             count = _in->read();
             if (count < 0) { return -1; }
 
-            memcpy(bufStart, _in->data, count * sizeof(T));
+            memcpy(bufStart, _in->readBuf, count * sizeof(T));
             _in->flush();
-
-            // Write to output
-            if (out.aquire() < 0) { return -1; } 
 
             if constexpr (std::is_same_v<T, float>) {
                 for (int i = 0; i < count; i++) {
-                    volk_32f_x2_dot_prod_32f((float*)&out.data[i], (float*)&buffer[i+1], taps, tapCount);
+                    volk_32f_x2_dot_prod_32f((float*)&out.writeBuf[i], (float*)&buffer[i+1], taps, tapCount);
                 }
             }
             if constexpr (std::is_same_v<T, complex_t>) {
                 for (int i = 0; i < count; i++) {
-                    volk_32fc_32f_dot_prod_32fc((lv_32fc_t*)&out.data[i], (lv_32fc_t*)&buffer[i+1], taps, tapCount);
+                    volk_32fc_32f_dot_prod_32fc((lv_32fc_t*)&out.writeBuf[i], (lv_32fc_t*)&buffer[i+1], taps, tapCount);
                 }
             }
 
-            out.write(count);
+            if (!out.swap(count)) { return -1; }
 
             memmove(buffer, &buffer[count], tapCount * sizeof(T));
 
@@ -135,25 +132,23 @@ namespace dsp {
             if (count < 0) { return -1; }
 
             if (bypass) {
-                if (out.aquire() < 0) { return -1; }
-                memcpy(out.data, _in->data, count * sizeof(float));
+                memcpy(out.writeBuf, _in->readBuf, count * sizeof(float));
                 _in->flush();
-                out.write(count);
+                if (!out.swap(count)) { return -1; }
                 return count;
             }
 
             if (isnan(lastOut)) {
                 lastOut = 0.0f;
             }
-            if (out.aquire() < 0) { return -1; } 
-            out.data[0] = (alpha * _in->data[0]) + ((1-alpha) * lastOut);
+            out.writeBuf[0] = (alpha * _in->readBuf[0]) + ((1-alpha) * lastOut);
             for (int i = 1; i < count; i++) {
-                out.data[i] = (alpha * _in->data[i]) + ((1 - alpha) * out.data[i - 1]);
+                out.writeBuf[i] = (alpha * _in->readBuf[i]) + ((1 - alpha) * out.writeBuf[i - 1]);
             }
-            lastOut = out.data[count - 1];
+            lastOut = out.writeBuf[count - 1];
 
             _in->flush();
-            out.write(count);
+            if (!out.swap(count)) { return -1; }
             return count;
         }
 

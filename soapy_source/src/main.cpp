@@ -351,12 +351,11 @@ private:
         long long timeMs = 0;
         
         while (_this->running) {
-            if (_this->stream.aquire() < 0) { break; }
-            int res = _this->dev->readStream(_this->devStream, (void**)&_this->stream.data, blockSize, flags, timeMs);
+            int res = _this->dev->readStream(_this->devStream, (void**)&_this->stream.writeBuf, blockSize, flags, timeMs);
             if (res < 1) {
                 continue;
             }
-            _this->stream.write(res);
+            if (!_this->stream.swap(res)) { return; }
         }
     }
 

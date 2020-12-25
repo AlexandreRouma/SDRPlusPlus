@@ -100,35 +100,32 @@ namespace dsp {
 
             int outCount = calcOutSize(count);
 
-            memcpy(&buffer[tapCount], _in->data, count * sizeof(T));
+            memcpy(&buffer[tapCount], _in->readBuf, count * sizeof(T));
             _in->flush();
 
             // Write to output
-            if (out.aquire() < 0) {
-                return -1;
-            }
             int outIndex = 0;
             if constexpr (std::is_same_v<T, float>) {
                 for (int i = 0; outIndex < outCount; i += _decim) {
-                    out.data[outIndex] = 0;
+                    out.writeBuf[outIndex] = 0;
                     for (int j = i % _interp; j < tapCount; j += _interp) {
-                        out.data[outIndex] += buffer[((i - j) / _interp) + tapCount] * taps[j];
+                        out.writeBuf[outIndex] += buffer[((i - j) / _interp) + tapCount] * taps[j];
                     }
                     outIndex++;
                 }
             }
             if constexpr (std::is_same_v<T, complex_t>) {
                 for (int i = 0; outIndex < outCount; i += _decim) {
-                    out.data[outIndex].i = 0;
-                    out.data[outIndex].q = 0;
+                    out.writeBuf[outIndex].i = 0;
+                    out.writeBuf[outIndex].q = 0;
                     for (int j = i % _interp; j < tapCount; j += _interp) {
-                        out.data[outIndex].i += buffer[((i - j) / _interp) + tapCount].i * taps[j];
-                        out.data[outIndex].q += buffer[((i - j) / _interp) + tapCount].q * taps[j];
+                        out.writeBuf[outIndex].i += buffer[((i - j) / _interp) + tapCount].i * taps[j];
+                        out.writeBuf[outIndex].q += buffer[((i - j) / _interp) + tapCount].q * taps[j];
                     }
                     outIndex++;
                 }
             }
-            out.write(outCount);
+            if (!out.swap(outCount)) { return -1; }
 
             memmove(buffer, &buffer[count], tapCount * sizeof(T));
 

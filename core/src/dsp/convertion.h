@@ -31,11 +31,10 @@ namespace dsp {
             count = _in->read();
             if (count < 0) { return -1; }
 
-            if (out.aquire() < 0) { return -1; } 
-            memcpy(out.data, _in->data, count * sizeof(complex_t));
+            memcpy(out.writeBuf, _in->readBuf, count * sizeof(complex_t));
 
             _in->flush();
-            out.write(count);
+            if (!out.swap(count)) { return -1; }
             return count;
         }
 
@@ -75,11 +74,10 @@ namespace dsp {
             count = _in->read();
             if (count < 0) { return -1; }
 
-            if (out.aquire() < 0) { return -1; } 
-            volk_32fc_deinterleave_real_32f(out.data, (lv_32fc_t*)_in->data, count);
+            volk_32fc_deinterleave_real_32f(out.writeBuf, (lv_32fc_t*)_in->readBuf, count);
 
             _in->flush();
-            out.write(count);
+            if (!out.swap(count)) { return -1; }
             return count;
         }
 
@@ -119,11 +117,10 @@ namespace dsp {
             count = _in->read();
             if (count < 0) { return -1; }
 
-            if (out.aquire() < 0) { return -1; } 
-            volk_32fc_deinterleave_imag_32f(out.data, (lv_32fc_t*)_in->data, count);
+            volk_32fc_deinterleave_imag_32f(out.writeBuf, (lv_32fc_t*)_in->readBuf, count);
 
             _in->flush();
-            out.write(count);
+            if(!out.swap(count)) { return -1; }
             return count;
         }
 
