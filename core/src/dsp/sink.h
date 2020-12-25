@@ -39,7 +39,7 @@ namespace dsp {
         int run() {
             count = _in->read();
             if (count < 0) { return -1; }
-            _handler(_in->data, count, _ctx);
+            _handler(_in->readBuf, count, _ctx);
             _in->flush();
             return count;
         }
@@ -79,7 +79,7 @@ namespace dsp {
         int run() {
             count = _in->read();
             if (count < 0) { return -1; }
-            if (data.write(_in->data, count) < 0) { return -1; }
+            if (data.write(_in->readBuf, count) < 0) { return -1; }
             _in->flush();
             return count;
         }

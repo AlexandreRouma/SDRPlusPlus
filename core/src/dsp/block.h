@@ -6,6 +6,8 @@
 #include <vector>
 #include <algorithm>
 
+#include <spdlog/spdlog.h>
+
 #define FL_M_PI                3.1415926535f
 
 namespace dsp {
@@ -77,10 +79,10 @@ namespace dsp {
         }
 
         virtual void doStop() {
-            for (auto const& in : inputs) {
+            for (auto& in : inputs) {
                 in->stopReader();
             }
-            for (auto const& out : outputs) {
+            for (auto& out : outputs) {
                 out->stopWriter();
             }
 
@@ -88,11 +90,11 @@ namespace dsp {
             if (workerThread.joinable()) {
                 workerThread.join();
             }
-            
-            for (auto const& in : inputs) {
+
+            for (auto& in : inputs) {
                 in->clearReadStop();
             }
-            for (auto const& out : outputs) {
+            for (auto& out : outputs) {
                 out->clearWriteStop();
             }
         }

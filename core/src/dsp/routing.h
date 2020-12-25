@@ -51,9 +51,8 @@ namespace dsp {
             int count = _in->read();
             if (count < 0) { return -1; }
             for (const auto& stream : out) {
-                if (stream->aquire() < 0) { return -1; } 
-                memcpy(stream->data, _in->data, count * sizeof(T));
-                stream->write(count);
+                memcpy(stream->writeBuf, _in->readBuf, count * sizeof(T));
+                if (!stream->swap(count)) { return -1; }
             }
             _in->flush();
             return count;
@@ -115,7 +114,7 @@ namespace dsp {
         int run() {
             int count = _in->read();
             if (count < 0) { return -1; }
-            ringBuf.write(_in->data, count);
+            ringBuf.write(_in->readBuf, count);
             _in->flush();
             return count;
         }
@@ -172,9 +171,8 @@ namespace dsp {
                     }
                 }
                 if (ringBuf.readAndSkip(start, readCount, skip) < 0) { break; };
-                if (out.aquire() < 0) { break; }
-                memcpy(out.data, buf, _keep * sizeof(complex_t));
-                out.write(_keep);
+                memcpy(out.writeBuf, buf, _keep * sizeof(complex_t));
+                if (!out.swap(_keep)) { break; }
             }
             delete[] buf;
         }

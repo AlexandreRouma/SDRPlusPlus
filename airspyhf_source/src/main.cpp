@@ -262,11 +262,8 @@ private:
 
     static int callback(airspyhf_transfer_t* transfer) {
         AirspyHFSourceModule* _this = (AirspyHFSourceModule*)transfer->ctx;
-        if (_this->stream.aquire() < 0) {
-            return -1;
-        }
-        memcpy(_this->stream.data, transfer->samples, transfer->sample_count * sizeof(dsp::complex_t));
-        _this->stream.write(transfer->sample_count);
+        memcpy(_this->stream.writeBuf, transfer->samples, transfer->sample_count * sizeof(dsp::complex_t));
+        if (!_this->stream.swap(transfer->sample_count)) { return -1; }
         return 0;
     }
 

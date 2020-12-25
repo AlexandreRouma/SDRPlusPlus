@@ -60,18 +60,16 @@ namespace dsp {
             count = _in->read();
             if (count < 0) { return -1; }
 
-            if (out.aquire() < 0) { return -1; }
-
             // TODO: Do float xlation
             if constexpr (std::is_same_v<T, float>) {
                 spdlog::error("XLATOR NOT IMPLEMENTED FOR FLOAT");
             }
             if constexpr (std::is_same_v<T, complex_t>) {
-                volk_32fc_s32fc_x2_rotator_32fc((lv_32fc_t*)out.data, (lv_32fc_t*)_in->data, phaseDelta, &phase, count);
+                volk_32fc_s32fc_x2_rotator_32fc((lv_32fc_t*)out.writeBuf, (lv_32fc_t*)_in->readBuf, phaseDelta, &phase, count);
             }
 
             _in->flush();
-            out.write(count);
+            if (!out.swap(count)) { return -1; }
             return count;
         }
 
@@ -115,17 +113,13 @@ namespace dsp {
             count = _in->read();
             if (count < 0) { return -1; }
 
-            if (out.aquire() < 0) { return -1; }
-
             for (int i = 0; i < count; i++) {
-                level = (fabsf(_in->data[i]) * _ratio) + (level * (1.0f - _ratio));
-                out.data[i] = _in->data[i] / level;
+                level = (fabsf(_in->readBuf[i]) * _ratio) + (level * (1.0f - _ratio));
+                out.writeBuf[i] = _in->readBuf[i] / level;
             }
 
-            
-
             _in->flush();
-            out.write(count);
+            if (!out.swap(count)) { return -1; }
             return count;
         }
 
@@ -185,27 +179,25 @@ namespace dsp {
             count = _in->read();
             if (count < 0) { return -1; }
 
-            if (out.aquire() < 0) { return -1; }
-
             if (_muted) {
                 if constexpr (std::is_same_v<T, stereo_t>) {
-                    memset(out.data, 0, sizeof(stereo_t) * count);
+                    memset(out.writeBuf, 0, sizeof(stereo_t) * count);
                 }
                 else {
-                    memset(out.data, 0, sizeof(float) * count);
+                    memset(out.writeBuf, 0, sizeof(float) * count);
                 }
             }
             else {
                 if constexpr (std::is_same_v<T, stereo_t>) {
-                    volk_32f_s32f_multiply_32f((float*)out.data, (float*)_in->data, level, count * 2);
+                    volk_32f_s32f_multiply_32f((float*)out.writeBuf, (float*)_in->readBuf, level, count * 2);
                 }
                 else {
-                    volk_32f_s32f_multiply_32f((float*)out.data, (float*)_in->data, level, count);
+                    volk_32f_s32f_multiply_32f((float*)out.writeBuf, (float*)_in->readBuf, level, count);
                 }
             }
 
             _in->flush();
-            out.write(count);
+            if (!out.swap(count)) { return -1; }
             return count;
         }
 
@@ -260,21 +252,20 @@ namespace dsp {
             count = _in->read();
             if (count < 0) { return -1; }
 
-            if (out.aquire() < 0) { return -1; }
             float sum = 0.0f;
-            volk_32fc_magnitude_32f(normBuffer, (lv_32fc_t*)_in->data, count);
+            volk_32fc_magnitude_32f(normBuffer, (lv_32fc_t*)_in->readBuf, count);
             volk_32f_accumulator_s32f(&sum, normBuffer, count);
             sum /= (float)count;
 
             if (10.0f * log10f(sum) >= _level) {
-                memcpy(out.data, _in->data, count * sizeof(complex_t));
+                memcpy(out.writeBuf, _in->readBuf, count * sizeof(complex_t));
             }
             else {
-                memset(out.data, 0, count * sizeof(complex_t));
+                memset(out.writeBuf, 0, count * sizeof(complex_t));
             }
 
             _in->flush();
-            out.write(count);
+            if (!out.swap(count)) { return -1; }
             return count; 
         }
 

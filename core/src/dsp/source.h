@@ -55,9 +55,8 @@ namespace dsp {
         }
 
         int run() {
-            if (out.aquire() < 0) { return -1; }
-            volk_32fc_s32fc_x2_rotator_32fc((lv_32fc_t*)out.data, zeroPhase, phaseDelta, &phase, _blockSize);
-            out.write(_blockSize);
+            volk_32fc_s32fc_x2_rotator_32fc((lv_32fc_t*)out.writeBuf, zeroPhase, phaseDelta, &phase, _blockSize);
+            if(!out.swap(_blockSize)) { return -1; }
             return _blockSize;
         }
 
