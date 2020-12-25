@@ -38,10 +38,7 @@ namespace dsp {
                 swapCV.wait(lck, [this]{ return (canSwap || writerStop); });
 
                 // If writer was stopped, abandon operation
-                if (writerStop) {
-                    writerStop = false;
-                    return false;
-                }
+                if (writerStop) { return false; }
 
                 // Swap buffers
                 dataSize = size;
@@ -66,23 +63,22 @@ namespace dsp {
             std::unique_lock<std::mutex> lck(rdyMtx);
             rdyCV.wait(lck, [this]{ return (dataReady || readerStop); });
 
-            // If stopped, abort
-            if (readerStop) {
-                readerStop = false;
-                return -1;
-            }
-
-            dataReady = false;
-
-            return dataSize;
+            return (readerStop ? -1 : dataSize);
         }
 
         void flush() {
+            // Clear data ready
+            {
+                std::lock_guard<std::mutex> lck(rdyMtx);
+                dataReady = false;
+            }
+
             // Notify writer that buffers can be swapped
             {
                 std::lock_guard<std::mutex> lck(swapMtx);
                 canSwap = true;
             }
+
             swapCV.notify_all();
         }
 
