@@ -6,6 +6,7 @@ option(OPT_BUILD_SPYSERVER_SOURCE "Build SpyServer Source Module (no dependencie
 option(OPT_BUILD_SOAPY_SOURCE "Build SoapySDR Source Module (Depedencies: soapysdr)" ON)
 option(OPT_BUILD_AIRSPYHF_SOURCE "Build Airspy HF+ Source Module (Depedencies: libairspyhf)" ON)
 option(OPT_BUILD_PLUTOSDR_SOURCE "Build PlutoSDR Source Module (Depedencies: libiio, libad9361)" ON)
+option(OPT_BUILD_HACKRF_SOURCE "Build HackRF Source Module (Depedencies: libhackrf)" ON)
 option(OPT_BUILD_AUDIO_SINK "Build Audio Sink Module (Depedencies: portaudio)" ON)
 
 # Core of SDR++
@@ -35,6 +36,10 @@ endif (OPT_BUILD_AIRSPYHF_SOURCE)
 if (OPT_BUILD_PLUTOSDR_SOURCE)
 add_subdirectory("plutosdr_source")
 endif (OPT_BUILD_PLUTOSDR_SOURCE)
+
+if (OPT_BUILD_HACKRF_SOURCE)
+add_subdirectory("hackrf_source")
+endif (OPT_BUILD_HACKRF_SOURCE)
 
 if (OPT_BUILD_AUDIO_SINK)
 add_subdirectory("audio_sink")
