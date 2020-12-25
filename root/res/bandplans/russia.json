@@ -6,6 +6,24 @@
     "author_url": "https://twitter.com/raov_birbtog",
     "bands": [
         {
+            "name": "2200m",
+            "type": "amateur",
+            "start": 135700,
+            "end": 137800
+        },
+        {
+            "name": "LW",
+            "type": "broadcast",
+            "start": 144000,
+            "end": 415000
+        },
+        {
+            "name": "MW",
+            "type": "broadcast",
+            "start": 520000,
+            "end": 1602000
+        },
+        {
             "name": "160m CW",
             "type": "amateur",
             "start": 1810000,
@@ -28,6 +46,12 @@
             "type": "amateur",
             "start": 1843000,
             "end": 2000000
+        },
+        {
+            "name": "SW 90m",
+            "type": "broadcast",
+            "start": 3200000,
+            "end": 3400000
         },
         {
             "name": "80m CW",
@@ -78,22 +102,22 @@
             "end": 3800000
         },
         {
-            "name": "60m CW 200Hz",
-            "type": "amateur",
-            "start": 5351500,
-            "end": 5354000
+            "name": "SW 75m",
+            "type": "broadcast",
+            "start": 3900000,
+            "end": 4000000
         },
         {
-            "name": "60m USB",
-            "type": "amateur",
-            "start": 5354000,
-            "end": 5366000
+            "name": "SW 60m",
+            "type": "broadcast",
+            "start": 4750000,
+            "end": 5060000
         },
         {
-            "name": "60m CW 20Hz",
-            "type": "amateur",
-            "start": 5356000,
-            "end": 5366500
+            "name": "SW 49m",
+            "type": "broadcast",
+            "start": 5900000,
+            "end": 6200000
         },
         {
             "name": "40m CW",
@@ -130,6 +154,480 @@
             "type": "amateur",
             "start": 7130000,
             "end": 7200000
+        },
+        {
+            "name": "SW 31m",
+            "type": "broadcast",
+            "start": 9500000,
+            "end": 9900000
+        },
+        {
+            "name": "30m CW",
+            "type": "amateur",
+            "start": 10100000,
+            "end": 10130000
+        },
+        {
+            "name": "30m NB",
+            "type": "amateur",
+            "start": 10130000,
+            "end": 10150000
+        },
+        {
+            "name": "SW 25m",
+            "type": "broadcast",
+            "start": 11650000,
+            "end": 12050000
+        },
+        {
+            "name": "SW 22m",
+            "type": "broadcast",
+            "start": 13600000,
+            "end": 13800000
+        },
+        {
+            "name": "20m CW Contest",
+            "type": "amateur",
+            "start": 14000000,
+            "end": 14060000
+        },
+        {
+            "name": "20m CW",
+            "type": "amateur",
+            "start": 14060000,
+            "end": 14070000
+        },
+        {
+            "name": "20m NB",
+            "type": "amateur",
+            "start": 14070000,
+            "end": 14099000
+        },
+        {
+            "name": "20m Beacons",
+            "type": "amateur",
+            "start": 14099000,
+            "end": 14101000
+        },
+        {
+            "name": "20m Digital",
+            "type": "amateur",
+            "start": 14101000,
+            "end": 14112000
+        },
+        {
+            "name": "20m",
+            "type": "amateur",
+            "start": 14112000,
+            "end": 14125000
+        },
+        {
+            "name": "20m Contest",
+            "type": "amateur",
+            "start": 14125000,
+            "end": 14300000
+        },
+        {
+            "name": "20m",
+            "type": "amateur",
+            "start": 14300000,
+            "end": 14350000
+        },
+        {
+            "name": "SW 19m",
+            "type": "broadcast",
+            "start": 15100000,
+            "end": 15600000
+        },
+        {
+            "name": "SW 16m",
+            "type": "broadcast",
+            "start": 17550000,
+            "end": 17900000
+        },
+        {
+            "name": "17m CW",
+            "type": "amateur",
+            "start": 18068000,
+            "end": 18095000
+        },
+        {
+            "name": "17m NB",
+            "type": "amateur",
+            "start": 18095000,
+            "end": 18109000
+        },
+        {
+            "name": "17m Beacons",
+            "type": "amateur",
+            "start": 18109000,
+            "end": 18111000
+        },
+        {
+            "name": "17m Digital",
+            "type": "amateur",
+            "start": 18111000,
+            "end": 18120000
+        },
+        {
+            "name": "17m",
+            "type": "amateur",
+            "start": 18120000,
+            "end": 18168000
+        },
+        {
+            "name": "15m CW",
+            "type": "amateur",
+            "start": 21000000,
+            "end": 21070000
+        },
+        {
+            "name": "15m NB",
+            "type": "amateur",
+            "start": 21070000,
+            "end": 21110000
+        },
+        {
+            "name": "15m Digital",
+            "type": "amateur",
+            "start": 21110000,
+            "end": 21120000
+        },
+        {
+            "name": "15m NB",
+            "type": "amateur",
+            "start": 21120000,
+            "end": 21149000
+        },
+        {
+            "name": "15m Beacons",
+            "type": "amateur",
+            "start": 21149000,
+            "end": 21151000
+        },
+        {
+            "name": "15m",
+            "type": "amateur",
+            "start": 21151000,
+            "end": 21450000
+        },
+        {
+            "name": "SW 13m",
+            "type": "broadcast",
+            "start": 21450000,
+            "end": 21850000
+        },
+        {
+            "name": "12m CW",
+            "type": "amateur",
+            "start": 24890000,
+            "end": 24915000
+        },
+        {
+            "name": "12m NB",
+            "type": "amateur",
+            "start": 24915000,
+            "end": 24929000
+        },
+        {
+            "name": "12m Beacons",
+            "type": "amateur",
+            "start": 24929000,
+            "end": 24931000
+        },
+        {
+            "name": "12m Digital",
+            "type": "amateur",
+            "start": 24931000,
+            "end": 24940000
+        },
+        {
+            "name": "12m",
+            "type": "amateur",
+            "start": 24940000,
+            "end": 24990000
+        },
+        {
+            "name": "SW 11m",
+            "type": "broadcast",
+            "start": 25650000,
+            "end": 26100000
+        },
+        {
+            "name": "CB",
+            "type": "amateur",
+            "start": 25165000,
+            "end": 30105000
+        },
+        {
+            "name": "10m CW",
+            "type": "amateur",
+            "start": 28000000,
+            "end": 28070000
+        },
+        {
+            "name": "10m NB Digital",
+            "type": "amateur",
+            "start": 28070000,
+            "end": 28150000
+        },
+        {
+            "name": "10m NB",
+            "type": "amateur",
+            "start": 28150000,
+            "end": 28190000
+        },
+        {
+            "name": "10m Beacons",
+            "type": "amateur",
+            "start": 28190000,
+            "end": 28225000
+        },
+        {
+            "name": "10m Beacons",
+            "type": "amateur",
+            "start": 28225000,
+            "end": 28300000
+        },
+        {
+            "name": "10m Digital",
+            "type": "amateur",
+            "start": 28300000,
+            "end": 28320000
+        },
+        {
+            "name": "10m",
+            "type": "amateur",
+            "start": 28320000,
+            "end": 29000000
+        },
+        {
+            "name": "10m",
+            "type": "amateur",
+            "start": 29000000,
+            "end": 29300000
+        },
+        {
+            "name": "10m Sat",
+            "type": "amateur",
+            "start": 29300000,
+            "end": 29510000
+        },
+        {
+            "name": "10m FM-R",
+            "type": "amateur",
+            "start": 29520000,
+            "end": 29590000
+        },
+        {
+            "name": "10m FM-R",
+            "type": "amateur",
+            "start": 29620000,
+            "end": 29700000
+        },
+        {
+            "name": "UHF Soviet",
+            "type": "broadcast",
+            "start": 65900000,
+            "end": 74000000
+        },
+        {
+            "name": "UHF(FM)",
+            "type": "broadcast",
+            "start": 87500000,
+            "end": 108000000
+        },
+        {
+            "name": "Airband",
+            "type": "military",
+            "start": 108000000,
+            "end": 117950000
+        },
+        {
+            "name": "2m CW",
+            "type": "amateur",
+            "start": 144035000,
+            "end": 144100000
+        },
+        {
+            "name": "2m CW",
+            "type": "amateur",
+            "start": 144100000,
+            "end": 144150000
+        },
+        {
+            "name": "2m Digital",
+            "type": "amateur",
+            "start": 144165000,
+            "end": 144180000
+        },
+        {
+            "name": "2m",
+            "type": "amateur",
+            "start": 144180000,
+            "end": 144360000
+        },
+        {
+            "name": "2m Digital",
+            "type": "amateur",
+            "start": 144360000,
+            "end": 144400000
+        },
+        {
+            "name": "2m Beacons",
+            "type": "amateur",
+            "start": 144400000,
+            "end": 144490000
+        },
+        {
+            "name": "2m Digital",
+            "type": "amateur",
+            "start": 144500000,
+            "end": 144794000
+        },
+        {
+            "name": "2m Digital",
+            "type": "amateur",
+            "start": 144794000,
+            "end": 144990000
+        },
+        {
+            "name": "2m FM-R",
+            "type": "amateur",
+            "start": 144990000,
+            "end": 145194000
+        },
+        {
+            "name": "2m FM Sat",
+            "type": "amateur",
+            "start": 145194000,
+            "end": 145206000
+        },
+        {
+            "name": "2m FM",
+            "type": "amateur",
+            "start": 145206000,
+            "end": 145594000
+        },
+        {
+            "name": "2m FM-R",
+            "type": "amateur",
+            "start": 145594000,
+            "end": 145793500
+        },
+        {
+            "name": "2m FM Sat",
+            "type": "amateur",
+            "start": 145793500,
+            "end": 145806000
+        },
+        {
+            "name": "2m Sat",
+            "type": "amateur",
+            "start": 145806000,
+            "end": 146000000
+        },
+        {
+            "name": "70cm",
+            "type": "amateur",
+            "start": 430000000,
+            "end": 432000000
+        },
+        {
+            "name": "70cm CW",
+            "type": "amateur",
+            "start": 432025000,
+            "end": 432100000
+        },
+        {
+            "name": "70cm",
+            "type": "amateur",
+            "start": 432100000,
+            "end": 432400000
+        },
+        {
+            "name": "70cm Beacons",
+            "type": "amateur",
+            "start": 432400000,
+            "end": 432500000
+        },
+        {
+            "name": "70cm",
+            "type": "amateur",
+            "start": 432500000,
+            "end": 433000000
+        },
+        {
+            "name": "LPD",
+            "type": "amateur",
+            "start": 433075000,
+            "end": 434775000
+        },
+        {
+            "name": "70cm",
+            "type": "amateur",
+            "start": 435000000,
+            "end": 440000000
+        },
+        {
+            "name": "PMR",
+            "type": "amateur",
+            "start": 446000000,
+            "end": 446100000
+        },
+        {
+            "name": "23cm",
+            "type": "amateur",
+            "start": 1260000000,
+            "end": 1290994000
+        },
+        {
+            "name": "23cm FM-R",
+            "type": "amateur",
+            "start": 1290994000,
+            "end": 1291481000
+        },
+        {
+            "name": "23cm",
+            "type": "amateur",
+            "start": 1291481000,
+            "end": 1296000000
+        },
+        {
+            "name": "23cm CW",
+            "type": "amateur",
+            "start": 1296025000,
+            "end": 1296150000
+        },
+        {
+            "name": "23cm",
+            "type": "amateur",
+            "start": 1296150000,
+            "end": 1296800000
+        },
+        {
+            "name": "23cm Beacons",
+            "type": "amateur",
+            "start": 1296800000,
+            "end": 1296994000
+        },
+        {
+            "name": "23cm FM-R",
+            "type": "amateur",
+            "start": 1296994000,
+            "end": 1297490000
+        },
+        {
+            "name": "23cm FM",
+            "type": "amateur",
+            "start": 1297490000,
+            "end": 1298000000
+        },
+        {
+            "name": "23cm",
+            "type": "amateur",
+            "start": 1298000000,
+            "end": 1300000000
         }
     ]
 }
