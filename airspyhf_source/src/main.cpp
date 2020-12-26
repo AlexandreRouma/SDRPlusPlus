@@ -166,8 +166,6 @@ private:
             return;
         }
 
-        spdlog::warn("{0}", _this->sampleRateList[_this->srId]);
-
         airspyhf_set_samplerate(_this->openDev, _this->sampleRateList[_this->srId]);
         airspyhf_set_freq(_this->openDev, _this->freq);
         airspyhf_set_hf_agc(_this->openDev, (_this->agcMode != 0));

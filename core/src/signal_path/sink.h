@@ -16,6 +16,7 @@ public:
 
     class Sink {
     public:
+        virtual ~Sink() {}
         virtual void start() = 0;
         virtual void stop() = 0;
         virtual void menuHandler() = 0;

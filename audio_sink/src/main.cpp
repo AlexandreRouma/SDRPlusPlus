@@ -36,7 +36,6 @@ public:
         stereoRB.init(_stream->sinkOut);
 
         // Initialize PortAudio
-        Pa_Initialize();
         devCount = Pa_GetDeviceCount();
         devId = Pa_GetDefaultOutputDevice();
         const PaDeviceInfo *deviceInfo;
@@ -239,11 +238,14 @@ public:
         this->name = name;
         provider.create = create_sink;
         provider.ctx = this;
+
+        Pa_Initialize();
+
         sigpath::sinkManager.registerSinkProvider("Audio", provider);
     }
 
     ~AudioSinkModule() {
-
+        Pa_Terminate();
     }
 
     void enable() {
