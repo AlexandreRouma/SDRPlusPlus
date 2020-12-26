@@ -162,7 +162,7 @@ private:
         SoapySDR::RangeList bandwidthRange = dev->getBandwidthRange(SOAPY_SDR_RX, channelId);
         
         txtBwList = "";
-        
+        bandwidthList.clear();
         bandwidthList.push_back(-1);
         txtBwList += "Auto";
         txtBwList += '\0';
@@ -212,7 +212,7 @@ private:
             if(config.conf["devices"][name].contains("bandwidth")) {
                 uiBandwidthId = config.conf["devices"][name]["bandwidth"];
             } else if(bandwidthList.size() > 1) {
-                uiBandwidthId = bandwidthList[0];
+                uiBandwidthId = 0;
             }
             if (hasAgc && config.conf["devices"][name].contains("agc")) {
                 agc = config.conf["devices"][name]["agc"];
@@ -234,7 +234,7 @@ private:
                 i++;
             }
             if(bandwidthList.size() > 1)
-                uiBandwidthId = bandwidthList[0];
+                uiBandwidthId = 0;
             if (hasAgc) {
                 agc = false;
             }
