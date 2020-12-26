@@ -3,7 +3,7 @@
 ![Screenshot](https://i.imgur.com/WejsiFN.png)
 SDR++ is a cross-platform and open source SDR software with the aim of being bloat free and simple to use.
 
-![CMake](https://github.com/AlexandreRouma/SDRPlusPlus/workflows/CMake/badge.svg)
+![Linux Build](https://github.com/AlexandreRouma/SDRPlusPlus/workflows/Linux%20Build/badge.svg)
 
 * [Patreon](https://patreon.com/ryzerth)
 * [Discord Server](https://discord.gg/aFgWjyD)
@@ -225,9 +225,11 @@ I will soon publish a contributing.md listing the code style to use.
 * [Alexsey Shestacov](https://github.com/wingrime)
 * [Benjamin Kyd](https://github.com/benkyd)
 * [cropinghigh](https://github.com/cropinghigh)
+* [Howard0su](https://github.com/howard0su)
 * [Tobias Mädel](https://github.com/Manawyrm)
 * [Raov](https://twitter.com/raov_birbtog)
-* [Howard0su](https://github.com/howard0su)
+* [Szymon Zakrent](https://github.com/zakrent)
+
 
 ## Libaries used
 * [SoapySDR (PothosWare)](https://github.com/pothosware/SoapySDR)
