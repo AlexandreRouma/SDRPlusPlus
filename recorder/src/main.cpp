@@ -1,4 +1,5 @@
 #include <imgui.h>
+#include <imgui_custom.h>
 #include <module.h>
 #include <watcher.h>
 #include <wav.h>
@@ -57,6 +58,9 @@ public:
         selectedStreamName = "";
         selectedStreamId = 0;
         lastNameList = "";
+
+        volumeHold = {0};
+        currentVolumePeak = {0};
 
         config.aquire();
         if (!config.conf.contains(name)) {
@@ -144,6 +148,12 @@ private:
             ImGui::PopStyleColor();
         }
 
+        {
+            std::lock_guard<std::mutex> lck(_this->volumeMtx);
+            ImGui::VolumeBar(_this->currentVolumePeak.l, _this->currentVolumePeak.r, &_this->volumeHold.l, &_this->volumeHold.r, ImVec2(-1.0f, 0.0f));
+            _this->volumePeakShouldReset = true;
+        }
+
         // TODO: Change VFO ref in signal path
         // TODO: Add VFO record
         ImGui::Columns(2, CONCAT("RecordModeColumns##_", _this->name), false);
@@ -191,6 +201,7 @@ private:
                     sigpath::signalPath.unbindIQStream(_this->iqStream);
                     _this->writer->close();
                     delete _this->writer;
+                    _this->currentVolumePeak = {0};
                     _this->recording = false;
                 }
                 uint64_t seconds = _this->samplesWritten / (uint64_t)_this->sampleRate;
@@ -238,6 +249,7 @@ private:
                     sigpath::sinkManager.unbindStream(_this->selectedStreamName, _this->audioStream);
                     _this->writer->close();
                     delete _this->writer;
+                    _this->currentVolumePeak = {0};
                     _this->recording = false;
                 }
                 uint64_t seconds = _this->samplesWritten / (uint64_t)_this->sampleRate;
@@ -253,6 +265,23 @@ private:
         while (true) {
             int count = _this->audioStream->read();
             if (count < 0) { break; }
+
+            {
+                std::lock_guard<std::mutex> lck(_this->volumeMtx);
+                if (_this->volumePeakShouldReset) {
+                    _this->currentVolumePeak.l = 0.0f;
+                    _this->currentVolumePeak.r = 0.0f;
+                    _this->volumePeakShouldReset = false;
+                }
+
+                for (int i = 0; i < count; i++) {
+                    _this->currentVolumePeak.l = std::max(_this->currentVolumePeak.l,
+                                                          std::abs(_this->audioStream->readBuf[i].l));
+                    _this->currentVolumePeak.r = std::max(_this->currentVolumePeak.r,
+                                                          std::abs(_this->audioStream->readBuf[i].r));
+                }
+            }
+
             for (int i = 0; i < count; i++) {
                 sampleBuf[(i * 2) + 0] = _this->audioStream->readBuf[i].l * 0x7FFF;
                 sampleBuf[(i * 2) + 1] = _this->audioStream->readBuf[i].r * 0x7FFF;
@@ -269,6 +298,23 @@ private:
         while (true) {
             int count = _this->iqStream->read();
             if (count < 0) { break; }
+
+            {
+                std::lock_guard<std::mutex> lck(_this->volumeMtx);
+                if (_this->volumePeakShouldReset) {
+                    _this->currentVolumePeak.l = 0.0f;
+                    _this->currentVolumePeak.r = 0.0f;
+                    _this->volumePeakShouldReset = false;
+                }
+
+                for (int i = 0; i < count; i++) {
+                    _this->currentVolumePeak.l = std::max(_this->currentVolumePeak.l,
+                                                          std::abs(_this->iqStream->readBuf[i].q));
+                    _this->currentVolumePeak.r = std::max(_this->currentVolumePeak.r,
+                                                          std::abs(_this->iqStream->readBuf[i].i));
+                }
+            }
+
             for (int i = 0; i < count; i++) {
                 sampleBuf[(i * 2) + 0] = _this->iqStream->readBuf[i].q * 0x7FFF;
                 sampleBuf[(i * 2) + 1] = _this->iqStream->readBuf[i].i * 0x7FFF;
@@ -284,6 +330,10 @@ private:
     bool enabled = true;
     char path[4096];
     bool pathValid = true;
+    std::mutex volumeMtx;
+    dsp::stereo_t currentVolumePeak;
+    dsp::stereo_t volumeHold;
+    bool volumePeakShouldReset;
     dsp::stream<dsp::stereo_t>* audioStream;
     dsp::stream<dsp::complex_t>* iqStream;
     WavWriter* writer;
