@@ -2,6 +2,7 @@
 #include <spdlog/spdlog.h>
 #include <module.h>
 #include <gui/gui.h>
+#include <gui/widgets/stepped_slider.h>
 #include <signal_path/signal_path.h>
 #include <SoapySDR/Device.hpp>
 #include <SoapySDR/Modules.hpp>
@@ -154,6 +155,7 @@ private:
         gainList = dev->listGains(SOAPY_SDR_RX, channelId);
         delete[] uiGains;
         uiGains = new float[gainList.size()];
+        gainRanges.clear();
         
         for (auto gain : gainList) {
             gainRanges.push_back(dev->getGainRange(SOAPY_SDR_RX, channelId, gain));
@@ -398,10 +400,11 @@ private:
             ImGui::SetNextItemWidth(menuWidth - gainNameLen);
             float step = _this->gainRanges[i].step();
             bool res;
-            if(step == 0.0f) 
+            if(step == 0.0f) {
                 res = ImGui::SliderFloat((std::string("##_gain_sel_") + _this->name  + gain).c_str(), &_this->uiGains[i], _this->gainRanges[i].minimum(), _this->gainRanges[i].maximum());
-            else
+            } else {
                 res = ImGui::SliderFloatWithSteps((std::string("##_gain_sel_") + _this->name + gain).c_str(), &_this->uiGains[i], _this->gainRanges[i].minimum(), _this->gainRanges[i].maximum(), step);
+            }
             if(res) {
                 if (_this->running) {
                     _this->dev->setGain(SOAPY_SDR_RX, _this->channelId, gain, _this->uiGains[i]);
