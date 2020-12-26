@@ -186,9 +186,9 @@ Then, you need to edit the `root_dev/config` file to point to the modules that w
 You also need to change the location of the resource and module directories, for development, I recommend:
 ```json
 ...
-"modulesDirectory": "../root_dev/modules",
+"modulesDirectory": "./root_dev/modules",
 ...
-"resourcesDirectory": "../root_dev/res",
+"resourcesDirectory": "./root_dev/res",
 ...
 ```
 
@@ -198,12 +198,12 @@ Off cours, remember to add entries for all modules that were built and that you 
 
 Next, from the top directory, you can simply run:
 ```
-./build/Release/sdrpp.exe -r root_dev
+./build/sdrpp -r root_dev
 ```
 
-Or, if you wish to run from the build directory:
+Or, if you wish to run from the build directory, you need to correct directories in config.json, and:
 ```
-./Release/sdrpp.exe -r ../root_dev
+./sdrpp -r ../root_dev
 ```
 
 ## Installing SDR++
