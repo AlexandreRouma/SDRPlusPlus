@@ -67,6 +67,14 @@ public:
     bool isEnabled() {
         return enabled;
     }
+    
+    template <typename T>
+    std::string to_string_with_precision(const T a_value, const int n = 6) {
+        std::ostringstream out;
+        out.precision(n);
+        out << std::fixed << a_value;
+        return out.str();
+    }
 
 private:
     void refresh() {
@@ -78,6 +86,21 @@ private:
             txtDevList += '\0';
             i++;
         }
+    }
+    
+    float selectBwBySr(double samplerate) {
+        float cur = bandwidthList[1];
+        std::vector<float> bwListReversed = bandwidthList;
+        std::reverse(bwListReversed.begin(), bwListReversed.end());
+        for(auto bw : bwListReversed) {
+            if(bw >= samplerate) {
+                cur = bw;
+            } else {
+                break;
+            }
+        }
+        spdlog::info("Bandwidth for samplerate {0} is {1}", samplerate, cur);
+        return cur;
     }
 
     void selectSampleRate(double samplerate) {
@@ -131,19 +154,41 @@ private:
         gainList = dev->listGains(SOAPY_SDR_RX, channelId);
         delete[] uiGains;
         uiGains = new float[gainList.size()];
+        
         for (auto gain : gainList) {
             gainRanges.push_back(dev->getGainRange(SOAPY_SDR_RX, channelId, gain));
+        }
+        
+        SoapySDR::RangeList bandwidthRange = dev->getBandwidthRange(SOAPY_SDR_RX, channelId);
+        
+        txtBwList = "";
+        
+        bandwidthList.push_back(-1);
+        txtBwList += "Auto";
+        txtBwList += '\0';
+        
+        for(auto bwr : bandwidthRange) {
+            float bw = bwr.minimum();
+            bandwidthList.push_back(bw);
+            if (bw > 1.0e3 && bw <= 1.0e6) {
+                txtBwList += to_string_with_precision((bw / 1.0e3), 2) + " kHz";
+            } else if (bw > 1.0e6) {
+                txtBwList += to_string_with_precision((bw / 1.0e6), 2) + " MHz";
+            } else {
+                txtBwList += to_string_with_precision(bw, 0);
+            }
+            txtBwList += '\0';
         }
 
         sampleRates = dev->listSampleRates(SOAPY_SDR_RX, channelId);
         txtSrList = "";
         for (double sr : sampleRates) {
             if (sr > 1.0e3 && sr <= 1.0e6) {
-                txtSrList += std::to_string((sr / 1.0e3)) + " kHz";
+                txtSrList += to_string_with_precision((sr / 1.0e3), 2) + " kHz";
             } else if (sr > 1.0e6) {
-                txtSrList += std::to_string((sr / 1.0e6)) + " MHz";
+                txtSrList += to_string_with_precision((sr / 1.0e6), 2) + " MHz";
             } else {
-                txtSrList += std::to_string((int) sr);
+                txtSrList += to_string_with_precision(sr, 0);
             }
             txtSrList += '\0';
         }
@@ -164,6 +209,11 @@ private:
                 }
                 i++;
             }
+            if(config.conf["devices"][name].contains("bandwidth")) {
+                uiBandwidthId = config.conf["devices"][name]["bandwidth"];
+            } else if(bandwidthList.size() > 1) {
+                uiBandwidthId = bandwidthList[0];
+            }
             if (hasAgc && config.conf["devices"][name].contains("agc")) {
                 agc = config.conf["devices"][name]["agc"];
             }
@@ -183,6 +233,8 @@ private:
                 uiGains[i] = gainRanges[i].minimum();
                 i++;
             }
+            if(bandwidthList.size() > 1)
+                uiBandwidthId = bandwidthList[0];
             if (hasAgc) {
                 agc = false;
             }
@@ -200,6 +252,8 @@ private:
             conf["gains"][gain] = uiGains[i];
             i++;
         }
+        if(bandwidthList.size() > 1)
+            conf["bandwidth"] = uiBandwidthId;
         if (hasAgc) {
             conf["agc"] = agc;
         }
@@ -232,6 +286,12 @@ private:
         for (auto gain : _this->gainList) {
             _this->dev->setGain(SOAPY_SDR_RX, _this->channelId, gain, _this->uiGains[i]);
             i++;
+        }
+        if(_this->bandwidthList.size() > 1) {
+            if(_this->bandwidthList[_this->uiBandwidthId] == -1)
+                _this->dev->setBandwidth(SOAPY_SDR_RX, _this->channelId, _this->selectBwBySr(_this->sampleRates[_this->srId]));
+            else
+                _this->dev->setBandwidth(SOAPY_SDR_RX, _this->channelId, _this->bandwidthList[_this->uiBandwidthId]);
         }
 
         if (_this->hasAgc) {
@@ -291,6 +351,8 @@ private:
 
         if (ImGui::Combo(CONCAT("##_sr_select_", _this->name), &_this->srId, _this->txtSrList.c_str())) {
             _this->selectSampleRate(_this->sampleRates[_this->srId]);
+            if(_this->bandwidthList.size() > 1 && _this->running && _this->bandwidthList[_this->uiBandwidthId] == -1)
+                _this->dev->setBandwidth(SOAPY_SDR_RX, _this->channelId, _this->selectBwBySr(_this->sampleRates[_this->srId]));
             _this->saveCurrent();
         }
 
@@ -334,14 +396,36 @@ private:
             ImGui::SameLine();
             ImGui::SetCursorPosX(gainNameLen);
             ImGui::SetNextItemWidth(menuWidth - gainNameLen);
-            if (ImGui::SliderFloat((gain + std::string("##_gain_sel_") + _this->name).c_str(), &_this->uiGains[i], 
-                                _this->gainRanges[i].minimum(), _this->gainRanges[i].maximum())) {
+            float step = _this->gainRanges[i].step();
+            bool res;
+            if(step == 0.0f) 
+                res = ImGui::SliderFloat((std::string("##_gain_sel_") + _this->name  + gain).c_str(), &_this->uiGains[i], _this->gainRanges[i].minimum(), _this->gainRanges[i].maximum());
+            else
+                res = ImGui::SliderFloatWithSteps((std::string("##_gain_sel_") + _this->name + gain).c_str(), &_this->uiGains[i], _this->gainRanges[i].minimum(), _this->gainRanges[i].maximum(), step);
+            if(res) {
                 if (_this->running) {
                     _this->dev->setGain(SOAPY_SDR_RX, _this->channelId, gain, _this->uiGains[i]);
                 }
                 _this->saveCurrent();
             }
             i++;
+        }
+        if(_this->bandwidthList.size() > 1) {
+            float bwLen = ImGui::CalcTextSize("Bandwidth").x + 5.0f;
+            ImGui::Text("Bandwidth");
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(bwLen);
+            ImGui::SetNextItemWidth(menuWidth - bwLen);
+        
+            if (ImGui::Combo(CONCAT("##_bw_select_", _this->name), &_this->uiBandwidthId, _this->txtBwList.c_str())) {
+                if(_this->running) {
+                    if(_this->bandwidthList[_this->uiBandwidthId] == -1)
+                        _this->dev->setBandwidth(SOAPY_SDR_RX, _this->channelId, _this->selectBwBySr(_this->sampleRates[_this->srId]));
+                    else
+                        _this->dev->setBandwidth(SOAPY_SDR_RX, _this->channelId, _this->bandwidthList[_this->uiBandwidthId]);
+                }
+                _this->saveCurrent();
+            }
         }
     }
 
@@ -383,6 +467,9 @@ private:
     int channelId = 0;
     std::vector<std::string> gainList;
     std::vector<SoapySDR::Range> gainRanges;
+    int uiBandwidthId = 0;
+    std::vector<float> bandwidthList;
+    std::string txtBwList;
 };
 
 MOD_EXPORT void _INIT_() {
