@@ -16,6 +16,7 @@ namespace dsp {
             generic_block<PolyphaseResampler<T>>::stop();
             volk_free(buffer);
             volk_free(taps);
+            freeTapPhases();
         }
 
         void init(stream<T>* in, dsp::filter_window::generic_window* window, float inSampleRate, float outSampleRate) {
@@ -32,9 +33,10 @@ namespace dsp {
             taps = (float*)volk_malloc(tapCount * sizeof(float), volk_get_alignment());
             _window->createTaps(taps, tapCount, _interp);
 
+            buildTapPhases();
+
             buffer = (T*)volk_malloc(STREAM_BUFFER_SIZE * sizeof(T) * 2, volk_get_alignment());
             memset(buffer, 0, STREAM_BUFFER_SIZE * sizeof(T) * 2);
-            bufStart = &buffer[tapCount];
             generic_block<PolyphaseResampler<T>>::registerInput(_in);
             generic_block<PolyphaseResampler<T>>::registerOutput(&out);
         }
@@ -55,6 +57,7 @@ namespace dsp {
             int _gcd = std::gcd((int)_inSampleRate, (int)_outSampleRate);
             _interp = _outSampleRate / _gcd;
             _decim = _inSampleRate / _gcd;
+            buildTapPhases();
             generic_block<PolyphaseResampler<T>>::tempStart();
         }
 
@@ -65,6 +68,7 @@ namespace dsp {
             int _gcd = std::gcd((int)_inSampleRate, (int)_outSampleRate);
             _interp = _outSampleRate / _gcd;
             _decim = _inSampleRate / _gcd;
+            buildTapPhases();
             generic_block<PolyphaseResampler<T>>::tempStart();
         }
 
@@ -84,7 +88,7 @@ namespace dsp {
             tapCount = window->getTapCount();
             taps = (float*)volk_malloc(tapCount * sizeof(float), volk_get_alignment());
             window->createTaps(taps, tapCount, _interp);
-            bufStart = &buffer[tapCount];
+            buildTapPhases();
             generic_block<PolyphaseResampler<T>>::tempStart();
         }
 
@@ -100,34 +104,28 @@ namespace dsp {
 
             int outCount = calcOutSize(count);
 
-            memcpy(&buffer[tapCount], _in->readBuf, count * sizeof(T));
+            memcpy(&buffer[tapsPerPhase], _in->readBuf, count * sizeof(T));
             _in->flush();
 
             // Write to output
             int outIndex = 0;
             if constexpr (std::is_same_v<T, float>) {
                 for (int i = 0; outIndex < outCount; i += _decim) {
-                    out.writeBuf[outIndex] = 0;
-                    for (int j = i % _interp; j < tapCount; j += _interp) {
-                        out.writeBuf[outIndex] += buffer[((i - j) / _interp) + tapCount] * taps[j];
-                    }
+                    int phase = i % _interp;
+                    volk_32f_x2_dot_prod_32f(&out.writeBuf[outIndex], &buffer[i / _interp], tapPhases[phase], tapsPerPhase);
                     outIndex++;
                 }
             }
             if constexpr (std::is_same_v<T, complex_t>) {
                 for (int i = 0; outIndex < outCount; i += _decim) {
-                    out.writeBuf[outIndex].i = 0;
-                    out.writeBuf[outIndex].q = 0;
-                    for (int j = i % _interp; j < tapCount; j += _interp) {
-                        out.writeBuf[outIndex].i += buffer[((i - j) / _interp) + tapCount].i * taps[j];
-                        out.writeBuf[outIndex].q += buffer[((i - j) / _interp) + tapCount].q * taps[j];
-                    }
+                    int phase = i % _interp;
+                    volk_32fc_32f_dot_prod_32fc((lv_32fc_t*)&out.writeBuf[outIndex], (lv_32fc_t*)&buffer[(i / _interp)], tapPhases[phase], tapsPerPhase);
                     outIndex++;
                 }
             }
             if (!out.swap(outCount)) { return -1; }
 
-            memmove(buffer, &buffer[count], tapCount * sizeof(T));
+            memmove(buffer, &buffer[count], tapsPerPhase * sizeof(T));
 
             return count;
         }
@@ -135,6 +133,44 @@ namespace dsp {
         stream<T> out;
 
     private:
+        void buildTapPhases(){
+            if(!taps){
+                return;
+            }
+
+            if(!tapPhases.empty()){
+                freeTapPhases();
+            }
+
+            int phases = _interp;
+            tapsPerPhase = (tapCount+phases-1)/phases; //Integer division ceiling
+
+            bufStart = &buffer[tapsPerPhase];
+
+            for(int i = 0; i < phases; i++){
+                tapPhases.push_back((float*)volk_malloc(tapsPerPhase * sizeof(float), volk_get_alignment()));
+            }
+
+            int currentTap = 0;
+            for(int tap = 0; tap < tapsPerPhase; tap++) {
+                for (int phase = 0; phase < phases; phase++) {
+                    if(currentTap < tapCount) {
+                        tapPhases[phase][tap] = taps[currentTap++];
+                    }
+                    else{
+                        tapPhases[phase][tap] = 0;
+                    }
+                }
+            }
+        }
+
+        void freeTapPhases(){
+            for(auto & tapPhase : tapPhases){
+                volk_free(tapPhase);
+            }
+            tapPhases.clear();
+        }
+
         int count;
         stream<T>* _in;
 
@@ -146,6 +182,9 @@ namespace dsp {
         int _interp, _decim;
         float _inSampleRate, _outSampleRate;
         float* taps;
+
+        int tapsPerPhase;
+        std::vector<float*> tapPhases;
 
     };
 }
