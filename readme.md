@@ -224,6 +224,7 @@ I will soon publish a contributing.md listing the code style to use.
 * [aosync](https://github.com/aosync)
 * [Alexsey Shestacov](https://github.com/wingrime)
 * [Benjamin Kyd](https://github.com/benkyd)
+* [cropinghigh](https://github.com/cropinghigh)
 * [Tobias Mädel](https://github.com/Manawyrm)
 * [Raov](https://twitter.com/raov_birbtog)
 * [Howard0su](https://github.com/howard0su)
