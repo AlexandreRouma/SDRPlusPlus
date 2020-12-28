@@ -284,11 +284,6 @@ private:
 
         _this->dev->setSampleRate(SOAPY_SDR_RX, _this->channelId, _this->sampleRate);
 
-        int i = 0;
-        for (auto gain : _this->gainList) {
-            _this->dev->setGain(SOAPY_SDR_RX, _this->channelId, gain, _this->uiGains[i]);
-            i++;
-        }
         if(_this->bandwidthList.size() > 2) {
             if(_this->bandwidthList[_this->uiBandwidthId] == -1)
                 _this->dev->setBandwidth(SOAPY_SDR_RX, _this->channelId, _this->selectBwBySr(_this->sampleRates[_this->srId]));
@@ -297,7 +292,13 @@ private:
         }
 
         if (_this->hasAgc) {
-            _this->dev->setGainMode(SOAPY_SDR_RX, _this->channelId,  _this->agc);
+            _this->dev->setGainMode(SOAPY_SDR_RX, _this->channelId, _this->agc);
+        }
+
+        int i = 0;
+        for (auto gain : _this->gainList) {
+            _this->dev->setGain(SOAPY_SDR_RX, _this->channelId, gain, _this->uiGains[i]);
+            i++;
         }
 
         _this->dev->setFrequency(SOAPY_SDR_RX, _this->channelId, _this->freq);
