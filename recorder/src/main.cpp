@@ -13,7 +13,6 @@
 #include <gui/style.h>
 #include <regex>
 #include <options.h>
-
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
 SDRPP_MOD_INFO {
