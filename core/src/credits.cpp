@@ -7,9 +7,10 @@ namespace sdrpp_credits {
         "Alexsey Shestacov",
         "Benjamin Kyd",
         "Cropinghigh",
+        "Howard0su",
         "Tobias Mädel",
         "Raov",
-        "Howard0su"
+        "Szymon Zakrent"
     };
 
     const char* libraries[] = {
