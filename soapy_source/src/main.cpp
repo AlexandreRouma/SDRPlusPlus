@@ -213,7 +213,7 @@ private:
             }
             if(config.conf["devices"][name].contains("bandwidth")) {
                 uiBandwidthId = config.conf["devices"][name]["bandwidth"];
-            } else if(bandwidthList.size() > 1) {
+            } else if(bandwidthList.size() > 2) {
                 uiBandwidthId = 0;
             }
             if (hasAgc && config.conf["devices"][name].contains("agc")) {
@@ -235,7 +235,7 @@ private:
                 uiGains[i] = gainRanges[i].minimum();
                 i++;
             }
-            if(bandwidthList.size() > 1)
+            if(bandwidthList.size() > 2)
                 uiBandwidthId = 0;
             if (hasAgc) {
                 agc = false;
@@ -254,7 +254,7 @@ private:
             conf["gains"][gain] = uiGains[i];
             i++;
         }
-        if(bandwidthList.size() > 1)
+        if(bandwidthList.size() > 2)
             conf["bandwidth"] = uiBandwidthId;
         if (hasAgc) {
             conf["agc"] = agc;
@@ -289,7 +289,7 @@ private:
             _this->dev->setGain(SOAPY_SDR_RX, _this->channelId, gain, _this->uiGains[i]);
             i++;
         }
-        if(_this->bandwidthList.size() > 1) {
+        if(_this->bandwidthList.size() > 2) {
             if(_this->bandwidthList[_this->uiBandwidthId] == -1)
                 _this->dev->setBandwidth(SOAPY_SDR_RX, _this->channelId, _this->selectBwBySr(_this->sampleRates[_this->srId]));
             else
@@ -353,7 +353,7 @@ private:
 
         if (ImGui::Combo(CONCAT("##_sr_select_", _this->name), &_this->srId, _this->txtSrList.c_str())) {
             _this->selectSampleRate(_this->sampleRates[_this->srId]);
-            if(_this->bandwidthList.size() > 1 && _this->running && _this->bandwidthList[_this->uiBandwidthId] == -1)
+            if(_this->bandwidthList.size() > 2 && _this->running && _this->bandwidthList[_this->uiBandwidthId] == -1)
                 _this->dev->setBandwidth(SOAPY_SDR_RX, _this->channelId, _this->selectBwBySr(_this->sampleRates[_this->srId]));
             _this->saveCurrent();
         }
@@ -413,7 +413,7 @@ private:
             }
             i++;
         }
-        if(_this->bandwidthList.size() > 1) {
+        if(_this->bandwidthList.size() > 2) {
             float bwLen = ImGui::CalcTextSize("Bandwidth").x + 5.0f;
             ImGui::Text("Bandwidth");
             ImGui::SameLine();
