@@ -42,7 +42,7 @@ public:
         
         demod.init(&squelch.out, bbSampRate, bandWidth, dsp::SSBDemod::MODE_DSB);
 
-        agc.init(&demod.out, 1.0f / 125.0f);
+        agc.init(&demod.out, 20.0f, bbSampRate);
 
         float audioBW = std::min<float>(audioSampRate / 2.0f, bw / 2.0f);
         win.init(audioBW, audioBW, bbSampRate);

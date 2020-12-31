@@ -11,20 +11,21 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-#define ADC_RATE        128000000
+#define ADC_RATE        64000000
 #define XFER_TIMEOUT    5000
 
 #define SEL0 (8)  		//   SEL0  GPIO26
 #define SEL1 (16) 		//   SEL1  GPIO27
 
-MOD_INFO {
-    /* Name:        */ "rx888_source",
-    /* Description: */ "RX888 input module for SDR++",
-    /* Author:      */ "Ryzerth",
-    /* Version:     */ "0.1.0"
+SDRPP_MOD_INFO {
+    /* Name:            */ "rx888_source",
+    /* Description:     */ "RX888 source module for SDR++",
+    /* Author:          */ "Ryzerth",
+    /* Version:         */ 0, 1, 0,
+    /* Max instances    */ 1
 };
 
-class RX888SourceModule {
+class RX888SourceModule : public ModuleManager::Instance {
 public:
     RX888SourceModule(std::string name) {
         this->name = name;
@@ -56,6 +57,18 @@ public:
 
     ~RX888SourceModule() {
         spdlog::info("RX888SourceModule '{0}': Instance deleted!", name);
+    }
+
+    void enable() {
+        enabled = true;
+    }
+
+    void disable() {
+        enabled = false;
+    }
+
+    bool isEnabled() {
+        return enabled;
     }
 
 private:
@@ -125,7 +138,7 @@ private:
 
     static void _usbWorker(RX888SourceModule* _this) {
         // Calculate hardware block siz
-        int realBlockSize = ADC_RATE / 200;
+        int realBlockSize = ADC_RATE / 100;
         int i;
         for (i = 1; i < realBlockSize; i = (i << 1));
         realBlockSize = (i >> 1);
@@ -170,9 +183,8 @@ private:
             // Check if the incomming data is bulk I/Q and end transfer
             if (EndPt->Attributes == 2) {
                 if (EndPt->FinishDataXfer((PUCHAR)buffer, rLen, &inOvLap, context)) {
-                    if (_this->realStream.aquire() < 0) { break; }
-                    memcpy(_this->realStream.data, buffer, rLen);
-                    _this->realStream.write(rLen / 2);
+                    memcpy(_this->realStream.writeBuf, buffer, rLen);
+                    _this->realStream.swap(rLen / 2);
                 }
             }
 
@@ -196,7 +208,7 @@ private:
 
         while (count >= 0) {
             for (int i = 0; i < count; i++) {
-                iqbuffer[i].q = (float)_this->realStream.data[i] / 32768.0f;
+                iqbuffer[i].q = (float)_this->realStream.readBuf[i] / 32768.0f;
             }
             _this->realStream.flush();
 
@@ -205,21 +217,20 @@ private:
             lv_32fc_t phaseDelta = lv_cmake(std::cos(delta), std::sin(delta));
 
             // Apply translation
-            if (_this->stream.aquire() < 0) { break; }
-            volk_32fc_s32fc_x2_rotator_32fc((lv_32fc_t*)_this->stream.data, (lv_32fc_t*)iqbuffer, phaseDelta, &phase, count);
+            volk_32fc_s32fc_x2_rotator_32fc((lv_32fc_t*)_this->stream.writeBuf, (lv_32fc_t*)iqbuffer, phaseDelta, &phase, count);
 
             // Decimate
             blockSize = count;
             for (int d = 0; d < (_this->decimation - 1); d++) {
                 blockSize = (blockSize >> 1);
                 for (int i = 0; i < blockSize; i++) {
-                    _this->stream.data[i].i = (_this->stream.data[i*2].i + _this->stream.data[(i*2)+1].i) * 0.5f;
-                    _this->stream.data[i].q = (_this->stream.data[i*2].q + _this->stream.data[(i*2)+1].q) * 0.5f;
+                    _this->stream.writeBuf[i].i = (_this->stream.writeBuf[i*2].i + _this->stream.writeBuf[(i*2)+1].i) * 0.5f;
+                    _this->stream.writeBuf[i].q = (_this->stream.writeBuf[i*2].q + _this->stream.writeBuf[(i*2)+1].q) * 0.5f;
                 }
             }
 
             // Write to output stream
-            _this->stream.write(blockSize);
+            _this->stream.swap(blockSize);
 
             // Read from real stream
             count = _this->realStream.read();
@@ -242,20 +253,20 @@ private:
     double sampleRate;
     int decimation;
     bool running = false;
+    bool enabled = true;
 };
 
 MOD_EXPORT void _INIT_() {
    
 }
 
-MOD_EXPORT void* _CREATE_INSTANCE_(std::string name) {
+MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
     return new RX888SourceModule(name);
 }
 
-MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
+MOD_EXPORT void _DELETE_INSTANCE_(ModuleManager::Instance* instance) {
     delete (RX888SourceModule*)instance;
 }
-
-MOD_EXPORT void _STOP_() {
+MOD_EXPORT void _END_() {
     
 }

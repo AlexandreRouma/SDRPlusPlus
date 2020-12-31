@@ -53,7 +53,7 @@ public:
 
         c2r.init(&xlator.out);
 
-        agc.init(&c2r.out, 1.0f / 125.0f);
+        agc.init(&c2r.out, 20.0f, audioSampRate);
 
         m2s.init(&agc.out);
     }
@@ -104,6 +104,7 @@ public:
         }
         audioSampRate = sampleRate;
         float audioBW = std::min<float>(audioSampRate / 2.0f, bw / 2.0f);
+        agc.setSampleRate(audioSampRate);
         resamp.setOutSampleRate(audioSampRate);
         win.setSampleRate(bbSampRate * resamp.getInterpolation());
         win.setCutoff(audioBW);
@@ -170,7 +171,7 @@ private:
 
     const float bwMax = 500;
     const float bwMin = 100;
-    const float bbSampRate = 500;
+    const float bbSampRate = 6000;
 
     std::string uiPrefix;
     float snapInterval = 10;

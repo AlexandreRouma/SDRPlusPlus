@@ -132,4 +132,54 @@ namespace dsp {
         stream<complex_t>* _in;
 
     };
+
+
+    class RealToComplex : public generic_block<RealToComplex> {
+    public:
+        RealToComplex() {}
+
+        RealToComplex(stream<float>* in) { init(in); }
+
+        ~RealToComplex() {
+            delete[] nullBuffer;
+            generic_block<RealToComplex>::stop();
+        }
+
+        void init(stream<float>* in) {
+            _in = in;
+            nullBuffer = new float[STREAM_BUFFER_SIZE];
+            memset(nullBuffer, 0, STREAM_BUFFER_SIZE * sizeof(float));
+            generic_block<RealToComplex>::registerInput(_in);
+            generic_block<RealToComplex>::registerOutput(&out);
+        }
+
+        void setInput(stream<float>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<RealToComplex>::ctrlMtx);
+            generic_block<RealToComplex>::tempStop();
+            generic_block<RealToComplex>::unregisterInput(_in);
+            _in = in;
+            generic_block<RealToComplex>::registerInput(_in);
+            generic_block<RealToComplex>::tempStart();
+        }
+
+        int run() {
+            count = _in->read();
+            if (count < 0) { return -1; }
+
+            volk_32f_x2_interleave_32fc((lv_32fc_t*)out.writeBuf, _in->readBuf, nullBuffer, count);
+
+            _in->flush();
+            if (!out.swap(count)) { return -1; }
+            return count;
+        }
+
+        stream<complex_t> out;
+
+    private:
+        float avg;
+        int count;
+        float* nullBuffer;
+        stream<float>* _in;
+
+    };
 }

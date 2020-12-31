@@ -80,7 +80,7 @@ private:
     static void worker(void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
         double sampleRate = _this->reader->getSampleRate();
-        int blockSize = sampleRate / 200.0;
+        int blockSize = sampleRate / 200.0f;
         int16_t* inBuf = new int16_t[blockSize * 2];
 
         while (true) {

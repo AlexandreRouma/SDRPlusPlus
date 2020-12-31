@@ -205,7 +205,7 @@ private:
 
     static void worker(void* ctx) {
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
-        int blockSize = _this->sampleRate / 200.0;
+        int blockSize = _this->sampleRate / 200.0f;
 
         struct iio_channel *rx0_i, *rx0_q;
         struct iio_buffer *rxbuf;

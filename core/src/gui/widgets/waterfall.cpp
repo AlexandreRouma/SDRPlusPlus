@@ -7,7 +7,7 @@
 
 #include <spdlog/spdlog.h>
 
-float COLOR_MAP[][3] = {
+float DEFAULT_COLOR_MAP[][3] = {
     {0x00, 0x00, 0x20},
     {0x00, 0x00, 0x30},
     {0x00, 0x00, 0x50},
@@ -106,7 +106,7 @@ namespace ImGui {
         viewBandwidth = 1.0;
         wholeBandwidth = 1.0;
 
-        updatePallette(COLOR_MAP, 13);
+        updatePallette(DEFAULT_COLOR_MAP, 13);
     }
 
     void WaterFall::init() {
@@ -568,6 +568,7 @@ namespace ImGui {
     }
 
     void WaterFall::updatePallette(float colors[][3], int colorCount) {
+        std::lock_guard<std::mutex> lck(buf_mtx);
         for (int i = 0; i < WATERFALL_RESOLUTION; i++) {
             int lowerId = floorf(((float)i / (float)WATERFALL_RESOLUTION) * colorCount);
             int upperId = ceilf(((float)i / (float)WATERFALL_RESOLUTION) * colorCount);
@@ -579,6 +580,23 @@ namespace ImGui {
             float b = (colors[lowerId][2] * (1.0 - ratio)) + (colors[upperId][2] * (ratio));
             waterfallPallet[i] = ((uint32_t)255 << 24) | ((uint32_t)b << 16) | ((uint32_t)g << 8) | (uint32_t)r;
         }
+        updateWaterfallFb();
+    }
+
+    void WaterFall::updatePalletteFromArray(float* colors, int colorCount) {
+        std::lock_guard<std::mutex> lck(buf_mtx);
+        for (int i = 0; i < WATERFALL_RESOLUTION; i++) {
+            int lowerId = floorf(((float)i / (float)WATERFALL_RESOLUTION) * colorCount);
+            int upperId = ceilf(((float)i / (float)WATERFALL_RESOLUTION) * colorCount);
+            lowerId = std::clamp<int>(lowerId, 0, colorCount - 1);
+            upperId = std::clamp<int>(upperId, 0, colorCount - 1);
+            float ratio = (((float)i / (float)WATERFALL_RESOLUTION) * colorCount) - lowerId;
+            float r = (colors[(lowerId * 3) + 0] * (1.0 - ratio)) + (colors[(upperId * 3) + 0] * (ratio));
+            float g = (colors[(lowerId * 3) + 1] * (1.0 - ratio)) + (colors[(upperId * 3) + 1] * (ratio));
+            float b = (colors[(lowerId * 3) + 2] * (1.0 - ratio)) + (colors[(upperId * 3) + 2] * (ratio));
+            waterfallPallet[i] = ((uint32_t)255 << 24) | ((uint32_t)b << 16) | ((uint32_t)g << 8) | (uint32_t)r;
+        }
+        updateWaterfallFb();
     }
 
     void WaterFall::autoRange() {
@@ -627,6 +645,7 @@ namespace ImGui {
     }
 
     void WaterFall::setViewBandwidth(double bandWidth) {
+        std::lock_guard<std::mutex> lck(buf_mtx);
         if (bandWidth == viewBandwidth) {
             return;
         }
@@ -651,6 +670,7 @@ namespace ImGui {
     }
 
     void WaterFall::setViewOffset(double offset) {
+        std::lock_guard<std::mutex> lck(buf_mtx);
         if (offset == viewOffset) {
             return;
         }
@@ -690,6 +710,7 @@ namespace ImGui {
     }
 
     void WaterFall::setWaterfallMin(float min) {
+        std::lock_guard<std::mutex> lck(buf_mtx);
         if (min == waterfallMin) {
             return;
         }
@@ -702,6 +723,7 @@ namespace ImGui {
     }
 
     void WaterFall::setWaterfallMax(float max) {
+        std::lock_guard<std::mutex> lck(buf_mtx);
         if (max == waterfallMax) {
             return;
         }
@@ -720,7 +742,7 @@ namespace ImGui {
     }
 
     void WaterFall::setRawFFTSize(int size, bool lock) {
-        if (lock) { buf_mtx.lock(); }
+        std::lock_guard<std::mutex> lck(buf_mtx);
         rawFFTSize = size;
         if (rawFFTs != NULL) {
             rawFFTs = (float*)realloc(rawFFTs, rawFFTSize * waterfallHeight * sizeof(float));
@@ -729,7 +751,6 @@ namespace ImGui {
             rawFFTs = (float*)malloc(rawFFTSize * waterfallHeight * sizeof(float));
         }
         memset(rawFFTs, 0, rawFFTSize * waterfallHeight * sizeof(float));
-        if (lock) { buf_mtx.unlock(); }
     }
 
     void WaterfallVFO::setOffset(double offset) {

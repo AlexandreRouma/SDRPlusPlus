@@ -212,7 +212,7 @@ private:
 
     static void worker(void* ctx) {
         RTLTCPSourceModule* _this = (RTLTCPSourceModule*)ctx;
-        int blockSize = _this->sampleRate / 200.0;
+        int blockSize = _this->sampleRate / 200.0f;
         uint8_t* inBuf = new uint8_t[blockSize * 2];
 
         while (true) {

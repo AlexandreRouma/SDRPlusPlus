@@ -109,6 +109,7 @@ namespace dsp {
 
             // Write to output
             int outIndex = 0;
+            int _interp_m_1 = _interp - 1;
             if constexpr (std::is_same_v<T, float>) {
                 for (int i = 0; outIndex < outCount; i += _decim) {
                     int phase = i % _interp;
@@ -155,10 +156,10 @@ namespace dsp {
             for(int tap = 0; tap < tapsPerPhase; tap++) {
                 for (int phase = 0; phase < phases; phase++) {
                     if(currentTap < tapCount) {
-                        tapPhases[phase][tap] = taps[currentTap++];
+                        tapPhases[(_interp - 1) - phase][tap] = taps[currentTap++];
                     }
                     else{
-                        tapPhases[phase][tap] = 0;
+                        tapPhases[(_interp - 1) - phase][tap] = 0;
                     }
                 }
             }
@@ -185,6 +186,82 @@ namespace dsp {
 
         int tapsPerPhase;
         std::vector<float*> tapPhases;
+
+    };
+
+    class PowerDecimator : public generic_block<PowerDecimator> {
+    public:
+        PowerDecimator() {}
+
+        PowerDecimator(stream<complex_t>* in, unsigned int power) { init(in, power); }
+
+        ~PowerDecimator() {
+            generic_block<PowerDecimator>::stop();
+        }
+
+        void init(stream<complex_t>* in, unsigned int power) {
+            _in = in;
+            _power = power;
+            generic_block<PowerDecimator>::registerInput(_in);
+            generic_block<PowerDecimator>::registerOutput(&out);
+        }
+
+        void setInput(stream<complex_t>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<PowerDecimator>::ctrlMtx);
+            generic_block<PowerDecimator>::tempStop();
+            generic_block<PowerDecimator>::unregisterInput(_in);
+            _in = in;
+            generic_block<PowerDecimator>::registerInput(_in);
+            generic_block<PowerDecimator>::tempStart();
+        }
+
+        void setPower(unsigned int power) {
+            std::lock_guard<std::mutex> lck(generic_block<PowerDecimator>::ctrlMtx);
+            generic_block<PowerDecimator>::tempStop();
+            generic_block<PowerDecimator>::unregisterInput(_in);
+            _power = power;
+            generic_block<PowerDecimator>::registerInput(_in);
+            generic_block<PowerDecimator>::tempStart();
+        }
+
+        int run() {
+            count = _in->read();
+            if (count < 0) { return -1; }
+
+            if (_power == 0) {
+                memcpy(out.writeBuf, _in->readBuf, count * sizeof(complex_t));
+            }
+            else if (_power == 1) {
+                for (int j = 0; j < count; j += 2) {
+                    out.writeBuf[j / 2].i = (_in->readBuf[j].i + _in->readBuf[j + 1].i) * 0.5f;
+                    out.writeBuf[j / 2].q = (_in->readBuf[j].q + _in->readBuf[j + 1].q) * 0.5f;
+                }
+                count /= 2;
+            }
+
+            _in->flush();
+
+            if (_power > 1) {
+                for (int i = 1; i < _power; i++) {
+                    for (int j = 0; j < count; j += 2) {
+                        out.writeBuf[j / 2].i = (_in->readBuf[j].i + _in->readBuf[j + 1].i) * 0.5f;
+                        out.writeBuf[j / 2].q = (_in->readBuf[j].q + _in->readBuf[j + 1].q) * 0.5f;
+                    }
+                    count /= 2;
+                }
+            }
+            
+            if (!out.swap(count)) { return -1; }
+            return count; 
+        }
+
+        stream<complex_t> out;
+
+
+    private:
+        int count;
+        unsigned int _power = 0;
+        stream<complex_t>* _in;
 
     };
 }

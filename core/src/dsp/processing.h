@@ -1,6 +1,5 @@
 #pragma once
 #include <dsp/block.h>
-#include <fftw3.h>
 #include <volk/volk.h>
 #include <spdlog/spdlog.h>
 #include <string.h>
@@ -89,13 +88,15 @@ namespace dsp {
     public:
         AGC() {}
 
-        AGC(stream<float>* in, float ratio) { init(in, ratio); }
+        AGC(stream<float>* in, float fallRate, float sampleRate) { init(in, fallRate, sampleRate); }
 
         ~AGC() { generic_block<AGC>::stop(); }
 
-        void init(stream<float>* in, float ratio) {
+        void init(stream<float>* in, float fallRate, float sampleRate) {
             _in = in;
-            _ratio = ratio;
+            _sampleRate = sampleRate;
+            _fallRate = fallRate;
+            _CorrectedFallRate = _fallRate / _sampleRate;
             generic_block<AGC>::registerInput(_in);
             generic_block<AGC>::registerOutput(&out);
         }
@@ -109,14 +110,29 @@ namespace dsp {
             generic_block<AGC>::tempStart();
         }
 
+        void setSampleRate(float sampleRate) {
+            std::lock_guard<std::mutex> lck(generic_block<AGC>::ctrlMtx);
+            _sampleRate = sampleRate;
+            _CorrectedFallRate = _fallRate / _sampleRate;
+        }
+
+        void setFallRate(float fallRate) {
+            std::lock_guard<std::mutex> lck(generic_block<AGC>::ctrlMtx);
+            _fallRate = fallRate;
+            _CorrectedFallRate = _fallRate / _sampleRate;
+        }
+
         int run() {
             count = _in->read();
             if (count < 0) { return -1; }
 
+            level = pow(10, ((10.0f * log10f(level)) - (_CorrectedFallRate * count)) / 10.0f);
+
             for (int i = 0; i < count; i++) {
-                level = (fabsf(_in->readBuf[i]) * _ratio) + (level * (1.0f - _ratio));
-                out.writeBuf[i] = _in->readBuf[i] / level;
+                if (_in->readBuf[i] > level) { level = _in->readBuf[i]; }
             }
+
+            volk_32f_s32f_multiply_32f(out.writeBuf, _in->readBuf, 1.0f / level, count);
 
             _in->flush();
             if (!out.swap(count)) { return -1; }
@@ -127,8 +143,10 @@ namespace dsp {
 
     private:
         int count;
-        float level = 1.0f;
-        float _ratio;
+        float level = 0.0f;
+        float _fallRate;
+        float _CorrectedFallRate;
+        float _sampleRate;
         stream<float>* _in;
 
     };

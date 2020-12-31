@@ -102,6 +102,7 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["bandPlan"] = "General";
     defConfig["bandPlanEnabled"] = true;
     defConfig["centerTuning"] = false;
+    defConfig["colorMap"] = "Classic";
     defConfig["fftHeight"] = 300;
     defConfig["frequency"] = 100000000.0;
     defConfig["max"] = 0.0;
@@ -155,6 +156,16 @@ int sdrpp_main(int argc, char *argv[]) {
     core::configManager.setPath(options::opts.root + "/config.json");
     core::configManager.load(defConfig);
     core::configManager.enableAutoSave();
+
+    // Fix config
+    core::configManager.aquire();
+    for (auto const& item : defConfig.items()) {
+        if (!core::configManager.conf.contains(item.key())) {
+            spdlog::warn("Missing key in config {0}, repairing", item.key());
+            core::configManager.conf[item.key()] = defConfig[item.key()];
+        }
+    }
+    core::configManager.release(true);
 
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);

@@ -42,7 +42,7 @@ public:
         
         demod.init(&squelch.out, bbSampRate, bandWidth, dsp::SSBDemod::MODE_LSB);
 
-        agc.init(&demod.out, 1.0f / 125.0f);
+        agc.init(&demod.out, 20.0f, bbSampRate);
 
         float audioBW = std::min<float>(audioSampRate / 2.0f, bw);
         win.init(audioBW, audioBW, bbSampRate);
@@ -151,6 +151,12 @@ private:
     void setBandwidth(float bandWidth) {
         bw = bandWidth;
         _vfo->setBandwidth(bw);
+        demod.setBandWidth(bw);
+        float audioBW = std::min<float>(audioSampRate / 2.0f, bw);
+        win.setSampleRate(bbSampRate * resamp.getInterpolation());
+        win.setCutoff(audioBW);
+        win.setTransWidth(audioBW);
+        resamp.updateWindow(&win);
     }
 
     void setSnapInterval(float snapInt) {
