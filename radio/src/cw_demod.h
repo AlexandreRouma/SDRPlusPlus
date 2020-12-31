@@ -103,12 +103,9 @@ public:
             xlator.stop();
         }
         audioSampRate = sampleRate;
-        float audioBW = std::min<float>(audioSampRate / 2.0f, bw / 2.0f);
         agc.setSampleRate(audioSampRate);
         resamp.setOutSampleRate(audioSampRate);
         win.setSampleRate(bbSampRate * resamp.getInterpolation());
-        win.setCutoff(audioBW);
-        win.setTransWidth(audioBW);
         resamp.updateWindow(&win);
         xlator.setSampleRate(audioSampRate);
         if (running) {
@@ -171,7 +168,7 @@ private:
 
     const float bwMax = 500;
     const float bwMin = 100;
-    const float bbSampRate = 6000;
+    const float bbSampRate = 500;
 
     std::string uiPrefix;
     float snapInterval = 10;
