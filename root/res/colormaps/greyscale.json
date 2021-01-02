@@ -1,0 +1,8 @@
+{
+    "name": "Grey Scale",
+    "author": "Ryzerth",
+    "map": [
+        "#000000",
+        "#FFFFFF"
+    ]
+}
