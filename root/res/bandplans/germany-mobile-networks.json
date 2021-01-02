@@ -1,0 +1,321 @@
+{
+    "name": "German Mobile Networks",
+    "country_name": "Germany",
+    "country_code": "DE",
+    "author_name": "Martin Hauke",
+    "author_url": "none",
+    "bands": [
+        {
+            "name": "DVB-T2",
+            "type": "broadcast",
+            "start": 470000000,
+            "end": 694000000
+        },
+        {
+            "name": "703 Telefonica FDD uplink",
+            "type": "mobile.mno.telefonica",
+            "start": 703000000,
+            "end": 713000000
+        },
+        {
+            "name": "713 Telekom FDD uplink",
+            "type": "mobile.mno.telekom",
+            "start": 713000000,
+            "end": 723000000
+        },
+        {
+            "name": "723 Vodafone FDD uplink",
+            "type": "mobile.mno.vodafone",
+            "start": 723000000,
+            "end": 733000000
+        },
+        {
+            "name": "758 Telefonica FDD downlink",
+            "type": "mobile.mno.telefonica",
+            "start": 758000000,
+            "end": 768000000
+        },
+        {
+            "name": "768 Telekom FDD downlink",
+            "type": "mobile.mno.telekom",
+            "start": 768000000,
+            "end": 778000000
+        },
+        {
+            "name": "778 Vodafone FDD downlink",
+            "type": "mobile.mno.vodafone",
+            "start": 778000000,
+            "end": 788000000
+        },
+        {
+            "name": "791 Telefonica FDD downlink",
+            "type": "mobile.mno.telefonica",
+            "start": 791000000,
+            "end": 801000000
+        },
+        {
+            "name": "801 Vodafone FDD downlink",
+            "type": "mobile.mno.vodafone",
+            "start": 801000000,
+            "end": 811000000
+        },
+        {
+            "name": "811 Telekom FDD downlink",
+            "type": "mobile.mno.telekom",
+            "start": 811000000,
+            "end": 821000000
+        },
+        {
+            "name": "832 Telefonica FDD uplink",
+            "type": "mobile.mno.telefonica",
+            "start": 832000000,
+            "end": 842000000
+        },
+        {
+            "name": "842 Vodafone FDD uplink",
+            "type": "mobile.mno.vodafone",
+            "start": 842000000,
+            "end": 852000000
+        },
+        {
+            "name": "852 Telekom FDD uplink",
+            "type": "mobile.mno.telekom",
+            "start": 852000000,
+            "end": 862000000
+        },
+        {
+            "name": "GSM-R FDD uplink",
+            "type": "mobile.gsm-r",
+            "start": 873100000,
+            "end": 880000000
+        },
+        {
+            "name": "880 Telefonica FDD uplink",
+            "type": "mobile.mno.telefonica",
+            "start": 880000000,
+            "end": 890000000
+        },
+        {
+            "name": "890 Vodafone FDD uplink",
+            "type": "mobile.mno.vodafone",
+            "start": 890000000,
+            "end": 900000000
+        },
+        {
+            "name": "900 Telekom FDD uplink",
+            "type": "mobile.mno.telekom",
+            "start": 900000000,
+            "end": 915000000
+        },
+        {
+            "name": "GSM-R FDD downlink",
+            "type": "mobile.gsm-r",
+            "start": 918100000,
+            "end": 925000000
+        },
+        {
+            "name": "925 Telefonica FDD downlink",
+            "type": "mobile.mno.telefonica",
+            "start": 925000000,
+            "end": 935000000
+        },
+        {
+            "name": "935 Vodafone FDD downlink",
+            "type": "mobile.mno.vodafone",
+            "start": 935000000,
+            "end": 945000000
+        },
+        {
+            "name": "945 Telekom FDD downlink",
+            "type": "mobile.mno.telekom",
+            "start": 945000000,
+            "end": 960000000
+        },
+        {
+            "name": "1452 Telekom SDL downlink",
+            "type": "mobile.mno.telekom",
+            "start": 1452000000,
+            "end": 1472000000
+        },
+    	{
+            "name": "1472 Vodafone SDL downlink",
+            "type": "mobile.mno.vodafone",
+            "start": 1472000000,
+            "end": 1492000000
+        },
+        {
+            "name": "1710 Telekom FDD uplink",
+            "type": "mobile.mno.telekom",
+            "start": 1710000000,
+            "end": 1740000000
+        },
+	{
+            "name": "1740 Telefonica FDD uplink",
+            "type": "mobile.mno.telefonica",
+            "start": 1740000000,
+            "end": 1760000000
+        },
+        {
+            "name": "1760 Vodafone FDD uplink",
+            "type": "mobile.mno.vodafone",
+            "start": 1760000000,
+            "end": 1785000000
+        },
+        {
+            "name": "1805 Telekom FDD downlink",
+            "type": "mobile.mno.telekom",
+            "start": 1805000000,
+            "end": 1835000000
+        },
+	{
+            "name": "1835 Telefonica FDD downlink",
+            "type": "mobile.mno.telefonica",
+            "start": 1835000000,
+            "end": 1855000000
+        },
+        {
+            "name": "1855 Vodafone FDD downlink",
+            "type": "mobile.mno.vodafone",
+            "start": 1855000000,
+            "end": 1880000000
+        },
+        {
+            "name": "DECT",
+            "type": "broadcast",
+            "start": 1880000000,
+            "end": 1900000000
+        },
+	{
+            "name": "1900.1 Telefonica",
+            "type": "mobile.mno.telefonica",
+            "start": 1900100000,
+            "end": 1905100000
+        },
+        {
+            "name": "1920 Vodafone FDD uplink",
+            "type": "mobile.mno.vodafone",
+            "start": 1920000000,
+            "end": 1940000000
+        },
+	{
+            "name": "1940 Telefonica FDD uplink",
+            "type": "mobile.mno.telefonica",
+            "start": 1940000000,
+            "end": 1960000000
+        },
+        {
+            "name": "1960 Telekom FDD uplink",
+            "type": "mobile.mno.telekom",
+            "start": 1960000000,
+            "end": 1980000000
+        },
+	{
+            "name": "2010.5 Telefonica",
+            "type": "mobile.mno.telefonica",
+            "start": 2010500000,
+            "end": 2024700000
+        },
+        {
+            "name": "2110 Vodafone FDD downlink",
+            "type": "mobile.mno.vodafone",
+            "start": 2110000000,
+            "end": 2130000000
+        },
+	{
+            "name": "2130 Telefonica FDD downlink",
+            "type": "mobile.mno.telefonica",
+            "start": 2130000000,
+            "end": 2150000000
+        },
+        {
+            "name": "2150 Telekom FDD downlink",
+            "type": "mobile.mno.telekom",
+            "start": 2150000000,
+            "end": 2170000000
+        },
+        {
+            "name": "2500 Vodafone FDD uplink",
+            "type": "mobile.mno.vodafone",
+            "start": 2500000000,
+            "end": 2520000000
+        },
+        {
+            "name": "2520 Telekom FDD uplink",
+            "type": "mobile.mno.telekom",
+            "start": 2520000000,
+            "end": 2540000000
+        },
+	{
+            "name": "2540 Telefonica FDD uplink",
+            "type": "mobile.mno.telefonica",
+            "start": 2540000000,
+            "end": 2570000000
+        },
+	{
+            "name": "2570 Telefonica TDD",
+            "type": "mobile.mno.telefonica",
+            "start": 2570000000,
+            "end": 2580000000
+        },
+        {
+            "name": "2580 Vodafone TDD",
+            "type": "mobile.mno.vodafone",
+            "start": 2580000000,
+            "end": 2605000000
+        },
+        {
+            "name": "2605 Telekom TDD",
+            "type": "mobile.mno.telekom",
+            "start": 2605000000,
+            "end": 2610000000
+        },
+	{
+            "name": "2610 Telefonica TDD",
+            "type": "mobile.mno.telefonica",
+            "start": 2610000000,
+            "end": 2620000000
+        },
+        {
+            "name": "2620 Vodafone FDD downlink",
+            "type": "mobile.mno.vodafone",
+            "start": 2620000000,
+            "end": 2640000000
+        },
+        {
+            "name": "2640 Telekom FDD downlink",
+            "type": "mobile.mno.telekom",
+            "start": 2640000000,
+            "end": 2660000000
+        },
+	{
+            "name": "2660 Telefonica FDD downlink",
+            "type": "mobile.mno.telefonica",
+            "start": 2660000000,
+            "end": 2690000000
+        },
+        {
+            "name": "3400 Vodafone",
+            "type": "mobile.mno.vodafone",
+            "start": 3400000000,
+            "end": 3490000000
+        },
+        {
+            "name": "3490 Drillisch",
+            "type": "mobile.mno.drillisch",
+            "start": 3490000000,
+            "end": 3540000000
+        },
+        {
+            "name": "3540 Telefonica",
+            "type": "mobile.mno.telefonica",
+            "start": 3540000000,
+            "end": 3610000000
+        },
+        {
+            "name": "3610 Telekom",
+            "type": "mobile.mno.telekom",
+            "start": 3610000000,
+            "end": 3700000000
+        }
+    ]
+}
