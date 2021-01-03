@@ -1,0 +1,87 @@
+{
+    "name": "German LTE bands",
+    "country_name": "Germany",
+    "country_code": "DE",
+    "author_name": "Martin Hauke",
+    "author_url": "none",
+    "bands": [
+        {
+            "name": "LTE band 1 (IMT) FDD uplink",
+            "type": "LTE.FDD.uplink",
+            "start": 1920000000,
+            "end": 1980000000
+        },
+        {
+            "name": "LTE band 1 (IMT) FDD downlink",
+            "type": "LTE.FDD.downlink",
+            "start": 2110000000,
+            "end": 2170000000
+        },
+        {
+            "name": "LTE band 3 (DCS) FDD uplink",
+            "type": "LTE.FDD.uplink",
+            "start": 1710000000,
+            "end": 1785000000
+        },
+        {
+            "name": "LTE band 3 (DCS) FDD downlink",
+            "type": "LTE.FDD.downlink",
+            "start": 1805000000,
+            "end": 1880000000
+        },
+        {
+            "name": "LTE band 7 (IMT-E) FDD uplink",
+            "type": "LTE.FDD.uplink",
+            "start": 2500000000,
+            "end": 2570000000
+        },
+        {
+            "name": "LTE band 7 (IMT-E) FDD downlink",
+            "type": "LTE.FDD.downlink",
+            "start": 2620000000,
+            "end": 2690000000
+        },
+        {
+            "name": "LTE band 8 (Extended GSM) FDD uplink",
+            "type": "LTE.FDD.uplink",
+            "start": 880000000,
+            "end": 915000000
+        },
+        {
+            "name": "LTE band 8 (Extended GSM) FDD downlink",
+            "type": "LTE.FDD.downlink",
+            "start": 9250000000,
+            "end": 9600000000
+        },
+        {
+            "name": "LTE band 20 (Digital Dividend) FDD uplink",
+            "type": "LTE.FDD.uplink",
+            "start": 832000000,
+            "end": 862000000
+        },
+        {
+            "name": "LTE band 20 (Digital Dividend) FDD downlink",
+            "type": "LTE.FDD.downlink",
+            "start": 7910000000,
+            "end": 8210000000
+        },
+        {
+            "name": "LTE band 28 (APT) FDD uplink",
+            "type": "LTE.FDD.uplink",
+            "start": 703000000,
+            "end": 748000000
+        },
+        {
+            "name": "LTE band 28 (APT) FDD downlink",
+            "type": "LTE.FDD.downlink",
+            "start": 7580000000,
+            "end": 8030000000
+        },
+        {
+            "name": "LTE band 32 (L-Band (EU)) SDL downlink",
+            "type": "LTE.SDL",
+            "start": 14520000000,
+            "end": 14960000000
+        }
+    ]
+}
