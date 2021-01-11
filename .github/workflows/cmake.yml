@@ -17,6 +17,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
+    - name: Update repositories
+      run: sudo apt update 
+    
     - name: Install dependencies
       run: sudo apt install libfftw3-dev libglfw3-dev libglew-dev libvolk2-dev libsoapysdr-dev libairspyhf-dev libiio-dev libad9361-dev portaudio19-dev libhackrf-dev
 
