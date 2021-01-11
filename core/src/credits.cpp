@@ -8,9 +8,10 @@ namespace sdrpp_credits {
         "Benjamin Kyd",
         "Cropinghigh",
         "Howard0su",
-        "Tobias Mädel",
+        "Martin Hauke",
         "Raov",
-        "Szymon Zakrent"
+        "Szymon Zakrent",
+        "Tobias Mädel"
     };
 
     const char* libraries[] = {

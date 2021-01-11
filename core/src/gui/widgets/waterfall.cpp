@@ -537,11 +537,14 @@ namespace ImGui {
     float* WaterFall::getFFTBuffer() {
         if (rawFFTs == NULL) { return NULL; }
         buf_mtx.lock();
-        currentFFTLine--;
-        fftLines++;
-        currentFFTLine = ((currentFFTLine + waterfallHeight) % waterfallHeight);
-        fftLines = std::min<float>(fftLines, waterfallHeight);
-        return &rawFFTs[currentFFTLine * rawFFTSize];
+        if (waterfallVisible) {
+            currentFFTLine--;
+            fftLines++;
+            currentFFTLine = ((currentFFTLine + waterfallHeight) % waterfallHeight);
+            fftLines = std::min<float>(fftLines, waterfallHeight);
+            return &rawFFTs[currentFFTLine * rawFFTSize];
+        }
+        return rawFFTs;
     }
 
     void WaterFall::pushFFT() {
@@ -550,9 +553,10 @@ namespace ImGui {
         int drawDataSize = (viewBandwidth / wholeBandwidth) * rawFFTSize;
         int drawDataStart = (((double)rawFFTSize / 2.0) * (offsetRatio + 1)) - (drawDataSize / 2);
         
-        doZoom(drawDataStart, drawDataSize, dataWidth, &rawFFTs[currentFFTLine * rawFFTSize], latestFFT);
+        
 
         if (waterfallVisible) {
+            doZoom(drawDataStart, drawDataSize, dataWidth, &rawFFTs[currentFFTLine * rawFFTSize], latestFFT);
             memmove(&waterfallFb[dataWidth], waterfallFb, dataWidth * (waterfallHeight - 1) * sizeof(uint32_t));
             float pixel;
             float dataRange = waterfallMax - waterfallMin;
@@ -562,6 +566,10 @@ namespace ImGui {
                 waterfallFb[j] = waterfallPallet[id];
             }
             waterfallUpdate = true;
+        }
+        else {
+            doZoom(drawDataStart, drawDataSize, dataWidth, rawFFTs, latestFFT);
+            fftLines = 1;
         }
         
         buf_mtx.unlock();
@@ -745,10 +753,12 @@ namespace ImGui {
         std::lock_guard<std::mutex> lck(buf_mtx);
         rawFFTSize = size;
         if (rawFFTs != NULL) {
-            rawFFTs = (float*)realloc(rawFFTs, rawFFTSize * waterfallHeight * sizeof(float));
+            int wfSize = std::max<int>(1, waterfallHeight);
+            rawFFTs = (float*)realloc(rawFFTs, rawFFTSize * wfSize * sizeof(float));
         }
         else {
-            rawFFTs = (float*)malloc(rawFFTSize * waterfallHeight * sizeof(float));
+            int wfSize = std::max<int>(1, waterfallHeight);
+            rawFFTs = (float*)malloc(rawFFTSize * wfSize * sizeof(float));
         }
         memset(rawFFTs, 0, rawFFTSize * waterfallHeight * sizeof(float));
     }
@@ -866,15 +876,17 @@ namespace ImGui {
     };
 
     void WaterFall::showWaterfall() {
-        waterfallVisible = true;
         buf_mtx.lock();
+        waterfallVisible = true;
         onResize();
+        memset(rawFFTs, 0, waterfallHeight * rawFFTSize * sizeof(float));
+        updateWaterfallFb();
         buf_mtx.unlock();
     }
 
     void WaterFall::hideWaterfall() {
-        waterfallVisible = false;
         buf_mtx.lock();
+        waterfallVisible = false;
         onResize();
         buf_mtx.unlock();
     }

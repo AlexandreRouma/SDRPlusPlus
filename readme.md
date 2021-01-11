@@ -226,9 +226,10 @@ I will soon publish a contributing.md listing the code style to use.
 * [Benjamin Kyd](https://github.com/benkyd)
 * [cropinghigh](https://github.com/cropinghigh)
 * [Howard0su](https://github.com/howard0su)
-* [Tobias Mädel](https://github.com/Manawyrm)
+* [Martin Hauke](https://github.com/mnhauke)
 * [Raov](https://twitter.com/raov_birbtog)
 * [Szymon Zakrent](https://github.com/zakrent)
+* [Tobias Mädel](https://github.com/Manawyrm)
 
 
 ## Libaries used
