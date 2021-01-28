@@ -462,7 +462,7 @@ void drawWindow() {
 
     gui::freqSelect.draw();
 
-    //ImGui::SameLine();
+    ImGui::SameLine();
 
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 9);
     if (centerTuning) {

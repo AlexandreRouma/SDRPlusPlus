@@ -2,6 +2,11 @@
 #include <config.h>
 #include <gui/style.h>
 
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+#include <imgui/imgui_internal.h>
+
 bool isInArea(ImVec2 val, ImVec2 min, ImVec2 max) {
     return val.x >= min.x && val.x < max.x && val.y >= min.y && val.y < max.y;
 }
@@ -18,17 +23,20 @@ void FrequencySelect::init() {
 }
 
 void FrequencySelect::onPosChange() {
-    int digitHeight = ImGui::CalcTextSize("0").y;
+    ImVec2 digitSz = ImGui::CalcTextSize("0");
+    ImVec2 commaSz = ImGui::CalcTextSize(".");
+    int digitHeight = digitSz.y;
+    int digitWidth = digitSz.x;
     int commaOffset = 0;
     for (int i = 0; i < 12; i++) {
-        digitTopMins[i] = ImVec2(widgetPos.x + (i * 22) + commaOffset, widgetPos.y);
-        digitBottomMins[i] = ImVec2(widgetPos.x + (i * 22) + commaOffset, widgetPos.y + (digitHeight / 2));
+        digitTopMins[i] = ImVec2(widgetPos.x + (i * digitWidth) + commaOffset, widgetPos.y);
+        digitBottomMins[i] = ImVec2(widgetPos.x + (i * digitWidth) + commaOffset, widgetPos.y + (digitHeight / 2));
 
-        digitTopMaxs[i] = ImVec2(widgetPos.x + (i * 22) + commaOffset + 22, widgetPos.y + (digitHeight / 2));
-        digitBottomMaxs[i] = ImVec2(widgetPos.x + (i * 22) + commaOffset + 22, widgetPos.y + digitHeight);
+        digitTopMaxs[i] = ImVec2(widgetPos.x + (i * digitWidth) + commaOffset + digitWidth, widgetPos.y + (digitHeight / 2));
+        digitBottomMaxs[i] = ImVec2(widgetPos.x + (i * digitWidth) + commaOffset + digitWidth, widgetPos.y + digitHeight);
 
         if ((i + 1) % 3 == 0 && i < 11) {
-            commaOffset += 12;
+            commaOffset += commaSz.x;
         }
     }
 }
@@ -90,18 +98,25 @@ void FrequencySelect::draw() {
     ImU32 disabledColor = ImGui::GetColorU32(ImGuiCol_Text, 0.3f);
     ImU32 textColor = ImGui::GetColorU32(ImGuiCol_Text);
 
+    ImVec2 digitSz = ImGui::CalcTextSize("0");
+    ImVec2 commaSz = ImGui::CalcTextSize(".");
+    int digitHeight = digitSz.y;
+    int digitWidth = digitSz.x;
     int commaOffset = 0;
     bool zeros = true;
+    
+    ImGui::ItemSize(ImRect(digitTopMins[0], ImVec2(digitBottomMaxs[11].x + 15, digitBottomMaxs[11].y)));
+
     for (int i = 0; i < 12; i++) {
         if (digits[i] != 0) {
             zeros = false;
         }
         sprintf(buf, "%d", digits[i]);
-        window->DrawList->AddText(ImVec2(widgetPos.x + (i * 22) + commaOffset, widgetPos.y), 
+        window->DrawList->AddText(ImVec2(widgetPos.x + (i * digitWidth) + commaOffset, widgetPos.y), 
                                 zeros ? disabledColor : textColor, buf);
         if ((i + 1) % 3 == 0 && i < 11) {
-            commaOffset += 12;
-            window->DrawList->AddText(ImVec2(widgetPos.x + (i * 22) + commaOffset + 10, widgetPos.y), 
+            commaOffset += commaSz.x;
+            window->DrawList->AddText(ImVec2(widgetPos.x + (i * digitWidth) + commaOffset + 11, widgetPos.y), 
                                     zeros ? disabledColor : textColor, ".");
         }
     }

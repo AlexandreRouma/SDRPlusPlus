@@ -25,7 +25,7 @@ namespace style {
         ImGui::GetStyle().ScrollbarRounding = 0.0f;
 
         baseFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(resDir + "/fonts/Roboto-Medium.ttf")).c_str(), 16.0f);
-        bigFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(resDir + "/fonts/Roboto-Medium.ttf")).c_str(), 42.0f);
+        bigFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(resDir + "/fonts/Roboto-Medium.ttf")).c_str(), 45.0f);
         hugeFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(resDir + "/fonts/Roboto-Medium.ttf")).c_str(), 128.0f);
 
         ImGui::StyleColorsDark();
@@ -52,7 +52,7 @@ namespace style {
         ImGui::GetStyle().ScrollbarRounding = 0.0f;
 
         baseFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(resDir + "/fonts/Roboto-Medium.ttf")).c_str(), 16.0f);
-        bigFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(resDir + "/fonts/Roboto-Medium.ttf")).c_str(), 42.0f);
+        bigFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(resDir + "/fonts/Roboto-Medium.ttf")).c_str(), 45.0f);
         hugeFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(resDir + "/fonts/Roboto-Medium.ttf")).c_str(), 128.0f);
 
         ImGui::StyleColorsDark();

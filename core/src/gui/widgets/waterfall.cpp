@@ -347,6 +347,7 @@ namespace ImGui {
             cPos = widgetPos.x + 50 + ((center - lowerFreq) * horizScale);
             width = bPos - aPos;
             txtSz = ImGui::CalcTextSize(bandplan->bands[i].name.c_str());
+            float height = txtSz.y * 2.5f;
             if (bandplan::colorTable.find(bandplan->bands[i].type.c_str()) != bandplan::colorTable.end()) {
                 color = bandplan::colorTable[bandplan->bands[i].type].colorValue;
                 colorTrans = bandplan::colorTable[bandplan->bands[i].type].transColorValue;
@@ -362,19 +363,19 @@ namespace ImGui {
                 bPos = widgetPos.x + 51;
             }
             if (width >= 1.0) {
-                window->DrawList->AddRectFilled(ImVec2(roundf(aPos), widgetPos.y + fftHeight - 25), 
+                window->DrawList->AddRectFilled(ImVec2(roundf(aPos), widgetPos.y + fftHeight + 10 - height), 
                                         ImVec2(roundf(bPos), widgetPos.y + fftHeight + 10), colorTrans);
                 if (startVis) {
-                    window->DrawList->AddLine(ImVec2(roundf(aPos), widgetPos.y + fftHeight - 26), 
+                    window->DrawList->AddLine(ImVec2(roundf(aPos), widgetPos.y + fftHeight + 10 - height - 1), 
                                         ImVec2(roundf(aPos), widgetPos.y + fftHeight + 9), color);
                 }
                 if (endVis) {
-                    window->DrawList->AddLine(ImVec2(roundf(bPos), widgetPos.y + fftHeight - 26), 
+                    window->DrawList->AddLine(ImVec2(roundf(bPos), widgetPos.y + fftHeight + 10 - height - 1), 
                                         ImVec2(roundf(bPos), widgetPos.y + fftHeight + 9), color);
                 }
             }
             if (txtSz.x <= width) {
-                window->DrawList->AddText(ImVec2(cPos - (txtSz.x / 2.0), widgetPos.y + fftHeight - 17), 
+                window->DrawList->AddText(ImVec2(cPos - (txtSz.x / 2.0), widgetPos.y + fftHeight + 10 - (height / 2.0f) - (txtSz.y / 2.0f)), 
                                     IM_COL32(255, 255, 255, 255), bandplan->bands[i].name.c_str());
             }
         }
