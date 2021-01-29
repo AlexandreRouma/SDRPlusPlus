@@ -5,6 +5,7 @@ on: [push]
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
+  RUNNER_WORKSPACE: ${{runner.workspace}}
 
 jobs:
   build:
@@ -45,12 +46,12 @@ jobs:
       run: cmake --build . --config $BUILD_TYPE
 
     - name: Create package
-      working-directory: ${{runner.workspace}}
+      working-directory: ${{github.workspace}}
       shell: bash
-      run: sh make_debian_package.sh ./build
+      run: sh -make_debian_package.sh $RUNNER_WORKSPACE/build
 
     - name: Save built package
       uses: actions/upload-artifact@v2
       with:
         name: debian-package
-        path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
+        path: ${{github.workspace}}/sdrpp_debian_amd64.deb
