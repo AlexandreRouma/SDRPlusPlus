@@ -121,16 +121,15 @@ public:
         airspyhf_get_samplerates(dev, sampleRates, 0);
         int n = sampleRates[0];
         airspyhf_get_samplerates(dev, sampleRates, n);
-        char buf[1024];
         sampleRateList.clear();
         sampleRateListTxt = "";
         for (int i = 0; i < n; i++) {
             sampleRateList.push_back(sampleRates[i]);
-            sprintf(buf, "%d", sampleRates[i]);
-            sampleRateListTxt += buf;
+            sampleRateListTxt += getBandwdithScaled(sampleRates[i]);
             sampleRateListTxt += '\0';
         }
 
+        char buf[1024];
         sprintf(buf, "%016" PRIX64, serial);
         selectedSerStr = std::string(buf);
 
@@ -174,6 +173,20 @@ public:
     }
 
 private:
+    std::string getBandwdithScaled(double bw) {
+        char buf[1024];
+        if (bw >= 1000000.0) {
+            sprintf(buf, "%.1lfMHz", bw / 1000000.0);
+        }
+        else if (bw >= 1000.0) {
+            sprintf(buf, "%.1lfKHz", bw / 1000.0);
+        }
+        else {
+            sprintf(buf, "%.1lfHz", bw);
+        }
+        return std::string(buf);
+    }
+
     static void menuSelected(void* ctx) {
         AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
         core::setInputSampleRate(_this->sampleRate);
