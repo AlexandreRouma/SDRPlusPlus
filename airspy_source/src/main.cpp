@@ -6,6 +6,7 @@
 #include <core.h>
 #include <gui/style.h>
 #include <config.h>
+#include <options.h>
 #include <libairspy/airspy.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
@@ -17,6 +18,8 @@ SDRPP_MOD_INFO {
     /* Version:         */ 0, 1, 0,
     /* Max instances    */ 1
 };
+
+ConfigManager config;
 
 class AirspySourceModule : public ModuleManager::Instance {
 public:
@@ -36,7 +39,11 @@ public:
 
         refresh();
 
-        selectFirst();
+        // Select device from config
+        config.aquire();
+        std::string devSerial = config.conf["device"];
+        config.release();
+        selectByString(devSerial);
 
         sigpath::sourceManager.registerSource("Airspy", &handler);
     }
@@ -117,7 +124,70 @@ public:
             sampleRateListTxt += '\0';
         }
 
+        sprintf(buf, "%016" PRIX64, serial);
+        selectedSerStr = std::string(buf);
+
+        // Load config here
+        config.aquire();
+        bool created = false;
+        if (!config.conf["devices"].contains(selectedSerStr)) {
+            created = true;
+            config.conf["devices"][selectedSerStr]["sampleRate"] = 10000000;
+            config.conf["devices"][selectedSerStr]["gainMode"] = 0;
+            config.conf["devices"][selectedSerStr]["sensitiveGain"] = 0;
+            config.conf["devices"][selectedSerStr]["linearGain"] = 0;
+            config.conf["devices"][selectedSerStr]["lnaGain"] = 0;
+            config.conf["devices"][selectedSerStr]["mixerGain"] = 0;
+            config.conf["devices"][selectedSerStr]["vgaGain"] = 0;
+            config.conf["devices"][selectedSerStr]["lnaAgc"] = false;
+            config.conf["devices"][selectedSerStr]["mixerAgc"] = false;
+            config.conf["devices"][selectedSerStr]["biasT"] = false;
+        }
+
+        // Load sample rate
         srId = 0;
+        if (config.conf["devices"][selectedSerStr].contains("sampleRate")) {
+            int selectedSr = config.conf["devices"][selectedSerStr]["sampleRate"];
+            for (int i = 0; i < sampleRateList.size(); i++) {
+                if (sampleRateList[i] == selectedSr) {
+                    srId = i;
+                    break;
+                }
+            }
+        }
+
+        // Load gains
+        if (config.conf["devices"][selectedSerStr].contains("gainMode")) {
+            gainMode = config.conf["devices"][selectedSerStr]["gainMode"];
+        }
+        if (config.conf["devices"][selectedSerStr].contains("sensitiveGain")) {
+            sensitiveGain = config.conf["devices"][selectedSerStr]["sensitiveGain"];
+        }
+        if (config.conf["devices"][selectedSerStr].contains("linearGain")) {
+            linearGain = config.conf["devices"][selectedSerStr]["linearGain"];
+        }
+        if (config.conf["devices"][selectedSerStr].contains("lnaGain")) {
+            lnaGain = config.conf["devices"][selectedSerStr]["lnaGain"];
+        }
+        if (config.conf["devices"][selectedSerStr].contains("mixerGain")) {
+            mixerGain = config.conf["devices"][selectedSerStr]["mixerGain"];
+        }
+        if (config.conf["devices"][selectedSerStr].contains("vgaGain")) {
+            vgaGain = config.conf["devices"][selectedSerStr]["vgaGain"];
+        }
+        if (config.conf["devices"][selectedSerStr].contains("lnaAgc")) {
+            lnaAgc = config.conf["devices"][selectedSerStr]["lnaAgc"];
+        }
+        if (config.conf["devices"][selectedSerStr].contains("mixerAgc")) {
+            mixerAgc = config.conf["devices"][selectedSerStr]["mixerAgc"];
+        }
+
+        // Load Bias-T
+        if (config.conf["devices"][selectedSerStr].contains("biasT")) {
+            biasT = config.conf["devices"][selectedSerStr]["biasT"];
+        }
+
+        config.release(created);
 
         airspy_close(dev);
     }
@@ -221,18 +291,31 @@ private:
         ImGui::SetNextItemWidth(menuWidth);
         if (ImGui::Combo(CONCAT("##_airspy_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
             _this->selectBySerial(_this->devList[_this->devId]);
+            if (_this->selectedSerStr != "") {
+                config.aquire();
+                config.conf["device"] = _this->selectedSerStr;
+                config.release(true);
+            }
         }
 
         if (ImGui::Combo(CONCAT("##_airspy_sr_sel_", _this->name), &_this->srId, _this->sampleRateListTxt.c_str())) {
             _this->sampleRate = _this->sampleRateList[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
+            if (_this->selectedSerStr != "") {
+                config.aquire();
+                config.conf["devices"][_this->selectedSerStr]["sampleRate"] = _this->sampleRate;
+                config.release(true);
+            }
         }
 
         ImGui::SameLine();
         float refreshBtnWdith = menuWidth - ImGui::GetCursorPosX();
         if (ImGui::Button(CONCAT("Refresh##_airspy_refr_", _this->name), ImVec2(refreshBtnWdith, 0))) {
             _this->refresh();
-            _this->selectFirst();
+            config.aquire();
+            std::string devSerial = config.conf["device"];
+            config.release();
+            _this->selectByString(devSerial);
         }
 
         if (_this->running) { style::endDisabled(); }
@@ -246,6 +329,11 @@ private:
                 airspy_set_mixer_agc(_this->openDev, 0);
                 airspy_set_sensitivity_gain(_this->openDev, _this->sensitiveGain);
             }
+            if (_this->selectedSerStr != "") {
+                config.aquire();
+                config.conf["devices"][_this->selectedSerStr]["gainMode"] = 0;
+                config.release(true);
+            }
         }
         ImGui::NextColumn();
         if (ImGui::RadioButton(CONCAT("Linear##_airspy_gm_", _this->name), _this->gainMode == 1)) {
@@ -254,6 +342,11 @@ private:
                 airspy_set_lna_agc(_this->openDev, 0);
                 airspy_set_mixer_agc(_this->openDev, 0);
                 airspy_set_linearity_gain(_this->openDev, _this->linearGain);
+            }
+            if (_this->selectedSerStr != "") {
+                config.aquire();
+                config.conf["devices"][_this->selectedSerStr]["gainMode"] = 1;
+                config.release(true);
             }
         }
         ImGui::NextColumn();
@@ -276,6 +369,11 @@ private:
                 }
                 airspy_set_vga_gain(_this->openDev, _this->vgaGain);
             }
+            if (_this->selectedSerStr != "") {
+                config.aquire();
+                config.conf["devices"][_this->selectedSerStr]["gainMode"] = 2;
+                config.release(true);
+            }
         }
         ImGui::Columns(1, CONCAT("EndAirspyGainModeColumns##_", _this->name), false);
         ImGui::EndGroup();
@@ -290,6 +388,11 @@ private:
                 if (_this->running) {
                     airspy_set_sensitivity_gain(_this->openDev, _this->sensitiveGain);
                 }
+                if (_this->selectedSerStr != "") {
+                    config.aquire();
+                    config.conf["devices"][_this->selectedSerStr]["sensitiveGain"] = _this->sensitiveGain;
+                    config.release(true);
+                }
             }
         }
         else if (_this->gainMode == 1) {
@@ -299,6 +402,11 @@ private:
             if (ImGui::SliderInt(CONCAT("##_airspy_lin_gain_", _this->name), &_this->linearGain, 0, 21)) {
                 if (_this->running) {
                     airspy_set_linearity_gain(_this->openDev, _this->linearGain);
+                }
+                if (_this->selectedSerStr != "") {
+                    config.aquire();
+                    config.conf["devices"][_this->selectedSerStr]["linearGain"] = _this->linearGain;
+                    config.release(true);
                 }
             }
         }
@@ -311,6 +419,11 @@ private:
                 if (_this->running) {
                     airspy_set_lna_gain(_this->openDev, _this->lnaGain);
                 }
+                if (_this->selectedSerStr != "") {
+                    config.aquire();
+                    config.conf["devices"][_this->selectedSerStr]["lnaGain"] = _this->lnaGain;
+                    config.release(true);
+                }
             }
             if (_this->lnaAgc) { style::endDisabled(); }
 
@@ -322,6 +435,11 @@ private:
                 if (_this->running) {
                     airspy_set_mixer_gain(_this->openDev, _this->mixerGain);
                 }
+                if (_this->selectedSerStr != "") {
+                    config.aquire();
+                    config.conf["devices"][_this->selectedSerStr]["mixerGain"] = _this->mixerGain;
+                    config.release(true);
+                }
             }
             if (_this->mixerAgc) { style::endDisabled(); }
 
@@ -331,6 +449,11 @@ private:
             if (ImGui::SliderInt(CONCAT("##_airspy_vga_gain_", _this->name), &_this->vgaGain, 0, 15)) {
                 if (_this->running) {
                     airspy_set_vga_gain(_this->openDev, _this->vgaGain);
+                }
+                if (_this->selectedSerStr != "") {
+                    config.aquire();
+                    config.conf["devices"][_this->selectedSerStr]["vgaGain"] = _this->vgaGain;
+                    config.release(true);
                 }
             }
 
@@ -345,6 +468,11 @@ private:
                         airspy_set_lna_gain(_this->openDev, _this->lnaGain);
                     }
                 }
+                if (_this->selectedSerStr != "") {
+                    config.aquire();
+                    config.conf["devices"][_this->selectedSerStr]["lnaAgc"] = _this->lnaAgc;
+                    config.release(true);
+                }
             }
 
             if (ImGui::Checkbox(CONCAT("Mixer AGC##_airspy_", _this->name), &_this->mixerAgc)) {
@@ -357,6 +485,11 @@ private:
                         airspy_set_mixer_gain(_this->openDev, _this->mixerGain);
                     }
                 }
+                if (_this->selectedSerStr != "") {
+                    config.aquire();
+                    config.conf["devices"][_this->selectedSerStr]["mixerAgc"] = _this->mixerAgc;
+                    config.release(true);
+                }
             }
         }
 
@@ -365,6 +498,11 @@ private:
         if (ImGui::Checkbox(CONCAT("Bias T##_airspy_", _this->name), &_this->biasT)) {
             if (_this->running) {
                 airspy_set_rf_bias(_this->openDev, _this->biasT);
+            }
+            if (_this->selectedSerStr != "") {
+                config.aquire();
+                config.conf["devices"][_this->selectedSerStr]["biasT"] = _this->biasT;
+                config.release(true);
             }
         }
 
@@ -387,6 +525,7 @@ private:
     bool running = false;
     double freq;
     uint64_t selectedSerial = 0;
+    std::string selectedSerStr = "";
     int devId = 0;
     int srId = 0;
 
@@ -410,7 +549,12 @@ private:
 };
 
 MOD_EXPORT void _INIT_() {
-
+    json def = json({});
+    def["devices"] = json({});
+    def["device"] = "";
+    config.setPath(options::opts.root + "/airspy_config.json");
+    config.load(def);
+    config.enableAutoSave();
 }
 
 MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
@@ -422,5 +566,6 @@ MOD_EXPORT void _DELETE_INSTANCE_(ModuleManager::Instance* instance) {
 }
 
 MOD_EXPORT void _END_() {
-
+    config.disableAutoSave();
+    config.save();
 }
