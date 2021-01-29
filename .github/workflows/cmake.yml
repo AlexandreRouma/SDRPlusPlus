@@ -5,7 +5,6 @@ on: [push]
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
-  RUNNER_WORKSPACE: ${{runner.workspace}}
 
 jobs:
   build:
@@ -48,7 +47,7 @@ jobs:
     - name: Create package
       working-directory: ${{github.workspace}}
       shell: bash
-      run: sh -make_debian_package.sh $RUNNER_WORKSPACE/build
+      run: sh -make_debian_package.sh ${{runner.workspace}}/build
 
     - name: Save built package
       uses: actions/upload-artifact@v2
