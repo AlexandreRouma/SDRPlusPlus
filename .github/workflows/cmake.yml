@@ -43,3 +43,14 @@ jobs:
       shell: bash
       # Execute the build.  You can specify a specific target with "--target <NAME>"
       run: cmake --build . --config $BUILD_TYPE
+
+    - name: Create package
+      working-directory: ${{runner.workspace}}
+      shell: bash
+      run: sh make_debian_package.sh ./build
+
+    - name: Save built package
+      uses: actions/upload-artifact@v2
+      with:
+        name: debian-package
+        path: ${{runner.workspace}}/sdrpp_debian_amd64.deb

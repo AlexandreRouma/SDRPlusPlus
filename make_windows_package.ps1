@@ -15,6 +15,9 @@ cp build/recorder/Release/recorder.dll sdrpp_windows_x64/modules/
 cp build/airspyhf_source/Release/airspyhf_source.dll sdrpp_windows_x64/modules/
 cp 'C:/Program Files/PothosSDR/bin/airspyhf.dll' sdrpp_windows_x64/
 
+cp build/airspy_source/Release/airspy_source.dll sdrpp_windows_x64/modules/
+cp 'C:/Program Files/PothosSDR/bin/airspy.dll' sdrpp_windows_x64/
+
 cp build/plutosdr_source/Release/plutosdr_source.dll sdrpp_windows_x64/modules/
 cp 'C:/Program Files/PothosSDR/bin/libiio.dll' sdrpp_windows_x64/
 cp 'C:/Program Files/PothosSDR/bin/libad9361.dll' sdrpp_windows_x64/
