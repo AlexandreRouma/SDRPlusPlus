@@ -6,6 +6,7 @@
 #include <core.h>
 #include <gui/style.h>
 #include <config.h>
+#include <options.h>
 #include <libairspyhf/airspyhf.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
@@ -18,7 +19,7 @@ SDRPP_MOD_INFO {
     /* Max instances    */ 1
 };
 
-//ConfigManager config;
+ConfigManager config;
 
 const char* AGG_MODES_STR = "Off\0Low\0High\0";
 
@@ -40,11 +41,10 @@ public:
 
         refresh();
 
-        selectFirst();
-
-        // config.aquire();
-        // std::string serString = config.conf["device"];
-        // config.release();
+        config.aquire();
+        std::string devSerial = config.conf["device"];
+        config.release();
+        selectByString(devSerial);
 
         sigpath::sourceManager.registerSource("Airspy HF+", &handler);
     }
@@ -131,7 +131,44 @@ public:
             sampleRateListTxt += '\0';
         }
 
+        sprintf(buf, "%016" PRIX64, serial);
+        selectedSerStr = std::string(buf);
+
+        // Load config here
+        config.aquire();
+        bool created = false;
+        if (!config.conf["devices"].contains(selectedSerStr)) {
+            created = true;
+            config.conf["devices"][selectedSerStr]["sampleRate"] = 768000;
+            config.conf["devices"][selectedSerStr]["agcMode"] = 0;
+            config.conf["devices"][selectedSerStr]["lna"] = false;
+            config.conf["devices"][selectedSerStr]["attenuation"] = 0;
+        }
+
+        // Load sample rate
         srId = 0;
+        if (config.conf["devices"][selectedSerStr].contains("sampleRate")) {
+            int selectedSr = config.conf["devices"][selectedSerStr]["sampleRate"];
+            for (int i = 0; i < sampleRateList.size(); i++) {
+                if (sampleRateList[i] == selectedSr) {
+                    srId = i;
+                    break;
+                }
+            }
+        }
+
+        // Load Gains
+        if (config.conf["devices"][selectedSerStr].contains("agcMode")) {
+            agcMode = config.conf["devices"][selectedSerStr]["agcMode"];
+        }
+        if (config.conf["devices"][selectedSerStr].contains("lna")) {
+            hfLNA = config.conf["devices"][selectedSerStr]["lna"];
+        }
+        if (config.conf["devices"][selectedSerStr].contains("attenuation")) {
+            atten = config.conf["devices"][selectedSerStr]["attenuation"];
+        }
+
+        config.release(created);
 
         airspyhf_close(dev);
     }
@@ -211,18 +248,31 @@ private:
         ImGui::SetNextItemWidth(menuWidth);
         if (ImGui::Combo(CONCAT("##_airspyhf_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
             _this->selectBySerial(_this->devList[_this->devId]);
+            if (_this->selectedSerStr != "") {
+                config.aquire();
+                config.conf["device"] = _this->selectedSerStr;
+                config.release(true);
+            }
         }
 
         if (ImGui::Combo(CONCAT("##_airspyhf_sr_sel_", _this->name), &_this->srId, _this->sampleRateListTxt.c_str())) {
             _this->sampleRate = _this->sampleRateList[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
+            if (_this->selectedSerStr != "") {
+                config.aquire();
+                config.conf["devices"][_this->selectedSerStr]["sampleRate"] = _this->sampleRate;
+                config.release(true);
+            }
         }
 
         ImGui::SameLine();
         float refreshBtnWdith = menuWidth - ImGui::GetCursorPosX();
         if (ImGui::Button(CONCAT("Refresh##_airspyhf_refr_", _this->name), ImVec2(refreshBtnWdith, 0))) {
             _this->refresh();
-            _this->selectFirst();
+            config.aquire();
+            std::string devSerial = config.conf["device"];
+            config.release();
+            _this->selectByString(devSerial);
         }
 
         if (_this->running) { style::endDisabled(); }
@@ -237,6 +287,11 @@ private:
                     airspyhf_set_hf_agc_threshold(_this->openDev, _this->agcMode - 1);
                 }
             }
+            if (_this->selectedSerStr != "") {
+                config.aquire();
+                config.conf["devices"][_this->selectedSerStr]["agcMode"] = _this->agcMode;
+                config.release(true);
+            }
         }
 
         ImGui::Text("HF LNA");
@@ -244,6 +299,11 @@ private:
         if (ImGui::Checkbox(CONCAT("##_airspyhf_lna_", _this->name), &_this->hfLNA)) {
             if (_this->running) {
                 airspyhf_set_hf_lna(_this->openDev, _this->hfLNA);
+            }      
+            if (_this->selectedSerStr != "") {
+                config.aquire();
+                config.conf["devices"][_this->selectedSerStr]["lna"] = _this->hfLNA;
+                config.release(true);
             }
         }
 
@@ -254,6 +314,11 @@ private:
             _this->atten = (_this->atten / 6) * 6;
             if (_this->running) {
                 airspyhf_set_hf_att(_this->openDev, _this->atten / 6);
+            }
+            if (_this->selectedSerStr != "") {
+                config.aquire();
+                config.conf["devices"][_this->selectedSerStr]["attenuation"] = _this->atten;
+                config.release(true);
             }
         }        
     }
@@ -279,6 +344,7 @@ private:
     int agcMode = AGC_MODE_OFF;
     bool hfLNA = false;
     int atten = 0;
+    std::string selectedSerStr = "";
 
     std::vector<uint64_t> devList;
     std::string devListTxt;
@@ -287,12 +353,12 @@ private:
 };
 
 MOD_EXPORT void _INIT_() {
-//    config.setPath(ROOT_DIR "/airspyhf_config.json");
-//    json defConf;
-//    defConf["device"] = "";
-//    defConf["devices"] = json::object();
-//    config.load(defConf);
-//    config.enableAutoSave();
+    json def = json({});
+    def["devices"] = json({});
+    def["device"] = "";
+    config.setPath(options::opts.root + "/airspyhf_config.json");
+    config.load(def);
+    config.enableAutoSave();
 }
 
 MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
@@ -304,6 +370,6 @@ MOD_EXPORT void _DELETE_INSTANCE_(ModuleManager::Instance* instance) {
 }
 
 MOD_EXPORT void _END_() {
-    // config.disableAutoSave();
-    // config.save();
+    config.disableAutoSave();
+    config.save();
 }
