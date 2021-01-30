@@ -45,6 +45,7 @@ public:
         std::string devSerial = config.conf["device"];
         config.release();
         selectByString(devSerial);
+        core::setInputSampleRate(sampleRate);
 
         sigpath::sourceManager.registerSource("Airspy HF+", &handler);
     }
@@ -146,11 +147,13 @@ public:
 
         // Load sample rate
         srId = 0;
+        sampleRate = sampleRateList[0];
         if (config.conf["devices"][selectedSerStr].contains("sampleRate")) {
             int selectedSr = config.conf["devices"][selectedSerStr]["sampleRate"];
             for (int i = 0; i < sampleRateList.size(); i++) {
                 if (sampleRateList[i] == selectedSr) {
                     srId = i;
+                    sampleRate = selectedSr;
                     break;
                 }
             }
@@ -261,6 +264,7 @@ private:
         ImGui::SetNextItemWidth(menuWidth);
         if (ImGui::Combo(CONCAT("##_airspyhf_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
             _this->selectBySerial(_this->devList[_this->devId]);
+            core::setInputSampleRate(_this->sampleRate);
             if (_this->selectedSerStr != "") {
                 config.aquire();
                 config.conf["device"] = _this->selectedSerStr;
@@ -286,6 +290,7 @@ private:
             std::string devSerial = config.conf["device"];
             config.release();
             _this->selectByString(devSerial);
+            core::setInputSampleRate(_this->sampleRate);
         }
 
         if (_this->running) { style::endDisabled(); }
