@@ -8,6 +8,8 @@
 #include <config.h>
 #include <libhackrf/hackrf.h>
 
+#pragma optimize( "", off )
+
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
 SDRPP_MOD_INFO {
@@ -89,7 +91,7 @@ public:
 
         for (int i = 0; i < _devList->devicecount; i++) {
             devList.push_back(_devList->serial_numbers[i]);
-            devListTxt += _devList->serial_numbers[i];
+            devListTxt += (char*)(_devList->serial_numbers[i] + 16);
             devListTxt += '\0';
         }
 
@@ -114,7 +116,7 @@ private:
         spdlog::info("HackRFSourceModule '{0}': Menu Deselect!", _this->name);
     }
 
-    #pragma optimize( "", off )
+    
     
     static void start(void* ctx) {
         HackRFSourceModule* _this = (HackRFSourceModule*)ctx;
@@ -145,8 +147,6 @@ private:
         _this->running = true;
         spdlog::info("HackRFSourceModule '{0}': Start!", _this->name);
     }
-
-    #pragma optimize( "", on )
     
     static void stop(void* ctx) {
         HackRFSourceModule* _this = (HackRFSourceModule*)ctx;
@@ -273,3 +273,5 @@ MOD_EXPORT void _END_() {
     // config.disableAutoSave();
     // config.save();
 }
+
+#pragma optimize( "", on )

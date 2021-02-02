@@ -299,7 +299,7 @@ void setVFO(double freq) {
     if (vfoBottom < bottom) {
         gui::waterfall.setViewOffset((BW / 2.0) - (viewBW / 2.0));
         double newVFOOffset = (BW / 2.0) - (vfoBW / 2.0) - (viewBW / 10.0);
-        sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFOOffset);
+        sigpath::vfoManager.setOffset(gui::waterfall.selectedVFO, newVFOOffset);
         gui::waterfall.setCenterFrequency(freq - newVFOOffset);
         sigpath::sourceManager.tune(freq - newVFOOffset);
         return;
@@ -309,7 +309,7 @@ void setVFO(double freq) {
     if (vfoTop > top) {
         gui::waterfall.setViewOffset((viewBW / 2.0) - (BW / 2.0));
         double newVFOOffset = (vfoBW / 2.0) - (BW / 2.0) + (viewBW / 10.0);
-        sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFOOffset);
+        sigpath::vfoManager.setOffset(gui::waterfall.selectedVFO, newVFOOffset);
         gui::waterfall.setCenterFrequency(freq - newVFOOffset);
         sigpath::sourceManager.tune(freq - newVFOOffset);
         return;
