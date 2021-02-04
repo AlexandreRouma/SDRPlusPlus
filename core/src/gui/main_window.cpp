@@ -61,6 +61,7 @@ fftwf_plan p;
 float* tempFFT;
 float* FFTdata;
 char buf[1024];
+bool experimentalZoom = false;
 
 
 
@@ -551,6 +552,7 @@ void drawWindow() {
                 //sigpath::signalPath.setDCBiasCorrection(dcbias.val);
             }
             ImGui::Checkbox("Show demo window", &demoWindow);
+            ImGui::Checkbox("Experimental zoom", &experimentalZoom);
             ImGui::Spacing();
         }
 
@@ -582,7 +584,7 @@ void drawWindow() {
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Zoom").x / 2.0));
     ImGui::Text("Zoom");
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10);
-    if (ImGui::VSliderFloat("##_7_", ImVec2(20.0, 150.0), &bw, gui::waterfall.getBandwidth(), 1000.0, "")) {
+    if (ImGui::VSliderFloat("##_7_", ImVec2(20.0, 150.0), &bw, gui::waterfall.getBandwidth(), 1000.0, "", (experimentalZoom ? 2.0 : 1.0))) {
         gui::waterfall.setViewBandwidth(bw);
         if (vfo != NULL) {
             gui::waterfall.setViewOffset(vfo->centerOffset); // center vfo on screen
