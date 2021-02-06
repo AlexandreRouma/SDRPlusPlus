@@ -7,93 +7,76 @@
 #include <string.h>
 
 namespace dsp {
-    class VolumeMeasure : public generic_block<VolumeMeasure> {
+    class LevelMeter : public generic_block<LevelMeter> {
     public:
-        VolumeMeasure() {}
+        LevelMeter() {}
 
-        VolumeMeasure(stream<stereo_t>* in) { init(in); }
+        LevelMeter(stream<stereo_t>* in) { init(in); }
 
-        ~VolumeMeasure() {
-            generic_block<VolumeMeasure>::stop();
-            delete[] leftBuf;
-            delete[] rightBuf;
-        }
+        ~LevelMeter() { generic_block<LevelMeter>::stop(); }
 
         void init(stream<stereo_t>* in) {
             _in = in;
-            leftBuf = new float[STREAM_BUFFER_SIZE];
-            rightBuf = new float[STREAM_BUFFER_SIZE];
-            generic_block<VolumeMeasure>::registerInput(_in);
-            generic_block<VolumeMeasure>::registerOutput(&out);
+            generic_block<LevelMeter>::registerInput(_in);
         }
 
         void setInput(stream<stereo_t>* in) {
-            std::lock_guard<std::mutex> lck(generic_block<VolumeMeasure>::ctrlMtx);
-            generic_block<VolumeMeasure>::tempStop();
-            generic_block<VolumeMeasure>::unregisterInput(_in);
+            std::lock_guard<std::mutex> lck(generic_block<LevelMeter>::ctrlMtx);
+            generic_block<LevelMeter>::tempStop();
+            generic_block<LevelMeter>::unregisterInput(_in);
             _in = in;
-            generic_block<VolumeMeasure>::registerInput(_in);
-            generic_block<VolumeMeasure>::tempStart();
+            generic_block<LevelMeter>::registerInput(_in);
+            generic_block<LevelMeter>::tempStart();
         }
 
         int run() {
             count = _in->read();
             if (count < 0) { return -1; }
 
-            memcpy(out.writeBuf, _in->readBuf, count * sizeof(stereo_t));
-            volk_32fc_deinterleave_32f_x2(leftBuf, rightBuf, (lv_32fc_t*)_in->readBuf, count);
-
-            _in->flush();
-            if (!out.swap(count)) { return -1; }
-
-            // Get peak from last value
-            float time = (float)count / sampleRate;
-            peak.l -= peakFall * time;
-            peak.r -= peakFall * time;
-            stereo_t _peak;
-            _peak.l = powf(10, peak.l / 10.0f);
-            _peak.r = powf(10, peak.r / 10.0f);
-
-            stereo_t _average;
-
-            // Calculate average
-            volk_32f_s32f_power_32f(leftBuf, leftBuf, 2, count);
-            volk_32f_s32f_power_32f(rightBuf, rightBuf, 2, count);
-            volk_32f_sqrt_32f(leftBuf, leftBuf, count);
-            volk_32f_sqrt_32f(rightBuf, rightBuf, count);
-            volk_32f_accumulator_s32f(&_average.l, leftBuf, count);
-            volk_32f_accumulator_s32f(&_average.r, rightBuf, count);
-            _average.l /= (float)count;
-            _average.r /= (float)count;
-
-            // Calculate peak
+            float maxL = 0, maxR = 0;
             for (int i = 0; i < count; i++) {
-                if (leftBuf[i] > _peak.l) { _peak.l = leftBuf[i]; }
-                if (rightBuf[i] > _peak.r) { _peak.r = rightBuf[i]; }
+                float absL = fabs(_in->readBuf[i].l);
+                float absR = fabs(_in->readBuf[i].r);
+                if (absL > maxL) { maxL = absL; }
+                if (absR > maxR) { maxR = absR; }
             }
 
-            // Assign
-            peak.l = 10.0f * log10f(_peak.l);
-            peak.r = 10.0f * log10f(_peak.r);
-            average.l = (average.l * (1.0f - avgFilt)) + (10.0f * log10f(_average.l) * avgFilt);
-            average.r = (average.r * (1.0f - avgFilt)) + (10.0f * log10f(_average.r) * avgFilt);
+            _in->flush();
+
+            float _lvlL = 10.0f * logf(maxL);
+            float _lvlR = 10.0f * logf(maxL);
+            
+            // Update max values
+            {
+                std::lock_guard<std::mutex> lck(lvlMtx);
+                if (_lvlL > lvlL) { lvlL = _lvlL; }
+                if (_lvlR > lvlR) { lvlR = _lvlR; }
+            }
+            
 
             return count;
         }
 
-        stream<stereo_t> out;
+        float getLeftLevel() {
+            std::lock_guard<std::mutex> lck(lvlMtx);
+            float ret = lvlL;
+            lvlL = -90.0f;
+            return ret;
+        }
 
-        stereo_t peak = {0, 0};
-        stereo_t average = {0, 0};
+        float getRightLevel() {
+            std::lock_guard<std::mutex> lck(lvlMtx);
+            float ret = lvlR;
+            lvlR = -90.0f;
+            return ret;
+        }
 
     private:
+        float lvlL = -90.0f;
+        float lvlR = -90.0f;
         int count;
-        float peakFall = 10.0f; // dB/S
-        float avgFilt  = 0.2f; // IIR filter coef
-        float sampleRate = 48000;
         stream<stereo_t>* _in;
+        std::mutex lvlMtx;
 
-        float* leftBuf;
-        float* rightBuf;
     };
 }

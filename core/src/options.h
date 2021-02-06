@@ -5,6 +5,7 @@
 namespace options {
     struct CMDLineOptions {
         std::string root;
+        bool showConsole;
     };
 
     SDRPP_EXPORT CMDLineOptions opts;

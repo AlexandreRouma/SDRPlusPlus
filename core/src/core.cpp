@@ -66,17 +66,15 @@ duk_ret_t test_func(duk_context *ctx) {
 
 // main
 int sdrpp_main(int argc, char *argv[]) {
-#ifdef _WIN32
-    //FreeConsole();
-    // ConfigManager::setResourceDir("./res");
-    // ConfigManager::setConfigDir(".");
-#endif
-
     spdlog::info("SDR++ v" VERSION_STR);
 
     // Load default options and parse command line
     options::loadDefaults();
     if (!options::parse(argc, argv)) { return -1; }
+
+#ifdef _WIN32
+    if (!options::opts.showConsole) { FreeConsole(); }
+#endif
 
     // Check root directory
     if (!std::filesystem::exists(options::opts.root)) {
