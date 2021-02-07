@@ -32,6 +32,10 @@
 #include <gui/dialogs/loading_screen.h>
 #include <options.h>
 #include <gui/colormaps.h>
+#include <gui/widgets/scroll_behavior.h>
+
+#include <gui/widgets/file_select.h>
+FileSelect fileSelect("%ROOT/recordings", "Alllll\0*.*\0Text\0*.TXT\0");
 
 // const int FFTSizes[] = {
 //     65536,
@@ -553,6 +557,7 @@ void drawWindow() {
             }
             ImGui::Checkbox("Show demo window", &demoWindow);
             ImGui::Checkbox("Experimental zoom", &experimentalZoom);
+            fileSelect.render("##_testfile");
             ImGui::Spacing();
         }
 
@@ -584,7 +589,8 @@ void drawWindow() {
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Zoom").x / 2.0));
     ImGui::Text("Zoom");
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10);
-    if (ImGui::VSliderFloat("##_7_", ImVec2(20.0, 150.0), &bw, gui::waterfall.getBandwidth(), 1000.0, "", (experimentalZoom ? 2.0 : 1.0))) {
+    if (ImGui::VSliderFloat("##_7_", ImVec2(20.0, 150.0), &bw, gui::waterfall.getBandwidth(), 1000.0, "", (experimentalZoom ? 2.0 : 1.0)) ||
+        ImGui::AllowScrollwheel<float>(bw, 20, gui::waterfall.getBandwidth(), 1000.0)) {
         gui::waterfall.setViewBandwidth(bw);
         if (vfo != NULL) {
             gui::waterfall.setViewOffset(vfo->centerOffset); // center vfo on screen
@@ -596,7 +602,7 @@ void drawWindow() {
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Max").x / 2.0));
     ImGui::Text("Max");
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10);
-    if (ImGui::VSliderFloat("##_8_", ImVec2(20.0, 150.0), &fftMax, 0.0, -100.0, "")) {
+    if (ImGui::VSliderFloat("##_8_", ImVec2(20.0, 150.0), &fftMax, 0.0, -100.0, "") || ImGui::AllowScrollwheel<float>(fftMax, 20, -100, 0)) {
         fftMax = std::max<float>(fftMax, fftMin + 10);
         core::configManager.aquire();
         core::configManager.conf["max"] = fftMax;
@@ -608,7 +614,7 @@ void drawWindow() {
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Min").x / 2.0));
     ImGui::Text("Min");
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10);
-    if (ImGui::VSliderFloat("##_9_", ImVec2(20.0, 150.0), &fftMin, 0.0, -100.0, "")) {
+    if (ImGui::VSliderFloat("##_9_", ImVec2(20.0, 150.0), &fftMin, 0.0, -100.0, "") || ImGui::AllowScrollwheel<float>(fftMin, 20, -100, 0)) {
         fftMin = std::min<float>(fftMax - 10, fftMin);
         core::configManager.aquire();
         core::configManager.conf["min"] = fftMin;

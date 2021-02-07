@@ -8,6 +8,7 @@
 #include <config.h>
 #include <options.h>
 #include <libairspy/airspy.h>
+#include <gui/widgets/scroll_behavior.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -405,7 +406,7 @@ private:
             ImGui::Text("Gain");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::SliderInt(CONCAT("##_airspy_sens_gain_", _this->name), &_this->sensitiveGain, 0, 21)) {
+            if (ImGui::SliderInt(CONCAT("##_airspy_sens_gain_", _this->name), &_this->sensitiveGain, 0, 21) || ImGui::AllowScrollwheelStSz<int>(_this->sensitiveGain, 1, 0, 21)) {
                 if (_this->running) {
                     airspy_set_sensitivity_gain(_this->openDev, _this->sensitiveGain);
                 }
@@ -420,7 +421,7 @@ private:
             ImGui::Text("Gain");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::SliderInt(CONCAT("##_airspy_lin_gain_", _this->name), &_this->linearGain, 0, 21)) {
+            if (ImGui::SliderInt(CONCAT("##_airspy_lin_gain_", _this->name), &_this->linearGain, 0, 21) || ImGui::AllowScrollwheelStSz<int>(_this->linearGain, 1, 0, 21)) {
                 if (_this->running) {
                     airspy_set_linearity_gain(_this->openDev, _this->linearGain);
                 }
@@ -440,7 +441,7 @@ private:
             ImGui::SameLine();
             ImGui::SetCursorPosX(pos);
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::SliderInt(CONCAT("##_airspy_lna_gain_", _this->name), &_this->lnaGain, 0, 15)) {
+            if (ImGui::SliderInt(CONCAT("##_airspy_lna_gain_", _this->name), &_this->lnaGain, 0, 15) || ImGui::AllowScrollwheelStSz<int>(_this->lnaGain, 1, 0, 15)) {
                 if (_this->running) {
                     airspy_set_lna_gain(_this->openDev, _this->lnaGain);
                 }
@@ -457,7 +458,7 @@ private:
             ImGui::SameLine();
             ImGui::SetCursorPosX(pos);
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::SliderInt(CONCAT("##_airspy_mix_gain_", _this->name), &_this->mixerGain, 0, 15)) {
+            if (ImGui::SliderInt(CONCAT("##_airspy_mix_gain_", _this->name), &_this->mixerGain, 0, 15) || ImGui::AllowScrollwheelStSz<int>(_this->mixerGain, 1, 0, 15)) {
                 if (_this->running) {
                     airspy_set_mixer_gain(_this->openDev, _this->mixerGain);
                 }
@@ -473,7 +474,7 @@ private:
             ImGui::SameLine();
             ImGui::SetCursorPosX(pos);
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::SliderInt(CONCAT("##_airspy_vga_gain_", _this->name), &_this->vgaGain, 0, 15)) {
+            if (ImGui::SliderInt(CONCAT("##_airspy_vga_gain_", _this->name), &_this->vgaGain, 0, 15) || ImGui::AllowScrollwheelStSz<int>(_this->vgaGain, 1, 0, 15)) {
                 if (_this->running) {
                     airspy_set_vga_gain(_this->openDev, _this->vgaGain);
                 }

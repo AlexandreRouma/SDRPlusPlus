@@ -183,6 +183,8 @@ Then, you need to edit the `root_dev/config` file to point to the modules that w
 ...
 ```
 
+Note: You can generate this list automatically by running `find . | grep '\.so' | sed 's/^/"/' | sed 's/$/",/' | sed '/sdrpp_core.so/d'` in the build directory.
+
 You also need to change the location of the resource and module directories, for development, I recommend:
 ```json
 ...

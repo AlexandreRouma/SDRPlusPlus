@@ -3,6 +3,7 @@
 #include <imgui/imgui.h>
 #include <gui/style.h>
 #include <gui/icons.h>
+#include <gui/widgets/scroll_behavior.h>
 #include <core.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
@@ -216,7 +217,7 @@ void SinkManager::showVolumeSlider(std::string name, std::string prefix, float w
 
     ImGui::SetNextItemWidth(width - height - 8);
     ImGui::SetCursorPosY(ypos + ((height - sliderHeight) / 2.0f) + btwBorder);
-    if (ImGui::SliderFloat((prefix + name).c_str(), &stream->guiVolume, 0.0f, 1.0f, "")) {
+    if (ImGui::SliderFloat((prefix + name).c_str(), &stream->guiVolume, 0.0f, 1.0f, "") || ImGui::AllowScrollwheel<float>(stream->guiVolume, 20, 0, 1)) {
         stream->setVolume(stream->guiVolume);
         core::configManager.aquire();
         saveStreamConfig(name);
