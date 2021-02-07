@@ -7,6 +7,7 @@
 #include <string>
 #include <config.h>
 #include <imgui.h>
+#include <gui/widgets/scroll_behavior.h>
 
 class FMDemodulator : public Demodulator {
 public:
@@ -135,7 +136,7 @@ public:
         ImGui::Text("Squelch");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::SliderFloat(("##_radio_fm_squelch_" + uiPrefix).c_str(), &squelchLevel, -100.0f, 0.0f, "%.3fdB")) {
+        if (ImGui::SliderFloat(("##_radio_fm_squelch_" + uiPrefix).c_str(), &squelchLevel, -100.0f, 0.0f, "%.3fdB") || ImGui::AllowScrollwheel<float>(squelchLevel, 20, -100, 0)) {
             squelch.setLevel(squelchLevel);
             _config->aquire();
             _config->conf[uiPrefix]["FM"]["squelchLevel"] = squelchLevel;
