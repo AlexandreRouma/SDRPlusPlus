@@ -2,6 +2,7 @@
 
 #pragma once
 #include <stdint.h>
+#include <string.h>
 #include <fstream>
 
 #define WAV_SIGNATURE       "RIFF"
@@ -15,6 +16,10 @@ public:
     WavReader(std::string path) {
         file = std::ifstream(path.c_str(), std::ios::binary);
         file.read((char*)&hdr, sizeof(WavHeader_t));
+        valid = false;
+        if (memcmp(hdr.signature, "RIFF", 4) != 0) { return; }
+        if (memcmp(hdr.fileType, "WAVE", 4) != 0) { return; }
+        valid = true;
     }
 
     uint16_t getBitDepth() {
@@ -29,13 +34,26 @@ public:
         return hdr.sampleRate;
     }
 
+    bool isValid() {
+        return valid;
+    }
+
     void readSamples(void* data, size_t size) {
-        file.read((char*)data, size);
+        char* _data = (char*)data;
+        file.read(_data, size);
+        int read = file.gcount();
+        if (read < size) {
+            file.seekg(sizeof(WavHeader_t));
+            file.read(&_data[read], size - read);
+        }
         bytesRead += size;
+    }
+
+    void rewind() {
+        file.seekg(sizeof(WavHeader_t));
     }
     
     void close() {
-        
         file.close();
     }
 
@@ -56,6 +74,7 @@ private:
         uint32_t dataSize;
     };
 
+    bool valid = false;
     std::ifstream file;
     size_t bytesRead = 0;
     WavHeader_t hdr;

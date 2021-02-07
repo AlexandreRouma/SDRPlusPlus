@@ -15,6 +15,7 @@
 #include <gui/widgets/volume_meter.h>
 #include <regex>
 #include <options.h>
+#include <gui/widgets/folder_select.h>
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
 SDRPP_MOD_INFO {
@@ -41,10 +42,10 @@ std::string genFileName(std::string prefix) {
 
 class RecorderModule : public ModuleManager::Instance {
 public:
-    RecorderModule(std::string name) {
+    RecorderModule(std::string name) : folderSelect("%ROOT%/recordings") {
         this->name = name;
 
-        strcpy(recPath, "%ROOT%/recordings");
+        recPath = "%ROOT%/recordings";
 
         // Init audio path
         vol.init(&dummyStream, 1.0f);
@@ -135,27 +136,12 @@ private:
         if (_this->recording) { style::endDisabled(); }
 
         // Recording path
-        ImGui::SetNextItemWidth(menuColumnWidth);
-        bool lastPathValid = _this->pathValid;
-        if (!lastPathValid) {
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
-        }
-        if (ImGui::InputText(CONCAT("##_recorder_path_", _this->name), _this->recPath, 4095)) {
-            std::string expandedPath = expandString(_this->recPath);
-            if (!std::filesystem::exists(expandedPath)) {
-                _this->pathValid = false;
-            }
-            else if (!std::filesystem::is_directory(expandedPath)) {
-                _this->pathValid = false;
-            }
-            else {
-                _this->pathValid = true;
-                // Save config here
+        if (_this->folderSelect.render("##_recorder_fold_" + _this->name)) {
+            if (_this->folderSelect.pathIsValid()) {
+                _this->recPath = _this->folderSelect.path;
             }
         }
-        if (!lastPathValid) {
-            ImGui::PopStyleColor();
-        }
+        _this->pathValid = _this->folderSelect.pathIsValid();
 
         // Mode specific menu
         if (_this->recMode) {
@@ -172,7 +158,7 @@ private:
             if (ImGui::Button(CONCAT("Record##_recorder_rec_", name), ImVec2(menuColumnWidth, 0))) {
                 recording = true;
                 samplesWritten = 0;
-                std::string expandedPath = expandString(std::string(recPath) + genFileName("/baseband_"));
+                std::string expandedPath = expandString(recPath + genFileName("/baseband_"));
                 sampleRate = sigpath::signalPath.getSampleRate();
                 basebandWriter = new WavWriter(expandedPath, 16, 2, sigpath::signalPath.getSampleRate());
                 basebandHandler.start();
@@ -225,7 +211,7 @@ private:
             if (ImGui::Button(CONCAT("Record##_recorder_rec_", name), ImVec2(menuColumnWidth, 0))) {
                 recording = true;
                 samplesWritten = 0;
-                std::string expandedPath = expandString(std::string(recPath) + genFileName("/audio_"));
+                std::string expandedPath = expandString(recPath + genFileName("/audio_"));
                 sampleRate = sigpath::sinkManager.getStreamSampleRate(selectedStreamName);
                 audioWriter = new WavWriter(expandedPath, 16, 2, sigpath::sinkManager.getStreamSampleRate(selectedStreamName));
                 audioHandler.start();
@@ -273,7 +259,7 @@ private:
     std::string name;
     bool enabled = true;
 
-    char recPath[1024];
+    std::string recPath = "";
 
     bool recMode = 1;
     bool recording = false;
@@ -287,6 +273,8 @@ private:
     float lvlR = -90.0f;
 
     dsp::stream<dsp::stereo_t> dummyStream;
+
+    FolderSelect folderSelect;
 
     // Audio path
     dsp::stream<dsp::stereo_t>* audioInput;

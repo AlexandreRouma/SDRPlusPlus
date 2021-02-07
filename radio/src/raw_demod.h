@@ -7,7 +7,7 @@
 #include <string>
 #include <config.h>
 #include <imgui.h>
-#include <gui/widgets/scroll_behavior.h>
+
 
 class RAWDemodulator : public Demodulator {
 public:
@@ -93,7 +93,7 @@ public:
         ImGui::Text("Snap Interval");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::InputFloat(("##_radio_raw_snap_" + uiPrefix).c_str(), &snapInterval, 1, 100, 0)) {
+        if (ImGui::InputFloat(("##_radio_raw_snap_" + uiPrefix).c_str(), &snapInterval, 1, 100, "%.0f", 0)) {
             setSnapInterval(snapInterval);
             _config->aquire();
             _config->conf[uiPrefix]["RAW"]["snapInterval"] = snapInterval;
@@ -103,7 +103,7 @@ public:
         ImGui::Text("Squelch");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::SliderFloat(("##_radio_raw_squelch_" + uiPrefix).c_str(), &squelchLevel, -100.0f, 0.0f, "%.3fdB") || ImGui::AllowScrollwheel<float>(squelchLevel, 20, -100, 0)) {
+        if (ImGui::SliderFloat(("##_radio_raw_squelch_" + uiPrefix).c_str(), &squelchLevel, -100.0f, 0.0f, "%.3fdB")) {
             squelch.setLevel(squelchLevel);
             _config->aquire();
             _config->conf[uiPrefix]["RAW"]["squelchLevel"] = squelchLevel;

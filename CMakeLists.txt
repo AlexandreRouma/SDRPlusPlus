@@ -16,6 +16,7 @@ add_subdirectory("core")
 # Base modules
 add_subdirectory("radio")
 add_subdirectory("recorder") 
+add_subdirectory("file_source")
 
 # Source modules
 if (OPT_BUILD_RTL_TCP_SOURCE)

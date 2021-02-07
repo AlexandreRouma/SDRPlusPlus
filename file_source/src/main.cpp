@@ -5,19 +5,22 @@
 #include <signal_path/signal_path.h>
 #include <wavreader.h>
 #include <core.h>
+#include <gui/widgets/file_select.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-MOD_INFO {
-    /* Name:        */ "fike_source",
-    /* Description: */ "File input module for SDR++",
-    /* Author:      */ "Ryzerth",
-    /* Version:     */ "0.1.0"
+SDRPP_MOD_INFO {
+    /* Name:            */ "file_source",
+    /* Description:     */ "Wav file source module for SDR++",
+    /* Author:          */ "Ryzerth",
+    /* Version:         */ 0, 1, 1,
+    /* Max instances    */ 1
 };
 
-class FileSourceModule {
+
+class FileSourceModule : public ModuleManager::Instance  {
 public:
-    FileSourceModule(std::string name) {
+    FileSourceModule(std::string name) : fileSelect("") {
         this->name = name;
 
         handler.ctx = this;
@@ -30,10 +33,6 @@ public:
         handler.stream = &stream;
         sigpath::sourceManager.registerSource("File", &handler);
 
-        reader = new WavReader("D:/satpic/raw_recordings/NOAA-18_09-08-2018_21-39-00_baseband_NR.wav");
-        
-        spdlog::info("Samplerate: {0}, Bit depth: {1}, Channel count: {2}", reader->getSampleRate(), reader->getBitDepth(), reader->getChannelCount());
-
         spdlog::info("FileSourceModule '{0}': Instance created!", name);
     }
 
@@ -41,10 +40,22 @@ public:
         spdlog::info("FileSourceModule '{0}': Instance deleted!", name);
     }
 
+    void enable() {
+        enabled = true;
+    }
+
+    void disable() {
+        enabled = false;
+    }
+
+    bool isEnabled() {
+        return enabled;
+    }
+
 private:
     static void menuSelected(void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
-        core::setInputSampleRate(_this->reader->getSampleRate());
+        core::setInputSampleRate(_this->sampleRate);
         spdlog::info("FileSourceModule '{0}': Menu Select!", _this->name);
     }
 
@@ -55,15 +66,22 @@ private:
     
     static void start(void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
+        if (_this->running) { return; }
+        if (_this->reader == NULL) { return; }
+        _this->running = true;
         _this->workerThread = std::thread(worker, _this);
         spdlog::info("FileSourceModule '{0}': Start!", _this->name);
     }
     
     static void stop(void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
+        if (!_this->running) { return; }
+        if (_this->reader == NULL) { return; }
         _this->stream.stopWriter();
         _this->workerThread.join();
         _this->stream.clearWriteStop();
+        _this->running = false;
+        _this->reader->rewind();
         spdlog::info("FileSourceModule '{0}': Stop!", _this->name);
     }
     
@@ -74,7 +92,27 @@ private:
     
     static void menuHandler(void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
-        ImGui::Text("Hi from %s!", _this->name.c_str());
+
+        if (_this->fileSelect.render("##file_source_" + _this->name)) {
+            if (_this->fileSelect.pathIsValid()) {
+                if (_this->reader != NULL) {
+                    _this->reader->close();
+                    delete _this->reader;
+                }
+                try {
+                    _this->reader = new WavReader(_this->fileSelect.path);
+                    if (_this->reader->isValid() && _this->reader->getBitDepth() == 16 && _this->reader->getChannelCount() == 2) {
+                        _this->sampleRate = _this->reader->getSampleRate();
+                        core::setInputSampleRate(_this->sampleRate);
+                    }
+                    else {
+                        _this->reader->close();
+                        delete _this->reader;
+                    }
+                }
+                catch (std::exception e) {}
+            }
+        }
     }
 
     static void worker(void* ctx) {
@@ -85,22 +123,24 @@ private:
 
         while (true) {
             _this->reader->readSamples(inBuf, blockSize * 2 * sizeof(int16_t));
-            if (_this->stream.aquire() < 0) { break; };
             for (int i = 0; i < blockSize; i++) {
-                _this->stream.data[i].q = (float)inBuf[i * 2] / (float)0x7FFF;
-                _this->stream.data[i].i = (float)inBuf[(i * 2) + 1] / (float)0x7FFF;
+                _this->stream.writeBuf[i].q = (float)inBuf[i * 2] / (float)0x7FFF;
+                _this->stream.writeBuf[i].i = (float)inBuf[(i * 2) + 1] / (float)0x7FFF;
             }
-            _this->stream.write(blockSize);
-            //std::this_thread::sleep_for(std::chrono::milliseconds(5));
+            if (!_this->stream.swap(blockSize)) { break; };
         }
 
         delete[] inBuf;
     }
 
+    FileSelect fileSelect;
     std::string name;
     dsp::stream<dsp::complex_t> stream;
     SourceManager::SourceHandler handler;
-    WavReader* reader;
+    WavReader* reader = NULL;
+    bool running = false;
+    bool enabled = true;
+    float sampleRate = 48000;
     std::thread workerThread;
 };
 
@@ -116,6 +156,6 @@ MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
     delete (FileSourceModule*)instance;
 }
 
-MOD_EXPORT void _STOP_() {
+MOD_EXPORT void _END_() {
     // Do your one shutdown here
 }
