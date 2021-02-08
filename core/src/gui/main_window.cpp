@@ -36,8 +36,6 @@
 
 #include <gui/widgets/file_select.h>
 #include <gui/widgets/folder_select.h>
-FileSelect fileSelect("D:/Downloads/unicast.wav");
-FolderSelect foldSelect("%ROOT/recordings");
 
 // const int FFTSizes[] = {
 //     65536,
@@ -116,20 +114,10 @@ bool centerTuning = false;
 dsp::stream<dsp::complex_t> dummyStream;
 bool demoWindow = false;
 
-COMDLG_FILTERSPEC rgSpec[] ={ 
-    { L"Wav File", L"*.wav" },
-    { L"All", L"*.*" },
-};
-
 void windowInit() {
     LoadingScreen::show("Initializing UI");
     gui::waterfall.init();
     gui::waterfall.setRawFFTSize(fftSize);
-
-    // TEMP TEST
-    
-    fileSelect.setWindowsFilter(rgSpec, 2);
-    // ==========
 
     tempFFT = new float[fftSize];
     FFTdata = new float[fftSize];
@@ -569,8 +557,6 @@ void drawWindow() {
             }
             ImGui::Checkbox("Show demo window", &demoWindow);
             ImGui::Checkbox("Experimental zoom", &experimentalZoom);
-            fileSelect.render("##_testfile");
-            foldSelect.render("##_testfold");
             ImGui::Text("ImGui version: %s", ImGui::GetVersion());
 
             ImGui::Spacing();
