@@ -33,10 +33,6 @@
 #include <options.h>
 #include <gui/colormaps.h>
 
-
-#include <gui/widgets/file_select.h>
-#include <gui/widgets/folder_select.h>
-
 // const int FFTSizes[] = {
 //     65536,
 //     32768,
