@@ -555,6 +555,10 @@ void drawWindow() {
             ImGui::Checkbox("Experimental zoom", &experimentalZoom);
             ImGui::Text("ImGui version: %s", ImGui::GetVersion());
 
+            if (ImGui::Button("Test Bug")) {
+                spdlog::error("Will this make the software crash?");
+            }
+
             ImGui::Spacing();
         }
 
