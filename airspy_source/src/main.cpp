@@ -106,13 +106,20 @@ public:
 
     void selectBySerial(uint64_t serial) {
         airspy_device* dev;
-        int err = airspy_open_sn(&dev, serial);
-        if (err != 0) {
+        try {
+            int err = airspy_open_sn(&dev, serial);
+            if (err != 0) {
+                char buf[1024];
+                sprintf(buf, "%016" PRIX64, serial);
+                spdlog::error("Could not open Airspy HF+ {0}", buf);
+                selectedSerial = 0;
+                return;
+            }
+        }
+        catch (std::exception e) {
             char buf[1024];
             sprintf(buf, "%016" PRIX64, serial);
             spdlog::error("Could not open Airspy HF+ {0}", buf);
-            selectedSerial = 0;
-            return;
         }
         selectedSerial = serial;
 
