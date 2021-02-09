@@ -181,8 +181,19 @@ namespace ImGui {
             waterfallUpdate = false;
             updateWaterfallTexture();
         }
-        window->DrawList->AddImage((void*)(intptr_t)textureId, ImVec2(widgetPos.x + 50, widgetPos.y + fftHeight + 51),
-                                ImVec2(widgetPos.x + 50 + dataWidth, widgetPos.y + fftHeight + 51 + waterfallHeight));
+        window->DrawList->AddImage((void*)(intptr_t)textureId, wfMin, wfMax);
+        ImVec2 mPos = ImGui::GetMousePos();
+
+        if (IS_IN_AREA(mPos, wfMin, wfMax)) {
+            for (auto const& [name, vfo] : vfos) {
+                ImVec2 nVfoRectMin(vfo->rectMin.x, wfMin.y);
+                ImVec2 nVfoRectMax(vfo->rectMax.x, wfMax.y);
+                ImVec2 nVfoLineMin(vfo->lineMin.x, wfMin.y);
+                ImVec2 nVfoLineMax(vfo->lineMin.x, wfMax.y);
+                window->DrawList->AddRectFilled(nVfoRectMin, nVfoRectMax, IM_COL32(255, 255, 255, 50));
+                window->DrawList->AddLine(nVfoLineMin, nVfoLineMax, (name == selectedVFO) ? IM_COL32(255, 0, 0, 255) : IM_COL32(255, 255, 0, 255));
+            }
+        }
     }
 
     void WaterFall::drawVFOs() {
@@ -219,10 +230,14 @@ namespace ImGui {
         bool mouseHovered, mouseHeld;
         bool mouseClicked = ImGui::ButtonBehavior(ImRect(fftAreaMin, fftAreaMax), GetID("WaterfallID"), &mouseHovered, &mouseHeld, 
                                                 ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_PressedOnClick);
+
+        mouseClicked |= ImGui::ButtonBehavior(ImRect(wfMin, wfMax), GetID("WaterfallID2"), &mouseHovered, &mouseHeld, 
+                                                ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_PressedOnClick);
         
         bool draging = ImGui::IsMouseDragging(ImGuiMouseButton_Left) && ImGui::IsWindowFocused();
         bool mouseInFreq = IS_IN_AREA(dragOrigin, freqAreaMin, freqAreaMax);
         bool mouseInFFT = IS_IN_AREA(dragOrigin, fftAreaMin, fftAreaMax);
+        bool mouseInWaterfall = IS_IN_AREA(dragOrigin, wfMin, wfMax);
         
 
         // If mouse was clicked on a VFO, select VFO and return
@@ -232,7 +247,9 @@ namespace ImGui {
                 if (name == selectedVFO) {
                     continue;
                 }
-                if (IS_IN_AREA(mousePos, _vfo->rectMin, _vfo->rectMax)) {
+                ImVec2 nVfoRectMin(_vfo->rectMin.x, wfMin.y);
+                ImVec2 nVfoRectMax(_vfo->rectMax.x, wfMax.y);
+                if (IS_IN_AREA(mousePos, _vfo->rectMin, _vfo->rectMax) || IS_IN_AREA(mousePos, nVfoRectMin, nVfoRectMax)) {
                     selectedVFO = name;
                     selectedVFOChanged = true;
                     return;
@@ -240,7 +257,7 @@ namespace ImGui {
             }
             if (vfo != NULL) {
                 int refCenter = mousePos.x - (widgetPos.x + 50);
-                if (refCenter >= 0 && refCenter < dataWidth && mousePos.y > widgetPos.y && mousePos.y < (widgetPos.y + widgetSize.y)) {
+                if (refCenter >= 0 && refCenter < dataWidth /* && (   (mousePos.y > widgetPos.y && mousePos.y < (widgetPos.y + widgetSize.y))    ||    (IS_IN_AREA(mousePos, nVfoRectMin, nVfoRectMax))    )  */  ) {
                     double off = ((((double)refCenter / ((double)dataWidth / 2.0)) - 1.0) * (viewBandwidth / 2.0)) + viewOffset;
                     off += centerFreq;
                     off = (round(off / vfo->snapInterval) * vfo->snapInterval) - centerFreq;
@@ -250,7 +267,7 @@ namespace ImGui {
         }
 
         // Draging VFO
-        if (draging && mouseInFFT) {
+        if (draging && (mouseInFFT || mouseInWaterfall)) {
             int refCenter = mousePos.x - (widgetPos.x + 50);
             if (refCenter >= 0 && refCenter < dataWidth && mousePos.y > widgetPos.y && mousePos.y < (widgetPos.y + widgetSize.y) && vfo != NULL) {
                 double off = ((((double)refCenter / ((double)dataWidth / 2.0)) - 1.0) * (viewBandwidth / 2.0)) + viewOffset;
@@ -450,6 +467,8 @@ namespace ImGui {
         fftAreaMax = ImVec2(widgetPos.x + dataWidth + 50, widgetPos.y + fftHeight + 10);
         freqAreaMin = ImVec2(widgetPos.x + 50, widgetPos.y + fftHeight + 11);
         freqAreaMax = ImVec2(widgetPos.x + dataWidth + 50, widgetPos.y + fftHeight + 50);
+        wfMin = ImVec2(widgetPos.x + 50, widgetPos.y + fftHeight + 51);
+        wfMax = ImVec2(widgetPos.x + 50 + dataWidth, widgetPos.y + fftHeight + 51 + waterfallHeight);
 
         maxHSteps = dataWidth / (ImGui::CalcTextSize("000.000").x + 10);
         maxVSteps = fftHeight / (ImGui::CalcTextSize("000.000").y);

@@ -145,8 +145,8 @@ namespace ImGui {
         ImVec2 fftAreaMax;
         ImVec2 freqAreaMin;
         ImVec2 freqAreaMax;
-        ImVec2 waterfallAreaMin;
-        ImVec2 waterfallAreaMax;
+        ImVec2 wfMin;
+        ImVec2 wfMax;
 
         ImGuiWindow* window;
 
