@@ -42,6 +42,7 @@ bool FolderSelect::render(std::string id) {
     if (!lastPathValid) {
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
     }
+    ImGui::SetNextItemWidth(menuColumnWidth);
     if (ImGui::InputText(id.c_str(), strPath, 2047)) {
         path = std::string(strPath);
         std::string expandedPath = expandString(strPath);
