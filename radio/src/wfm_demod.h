@@ -189,9 +189,9 @@ private:
         _vfo->setSnapInterval(snapInterval);
     }
 
-    const float bwMax = 200000;
-    const float bwMin = 100000;
-    const float bbSampRate = 200000;
+    const float bwMax = 250000;
+    const float bwMin = 50000;
+    const float bbSampRate = 250000;
     const char* deempModes = "50µS\00075µS\000none\000";
     const float deempVals[2] = { 50e-6, 75e-6 };
 

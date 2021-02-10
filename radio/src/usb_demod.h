@@ -165,9 +165,9 @@ private:
         _vfo->setSnapInterval(snapInterval);
     }
 
-    const float bwMax = 3000;
+    const float bwMax = 12000;
     const float bwMin = 500;
-    const float bbSampRate = 6000;
+    const float bbSampRate = 24000;
 
     std::string uiPrefix;
     float snapInterval = 100;

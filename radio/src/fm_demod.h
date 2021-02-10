@@ -156,14 +156,14 @@ private:
         _vfo->setSnapInterval(snapInterval);
     }
 
-    const float bwMax = 15000;
+    const float bwMax = 50000;
     const float bwMin = 6000;
-    const float bbSampRate = 12500;
+    const float bbSampRate = 50000;
 
     std::string uiPrefix;
     float snapInterval = 10000;
     float audioSampRate = 48000;
-    float bw = 12500;
+    float bw = 50000;
     bool running = false;
     float squelchLevel = -100.0f;
 
