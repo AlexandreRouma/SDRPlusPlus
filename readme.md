@@ -221,6 +221,7 @@ I will soon publish a contributing.md listing the code style to use.
 ## Patrons
 * [SignalsEverywhere](https://signalseverywhere.com/)
 * [Lee Donaghy](https://github.com/github)
+* [Daniele D'Agnelli](https://linkedin.com/in/dagnelli)
 
 ## Contributors
 * [aosync](https://github.com/aosync)
