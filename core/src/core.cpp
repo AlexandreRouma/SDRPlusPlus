@@ -28,6 +28,10 @@
 #include <Windows.h>
 #endif
 
+#ifndef INSTALL_PREFIX
+    #define INSTALL_PREFIX "/usr"
+#endif
+
 namespace core {
     ConfigManager configManager;
     ScriptManager scriptManager;
@@ -146,8 +150,8 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["modulesDirectory"] = "./modules";
     defConfig["resourcesDirectory"] = "./res";
 #else
-    defConfig["modulesDirectory"] = "/usr/lib/sdrpp/plugins";
-    defConfig["resourcesDirectory"] = "/usr/share/sdrpp";
+    defConfig["modulesDirectory"] = (std::string)INSTALL_PREFIX + "/lib/sdrpp/plugins";
+    defConfig["resourcesDirectory"] = (std::string)INSTALL_PREFIX + "/share/sdrpp";
 #endif
 
     // Load config

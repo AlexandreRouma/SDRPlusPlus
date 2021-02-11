@@ -30,3 +30,6 @@ else (MSVC)
     target_link_directories(soapy_source PUBLIC ${SOAPY_LIBRARY_DIRS})
     target_link_libraries(soapy_source PUBLIC ${SOAPY_LIBRARIES})
 endif (MSVC)
+
+# Install directives
+install(TARGETS soapy_source DESTINATION lib/sdrpp/plugins)

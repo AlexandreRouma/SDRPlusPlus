@@ -18,3 +18,6 @@ set_target_properties(rtl_tcp_source PROPERTIES PREFIX "")
 if(WIN32)
   target_link_libraries(rtl_tcp_source PRIVATE wsock32 ws2_32)
 endif()
+
+# Install directives
+install(TARGETS rtl_tcp_source DESTINATION lib/sdrpp/plugins)

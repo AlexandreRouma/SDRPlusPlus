@@ -18,3 +18,6 @@ set_target_properties(spyserver_source PROPERTIES PREFIX "")
 if(WIN32)
   target_link_libraries(spyserver_source PRIVATE wsock32 ws2_32)
 endif()
+
+# Install directives
+install(TARGETS spyserver_source DESTINATION lib/sdrpp/plugins)

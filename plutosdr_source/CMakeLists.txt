@@ -36,3 +36,6 @@ else (MSVC)
     target_link_directories(plutosdr_source PUBLIC ${LIBAD9361_LIBRARY_DIRS})
     target_link_libraries(plutosdr_source PUBLIC ${LIBAD9361_LIBRARIES})
 endif (MSVC)
+
+# Install directives
+install(TARGETS plutosdr_source DESTINATION lib/sdrpp/plugins)

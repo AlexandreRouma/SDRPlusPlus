@@ -10,6 +10,9 @@ else()
 endif (MSVC)
 add_definitions(-DSDRPP_IS_CORE)
 
+# Set the install prefix
+add_compile_definitions(INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
+
 # Main code
 file(GLOB_RECURSE SRC "src/*.cpp" "src/*.c")
 
@@ -88,3 +91,6 @@ endif ()
 set(CORE_FILES ${RUNTIME_OUTPUT_DIRECTORY} PARENT_SCOPE)
 
 # cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/Users/Alex/vcpkg/scripts/buildsystems/vcpkg.cmake" -G "Visual Studio 15 2017 Win64"
+
+# Install directives
+install(TARGETS sdrpp_core DESTINATION lib)
