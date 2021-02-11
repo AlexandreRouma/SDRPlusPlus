@@ -150,8 +150,8 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["modulesDirectory"] = "./modules";
     defConfig["resourcesDirectory"] = "./res";
 #else
-    defConfig["modulesDirectory"] = (std::string)INSTALL_PREFIX + "/lib/sdrpp/plugins";
-    defConfig["resourcesDirectory"] = (std::string)INSTALL_PREFIX + "/share/sdrpp";
+    defConfig["modulesDirectory"] = INSTALL_PREFIX "/lib/sdrpp/plugins";
+    defConfig["resourcesDirectory"] = INSTALL_PREFIX "/share/sdrpp";
 #endif
 
     // Load config
