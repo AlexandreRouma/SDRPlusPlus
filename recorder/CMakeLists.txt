@@ -14,3 +14,6 @@ include_directories("src/")
 add_library(recorder SHARED ${SRC})
 target_link_libraries(recorder PRIVATE sdrpp_core)
 set_target_properties(recorder PROPERTIES PREFIX "")
+
+# Install directives
+install(TARGETS recorder DESTINATION lib/sdrpp/plugins)

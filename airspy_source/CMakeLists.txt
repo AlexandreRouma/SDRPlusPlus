@@ -29,3 +29,6 @@ else (MSVC)
     target_link_directories(airspy_source PUBLIC ${LIBAIRSPYHF_LIBRARY_DIRS})
     target_link_libraries(airspy_source PUBLIC ${LIBAIRSPYHF_LIBRARIES})
 endif (MSVC)
+
+# Install directives
+install(TARGETS airspy_source DESTINATION lib/sdrpp/plugins)

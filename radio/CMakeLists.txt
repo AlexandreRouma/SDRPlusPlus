@@ -14,3 +14,6 @@ include_directories("src/")
 add_library(radio SHARED ${SRC})
 target_link_libraries(radio PRIVATE sdrpp_core)
 set_target_properties(radio PROPERTIES PREFIX "")
+
+# Install directives
+install(TARGETS radio DESTINATION lib/sdrpp/plugins)

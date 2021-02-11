@@ -14,3 +14,6 @@ file(GLOB SRC "src/*.cpp")
 add_library(file_source SHARED ${SRC})
 target_link_libraries(file_source PRIVATE sdrpp_core)
 set_target_properties(file_source PROPERTIES PREFIX "")
+
+# Install directives
+install(TARGETS file_source DESTINATION lib/sdrpp/plugins)

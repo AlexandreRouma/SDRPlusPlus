@@ -30,3 +30,6 @@ else (MSVC)
     target_link_libraries(sdrpp_core PUBLIC ${PORTAUDIO_LIBRARIES})
 
 endif (MSVC)
+
+# Install directives
+install(TARGETS audio_sink DESTINATION lib/sdrpp/plugins)

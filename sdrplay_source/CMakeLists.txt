@@ -30,3 +30,6 @@ else (MSVC)
     target_link_directories(sdrplay_source PUBLIC ${LIBSDRPLAY_LIBRARY_DIRS})
     target_link_libraries(sdrplay_source PUBLIC ${LIBSDRPLAY_LIBRARIES})
 endif (MSVC)
+
+# Install directives
+install(TARGETS sdrplay_source DESTINATION lib/sdrpp/plugins)
