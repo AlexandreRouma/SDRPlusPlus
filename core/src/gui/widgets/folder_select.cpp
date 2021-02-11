@@ -9,8 +9,8 @@ FolderSelect::FolderSelect(std::string defaultPath) {
 
 bool FolderSelect::render(std::string id) {
     bool _pathChanged = false;
-#ifdef _WIN32
     float menuColumnWidth = ImGui::GetContentRegionAvailWidth();
+#ifdef _WIN32
     float buttonWidth = ImGui::CalcTextSize("...").x + 20.0f;
     bool lastPathValid = pathValid;
     if (!lastPathValid) {

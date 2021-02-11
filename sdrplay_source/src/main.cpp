@@ -7,7 +7,7 @@
 #include <gui/style.h>
 #include <config.h>
 #include <options.h>
-#include <libairspy/airspy.h>
+#include <sdrplay_api.h>
 
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
@@ -26,6 +26,8 @@ class SDRPlaySourceModule : public ModuleManager::Instance {
 public:
     SDRPlaySourceModule(std::string name) {
         this->name = name;
+
+        sdrplay_api_Open();
 
         sampleRate = 10000000.0;
 
@@ -54,7 +56,7 @@ public:
     }
 
     ~SDRPlaySourceModule() {
-        
+        sdrplay_api_Close();
     }
 
     void enable() {
@@ -73,7 +75,15 @@ public:
         devList.clear();
         devListTxt = "";
 
-        // Fill in list here
+        sdrplay_api_DeviceT devArr[128];
+        unsigned int numDev = 0;
+        sdrplay_api_GetDevices(devArr, &numDev, 128);
+
+        for (unsigned int i = 0; i < numDev; i++) {
+            devList.push_back(devArr[i].SerNo);
+            devListTxt += devArr[i].SerNo;
+            devListTxt += '\0';
+        }
     }
 
 private:
@@ -145,7 +155,12 @@ private:
 
         ImGui::SetNextItemWidth(menuWidth);
         
-        // Menu here
+        if (_this->running) { style::beginDisabled(); }
+        if (ImGui::Combo(CONCAT("##sdrplay_dev", _this->name), &_this->devId, _this->devListTxt.c_str())) {
+            
+        }
+
+        if (_this->running) { style::endDisabled(); }
 
         
     }
@@ -158,10 +173,12 @@ private:
     bool running = false;
     double freq;
 
+    sdrplay_api_DeviceT openDev;
+
     int devId = 0;
     int srId = 0;
 
-    std::vector<uint64_t> devList;
+    std::vector<std::string> devList;
     std::string devListTxt;
     std::vector<uint32_t> sampleRateList;
     std::string sampleRateListTxt;
