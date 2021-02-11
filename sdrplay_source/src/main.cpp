@@ -27,6 +27,8 @@ public:
     SDRPlaySourceModule(std::string name) {
         this->name = name;
 
+        // Init callbacks
+
         sdrplay_api_Open();
 
         sampleRate = 10000000.0;
@@ -41,6 +43,8 @@ public:
         handler.stream = &stream;
 
         refresh();
+        selectFirst();
+
         if (sampleRateList.size() > 0) {
             sampleRate = sampleRateList[0];
         }
@@ -80,10 +84,38 @@ public:
         sdrplay_api_GetDevices(devArr, &numDev, 128);
 
         for (unsigned int i = 0; i < numDev; i++) {
-            devList.push_back(devArr[i].SerNo);
+            devList.push_back(devArr[i]);
             devListTxt += devArr[i].SerNo;
             devListTxt += '\0';
         }
+    }
+
+    void selectFirst() {
+        if (devList.size() == 0) { return; }
+        selectDev(devList[0]);
+    }
+
+    void selectDev(sdrplay_api_DeviceT dev) {
+        openDev = dev;
+        sdrplay_api_ErrT err;
+
+        err = sdrplay_api_SelectDevice(&openDev);
+        if (err != sdrplay_api_Success) {
+            const char* errStr = sdrplay_api_GetErrorString(err);
+            spdlog::error("Could not select RSP device: {0}", errStr);
+            return;
+        }
+
+        err = sdrplay_api_GetDeviceParams(openDev.dev, &openDevParams);
+        if (err != sdrplay_api_Success) {
+            const char* errStr = sdrplay_api_GetErrorString(err);
+            spdlog::error("Could not get device params for RSP device: {0}", errStr);
+            return;
+        }
+
+
+
+        spdlog::info("Init OK");
     }
 
 private:
@@ -165,6 +197,16 @@ private:
         
     }
 
+    static void eventCB(short *xi, short *xq, sdrplay_api_StreamCbParamsT *params,
+                        unsigned int numSamples, unsigned int reset, void *cbContext) {
+        // Code here
+    }
+
+    static void tunerCB(sdrplay_api_EventT eventId, sdrplay_api_TunerSelectT tuner,
+                        sdrplay_api_EventParamsT *params, void *cbContext) {
+        // Code here
+    }
+
     std::string name;
     bool enabled = true;
     dsp::stream<dsp::complex_t> stream;
@@ -173,12 +215,15 @@ private:
     bool running = false;
     double freq;
 
+    sdrplay_api_CallbackFnsT cnFuncs;
+
     sdrplay_api_DeviceT openDev;
+    sdrplay_api_DeviceParamsT * openDevParams;
 
     int devId = 0;
     int srId = 0;
 
-    std::vector<std::string> devList;
+    std::vector<sdrplay_api_DeviceT> devList;
     std::string devListTxt;
     std::vector<uint32_t> sampleRateList;
     std::string sampleRateListTxt;
