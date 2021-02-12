@@ -62,6 +62,7 @@ float* tempFFT;
 float* FFTdata;
 char buf[1024];
 bool experimentalZoom = false;
+bool lazyDb = false;
 
 
 
@@ -71,7 +72,7 @@ void fftHandler(dsp::complex_t* samples, int count, void* ctx) {
     int half = count / 2;
 
     volk_32fc_s32f_power_spectrum_32f(tempFFT, (lv_32fc_t*)fft_out, count, count);
-    volk_32f_s32f_multiply_32f(FFTdata, tempFFT, 0.5f, count);
+    volk_32f_s32f_multiply_32f(FFTdata, tempFFT, lazyDb ? 1.0f : 0.5f, count);
 
     memcpy(tempFFT, &FFTdata[half], half * sizeof(float));
     memmove(&FFTdata[half], FFTdata, half * sizeof(float));
@@ -559,6 +560,8 @@ void drawWindow() {
                 spdlog::error("Will this make the software crash?");
             }
 
+            ImGui::Checkbox("Lazy dB Measurement", &lazyDb);
+
             ImGui::Spacing();
         }
 
@@ -602,7 +605,7 @@ void drawWindow() {
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Max").x / 2.0));
     ImGui::Text("Max");
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10);
-    if (ImGui::VSliderFloat("##_8_", ImVec2(20.0, 150.0), &fftMax, 0.0, -100.0, "")) {
+    if (ImGui::VSliderFloat("##_8_", ImVec2(20.0, 150.0), &fftMax, 0.0, lazyDb ? -160.0f : 100.0f, "")) {
         fftMax = std::max<float>(fftMax, fftMin + 10);
         core::configManager.aquire();
         core::configManager.conf["max"] = fftMax;
@@ -614,7 +617,7 @@ void drawWindow() {
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Min").x / 2.0));
     ImGui::Text("Min");
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10);
-    if (ImGui::VSliderFloat("##_9_", ImVec2(20.0, 150.0), &fftMin, 0.0, -100.0, "")) {
+    if (ImGui::VSliderFloat("##_9_", ImVec2(20.0, 150.0), &fftMin, 0.0, lazyDb ? -160.0f : 100.0f, "")) {
         fftMin = std::min<float>(fftMax - 10, fftMin);
         core::configManager.aquire();
         core::configManager.conf["min"] = fftMin;

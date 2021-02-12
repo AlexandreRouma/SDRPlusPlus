@@ -28,6 +28,9 @@ public:
         this->name = name;
 
         // Init callbacks
+        cbFuncs.EventCbFn = eventCB;
+        cbFuncs.StreamACbFn = streamCB;
+        cbFuncs.StreamBCbFn = streamCB;
 
         sdrplay_api_Open();
 
@@ -45,9 +48,11 @@ public:
         refresh();
         selectFirst();
 
-        if (sampleRateList.size() > 0) {
-            sampleRate = sampleRateList[0];
-        }
+        // if (sampleRateList.size() > 0) {
+        //     sampleRate = sampleRateList[0];
+        // }
+        
+        sampleRate = 8000000;
 
         // Select device from config
         // config.aquire();
@@ -85,7 +90,26 @@ public:
 
         for (unsigned int i = 0; i < numDev; i++) {
             devList.push_back(devArr[i]);
-            devListTxt += devArr[i].SerNo;
+            switch (devArr[i].hwVer) {
+                case SDRPLAY_RSP1_ID:
+                    devListTxt += "RSP1 "; devListTxt += devArr[i].SerNo;
+                    break;
+                case SDRPLAY_RSP1A_ID:
+                    devListTxt += "RSP1A "; devListTxt += devArr[i].SerNo;
+                    break;
+                case SDRPLAY_RSP2_ID:
+                    devListTxt += "RSP2 "; devListTxt += devArr[i].SerNo;
+                    break;
+                case SDRPLAY_RSPduo_ID:
+                    devListTxt += "RSPduo "; devListTxt += devArr[i].SerNo;
+                    break;
+                case SDRPLAY_RSPdx_ID:
+                    devListTxt += "RSPdx "; devListTxt += devArr[i].SerNo;
+                    break;
+                default:
+                    devListTxt += "Unknown "; devListTxt += devArr[i].SerNo;
+                    break;
+            }
             devListTxt += '\0';
         }
     }
@@ -113,9 +137,14 @@ public:
             return;
         }
 
+        err = sdrplay_api_Init(openDev.dev, &cbFuncs, this);
+        if (err != sdrplay_api_Success) {
+            const char* errStr = sdrplay_api_GetErrorString(err);
+            spdlog::error("Could not init RSP device: {0}", errStr);
+            return;
+        }
 
-
-        spdlog::info("Init OK");
+        deviceOpen = true;
     }
 
 private:
@@ -151,6 +180,19 @@ private:
         }
         
         // Do start procedure here
+        sdrplay_api_ErrT err;
+
+        _this->openDevParams->devParams->samplesPerPkt = 8000000 / 200;
+        _this->openDevParams->devParams->fsFreq.fsHz = 8000000;
+        _this->openDevParams->rxChannelA->tunerParams.bwType = sdrplay_api_BW_8_000;
+        _this->openDevParams->rxChannelA->tunerParams.rfFreq.rfHz = _this->freq;
+        _this->openDevParams->rxChannelA->tunerParams.gain.LNAstate = 0;
+        //_this->openDevParams->devParams->
+
+        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Dev_Fs, sdrplay_api_Update_Ext1_None);
+        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_BwType, sdrplay_api_Update_Ext1_None);
+        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Frf, sdrplay_api_Update_Ext1_None);
+        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
 
         _this->running = true;
         spdlog::info("SDRPlaySourceModule '{0}': Start!", _this->name);
@@ -173,7 +215,8 @@ private:
     static void tune(double freq, void* ctx) {
         SDRPlaySourceModule* _this = (SDRPlaySourceModule*)ctx;
         if (_this->running) {
-            // Tune here
+            _this->openDevParams->rxChannelA->tunerParams.rfFreq.rfHz = _this->freq;
+            sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Frf, sdrplay_api_Update_Ext1_None);
         }
         _this->freq = freq;
         spdlog::info("SDRPlaySourceModule '{0}': Tune: {1}!", _this->name, freq);
@@ -187,24 +230,28 @@ private:
 
         ImGui::SetNextItemWidth(menuWidth);
         
-        if (_this->running) { style::beginDisabled(); }
+       
         if (ImGui::Combo(CONCAT("##sdrplay_dev", _this->name), &_this->devId, _this->devListTxt.c_str())) {
             
         }
 
-        if (_this->running) { style::endDisabled(); }
-
-        
+         if (_this->running) { style::endDisabled(); }        
     }
 
-    static void eventCB(short *xi, short *xq, sdrplay_api_StreamCbParamsT *params,
+    static void streamCB(short *xi, short *xq, sdrplay_api_StreamCbParamsT *params,
                         unsigned int numSamples, unsigned int reset, void *cbContext) {
-        // Code here
+        SDRPlaySourceModule* _this = (SDRPlaySourceModule*)cbContext;
+        if (!_this->running) { return; }
+        for (int i = 0; i < numSamples; i++) {
+            _this->stream.writeBuf[i].i = (float)xi[i] / 32768.0f;
+            _this->stream.writeBuf[i].q = (float)xq[i] / 32768.0f;
+        }
+        _this->stream.swap(numSamples);
     }
 
-    static void tunerCB(sdrplay_api_EventT eventId, sdrplay_api_TunerSelectT tuner,
+    static void eventCB(sdrplay_api_EventT eventId, sdrplay_api_TunerSelectT tuner,
                         sdrplay_api_EventParamsT *params, void *cbContext) {
-        // Code here
+        SDRPlaySourceModule* _this = (SDRPlaySourceModule*)cbContext;
     }
 
     std::string name;
@@ -214,8 +261,9 @@ private:
     SourceManager::SourceHandler handler;
     bool running = false;
     double freq;
+    bool deviceOpen = false;
 
-    sdrplay_api_CallbackFnsT cnFuncs;
+    sdrplay_api_CallbackFnsT cbFuncs;
 
     sdrplay_api_DeviceT openDev;
     sdrplay_api_DeviceParamsT * openDevParams;
