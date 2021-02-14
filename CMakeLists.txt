@@ -1,10 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 project(sdrpp)
 
-# Default to /usr for CMAKE_INSTALL_PREFIX
-if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Default install prefix" FORCE)
-endif()
+set(CMAKE_INSTALL_PREFIX "/usr")
 
 option(OPT_BUILD_RTL_TCP_SOURCE "Build RTL-TCP Source Module (no dependencies required)" ON)
 option(OPT_BUILD_SPYSERVER_SOURCE "Build SpyServer Source Module (no dependencies required)" OFF)
