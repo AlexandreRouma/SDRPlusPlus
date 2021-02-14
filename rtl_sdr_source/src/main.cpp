@@ -66,6 +66,8 @@ public:
         handler.tuneHandler = tune;
         handler.stream = &stream;
 
+        strcpy(dbTxt, "--");
+
         for (int i = 0; i < 10; i++) {
             sampleRateListTxt += sampleRatesTxt[i];
             sampleRateListTxt += '\0';
@@ -162,6 +164,7 @@ public:
             config.conf["devices"][selectedDevName]["gain"] = gainId;
         }
         if (gainId >= gainList.size()) { gainId = gainList.size() - 1; }
+        updateGainTxt();
 
         // Load config
         if (config.conf["devices"][selectedDevName].contains("sampleRate")) {
@@ -193,6 +196,7 @@ public:
 
         if (config.conf["devices"][selectedDevName].contains("gain")) {
             gainId = config.conf["devices"][selectedDevName]["gain"];
+            updateGainTxt();
         }
 
         config.release(created);
@@ -277,7 +281,7 @@ private:
     static void tune(double freq, void* ctx) {
         RTLSDRSourceModule* _this = (RTLSDRSourceModule*)ctx;
         if (_this->running) {
-            rtlsdr_set_center_freq(_this->openDev, freq);
+            rtlsdr_set_center_freq(_this->openDev, _this->freq);
         }
         _this->freq = freq;
         spdlog::info("RTLSDRSourceModule '{0}': Tune: {1}!", _this->name, freq);
@@ -364,7 +368,8 @@ private:
 
         if (_this->tunerAgc) { style::beginDisabled(); }
         ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::SliderInt(CONCAT("##_rtlsdr_gain_", _this->name), &_this->gainId, 0, _this->gainList.size() - 1, "")) {
+        if (ImGui::SliderInt(CONCAT("##_rtlsdr_gain_", _this->name), &_this->gainId, 0, _this->gainList.size() - 1, _this->dbTxt)) {
+            _this->updateGainTxt();
             if (_this->running) {
                 rtlsdr_set_tuner_gain(_this->openDev, _this->gainList[_this->gainId]);
             }
@@ -389,6 +394,10 @@ private:
             _this->stream.writeBuf[i].q = (float)(buf[i * 2] - 127) / 128.0f;
         }
         if (!_this->stream.swap(sampCount)) { return; }
+    }
+
+    void updateGainTxt() {
+        sprintf(dbTxt, "%.1f dB", (float)gainList[gainId] / 10.0f);
     }
 
     std::string name;
@@ -417,6 +426,8 @@ private:
 
     // Handler stuff
     int asyncCount = 0;
+
+    char dbTxt[128];
 
     std::vector<std::string> devNames;
     std::string devListTxt;

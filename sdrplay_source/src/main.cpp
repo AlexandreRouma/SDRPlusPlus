@@ -127,6 +127,7 @@ public:
         if (err != sdrplay_api_Success) {
             const char* errStr = sdrplay_api_GetErrorString(err);
             spdlog::error("Could not select RSP device: {0}", errStr);
+            deviceOpen = false;
             return;
         }
 
@@ -134,6 +135,7 @@ public:
         if (err != sdrplay_api_Success) {
             const char* errStr = sdrplay_api_GetErrorString(err);
             spdlog::error("Could not get device params for RSP device: {0}", errStr);
+            deviceOpen = false;
             return;
         }
 
@@ -141,6 +143,7 @@ public:
         if (err != sdrplay_api_Success) {
             const char* errStr = sdrplay_api_GetErrorString(err);
             spdlog::error("Could not init RSP device: {0}", errStr);
+            deviceOpen = false;
             return;
         }
 
@@ -186,13 +189,16 @@ private:
         _this->openDevParams->devParams->fsFreq.fsHz = 8000000;
         _this->openDevParams->rxChannelA->tunerParams.bwType = sdrplay_api_BW_8_000;
         _this->openDevParams->rxChannelA->tunerParams.rfFreq.rfHz = _this->freq;
+        _this->openDevParams->rxChannelA->tunerParams.gain.gRdB = 0;
         _this->openDevParams->rxChannelA->tunerParams.gain.LNAstate = 0;
+        _this->openDevParams->rxChannelA->ctrlParams.agc.enable = sdrplay_api_AGC_DISABLE;
         //_this->openDevParams->devParams->
 
         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Dev_Fs, sdrplay_api_Update_Ext1_None);
         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_BwType, sdrplay_api_Update_Ext1_None);
         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Frf, sdrplay_api_Update_Ext1_None);
         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
+        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Ctrl_Agc, sdrplay_api_Update_Ext1_None);
 
         _this->running = true;
         spdlog::info("SDRPlaySourceModule '{0}': Start!", _this->name);
@@ -235,7 +241,57 @@ private:
             
         }
 
+        if (_this->deviceOpen) {
+            switch (_this->openDev.hwVer) {
+                case SDRPLAY_RSP1_ID:
+                    _this->RSP1Menu(menuWidth);
+                    break;
+                case SDRPLAY_RSP1A_ID:
+                    _this->RSP1AMenu(menuWidth);
+                    break;
+                case SDRPLAY_RSP2_ID:
+                    _this->RSP2Menu(menuWidth);
+                    break;
+                case SDRPLAY_RSPduo_ID:
+                    _this->RSPduoMenu(menuWidth);
+                    break;
+                case SDRPLAY_RSPdx_ID:
+                    _this->RSPdxMenu(menuWidth);
+                    break;
+                default:
+                    _this->RSPUnsupportedMenu(menuWidth);
+                    break;
+            }
+        }
+        else {
+            ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "No device available");
+        }
+
          if (_this->running) { style::endDisabled(); }        
+    }
+        
+    void RSP1Menu(float menuWidth) {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Device currently unsupported");
+    }
+
+    void RSP1AMenu(float menuWidth) {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Device currently unsupported");
+    }
+
+    void RSP2Menu(float menuWidth) {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Device currently unsupported");
+    }
+
+    void RSPduoMenu(float menuWidth) {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Device currently unsupported");
+    }
+
+    void RSPdxMenu(float menuWidth) {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Device currently unsupported");
+    }
+
+    void RSPUnsupportedMenu(float menuWidth) {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Device currently unsupported");
     }
 
     static void streamCB(short *xi, short *xq, sdrplay_api_StreamCbParamsT *params,
