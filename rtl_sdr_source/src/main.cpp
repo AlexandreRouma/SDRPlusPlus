@@ -73,8 +73,16 @@ public:
 
         refresh();
 
-        // Select device from config here
-        selectFirst();
+        config.aquire();
+        if (!config.conf["device"].is_string()) {
+            selectedDevName = "";
+            config.conf["device"] = "";
+        }
+        else {
+            selectedDevName = config.conf["device"];
+        }
+        config.release(true);
+        selectByName(selectedDevName);
 
         core::setInputSampleRate(sampleRate);
 
@@ -141,11 +149,53 @@ public:
         int n = rtlsdr_get_tuner_gains(openDev, gains);
         gainList = std::vector<int>(gains, gains + n);
         std::sort(gainList.begin(), gainList.end());
+
+        bool created = false;
+        config.aquire();
+        if (!config.conf["devices"].contains(selectedDevName)) {
+            created = true;
+            config.conf["devices"][selectedDevName]["sampleRate"] = sampleRate;
+            config.conf["devices"][selectedDevName]["directSampling"] = directSamplingMode;
+            config.conf["devices"][selectedDevName]["biasT"] = biasT;
+            config.conf["devices"][selectedDevName]["rtlAgc"] = rtlAgc;
+            config.conf["devices"][selectedDevName]["tunerAgc"] = tunerAgc;
+            config.conf["devices"][selectedDevName]["gain"] = gainId;
+        }
         if (gainId >= gainList.size()) { gainId = gainList.size() - 1; }
 
-        // Create config if needed
-
         // Load config
+        if (config.conf["devices"][selectedDevName].contains("sampleRate")) {
+            int selectedSr = config.conf["devices"][selectedDevName]["sampleRate"];
+            for (int i = 0; i < 10; i++) {
+                if (sampleRates[i] == selectedSr) {
+                    srId = i;
+                    sampleRate = selectedSr;
+                    break;
+                }
+            }
+        }
+
+        if (config.conf["devices"][selectedDevName].contains("directSampling")) {
+            directSamplingMode = config.conf["devices"][selectedDevName]["directSampling"];
+        }
+
+        if (config.conf["devices"][selectedDevName].contains("biasT")) {
+            biasT = config.conf["devices"][selectedDevName]["biasT"];
+        }
+
+        if (config.conf["devices"][selectedDevName].contains("rtlAgc")) {
+            rtlAgc = config.conf["devices"][selectedDevName]["rtlAgc"];
+        }
+
+        if (config.conf["devices"][selectedDevName].contains("tunerAgc")) {
+            tunerAgc = config.conf["devices"][selectedDevName]["tunerAgc"];
+        }
+
+        if (config.conf["devices"][selectedDevName].contains("gain")) {
+            gainId = config.conf["devices"][selectedDevName]["gain"];
+        }
+
+        config.release(created);
 
         rtlsdr_close(openDev);
     }
@@ -191,7 +241,8 @@ private:
         rtlsdr_set_center_freq(_this->openDev, _this->freq);
         rtlsdr_set_tuner_bandwidth(_this->openDev, 0);
         rtlsdr_set_direct_sampling(_this->openDev, _this->directSamplingMode);
-        rtlsdr_set_agc_mode(_this->openDev, _this->directSamplingMode);
+        rtlsdr_set_bias_tee(_this->openDev, _this->biasT);
+        rtlsdr_set_agc_mode(_this->openDev, _this->rtlAgc);
         rtlsdr_set_tuner_gain(_this->openDev, _this->gainList[_this->gainId]);
         if (_this->tunerAgc) {
             rtlsdr_set_tuner_gain_mode(_this->openDev, 0);
@@ -239,24 +290,27 @@ private:
         if (_this->running) { style::beginDisabled(); }
 
         ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::Combo(CONCAT("##_airspy_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
-            // Select RTL device here
+        if (ImGui::Combo(CONCAT("##_rtlsdr_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
+            _this->selectById(_this->devId);
             core::setInputSampleRate(_this->sampleRate);
-            // Save config here
+            config.aquire();
+            config.conf["device"] = _this->selectedDevName;
+            config.release(true);
         }
 
-        if (ImGui::Combo(CONCAT("##_airspy_sr_sel_", _this->name), &_this->srId, _this->sampleRateListTxt.c_str())) {
+        if (ImGui::Combo(CONCAT("##_rtlsdr_sr_sel_", _this->name), &_this->srId, _this->sampleRateListTxt.c_str())) {
             _this->sampleRate = sampleRates[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
-            // Save config here
+            config.aquire();
+            config.conf["devices"][_this->selectedDevName]["sampleRate"] = _this->sampleRate;
+            config.release(true);
         }
 
         ImGui::SameLine();
         float refreshBtnWdith = menuWidth - ImGui::GetCursorPosX();
-        if (ImGui::Button(CONCAT("Refresh##_airspy_refr_", _this->name), ImVec2(refreshBtnWdith, 0))) {
+        if (ImGui::Button(CONCAT("Refresh##_rtlsdr_refr_", _this->name), ImVec2(refreshBtnWdith, 0))) {
             _this->refresh();
-            
-            // Reselect dev from config here
+            _this->selectByName(_this->selectedDevName);
             core::setInputSampleRate(_this->sampleRate);
         }
 
@@ -270,14 +324,27 @@ private:
             if (_this->running) {
                 rtlsdr_set_direct_sampling(_this->openDev, _this->directSamplingMode);
             }
-            // Save config here
+            config.aquire();
+            config.conf["devices"][_this->selectedDevName]["directSampling"] = _this->directSamplingMode;
+            config.release(true);
+        }
+
+        if (ImGui::Checkbox(CONCAT("Bias T##_rtlsdr_rtl_biast_", _this->name), &_this->biasT)) {
+            if (_this->running) {
+                rtlsdr_set_bias_tee(_this->openDev, _this->biasT);
+            }
+            config.aquire();
+            config.conf["devices"][_this->selectedDevName]["biasT"] = _this->biasT;
+            config.release(true);
         }
 
         if (ImGui::Checkbox(CONCAT("RTL AGC##_rtlsdr_rtl_agc_", _this->name), &_this->rtlAgc)) {
             if (_this->running) {
                 rtlsdr_set_agc_mode(_this->openDev, _this->rtlAgc);
             }
-            // Save config here
+            config.aquire();
+            config.conf["devices"][_this->selectedDevName]["rtlAgc"] = _this->rtlAgc;
+            config.release(true);
         }
 
         if (ImGui::Checkbox(CONCAT("Tuner AGC##_rtlsdr_tuner_agc_", _this->name), &_this->tunerAgc)) {
@@ -290,7 +357,9 @@ private:
                     rtlsdr_set_tuner_gain(_this->openDev, _this->gainList[_this->gainId]);
                 }
             }
-            // Save config here
+            config.aquire();
+            config.conf["devices"][_this->selectedDevName]["tunerAgc"] = _this->tunerAgc;
+            config.release(true);
         }
 
         if (_this->tunerAgc) { style::beginDisabled(); }
@@ -299,7 +368,9 @@ private:
             if (_this->running) {
                 rtlsdr_set_tuner_gain(_this->openDev, _this->gainList[_this->gainId]);
             }
-            // Save config here
+            config.aquire();
+            config.conf["devices"][_this->selectedDevName]["gain"] = _this->gainId;
+            config.release(true);
         }
         if (_this->tunerAgc) { style::endDisabled(); }
     }
@@ -355,7 +426,7 @@ private:
 MOD_EXPORT void _INIT_() {
     json def = json({});
     def["devices"] = json({});
-    def["device"] = "";
+    def["device"] = 0;
     config.setPath(options::opts.root + "/rtl_sdr_config.json");
     config.load(def);
     config.enableAutoSave();
