@@ -30,6 +30,7 @@ const double sampleRates[] = {
     1920000,
     2048000,
     2160000,
+    2400000,
     2560000,
     2880000,
     3200000
@@ -43,6 +44,7 @@ const char* sampleRatesTxt[] = {
     "1.92MHz",
     "2.048MHz",
     "2.16MHz",
+    "2.4MHz",
     "2.56MHz",
     "2.88MHz",
     "3.2MHz"
@@ -68,7 +70,7 @@ public:
 
         strcpy(dbTxt, "--");
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 11; i++) {
             sampleRateListTxt += sampleRatesTxt[i];
             sampleRateListTxt += '\0';
         }
@@ -169,7 +171,7 @@ public:
         // Load config
         if (config.conf["devices"][selectedDevName].contains("sampleRate")) {
             int selectedSr = config.conf["devices"][selectedDevName]["sampleRate"];
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 11; i++) {
                 if (sampleRates[i] == selectedSr) {
                     srId = i;
                     sampleRate = selectedSr;
@@ -241,6 +243,8 @@ private:
             return;
         }
         
+        spdlog::info("RTL-SDR Sample Rate: {0}", _this->sampleRate);
+
         rtlsdr_set_sample_rate(_this->openDev, _this->sampleRate);
         rtlsdr_set_center_freq(_this->openDev, _this->freq);
         rtlsdr_set_tuner_bandwidth(_this->openDev, 0);

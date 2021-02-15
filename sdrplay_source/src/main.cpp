@@ -241,6 +241,8 @@ private:
             
         }
 
+        if (_this->running) { style::endDisabled(); } 
+
         if (_this->deviceOpen) {
             switch (_this->openDev.hwVer) {
                 case SDRPLAY_RSP1_ID:
@@ -265,9 +267,7 @@ private:
         }
         else {
             ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "No device available");
-        }
-
-         if (_this->running) { style::endDisabled(); }        
+        }       
     }
         
     void RSP1Menu(float menuWidth) {
@@ -275,7 +275,7 @@ private:
     }
 
     void RSP1AMenu(float menuWidth) {
-        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Device currently unsupported");
+        
     }
 
     void RSP2Menu(float menuWidth) {
@@ -326,6 +326,8 @@ private:
 
     int devId = 0;
     int srId = 0;
+
+    int gainTest = 0;
 
     std::vector<sdrplay_api_DeviceT> devList;
     std::string devListTxt;
