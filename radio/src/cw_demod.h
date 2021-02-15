@@ -139,6 +139,7 @@ public:
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::InputFloat(("##_radio_cw_snap_" + uiPrefix).c_str(), &snapInterval, 1, 100, "%.0f", 0)) {
+            if (snapInterval < 1) { snapInterval = 1; }
             setSnapInterval(snapInterval);
             _config->aquire();
             _config->conf[uiPrefix]["CW"]["snapInterval"] = snapInterval;

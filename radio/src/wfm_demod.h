@@ -47,7 +47,7 @@ public:
         
         squelch.init(_vfo->output, squelchLevel);
         
-        demod.init(&squelch.out, bbSampRate, bandWidth / 2.0f);
+        demod.init(&squelch.out, bbSampRate, bw / 2.0f);
 
         float audioBW = std::min<float>(audioSampleRate / 2.0f, 16000.0f);
         win.init(audioBW, audioBW, bbSampRate);
@@ -140,6 +140,7 @@ public:
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::InputFloat(("##_radio_wfm_snap_" + uiPrefix).c_str(), &snapInterval, 1, 100, "%.0f", 0)) {
+            if (snapInterval < 1) { snapInterval = 1; }
             setSnapInterval(snapInterval);
             _config->aquire();
             _config->conf[uiPrefix]["WFM"]["snapInterval"] = snapInterval;
