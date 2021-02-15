@@ -147,7 +147,7 @@ private:
         _this->freq = freq;
         if (_this->running) {
             // SET PLUTO FREQ HERE
-            iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "altvoltage0", true), "frequency", round(_this->freq));
+            iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "altvoltage0", true), "frequency", round(freq));
         }
         spdlog::info("PlutoSDRSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }

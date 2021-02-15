@@ -189,7 +189,7 @@ private:
         _this->openDevParams->devParams->fsFreq.fsHz = 8000000;
         _this->openDevParams->rxChannelA->tunerParams.bwType = sdrplay_api_BW_8_000;
         _this->openDevParams->rxChannelA->tunerParams.rfFreq.rfHz = _this->freq;
-        _this->openDevParams->rxChannelA->tunerParams.gain.gRdB = 0;
+        _this->openDevParams->rxChannelA->tunerParams.gain.gRdB = 30;
         _this->openDevParams->rxChannelA->tunerParams.gain.LNAstate = 0;
         _this->openDevParams->rxChannelA->ctrlParams.agc.enable = sdrplay_api_AGC_DISABLE;
         //_this->openDevParams->devParams->
@@ -221,7 +221,7 @@ private:
     static void tune(double freq, void* ctx) {
         SDRPlaySourceModule* _this = (SDRPlaySourceModule*)ctx;
         if (_this->running) {
-            _this->openDevParams->rxChannelA->tunerParams.rfFreq.rfHz = _this->freq;
+            _this->openDevParams->rxChannelA->tunerParams.rfFreq.rfHz = freq;
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Frf, sdrplay_api_Update_Ext1_None);
         }
         _this->freq = freq;
@@ -299,8 +299,8 @@ private:
         SDRPlaySourceModule* _this = (SDRPlaySourceModule*)cbContext;
         if (!_this->running) { return; }
         for (int i = 0; i < numSamples; i++) {
-            _this->stream.writeBuf[i].i = (float)xi[i] / 32768.0f;
-            _this->stream.writeBuf[i].q = (float)xq[i] / 32768.0f;
+            _this->stream.writeBuf[i].i = (float)xq[i] / 32768.0f;
+            _this->stream.writeBuf[i].q = (float)xi[i] / 32768.0f;
         }
         _this->stream.swap(numSamples);
     }
