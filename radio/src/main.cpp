@@ -71,8 +71,16 @@ public:
 
     void enable() {
         vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 200000, 200000, 1);
-        //ns.stop();
-        currentDemod->setVFO(vfo);
+
+        wfmDemod.setVFO(vfo);
+        fmDemod.setVFO(vfo);
+        amDemod.setVFO(vfo);
+        usbDemod.setVFO(vfo);
+        lsbDemod.setVFO(vfo);
+        dsbDemod.setVFO(vfo);
+        rawDemod.setVFO(vfo);
+        cwDemod.setVFO(vfo);
+
         currentDemod->select();
         currentDemod->start();
         enabled = true;
