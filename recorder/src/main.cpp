@@ -306,7 +306,13 @@ struct RecorderContext_t {
 };
 
 MOD_EXPORT void _INIT_() {
-    
+    // Create default recording directory
+    if (!std::filesystem::exists(options::opts.root + "/recordings")) {
+        spdlog::warn("Recordings directory does not exist, creating it");
+        if (!std::filesystem::create_directory(options::opts.root + "/recordings")) {
+            spdlog::error("Could not create recordings directory");
+        }
+    }
 }
 
 MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
