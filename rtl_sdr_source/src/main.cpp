@@ -162,6 +162,7 @@ public:
             config.conf["devices"][selectedDevName]["sampleRate"] = sampleRate;
             config.conf["devices"][selectedDevName]["directSampling"] = directSamplingMode;
             config.conf["devices"][selectedDevName]["biasT"] = biasT;
+            config.conf["devices"][selectedDevName]["offsetTuning"] = offsetTuning;
             config.conf["devices"][selectedDevName]["rtlAgc"] = rtlAgc;
             config.conf["devices"][selectedDevName]["tunerAgc"] = tunerAgc;
             config.conf["devices"][selectedDevName]["gain"] = gainId;
@@ -187,6 +188,10 @@ public:
 
         if (config.conf["devices"][selectedDevName].contains("biasT")) {
             biasT = config.conf["devices"][selectedDevName]["biasT"];
+        }
+
+        if (config.conf["devices"][selectedDevName].contains("offsetTuning")) {
+            offsetTuning = config.conf["devices"][selectedDevName]["offsetTuning"];
         }
 
         if (config.conf["devices"][selectedDevName].contains("rtlAgc")) {
@@ -264,6 +269,7 @@ private:
             rtlsdr_set_tuner_gain_mode(_this->openDev, 1);
             rtlsdr_set_tuner_gain(_this->openDev, _this->gainList[_this->gainId]);
         }
+        rtlsdr_set_offset_tuning(_this->openDev, _this->offsetTuning);
 
         _this->asyncCount = (int)roundf(_this->sampleRate / (200 * 512)) * 512;
 
@@ -359,6 +365,17 @@ private:
             }
         }
 
+        if (ImGui::Checkbox(CONCAT("Offset Tuning##_rtlsdr_rtl_ofs_", _this->name), &_this->offsetTuning)) {
+            if (_this->running) {
+                rtlsdr_set_offset_tuning(_this->openDev, _this->offsetTuning);
+            }
+            if (_this->selectedDevName != "") {
+                config.aquire();
+                config.conf["devices"][_this->selectedDevName]["offsetTuning"] = _this->offsetTuning;
+                config.release(true);
+            }
+        }
+
         if (ImGui::Checkbox(CONCAT("RTL AGC##_rtlsdr_rtl_agc_", _this->name), &_this->rtlAgc)) {
             if (_this->running) {
                 rtlsdr_set_agc_mode(_this->openDev, _this->rtlAgc);
@@ -444,6 +461,7 @@ private:
 
     bool rtlAgc = false;
     bool tunerAgc = false;
+    bool offsetTuning = false;
 
     int directSamplingMode = 0;
 
