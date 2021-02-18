@@ -73,6 +73,7 @@ public:
             if (i == devId) {
                 devListId = devices.size();
                 defaultDev = devListId;
+                _stream->setSampleRate(dev.sampleRates[0]);
             }
             dev.srId = 0;
 

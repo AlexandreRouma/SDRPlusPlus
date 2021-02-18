@@ -79,7 +79,7 @@ public:
         void menuHandler() {}
 
         static SinkManager::Sink* create(SinkManager::Stream* stream, std::string streamName, void* ctx) {
-            stream->srChange.emit(48000);
+            stream->setSampleRate(48000);
             return new SinkManager::NullSink(stream);
         }
 

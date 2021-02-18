@@ -92,7 +92,7 @@ public:
             resamp.stop();
         }
         audioSampRate = sampleRate;
-        float audioBW = std::min<float>(audioSampRate / 2.0f, 16000.0f);
+        float audioBW = std::min<float>(audioSampRate / 2.0f, bw / 2.0f);
         resamp.setOutSampleRate(audioSampRate);
         win.setSampleRate(bbSampRate * resamp.getInterpolation());
         win.setCutoff(audioBW);
