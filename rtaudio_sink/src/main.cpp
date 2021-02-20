@@ -40,6 +40,8 @@ public:
             if (info.isDefaultOutput) { devId = devList.size(); }
             devList.push_back(info);
             deviceIds.push_back(i);
+            txtDevList += info.name;
+            txtDevList += '\0';
         }
     }
 
@@ -66,15 +68,15 @@ public:
     void menuHandler() {
         float menuWidth = ImGui::GetContentRegionAvailWidth();
 
-    //     ImGui::SetNextItemWidth(menuWidth);
-    //     if (ImGui::Combo(("##_rtaudio_sink_dev_"+_streamName).c_str(), &devListId, txtDevList.c_str())) {
-    //         // TODO: Load SR from config
-    //         if (running) {
-    //             doStop();
-    //             doStart();
-    //         }
-    //         // TODO: Save to config
-    //     }
+        ImGui::SetNextItemWidth(menuWidth);
+        if (ImGui::Combo(("##_rtaudio_sink_dev_"+_streamName).c_str(), &devId, txtDevList.c_str())) {
+            // TODO: Load SR from config
+            if (running) {
+                doStop();
+                doStart();
+            }
+            // TODO: Save to config
+        }
 
     //     AudioDevice_t* dev = devices[devListId];
 
@@ -95,7 +97,7 @@ private:
             parameters.deviceId = deviceIds[devId];
             parameters.nChannels = 2;
             unsigned int sampleRate = 48000;
-            unsigned int bufferFrames = sampleRate / 200;
+            unsigned int bufferFrames = sampleRate / 60;
             RtAudio::StreamOptions opts;
             opts.flags = RTAUDIO_MINIMIZE_LATENCY;
 
@@ -108,7 +110,10 @@ private:
             }
             catch ( RtAudioError& e ) {
                 spdlog::error("Could not open audio device");
+                return;
             }
+
+            spdlog::info("RtAudio stream open");
     }
 
     void doStop() {
@@ -120,7 +125,7 @@ private:
         audio.stopStream();
         audio.closeStream();
         monoPacker.out.clearReadStop();
-        stereoPacker.out.clearWriteStop();
+        stereoPacker.out.clearReadStop();
     }
 
     static int callback( void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *userData) {
