@@ -57,7 +57,6 @@ public:
 
         deemp.init(&resamp.out, audioSampRate, tau);
 
-        m2s.init(&deemp.out);
     }
 
     void start() {
@@ -65,7 +64,6 @@ public:
         demod.start();
         resamp.start();
         deemp.start();
-        m2s.start();
         running = true;
     }
 
@@ -74,7 +72,6 @@ public:
         demod.stop();
         resamp.stop();
         deemp.stop();
-        m2s.stop();
         running = false;
     }
     
@@ -121,7 +118,7 @@ public:
     }
 
     dsp::stream<dsp::stereo_t>* getOutput() {
-        return &m2s.out;
+        return &deemp.out;
     }
     
     void showMenu() {
@@ -209,9 +206,8 @@ private:
     dsp::Squelch squelch;
     dsp::FMDemod demod;
     dsp::filter_window::BlackmanWindow win;
-    dsp::PolyphaseResampler<float> resamp;
+    dsp::PolyphaseResampler<dsp::stereo_t> resamp;
     dsp::BFMDeemp deemp;
-    dsp::MonoToStereo m2s;
 
     ConfigManager* _config;
 

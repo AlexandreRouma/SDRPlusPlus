@@ -170,7 +170,7 @@ private:
 
     const float bwMax = 500;
     const float bwMin = 100;
-    const float bbSampRate = 6000;
+    const float bbSampRate = 500;
 
     std::string uiPrefix;
     float snapInterval = 10;

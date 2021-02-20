@@ -34,7 +34,7 @@ public:
 
         sdrplay_api_Open();
 
-        sampleRate = 10000000.0;
+        sampleRate = 8000000.0;
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
@@ -185,12 +185,14 @@ private:
         // Do start procedure here
         sdrplay_api_ErrT err;
 
-        _this->openDevParams->devParams->samplesPerPkt = 8000000 / 200;
+        _this->bufferIndex = 0;
+        _this->bufferSize = 8000000 / 200;
+
         _this->openDevParams->devParams->fsFreq.fsHz = 8000000;
         _this->openDevParams->rxChannelA->tunerParams.bwType = sdrplay_api_BW_8_000;
         _this->openDevParams->rxChannelA->tunerParams.rfFreq.rfHz = _this->freq;
-        _this->openDevParams->rxChannelA->tunerParams.gain.gRdB = 30;
-        _this->openDevParams->rxChannelA->tunerParams.gain.LNAstate = 0;
+        _this->openDevParams->rxChannelA->tunerParams.gain.gRdB = 59;
+        _this->openDevParams->rxChannelA->tunerParams.gain.LNAstate = 9;
         _this->openDevParams->rxChannelA->ctrlParams.agc.enable = sdrplay_api_AGC_DISABLE;
         //_this->openDevParams->devParams->
 
@@ -275,7 +277,27 @@ private:
     }
 
     void RSP1AMenu(float menuWidth) {
-        
+        ImGui::PushItemWidth(menuWidth - ImGui::CalcTextSize("LNA Gain").x - 10);
+        ImGui::Text("LNA Gain");
+        ImGui::SameLine();
+        float pos = ImGui::GetCursorPosX();
+        if (ImGui::SliderInt(CONCAT("##sdrplay_lna_gain", name), &gainTest, 9, 0, "")) {
+            openDevParams->rxChannelA->tunerParams.gain.LNAstate = gainTest;
+            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
+        }
+
+        ImGui::Text("IF Gain");
+        ImGui::SameLine();
+        ImGui::SetCursorPosX(pos);
+        if (ImGui::SliderInt(CONCAT("##sdrplay_gain", name), &gainTest2, 59, 20, "")) {
+            openDevParams->rxChannelA->tunerParams.gain.gRdB = gainTest2;
+            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
+        }
+        ImGui::PopItemWidth();
+
+        bool test = false;
+        ImGui::Checkbox("FM Notch", &test);
+        ImGui::Checkbox("DAB Notch", &test);
     }
 
     void RSP2Menu(float menuWidth) {
@@ -299,10 +321,15 @@ private:
         SDRPlaySourceModule* _this = (SDRPlaySourceModule*)cbContext;
         if (!_this->running) { return; }
         for (int i = 0; i < numSamples; i++) {
-            _this->stream.writeBuf[i].i = (float)xq[i] / 32768.0f;
-            _this->stream.writeBuf[i].q = (float)xi[i] / 32768.0f;
+            int id = _this->bufferIndex++;
+            _this->stream.writeBuf[id].i = (float)xq[i] / 32768.0f;
+            _this->stream.writeBuf[id].q = (float)xi[i] / 32768.0f;
+
+            if (_this->bufferIndex >= _this->bufferSize) {
+                _this->stream.swap(_this->bufferSize);
+                _this->bufferIndex = 0;
+            }
         }
-        _this->stream.swap(numSamples);
     }
 
     static void eventCB(sdrplay_api_EventT eventId, sdrplay_api_TunerSelectT tuner,
@@ -327,7 +354,11 @@ private:
     int devId = 0;
     int srId = 0;
 
-    int gainTest = 0;
+    int gainTest = 9;
+    int gainTest2 = 59;
+
+    int bufferSize = 0;
+    int bufferIndex = 0;
 
     std::vector<sdrplay_api_DeviceT> devList;
     std::string devListTxt;

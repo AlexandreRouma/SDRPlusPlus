@@ -92,11 +92,11 @@ namespace dsp {
     public:
         BFMDeemp() {}
 
-        BFMDeemp(stream<float>* in, float sampleRate, float tau) { init(in, sampleRate, tau); }
+        BFMDeemp(stream<stereo_t>* in, float sampleRate, float tau) { init(in, sampleRate, tau); }
 
         ~BFMDeemp() { generic_block<BFMDeemp>::stop(); }
 
-        void init(stream<float>* in, float sampleRate, float tau) {
+        void init(stream<stereo_t>* in, float sampleRate, float tau) {
             _in = in;
             _sampleRate = sampleRate;
             _tau = tau;
@@ -106,7 +106,7 @@ namespace dsp {
             generic_block<BFMDeemp>::registerOutput(&out);
         }
 
-        void setInput(stream<float>* in) {
+        void setInput(stream<stereo_t>* in) {
             std::lock_guard<std::mutex> lck(generic_block<BFMDeemp>::ctrlMtx);
             generic_block<BFMDeemp>::tempStop();
             generic_block<BFMDeemp>::unregisterInput(_in);
@@ -132,20 +132,26 @@ namespace dsp {
             if (count < 0) { return -1; }
 
             if (bypass) {
-                memcpy(out.writeBuf, _in->readBuf, count * sizeof(float));
+                memcpy(out.writeBuf, _in->readBuf, count * sizeof(stereo_t));
                 _in->flush();
                 if (!out.swap(count)) { return -1; }
                 return count;
             }
 
-            if (isnan(lastOut)) {
-                lastOut = 0.0f;
+            if (isnan(lastOutL)) {
+                lastOutL = 0.0f;
             }
-            out.writeBuf[0] = (alpha * _in->readBuf[0]) + ((1-alpha) * lastOut);
+            if (isnan(lastOutR)) {
+                lastOutR = 0.0f;
+            }
+            out.writeBuf[0].l = (alpha * _in->readBuf[0].l) + ((1-alpha) * lastOutL);
+            out.writeBuf[0].r = (alpha * _in->readBuf[0].r) + ((1-alpha) * lastOutR);
             for (int i = 1; i < count; i++) {
-                out.writeBuf[i] = (alpha * _in->readBuf[i]) + ((1 - alpha) * out.writeBuf[i - 1]);
+                out.writeBuf[i].l = (alpha * _in->readBuf[i].l) + ((1 - alpha) * out.writeBuf[i - 1].l);
+                out.writeBuf[i].r = (alpha * _in->readBuf[i].r) + ((1 - alpha) * out.writeBuf[i - 1].r);
             }
-            lastOut = out.writeBuf[count - 1];
+            lastOutL = out.writeBuf[count - 1].l;
+            lastOutR = out.writeBuf[count - 1].r;
 
             _in->flush();
             if (!out.swap(count)) { return -1; }
@@ -154,15 +160,16 @@ namespace dsp {
 
         bool bypass = false;
 
-        stream<float> out;
+        stream<stereo_t> out;
 
     private:
         int count;
-        float lastOut = 0.0f;
+        float lastOutL = 0.0f;
+        float lastOutR = 0.0f;
         float alpha;
         float _tau;
         float _sampleRate;
-        stream<float>* _in;
+        stream<stereo_t>* _in;
 
     };
 }

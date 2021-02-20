@@ -61,29 +61,30 @@ double findBestRange(double bandwidth, int maxSteps) {
 }
 
 void printAndScale(double freq, char* buf) {
-    if (freq < 1000) {
-        sprintf(buf, "%.3lf", freq);
+    double freqAbs = fabs(freq);
+    if (freqAbs < 1000) {
+        sprintf(buf, "%.6g", freq);
     }
-    else if (freq < 1000000) {
-        sprintf(buf, "%.3lfK", freq / 1000.0);
+    else if (freqAbs < 1000000) {
+        sprintf(buf, "%.6lgK", freq / 1000.0);
     }
-    else if (freq < 1000000000) {
-        sprintf(buf, "%.3lfM", freq / 1000000.0);
+    else if (freqAbs < 1000000000) {
+        sprintf(buf, "%.6lgM", freq / 1000000.0);
     }
-    else if (freq < 1000000000000) {
-        sprintf(buf, "%.3lfG", freq / 1000000000.0);
+    else if (freqAbs < 1000000000000) {
+        sprintf(buf, "%.6lgG", freq / 1000000000.0);
     }
-    for (int i = strlen(buf) - 2; i >= 0; i--) {
-        if (buf[i] != '0') {
-            if (buf[i] == '.') {
-                i--;
-            }
-            char scale = buf[strlen(buf) - 1];
-            buf[i + 1] = scale;
-            buf[i + 2] = 0;
-            return;
-        }
-    }
+    // for (int i = strlen(buf) - 2; i >= 0; i--) {
+    //     if (buf[i] != '0') {
+    //         if (buf[i] == '.') {
+    //             i--;
+    //         }
+    //         char scale = buf[strlen(buf) - 1];
+    //         buf[i + 1] = scale;
+    //         buf[i + 2] = 0;
+    //         return;
+    //     }
+    // }
 }
 
 namespace ImGui {

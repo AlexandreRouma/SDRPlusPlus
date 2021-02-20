@@ -44,7 +44,7 @@ namespace dsp {
             _in->flush();
 
             float _lvlL = 10.0f * logf(maxL);
-            float _lvlR = 10.0f * logf(maxL);
+            float _lvlR = 10.0f * logf(maxR);
             
             // Update max values
             {

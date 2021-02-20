@@ -297,4 +297,72 @@ namespace dsp {
         stream<complex_t>* _in;
 
     };
+
+    template <class T>
+    class Packer : public generic_block<Packer<T>> {
+    public:
+        Packer() {}
+
+        Packer(stream<T>* in, int count) { init(in, count); }
+
+        ~Packer() {
+            generic_block<Packer<T>>::stop();
+        }
+
+        void init(stream<T>* in, int count) {
+            _in = in;
+            samples = count;
+            generic_block<Packer<T>>::registerInput(_in);
+            generic_block<Packer<T>>::registerOutput(&out);
+        }
+
+        void setInput(stream<T>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<Packer<T>>::ctrlMtx);
+            generic_block<Packer<T>>::tempStop();
+            generic_block<Packer<T>>::unregisterInput(_in);
+            _in = in;
+            generic_block<Packer<T>>::registerInput(_in);
+            generic_block<Packer<T>>::tempStart();
+        }
+
+        void setSampleCount(int count) {
+            std::lock_guard<std::mutex> lck(generic_block<Packer<T>>::ctrlMtx);
+            generic_block<Packer<T>>::tempStop();
+            samples = count;
+            generic_block<Packer<T>>::tempStart();
+        }
+
+        int run() {
+            count = _in->read();
+            if (count < 0) {
+                read = 0;
+                return -1;
+            }
+
+            for (int i = 0; i < count; i++) {
+                out.writeBuf[read++] = _in->readBuf[i];
+                if (read >= samples) {
+                    read = 0;
+                    if (!out.swap(samples)) {
+                        _in->flush();
+                        read = 0;
+                        return -1;
+                    }
+                }
+            }
+
+            _in->flush();
+            
+            return count;
+        }
+
+        stream<T> out;
+
+    private:
+        int count;
+        int samples = 1;
+        int read = 0;
+        stream<T>* _in;
+
+    };
 }

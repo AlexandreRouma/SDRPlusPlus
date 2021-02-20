@@ -48,15 +48,12 @@ public:
         resamp.init(&demod.out, &win, bbSampRate, audioSampRate);
         win.setSampleRate(bbSampRate * resamp.getInterpolation());
         resamp.updateWindow(&win);
-
-        m2s.init(&resamp.out);
     }
 
     void start() {
         squelch.start();
         demod.start();
         resamp.start();
-        m2s.start();
         running = true;
     }
 
@@ -64,7 +61,6 @@ public:
         squelch.stop();
         demod.stop();
         resamp.stop();
-        m2s.stop();
         running = false;
     }
     
@@ -108,7 +104,7 @@ public:
     }
 
     dsp::stream<dsp::stereo_t>* getOutput() {
-        return &m2s.out;
+        return &resamp.out;
     }
     
     void showMenu() {
@@ -172,8 +168,7 @@ private:
     dsp::Squelch squelch;
     dsp::FMDemod demod;
     dsp::filter_window::BlackmanWindow win;
-    dsp::PolyphaseResampler<float> resamp;
-    dsp::MonoToStereo m2s;
+    dsp::PolyphaseResampler<dsp::stereo_t> resamp;
 
     ConfigManager* _config;
 

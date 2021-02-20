@@ -17,7 +17,7 @@ ModuleManager::Module_t ModuleManager::loadModule(std::string path) {
 #ifdef _WIN32
     mod.handle = LoadLibraryA(path.c_str());
     if (mod.handle == NULL) {
-        spdlog::error("Couldn't load {0}.", path);
+        spdlog::error("Couldn't load {0}. Error code: {1}", path, GetLastError());
         mod.handle = NULL;
         return mod;
     }

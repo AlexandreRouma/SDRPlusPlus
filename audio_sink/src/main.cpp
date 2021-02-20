@@ -5,6 +5,7 @@
 #include <signal_path/sink.h>
 #include <portaudio.h>
 #include <dsp/audio.h>
+#include <dsp/processing.h>
 #include <spdlog/spdlog.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
@@ -34,6 +35,9 @@ public:
         s2m.init(_stream->sinkOut);
         monoRB.init(&s2m.out);
         stereoRB.init(_stream->sinkOut);
+
+        // monoPacker.init(&s2m.out, 240);
+        // stereoPacker.init(_stream->sinkOut, 240);
 
         // Initialize PortAudio
         devCount = Pa_GetDeviceCount();
@@ -156,12 +160,18 @@ private:
         if (dev->channels == 2) {
             stereoRB.data.setMaxLatency(bufferSize * 2);
             stereoRB.start();
+            // stereoPacker.setSampleCount(bufferSize);
+            // stereoPacker.start();
             err = Pa_OpenStream(&stream, NULL, &outputParams, sampleRate, paFramesPerBufferUnspecified, 0, _stereo_cb, this);
+            //err = Pa_OpenStream(&stream, NULL, &outputParams, sampleRate, bufferSize, 0, _stereo_cb, this);
         }
         else {
             monoRB.data.setMaxLatency(bufferSize * 2);
             monoRB.start();
+            // stereoPacker.setSampleCount(bufferSize);
+            // monoPacker.start();
             err = Pa_OpenStream(&stream, NULL, &outputParams, sampleRate, paFramesPerBufferUnspecified, 0, _mono_cb, this);
+            //err = Pa_OpenStream(&stream, NULL, &outputParams, sampleRate, bufferSize, 0, _mono_cb, this);
         }
 
         if (err != 0) {
@@ -182,12 +192,18 @@ private:
         s2m.stop();
         monoRB.stop();
         stereoRB.stop();
+        // monoPacker.stop();
+        // stereoPacker.stop();
         monoRB.data.stopReader();
         stereoRB.data.stopReader();
+        // monoPacker.out.stopReader();
+        // stereoPacker.out.stopReader();
         Pa_StopStream(stream);
         Pa_CloseStream(stream);
         monoRB.data.clearReadStop();
         stereoRB.data.clearReadStop();
+        // monoPacker.out.clearReadStop();
+        // stereoPacker.out.clearWriteStop();
     }
 
     static int _mono_cb(const void *input, void *output, unsigned long frameCount,
@@ -203,11 +219,34 @@ private:
         _this->stereoRB.data.read((dsp::stereo_t*)output, frameCount);
         return 0;
     }
+
+    // static int _mono_cb(const void *input, void *output, unsigned long frameCount,
+    //     const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData) {
+    //     AudioSink* _this = (AudioSink*)userData;
+    //     if (_this->monoPacker.out.read() < 0) { return 0; }
+    //     memcpy((float*)output, _this->monoPacker.out.readBuf, frameCount * sizeof(float));
+    //     _this->monoPacker.out.flush();
+    //     return 0;
+    // }
+
+    // static int _stereo_cb(const void *input, void *output, unsigned long frameCount,
+    //     const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData) {
+    //     AudioSink* _this = (AudioSink*)userData;
+    //     if (_this->stereoPacker.out.read() < 0) { spdlog::warn("CB killed"); return 0; }
+    //     memcpy((dsp::stereo_t*)output, _this->stereoPacker.out.readBuf, frameCount * sizeof(dsp::stereo_t));
+    //     _this->stereoPacker.out.flush();
+    //     return 0;
+    // }
+    
     
     SinkManager::Stream* _stream;
     dsp::StereoToMono s2m;
     dsp::RingBufferSink<float> monoRB;
     dsp::RingBufferSink<dsp::stereo_t> stereoRB;
+
+    // dsp::Packer<float> monoPacker;
+    // dsp::Packer<dsp::stereo_t> stereoPacker;
+
     std::string _streamName;
     PaStream *stream;
 

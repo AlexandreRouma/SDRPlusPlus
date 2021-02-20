@@ -1,6 +1,8 @@
 #pragma once
 #include <dsp/block.h>
 #include <volk/volk.h>
+#include <dsp/filter.h>
+#include <dsp/processing.h>
 
 #include <spdlog/spdlog.h>
 
@@ -26,6 +28,86 @@ inline float fast_arctan2(float y, float x) {
 }
 
 namespace dsp {
+    class FloatFMDemod : public generic_block<FloatFMDemod> {
+    public:
+        FloatFMDemod() {}
+
+        FloatFMDemod(stream<complex_t>* in, float sampleRate, float deviation) { init(in, sampleRate, deviation); }
+
+        ~FloatFMDemod() { generic_block<FloatFMDemod>::stop(); }
+
+        void init(stream<complex_t>* in, float sampleRate, float deviation) {
+            _in = in;
+            _sampleRate = sampleRate;
+            _deviation = deviation;
+            phasorSpeed = (2 * FL_M_PI) / (_sampleRate / _deviation);
+            generic_block<FloatFMDemod>::registerInput(_in);
+            generic_block<FloatFMDemod>::registerOutput(&out);
+        }
+
+        void setInput(stream<complex_t>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<FloatFMDemod>::ctrlMtx);
+            generic_block<FloatFMDemod>::tempStop();
+            generic_block<FloatFMDemod>::unregisterInput(_in);
+            _in = in;
+            generic_block<FloatFMDemod>::registerInput(_in);
+            generic_block<FloatFMDemod>::tempStart();
+        }
+
+        void setSampleRate(float sampleRate) {
+            std::lock_guard<std::mutex> lck(generic_block<FloatFMDemod>::ctrlMtx);
+            generic_block<FloatFMDemod>::tempStop();
+            _sampleRate = sampleRate;
+            phasorSpeed = (2 * FL_M_PI) / (_sampleRate / _deviation);
+            generic_block<FloatFMDemod>::tempStart();
+        }
+
+        float getSampleRate() {
+            return _sampleRate;
+        }
+
+        void setDeviation(float deviation) {
+            std::lock_guard<std::mutex> lck(generic_block<FloatFMDemod>::ctrlMtx);
+            generic_block<FloatFMDemod>::tempStop();
+            _deviation = deviation;
+            phasorSpeed = (2 * FL_M_PI) / (_sampleRate / _deviation);
+            generic_block<FloatFMDemod>::tempStart();
+        }
+
+        float getDeviation() {
+            return _deviation;
+        }
+
+        int run() {
+            count = _in->read();
+            if (count < 0) { return -1; }
+
+            // This is somehow faster than volk...
+
+            float diff, currentPhase;
+            for (int i = 0; i < count; i++) {
+                currentPhase = fast_arctan2(_in->readBuf[i].i, _in->readBuf[i].q);
+                diff = currentPhase - phase;
+                if (diff > 3.1415926535f)        { diff -= 2 * 3.1415926535f; }
+                else if (diff <= -3.1415926535f) { diff += 2 * 3.1415926535f; }
+                out.writeBuf[i] = diff / phasorSpeed;
+                phase = currentPhase;
+            }
+
+            _in->flush();
+            if (!out.swap(count)) { return -1; }
+            return count;
+        }
+
+        stream<float> out;
+
+    private:
+        int count;
+        float phase, phasorSpeed, _sampleRate, _deviation;
+        stream<complex_t>* _in;
+
+    };
+
     class FMDemod : public generic_block<FMDemod> {
     public:
         FMDemod() {}
@@ -88,7 +170,8 @@ namespace dsp {
                 diff = currentPhase - phase;
                 if (diff > 3.1415926535f)        { diff -= 2 * 3.1415926535f; }
                 else if (diff <= -3.1415926535f) { diff += 2 * 3.1415926535f; }
-                out.writeBuf[i] = diff / phasorSpeed;
+                out.writeBuf[i].l = diff / phasorSpeed;
+                out.writeBuf[i].r = diff / phasorSpeed;
                 phase = currentPhase;
             }
 
@@ -97,12 +180,155 @@ namespace dsp {
             return count;
         }
 
-        stream<float> out;
+        stream<stereo_t> out;
 
     private:
         int count;
         float phase, phasorSpeed, _sampleRate, _deviation;
         stream<complex_t>* _in;
+
+    };
+
+    class StereoFMDemod : public generic_block<StereoFMDemod> {
+    public:
+        StereoFMDemod() {}
+
+        StereoFMDemod(stream<complex_t>* in, float sampleRate, float deviation) { init(in, sampleRate, deviation); }
+
+        ~StereoFMDemod() {
+            stop();
+            delete[] doubledPilot;
+            delete[] a_minus_b;
+            delete[] a_out;
+            delete[] b_out;
+        }
+
+        void init(stream<complex_t>* in, float sampleRate, float deviation) {
+            _sampleRate = sampleRate;
+
+            doubledPilot = new float[STREAM_BUFFER_SIZE];
+            a_minus_b = new float[STREAM_BUFFER_SIZE];
+            a_out = new float[STREAM_BUFFER_SIZE];
+            b_out = new float[STREAM_BUFFER_SIZE];
+
+            fmDemod.init(in, sampleRate, deviation);
+            split.init(&fmDemod.out);
+            split.bindStream(&filterInput);
+            split.bindStream(&decodeInput);
+
+            // Filter init
+            win.init(1000, 1000, 19000, sampleRate);
+            filter.init(&filterInput, &win);
+            agc.init(&filter.out, 20.0f, sampleRate);
+
+            generic_block<StereoFMDemod>::registerInput(&decodeInput);
+            generic_block<StereoFMDemod>::registerOutput(&out);
+        }
+
+        void setInput(stream<complex_t>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<StereoFMDemod>::ctrlMtx);
+            generic_block<StereoFMDemod>::tempStop();
+            fmDemod.setInput(in);
+            generic_block<StereoFMDemod>::tempStart();
+        }
+
+        void setSampleRate(float sampleRate) {
+            std::lock_guard<std::mutex> lck(generic_block<StereoFMDemod>::ctrlMtx);
+            generic_block<StereoFMDemod>::tempStop();
+            _sampleRate = sampleRate;
+            fmDemod.setSampleRate(sampleRate);
+            win.setSampleRate(_sampleRate);
+            filter.updateWindow(&win);
+            generic_block<StereoFMDemod>::tempStart();
+        }
+
+        float getSampleRate() {
+            return _sampleRate;
+        }
+
+        void setDeviation(float deviation) {
+            std::lock_guard<std::mutex> lck(generic_block<StereoFMDemod>::ctrlMtx);
+            generic_block<StereoFMDemod>::tempStop();
+            fmDemod.setDeviation(deviation);
+            generic_block<StereoFMDemod>::tempStart();
+        }
+
+        float getDeviation() {
+            return fmDemod.getDeviation();
+        }
+
+        int run() {
+            count = decodeInput.read();
+            if (count < 0) { return -1; }
+            countFilter = agc.out.read();
+            if (countFilter < 0) { return -1; }
+
+            volk_32f_x2_multiply_32f(doubledPilot, agc.out.readBuf, agc.out.readBuf, count);
+
+            volk_32f_x2_multiply_32f(a_minus_b, decodeInput.readBuf, doubledPilot, count);
+
+            volk_32f_x2_add_32f(a_out, decodeInput.readBuf, a_minus_b, count);
+            volk_32f_x2_subtract_32f(b_out, decodeInput.readBuf, a_minus_b, count);
+
+            decodeInput.flush();
+            agc.out.flush();
+
+            volk_32f_x2_interleave_32fc((lv_32fc_t*)out.writeBuf, a_out, b_out, count);
+
+            if (!out.swap(count)) { return -1; }
+            return count;
+        }
+
+        void start() {
+            std::lock_guard<std::mutex> lck(generic_block<StereoFMDemod>::ctrlMtx);
+            if (generic_block<StereoFMDemod>::running) {
+                return;
+            }
+            generic_block<StereoFMDemod>::running = true;
+            generic_block<StereoFMDemod>::doStart();
+            fmDemod.start();
+            split.start();
+            filter.start();
+            agc.start();
+        }
+
+        void stop() {
+            std::lock_guard<std::mutex> lck(generic_block<StereoFMDemod>::ctrlMtx);
+            if (!generic_block<StereoFMDemod>::running) {
+                return;
+            }
+            fmDemod.stop();
+            split.stop();
+            filter.stop();
+            agc.stop();
+            generic_block<StereoFMDemod>::doStop();
+            generic_block<StereoFMDemod>::running = false;
+        }
+
+        stream<stereo_t> out;
+
+    private:
+        int count;
+        int countFilter;
+
+        float _sampleRate;
+
+        FloatFMDemod fmDemod;
+        Splitter<float> split;
+
+        // Pilot tone filtering
+        stream<float> filterInput;
+        FIR<float> filter;
+        filter_window::BlackmanBandpassWindow win;
+        AGC agc;
+
+        stream<float> decodeInput;
+
+        // Buffers
+        float* doubledPilot;
+        float* a_minus_b;
+        float* a_out;
+        float* b_out;
 
     };
 

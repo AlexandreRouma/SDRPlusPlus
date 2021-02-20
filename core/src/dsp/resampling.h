@@ -117,7 +117,7 @@ namespace dsp {
                     outIndex++;
                 }
             }
-            if constexpr (std::is_same_v<T, complex_t>) {
+            if constexpr (std::is_same_v<T, complex_t> || std::is_same_v<T, stereo_t>) {
                 for (int i = 0; outIndex < outCount; i += _decim) {
                     int phase = i % _interp;
                     volk_32fc_32f_dot_prod_32fc((lv_32fc_t*)&out.writeBuf[outIndex], (lv_32fc_t*)&buffer[(i / _interp)], tapPhases[phase], tapsPerPhase);
