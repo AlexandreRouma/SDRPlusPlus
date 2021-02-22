@@ -7,6 +7,8 @@
 #include <dsp/processing.h>
 #include <spdlog/spdlog.h>
 #include <RtAudio.h>
+#include <config.h>
+#include <options.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -18,6 +20,8 @@ SDRPP_MOD_INFO {
     /* Max instances    */ 1
 };
 
+ConfigManager config;
+
 class AudioSink : SinkManager::Sink {
 public:
     AudioSink(SinkManager::Stream* stream, std::string streamName) {
@@ -27,9 +31,16 @@ public:
         monoPacker.init(&s2m.out, 512);
         stereoPacker.init(_stream->sinkOut, 512);
 
-        stream->setSampleRate(48000);
-
-        RtAudio::StreamParameters parameters;
+        bool created = false;
+        std::string device = "";
+        config.aquire();
+        if (!config.conf.contains(_streamName)) {
+            created = true;
+            config.conf[_streamName]["device"] = "";
+            config.conf[_streamName]["devices"] = json({});
+        }
+        device = config.conf[_streamName]["device"];
+        config.release(created);
 
         int count = audio.getDeviceCount();
         RtAudio::DeviceInfo info;
@@ -37,12 +48,14 @@ public:
             info = audio.getDeviceInfo(i);
             if (!info.probed) { continue; }
             if (info.outputChannels == 0) { continue; }
-            if (info.isDefaultOutput) { devId = devList.size(); }
+            if (info.isDefaultOutput) { defaultDevId = devList.size(); }
             devList.push_back(info);
             deviceIds.push_back(i);
             txtDevList += info.name;
             txtDevList += '\0';
         }
+
+        selectByName(device);
     }
 
     ~AudioSink() {
@@ -64,56 +77,108 @@ public:
         doStop();
         running = false;
     }
+
+    void selectFirst() {
+        selectById(defaultDevId);
+    }
+
+    void selectByName(std::string name) {
+        for (int i = 0; i < devList.size(); i++) {
+            if (devList[i].name == name) {
+                selectById(i);
+                return;
+            }
+        }
+        selectFirst();
+    }
+
+    void selectById(int id) {
+        devId = id;
+        bool created = false;
+        config.aquire();
+        if (!config.conf[_streamName]["devices"].contains(devList[id].name)) {
+            created = true;
+            config.conf[_streamName]["devices"][devList[id].name] = devList[id].preferredSampleRate;
+        }
+        sampleRate = config.conf[_streamName]["devices"][devList[id].name];
+        config.release(created);
+
+        sampleRates = devList[id].sampleRates;
+        sampleRatesTxt = "";
+        char buf[256];
+        bool found = false;
+        unsigned int defaultId = 0;
+        unsigned int defaultSr = devList[id].preferredSampleRate;
+        for (int i = 0; i < sampleRates.size(); i++) {
+            if (sampleRates[i] == sampleRate) {
+                found = true;
+                srId = i;
+            }
+            if (sampleRates[i] == defaultSr) {
+                defaultId = i;
+            }
+            sprintf(buf, "%d", sampleRates[i]);
+            sampleRatesTxt += buf;
+            sampleRatesTxt += '\0';
+        }
+        if (!found) {
+            sampleRate = defaultSr;
+            srId = defaultId;
+        }
+
+        _stream->setSampleRate(sampleRate);
+
+        if (running) { doStop(); }
+        if (running) { doStart(); }
+    }
     
     void menuHandler() {
         float menuWidth = ImGui::GetContentRegionAvailWidth();
 
         ImGui::SetNextItemWidth(menuWidth);
         if (ImGui::Combo(("##_rtaudio_sink_dev_"+_streamName).c_str(), &devId, txtDevList.c_str())) {
-            // TODO: Load SR from config
+            selectById(devId);
+            config.aquire();
+            config.conf[_streamName]["device"] = devList[devId].name;
+            config.release(true);
+        }
+
+        ImGui::SetNextItemWidth(menuWidth);
+        if (ImGui::Combo(("##_rtaudio_sink_sr_"+_streamName).c_str(), &srId, sampleRatesTxt.c_str())) {
+            sampleRate = sampleRates[srId];
+            _stream->setSampleRate(sampleRate);
             if (running) {
                 doStop();
                 doStart();
             }
-            // TODO: Save to config
+            config.aquire();
+            config.conf[_streamName]["devices"][devList[devId].name] = sampleRate;
+            config.release(true);
         }
-
-    //     AudioDevice_t* dev = devices[devListId];
-
-    //     ImGui::SetNextItemWidth(menuWidth);
-    //     if (ImGui::Combo(("##_rtaudio_sink_sr_"+_streamName).c_str(), &dev->srId, dev->txtSampleRates.c_str())) {
-    //         _stream->setSampleRate(dev->sampleRates[dev->srId]);
-    //         if (running) {
-    //             doStop();
-    //             doStart();
-    //         }
-    //         // TODO: Save to config
-    //     }
     }
 
 private:
     void doStart() {
-            RtAudio::StreamParameters parameters;
-            parameters.deviceId = deviceIds[devId];
-            parameters.nChannels = 2;
-            unsigned int sampleRate = 48000;
-            unsigned int bufferFrames = sampleRate / 60;
-            RtAudio::StreamOptions opts;
-            opts.flags = RTAUDIO_MINIMIZE_LATENCY;
+        RtAudio::StreamParameters parameters;
+        parameters.deviceId = deviceIds[devId];
+        parameters.nChannels = 2;
+        unsigned int bufferFrames = sampleRate / 60;
+        RtAudio::StreamOptions opts;
+        opts.flags = RTAUDIO_MINIMIZE_LATENCY;
 
-            stereoPacker.setSampleCount(bufferFrames);
+        stereoPacker.setSampleCount(bufferFrames);
 
-            try {
-                audio.openStream(&parameters, NULL, RTAUDIO_FLOAT32, sampleRate, &bufferFrames, &callback, this, &opts);
-                audio.startStream();
-                stereoPacker.start();
-            }
-            catch ( RtAudioError& e ) {
-                spdlog::error("Could not open audio device");
-                return;
-            }
+        try {
+            audio.openStream(&parameters, NULL, RTAUDIO_FLOAT32, sampleRate, &bufferFrames, &callback, this, &opts);
+            audio.startStream();
+            stereoPacker.start();
+        }
+        catch ( RtAudioError& e ) {
+            spdlog::error("Could not open audio device");
+            return;
+        }
 
-            spdlog::info("RtAudio stream open");
+        spdlog::info("RtAudio stream open");
     }
 
     void doStop() {
@@ -149,19 +214,15 @@ private:
     int devId = 0;
     bool running = false;
 
-    const double POSSIBLE_SAMP_RATE[6] = {
-        48000.0f,
-        44100.0f,
-        24000.0f,
-        22050.0f,
-        12000.0f,
-        11025.0f
-    };
-
+    unsigned int defaultDevId = 0;
 
     std::vector<RtAudio::DeviceInfo> devList;
     std::vector<unsigned int> deviceIds;
     std::string txtDevList;
+
+    std::vector<unsigned int> sampleRates;
+    std::string sampleRatesTxt;
+    unsigned int sampleRate = 48000;
 
     RtAudio audio;
 
@@ -205,8 +266,10 @@ private:
 };
 
 MOD_EXPORT void _INIT_() {
-    // Nothing here
-    // TODO: Do instancing here (in source modules as well) to prevent multiple loads
+    json def = json({});
+    config.setPath(options::opts.root + "/audio_sink_config.json");
+    config.load(def);
+    config.enableAutoSave();
 }
 
 MOD_EXPORT void* _CREATE_INSTANCE_(std::string name) {
@@ -215,7 +278,8 @@ MOD_EXPORT void* _CREATE_INSTANCE_(std::string name) {
 }
 
 MOD_EXPORT void _DELETE_INSTANCE_() {
-    
+    config.disableAutoSave();
+    config.save();
 }
 
 MOD_EXPORT void _END_() {
