@@ -12,9 +12,7 @@ option(OPT_BUILD_SDRPLAY_SOURCE "Build SDRplay Source Module (Depedencies: libsd
 option(OPT_BUILD_PLUTOSDR_SOURCE "Build PlutoSDR Source Module (Depedencies: libiio, libad9361)" ON)
 option(OPT_BUILD_HACKRF_SOURCE "Build HackRF Source Module (Depedencies: libhackrf)" OFF)
 option(OPT_BUILD_RTL_SDR_SOURCE "Build HackRF Source Module (Depedencies: libhackrf)" ON)
-option(OPT_BUILD_AUDIO_SINK "Build Audio Sink Module (Depedencies: portaudio)" ON)
-option(OPT_BUILD_RTAUDIO_SINK "Build RtAudio Sink Module (Depedencies: rtaudio)" OFF)
-
+option(OPT_BUILD_AUDIO_SINK "Build Audio Sink Module (Depedencies: rtaudio)" ON)
 # Core of SDR++
 add_subdirectory("core")
 
@@ -63,10 +61,6 @@ endif (OPT_BUILD_RTL_SDR_SOURCE)
 if (OPT_BUILD_AUDIO_SINK)
 add_subdirectory("audio_sink")
 endif (OPT_BUILD_AUDIO_SINK)
-
-if (OPT_BUILD_RTAUDIO_SINK)
-add_subdirectory("rtaudio_sink")
-endif (OPT_BUILD_RTAUDIO_SINK)
 
 if (MSVC)
     set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")

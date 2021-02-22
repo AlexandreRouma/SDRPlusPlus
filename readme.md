@@ -35,7 +35,7 @@ Download the latest release from [the Releases page](https://github.com/Alexandr
 
 Then, run:
 ```sh
-sudo apt install libfftw3-dev libglfw3-dev libglew-dev libvolk2-dev libsoapysdr-dev libairspyhf-dev libiio-dev libad9361-dev portaudio19-dev libhackrf-dev
+sudo apt install libfftw3-dev libglfw3-dev libglew-dev libvolk2-dev libsoapysdr-dev libairspyhf-dev libiio-dev libad9361-dev librtaudio-dev libhackrf-dev
 sudo dpkg -i sdrpp_debian_amd64.deb
 ```
 
@@ -52,10 +52,10 @@ TODO
 * cmake
 * vcpkg
 * PothosSDR (This will install libraires for most SDRs)
+* rtaudio
 
 After this, install the following depencies using vcpkg:
 * fftw3
-* portaudio
 * glfw
 * glew
 
@@ -143,7 +143,7 @@ Next install dependencies based on the modules you wish to build:
 * soapy_source: SoapySDR + drivers for each SDRs (see SoapySDR docs)
 * airspyhf_source: libairspyhf
 * plutosdr_source: libiio, libad9361
-* audio_sink: portaudio
+* audio_sink: librtaudio-dev
 
 Note: make sure you're using GCC 8 or later as older versions do not have `std::filesystem` built-in.
 
