@@ -474,7 +474,6 @@ namespace ImGui {
 
         range = findBestRange(viewBandwidth, maxHSteps);
         vRange = findBestRange(fftMax - fftMin, maxVSteps);
-        vRange = 10.0;
 
         updateWaterfallFb();
         updateAllVFOs();
