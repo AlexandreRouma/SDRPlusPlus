@@ -384,13 +384,15 @@ private:
 
         if (_this->running) { style::endDisabled(); }
 
-        ImGui::Text("Antenna");
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::Combo(CONCAT("##_antenna_select_", _this->name), &_this->uiAntennaId, _this->txtAntennaList.c_str())) {
-            if (_this->running)
-                _this->dev->setAntenna(SOAPY_SDR_RX, _this->channelId, _this->antennaList[_this->uiAntennaId]);
-            _this->saveCurrent();
+        if (_this->antennaList.size() > 1) {
+            ImGui::Text("Antenna");
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+            if (ImGui::Combo(CONCAT("##_antenna_select_", _this->name), &_this->uiAntennaId, _this->txtAntennaList.c_str())) {
+                if (_this->running)
+                    _this->dev->setAntenna(SOAPY_SDR_RX, _this->channelId, _this->antennaList[_this->uiAntennaId]);
+                _this->saveCurrent();
+            }
         }
 
         float gainNameLen = 0;

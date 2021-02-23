@@ -132,7 +132,7 @@ public:
 #ifdef _WIN32
         send(sock, (char*)&cmd, sizeof(command_t), 0);  
 #else
-        write(sockfd, &cmd, sizeof(command_t));
+        (void)write(sockfd, &cmd, sizeof(command_t));
 #endif
     }
 
@@ -140,7 +140,7 @@ public:
 #ifdef _WIN32
         recv(sock, (char*)buf, count, 0);
 #else
-        read(sockfd, buf, count);
+        (void)read(sockfd, buf, count);
 #endif
     }
 
