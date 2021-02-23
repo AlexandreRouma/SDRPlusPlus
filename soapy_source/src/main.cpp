@@ -1,3 +1,4 @@
+#include <SoapySDR/Constants.h>
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 #include <module.h>
@@ -152,6 +153,12 @@ private:
 
         SoapySDR::Device* dev = SoapySDR::Device::make(devArgs);
 
+        antennaList = dev->listAntennas(SOAPY_SDR_RX, channelId);
+        txtAntennaList = "";
+        for (const std::string & ant : antennaList) {
+            txtAntennaList += ant + '\0';
+        }
+
         gainList = dev->listGains(SOAPY_SDR_RX, channelId);
         delete[] uiGains;
         uiGains = new float[gainList.size()];
@@ -201,6 +208,11 @@ private:
 
         config.aquire();
         if (config.conf["devices"].contains(name)) {
+            if(config.conf["devices"][name].contains("antenna")) {
+                uiAntennaId = config.conf["devices"][name]["antenna"];
+            } else {
+                uiAntennaId = 0;
+            }
             int i = 0;
             for (auto gain : gainList) {
                 if (config.conf["devices"][name]["gains"].contains(gain)) {
@@ -230,6 +242,7 @@ private:
             }
         }
         else {
+            uiAntennaId = 0;
             int i = 0;
             for (auto gain : gainList) {
                 uiGains[i] = gainRanges[i].minimum();
@@ -249,6 +262,7 @@ private:
     void saveCurrent() {
         json conf;
         conf["sampleRate"] = sampleRate;
+        conf["antenna"] = uiAntennaId;
         int i = 0;
         for (auto gain : gainList) {
             conf["gains"][gain] = uiGains[i];
@@ -283,6 +297,8 @@ private:
         _this->dev = SoapySDR::Device::make(_this->devArgs);
 
         _this->dev->setSampleRate(SOAPY_SDR_RX, _this->channelId, _this->sampleRate);
+
+        _this->dev->setAntenna(SOAPY_SDR_RX, _this->channelId, _this->antennaList[_this->uiAntennaId]);
 
         if(_this->bandwidthList.size() > 2) {
             if(_this->bandwidthList[_this->uiBandwidthId] == -1)
@@ -367,6 +383,15 @@ private:
         }
 
         if (_this->running) { style::endDisabled(); }
+
+        ImGui::Text("Antenna");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::Combo(CONCAT("##_antenna_select_", _this->name), &_this->uiAntennaId, _this->txtAntennaList.c_str())) {
+            if (_this->running)
+                _this->dev->setAntenna(SOAPY_SDR_RX, _this->channelId, _this->antennaList[_this->uiAntennaId]);
+            _this->saveCurrent();
+        }
 
         float gainNameLen = 0;
         float len;
@@ -469,6 +494,9 @@ private:
     float* uiGains;
     int channelCount = 1;
     int channelId = 0;
+    int uiAntennaId = 0;
+    std::vector<std::string> antennaList;
+    std::string txtAntennaList;
     std::vector<std::string> gainList;
     std::vector<SoapySDR::Range> gainRanges;
     int uiBandwidthId = 0;
