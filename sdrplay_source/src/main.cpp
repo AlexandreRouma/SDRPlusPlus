@@ -268,6 +268,7 @@ private:
         // RSP1A Options
         _this->openDevParams->devParams->rsp1aParams.rfNotchEnable = _this->fmNotch;
         _this->openDevParams->devParams->rsp1aParams.rfNotchEnable = _this->dabNotch;
+        _this->openDevParams->rxChannelA->rsp1aTunerParams.biasTEnable = _this->biasT;
 
         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Dev_Fs, sdrplay_api_Update_Ext1_None);
         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_BwType, sdrplay_api_Update_Ext1_None);
@@ -278,6 +279,7 @@ private:
         // RSP1A Options
         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Rsp1a_RfNotchControl, sdrplay_api_Update_Ext1_None);
         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Rsp1a_RfDabNotchControl, sdrplay_api_Update_Ext1_None);
+        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Rsp1a_BiasTControl, sdrplay_api_Update_Ext1_None);
 
         _this->running = true;
         spdlog::info("SDRPlaySourceModule '{0}': Start!", _this->name);
@@ -325,6 +327,9 @@ private:
         ImGui::SetNextItemWidth(menuWidth);
         if (ImGui::Combo(CONCAT("##sdrplay_sr", _this->name), &_this->srId, sampleRatesTxt)) {
             _this->sampleRate = sampleRates[_this->srId];
+            if (_this->bandwidthId == 8) {
+                _this->bandwidth = preferedBandwidth[_this->srId];
+            }
             core::setInputSampleRate(_this->sampleRate);
             // Save config
         }
@@ -399,6 +404,10 @@ private:
             openDevParams->devParams->rsp1aParams.rfNotchEnable = dabNotch;
             sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp1a_RfDabNotchControl, sdrplay_api_Update_Ext1_None);
         }
+        if (ImGui::Checkbox("Bias-T", &biasT)) {
+            openDevParams->rxChannelA->rsp1aTunerParams.biasTEnable = biasT;
+            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp1a_BiasTControl, sdrplay_api_Update_Ext1_None);
+        }
     }
 
     void RSP2Menu(float menuWidth) {
@@ -467,6 +476,7 @@ private:
     // RSP1A Options
     bool fmNotch = false;
     bool dabNotch = false;
+    bool biasT = false;
 
     std::vector<sdrplay_api_DeviceT> devList;
     std::string devListTxt;
