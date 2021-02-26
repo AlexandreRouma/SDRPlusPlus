@@ -22,6 +22,65 @@ SDRPP_MOD_INFO {
 
 ConfigManager config;
 
+unsigned int sampleRates[] = {
+    2000000,
+    3000000,
+    4000000,
+    5000000,
+    6000000,
+    7000000,
+    8000000,
+    9000000,
+    10000000
+};
+
+const char* sampleRatesTxt =
+    "2MHz\0"
+    "3MHz\0"
+    "4MHz\0"
+    "5MHz\0"
+    "6MHz\0"
+    "7MHz\0"
+    "8MHz\0"
+    "9MHz\0"
+    "10MHz\0";
+
+sdrplay_api_Bw_MHzT bandwidths[] = {
+    sdrplay_api_BW_0_200,
+    sdrplay_api_BW_0_300,
+    sdrplay_api_BW_0_600,
+    sdrplay_api_BW_1_536,
+    sdrplay_api_BW_5_000,
+    sdrplay_api_BW_6_000,
+    sdrplay_api_BW_7_000,
+    sdrplay_api_BW_8_000,
+};
+
+const char* bandwidthsTxt =
+    "200KHz\0"
+    "300KHz\0"
+    "600KHz\0"
+    "1.536MHz\0"
+    "5MHz\0"
+    "6MHz\0"
+    "7MHz\0"
+    "8MHz\0"
+    "Auto\0";
+
+sdrplay_api_Bw_MHzT preferedBandwidth[] = {
+    sdrplay_api_BW_5_000,
+    sdrplay_api_BW_5_000,
+    sdrplay_api_BW_5_000,
+    sdrplay_api_BW_5_000,
+    sdrplay_api_BW_6_000,
+    sdrplay_api_BW_7_000,
+    sdrplay_api_BW_8_000,
+    sdrplay_api_BW_8_000,
+    sdrplay_api_BW_8_000
+};
+
+
+
 class SDRPlaySourceModule : public ModuleManager::Instance {
 public:
     SDRPlaySourceModule(std::string name) {
@@ -34,7 +93,11 @@ public:
 
         sdrplay_api_Open();
 
-        sampleRate = 8000000.0;
+        sampleRate = 2000000.0;
+        srId = 0;
+
+        bandwidth = sdrplay_api_BW_5_000;
+        bandwidthId = 8;
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
@@ -51,8 +114,6 @@ public:
         // if (sampleRateList.size() > 0) {
         //     sampleRate = sampleRateList[0];
         // }
-        
-        sampleRate = 8000000;
 
         // Select device from config
         // config.aquire();
@@ -119,9 +180,18 @@ public:
         selectDev(devList[0]);
     }
 
+    void selectById(int id) {
+        selectDev(devList[id]);
+    }
+
     void selectDev(sdrplay_api_DeviceT dev) {
         openDev = dev;
         sdrplay_api_ErrT err;
+
+        if (deviceOpen) {
+            sdrplay_api_Uninit(openDev.dev);
+            sdrplay_api_ReleaseDevice(&openDev);
+        }
 
         err = sdrplay_api_SelectDevice(&openDev);
         if (err != sdrplay_api_Success) {
@@ -188,19 +258,26 @@ private:
         _this->bufferIndex = 0;
         _this->bufferSize = 8000000 / 200;
 
-        _this->openDevParams->devParams->fsFreq.fsHz = 8000000;
-        _this->openDevParams->rxChannelA->tunerParams.bwType = sdrplay_api_BW_8_000;
+        _this->openDevParams->devParams->fsFreq.fsHz = _this->sampleRate;
+        _this->openDevParams->rxChannelA->tunerParams.bwType = _this->bandwidth;
         _this->openDevParams->rxChannelA->tunerParams.rfFreq.rfHz = _this->freq;
-        _this->openDevParams->rxChannelA->tunerParams.gain.gRdB = 59;
-        _this->openDevParams->rxChannelA->tunerParams.gain.LNAstate = 9;
+        _this->openDevParams->rxChannelA->tunerParams.gain.gRdB = _this->gain;
+        _this->openDevParams->rxChannelA->tunerParams.gain.LNAstate = _this->lnaGain;
         _this->openDevParams->rxChannelA->ctrlParams.agc.enable = sdrplay_api_AGC_DISABLE;
-        //_this->openDevParams->devParams->
+
+        // RSP1A Options
+        _this->openDevParams->devParams->rsp1aParams.rfNotchEnable = _this->fmNotch;
+        _this->openDevParams->devParams->rsp1aParams.rfNotchEnable = _this->dabNotch;
 
         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Dev_Fs, sdrplay_api_Update_Ext1_None);
         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_BwType, sdrplay_api_Update_Ext1_None);
         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Frf, sdrplay_api_Update_Ext1_None);
         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Ctrl_Agc, sdrplay_api_Update_Ext1_None);
+
+        // RSP1A Options
+        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Rsp1a_RfNotchControl, sdrplay_api_Update_Ext1_None);
+        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Rsp1a_RfDabNotchControl, sdrplay_api_Update_Ext1_None);
 
         _this->running = true;
         spdlog::info("SDRPlaySourceModule '{0}': Start!", _this->name);
@@ -240,10 +317,29 @@ private:
         
        
         if (ImGui::Combo(CONCAT("##sdrplay_dev", _this->name), &_this->devId, _this->devListTxt.c_str())) {
-            
+            _this->selectById(_this->devId);
+            // Save config
+        }
+
+
+        ImGui::SetNextItemWidth(menuWidth);
+        if (ImGui::Combo(CONCAT("##sdrplay_sr", _this->name), &_this->srId, sampleRatesTxt)) {
+            _this->sampleRate = sampleRates[_this->srId];
+            core::setInputSampleRate(_this->sampleRate);
+            // Save config
         }
 
         if (_this->running) { style::endDisabled(); } 
+
+        ImGui::SetNextItemWidth(menuWidth);
+        if (ImGui::Combo(CONCAT("##sdrplay_bw", _this->name), &_this->bandwidthId, bandwidthsTxt)) {
+            _this->bandwidth = (_this->bandwidthId == 8) ? preferedBandwidth[_this->srId] : bandwidths[_this->bandwidthId];
+            if (_this->running) {
+                _this->openDevParams->rxChannelA->tunerParams.bwType = _this->bandwidth;
+                sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_BwType, sdrplay_api_Update_Ext1_None);
+            }
+            // Save config
+        }
 
         if (_this->deviceOpen) {
             switch (_this->openDev.hwVer) {
@@ -281,23 +377,28 @@ private:
         ImGui::Text("LNA Gain");
         ImGui::SameLine();
         float pos = ImGui::GetCursorPosX();
-        if (ImGui::SliderInt(CONCAT("##sdrplay_lna_gain", name), &gainTest, 9, 0, "")) {
-            openDevParams->rxChannelA->tunerParams.gain.LNAstate = gainTest;
+        if (ImGui::SliderInt(CONCAT("##sdrplay_lna_gain", name), &lnaGain, 9, 0, "")) {
+            openDevParams->rxChannelA->tunerParams.gain.LNAstate = lnaGain;
             sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
         }
 
         ImGui::Text("IF Gain");
         ImGui::SameLine();
         ImGui::SetCursorPosX(pos);
-        if (ImGui::SliderInt(CONCAT("##sdrplay_gain", name), &gainTest2, 59, 20, "")) {
-            openDevParams->rxChannelA->tunerParams.gain.gRdB = gainTest2;
+        if (ImGui::SliderInt(CONCAT("##sdrplay_gain", name), &gain, 59, 20, "")) {
+            openDevParams->rxChannelA->tunerParams.gain.gRdB = gain;
             sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
         }
         ImGui::PopItemWidth();
 
-        bool test = false;
-        ImGui::Checkbox("FM Notch", &test);
-        ImGui::Checkbox("DAB Notch", &test);
+        if (ImGui::Checkbox("FM Notch", &fmNotch)) {
+            openDevParams->devParams->rsp1aParams.rfNotchEnable = fmNotch;
+            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp1a_RfNotchControl, sdrplay_api_Update_Ext1_None);
+        }
+        if (ImGui::Checkbox("DAB Notch", &dabNotch)) {
+            openDevParams->devParams->rsp1aParams.rfNotchEnable = dabNotch;
+            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp1a_RfDabNotchControl, sdrplay_api_Update_Ext1_None);
+        }
     }
 
     void RSP2Menu(float menuWidth) {
@@ -351,19 +452,24 @@ private:
     sdrplay_api_DeviceT openDev;
     sdrplay_api_DeviceParamsT * openDevParams;
 
+    sdrplay_api_Bw_MHzT bandwidth;
+    int bandwidthId = 0;
+
     int devId = 0;
     int srId = 0;
 
-    int gainTest = 9;
-    int gainTest2 = 59;
+    int lnaGain = 9;
+    int gain = 59;
 
     int bufferSize = 0;
     int bufferIndex = 0;
 
+    // RSP1A Options
+    bool fmNotch = false;
+    bool dabNotch = false;
+
     std::vector<sdrplay_api_DeviceT> devList;
     std::string devListTxt;
-    std::vector<uint32_t> sampleRateList;
-    std::string sampleRateListTxt;
 };
 
 MOD_EXPORT void _INIT_() {

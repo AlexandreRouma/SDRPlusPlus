@@ -69,7 +69,7 @@ private:
         if (_this->running) { return; }
         if (_this->reader == NULL) { return; }
         _this->running = true;
-        _this->workerThread = std::thread(worker, _this);
+        _this->workerThread = _this->float32Mode ? std::thread(floatWorker, _this) : std::thread(worker, _this);
         spdlog::info("FileSourceModule '{0}': Start!", _this->name);
     }
     
@@ -101,18 +101,14 @@ private:
                 }
                 try {
                     _this->reader = new WavReader(_this->fileSelect.path);
-                    if (_this->reader->isValid() && _this->reader->getBitDepth() == 16 && _this->reader->getChannelCount() == 2) {
-                        _this->sampleRate = _this->reader->getSampleRate();
-                        core::setInputSampleRate(_this->sampleRate);
-                    }
-                    else {
-                        _this->reader->close();
-                        delete _this->reader;
-                    }
+                    _this->sampleRate = _this->reader->getSampleRate();
+                    core::setInputSampleRate(_this->sampleRate);
                 }
                 catch (std::exception e) {}
             }
         }
+
+        ImGui::Checkbox("Float32 Mode##_file_source", &_this->float32Mode);
     }
 
     static void worker(void* ctx) {
@@ -133,6 +129,20 @@ private:
         delete[] inBuf;
     }
 
+    static void floatWorker(void* ctx) {
+        FileSourceModule* _this = (FileSourceModule*)ctx;
+        double sampleRate = _this->reader->getSampleRate();
+        int blockSize = sampleRate / 200.0f;
+        dsp::complex_t* inBuf = new dsp::complex_t[blockSize];
+
+        while (true) {
+            _this->reader->readSamples(_this->stream.writeBuf, blockSize * sizeof(dsp::complex_t));
+            if (!_this->stream.swap(blockSize)) { break; };
+        }
+
+        delete[] inBuf;
+    }
+
     FileSelect fileSelect;
     std::string name;
     dsp::stream<dsp::complex_t> stream;
@@ -142,6 +152,8 @@ private:
     bool enabled = true;
     float sampleRate = 48000;
     std::thread workerThread;
+
+    bool float32Mode = false;
 };
 
 MOD_EXPORT void _INIT_() {
