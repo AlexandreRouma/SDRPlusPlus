@@ -24,7 +24,7 @@ if (MSVC)
 else (MSVC)
     find_package(PkgConfig)
 
-    target_link_libraries(sdrplay_source sdrplay_api)
+    link_libraries(sdrplay_api)
 endif (MSVC)
 
 # Install directives
