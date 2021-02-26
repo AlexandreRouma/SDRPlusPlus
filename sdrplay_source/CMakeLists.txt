@@ -24,11 +24,7 @@ if (MSVC)
 else (MSVC)
     find_package(PkgConfig)
 
-    pkg_check_modules(LIBSDRPLAY REQUIRED libsdrplay_api)
-
-    target_include_directories(sdrplay_source PUBLIC ${LIBSDRPLAY_INCLUDE_DIRS})
-    target_link_directories(sdrplay_source PUBLIC ${LIBSDRPLAY_LIBRARY_DIRS})
-    target_link_libraries(sdrplay_source PUBLIC ${LIBSDRPLAY_LIBRARIES})
+    target_link_libraries(sdrplay_source sdrplay_api)
 endif (MSVC)
 
 # Install directives
