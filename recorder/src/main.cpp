@@ -26,6 +26,7 @@ SDRPP_MOD_INFO {
     /* Max instances    */ -1
 };
 
+ConfigManager config;
 
 std::string expandString(std::string input) {
     input = std::regex_replace(input, std::regex("%ROOT%"), options::opts.root);
@@ -313,6 +314,10 @@ MOD_EXPORT void _INIT_() {
             spdlog::error("Could not create recordings directory");
         }
     }
+    json def = json({});
+    config.setPath(options::opts.root + "/radio_config.json");
+    config.load(def);
+    config.enableAutoSave();
 }
 
 MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
@@ -324,5 +329,6 @@ MOD_EXPORT void _DELETE_INSTANCE_(ModuleManager::Instance* inst) {
 }
 
 MOD_EXPORT void _END_(RecorderContext_t* ctx) {
-    
+    config.disableAutoSave();
+    config.save();
 }

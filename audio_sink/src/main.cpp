@@ -165,6 +165,7 @@ private:
         unsigned int bufferFrames = sampleRate / 60;
         RtAudio::StreamOptions opts;
         opts.flags = RTAUDIO_MINIMIZE_LATENCY;
+        opts.streamName = _streamName;
 
         stereoPacker.setSampleCount(bufferFrames);
 
