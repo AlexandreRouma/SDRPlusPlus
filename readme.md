@@ -223,13 +223,16 @@ I will soon publish a contributing.md listing the code style to use.
 * [Lee Donaghy](https://github.com/github)
 * [Daniele D'Agnelli](https://linkedin.com/in/dagnelli)
 
+
 ## Contributors
-* [aosync](https://github.com/aosync)
+* [Aang23](https://github.com/Aang23)
 * [Alexsey Shestacov](https://github.com/wingrime)
+* [Aosync](https://github.com/aosync)
 * [Benjamin Kyd](https://github.com/benkyd)
-* [cropinghigh](https://github.com/cropinghigh)
+* [Cropinghigh](https://github.com/cropinghigh)
 * [Howard0su](https://github.com/howard0su)
 * [Martin Hauke](https://github.com/mnhauke)
+* [Paulo Matias](https://github.com/thotypous)
 * [Raov](https://twitter.com/raov_birbtog)
 * [Szymon Zakrent](https://github.com/zakrent)
 * [Tobias Mädel](https://github.com/Manawyrm)

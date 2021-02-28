@@ -120,7 +120,7 @@ int sdrpp_main(int argc, char *argv[]) {
         "Display"
     };
     defConfig["menuWidth"] = 300;
-    defConfig["min"] = -70.0;
+    defConfig["min"] = -120.0;
 
     defConfig["moduleInstances"]["Radio"] = "radio";
     defConfig["moduleInstances"]["Recorder"] = "recorder";
@@ -130,7 +130,6 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["moduleInstances"]["RTL-SDR Source"] = "rtl_sdr_source";
     defConfig["moduleInstances"]["AirspyHF+ Source"] = "airspyhf_source";
     defConfig["moduleInstances"]["Airspy Source"] = "airspy_source";
-    defConfig["moduleInstances"]["HackRF Source"] = "hackrf_source";
     defConfig["moduleInstances"]["Audio Sink"] = "audio_sink";
 
     defConfig["modules"] = json::array();
@@ -140,12 +139,6 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["streams"] = json::object();
     defConfig["windowSize"]["h"] = 720;
     defConfig["windowSize"]["w"] = 1280;
-    
-    defConfig["bandColors"]["broadcast"] = "#0000FFFF";
-    defConfig["bandColors"]["amateur"] = "#FF0000FF";
-    defConfig["bandColors"]["aviation"] = "#00FF00FF";
-    defConfig["bandColors"]["marine"] = "#00FFFFFF";
-    defConfig["bandColors"]["military"] = "#FFFF00FF";
 
 #ifdef _WIN32
     defConfig["modulesDirectory"] = "./modules";

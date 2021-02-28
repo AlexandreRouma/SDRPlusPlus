@@ -3,12 +3,14 @@
 namespace sdrpp_credits {
     const char* contributors[] = {
         "Ryzerth (Author)",
-        "aosync",
+        "Aang23",
         "Alexsey Shestacov",
+        "Aosync",
         "Benjamin Kyd",
         "Cropinghigh",
         "Howard0su",
         "Martin Hauke",
+        "Paulo Matias",
         "Raov",
         "Szymon Zakrent",
         "Tobias Mädel"
@@ -17,7 +19,7 @@ namespace sdrpp_credits {
     const char* libraries[] = {
         "Dear ImGui (ocornut)",
         "json (nlohmann)",
-        "portaudio (P.A. comm.)",
+        "RtlAudio",
         "SoapySDR (PothosWare)",
         "spdlog (gabime)",
     };
