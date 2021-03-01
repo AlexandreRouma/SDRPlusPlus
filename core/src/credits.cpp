@@ -19,7 +19,7 @@ namespace sdrpp_credits {
     const char* libraries[] = {
         "Dear ImGui (ocornut)",
         "json (nlohmann)",
-        "RtlAudio",
+        "RtAudio",
         "SoapySDR (PothosWare)",
         "spdlog (gabime)",
     };
