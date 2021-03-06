@@ -347,6 +347,24 @@ private:
         }
 
         if (_this->deviceOpen) {
+            ImGui::PushItemWidth(menuWidth - ImGui::CalcTextSize("LNA Gain").x - 10);
+            ImGui::Text("LNA Gain");
+            ImGui::SameLine();
+            float pos = ImGui::GetCursorPosX();
+            if (ImGui::SliderInt(CONCAT("##sdrplay_lna_gain", _this->name), &_this->lnaGain, 9, 0, "")) {
+                _this->openDevParams->rxChannelA->tunerParams.gain.LNAstate = _this->lnaGain;
+                sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
+            }
+
+            ImGui::Text("IF Gain");
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(pos);
+            if (ImGui::SliderInt(CONCAT("##sdrplay_gain", _this->name), &_this->gain, 59, 20, "")) {
+                _this->openDevParams->rxChannelA->tunerParams.gain.gRdB = _this->gain;
+                sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
+            }
+            ImGui::PopItemWidth();
+
             switch (_this->openDev.hwVer) {
                 case SDRPLAY_RSP1_ID:
                     _this->RSP1Menu(menuWidth);
@@ -374,28 +392,10 @@ private:
     }
         
     void RSP1Menu(float menuWidth) {
-        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Device currently unsupported");
+        
     }
 
     void RSP1AMenu(float menuWidth) {
-        ImGui::PushItemWidth(menuWidth - ImGui::CalcTextSize("LNA Gain").x - 10);
-        ImGui::Text("LNA Gain");
-        ImGui::SameLine();
-        float pos = ImGui::GetCursorPosX();
-        if (ImGui::SliderInt(CONCAT("##sdrplay_lna_gain", name), &lnaGain, 9, 0, "")) {
-            openDevParams->rxChannelA->tunerParams.gain.LNAstate = lnaGain;
-            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
-        }
-
-        ImGui::Text("IF Gain");
-        ImGui::SameLine();
-        ImGui::SetCursorPosX(pos);
-        if (ImGui::SliderInt(CONCAT("##sdrplay_gain", name), &gain, 59, 20, "")) {
-            openDevParams->rxChannelA->tunerParams.gain.gRdB = gain;
-            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
-        }
-        ImGui::PopItemWidth();
-
         if (ImGui::Checkbox("FM Notch", &fmNotch)) {
             openDevParams->devParams->rsp1aParams.rfNotchEnable = fmNotch;
             sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp1a_RfNotchControl, sdrplay_api_Update_Ext1_None);
@@ -411,7 +411,7 @@ private:
     }
 
     void RSP2Menu(float menuWidth) {
-        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Device currently unsupported");
+        
     }
 
     void RSPduoMenu(float menuWidth) {
