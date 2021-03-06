@@ -82,9 +82,10 @@ sdrplay_api_Bw_MHzT preferedBandwidth[] = {
 const sdrplay_api_Rsp2_AntennaSelectT rsp2_antennaPorts[] = {
     sdrplay_api_Rsp2_ANTENNA_A,
     sdrplay_api_Rsp2_ANTENNA_B,
+    sdrplay_api_Rsp2_ANTENNA_B,
 };
 
-const char* rsp2_antennaPortsTxt = "Port A\0Port B\0";
+const char* rsp2_antennaPortsTxt = "Port A\0Port B\0Hi-Z\0";
 
 const sdrplay_api_RspDx_AntennaSelectT rspdx_antennaPorts[] = {
     sdrplay_api_RspDx_ANTENNA_A,
@@ -299,9 +300,11 @@ private:
             _this->openDevParams->rxChannelA->rsp2TunerParams.rfNotchEnable = _this->rsp2_notch;
             _this->openDevParams->rxChannelA->rsp2TunerParams.biasTEnable = _this->rsp2_biasT;
             _this->openDevParams->rxChannelA->rsp2TunerParams.antennaSel = rsp2_antennaPorts[_this->rsp2_antennaPort];
+            _this->openDevParams->rxChannelA->rsp2TunerParams.amPortSel = (_this->rsp2_antennaPort == 2) ? sdrplay_api_Rsp2_AMPORT_2 : sdrplay_api_Rsp2_AMPORT_1;
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Rsp2_RfNotchControl, sdrplay_api_Update_Ext1_None);
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Rsp2_BiasTControl, sdrplay_api_Update_Ext1_None);
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Rsp2_AntennaControl, sdrplay_api_Update_Ext1_None);
+            sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Rsp2_AmPortSelect, sdrplay_api_Update_Ext1_None);
         }
         else if (_this->openDev.hwVer == SDRPLAY_RSPdx_ID) {
             _this->openDevParams->devParams->rspDxParams.rfNotchEnable = _this->rspdx_fmNotch;
@@ -454,7 +457,9 @@ private:
         }
         if (ImGui::Combo(CONCAT("Antenna##sdrplay_rsp2_ant", name), &rsp2_antennaPort, rsp2_antennaPortsTxt)) {
             openDevParams->rxChannelA->rsp2TunerParams.antennaSel = rsp2_antennaPorts[rsp2_antennaPort];
+            openDevParams->rxChannelA->rsp2TunerParams.amPortSel = (rsp2_antennaPort == 2) ? sdrplay_api_Rsp2_AMPORT_2 : sdrplay_api_Rsp2_AMPORT_1;
             sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp2_AntennaControl, sdrplay_api_Update_Ext1_None);
+            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp2_AmPortSelect, sdrplay_api_Update_Ext1_None);
         }
     }
 
