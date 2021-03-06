@@ -308,7 +308,7 @@ private:
         }
         else if (_this->openDev.hwVer == SDRPLAY_RSPdx_ID) {
             _this->openDevParams->devParams->rspDxParams.rfNotchEnable = _this->rspdx_fmNotch;
-            _this->openDevParams->devParams->rspDxParams.rfNotchEnable = _this->rspdx_dabNotch;
+            _this->openDevParams->devParams->rspDxParams.rfDabNotchEnable = _this->rspdx_dabNotch;
             _this->openDevParams->devParams->rspDxParams.biasTEnable = _this->rspdx_biasT;
             _this->openDevParams->devParams->rspDxParams.antennaSel = rspdx_antennaPorts[_this->rspdx_antennaPort];
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_None, sdrplay_api_Update_RspDx_RfNotchControl);
@@ -473,7 +473,7 @@ private:
             sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_None, sdrplay_api_Update_RspDx_RfNotchControl);
         }
         if (ImGui::Checkbox(CONCAT("DAB Notch##sdrplay_rspdx_dabnotch", name), &rspdx_dabNotch)) {
-            openDevParams->devParams->rspDxParams.rfNotchEnable = rspdx_dabNotch;
+            openDevParams->devParams->rspDxParams.rfDabNotchEnable = rspdx_dabNotch;
             sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_None, sdrplay_api_Update_RspDx_RfDabNotchControl);
         }
         if (ImGui::Checkbox(CONCAT("Bias-T##sdrplay_rspdx_biast", name), &rspdx_biasT)) {
