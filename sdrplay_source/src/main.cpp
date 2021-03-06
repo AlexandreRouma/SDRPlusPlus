@@ -233,6 +233,24 @@ public:
             return;
         }
 
+        if (openDev.hwVer == SDRPLAY_RSP1_ID) {
+            lnaSteps = 4;
+        }
+        else if (openDev.hwVer == SDRPLAY_RSP1A_ID) {
+            lnaSteps = 10;
+        }
+        else if (openDev.hwVer == SDRPLAY_RSP2_ID) {
+            lnaSteps = 9;
+        }
+        else if (openDev.hwVer == SDRPLAY_RSPduo_ID) {
+            lnaSteps = 10;
+        }
+        else if (openDev.hwVer == SDRPLAY_RSPdx_ID) {
+            lnaSteps = 28;
+        }
+        
+        if (lnaGain >= lnaSteps) { lnaGain = lnaSteps - 1; }
+
         deviceOpen = true;
     }
 
@@ -387,7 +405,7 @@ private:
             ImGui::Text("LNA Gain");
             ImGui::SameLine();
             float pos = ImGui::GetCursorPosX();
-            if (ImGui::SliderInt(CONCAT("##sdrplay_lna_gain", _this->name), &_this->lnaGain, 9, 0, "")) {
+            if (ImGui::SliderInt(CONCAT("##sdrplay_lna_gain", _this->name), &_this->lnaGain, _this->lnaSteps, 0, "")) {
                 _this->openDevParams->rxChannelA->tunerParams.gain.LNAstate = _this->lnaGain;
                 sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
             }
@@ -533,6 +551,7 @@ private:
 
     int lnaGain = 9;
     int gain = 59;
+    int lnaSteps = 9;
 
     int bufferSize = 0;
     int bufferIndex = 0;
