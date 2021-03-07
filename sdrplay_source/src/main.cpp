@@ -253,6 +253,11 @@ public:
 
         deviceOpen = true;
     }
+    
+    void selectShittyTuner(sdrplay_api_TunerSelectT tuner, sdrplay_api_RspDuo_AmPortSelectT amPort) {
+        // What the fuck?
+        if (openDev.tuner != tuner) { sdrplay_api_SwapRspDuoActiveTuner(openDev.dev, &openDev.tuner, amPort); }
+    }
 
 private:
     std::string getBandwdithScaled(double bw) {
@@ -446,7 +451,7 @@ private:
     }
         
     void RSP1Menu(float menuWidth) {
-        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Device currently unsupported");
+        // No options?
     }
 
     void RSP1AMenu(float menuWidth) {
@@ -565,6 +570,9 @@ private:
     bool rsp2_notch = false;
     bool rsp2_biasT = false;
     int rsp2_antennaPort = 0;
+
+    // RSP Duo Options
+
 
     // RSPdx Options
     bool rspdx_fmNotch = false;

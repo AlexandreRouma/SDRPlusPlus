@@ -2,7 +2,7 @@
 
 namespace sdrpp_credits {
     const char* contributors[] = {
-        "Ryzerth (Author)",
+        "Alexandre Rouma (Author)",
         "Aang23",
         "Alexsey Shestacov",
         "Aosync",
@@ -25,9 +25,11 @@ namespace sdrpp_credits {
     };
 
     const char* patrons[] = {
-        "SignalsEverywhere",
+        "Daniele D'Agnelli",
+        "Jacob Boline",
         "Lee Donaghy",
-        "Daniele D'Agnelli"
+        "Passion-Radio.com",
+        "SignalsEverywhere"
     };
 
     const int contributorCount = sizeof(contributors) / sizeof(char*);

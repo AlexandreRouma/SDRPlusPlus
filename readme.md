@@ -219,9 +219,12 @@ I will soon publish a contributing.md listing the code style to use.
 # Credits
 
 ## Patrons
-* [SignalsEverywhere](https://signalseverywhere.com/)
-* [Lee Donaghy](https://github.com/github)
+
 * [Daniele D'Agnelli](https://linkedin.com/in/dagnelli)
+* [Jacob Boline](https://twitter.com/W4IPAstroke5)
+* [Lee Donaghy](https://github.com/github)
+* [Passion-Radio.com](https://passion-radio.com/)
+* [SignalsEverywhere](https://signalseverywhere.com/)
 
 
 ## Contributors
@@ -243,4 +246,4 @@ I will soon publish a contributing.md listing the code style to use.
 * [Dear ImGui (ocornut)](https://github.com/ocornut/imgui)
 * [spdlog (gabime)](https://github.com/gabime/spdlog)
 * [json (nlohmann)](https://github.com/nlohmann/json)
-* [portaudio (PortAudio community)](http://www.portaudio.com/)
+* [rtaudio](http://www.portaudio.com/)
