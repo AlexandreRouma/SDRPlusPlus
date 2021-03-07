@@ -130,6 +130,7 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["moduleInstances"]["RTL-SDR Source"] = "rtl_sdr_source";
     defConfig["moduleInstances"]["AirspyHF+ Source"] = "airspyhf_source";
     defConfig["moduleInstances"]["Airspy Source"] = "airspy_source";
+    //defConfig["moduleInstances"]["SDRplay Source"] = "sdrplay_source";
     defConfig["moduleInstances"]["Audio Sink"] = "audio_sink";
 
     defConfig["modules"] = json::array();

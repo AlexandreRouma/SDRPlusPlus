@@ -318,7 +318,7 @@ private:
             _this->openDevParams->rxChannelA->rsp2TunerParams.rfNotchEnable = _this->rsp2_notch;
             _this->openDevParams->rxChannelA->rsp2TunerParams.biasTEnable = _this->rsp2_biasT;
             _this->openDevParams->rxChannelA->rsp2TunerParams.antennaSel = rsp2_antennaPorts[_this->rsp2_antennaPort];
-            _this->openDevParams->rxChannelA->rsp2TunerParams.amPortSel = (_this->rsp2_antennaPort == 2) ? sdrplay_api_Rsp2_AMPORT_2 : sdrplay_api_Rsp2_AMPORT_1;
+            _this->openDevParams->rxChannelA->rsp2TunerParams.amPortSel = (_this->rsp2_antennaPort == 2) ? sdrplay_api_Rsp2_AMPORT_1 : sdrplay_api_Rsp2_AMPORT_2;
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Rsp2_RfNotchControl, sdrplay_api_Update_Ext1_None);
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Rsp2_BiasTControl, sdrplay_api_Update_Ext1_None);
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Rsp2_AntennaControl, sdrplay_api_Update_Ext1_None);
@@ -475,7 +475,7 @@ private:
         }
         if (ImGui::Combo(CONCAT("Antenna##sdrplay_rsp2_ant", name), &rsp2_antennaPort, rsp2_antennaPortsTxt)) {
             openDevParams->rxChannelA->rsp2TunerParams.antennaSel = rsp2_antennaPorts[rsp2_antennaPort];
-            openDevParams->rxChannelA->rsp2TunerParams.amPortSel = (rsp2_antennaPort == 2) ? sdrplay_api_Rsp2_AMPORT_2 : sdrplay_api_Rsp2_AMPORT_1;
+            openDevParams->rxChannelA->rsp2TunerParams.amPortSel = (rsp2_antennaPort == 2) ? sdrplay_api_Rsp2_AMPORT_1 : sdrplay_api_Rsp2_AMPORT_2;
             sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp2_AntennaControl, sdrplay_api_Update_Ext1_None);
             sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp2_AmPortSelect, sdrplay_api_Update_Ext1_None);
         }
