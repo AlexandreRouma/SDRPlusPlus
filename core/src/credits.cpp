@@ -26,7 +26,7 @@ namespace sdrpp_credits {
 
     const char* patrons[] = {
         "Daniele D'Agnelli",
-        "Jacob Boline",
+        "W4IPA",
         "Lee Donaghy",
         "Passion-Radio.com",
         "SignalsEverywhere"

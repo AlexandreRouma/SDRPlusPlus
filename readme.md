@@ -221,7 +221,7 @@ I will soon publish a contributing.md listing the code style to use.
 ## Patrons
 
 * [Daniele D'Agnelli](https://linkedin.com/in/dagnelli)
-* [Jacob Boline](https://twitter.com/W4IPAstroke5)
+* [W4IPA](https://twitter.com/W4IPAstroke5)
 * [Lee Donaghy](https://github.com/github)
 * [Passion-Radio.com](https://passion-radio.com/)
 * [SignalsEverywhere](https://signalseverywhere.com/)
