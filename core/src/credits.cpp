@@ -29,6 +29,7 @@ namespace sdrpp_credits {
         "W4IPA",
         "Lee Donaghy",
         "Passion-Radio.com",
+        "Scanner School",
         "SignalsEverywhere"
     };
 

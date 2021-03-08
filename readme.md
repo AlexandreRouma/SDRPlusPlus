@@ -224,6 +224,7 @@ I will soon publish a contributing.md listing the code style to use.
 * [W4IPA](https://twitter.com/W4IPAstroke5)
 * [Lee Donaghy](https://github.com/github)
 * [Passion-Radio.com](https://passion-radio.com/)
+* [Scanner School](https://scannerschool.com/)
 * [SignalsEverywhere](https://signalseverywhere.com/)
 
 
