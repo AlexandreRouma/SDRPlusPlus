@@ -8,7 +8,6 @@
 #include <config.h>
 #include <imgui.h>
 
-
 class LSBDemodulator : public Demodulator {
 public:
     LSBDemodulator() {}
@@ -41,7 +40,7 @@ public:
 
         squelch.init(_vfo->output, squelchLevel);
         
-        demod.init(&squelch.out, bbSampRate, bw, dsp::SSBDemod::MODE_LSB);
+        demod.init(&squelch.out, bbSampRate, bandWidth, dsp::SSBDemod::MODE_LSB);
 
         agc.init(&demod.out, 20.0f, bbSampRate);
 
@@ -119,7 +118,7 @@ public:
         float menuWidth = ImGui::GetContentRegionAvailWidth();
 
         ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::InputFloat(("##_radio_lsb_bw_" + uiPrefix).c_str(), &bw, 1, 100, "%.0f", 0)) {
+        if (ImGui::InputFloat(("##_radio_lsb_bw_" + uiPrefix).c_str(), &bw, 1, 100, 0)) {
             bw = std::clamp<float>(bw, bwMin, bwMax);
             setBandwidth(bw);
             _config->aquire();
@@ -130,8 +129,7 @@ public:
         ImGui::Text("Snap Interval");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::InputFloat(("##_radio_lsb_snap_" + uiPrefix).c_str(), &snapInterval, 1, 100, "%.0f", 0)) {
-            if (snapInterval < 1) { snapInterval = 1; }
+        if (ImGui::InputFloat(("##_radio_lsb_snap_" + uiPrefix).c_str(), &snapInterval, 1, 100, 0)) {
             setSnapInterval(snapInterval);
             _config->aquire();
             _config->conf[uiPrefix]["LSB"]["snapInterval"] = snapInterval;
@@ -141,7 +139,7 @@ public:
         ImGui::Text("Squelch");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::SliderFloat(("##_radio_lsb_squelch_" + uiPrefix).c_str(), &squelchLevel, -100.0f, 0.0f, "%.3fdB")) {
+        if (ImGui::SliderFloat(("##_radio_lsb_deemp_" + uiPrefix).c_str(), &squelchLevel, -100.0f, 0.0f, "%.3fdB")) {
             squelch.setLevel(squelchLevel);
             _config->aquire();
             _config->conf[uiPrefix]["LSB"]["squelchLevel"] = squelchLevel;
@@ -166,9 +164,9 @@ private:
         _vfo->setSnapInterval(snapInterval);
     }
 
-    const float bwMax = 12000;
+    const float bwMax = 3000;
     const float bwMin = 500;
-    const float bbSampRate = 24000;
+    const float bbSampRate = 6000;
 
     std::string uiPrefix;
     float snapInterval = 100;

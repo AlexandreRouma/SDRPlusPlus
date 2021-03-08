@@ -1,17 +1,14 @@
 cmake_minimum_required(VERSION 3.13)
 project(sdrpp)
-
-set(CMAKE_INSTALL_PREFIX "/usr")
-
+find_package(tinyxml CONFIG REQUIRED)
 option(OPT_BUILD_RTL_TCP_SOURCE "Build RTL-TCP Source Module (no dependencies required)" ON)
-option(OPT_BUILD_SPYSERVER_SOURCE "Build SpyServer Source Module (no dependencies required)" OFF)
+option(OPT_BUILD_ARCALESERVER_SOURCE "Build ARCALESERVER Source Module (no dependencies required)" ON)
+option(OPT_BUILD_SPYSERVER_SOURCE "Build SpyServer Source Module (no dependencies required)" ON)
 option(OPT_BUILD_SOAPY_SOURCE "Build SoapySDR Source Module (Depedencies: soapysdr)" ON)
 option(OPT_BUILD_AIRSPYHF_SOURCE "Build Airspy HF+ Source Module (Depedencies: libairspyhf)" ON)
 option(OPT_BUILD_AIRSPY_SOURCE "Build Airspy Source Module (Depedencies: libairspy)" ON)
-option(OPT_BUILD_SDRPLAY_SOURCE "Build SDRplay Source Module (Depedencies: libsdrplay)" OFF)
 option(OPT_BUILD_PLUTOSDR_SOURCE "Build PlutoSDR Source Module (Depedencies: libiio, libad9361)" ON)
-option(OPT_BUILD_HACKRF_SOURCE "Build HackRF Source Module (Depedencies: libhackrf)" OFF)
-option(OPT_BUILD_RTL_SDR_SOURCE "Build HackRF Source Module (Depedencies: libhackrf)" ON)
+option(OPT_BUILD_HACKRF_SOURCE "Build HackRF Source Module (Depedencies: libhackrf)" ON)
 option(OPT_BUILD_AUDIO_SINK "Build Audio Sink Module (Depedencies: portaudio)" ON)
 
 # Core of SDR++
@@ -20,12 +17,16 @@ add_subdirectory("core")
 # Base modules
 add_subdirectory("radio")
 add_subdirectory("recorder") 
-add_subdirectory("file_source")
 
 # Source modules
 if (OPT_BUILD_RTL_TCP_SOURCE)
 add_subdirectory("rtl_tcp_source")
 endif (OPT_BUILD_RTL_TCP_SOURCE)
+
+# Source modules
+if (OPT_BUILD_ARCALESERVER_SOURCE)
+add_subdirectory("ArcaleServer_source")
+endif (OPT_BUILD_ARCALESERVER_SOURCE)
 
 if (OPT_BUILD_SPYSERVER_SOURCE)
 add_subdirectory("spyserver_source")
@@ -43,10 +44,6 @@ if (OPT_BUILD_AIRSPY_SOURCE)
 add_subdirectory("airspy_source")
 endif (OPT_BUILD_AIRSPY_SOURCE)
 
-if (OPT_BUILD_SDRPLAY_SOURCE)
-add_subdirectory("sdrplay_source")
-endif (OPT_BUILD_SDRPLAY_SOURCE)
-
 if (OPT_BUILD_PLUTOSDR_SOURCE)
 add_subdirectory("plutosdr_source")
 endif (OPT_BUILD_PLUTOSDR_SOURCE)
@@ -54,10 +51,6 @@ endif (OPT_BUILD_PLUTOSDR_SOURCE)
 if (OPT_BUILD_HACKRF_SOURCE)
 add_subdirectory("hackrf_source")
 endif (OPT_BUILD_HACKRF_SOURCE)
-
-if (OPT_BUILD_RTL_SDR_SOURCE)
-add_subdirectory("rtl_sdr_source")
-endif (OPT_BUILD_RTL_SDR_SOURCE)
 
 if (OPT_BUILD_AUDIO_SINK)
 add_subdirectory("audio_sink")
@@ -74,7 +67,13 @@ target_link_libraries(sdrpp PRIVATE sdrpp_core)
 
 # Copy dynamic libs over
 if (MSVC)
-    add_custom_target(do_always ALL xcopy /s \"$<TARGET_FILE_DIR:sdrpp_core>\\*.dll\" \"$<TARGET_FILE_DIR:sdrpp>\" /Y)
+    add_custom_target(do_always_sdrpp_core ALL xcopy /s \"$<TARGET_FILE_DIR:sdrpp_core>\\*.dll\" \"$<TARGET_FILE_DIR:sdrpp>\" /Y)
+    add_custom_target(do_always_audio_sink ALL xcopy /s \"$<TARGET_FILE_DIR:audio_sink>\\*.dll\" \"$<TARGET_FILE_DIR:sdrpp>\\modules\" /Y)
+    add_custom_target(do_always_radio ALL xcopy /s \"$<TARGET_FILE_DIR:radio>\\*.dll\" \"$<TARGET_FILE_DIR:sdrpp>\\modules\" /Y)
+    add_custom_target(do_always_recorder ALL xcopy /s \"$<TARGET_FILE_DIR:recorder>\\*.dll\" \"$<TARGET_FILE_DIR:sdrpp>\\modules\" /Y)
+    add_custom_target(do_always_arcaleServer ALL xcopy /s \"$<TARGET_FILE_DIR:ArcaleServer_source>\\*.dll\" \"$<TARGET_FILE_DIR:sdrpp>\\modules\" /Y)
+    add_custom_target(do_always_airSpy ALL xcopy /s \"$<TARGET_FILE_DIR:airspy_source>\\*.dll\" \"$<TARGET_FILE_DIR:sdrpp>\\modules\" /Y)
+    add_custom_target(do_always_airSpyHF ALL xcopy /s \"$<TARGET_FILE_DIR:airspyhf_source>\\*.dll\" \"$<TARGET_FILE_DIR:sdrpp>\\modules\" /Y)
     add_custom_target(do_always_volk ALL xcopy /s \"C:/Program Files/PothosSDR/bin\\volk.dll\" \"$<TARGET_FILE_DIR:sdrpp>\" /Y)
 endif (MSVC)
 
@@ -92,16 +91,3 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif ()
 
 # cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/Users/Alex/vcpkg/scripts/buildsystems/vcpkg.cmake" -G "Visual Studio 15 2017 Win64"
-
-# Install directives
-install(TARGETS sdrpp DESTINATION bin)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/bandplans DESTINATION share/sdrpp)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/colormaps DESTINATION share/sdrpp)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/fonts DESTINATION share/sdrpp)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/icons DESTINATION share/sdrpp)
-configure_file(${CMAKE_SOURCE_DIR}/sdrpp.desktop ${CMAKE_CURRENT_BINARY_DIR}/sdrpp.desktop @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/sdrpp.desktop DESTINATION /usr/share/applications)
-
-# Create uninstall target
-configure_file(${CMAKE_SOURCE_DIR}/cmake_uninstall.cmake ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake @ONLY)
-add_custom_target(uninstall ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)

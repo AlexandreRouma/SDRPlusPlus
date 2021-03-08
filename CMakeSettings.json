@@ -1,0 +1,84 @@
+﻿{
+  "configurations": [
+    {
+      "name": "x64-Debug (par défaut)",
+      "generator": "Visual Studio 16 2019 Win64",
+      "configurationType": "Release",
+      "inheritEnvironments": [ "msvc_x64" ],
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "-G \"Visual Studio 16 2019\"",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "variables": [
+        {
+          "name": "GLEW_INCLUDE_DIR",
+          "value": "C:/sdaviet/Mes Documents/GitHub/vcpkg/packages/glew_x64-windows/include",
+          "type": "PATH"
+        },
+        {
+          "name": "GLEW_SHARED_LIBRARY_DEBUG",
+          "value": "C:/sdaviet/Mes Documents/GitHub/vcpkg/packages/glew_x64-windows/debug/lib/glew32d.lib",
+          "type": "FILEPATH"
+        },
+        {
+          "name": "GLEW_SHARED_LIBRARY_RELEASE",
+          "value": "C:/sdaviet/Mes Documents/GitHub/vcpkg/packages/glew_x64-windows/lib/glew32.lib",
+          "type": "FILEPATH"
+        },
+        {
+          "name": "GLEW_STATIC_LIBRARY_DEBUG",
+          "value": "C:/sdaviet/Mes Documents/GitHub/vcpkg/packages/glew_x64-windows/debug/lib/glew32d.lib",
+          "type": "FILEPATH"
+        },
+        {
+          "name": "GLEW_STATIC_LIBRARY_RELEASE",
+          "value": "C:/sdaviet/Mes Documents/GitHub/vcpkg/packages/glew_x64-windows/lib/glew32.lib",
+          "type": "FILEPATH"
+        },
+        {
+          "name": "GLEW_DIR",
+          "value": "C:/sdaviet/Mes Documents/GitHub/vcpkg/packages/glew_x64-windows",
+          "type": "PATH"
+        },
+        {
+          "name": "glfw3_DIR",
+          "value": "C:/sdaviet/Mes Documents/GitHub/vcpkg/packages/glfw3_x64-windows",
+          "type": "PATH"
+        },
+        {
+          "name": "FFTW3f_DIR",
+          "value": "C:/sdaviet/Mes Documents/GitHub/vcpkg/packages/fftw3_x64-windows/share/fftw3f",
+          "type": "PATH"
+        },
+        {
+          "name": "tinyxml_DIR",
+          "value": "C:/sdaviet/Mes Documents/GitHub/vcpkg/packages/tinyxml_x64-windows",
+          "type": "PATH"
+        },
+        {
+          "name": "tinyxml_LIBRARY",
+          "value": "C:/sdaviet/Mes Documents/GitHub/vcpkg/packages/tinyxml_x64-windows/lib",
+          "type": "PATH"
+        },
+        {
+          "name": "tinyxml_LIBRARY_DEBUG",
+          "value": "C:/sdaviet/Mes Documents/GitHub/vcpkg/packages/tinyxml_x64-windows/debug/lib",
+          "type": "PATH"
+        },
+        {
+          "name": "tinyxml_INCLUDE",
+          "value": "C:/sdaviet/Mes Documents/GitHub/vcpkg/packages/tinyxml_x64-windows/include",
+          "type": "PATH"
+        },
+        {
+          "name": "portaudio_DIR",
+          "value": "C:/sdaviet/Mes Documents/GitHub/vcpkg/packages/portaudio_x64-windows",
+          "type": "PATH"
+        }
+      ],
+      "intelliSenseMode": "windows-msvc-x64",
+      "cmakeToolchain": "C:/sdaviet/Mes documents/GitHub/vcpkg/scripts/buildsystems/vcpkg.cmake"
+    }
+  ]
+}

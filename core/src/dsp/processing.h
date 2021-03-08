@@ -185,6 +185,18 @@ namespace dsp {
             return _volume;
         }
 
+        void setBalance(float balance) {
+            _balance = balance;
+            if (_balance > 0.5f) {
+                leftbalance = (1 - _balance) / 0.5f;
+                rightbalance = 1.0f;
+            }else{
+                rightbalance = _balance / 0.5f;
+                leftbalance = 1.0f;
+            }
+            //spdlog::info("Balance '{0}', Left '{1}', right '{2}'", _balance, leftbalance, rightbalance);
+        }
+
         void setMuted(bool muted) {
             _muted = muted;
         }
@@ -208,6 +220,11 @@ namespace dsp {
             else {
                 if constexpr (std::is_same_v<T, stereo_t>) {
                     volk_32f_s32f_multiply_32f((float*)out.writeBuf, (float*)_in->readBuf, level, count * 2);
+                    int i;
+                    for (i = 0; i < count; i++) {
+                        out.writeBuf[i].l = out.writeBuf[i].l * leftbalance;
+                        out.writeBuf[i].r = out.writeBuf[i].r * rightbalance;
+                    }
                 }
                 else {
                     volk_32f_s32f_multiply_32f((float*)out.writeBuf, (float*)_in->readBuf, level, count);
@@ -224,7 +241,10 @@ namespace dsp {
     private:
         int count;
         float level = 1.0f;
+        float leftbalance = 1.0f;
+        float rightbalance = 1.0f;
         float _volume = 1.0f;
+        float _balance = 1.0f;
         bool _muted = false;
         stream<T>* _in;
 

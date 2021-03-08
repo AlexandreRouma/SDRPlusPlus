@@ -38,10 +38,6 @@ namespace ImGui {
         ImVec2 rectMax;
         ImVec2 lineMin;
         ImVec2 lineMax;
-        ImVec2 wfRectMin;
-        ImVec2 wfRectMax;
-        ImVec2 wfLineMin;
-        ImVec2 wfLineMax;
 
         bool centerOffsetChanged = false;
         bool lowerOffsetChanged = false;
@@ -149,8 +145,8 @@ namespace ImGui {
         ImVec2 fftAreaMax;
         ImVec2 freqAreaMin;
         ImVec2 freqAreaMax;
-        ImVec2 wfMin;
-        ImVec2 wfMax;
+        ImVec2 waterfallAreaMin;
+        ImVec2 waterfallAreaMax;
 
         ImGuiWindow* window;
 

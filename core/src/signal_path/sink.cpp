@@ -3,7 +3,6 @@
 #include <imgui/imgui.h>
 #include <gui/style.h>
 #include <gui/icons.h>
-
 #include <core.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
@@ -57,6 +56,16 @@ void SinkManager::Stream::setVolume(float volume) {
 float SinkManager::Stream::getVolume() {
     return guiVolume;
 }
+
+void SinkManager::Stream::setBalance(float balance) {
+    guiBalance = balance;
+    volumeAjust.setBalance(balance);
+}
+
+float SinkManager::Stream::getBalance() {
+    return guiBalance;
+}
+
 
 float SinkManager::Stream::getSampleRate() {
     return _sampleRate;
@@ -227,6 +236,27 @@ void SinkManager::showVolumeSlider(std::string name, std::string prefix, float w
     //ImGui::SetCursorPosY(ypos);
 }
 
+void SinkManager::showBalanceSlider(std::string name, std::string prefix, float width, float btnHeight, int btwBorder, bool sameLine) {
+    // TODO: Replace map with some hashmap for it to be faster
+    float height = ImGui::GetTextLineHeightWithSpacing() + 2;
+    float sliderHeight = height;
+    float sliderText = ImGui::CalcTextSize("Balance ").x + 2;
+    if (btnHeight > 0) {
+        height = btnHeight;
+    }
+
+    float ypos = ImGui::GetCursorPosY();
+    SinkManager::Stream* stream = streams[name];
+
+    ImGui::SetCursorPosY(ypos + ((height - sliderHeight) / 2.0f) + btwBorder);
+    ImGui::SetNextItemWidth(width - sliderText - height - 8);
+    if (ImGui::SliderFloat(CONCAT("balance ##",(prefix + name).c_str()), &stream->guiBalance, 0.0f, 1.0f, "")) {
+        stream->setBalance(stream->guiBalance);
+    }
+
+}
+
+
 void SinkManager::loadStreamConfig(std::string name) {
     json conf = core::configManager.conf["streams"][name];
     SinkManager::Stream* stream = streams[name];
@@ -245,6 +275,7 @@ void SinkManager::loadStreamConfig(std::string name) {
         stream->sink->start();
     }
     stream->setVolume(conf["volume"]);
+    stream->setBalance(conf["balance"]);
     stream->volumeAjust.setMuted(conf["muted"]);
 }
 
@@ -254,6 +285,7 @@ void SinkManager::saveStreamConfig(std::string name) {
     conf["sink"] = providerNames[stream->providerId];
     conf["volume"] = stream->getVolume();
     conf["muted"] = stream->volumeAjust.getMuted();
+    conf["balance"] = stream->getBalance();
     core::configManager.conf["streams"][name] = conf;
 }
 
@@ -299,6 +331,7 @@ void SinkManager::showMenu() {
         stream->sink->menuHandler();
 
         showVolumeSlider(name, "##_sdrpp_sink_menu_vol_", menuWidth);
+        showBalanceSlider(name, "##_sdrpp_sink_balance_", menuWidth);
 
         count++;
         if (count < maxCount) {

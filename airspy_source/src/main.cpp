@@ -9,7 +9,6 @@
 #include <options.h>
 #include <libairspy/airspy.h>
 
-
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
 SDRPP_MOD_INFO {
@@ -105,23 +104,15 @@ public:
     }
 
     void selectBySerial(uint64_t serial) {
-        airspy_device* dev;
-        try {
-            int err = airspy_open_sn(&dev, serial);
-            if (err != 0) {
-                char buf[1024];
-                sprintf(buf, "%016" PRIX64, serial);
-                spdlog::error("Could not open Airspy HF+ {0}", buf);
-                selectedSerial = 0;
-                return;
-            }
-        }
-        catch (std::exception e) {
-            char buf[1024];
-            sprintf(buf, "%016" PRIX64, serial);
-            spdlog::error("Could not open Airspy HF+ {0}", buf);
-        }
         selectedSerial = serial;
+        airspy_device* dev;
+        int err = airspy_open_sn(&dev, selectedSerial);
+        if (err != 0) {
+            char buf[1024];
+            sprintf(buf, "%016" PRIX64, selectedSerial);
+            spdlog::error("Could not open Airspy HF+ {0}", buf);
+            return;
+        }
 
         uint32_t sampleRates[256];
         airspy_get_samplerates(dev, sampleRates, 0);

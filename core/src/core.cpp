@@ -28,10 +28,6 @@
 #include <Windows.h>
 #endif
 
-#ifndef INSTALL_PREFIX
-    #define INSTALL_PREFIX "/usr"
-#endif
-
 namespace core {
     ConfigManager configManager;
     ScriptManager scriptManager;
@@ -70,15 +66,17 @@ duk_ret_t test_func(duk_context *ctx) {
 
 // main
 int sdrpp_main(int argc, char *argv[]) {
+#ifdef _WIN32
+    //FreeConsole();
+    // ConfigManager::setResourceDir("./res");
+    // ConfigManager::setConfigDir(".");
+#endif
+    spdlog::set_level(spdlog::level::off);
     spdlog::info("SDR++ v" VERSION_STR);
 
     // Load default options and parse command line
     options::loadDefaults();
     if (!options::parse(argc, argv)) { return -1; }
-
-#ifdef _WIN32
-    if (!options::opts.showConsole) { FreeConsole(); }
-#endif
 
     // Check root directory
     if (!std::filesystem::exists(options::opts.root)) {
@@ -127,7 +125,6 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["moduleInstances"]["SoapySDR Source"] = "soapy_source";
     defConfig["moduleInstances"]["PlutoSDR Source"] = "plutosdr_source";
     defConfig["moduleInstances"]["RTL-TCP Source"] = "rtl_tcp_source";
-    defConfig["moduleInstances"]["RTL-SDR Source"] = "rtl_sdr_source";
     defConfig["moduleInstances"]["AirspyHF+ Source"] = "airspyhf_source";
     defConfig["moduleInstances"]["Airspy Source"] = "airspy_source";
     defConfig["moduleInstances"]["HackRF Source"] = "hackrf_source";
@@ -151,8 +148,8 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["modulesDirectory"] = "./modules";
     defConfig["resourcesDirectory"] = "./res";
 #else
-    defConfig["modulesDirectory"] = INSTALL_PREFIX "/lib/sdrpp/plugins";
-    defConfig["resourcesDirectory"] = INSTALL_PREFIX "/share/sdrpp";
+    defConfig["modulesDirectory"] = "/usr/lib/sdrpp/plugins";
+    defConfig["resourcesDirectory"] = "/usr/share/sdrpp";
 #endif
 
     // Load config

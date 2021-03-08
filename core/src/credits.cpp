@@ -24,8 +24,7 @@ namespace sdrpp_credits {
 
     const char* patrons[] = {
         "SignalsEverywhere",
-        "Lee Donaghy",
-        "Daniele D'Agnelli"
+        "Lee Donaghy"
     };
 
     const int contributorCount = sizeof(contributors) / sizeof(char*);

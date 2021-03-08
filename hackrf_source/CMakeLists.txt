@@ -29,6 +29,3 @@ else (MSVC)
     target_link_directories(hackrf_source PUBLIC ${LIBHACKRF_LIBRARY_DIRS})
     target_link_libraries(hackrf_source PUBLIC ${LIBHACKRF_LIBRARIES})
 endif (MSVC)
-
-# Install directives
-install(TARGETS hackrf_source DESTINATION lib/sdrpp/plugins)

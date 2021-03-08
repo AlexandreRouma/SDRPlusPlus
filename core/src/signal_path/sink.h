@@ -35,6 +35,9 @@ public:
         void setVolume(float volume);
         float getVolume();
 
+        void setBalance(float balance);
+        float getBalance();
+
         void setSampleRate(float sampleRate);
         float getSampleRate();
 
@@ -62,6 +65,7 @@ public:
         bool running = false;
 
         float guiVolume = 1.0f;
+        float guiBalance = 0.5f;
     };
 
     struct SinkProvider {
@@ -79,7 +83,7 @@ public:
         void menuHandler() {}
 
         static SinkManager::Sink* create(SinkManager::Stream* stream, std::string streamName, void* ctx) {
-            stream->setSampleRate(48000);
+            stream->srChange.emit(48000);
             return new SinkManager::NullSink(stream);
         }
 
@@ -101,6 +105,8 @@ public:
     void setStreamSink(std::string name, std::string providerName);
 
     void showVolumeSlider(std::string name, std::string prefix, float width, float btnHeight = -1.0f, int btwBorder = 0, bool sameLine = false);
+
+    void showBalanceSlider(std::string name, std::string prefix, float width, float btnHeight = -1.0f, int btwBorder = 0, bool sameLine = false);
 
     dsp::stream<dsp::stereo_t>* bindStream(std::string name);
     void unbindStream(std::string name, dsp::stream<dsp::stereo_t>* stream);

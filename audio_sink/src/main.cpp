@@ -23,6 +23,7 @@ public:
         std::string name;
         int index;
         int channels;
+        int balance;
         int srId;
         std::vector<double> sampleRates;
         std::string txtSampleRates;
@@ -35,6 +36,7 @@ public:
         monoRB.init(&s2m.out);
         stereoRB.init(_stream->sinkOut);
 
+        spdlog::set_level(spdlog::level::off);
         // Initialize PortAudio
         devCount = Pa_GetDeviceCount();
         devId = Pa_GetDefaultOutputDevice();
@@ -73,7 +75,6 @@ public:
             if (i == devId) {
                 devListId = devices.size();
                 defaultDev = devListId;
-                _stream->setSampleRate(dev.sampleRates[0]);
             }
             dev.srId = 0;
 

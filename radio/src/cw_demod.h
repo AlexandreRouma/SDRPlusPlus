@@ -11,7 +11,6 @@
 #include <config.h>
 #include <imgui.h>
 
-
 class CWDemodulator : public Demodulator {
 public:
     CWDemodulator() {}
@@ -127,7 +126,7 @@ public:
         float menuWidth = ImGui::GetContentRegionAvailWidth();
 
         ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::InputFloat(("##_radio_cw_bw_" + uiPrefix).c_str(), &bw, 1, 100, "%.0f", 0)) {
+        if (ImGui::InputFloat(("##_radio_cw_bw_" + uiPrefix).c_str(), &bw, 1, 100, 0)) {
             bw = std::clamp<float>(bw, bwMin, bwMax);
             setBandwidth(bw);
             _config->aquire();
@@ -138,8 +137,7 @@ public:
         ImGui::Text("Snap Interval");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::InputFloat(("##_radio_cw_snap_" + uiPrefix).c_str(), &snapInterval, 1, 100, "%.0f", 0)) {
-            if (snapInterval < 1) { snapInterval = 1; }
+        if (ImGui::InputFloat(("##_radio_cw_snap_" + uiPrefix).c_str(), &snapInterval, 1, 100, 0)) {
             setSnapInterval(snapInterval);
             _config->aquire();
             _config->conf[uiPrefix]["CW"]["snapInterval"] = snapInterval;
@@ -149,7 +147,7 @@ public:
         ImGui::Text("Squelch");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::SliderFloat(("##_radio_cw_squelch_" + uiPrefix).c_str(), &squelchLevel, -100.0f, 0.0f, "%.3fdB")) {
+        if (ImGui::SliderFloat(("##_radio_cw_deemp_" + uiPrefix).c_str(), &squelchLevel, -100.0f, 0.0f, "%.3fdB")) {
             squelch.setLevel(squelchLevel);
             _config->aquire();
             _config->conf[uiPrefix]["CW"]["squelchLevel"] = squelchLevel;
@@ -170,7 +168,7 @@ private:
 
     const float bwMax = 500;
     const float bwMin = 100;
-    const float bbSampRate = 6000;
+    const float bbSampRate = 500;
 
     std::string uiPrefix;
     float snapInterval = 10;

@@ -31,6 +31,7 @@ static ConfigManager config;
 class RadioModule : public ModuleManager::Instance {
 public:
     RadioModule(std::string name) {
+        spdlog::set_level(spdlog::level::off);
         this->name = name;
 
         vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 200000, 200000, 1);
@@ -71,16 +72,8 @@ public:
 
     void enable() {
         vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 200000, 200000, 1);
-
-        wfmDemod.setVFO(vfo);
-        fmDemod.setVFO(vfo);
-        amDemod.setVFO(vfo);
-        usbDemod.setVFO(vfo);
-        lsbDemod.setVFO(vfo);
-        dsbDemod.setVFO(vfo);
-        rawDemod.setVFO(vfo);
-        cwDemod.setVFO(vfo);
-
+        //ns.stop();
+        currentDemod->setVFO(vfo);
         currentDemod->select();
         currentDemod->start();
         enabled = true;
