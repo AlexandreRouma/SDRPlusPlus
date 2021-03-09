@@ -71,7 +71,7 @@ int sdrpp_main(int argc, char *argv[]) {
     // ConfigManager::setResourceDir("./res");
     // ConfigManager::setConfigDir(".");
 #endif
-    spdlog::set_level(spdlog::level::off);
+    //spdlog::set_level(spdlog::level::off);
     spdlog::info("SDR++ v" VERSION_STR);
 
     // Load default options and parse command line
@@ -346,6 +346,8 @@ int sdrpp_main(int argc, char *argv[]) {
         glfwSwapBuffers(window);
     }
 
+    //Stop acquisition
+    sigpath::sourceManager.stop();
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();

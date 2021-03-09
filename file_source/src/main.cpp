@@ -8,14 +8,14 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-MOD_INFO {
-    /* Name:        */ "fike_source",
+SDRPP_MOD_INFO {
+    /* Name:        */ "file_source",
     /* Description: */ "File input module for SDR++",
     /* Author:      */ "Ryzerth",
-    /* Version:     */ "0.1.0"
+    /* Version:     */ 0, 1, 0,
 };
 
-class FileSourceModule {
+class FileSourceModule : public ModuleManager::Instance {
 public:
     FileSourceModule(std::string name) {
         this->name = name;
@@ -39,6 +39,18 @@ public:
 
     ~FileSourceModule() {
         spdlog::info("FileSourceModule '{0}': Instance deleted!", name);
+    }
+
+    void enable() {
+        enabled = true;
+    }
+
+    void disable() {
+        enabled = false;
+    }
+
+    bool isEnabled() {
+        return enabled;
     }
 
 private:
@@ -85,18 +97,18 @@ private:
 
         while (true) {
             _this->reader->readSamples(inBuf, blockSize * 2 * sizeof(int16_t));
-            if (_this->stream.aquire() < 0) { break; };
             for (int i = 0; i < blockSize; i++) {
-                _this->stream.data[i].q = (float)inBuf[i * 2] / (float)0x7FFF;
-                _this->stream.data[i].i = (float)inBuf[(i * 2) + 1] / (float)0x7FFF;
+                _this->stream.writeBuf[i].q = (float)inBuf[i * 2] / (float)0x7FFF;
+                _this->stream.writeBuf[i].i = (float)inBuf[(i * 2) + 1] / (float)0x7FFF;
             }
-            _this->stream.write(blockSize);
+            _this->stream.swap(blockSize);
             //std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
 
         delete[] inBuf;
     }
 
+    bool enabled = true;
     std::string name;
     dsp::stream<dsp::complex_t> stream;
     SourceManager::SourceHandler handler;
@@ -108,14 +120,14 @@ MOD_EXPORT void _INIT_() {
    // Do your one time init here
 }
 
-MOD_EXPORT void* _CREATE_INSTANCE_(std::string name) {
+MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
     return new FileSourceModule(name);
 }
 
-MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
+MOD_EXPORT void _DELETE_INSTANCE_(ModuleManager::Instance* instance) {
     delete (FileSourceModule*)instance;
 }
 
-MOD_EXPORT void _STOP_() {
+MOD_EXPORT void _END_() {
     // Do your one shutdown here
 }

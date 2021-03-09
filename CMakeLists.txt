@@ -10,6 +10,7 @@ option(OPT_BUILD_AIRSPY_SOURCE "Build Airspy Source Module (Depedencies: libairs
 option(OPT_BUILD_PLUTOSDR_SOURCE "Build PlutoSDR Source Module (Depedencies: libiio, libad9361)" ON)
 option(OPT_BUILD_HACKRF_SOURCE "Build HackRF Source Module (Depedencies: libhackrf)" ON)
 option(OPT_BUILD_AUDIO_SINK "Build Audio Sink Module (Depedencies: portaudio)" ON)
+option(OPT_BUILD_FILE_SOURCE "Build File Source Module (no dependencies required)" ON)
 
 # Core of SDR++
 add_subdirectory("core")
@@ -56,6 +57,10 @@ if (OPT_BUILD_AUDIO_SINK)
 add_subdirectory("audio_sink")
 endif (OPT_BUILD_AUDIO_SINK)
 
+if (OPT_BUILD_FILE_SOURCE)
+add_subdirectory("file_source")
+endif (OPT_BUILD_FILE_SOURCE)
+
 if (MSVC)
     set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")
 else()
@@ -74,6 +79,7 @@ if (MSVC)
     add_custom_target(do_always_arcaleServer ALL xcopy /s \"$<TARGET_FILE_DIR:ArcaleServer_source>\\*.dll\" \"$<TARGET_FILE_DIR:sdrpp>\\modules\" /Y)
     add_custom_target(do_always_airSpy ALL xcopy /s \"$<TARGET_FILE_DIR:airspy_source>\\*.dll\" \"$<TARGET_FILE_DIR:sdrpp>\\modules\" /Y)
     add_custom_target(do_always_airSpyHF ALL xcopy /s \"$<TARGET_FILE_DIR:airspyhf_source>\\*.dll\" \"$<TARGET_FILE_DIR:sdrpp>\\modules\" /Y)
+    add_custom_target(do_always_fileSource ALL xcopy /s \"$<TARGET_FILE_DIR:file_source>\\*.dll\" \"$<TARGET_FILE_DIR:sdrpp>\\modules\" /Y)
     add_custom_target(do_always_volk ALL xcopy /s \"C:/Program Files/PothosSDR/bin\\volk.dll\" \"$<TARGET_FILE_DIR:sdrpp>\" /Y)
 endif (MSVC)
 
