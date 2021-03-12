@@ -39,6 +39,7 @@ namespace core {
 
     void setInputSampleRate(double samplerate) {
         // NOTE: Zoom controls won't work
+        spdlog::info("New DSP samplerate: {0}", samplerate);
         gui::waterfall.setBandwidth(samplerate);
         gui::waterfall.setViewOffset(0);
         gui::waterfall.setViewBandwidth(samplerate);

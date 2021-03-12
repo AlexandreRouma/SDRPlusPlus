@@ -33,11 +33,15 @@ std::string expandString(std::string input) {
     return std::regex_replace(input, std::regex("//"), "/");
 }
 
-std::string genFileName(std::string prefix) {
+std::string genFileName(std::string prefix, bool isVfo, std::string name = "") {
     time_t now = time(0);
     tm *ltm = localtime(&now);
     char buf[1024];
-    sprintf(buf, "%02d-%02d-%02d_%02d-%02d-%02d.wav", ltm->tm_hour, ltm->tm_min, ltm->tm_sec, ltm->tm_mday, ltm->tm_mon + 1, ltm->tm_year + 1900);
+    double freq = gui::waterfall.getCenterFrequency();;
+    if (isVfo) {
+        freq += gui::waterfall.vfos[name]->generalOffset;
+    }
+    sprintf(buf, "_%.0lfHz_%02d-%02d-%02d_%02d-%02d-%02d.wav", freq, ltm->tm_hour, ltm->tm_min, ltm->tm_sec, ltm->tm_mday, ltm->tm_mon + 1, ltm->tm_year + 1900);
     return prefix + buf;
 }
 
@@ -159,7 +163,7 @@ private:
             if (ImGui::Button(CONCAT("Record##_recorder_rec_", name), ImVec2(menuColumnWidth, 0))) {
                 recording = true;
                 samplesWritten = 0;
-                std::string expandedPath = expandString(recPath + genFileName("/baseband_"));
+                std::string expandedPath = expandString(recPath + genFileName("/baseband_", false));
                 sampleRate = sigpath::signalPath.getSampleRate();
                 basebandWriter = new WavWriter(expandedPath, 16, 2, sigpath::signalPath.getSampleRate());
                 basebandHandler.start();
@@ -212,7 +216,7 @@ private:
             if (ImGui::Button(CONCAT("Record##_recorder_rec_", name), ImVec2(menuColumnWidth, 0))) {
                 recording = true;
                 samplesWritten = 0;
-                std::string expandedPath = expandString(recPath + genFileName("/audio_"));
+                std::string expandedPath = expandString(recPath + genFileName("/audio_", true, selectedStreamName));
                 sampleRate = sigpath::sinkManager.getStreamSampleRate(selectedStreamName);
                 audioWriter = new WavWriter(expandedPath, 16, 2, sigpath::sinkManager.getStreamSampleRate(selectedStreamName));
                 audioHandler.start();
