@@ -71,4 +71,43 @@ namespace dsp {
         lv_32fc_t* zeroPhase;
 
     };
+
+    template <class T>
+    class HandlerSource : public generic_block<HandlerSource<T>> {
+    public:
+        HandlerSource() {}
+
+        HandlerSource(int (*handler)(T* data, void* ctx), void* ctx) { init(handler, ctx); }
+
+        ~HandlerSource() { generic_block<HandlerSource<T>>::stop(); }
+
+        void init(int (*handler)(T* data, void* ctx), void* ctx) {
+            _handler = handler;
+            _ctx = ctx;
+            generic_block<HandlerSource<T>>::registerOutput(&out);
+        }
+
+        void setHandler(int (*handler)(T* data, void* ctx), void* ctx) {
+            std::lock_guard<std::mutex> lck(generic_block<HandlerSource<T>>::ctrlMtx);
+            generic_block<HandlerSource<T>>::tempStop();
+            _handler = handler;
+            _ctx = ctx;
+            generic_block<HandlerSource<T>>::tempStart();
+        }
+
+        int run() {
+            int count = _handler(out.writeBuf, _ctx);
+            if (count < 0) { return -1; }
+            out.swap(count);
+            return count;
+        }
+
+        stream<T> out;
+
+    private:
+        int count;
+        int (*_handler)(T* data, void* ctx);
+        void* _ctx;
+
+    };
 }

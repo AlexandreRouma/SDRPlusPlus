@@ -3,6 +3,7 @@
 #include <volk/volk.h>
 #include <spdlog/spdlog.h>
 #include <string.h>
+#include <stdint.h>
 
 namespace dsp {
     template <class T>
@@ -150,6 +151,54 @@ namespace dsp {
         stream<float>* _in;
 
     };
+
+    class FeedForwardAGC : public generic_block<FeedForwardAGC> {
+    public:
+        FeedForwardAGC() {}
+
+        FeedForwardAGC(stream<float>* in) { init(in); }
+
+        ~FeedForwardAGC() { generic_block<FeedForwardAGC>::stop(); }
+
+        void init(stream<float>* in) {
+            _in = in;
+            generic_block<FeedForwardAGC>::registerInput(_in);
+            generic_block<FeedForwardAGC>::registerOutput(&out);
+        }
+
+        void setInput(stream<float>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<FeedForwardAGC>::ctrlMtx);
+            generic_block<FeedForwardAGC>::tempStop();
+            generic_block<FeedForwardAGC>::unregisterInput(_in);
+            _in = in;
+            generic_block<FeedForwardAGC>::registerInput(_in);
+            generic_block<FeedForwardAGC>::tempStart();
+        }
+
+        int run() {
+            count = _in->read();
+            if (count < 0) { return -1; }
+
+            float level = 0;
+            for (int i = 0; i < count; i++) {
+                if (fabs(_in->readBuf[i]) > level) { level = fabs(_in->readBuf[i]); }
+            }
+
+            volk_32f_s32f_multiply_32f(out.writeBuf, _in->readBuf, 1.0f / level, count);
+
+            _in->flush();
+            if (!out.swap(count)) { return -1; }
+            return count;
+        }
+
+        stream<float> out;
+
+    private:
+        int count;
+        stream<float>* _in;
+
+    };
+
 
     template <class T>
     class Volume : public generic_block<Volume<T>> {
@@ -363,6 +412,65 @@ namespace dsp {
         int samples = 1;
         int read = 0;
         stream<T>* _in;
+
+    };
+
+    class Threshold : public generic_block<Threshold> {
+    public:
+        Threshold() {}
+
+        Threshold(stream<float>* in) { init(in); }
+
+        ~Threshold() {
+            generic_block<Threshold>::stop();
+            delete[] normBuffer;
+        }
+
+        void init(stream<float>* in) {
+            _in = in;
+            normBuffer = new float[STREAM_BUFFER_SIZE];
+            generic_block<Threshold>::registerInput(_in);
+            generic_block<Threshold>::registerOutput(&out);
+        }
+
+        void setInput(stream<float>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<Threshold>::ctrlMtx);
+            generic_block<Threshold>::tempStop();
+            generic_block<Threshold>::unregisterInput(_in);
+            _in = in;
+            generic_block<Threshold>::registerInput(_in);
+            generic_block<Threshold>::tempStart();
+        }
+
+        void setLevel(float level) {
+            _level = level;
+        }
+
+        float getLevel() {
+            return _level;
+        }
+
+        int run() {
+            count = _in->read();
+            if (count < 0) { return -1; }
+
+            for (int i = 0; i < count; i++) {
+                out.writeBuf[i] = (_in->readBuf[i] > 0.0f);
+            }
+
+            _in->flush();
+            if (!out.swap(count)) { return -1; }
+            return count; 
+        }
+
+        stream<uint8_t> out;
+
+
+    private:
+        int count;
+        float* normBuffer;
+        float _level = -50.0f;
+        stream<float>* _in;
 
     };
 }

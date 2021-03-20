@@ -32,6 +32,9 @@ cp build/soapy_source/Release/soapy_source.dll sdrpp_windows_x64/modules/
 cp build/audio_sink/Release/audio_sink.dll sdrpp_windows_x64/modules/
 cp "C:/Program Files (x86)/RtAudio/bin/rtaudio.dll" sdrpp_windows_x64/
 
+# Copy supporting libs
+cp 'C:/Program Files/PothosSDR/bin/libusb-1.0.dll' sdrpp_windows_x64/
+
 Compress-Archive -Path sdrpp_windows_x64/ -DestinationPath sdrpp_windows_x64.zip
 
 rm -Force -Recurse sdrpp_windows_x64
