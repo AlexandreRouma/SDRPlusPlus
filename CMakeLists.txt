@@ -14,6 +14,7 @@ option(OPT_BUILD_PLUTOSDR_SOURCE "Build PlutoSDR Source Module (Depedencies: lib
 option(OPT_BUILD_HACKRF_SOURCE "Build HackRF Source Module (Depedencies: libhackrf)" OFF)
 option(OPT_BUILD_RTL_SDR_SOURCE "Build HackRF Source Module (Depedencies: libhackrf)" ON)
 option(OPT_BUILD_AUDIO_SINK "Build Audio Sink Module (Depedencies: rtaudio)" ON)
+option(OPT_BUILD_FALCON9_DECODER "Build the falcon9 live decoder" OFF)
 # Core of SDR++
 add_subdirectory("core")
 
@@ -21,7 +22,6 @@ add_subdirectory("core")
 add_subdirectory("radio")
 add_subdirectory("recorder") 
 add_subdirectory("file_source")
-add_subdirectory("falcon9_decoder")
 
 # Source modules
 if (OPT_BUILD_RTL_TCP_SOURCE)
@@ -68,6 +68,10 @@ if (OPT_BUILD_AUDIO_SINK)
 add_subdirectory("audio_sink")
 endif (OPT_BUILD_AUDIO_SINK)
 
+if (OPT_BUILD_FALCON9_DECODER)
+add_subdirectory("falcon9_decoder")
+endif (OPT_BUILD_FALCON9_DECODER)
+
 if (MSVC)
     set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")
 else()
@@ -101,7 +105,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_custom_target(do_always ALL cp \"$<TARGET_FILE_DIR:sdrpp_core>/libsdrpp_core.dylib\" \"$<TARGET_FILE_DIR:sdrpp>\")
 endif ()
 
-# cd
+# cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/Users/Alex/vcpkg/scripts/buildsystems/vcpkg.cmake" -G "Visual Studio 15 2017 Win64"
 
 # Install directives
 install(TARGETS sdrpp DESTINATION bin)

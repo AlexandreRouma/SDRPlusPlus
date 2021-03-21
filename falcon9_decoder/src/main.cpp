@@ -22,6 +22,8 @@
 
 #include <gui/widgets/symbol_diagram.h>
 
+#include <fstream>
+
 #define CONCAT(a, b)    ((std::string(a) + b).c_str())
 
 SDRPP_MOD_INFO {
@@ -33,6 +35,8 @@ SDRPP_MOD_INFO {
 };
 
 #define INPUT_SAMPLE_RATE   6000000
+
+std::ofstream file("test.ts", std::ios::binary);
 
 class Falcon9DecoderModule : public ModuleManager::Instance {
 public:
@@ -49,7 +53,7 @@ public:
         // dsp::Threshold thr;
 
         demod.init(vfo->output, INPUT_SAMPLE_RATE, 2000000.0f);
-        recov.init(&demod.out, (float)INPUT_SAMPLE_RATE / 3572000.0f, 0.00765625f, 0.175f, 0.005f);
+        recov.init(&demod.out, (float)INPUT_SAMPLE_RATE / 3571400.0f, powf(0.01f, 2) / 4.0f, 0.01, 100e-6f); // 0.00765625f, 0.175f, 0.005f
         split.init(&recov.out);
         split.bindStream(&reshapeInput);
         split.bindStream(&thrInput);
@@ -72,7 +76,11 @@ public:
         deframe.start();
         thr.start();
 
-        ffplay = _popen("ffplay -framedrop -hide_banner -loglevel panic -window_title \"Falcon 9 Cameras\" -", "wb");
+#ifdef _WIN32
+        ffplay = _popen("ffplay -framedrop -infbuf -hide_banner -loglevel panic -window_title \"Falcon 9 Cameras\" -", "wb");
+#else
+        ffplay = popen("ffplay -framedrop -infbuf -hide_banner -loglevel panic -window_title \"Falcon 9 Cameras\" -", "wb");
+#endif
 
         gui::menu.registerEntry(name, menuHandler, this, this);
     }
@@ -189,7 +197,8 @@ private:
             _this->logsMtx.unlock();
         }
         else if (pktId == 0x01123201042E1403) {
-            fwrite(data + 25, 1, 940, _this->ffplay);
+            //fwrite(data + 25, 1, 940, _this->ffplay);
+            file.write((char*)(data + 25), 940);
         }
 
         //printf("%016" PRIX64 ": %d bytes, %d full\n", pktId, length, count);

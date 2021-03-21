@@ -50,7 +50,7 @@ public:
     RecorderModule(std::string name) : folderSelect("%ROOT%/recordings") {
         this->name = name;
 
-        recPath = "%ROOT%/recordings";
+        recPath = "%ROOT%/recording";
 
         // Init audio path
         vol.init(&dummyStream, 1.0f);
