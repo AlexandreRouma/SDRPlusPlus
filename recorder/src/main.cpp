@@ -169,6 +169,7 @@ private:
                     basebandHandler.start();
                     sigpath::signalPath.bindIQStream(&basebandStream);
                     recording = true;
+                    spdlog::info("Recording to '{0}'", expandedPath);
                 }
                 else {
                     spdlog::error("Could not create '{0}'", expandedPath);
@@ -227,6 +228,7 @@ private:
                     recording = true;
                     audioHandler.start();
                     audioSplit.bindStream(&audioHandlerStream);
+                    spdlog::info("Recording to '{0}'", expandedPath);
                 }
                 else {
                     spdlog::error("Could not create '{0}'", expandedPath);
