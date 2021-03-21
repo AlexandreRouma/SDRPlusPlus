@@ -36,8 +36,6 @@ SDRPP_MOD_INFO {
 
 #define INPUT_SAMPLE_RATE   6000000
 
-std::ofstream file("test.ts", std::ios::binary);
-
 class Falcon9DecoderModule : public ModuleManager::Instance {
 public:
     Falcon9DecoderModule(std::string name) {
@@ -197,8 +195,8 @@ private:
             _this->logsMtx.unlock();
         }
         else if (pktId == 0x01123201042E1403) {
-            //fwrite(data + 25, 1, 940, _this->ffplay);
-            file.write((char*)(data + 25), 940);
+            fwrite(data + 25, 1, 940, _this->ffplay);
+            //file.write((char*)(data + 25), 940);
         }
 
         //printf("%016" PRIX64 ": %d bytes, %d full\n", pktId, length, count);

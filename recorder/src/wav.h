@@ -26,6 +26,10 @@ public:
         file.write((char*)&hdr, sizeof(WavHeader_t));
     }
 
+    bool isOpen() {
+        return file.is_open();
+    }
+
     void writeSamples(void* data, size_t size) {
         file.write((char*)data, size);
         bytesWritten += size;

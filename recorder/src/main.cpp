@@ -50,7 +50,7 @@ public:
     RecorderModule(std::string name) : folderSelect("%ROOT%/recordings") {
         this->name = name;
 
-        recPath = "%ROOT%/recording";
+        recPath = "%ROOT%/recordings";
 
         // Init audio path
         vol.init(&dummyStream, 1.0f);
@@ -161,13 +161,18 @@ private:
         if (!pathValid) { style::beginDisabled(); }
         if (!recording) {
             if (ImGui::Button(CONCAT("Record##_recorder_rec_", name), ImVec2(menuColumnWidth, 0))) {
-                recording = true;
                 samplesWritten = 0;
                 std::string expandedPath = expandString(recPath + genFileName("/baseband_", false));
                 sampleRate = sigpath::signalPath.getSampleRate();
                 basebandWriter = new WavWriter(expandedPath, 16, 2, sigpath::signalPath.getSampleRate());
-                basebandHandler.start();
-                sigpath::signalPath.bindIQStream(&basebandStream);
+                if (basebandWriter->isOpen()) {
+                    basebandHandler.start();
+                    sigpath::signalPath.bindIQStream(&basebandStream);
+                    recording = true;
+                }
+                else {
+                    spdlog::error("Could not create '{0}'", expandedPath);
+                }
             }
             ImGui::TextColored(ImGui::GetStyleColorVec4(ImGuiCol_Text), "Idle --:--:--");
         }
@@ -214,13 +219,18 @@ private:
         if (!pathValid || selectedStreamName == "") { style::beginDisabled(); }
         if (!recording) {
             if (ImGui::Button(CONCAT("Record##_recorder_rec_", name), ImVec2(menuColumnWidth, 0))) {
-                recording = true;
                 samplesWritten = 0;
                 std::string expandedPath = expandString(recPath + genFileName("/audio_", true, selectedStreamName));
                 sampleRate = sigpath::sinkManager.getStreamSampleRate(selectedStreamName);
                 audioWriter = new WavWriter(expandedPath, 16, 2, sigpath::sinkManager.getStreamSampleRate(selectedStreamName));
-                audioHandler.start();
-                audioSplit.bindStream(&audioHandlerStream);
+                if (audioWriter->isOpen()) {
+                    recording = true;
+                    audioHandler.start();
+                    audioSplit.bindStream(&audioHandlerStream);
+                }
+                else {
+                    spdlog::error("Could not create '{0}'", expandedPath);
+                }
             }
             ImGui::TextColored(ImGui::GetStyleColorVec4(ImGuiCol_Text), "Idle --:--:--");
         }
