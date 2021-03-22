@@ -43,6 +43,7 @@ public:
         file.read(_data, size);
         int read = file.gcount();
         if (read < size) {
+            file.clear();
             file.seekg(sizeof(WavHeader_t));
             file.read(&_data[read], size - read);
         }
