@@ -124,7 +124,7 @@ namespace dsp {
             }
 
             if constexpr (std::is_same_v<T, complex_t>) {
-                volk_32fc_x2_multiply_32fc(out.writeBuf, _a->readBuf, _b->readBuf, a_count);
+                volk_32fc_x2_multiply_32fc((lv_32fc_t*)out.writeBuf, (lv_32fc_t*)_a->readBuf, (lv_32fc_t*)_b->readBuf, a_count);
             }
             else {
                 volk_32f_x2_multiply_32f(out.writeBuf, _a->readBuf, _b->readBuf, a_count);
