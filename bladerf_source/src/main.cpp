@@ -284,8 +284,8 @@ private:
         int16_t* samples16 = (int16_t*)samples;
         _this->currentBuffer = ((_this->currentBuffer + 1) % NUM_BUFFERS);
         for (size_t i = 0; i < num_samples; i++) {
-            _this->stream.writeBuf[i].i = (float)samples16[(2 * i)] / 32768.0f;
-            _this->stream.writeBuf[i].q = (float)samples16[(2 * i) + 1] / 32768.0f;
+            _this->stream.writeBuf[i].re = (float)samples16[(2 * i)] / 32768.0f;
+            _this->stream.writeBuf[i].im = (float)samples16[(2 * i) + 1] / 32768.0f;
             if (!_this->stream.swap(num_samples)) { return _this->streamBuffers[_this->currentBuffer];; }
         }
 

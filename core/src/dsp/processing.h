@@ -13,10 +13,6 @@ namespace dsp {
 
         FrequencyXlator(stream<complex_t>* in, float sampleRate, float freq) { init(in, sampleRate, freq); }
 
-        ~FrequencyXlator() {
-            generic_block<FrequencyXlator<T>>::stop();
-        }
-
         void init(stream<complex_t>* in, float sampleRate, float freq) {
             _in = in;
             _sampleRate = sampleRate;
@@ -57,7 +53,7 @@ namespace dsp {
         }
 
         int run() {
-            count = _in->read();
+            int count = _in->read();
             if (count < 0) { return -1; }
 
             // TODO: Do float xlation
@@ -76,7 +72,6 @@ namespace dsp {
         stream<complex_t> out;
 
     private:
-        int count;
         float _sampleRate;
         float _freq;
         lv_32fc_t phaseDelta;
@@ -90,8 +85,6 @@ namespace dsp {
         AGC() {}
 
         AGC(stream<float>* in, float fallRate, float sampleRate) { init(in, fallRate, sampleRate); }
-
-        ~AGC() { generic_block<AGC>::stop(); }
 
         void init(stream<float>* in, float fallRate, float sampleRate) {
             _in = in;
@@ -124,7 +117,7 @@ namespace dsp {
         }
 
         int run() {
-            count = _in->read();
+            int count = _in->read();
             if (count < 0) { return -1; }
 
             level = pow(10, ((10.0f * log10f(level)) - (_CorrectedFallRate * count)) / 10.0f);
@@ -143,7 +136,6 @@ namespace dsp {
         stream<float> out;
 
     private:
-        int count;
         float level = 0.0f;
         float _fallRate;
         float _CorrectedFallRate;
@@ -152,50 +144,64 @@ namespace dsp {
 
     };
 
-    class FeedForwardAGC : public generic_block<FeedForwardAGC> {
+    template <class T>
+    class FeedForwardAGC : public generic_block<FeedForwardAGC<T>> {
     public:
         FeedForwardAGC() {}
 
-        FeedForwardAGC(stream<float>* in) { init(in); }
+        FeedForwardAGC(stream<T>* in) { init(in); }
 
-        ~FeedForwardAGC() { generic_block<FeedForwardAGC>::stop(); }
-
-        void init(stream<float>* in) {
+        void init(stream<T>* in) {
             _in = in;
-            generic_block<FeedForwardAGC>::registerInput(_in);
-            generic_block<FeedForwardAGC>::registerOutput(&out);
+            generic_block<FeedForwardAGC<T>>::registerInput(_in);
+            generic_block<FeedForwardAGC<T>>::registerOutput(&out);
         }
 
-        void setInput(stream<float>* in) {
-            std::lock_guard<std::mutex> lck(generic_block<FeedForwardAGC>::ctrlMtx);
-            generic_block<FeedForwardAGC>::tempStop();
-            generic_block<FeedForwardAGC>::unregisterInput(_in);
+        void setInput(stream<T>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<FeedForwardAGC<T>>::ctrlMtx);
+            generic_block<FeedForwardAGC<T>>::tempStop();
+            generic_block<FeedForwardAGC<T>>::unregisterInput(_in);
             _in = in;
-            generic_block<FeedForwardAGC>::registerInput(_in);
-            generic_block<FeedForwardAGC>::tempStart();
+            generic_block<FeedForwardAGC<T>>::registerInput(_in);
+            generic_block<FeedForwardAGC<T>>::tempStart();
         }
 
         int run() {
-            count = _in->read();
+            int count = _in->read();
             if (count < 0) { return -1; }
 
-            float level = 0;
-            for (int i = 0; i < count; i++) {
-                if (fabs(_in->readBuf[i]) > level) { level = fabs(_in->readBuf[i]); }
-            }
+            float level = 1e-4;
 
-            volk_32f_s32f_multiply_32f(out.writeBuf, _in->readBuf, 1.0f / level, count);
+            // TODO: THIS AGC IS BAAAAAD!!!!
+
+            if constexpr (std::is_same_v<T, float>) {
+                for (int i = 0; i < count; i++) {
+                    if (fabs(_in->readBuf[i]) > level) { level = fabs(_in->readBuf[i]); }
+                }
+                volk_32f_s32f_multiply_32f(out.writeBuf, _in->readBuf, 1.0f / level, count);
+            }
+            if constexpr (std::is_same_v<T, complex_t>) {
+                float reAbs, imAbs, val;
+                for (int i = 0; i < count; i++) {
+                    reAbs = fabs(_in->readBuf[i].re);
+                    imAbs = fabs(_in->readBuf[i].im);
+                    if (reAbs > imAbs) { val = reAbs + 0.4 * imAbs; }
+                    else { val = imAbs + 0.4 * reAbs; }
+                    if (val > level) { level = val; }
+                }
+                lv_32fc_t cplxLvl = {1.0f / level, 1.0f / level};
+                volk_32fc_s32fc_multiply_32fc((lv_32fc_t*)out.writeBuf, (lv_32fc_t*)_in->readBuf, cplxLvl, count);
+            }
 
             _in->flush();
             if (!out.swap(count)) { return -1; }
             return count;
         }
 
-        stream<float> out;
+        stream<T> out;
 
     private:
-        int count;
-        stream<float>* _in;
+        stream<T>* _in;
 
     };
 
@@ -206,8 +212,6 @@ namespace dsp {
         Volume() {}
 
         Volume(stream<T>* in, float volume) { init(in, volume); }
-
-        ~Volume() { generic_block<Volume<T>>::stop(); }
 
         void init(stream<T>* in, float volume) {
             _in = in;
@@ -243,7 +247,7 @@ namespace dsp {
         }
 
         int run() {
-            count = _in->read();
+            int count = _in->read();
             if (count < 0) { return -1; }
 
             if (_muted) {
@@ -271,7 +275,6 @@ namespace dsp {
         stream<T> out;
 
     private:
-        int count;
         float level = 1.0f;
         float _volume = 1.0f;
         bool _muted = false;
@@ -316,10 +319,10 @@ namespace dsp {
         }
 
         int run() {
-            count = _in->read();
+            int count = _in->read();
             if (count < 0) { return -1; }
 
-            float sum = 0.0f;
+            float sum;
             volk_32fc_magnitude_32f(normBuffer, (lv_32fc_t*)_in->readBuf, count);
             volk_32f_accumulator_s32f(&sum, normBuffer, count);
             sum /= (float)count;
@@ -340,7 +343,6 @@ namespace dsp {
 
 
     private:
-        int count;
         float* normBuffer;
         float _level = -50.0f;
         stream<complex_t>* _in;
@@ -353,10 +355,6 @@ namespace dsp {
         Packer() {}
 
         Packer(stream<T>* in, int count) { init(in, count); }
-
-        ~Packer() {
-            generic_block<Packer<T>>::stop();
-        }
 
         void init(stream<T>* in, int count) {
             _in = in;
@@ -382,7 +380,7 @@ namespace dsp {
         }
 
         int run() {
-            count = _in->read();
+            int count = _in->read();
             if (count < 0) {
                 read = 0;
                 return -1;
@@ -408,7 +406,6 @@ namespace dsp {
         stream<T> out;
 
     private:
-        int count;
         int samples = 1;
         int read = 0;
         stream<T>* _in;
@@ -451,7 +448,7 @@ namespace dsp {
         }
 
         int run() {
-            count = _in->read();
+            int count = _in->read();
             if (count < 0) { return -1; }
 
             for (int i = 0; i < count; i++) {
@@ -467,7 +464,6 @@ namespace dsp {
 
 
     private:
-        int count;
         float* normBuffer;
         float _level = -50.0f;
         stream<float>* _in;

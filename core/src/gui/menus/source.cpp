@@ -24,7 +24,8 @@ namespace sourecmenu {
         else {
             spdlog::warn("No source available...");
         }
-        sigpath::sourceManager.setTuningOffset(core::configManager.conf["offset"]);
+        freqOffset = core::configManager.conf["offset"];
+        sigpath::sourceManager.setTuningOffset(freqOffset);
         core::configManager.release();
     }
 

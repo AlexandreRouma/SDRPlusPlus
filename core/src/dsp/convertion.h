@@ -8,8 +8,6 @@ namespace dsp {
 
         ComplexToStereo(stream<complex_t>* in) { init(in); }
 
-        ~ComplexToStereo() { generic_block<ComplexToStereo>::stop(); }
-
         static_assert(sizeof(complex_t) == sizeof(stereo_t));
 
         void init(stream<complex_t>* in) {
@@ -28,7 +26,7 @@ namespace dsp {
         }
 
         int run() {
-            count = _in->read();
+            int count = _in->read();
             if (count < 0) { return -1; }
 
             memcpy(out.writeBuf, _in->readBuf, count * sizeof(complex_t));
@@ -41,8 +39,6 @@ namespace dsp {
         stream<stereo_t> out;
 
     private:
-        float avg;
-        int count;
         stream<complex_t>* _in;
 
     };
@@ -52,8 +48,6 @@ namespace dsp {
         ComplexToReal() {}
 
         ComplexToReal(stream<complex_t>* in) { init(in); }
-
-        ~ComplexToReal() { generic_block<ComplexToReal>::stop(); }
 
         void init(stream<complex_t>* in) {
             _in = in;
@@ -71,7 +65,7 @@ namespace dsp {
         }
 
         int run() {
-            count = _in->read();
+            int count = _in->read();
             if (count < 0) { return -1; }
 
             volk_32fc_deinterleave_real_32f(out.writeBuf, (lv_32fc_t*)_in->readBuf, count);
@@ -84,8 +78,6 @@ namespace dsp {
         stream<float> out;
 
     private:
-        float avg;
-        int count;
         stream<complex_t>* _in;
 
     };
@@ -95,8 +87,6 @@ namespace dsp {
         ComplexToImag() {}
 
         ComplexToImag(stream<complex_t>* in) { init(in); }
-
-        ~ComplexToImag() { generic_block<ComplexToImag>::stop(); }
 
         void init(stream<complex_t>* in) {
             _in = in;
@@ -114,7 +104,7 @@ namespace dsp {
         }
 
         int run() {
-            count = _in->read();
+            int count = _in->read();
             if (count < 0) { return -1; }
 
             volk_32fc_deinterleave_imag_32f(out.writeBuf, (lv_32fc_t*)_in->readBuf, count);
@@ -127,8 +117,6 @@ namespace dsp {
         stream<float> out;
 
     private:
-        float avg;
-        int count;
         stream<complex_t>* _in;
 
     };
@@ -163,7 +151,7 @@ namespace dsp {
         }
 
         int run() {
-            count = _in->read();
+            int count = _in->read();
             if (count < 0) { return -1; }
 
             volk_32f_x2_interleave_32fc((lv_32fc_t*)out.writeBuf, _in->readBuf, nullBuffer, count);
@@ -176,8 +164,6 @@ namespace dsp {
         stream<complex_t> out;
 
     private:
-        float avg;
-        int count;
         float* nullBuffer;
         stream<float>* _in;
 

@@ -13,8 +13,6 @@ namespace dsp {
 
         LevelMeter(stream<stereo_t>* in) { init(in); }
 
-        ~LevelMeter() { generic_block<LevelMeter>::stop(); }
-
         void init(stream<stereo_t>* in) {
             _in = in;
             generic_block<LevelMeter>::registerInput(_in);
@@ -30,13 +28,14 @@ namespace dsp {
         }
 
         int run() {
-            count = _in->read();
+            int count = _in->read();
             if (count < 0) { return -1; }
 
             float maxL = 0, maxR = 0;
+            float absL, absR;
             for (int i = 0; i < count; i++) {
-                float absL = fabs(_in->readBuf[i].l);
-                float absR = fabs(_in->readBuf[i].r);
+                absL = fabs(_in->readBuf[i].l);
+                absR = fabs(_in->readBuf[i].r);
                 if (absL > maxL) { maxL = absL; }
                 if (absR > maxR) { maxR = absR; }
             }
@@ -74,7 +73,6 @@ namespace dsp {
     private:
         float lvlL = -90.0f;
         float lvlR = -90.0f;
-        int count;
         stream<stereo_t>* _in;
         std::mutex lvlMtx;
 

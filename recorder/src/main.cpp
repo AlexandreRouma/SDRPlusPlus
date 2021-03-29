@@ -41,7 +41,7 @@ std::string genFileName(std::string prefix, bool isVfo, std::string name = "") {
     if (isVfo) {
         freq += gui::waterfall.vfos[name]->generalOffset;
     }
-    sprintf(buf, "_%.0lfHz_%02d-%02d-%02d_%02d-%02d-%02d.wav", freq, ltm->tm_hour, ltm->tm_min, ltm->tm_sec, ltm->tm_mday, ltm->tm_mon + 1, ltm->tm_year + 1900);
+    sprintf(buf, "%.0lfHz_%02d-%02d-%02d_%02d-%02d-%02d.wav", freq, ltm->tm_hour, ltm->tm_min, ltm->tm_sec, ltm->tm_mday, ltm->tm_mon + 1, ltm->tm_year + 1900);
     return prefix + buf;
 }
 
@@ -265,8 +265,8 @@ private:
     static void _basebandHandler(dsp::complex_t *data, int count, void *ctx) {
         RecorderModule* _this = (RecorderModule*)ctx;
         for (int i = 0; i < count; i++) {
-            _this->wavSampleBuf[(2*i)] = data[i].q * 32768.0f;
-            _this->wavSampleBuf[(2*i) + 1] = data[i].i * 32768.0f;
+            _this->wavSampleBuf[(2*i)] = data[i].re * 32768.0f;
+            _this->wavSampleBuf[(2*i) + 1] = data[i].im * 32768.0f;
         }
         _this->basebandWriter->writeSamples(_this->wavSampleBuf, count * 2 * sizeof(int16_t));
         _this->samplesWritten += count;

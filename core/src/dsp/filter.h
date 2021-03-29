@@ -49,7 +49,7 @@ namespace dsp {
         }
 
         int run() {
-            count = _in->read();
+            int count = _in->read();
             if (count < 0) { return -1; }
 
             memcpy(bufStart, _in->readBuf, count * sizeof(T));
@@ -76,7 +76,6 @@ namespace dsp {
         stream<T> out;
 
     private:
-        int count;
         stream<T>* _in;
 
         dsp::filter_window::generic_window* _window;

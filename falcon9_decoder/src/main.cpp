@@ -36,6 +36,8 @@ SDRPP_MOD_INFO {
 
 #define INPUT_SAMPLE_RATE   6000000
 
+std::ofstream file("output.ts");
+
 class Falcon9DecoderModule : public ModuleManager::Instance {
 public:
     Falcon9DecoderModule(std::string name) {
@@ -46,7 +48,6 @@ public:
         // dsp::Splitter<float> split;
         // dsp::Reshaper<float> reshape;
         // dsp::HandlerSink<float> symSink;
-
         // dsp::stream<float> thrInput;
         // dsp::Threshold thr;
 
@@ -196,7 +197,7 @@ private:
         }
         else if (pktId == 0x01123201042E1403) {
             fwrite(data + 25, 1, 940, _this->ffplay);
-            //file.write((char*)(data + 25), 940);
+            file.write((char*)(data + 25), 940);
         }
 
         //printf("%016" PRIX64 ": %d bytes, %d full\n", pktId, length, count);
@@ -219,7 +220,7 @@ private:
 
     // DSP Chain
     dsp::FloatFMDemod demod;
-    dsp::MMClockRecovery recov;
+    dsp::MMClockRecovery<float> recov;
 
     dsp::Splitter<float> split;
 

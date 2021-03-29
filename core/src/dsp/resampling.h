@@ -97,7 +97,7 @@ namespace dsp {
         }
 
         virtual int run() override {
-            count = _in->read();
+            int count = _in->read();
             if (count < 0) {
                 return -1;
             }
@@ -172,7 +172,6 @@ namespace dsp {
             tapPhases.clear();
         }
 
-        int count;
         stream<T>* _in;
 
         dsp::filter_window::generic_window* _window;
@@ -195,10 +194,6 @@ namespace dsp {
 
         PowerDecimator(stream<complex_t>* in, unsigned int power) { init(in, power); }
 
-        ~PowerDecimator() {
-            generic_block<PowerDecimator>::stop();
-        }
-
         void init(stream<complex_t>* in, unsigned int power) {
             _in = in;
             _power = power;
@@ -218,14 +213,12 @@ namespace dsp {
         void setPower(unsigned int power) {
             std::lock_guard<std::mutex> lck(generic_block<PowerDecimator>::ctrlMtx);
             generic_block<PowerDecimator>::tempStop();
-            generic_block<PowerDecimator>::unregisterInput(_in);
             _power = power;
-            generic_block<PowerDecimator>::registerInput(_in);
             generic_block<PowerDecimator>::tempStart();
         }
 
         int run() {
-            count = _in->read();
+            int count = _in->read();
             if (count < 0) { return -1; }
 
             if (_power == 0) {
@@ -233,8 +226,8 @@ namespace dsp {
             }
             else if (_power == 1) {
                 for (int j = 0; j < count; j += 2) {
-                    out.writeBuf[j / 2].i = (_in->readBuf[j].i + _in->readBuf[j + 1].i) * 0.5f;
-                    out.writeBuf[j / 2].q = (_in->readBuf[j].q + _in->readBuf[j + 1].q) * 0.5f;
+                    out.writeBuf[j / 2].re = (_in->readBuf[j].re + _in->readBuf[j + 1].re) * 0.5f;
+                    out.writeBuf[j / 2].im = (_in->readBuf[j].im + _in->readBuf[j + 1].im) * 0.5f;
                 }
                 count /= 2;
             }
@@ -244,8 +237,8 @@ namespace dsp {
             if (_power > 1) {
                 for (int i = 1; i < _power; i++) {
                     for (int j = 0; j < count; j += 2) {
-                        out.writeBuf[j / 2].i = (_in->readBuf[j].i + _in->readBuf[j + 1].i) * 0.5f;
-                        out.writeBuf[j / 2].q = (_in->readBuf[j].q + _in->readBuf[j + 1].q) * 0.5f;
+                        out.writeBuf[j / 2].re = (_in->readBuf[j].re + _in->readBuf[j + 1].re) * 0.5f;
+                        out.writeBuf[j / 2].im = (_in->readBuf[j].im + _in->readBuf[j + 1].im) * 0.5f;
                     }
                     count /= 2;
                 }
@@ -259,7 +252,6 @@ namespace dsp {
 
 
     private:
-        int count;
         unsigned int _power = 0;
         stream<complex_t>* _in;
 

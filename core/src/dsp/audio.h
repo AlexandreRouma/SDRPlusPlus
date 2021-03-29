@@ -8,8 +8,6 @@ namespace dsp {
 
         MonoToStereo(stream<float>* in) { init(in); }
 
-        ~MonoToStereo() { generic_block<MonoToStereo>::stop(); }
-
         void init(stream<float>* in) {
             _in = in;
             generic_block<MonoToStereo>::registerInput(_in);
@@ -26,13 +24,10 @@ namespace dsp {
         }
 
         int run() {
-            count = _in->read();
+            int count = _in->read();
             if (count < 0) { return -1; }
 
-            for (int i = 0; i < count; i++) {
-                out.writeBuf[i].l = _in->readBuf[i];
-                out.writeBuf[i].r = _in->readBuf[i];
-            }
+            volk_32f_x2_interleave_32fc((lv_32fc_t*)out.writeBuf, _in->readBuf, _in->readBuf, count);
 
             _in->flush();
             if (!out.swap(count)) { return -1; }
@@ -42,7 +37,6 @@ namespace dsp {
         stream<stereo_t> out;
 
     private:
-        int count;
         stream<float>* _in;
 
     };
@@ -52,8 +46,6 @@ namespace dsp {
         ChannelsToStereo() {}
 
         ChannelsToStereo(stream<float>* in_left, stream<float>* in_right) { init(in_left, in_right); }
-
-        ~ChannelsToStereo() { generic_block<ChannelsToStereo>::stop(); }
 
         void init(stream<float>* in_left, stream<float>* in_right) {
             _in_left = in_left;
@@ -76,19 +68,16 @@ namespace dsp {
         }
 
         int run() {
-            count_l = _in_left->read();
+            int count_l = _in_left->read();
             if (count_l < 0) { return -1; }
-            count_r = _in_right->read();
+            int count_r = _in_right->read();
             if (count_r < 0) { return -1; }
 
             if (count_l != count_r) {
                 spdlog::warn("ChannelsToStereo block size missmatch");
             }
 
-            for (int i = 0; i < count_l; i++) {
-                out.writeBuf[i].l = _in_left->readBuf[i];
-                out.writeBuf[i].r = _in_right->readBuf[i];
-            }
+            volk_32f_x2_interleave_32fc((lv_32fc_t*)out.writeBuf, _in_left->readBuf, _in_right->readBuf, count_l);
 
             _in_left->flush();
             _in_right->flush();
@@ -99,8 +88,6 @@ namespace dsp {
         stream<stereo_t> out;
 
     private:
-        int count_l;
-        int count_r;
         stream<float>* _in_left;
         stream<float>* _in_right;
 
@@ -112,10 +99,16 @@ namespace dsp {
 
         StereoToMono(stream<stereo_t>* in) { init(in); }
 
-        ~StereoToMono() { generic_block<StereoToMono>::stop(); }
+        ~StereoToMono() {
+            generic_block<StereoToMono>::stop();
+            delete[] l_buf;
+            delete[] r_buf;
+        }
 
         void init(stream<stereo_t>* in) {
             _in = in;
+            l_buf = new float[STREAM_BUFFER_SIZE];
+            r_buf = new float[STREAM_BUFFER_SIZE];
             generic_block<StereoToMono>::registerInput(_in);
             generic_block<StereoToMono>::registerOutput(&out);
         }
@@ -130,14 +123,15 @@ namespace dsp {
         }
 
         int run() {
-            count = _in->read();
+            int count = _in->read();
             if (count < 0) { return -1; }
 
             for (int i = 0; i < count; i++) {
-                out.writeBuf[i] = (_in->readBuf[i].l + _in->readBuf[i].r) / 2.0f;
+                out.writeBuf[i] = (_in->readBuf[i].l + _in->readBuf[i].r) * 0.5f;
             }
 
             _in->flush();
+
             if (!out.swap(count)) { return -1; }
             return count;
         }
@@ -145,7 +139,7 @@ namespace dsp {
         stream<float> out;
 
     private:
-        int count;
+        float* l_buf, *r_buf;
         stream<stereo_t>* _in;
 
     };
@@ -155,8 +149,6 @@ namespace dsp {
         StereoToChannels() {}
 
         StereoToChannels(stream<stereo_t>* in) { init(in); }
-
-        ~StereoToChannels() { generic_block<StereoToChannels>::stop(); }
 
         void init(stream<stereo_t>* in) {
             _in = in;
@@ -175,13 +167,10 @@ namespace dsp {
         }
 
         int run() {
-            count = _in->read();
+            int count = _in->read();
             if (count < 0) { return -1; }
 
-            for (int i = 0; i < count; i++) {
-                out_left.writeBuf[i] = _in->readBuf[i].l;
-                out_right.writeBuf[i] = _in->readBuf[i].r;
-            }
+            volk_32fc_deinterleave_32f_x2(out_left.writeBuf, out_right.writeBuf, (lv_32fc_t*)_in->readBuf, count);
 
             _in->flush();
             if (!out_left.swap(count)) { return -1; }
@@ -193,7 +182,6 @@ namespace dsp {
         stream<float> out_right;
 
     private:
-        int count;
         stream<stereo_t>* _in;
 
     };

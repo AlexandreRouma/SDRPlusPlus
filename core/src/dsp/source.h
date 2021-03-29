@@ -8,8 +8,6 @@ namespace dsp {
 
         SineSource(int blockSize, float sampleRate, float freq) { init(blockSize, sampleRate, freq); }
 
-        ~SineSource() { generic_block<SineSource>::stop(); }
-
         void init(int blockSize, float sampleRate, float freq) {
             _blockSize = blockSize;
             _sampleRate = sampleRate;
@@ -79,8 +77,6 @@ namespace dsp {
 
         HandlerSource(int (*handler)(T* data, void* ctx), void* ctx) { init(handler, ctx); }
 
-        ~HandlerSource() { generic_block<HandlerSource<T>>::stop(); }
-
         void init(int (*handler)(T* data, void* ctx), void* ctx) {
             _handler = handler;
             _ctx = ctx;
@@ -105,7 +101,6 @@ namespace dsp {
         stream<T> out;
 
     private:
-        int count;
         int (*_handler)(T* data, void* ctx);
         void* _ctx;
 

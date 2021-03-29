@@ -10,8 +10,6 @@ namespace dsp {
 
         HandlerSink(stream<T>* in, void (*handler)(T* data, int count, void* ctx), void* ctx) { init(in, handler, ctx); }
 
-        ~HandlerSink() { generic_block<HandlerSink<T>>::stop(); }
-
         void init(stream<T>* in, void (*handler)(T* data, int count, void* ctx), void* ctx) {
             _in = in;
             _handler = handler;
@@ -37,7 +35,7 @@ namespace dsp {
         }
 
         int run() {
-            count = _in->read();
+            int count = _in->read();
             if (count < 0) { return -1; }
             _handler(_in->readBuf, count, _ctx);
             _in->flush();
@@ -45,7 +43,6 @@ namespace dsp {
         }
 
     private:
-        int count;
         stream<T>* _in;
         void (*_handler)(T* data, int count, void* ctx);
         void* _ctx;
@@ -58,8 +55,6 @@ namespace dsp {
         RingBufferSink() {}
 
         RingBufferSink(stream<T>* in) { init(in); }
-
-        ~RingBufferSink() { generic_block<RingBufferSink<T>>::stop(); }
 
         void init(stream<T>* in) {
             _in = in;
@@ -77,7 +72,7 @@ namespace dsp {
         }
 
         int run() {
-            count = _in->read();
+            int count = _in->read();
             if (count < 0) { return -1; }
             if (data.write(_in->readBuf, count) < 0) { return -1; }
             _in->flush();
@@ -97,7 +92,6 @@ namespace dsp {
             data.clearWriteStop();
         }
 
-        int count;
         stream<T>* _in;
 
     };
@@ -126,14 +120,13 @@ namespace dsp {
         }
 
         int run() {
-            count = _in->read();
+            int count = _in->read();
             if (count < 0) { return -1; }
             _in->flush();
             return count;
         }
 
     private:
-        int count;
         stream<T>* _in;
 
     };

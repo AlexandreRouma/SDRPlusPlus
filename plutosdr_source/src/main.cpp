@@ -231,8 +231,8 @@ private:
             int16_t* buf = (int16_t*)iio_buffer_first(rxbuf, rx0_i);
 
             for (int i = 0; i < blockSize; i++) {
-                _this->stream.writeBuf[i].q = (float)buf[i * 2] / 32768.0f;
-                _this->stream.writeBuf[i].i = (float)buf[(i * 2) + 1] / 32768.0f;
+                _this->stream.writeBuf[i].re = (float)buf[i * 2] / 32768.0f;
+                _this->stream.writeBuf[i].im = (float)buf[(i * 2) + 1] / 32768.0f;
             }
             if (!_this->stream.swap(blockSize)) { break; };
         }

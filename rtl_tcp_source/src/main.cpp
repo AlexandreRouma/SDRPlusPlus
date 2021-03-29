@@ -219,8 +219,8 @@ private:
             // Read samples here
             _this->client.receiveData(inBuf, blockSize * 2);
             for (int i = 0; i < blockSize; i++) {
-                _this->stream.writeBuf[i].q = ((double)inBuf[i * 2] - 128.0) / 128.0;
-                _this->stream.writeBuf[i].i = ((double)inBuf[(i * 2) + 1] - 128.0) / 128.0;
+                _this->stream.writeBuf[i].re = ((double)inBuf[i * 2] - 128.0) / 128.0;
+                _this->stream.writeBuf[i].im = ((double)inBuf[(i * 2) + 1] - 128.0) / 128.0;
             }
             if (!_this->stream.swap(blockSize)) { break; };
         }

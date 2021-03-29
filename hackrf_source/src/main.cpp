@@ -226,8 +226,8 @@ private:
         int count = transfer->valid_length / 2;
         int8_t* buffer = (int8_t*)transfer->buffer;
         for (int i = 0; i < count; i++) {
-            _this->stream.writeBuf[i].i = (float)buffer[i * 2] / 128.0f;
-            _this->stream.writeBuf[i].q = (float)buffer[(i * 2) + 1] / 128.0f;
+            _this->stream.writeBuf[i].re = (float)buffer[i * 2] / 128.0f;
+            _this->stream.writeBuf[i].im = (float)buffer[(i * 2) + 1] / 128.0f;
         }
         if (!_this->stream.swap(count)) { return -1; }
         return 0;

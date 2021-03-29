@@ -120,8 +120,8 @@ private:
         while (true) {
             _this->reader->readSamples(inBuf, blockSize * 2 * sizeof(int16_t));
             for (int i = 0; i < blockSize; i++) {
-                _this->stream.writeBuf[i].q = (float)inBuf[i * 2] / (float)0x7FFF;
-                _this->stream.writeBuf[i].i = (float)inBuf[(i * 2) + 1] / (float)0x7FFF;
+                _this->stream.writeBuf[i].re = (float)inBuf[i * 2] / (float)0x7FFF;
+                _this->stream.writeBuf[i].im = (float)inBuf[(i * 2) + 1] / (float)0x7FFF;
             }
             if (!_this->stream.swap(blockSize)) { break; };
         }

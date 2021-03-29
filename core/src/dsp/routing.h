@@ -13,8 +13,6 @@ namespace dsp {
 
         Splitter(stream<T>* in) { init(in); }
 
-        ~Splitter() { generic_block<Splitter>::stop(); }
-
         void init(stream<T>* in) {
             _in = in;
             generic_block<Splitter>::registerInput(_in);
@@ -72,8 +70,6 @@ namespace dsp {
 
         Reshaper(stream<T>* in, int keep, int skip) { init(in, keep, skip); }
 
-        ~Reshaper() { generic_block<Reshaper<T>>::stop(); }
-
         void init(stream<T>* in, int keep, int skip) {
             _in = in;
             _keep = keep;
@@ -95,19 +91,15 @@ namespace dsp {
         void setKeep(int keep) {
             std::lock_guard<std::mutex> lck(generic_block<Reshaper<T>>::ctrlMtx);
             generic_block<Reshaper<T>>::tempStop();
-            generic_block<Reshaper<T>>::unregisterInput(_in);
             _keep = keep;
             ringBuf.setMaxLatency(keep * 2);
-            generic_block<Reshaper<T>>::registerInput(_in);
             generic_block<Reshaper<T>>::tempStart();
         }
 
         void setSkip(int skip) {
             std::lock_guard<std::mutex> lck(generic_block<Reshaper<T>>::ctrlMtx);
             generic_block<Reshaper<T>>::tempStop();
-            generic_block<Reshaper<T>>::unregisterInput(_in);
             _skip = skip;
-            generic_block<Reshaper<T>>::registerInput(_in);
             generic_block<Reshaper<T>>::tempStart();
         }
 
@@ -167,8 +159,8 @@ namespace dsp {
                     memmove(buf, delayStart, delaySize);
                     if constexpr (std::is_same_v<T, complex_t> || std::is_same_v<T, stereo_t>) {
                         for (int i = 0; i < delayCount; i++) {
-                            buf[i].i /= 10.0f;
-                            buf[i].q /= 10.0f;
+                            buf[i].re /= 10.0f;
+                            buf[i].im /= 10.0f;
                         }
                     }
                 }

@@ -726,8 +726,8 @@ private:
         if (!_this->running) { return; }
         for (int i = 0; i < numSamples; i++) {
             int id = _this->bufferIndex++;
-            _this->stream.writeBuf[id].i = (float)xq[i] / 32768.0f;
-            _this->stream.writeBuf[id].q = (float)xi[i] / 32768.0f;
+            _this->stream.writeBuf[id].re = (float)xi[i] / 32768.0f;
+            _this->stream.writeBuf[id].im = (float)xq[i] / 32768.0f;
 
             if (_this->bufferIndex >= _this->bufferSize) {
                 _this->stream.swap(_this->bufferSize);
