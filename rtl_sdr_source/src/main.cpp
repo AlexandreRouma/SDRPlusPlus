@@ -346,6 +346,18 @@ private:
         if (ImGui::Combo(CONCAT("##_rtlsdr_ds_", _this->name), &_this->directSamplingMode, directSamplingModesTxt)) {
             if (_this->running) {
                 rtlsdr_set_direct_sampling(_this->openDev, _this->directSamplingMode);
+
+                // Update gains (fix for librtlsdr bug)
+                if (_this->directSamplingMode == false) {
+                    rtlsdr_set_agc_mode(_this->openDev, _this->rtlAgc);
+                    if (_this->tunerAgc) {
+                        rtlsdr_set_tuner_gain_mode(_this->openDev, 0);
+                    }
+                    else {
+                        rtlsdr_set_tuner_gain_mode(_this->openDev, 1);
+                        rtlsdr_set_tuner_gain(_this->openDev, _this->gainList[_this->gainId]);
+                    }
+                }
             }
             if (_this->selectedDevName != "") {
                 config.aquire();

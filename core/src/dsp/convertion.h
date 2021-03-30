@@ -129,8 +129,8 @@ namespace dsp {
         RealToComplex(stream<float>* in) { init(in); }
 
         ~RealToComplex() {
-            delete[] nullBuffer;
             generic_block<RealToComplex>::stop();
+            delete[] nullBuffer;
         }
 
         void init(stream<float>* in) {

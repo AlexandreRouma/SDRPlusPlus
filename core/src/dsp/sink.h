@@ -103,8 +103,6 @@ namespace dsp {
 
         NullSink(stream<T>* in) { init(in); }
 
-        ~NullSink() { generic_block<NullSink<T>>::stop(); }
-
         void init(stream<T>* in) {
             _in = in;
             generic_block<NullSink<T>>::registerInput(_in);

@@ -193,7 +193,7 @@ namespace dsp {
         StereoFMDemod(stream<complex_t>* in, float sampleRate, float deviation) { init(in, sampleRate, deviation); }
 
         ~StereoFMDemod() {
-            stop();
+            generic_block<StereoFMDemod>::stop();
             delete[] doubledPilot;
             delete[] a_minus_b;
             delete[] a_out;

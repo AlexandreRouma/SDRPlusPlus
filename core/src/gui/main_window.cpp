@@ -54,7 +54,6 @@
 // int fftSizeId = 0;
 int fftSize = 8192 * 8;
 
-std::thread worker;
 std::mutex fft_mtx;
 fftwf_complex *fft_in, *fft_out;
 fftwf_plan p;
