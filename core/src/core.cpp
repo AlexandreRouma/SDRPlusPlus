@@ -251,7 +251,10 @@ int sdrpp_main(int argc, char *argv[]) {
 
     // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init(glsl_version);
+
+    if (ImGui_ImplOpenGL3_Init(glsl_version)) {
+        spdlog::warn("Working!");
+    }
 
     if (!style::setDarkStyle(resDir)) { return -1; }
 

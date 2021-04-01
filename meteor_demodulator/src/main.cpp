@@ -158,8 +158,8 @@ private:
         std::lock_guard<std::mutex> lck(_this->recMtx);
         if (!_this->recording) { return; }
         for (int i = 0; i < count; i++) {
-            _this->writeBuffer[(2 * i)] = data[i].re * 64.0f;
-            _this->writeBuffer[(2 * i) + 1] = data[i].im * 64.0f;
+            _this->writeBuffer[(2 * i)] = std::clamp<int>(data[i].re * 84.0f, -127, 127);
+            _this->writeBuffer[(2 * i) + 1] = std::clamp<int>(data[i].im * 84.0f, -127, 127);
         }
         _this->recFile.write((char*)_this->writeBuffer, count * 2);
         _this->dataWritten += count * 2;
