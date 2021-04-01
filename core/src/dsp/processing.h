@@ -195,7 +195,7 @@ namespace dsp {
                 for (int i = 0; i < toProcess; i++) {
                     level = 1e-4;
                     for (int j = 0; j < sampleCount; j++) {
-                        val = fabsf(buffer[i + j])
+                        val = fabsf(buffer[i + j]);
                         if (val > level) { level = val; }
                     }
                     out.writeBuf[i] = buffer[i] / level;
