@@ -646,7 +646,7 @@ namespace dsp {
 
         void setCostasLoopBw(float costasLoopBw) {
             _costasLoopBw = costasLoopBw;
-            costas.setLoopBandwidth(_costasLoopBw);
+            demod.setLoopBandwidth(_costasLoopBw);
         }
 
         void setMMGains(float omegaGain, float myGain) {
