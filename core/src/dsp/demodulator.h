@@ -26,7 +26,7 @@ inline float fast_arctan2(float y, float x) {
     if (y < 0.0f) {
         return -angle;
     }
-   return angle;
+    return angle;
 }
 
 namespace dsp {
@@ -499,15 +499,54 @@ namespace dsp {
     class MSKDemod : public generic_hier_block<MSKDemod> {
     public:
         MSKDemod() {}
-        MSKDemod(stream<complex_t>* input, float sampleRate, float deviation, float baudRate) { init(input, sampleRate, deviation, baudRate); }
+        MSKDemod(stream<complex_t>* input, float sampleRate, float deviation, float baudRate, float omegaGain = (0.01*0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
+            init(input, sampleRate, deviation, baudRate);
+        }
 
-        void init(stream<complex_t>* input, float sampleRate, float deviation, float baudRate) {
-            demod.init(input, sampleRate, deviation);
-            recov.init(&demod.out, sampleRate / baudRate, powf(0.01f, 2) / 4.0f, 0.01f, 100e-6f);
+        void init(stream<complex_t>* input, float sampleRate, float deviation, float baudRate, float omegaGain = (0.01*0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
+            _sampleRate = sampleRate;
+            _deviation = deviation;
+            _baudRate = baudRate;
+            _omegaGain = omegaGain;
+            _muGain = muGain;
+            _omegaRelLimit = omegaRelLimit;
+            
+            demod.init(input, _sampleRate, _deviation);
+            recov.init(&demod.out, _sampleRate / _baudRate, _omegaGain, _muGain, _omegaRelLimit);
             out = &recov.out;
 
             generic_hier_block<MSKDemod>::registerBlock(&demod);
             generic_hier_block<MSKDemod>::registerBlock(&recov);
+        }
+
+        void setSampleRate(float sampleRate) {
+            generic_hier_block<MSKDemod>::tempStop();
+            _sampleRate = sampleRate;
+            demod.setSampleRate(_sampleRate);
+            recov.setOmega(_sampleRate / _baudRate, _omegaRelLimit);
+            generic_hier_block<MSKDemod>::tempStart();
+        }
+
+        void setDeviation(float deviation) {
+            _deviation = deviation;
+            demod.setDeviation(deviation);
+        }
+
+        void setBaudRate(float baudRate, float omegaRelLimit) {
+            _baudRate = baudRate;
+            _omegaRelLimit = omegaRelLimit;
+            recov.setOmega(_sampleRate / _baudRate, _omegaRelLimit);
+        }
+
+        void setMMGains(float omegaGain, float myGain) {
+            _omegaGain = omegaGain;
+            _muGain = myGain;
+            recov.setGains(_omegaGain, _muGain);
+        }
+
+        void setOmegaRelLimit(float omegaRelLimit) {
+            _omegaRelLimit = omegaRelLimit;
+            recov.setOmegaRelLimit(_omegaRelLimit);
         }
 
         stream<float>* out = NULL;
@@ -515,5 +554,130 @@ namespace dsp {
     private:
         FloatFMDemod demod;
         MMClockRecovery<float> recov;
+
+        float _sampleRate;
+        float _deviation;
+        float _baudRate;
+        float _omegaGain;
+        float _muGain;
+        float _omegaRelLimit;
+    };
+
+    template<int ORDER, bool OFFSET>
+    class PSKDemod : public generic_hier_block<PSKDemod<ORDER, OFFSET>> {
+    public:
+        PSKDemod() {}
+        PSKDemod(stream<complex_t>* input, float sampleRate, float baudRate, int RRCTapCount = 32, float RRCAlpha = 0.32f, float agcRate = 10e-4, float costasLoopBw = 0.004f, float omegaGain = (0.01*0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
+            init(input, sampleRate, deviation, baudRate, RRCTapCount, RRCAlpha, costasLoopBw, omegaGain, muGain, omegaRelLimit);
+        }
+
+        void init(stream<complex_t>* input, float sampleRate, float baudRate, int RRCTapCount = 32, float RRCAlpha = 0.32f, float agcRate = 10e-4, float costasLoopBw = 0.004f, float omegaGain = (0.01*0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
+            _RRCTapCount = RRCTapCount;
+            _RRCAlpha = RRCAlpha;
+            _sampleRate = sampleRate;
+            _agcRate = agcRate;
+            _costasLoopBw = costasLoopBw;
+            _baudRate = baudRate;
+            _omegaGain = omegaGain;
+            _muGain = muGain;
+            _omegaRelLimit = omegaRelLimit;
+            
+            agc.init(input, 1.0f, 65535, _agcRate);
+            taps.init(_RRCTapCount, _sampleRate, _baudRate, _RRCAlpha);
+            rrc.init(&agc.out, &taps);
+            demod.init(&rrc.out, _costasLoopBw);
+
+            generic_hier_block<PSKDemod<ORDER, OFFSET>>::registerBlock(&agc);
+            generic_hier_block<PSKDemod<ORDER, OFFSET>>::registerBlock(&rrc);
+            generic_hier_block<PSKDemod<ORDER, OFFSET>>::registerBlock(&demod);
+
+            if constexpr (OFFSET) {
+                delay.init(&demod.out);
+                recov.init(&delay.out, _sampleRate / _baudRate, _omegaGain, _muGain, _omegaRelLimit);
+                generic_hier_block<PSKDemod<ORDER, OFFSET>>::registerBlock(&delay);
+            }   
+            else {
+                recov.init(&demod.out, _sampleRate / _baudRate, _omegaGain, _muGain, _omegaRelLimit);
+            }
+
+            generic_hier_block<PSKDemod<ORDER, OFFSET>>::registerBlock(&recov);
+
+            out = &recov.out;
+        }
+
+        void setInput(stream<complex_t>* input) {
+            agc.setInput(input);
+        }
+
+        void setSampleRate(float sampleRate) {
+            _sampleRate = sampleRate;
+            rrc.tempStop();
+            recov.tempStop();
+            taps.setSampleRate(_sampleRate);
+            rrc.updateWindow(&taps);
+            recov.setOmega(_sampleRate / _baudRate, _omegaRelLimit);
+            rrc.tempStart();
+            recov.tempStart();
+        }
+
+        void setBaudRate(float baudRate) {
+            _baudRate = baudRate;
+            rrc.tempStop();
+            recov.tempStop();
+            taps.setBaudRate(_baudRate);
+            rrc.updateWindow(&taps);
+            recov.setOmega(_sampleRate / _baudRate, _omegaRelLimit);
+            rrc.tempStart();
+            recov.tempStart();
+        }
+
+        void setRRCParams(int RRCTapCount, float RRCAlpha) {
+            _RRCTapCount = RRCTapCount;
+            _RRCAlpha = RRCAlpha;
+            taps.setTapCount(_RRCTapCount);
+            taps.setAlpha(RRCAlpha);
+            rrc.updateWindow(&taps);
+        }
+
+        void setAgcRate(float agcRate) {
+            _agcRate = agcRate;
+            agc.setRate(_agcRate);
+        }
+
+        void setCostasLoopBw(float costasLoopBw) {
+            _costasLoopBw = costasLoopBw;
+            costas.setLoopBandwidth(_costasLoopBw);
+        }
+
+        void setMMGains(float omegaGain, float myGain) {
+            _omegaGain = omegaGain;
+            _muGain = myGain;
+            recov.setGains(_omegaGain, _muGain);
+        }
+
+        void setOmegaRelLimit(float omegaRelLimit) {
+            _omegaRelLimit = omegaRelLimit;
+            recov.setOmegaRelLimit(_omegaRelLimit);
+        }
+
+        stream<complex_t>* out = NULL;
+
+    private:
+        dsp::ComplexAGC agc;
+        dsp::RRCTaps taps;
+        dsp::FIR<dsp::complex_t> rrc;
+        CostasLoop<ORDER> demod;
+        DelayImag delay;
+        MMClockRecovery<dsp::complex_t> recov;
+
+        int _RRCTapCount;
+        float _RRCAlpha;
+        float _sampleRate;
+        float _agcRate;
+        float _baudRate;
+        float _costasLoopBw;
+        float _omegaGain;
+        float _muGain;
+        float _omegaRelLimit;
     };
 }

@@ -151,8 +151,14 @@ namespace dsp {
 
         FeedForwardAGC(stream<T>* in) { init(in); }
 
+        ~FeedForwardAGC() {
+            generic_block<FeedForwardAGC<T>>::stop();
+            delete[] buffer;
+        }
+
         void init(stream<T>* in) {
             _in = in;
+            buffer = new T[STREAM_BUFFER_SIZE];
             generic_block<FeedForwardAGC<T>>::registerInput(_in);
             generic_block<FeedForwardAGC<T>>::registerOutput(&out);
         }
@@ -170,27 +176,108 @@ namespace dsp {
             int count = _in->read();
             if (count < 0) { return -1; }
 
-            float level = 1e-4;
+            float level;
+            float val;
 
-            // TODO: THIS AGC IS BAAAAAD!!!!
+            // Process buffer
+            memcpy(&buffer[inBuffer], _in->readBuf, count * sizeof(T));
+            inBuffer += count;
+
+            // If there aren't enough samples, wait for more
+            if (inBuffer < sampleCount) {
+                _in->flush();
+                return count;
+            }
+
+            int toProcess = (inBuffer - sampleCount) + 1;
 
             if constexpr (std::is_same_v<T, float>) {
-                for (int i = 0; i < count; i++) {
-                    if (fabs(_in->readBuf[i]) > level) { level = fabs(_in->readBuf[i]); }
+                for (int i = 0; i < toProcess; i++) {
+                    level = 1e-4;
+                    for (int j = 0; j < sampleCount; j++) {
+                        val = fabsf(buffer[i + j])
+                        if (val > level) { level = val; }
+                    }
+                    out.writeBuf[i] = buffer[i] / level;
                 }
-                volk_32f_s32f_multiply_32f(out.writeBuf, _in->readBuf, 1.0f / level, count);
             }
             if constexpr (std::is_same_v<T, complex_t>) {
-                float reAbs, imAbs, val;
-                for (int i = 0; i < count; i++) {
-                    reAbs = fabs(_in->readBuf[i].re);
-                    imAbs = fabs(_in->readBuf[i].im);
-                    if (reAbs > imAbs) { val = reAbs + 0.4 * imAbs; }
-                    else { val = imAbs + 0.4 * reAbs; }
-                    if (val > level) { level = val; }
+                for (int i = 0; i < toProcess; i++) {
+                    level = 1e-4;
+                    for (int j = 0; j < sampleCount; j++) {
+                        val = buffer[i + j].fastAmplitude();
+                        if (val > level) { level = val; }
+                    }
+                    out.writeBuf[i] = buffer[i] / level;
                 }
-                lv_32fc_t cplxLvl = {1.0f / level, 1.0f / level};
-                volk_32fc_s32fc_multiply_32fc((lv_32fc_t*)out.writeBuf, (lv_32fc_t*)_in->readBuf, cplxLvl, count);
+            }
+
+            _in->flush();
+
+            // Move rest of buffer
+            memmove(buffer, &buffer[toProcess], (sampleCount - 1) * sizeof(T));
+            inBuffer -= toProcess;
+            
+            if (!out.swap(count)) { return -1; }
+            return toProcess;
+        }
+
+        stream<T> out;
+
+    private:
+        T* buffer;
+        int inBuffer = 0;
+        int sampleCount = 1024;
+        stream<T>* _in;
+
+    };
+
+    class ComplexAGC : public generic_block<ComplexAGC> {
+    public:
+        ComplexAGC() {}
+
+        ComplexAGC(stream<complex_t>* in, float setPoint, float maxGain, float rate) { init(in, setPoint, maxGain, rate); }
+
+        void init(stream<complex_t>* in, float setPoint, float maxGain, float rate) {
+            _in = in;
+            _setPoint = setPoint;
+            _maxGain = maxGain;
+            _rate = rate;
+            generic_block<ComplexAGC>::registerInput(_in);
+            generic_block<ComplexAGC>::registerOutput(&out);
+        }
+
+        void setInput(stream<complex_t>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<ComplexAGC>::ctrlMtx);
+            generic_block<ComplexAGC>::tempStop();
+            generic_block<ComplexAGC>::unregisterInput(_in);
+            _in = in;
+            generic_block<ComplexAGC>::registerInput(_in);
+            generic_block<ComplexAGC>::tempStart();
+        }
+
+        void setSetPoint(float setPoint) {
+            _setPoint = setPoint;
+        }
+
+        void setMaxGain(float maxGain) {
+            _maxGain = maxGain;
+        }
+
+        void setRate(float rate) {
+            _rate = rate;
+        }
+
+        int run() {
+            int count = _in->read();
+            if (count < 0) { return -1; }
+
+            dsp::complex_t val;
+            for (int i = 0; i < count; i++) {
+                val = _in->readBuf[i] * _gain;
+                out.writeBuf[i] = val;
+                _gain += (_setPoint - val.amplitude()) * _rate;
+                if (_gain > _maxGain) { _gain = _maxGain; }
             }
 
             _in->flush();
@@ -198,12 +285,64 @@ namespace dsp {
             return count;
         }
 
-        stream<T> out;
+        stream<complex_t> out;
 
     private:
-        stream<T>* _in;
+        float _gain = 1.0f;
+        float _setPoint = 1.0f;
+        float _maxGain = 10e4;
+        float _rate = 10e-4;
+        
+        stream<complex_t>* _in;
 
     };
+
+    class DelayImag : public generic_block<DelayImag> {
+    public:
+        DelayImag() {}
+
+        DelayImag(stream<complex_t>* in) { init(in); }
+
+        void init(stream<complex_t>* in) {
+            _in = in;
+            generic_block<DelayImag>::registerInput(_in);
+            generic_block<DelayImag>::registerOutput(&out);
+        }
+
+        void setInput(stream<complex_t>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<DelayImag>::ctrlMtx);
+            generic_block<DelayImag>::tempStop();
+            generic_block<DelayImag>::unregisterInput(_in);
+            _in = in;
+            generic_block<DelayImag>::registerInput(_in);
+            generic_block<DelayImag>::tempStart();
+        }
+
+        int run() {
+            int count = _in->read();
+            if (count < 0) { return -1; }
+
+            dsp::complex_t val;
+            for (int i = 0; i < count; i++) {
+                val = _in->readBuf[i];
+                out.writeBuf[i].re = val.re;
+                out.writeBuf[i].im = lastIm;
+                lastIm = val.im;
+            }
+
+            _in->flush();
+            if (!out.swap(count)) { return -1; }
+            return count;
+        }
+
+        stream<complex_t> out;
+
+    private:
+        float lastIm = 0.0f;
+        stream<complex_t>* _in;
+
+    };
+
 
 
     template <class T>

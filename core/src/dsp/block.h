@@ -8,8 +8,6 @@
 
 #include <spdlog/spdlog.h>
 
-#define FL_M_PI                3.1415926535f
-
 namespace dsp {
 
     class generic_unnamed_block {

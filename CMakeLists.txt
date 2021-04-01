@@ -15,6 +15,7 @@ option(OPT_BUILD_HACKRF_SOURCE "Build HackRF Source Module (Depedencies: libhack
 option(OPT_BUILD_RTL_SDR_SOURCE "Build HackRF Source Module (Depedencies: libhackrf)" ON)
 option(OPT_BUILD_AUDIO_SINK "Build Audio Sink Module (Depedencies: rtaudio)" ON)
 option(OPT_BUILD_FALCON9_DECODER "Build the falcon9 live decoder" OFF)
+option(OPT_BUILD_METEOR_DEMODULATOR "Build the meteor demodulator module" ON)
 # Core of SDR++
 add_subdirectory("core")
 
@@ -71,6 +72,10 @@ endif (OPT_BUILD_AUDIO_SINK)
 if (OPT_BUILD_FALCON9_DECODER)
 add_subdirectory("falcon9_decoder")
 endif (OPT_BUILD_FALCON9_DECODER)
+
+if (OPT_BUILD_METEOR_DEMODULATOR)
+add_subdirectory("meteor_demodulator")
+endif (OPT_BUILD_METEOR_DEMODULATOR)
 
 if (MSVC)
     set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")

@@ -146,6 +146,7 @@ private:
         bw = bandWidth;
         _vfo->setBandwidth(bw);
         demod.setDeviation(bw / 2.0f);
+        setAudioSampleRate(audioSampRate);
     }
 
     void setSnapInterval(float snapInt) {

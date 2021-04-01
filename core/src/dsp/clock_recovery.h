@@ -88,6 +88,30 @@ namespace dsp {
             generic_block<MMClockRecovery<T>>::registerOutput(&out);
         }
 
+        void setOmega(float omega, float omegaRelLimit) {
+            generic_block<MMClockRecovery<T>>::tempStop();
+            omegaMin = _omega - (_omega * _omegaRelLimit);
+            omegaMax = _omega + (_omega * _omegaRelLimit);
+            _omega = omega;
+            _dynOmega = _omega;
+            generic_block<MMClockRecovery<T>>::tempStart();
+        }
+
+        void setGains(float omegaGain, float muGain) {
+            generic_block<MMClockRecovery<T>>::tempStop();
+            _gainOmega = omegaGain;
+            _muGain = muGain;
+            generic_block<MMClockRecovery<T>>::tempStart();
+        }
+
+        void setOmegaRelLimit(float omegaRelLimit) {
+            generic_block<MMClockRecovery<T>>::tempStop();
+            _omegaRelLimit = omegaRelLimit;
+            omegaMin = _omega - (_omega * _omegaRelLimit);
+            omegaMax = _omega + (_omega * _omegaRelLimit);
+            generic_block<MMClockRecovery<T>>::tempStart();
+        }
+
         void setInput(stream<T>* in) {
             generic_block<MMClockRecovery<T>>::tempStop();
             generic_block<MMClockRecovery<T>>::unregisterInput(_in);
@@ -138,10 +162,10 @@ namespace dsp {
 
                     // Perfrom interpolation the same way as for float values
                     if (i < 7) {
-                        volk_32fc_32f_dot_prod_32fc(&_p_0T, &delay[i], INTERP_TAPS[(int)roundf(_mu * 128.0f)], 8);
+                        volk_32fc_32f_dot_prod_32fc((lv_32fc_t*)&_p_0T, (lv_32fc_t*)&delay[i], INTERP_TAPS[(int)roundf(_mu * 128.0f)], 8);
                     }
                     else {
-                        volk_32fc_32f_dot_prod_32fc(&_p_0T, &_in->readBuf[i - 7], INTERP_TAPS[(int)roundf(_mu * 128.0f)], 8);
+                        volk_32fc_32f_dot_prod_32fc((lv_32fc_t*)&_p_0T, (lv_32fc_t*)&_in->readBuf[i - 7], INTERP_TAPS[(int)roundf(_mu * 128.0f)], 8);
                     }
                     out.writeBuf[outCount++] = _p_0T;
 
@@ -192,7 +216,7 @@ namespace dsp {
         int count;
 
         // Delay buffer
-        T delay[15];
+        T delay[1024];
         int nextOffset = 0;
 
         // Configuration
