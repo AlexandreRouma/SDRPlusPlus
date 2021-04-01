@@ -568,7 +568,7 @@ namespace dsp {
     public:
         PSKDemod() {}
         PSKDemod(stream<complex_t>* input, float sampleRate, float baudRate, int RRCTapCount = 32, float RRCAlpha = 0.32f, float agcRate = 10e-4, float costasLoopBw = 0.004f, float omegaGain = (0.01*0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
-            init(input, sampleRate, deviation, baudRate, RRCTapCount, RRCAlpha, costasLoopBw, omegaGain, muGain, omegaRelLimit);
+            init(input, sampleRate, baudRate, RRCTapCount, RRCAlpha, agcRate, costasLoopBw, omegaGain, muGain, omegaRelLimit);
         }
 
         void init(stream<complex_t>* input, float sampleRate, float baudRate, int RRCTapCount = 32, float RRCAlpha = 0.32f, float agcRate = 10e-4, float costasLoopBw = 0.004f, float omegaGain = (0.01*0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {

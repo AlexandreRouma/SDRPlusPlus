@@ -1,4 +1,3 @@
-#pragma once
 #include <gui/widgets/symbol_diagram.h>
 
 namespace ImGui {

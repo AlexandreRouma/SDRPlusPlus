@@ -1,4 +1,3 @@
-#pragma once
 #include <gui/widgets/constellation_diagram.h>
 
 namespace ImGui {
