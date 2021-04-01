@@ -180,4 +180,45 @@ namespace dsp {
         
 
     };
+
+    template <class T>
+    class Splitter : public generic_block<Splitter<T>> {
+    public:
+        Splitter() {}
+
+        Splitter(stream<T>* in) { init(in); }
+
+        void init(stream<T>* in) {
+            _in = in;
+            generic_block<Splitter>::registerInput(_in);
+        }
+
+        void setInput(stream<T>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<Splitter>::ctrlMtx);
+            generic_block<Splitter>::tempStop();
+            generic_block<Splitter>::unregisterInput(_in);
+            _in = in;
+            generic_block<Splitter>::registerInput(_in);
+            generic_block<Splitter>::tempStart();
+        }
+
+        stream<T> out;
+
+    private:
+        int run() {
+            // TODO: If too slow, buffering might be necessary
+            int count = _in->read();
+            if (count < 0) { return -1; }
+
+            auto now = std::chrono::high_resolution_clock::now();
+
+            _in->flush();
+            out.swap(count);
+            return count;
+        }
+
+        std::chrono::time_point<std::chrono::high_resolution_clock> last;
+
+        stream<T>* _in;
+    };
 }

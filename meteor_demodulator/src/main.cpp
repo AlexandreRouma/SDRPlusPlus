@@ -48,7 +48,7 @@ public:
 
         writeBuffer = new int8_t[STREAM_BUFFER_SIZE];
 
-        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 150000, INPUT_SAMPLE_RATE, 1);
+        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 120000, INPUT_SAMPLE_RATE, 1);
         demod.init(vfo->output, INPUT_SAMPLE_RATE, 72000.0f, 32, 0.6f, 0.1f, 0.005f);
         split.init(demod.out);
         split.bindStream(&symSinkStream);
@@ -71,7 +71,7 @@ public:
     }
 
     void enable() {
-        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 150000, INPUT_SAMPLE_RATE, 1);
+        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 120000, INPUT_SAMPLE_RATE, 1);
 
         demod.setInput(vfo->output);
 
