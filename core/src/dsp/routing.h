@@ -182,24 +182,24 @@ namespace dsp {
     };
 
     template <class T>
-    class Splitter : public generic_block<Splitter<T>> {
+    class Throttle : public generic_block<Throttle<T>> {
     public:
-        Splitter() {}
+        Throttle() {}
 
-        Splitter(stream<T>* in) { init(in); }
+        Throttle(stream<T>* in) { init(in); }
 
         void init(stream<T>* in) {
             _in = in;
-            generic_block<Splitter>::registerInput(_in);
+            generic_block<Throttle>::registerInput(_in);
         }
 
         void setInput(stream<T>* in) {
-            std::lock_guard<std::mutex> lck(generic_block<Splitter>::ctrlMtx);
-            generic_block<Splitter>::tempStop();
-            generic_block<Splitter>::unregisterInput(_in);
+            std::lock_guard<std::mutex> lck(generic_block<Throttle>::ctrlMtx);
+            generic_block<Throttle>::tempStop();
+            generic_block<Throttle>::unregisterInput(_in);
             _in = in;
-            generic_block<Splitter>::registerInput(_in);
-            generic_block<Splitter>::tempStart();
+            generic_block<Throttle>::registerInput(_in);
+            generic_block<Throttle>::tempStart();
         }
 
         stream<T> out;
