@@ -18,6 +18,7 @@ option(OPT_BUILD_SDRPLAY_SOURCE "Build SDRplay Source Module (Depedencies: libsd
 option(OPT_BUILD_PLUTOSDR_SOURCE "Build PlutoSDR Source Module (Depedencies: libiio, libad9361)" ON)
 option(OPT_BUILD_HACKRF_SOURCE "Build HackRF Source Module (Depedencies: libhackrf)" ON)
 option(OPT_BUILD_RTL_SDR_SOURCE "Build RTL-SDR Source Module (Depedencies: librtlsdr)" ON)
+option(OPT_BUILD_LIBSDDC_SOURCE "Build LibSDDC (RX888 and others) Source Module (Depedencies: libusb-1.0)" OFF)
 option(OPT_BUILD_AUDIO_SINK "Build Audio Sink Module (Depedencies: rtaudio)" ON)
 option(OPT_BUILD_FALCON9_DECODER "Build the falcon9 live decoder (Dependencies: ffplay)" OFF)
 option(OPT_BUILD_METEOR_DEMODULATOR "Build the meteor demodulator module (no dependencies required)" ON)
@@ -28,7 +29,7 @@ add_subdirectory("core")
 
 # Base modules
 add_subdirectory("radio")
-add_subdirectory("recorder") 
+add_subdirectory("recorder")
 add_subdirectory("file_source")
 
 # Source modules
@@ -63,6 +64,10 @@ endif (OPT_BUILD_SDRPLAY_SOURCE)
 if (OPT_BUILD_PLUTOSDR_SOURCE)
 add_subdirectory("plutosdr_source")
 endif (OPT_BUILD_PLUTOSDR_SOURCE)
+
+if (OPT_BUILD_LIBSDDC_SOURCE)
+add_subdirectory("libsddc_source")
+endif (OPT_BUILD_LIBSDDC_SOURCE)
 
 if (OPT_BUILD_HACKRF_SOURCE)
 add_subdirectory("hackrf_source")
@@ -135,6 +140,7 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/bandplans DESTINATION share/sdrpp
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/colormaps DESTINATION share/sdrpp)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/fonts DESTINATION share/sdrpp)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/icons DESTINATION share/sdrpp)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/firmware DESTINATION share/sdrpp)
 configure_file(${CMAKE_SOURCE_DIR}/sdrpp.desktop ${CMAKE_CURRENT_BINARY_DIR}/sdrpp.desktop @ONLY)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")

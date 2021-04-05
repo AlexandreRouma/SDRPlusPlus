@@ -29,7 +29,7 @@ ModuleManager::Module_t ModuleManager::loadModule(std::string path) {
 #else
     mod.handle = dlopen(path.c_str(), RTLD_LAZY);
     if (mod.handle == NULL) {
-        spdlog::error("Couldn't load {0}.", path);
+        spdlog::error("Couldn't load {0}. Error code: {1}", path, dlerror());
         mod.handle = NULL;
         return mod;
     }

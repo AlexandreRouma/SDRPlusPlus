@@ -158,6 +158,7 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["moduleInstances"]["SoapySDR Source"] = "soapy_source";
     defConfig["moduleInstances"]["PlutoSDR Source"] = "plutosdr_source";
     defConfig["moduleInstances"]["HackRF Source"] = "hackrf_source";
+    defConfig["moduleInstances"]["LibSDDC Source"] = "libsddc_source";
     defConfig["moduleInstances"]["RTL-TCP Source"] = "rtl_tcp_source";
     defConfig["moduleInstances"]["RTL-SDR Source"] = "rtl_sdr_source";
     defConfig["moduleInstances"]["AirspyHF+ Source"] = "airspyhf_source";
