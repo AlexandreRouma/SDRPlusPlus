@@ -7,6 +7,8 @@
 #include <gui/style.h>
 #include <config.h>
 #include <libhackrf/hackrf.h>
+#include <gui/widgets/stepped_slider.h>
+#include <options.h>
 
 #pragma optimize( "", off )
 
@@ -20,7 +22,7 @@ SDRPP_MOD_INFO {
     /* Max instances    */ 1
 };
 
-//ConfigManager config;
+ConfigManager config;
 
 const char* AGG_MODES_STR = "Off\0Low\0High\0";
 
@@ -36,6 +38,43 @@ const int sampleRates[] = {
     2000000,
 };
 
+const int bandwidths[] = {
+    1750000,
+	2500000,
+	3500000,
+	5000000,
+	5500000,
+	6000000,
+	7000000,
+	8000000,
+	9000000,
+	10000000,
+	12000000,
+	14000000,
+	15000000,
+	20000000,
+	24000000,
+	28000000,
+};
+
+const char* bandwidthsTxt = "1.75MHz\0"
+                            "2.5MHz\0"
+                            "3.5MHz\0"
+                            "5MHz\0"
+                            "5.5MHz\0"
+                            "6MHz\0"
+                            "7MHz\0"
+                            "8MHz\0"
+                            "9MHz\0"
+                            "10MHz\0"
+                            "12MHz\0"
+                            "14MHz\0"
+                            "15MHz\0"
+                            "20MHz\0"
+                            "24MHz\0"
+                            "28MHz\0"
+                            "Auto\0";
+
 class HackRFSourceModule : public ModuleManager::Instance {
 public:
     HackRFSourceModule(std::string name) {
@@ -43,7 +82,9 @@ public:
 
         hackrf_init();
 
+        // Select the last samplerate option
         sampleRate = 2000000;
+        srId = 6;
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
@@ -56,11 +97,10 @@ public:
 
         refresh();
 
-        selectFirst();
-
-        // config.aquire();
-        // std::string serString = config.conf["device"];
-        // config.release();
+        config.aquire();
+        std::string confSerial = config.conf["device"];
+        config.release();
+        selectBySerial(confSerial);
 
         sigpath::sourceManager.registerSource("HackRF", &handler);
     }
@@ -100,8 +140,67 @@ public:
 
     void selectFirst() {
         if (devList.size() != 0) {
-            selectedSerial = devList[0];
+            selectBySerial(devList[0]);
+            return;
         }
+        selectedSerial = "";
+    }
+
+    void selectBySerial(std::string serial) {
+        if (std::find(devList.begin(), devList.end(), serial) == devList.end()) {
+            selectFirst();
+            return;
+        }
+
+        bool created = false;
+        config.aquire();
+        if (!config.conf["devices"].contains(serial)) {
+            config.conf["devices"][serial]["sampleRate"] = 2000000;
+            config.conf["devices"][serial]["biasT"] = false;
+            config.conf["devices"][serial]["amp"] = false;
+            config.conf["devices"][serial]["lnaGain"] = 0;
+            config.conf["devices"][serial]["vgaGain"] = 0;
+            config.conf["devices"][serial]["bandwidth"] = 16;
+        }
+        config.release(created);
+
+        // Set default values
+        srId = 0;
+        sampleRate = 2000000;
+        biasT = false;
+        amp = false;
+        lna = 0;
+        vga = 0;
+        bwId = 16;
+
+        // Load from config if available and validate
+        if (config.conf["devices"][serial].contains("sampleRate")) {
+            int psr = config.conf["devices"][serial]["sampleRate"];
+            for (int i = 0; i < 7; i++) {
+                if (sampleRates[i] == psr) {
+                    sampleRate = psr;
+                    srId = i;
+                }
+            }
+        }
+        if (config.conf["devices"][serial].contains("biasT")) {
+            biasT = config.conf["devices"][serial]["biasT"];
+        }
+        if (config.conf["devices"][serial].contains("amp")) {
+            amp = config.conf["devices"][serial]["amp"];
+        }
+        if (config.conf["devices"][serial].contains("lnaGain")) {
+            lna = config.conf["devices"][serial]["lnaGain"];
+        }
+        if (config.conf["devices"][serial].contains("vgaGain")) {
+            vga = config.conf["devices"][serial]["vgaGain"];
+        }
+        if (config.conf["devices"][serial].contains("bandwidth")) {
+            bwId = config.conf["devices"][serial]["bandwidth"];
+            bwId = std::clamp<int>(bwId, 0, 16);
+        }
+
+        selectedSerial = serial;
     }
 
 private:
@@ -116,7 +215,10 @@ private:
         spdlog::info("HackRFSourceModule '{0}': Menu Deselect!", _this->name);
     }
 
-    
+    int bandwidthIdToBw(int id) {
+        if (id == 16) { return hackrf_compute_baseband_filter_bw(sampleRate); }
+        return bandwidths[id];
+    }
     
     static void start(void* ctx) {
         HackRFSourceModule* _this = (HackRFSourceModule*)ctx;
@@ -135,12 +237,13 @@ private:
         }
 
         hackrf_set_sample_rate(_this->openDev, _this->sampleRate);
-        hackrf_set_baseband_filter_bandwidth(_this->openDev, hackrf_compute_baseband_filter_bw(_this->sampleRate));
+        hackrf_set_baseband_filter_bandwidth(_this->openDev, _this->bandwidthIdToBw(_this->bwId));
         hackrf_set_freq(_this->openDev, _this->freq);
 
+        hackrf_set_antenna_enable(_this->openDev, _this->biasT);
         hackrf_set_amp_enable(_this->openDev, _this->amp);
         hackrf_set_lna_gain(_this->openDev, _this->lna);
-        hackrf_set_vga_gain(_this->openDev, _this->lna);
+        hackrf_set_vga_gain(_this->openDev, _this->vga);
 
         hackrf_start_rx(_this->openDev, callback, _this);
 
@@ -179,11 +282,17 @@ private:
         ImGui::SetNextItemWidth(menuWidth);
         if (ImGui::Combo(CONCAT("##_hackrf_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
             _this->selectedSerial = _this->devList[_this->devId];
+            config.aquire();
+            config.conf["device"] = _this->selectedSerial;
+            config.release(true);
         }
 
         if (ImGui::Combo(CONCAT("##_hackrf_sr_sel_", _this->name), &_this->srId, sampleRatesTxt)) {
             _this->sampleRate = sampleRates[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
+            config.aquire();
+            config.conf["devices"][_this->selectedSerial]["sampleRate"] = _this->sampleRate;
+            config.release(true);
         }
 
         ImGui::SameLine();
@@ -194,30 +303,58 @@ private:
 
         if (_this->running) { style::endDisabled(); }
 
-        ImGui::Text("Amp Enabled");
+        ImGui::Text("Bandwidth");
         ImGui::SameLine();
-        if (ImGui::Checkbox(CONCAT("##_hackrf_amp_", _this->name), &_this->amp)) {
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::Combo(CONCAT("##_hackrf_bw_sel_", _this->name), &_this->bwId, bandwidthsTxt)) {
+            if (_this->running) {
+                hackrf_set_baseband_filter_bandwidth(_this->openDev, _this->bandwidthIdToBw(_this->bwId));
+            }
+            config.aquire();
+            config.conf["devices"][_this->selectedSerial]["bandwidth"] = _this->bwId;
+            config.release(true);
+        }
+
+        if (ImGui::Checkbox(CONCAT("Bias-T##_hackrf_bt_", _this->name), &_this->biasT)) {
+            if (_this->running) {
+                hackrf_set_antenna_enable(_this->openDev, _this->biasT);
+            }
+            config.aquire();
+            config.conf["devices"][_this->selectedSerial]["biasT"] = _this->biasT;
+            config.release(true);
+        }
+
+        if (ImGui::Checkbox(CONCAT("Amp Enabled##_hackrf_amp_", _this->name), &_this->amp)) {
             if (_this->running) {
                 hackrf_set_amp_enable(_this->openDev, _this->amp);
             }
+            config.aquire();
+            config.conf["devices"][_this->selectedSerial]["amp"] = _this->amp;
+            config.release(true);
         }
 
         ImGui::Text("LNA Gain");
         ImGui::SameLine();
-        if (ImGui::SliderInt(CONCAT("##_hackrf_lna_", _this->name), &_this->lna, 0, 40)) {
-            _this->lna = (_this->lna / 8) * 8;
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::SliderFloatWithSteps(CONCAT("##_hackrf_lna_", _this->name), &_this->lna, 0, 40, 8, "%.0fdB")) {
             if (_this->running) {
                 hackrf_set_lna_gain(_this->openDev, _this->lna);
             }
+            config.aquire();
+            config.conf["devices"][_this->selectedSerial]["lnaGain"] = (int)_this->lna;
+            config.release(true);
         }
 
-        ImGui::Text("LNA Gain");
+        ImGui::Text("VGA Gain");
         ImGui::SameLine();
-        if (ImGui::SliderInt(CONCAT("##_hackrf_vga_", _this->name), &_this->vga, 0, 62)) {
-            _this->vga = (_this->vga / 2) * 2;
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::SliderFloatWithSteps(CONCAT("##_hackrf_vga_", _this->name), &_this->vga, 0, 62, 2, "%.0fdB")) {
             if (_this->running) {
-                hackrf_set_vga_gain(_this->openDev, _this->lna);
+                hackrf_set_vga_gain(_this->openDev, _this->vga);
             }
+            config.aquire();
+            config.conf["devices"][_this->selectedSerial]["vgaGain"] = (int)_this->vga;
+            config.release(true);
         }   
     }
 
@@ -244,21 +381,23 @@ private:
     std::string selectedSerial = "";
     int devId = 0;
     int srId = 0;
+    int bwId = 16;
+    bool biasT = false;
     bool amp = false;
-    int lna = 0;
-    int vga = 0;
+    float lna = 0;
+    float vga = 0;
 
     std::vector<std::string> devList;
     std::string devListTxt;
 };
 
 MOD_EXPORT void _INIT_() {
-//    config.setPath(ROOT_DIR "/airspyhf_config.json");
-//    json defConf;
-//    defConf["device"] = "";
-//    defConf["devices"] = json::object();
-//    config.load(defConf);
-//    config.enableAutoSave();
+    json def = json({});
+    def["devices"] = json({});
+    def["device"] = "";
+    config.setPath(options::opts.root + "/hackrf_config.json");
+    config.load(def);
+    config.enableAutoSave();
 }
 
 MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
@@ -270,8 +409,8 @@ MOD_EXPORT void _DELETE_INSTANCE_(ModuleManager::Instance* instance) {
 }
 
 MOD_EXPORT void _END_() {
-    // config.disableAutoSave();
-    // config.save();
+    config.disableAutoSave();
+    config.save();
 }
 
 #pragma optimize( "", on )

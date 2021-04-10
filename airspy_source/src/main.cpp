@@ -27,6 +27,8 @@ public:
     AirspySourceModule(std::string name) {
         this->name = name;
 
+        airspy_init();
+
         sampleRate = 10000000.0;
 
         handler.ctx = this;
@@ -54,7 +56,7 @@ public:
     }
 
     ~AirspySourceModule() {
-        
+        airspy_exit();
     }
 
     void enable() {

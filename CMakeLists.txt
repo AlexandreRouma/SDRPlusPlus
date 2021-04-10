@@ -12,10 +12,11 @@ option(OPT_BUILD_BLADERF_SOURCE "Build BladeRF Source Module (Depedencies: libbl
 option(OPT_BUILD_SDRPLAY_SOURCE "Build SDRplay Source Module (Depedencies: libsdrplay)" OFF)
 option(OPT_BUILD_PLUTOSDR_SOURCE "Build PlutoSDR Source Module (Depedencies: libiio, libad9361)" ON)
 option(OPT_BUILD_HACKRF_SOURCE "Build HackRF Source Module (Depedencies: libhackrf)" OFF)
-option(OPT_BUILD_RTL_SDR_SOURCE "Build HackRF Source Module (Depedencies: libhackrf)" ON)
+option(OPT_BUILD_RTL_SDR_SOURCE "Build RTL-SDR Source Module (Depedencies: librtlsdr)" ON)
 option(OPT_BUILD_AUDIO_SINK "Build Audio Sink Module (Depedencies: rtaudio)" ON)
-option(OPT_BUILD_FALCON9_DECODER "Build the falcon9 live decoder" OFF)
-option(OPT_BUILD_METEOR_DEMODULATOR "Build the meteor demodulator module" ON)
+option(OPT_BUILD_FALCON9_DECODER "Build the falcon9 live decoder (Dependencies: ffplay)" OFF)
+option(OPT_BUILD_METEOR_DEMODULATOR "Build the meteor demodulator module (no dependencies required)" ON)
+option(OPT_BUILD_WEATHER_SAT_DECODER "Build the HRPT decoder module (no dependencies required)" ON)
 # Core of SDR++
 add_subdirectory("core")
 
@@ -76,6 +77,10 @@ endif (OPT_BUILD_FALCON9_DECODER)
 if (OPT_BUILD_METEOR_DEMODULATOR)
 add_subdirectory("meteor_demodulator")
 endif (OPT_BUILD_METEOR_DEMODULATOR)
+
+if (OPT_BUILD_WEATHER_SAT_DECODER)
+add_subdirectory("weather_sat_decoder")
+endif (OPT_BUILD_WEATHER_SAT_DECODER)
 
 if (MSVC)
     set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")

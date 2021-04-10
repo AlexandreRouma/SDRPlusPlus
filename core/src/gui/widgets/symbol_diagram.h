@@ -8,7 +8,7 @@
 namespace ImGui {
     class SymbolDiagram {
     public:
-        SymbolDiagram();
+        SymbolDiagram(float _scale = 1.0f);
 
         void draw(const ImVec2& size_arg = ImVec2(0, 0));
 
@@ -19,6 +19,7 @@ namespace ImGui {
     private:
         std::mutex bufferMtx;
         float buffer[1024];
+        float _scale;
 
     };
 }

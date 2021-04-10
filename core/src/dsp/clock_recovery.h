@@ -84,6 +84,8 @@ namespace dsp {
             omegaMax = _omega + (_omega * _omegaRelLimit);
             _dynOmega = _omega;
 
+            memset(delay, 0, 1024 * sizeof(T));
+
             generic_block<MMClockRecovery<T>>::registerInput(_in);
             generic_block<MMClockRecovery<T>>::registerOutput(&out);
         }

@@ -1,6 +1,7 @@
 #pragma once
 #include <dsp/block.h>
 #include <dsp/buffer.h>
+#include <fstream>
 
 namespace dsp {
     template <class T>
@@ -126,6 +127,55 @@ namespace dsp {
 
     private:
         stream<T>* _in;
+
+    };
+
+    template <class T>
+    class FileSink : public generic_block<FileSink<T>> {
+    public:
+        FileSink() {}
+
+        FileSink(stream<T>* in, std::string path) { init(in, path); }
+
+        ~FileSink() {
+            generic_block<FileSink<T>>::stop();
+            if (file.is_open()) { file.close(); }
+        }
+
+        void init(stream<T>* in, std::string path) {
+            _in = in;
+            file = std::ofstream(path, std::ios::binary);
+            generic_block<FileSink<T>>::registerInput(_in);
+        }
+
+        void setInput(stream<T>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<FileSink<T>>::ctrlMtx);
+            generic_block<FileSink<T>>::tempStop();
+            generic_block<FileSink<T>>::unregisterInput(_in);
+            _in = in;
+            generic_block<FileSink<T>>::registerInput(_in);
+            generic_block<FileSink<T>>::tempStart();
+        }
+
+        bool isOpen() {
+            return file.is_open();
+        }
+
+        int run() {
+            int count = _in->read();
+            if (count < 0) { return -1; }
+
+            if (file.is_open()) {
+                file.write((char*)_in->readBuf, count * sizeof(T));
+            }
+
+            _in->flush();
+            return count;
+        }
+
+    private:
+        stream<T>* _in;
+        std::ofstream file;
 
     };
 }

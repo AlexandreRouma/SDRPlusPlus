@@ -304,7 +304,9 @@ public:
                 config.conf["devices"][selectedName]["biast"] = false;
             }
             else if (openDev.hwVer == SDRPLAY_RSPduo_ID) {
-                // TODO: Implement
+                config.conf["devices"][selectedName]["fmNotch"] = false;
+                config.conf["devices"][selectedName]["dabNotch"] = false;
+                config.conf["devices"][selectedName]["biast"] = false;
             }
             else if (openDev.hwVer == SDRPLAY_RSPdx_ID) {
                 config.conf["devices"][selectedName]["antenna"] = 0;
@@ -369,7 +371,15 @@ public:
             }
         }
         else if (openDev.hwVer == SDRPLAY_RSPduo_ID) {
-            // TODO: Implement
+            if (config.conf["devices"][selectedName].contains("fmNotch")) {
+                rspduo_fmNotch = config.conf["devices"][selectedName]["fmNotch"];
+            }
+            if (config.conf["devices"][selectedName].contains("dabNotch")) {
+                rspduo_dabNotch = config.conf["devices"][selectedName]["dabNotch"];
+            }
+            if (config.conf["devices"][selectedName].contains("biast")) {
+                rspduo_biasT = config.conf["devices"][selectedName]["biast"];
+            }
         }
         else if (openDev.hwVer == SDRPLAY_RSPdx_ID) {
             if (config.conf["devices"][selectedName].contains("antenna")) {
@@ -467,6 +477,9 @@ private:
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Rsp2_BiasTControl, sdrplay_api_Update_Ext1_None);
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Rsp2_AntennaControl, sdrplay_api_Update_Ext1_None);
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Rsp2_AmPortSelect, sdrplay_api_Update_Ext1_None);
+        }
+        else if (_this->openDev.hwVer == SDRPLAY_RSPduo_ID) {
+            
         }
         else if (_this->openDev.hwVer == SDRPLAY_RSPdx_ID) {
             _this->openDevParams->devParams->rspDxParams.rfNotchEnable = _this->rspdx_fmNotch;
@@ -780,7 +793,9 @@ private:
     int rsp2_antennaPort = 0;
 
     // RSP Duo Options
-
+    bool rspduo_fmNotch = false;
+    bool rspduo_dabNotch = false;
+    bool rspduo_biasT = false;
 
     // RSPdx Options
     bool rspdx_fmNotch = false;
