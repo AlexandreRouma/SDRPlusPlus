@@ -170,11 +170,13 @@ private:
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (_this->running) { style::beginDisabled(); }
         if (ImGui::InputFloat(CONCAT("##_samplerate_select_", _this->name), &_this->sampleRate, 1, 1000, 0)) {
-            _this->sampleRate = std::clamp<float>(_this->sampleRate, 500000, 61000000);
-            core::setInputSampleRate(_this->sampleRate);
-            config.aquire();
-            config.conf["sampleRate"] = _this->sampleRate;
-            config.release(true);
+            if (_this->sampleRate > 0) {
+                _this->sampleRate = std::clamp<float>(_this->sampleRate, 500000, 61000000);
+                core::setInputSampleRate(_this->sampleRate);
+                config.aquire();
+                config.conf["sampleRate"] = _this->sampleRate;
+                config.release(true);
+            }
         }
         if (_this->running) { style::endDisabled(); }
 
