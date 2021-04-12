@@ -102,6 +102,8 @@ const sdrplay_api_AgcControlT agcModes[] = {
     sdrplay_api_AGC_100HZ
 };
 
+const char* rspduo_antennaPortsTxt = "Tuner 1 (50Ohm)\0Tuner 1 (Hi-Z)\0Tuner 2 (50Ohm)\0";
+
 const char* agcModesTxt = "Off\0005Hz\00050Hz\000100Hz";
 
 class SDRPlaySourceModule : public ModuleManager::Instance {
@@ -235,6 +237,7 @@ public:
             sdrplay_api_ReleaseDevice(&openDev);
         }
 
+        openDev.rspDuoMode = sdrplay_api_RspDuoMode_Single_Tuner;
         err = sdrplay_api_SelectDevice(&openDev);
         if (err != sdrplay_api_Success) {
             const char* errStr = sdrplay_api_GetErrorString(err);
@@ -304,8 +307,10 @@ public:
                 config.conf["devices"][selectedName]["biast"] = false;
             }
             else if (openDev.hwVer == SDRPLAY_RSPduo_ID) {
+                config.conf["devices"][selectedName]["antenna"] = 0;
                 config.conf["devices"][selectedName]["fmNotch"] = false;
                 config.conf["devices"][selectedName]["dabNotch"] = false;
+                config.conf["devices"][selectedName]["amNotch"] = false;
                 config.conf["devices"][selectedName]["biast"] = false;
             }
             else if (openDev.hwVer == SDRPLAY_RSPdx_ID) {
@@ -371,11 +376,17 @@ public:
             }
         }
         else if (openDev.hwVer == SDRPLAY_RSPduo_ID) {
+            if (config.conf["devices"][selectedName].contains("antenna")) {
+                rspduo_antennaPort = config.conf["devices"][selectedName]["antenna"];
+            }
             if (config.conf["devices"][selectedName].contains("fmNotch")) {
                 rspduo_fmNotch = config.conf["devices"][selectedName]["fmNotch"];
             }
             if (config.conf["devices"][selectedName].contains("dabNotch")) {
                 rspduo_dabNotch = config.conf["devices"][selectedName]["dabNotch"];
+            }
+            if (config.conf["devices"][selectedName].contains("amNotch")) {
+                rspduo_amNotch = config.conf["devices"][selectedName]["amNotch"];
             }
             if (config.conf["devices"][selectedName].contains("biast")) {
                 rspduo_biasT = config.conf["devices"][selectedName]["biast"];
@@ -403,9 +414,18 @@ public:
         deviceOpen = true;
     }
     
-    void selectShittyTuner(sdrplay_api_TunerSelectT tuner, sdrplay_api_RspDuo_AmPortSelectT amPort) {
-        // What the fuck?
+    void rspDuoSelectTuner(sdrplay_api_TunerSelectT tuner, sdrplay_api_RspDuo_AmPortSelectT amPort) {
         if (openDev.tuner != tuner) { sdrplay_api_SwapRspDuoActiveTuner(openDev.dev, &openDev.tuner, amPort); }
+        
+        // NOTE: Might need to select either A or B
+        openDevParams->rxChannelA->rspDuoTunerParams.tuner1AmPortSel = amPort;
+        sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_AmPortSelect, sdrplay_api_Update_Ext1_None);
+    }
+
+    void rspDuoSelectAntennaPort(int port) {
+        if (port == 0) { rspDuoSelectTuner(sdrplay_api_Tuner_A, sdrplay_api_RspDuo_AMPORT_1); }
+        if (port == 1) { rspDuoSelectTuner(sdrplay_api_Tuner_A, sdrplay_api_RspDuo_AMPORT_2); }
+        if (port == 2) { rspDuoSelectTuner(sdrplay_api_Tuner_B, sdrplay_api_RspDuo_AMPORT_2); }
     }
 
 private:
@@ -446,19 +466,6 @@ private:
         _this->bufferIndex = 0;
         _this->bufferSize = 8000000 / 200;
 
-        // General options
-        _this->openDevParams->devParams->fsFreq.fsHz = _this->sampleRate;
-        _this->openDevParams->rxChannelA->tunerParams.bwType = _this->bandwidth;
-        _this->openDevParams->rxChannelA->tunerParams.rfFreq.rfHz = _this->freq;
-        _this->openDevParams->rxChannelA->tunerParams.gain.gRdB = _this->gain;
-        _this->openDevParams->rxChannelA->tunerParams.gain.LNAstate = _this->lnaGain;
-        _this->openDevParams->rxChannelA->ctrlParams.agc.enable = agcModes[_this->agc];
-        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Dev_Fs, sdrplay_api_Update_Ext1_None);
-        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_BwType, sdrplay_api_Update_Ext1_None);
-        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Frf, sdrplay_api_Update_Ext1_None);
-        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
-        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Ctrl_Agc, sdrplay_api_Update_Ext1_None);
-
         // RSP1A Options
         if (_this->openDev.hwVer == SDRPLAY_RSP1A_ID) {
             _this->openDevParams->devParams->rsp1aParams.rfNotchEnable = _this->rsp1a_fmNotch;
@@ -479,7 +486,16 @@ private:
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Rsp2_AmPortSelect, sdrplay_api_Update_Ext1_None);
         }
         else if (_this->openDev.hwVer == SDRPLAY_RSPduo_ID) {
-            
+            // NOTE: mmight require setting it on both RXA and RXB
+            _this->rspDuoSelectAntennaPort(_this->rspduo_antennaPort);
+            _this->openDevParams->rxChannelA->rspDuoTunerParams.biasTEnable = _this->rspduo_biasT;
+            _this->openDevParams->rxChannelA->rspDuoTunerParams.rfNotchEnable = _this->rspduo_fmNotch;
+            _this->openDevParams->rxChannelA->rspDuoTunerParams.rfDabNotchEnable = _this->rspduo_dabNotch;
+            _this->openDevParams->rxChannelA->rspDuoTunerParams.tuner1AmNotchEnable = _this->rspduo_amNotch;
+            sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_RspDuo_BiasTControl, sdrplay_api_Update_Ext1_None);
+            sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_RspDuo_RfNotchControl, sdrplay_api_Update_Ext1_None);
+            sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_RspDuo_RfDabNotchControl, sdrplay_api_Update_Ext1_None);
+            sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_RspDuo_Tuner1AmNotchControl, sdrplay_api_Update_Ext1_None);
         }
         else if (_this->openDev.hwVer == SDRPLAY_RSPdx_ID) {
             _this->openDevParams->devParams->rspDxParams.rfNotchEnable = _this->rspdx_fmNotch;
@@ -490,6 +506,26 @@ private:
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_None, sdrplay_api_Update_RspDx_RfDabNotchControl);
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_None, sdrplay_api_Update_RspDx_BiasTControl);
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_None, sdrplay_api_Update_RspDx_AntennaControl);
+        }
+
+        // General options
+        _this->openDevParams->devParams->fsFreq.fsHz = _this->sampleRate;
+        _this->openDevParams->rxChannelA->tunerParams.bwType = _this->bandwidth;
+        _this->openDevParams->rxChannelA->tunerParams.rfFreq.rfHz = _this->freq;
+        _this->openDevParams->rxChannelA->tunerParams.gain.gRdB = _this->gain;
+        _this->openDevParams->rxChannelA->tunerParams.gain.LNAstate = _this->lnaGain;
+        _this->openDevParams->rxChannelA->ctrlParams.agc.enable = agcModes[_this->agc];
+        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Dev_Fs, sdrplay_api_Update_Ext1_None);
+        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_BwType, sdrplay_api_Update_Ext1_None);
+        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Frf, sdrplay_api_Update_Ext1_None);
+        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
+        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Ctrl_Agc, sdrplay_api_Update_Ext1_None);
+
+        // Bandwidth
+        _this->bandwidth = (_this->bandwidthId == 8) ? preferedBandwidth[_this->srId] : bandwidths[_this->bandwidthId];
+        if (_this->running) {
+            _this->openDevParams->rxChannelA->tunerParams.bwType = _this->bandwidth;
+            sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_BwType, sdrplay_api_Update_Ext1_None);
         }
 
         _this->running = true;
@@ -673,7 +709,6 @@ private:
             config.conf["devices"][selectedName]["antenna"] = rsp2_antennaPort;
             config.release(true);
         }
-
         if (ImGui::Checkbox(CONCAT("MW/FM Notch##sdrplay_rsp2_notch", name), &rsp2_notch)) {
             openDevParams->rxChannelA->rsp2TunerParams.rfNotchEnable = rsp2_notch;
             sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp2_RfNotchControl, sdrplay_api_Update_Ext1_None);
@@ -691,7 +726,44 @@ private:
     }
 
     void RSPduoMenu(float menuWidth) {
-        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Device currently unsupported");
+        ImGui::Text("Antenna");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+
+        if (ImGui::Combo(CONCAT("##sdrplay_rspduo_ant", name), &rspduo_antennaPort, rspduo_antennaPortsTxt)) {
+            rspDuoSelectAntennaPort(rspduo_antennaPort);
+            config.aquire();
+            config.conf["devices"][selectedName]["antenna"] = rspduo_antennaPort;
+            config.release(true);
+        }
+        if (ImGui::Checkbox(CONCAT("FM Notch##sdrplay_rspduo_notch", name), &rspduo_fmNotch)) {
+            openDevParams->rxChannelA->rspDuoTunerParams.rfNotchEnable = rspduo_fmNotch;
+            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_RfNotchControl, sdrplay_api_Update_Ext1_None);
+            config.aquire();
+            config.conf["devices"][selectedName]["fmNotch"] = rspduo_fmNotch;
+            config.release(true);
+        }
+        if (ImGui::Checkbox(CONCAT("DAB Notch##sdrplay_rspduo_dabnotch", name), &rspduo_dabNotch)) {
+            openDevParams->rxChannelA->rspDuoTunerParams.rfDabNotchEnable = rspduo_dabNotch;
+            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_RfDabNotchControl, sdrplay_api_Update_Ext1_None);
+            config.aquire();
+            config.conf["devices"][selectedName]["dabNotch"] = rspduo_dabNotch;
+            config.release(true);
+        }
+        if (ImGui::Checkbox(CONCAT("AM Notch##sdrplay_rspduo_dabnotch", name), &rspduo_amNotch)) {
+            openDevParams->rxChannelA->rspDuoTunerParams.tuner1AmNotchEnable = rspduo_amNotch;
+            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_Tuner1AmNotchControl, sdrplay_api_Update_Ext1_None);
+            config.aquire();
+            config.conf["devices"][selectedName]["amNotch"] = rspduo_amNotch;
+            config.release(true);
+        }
+        if (ImGui::Checkbox(CONCAT("Bias-T##sdrplay_rspduo_biast", name), &rspduo_biasT)) {
+            openDevParams->rxChannelA->rspDuoTunerParams.biasTEnable = rspduo_biasT;
+            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_BiasTControl, sdrplay_api_Update_Ext1_None);
+            config.aquire();
+            config.conf["devices"][selectedName]["biast"] = rspduo_biasT;
+            config.release(true);
+        }
     }
 
     void RSPdxMenu(float menuWidth) {
@@ -796,6 +868,8 @@ private:
     bool rspduo_fmNotch = false;
     bool rspduo_dabNotch = false;
     bool rspduo_biasT = false;
+    bool rspduo_amNotch = false;
+    int rspduo_antennaPort = 0;
 
     // RSPdx Options
     bool rspdx_fmNotch = false;

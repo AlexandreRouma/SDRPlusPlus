@@ -7,6 +7,7 @@
 
 namespace displaymenu {
     bool showWaterfall;
+    bool fastFFT = true;
     int colorMapId = 0;
     std::vector<std::string> colorMapNames;
     std::string colorMapNamesTxt = "";
@@ -54,6 +55,10 @@ namespace displaymenu {
                 colorMapAuthor = map.author;
             }
             ImGui::Text("Color map Author: %s", colorMapAuthor.c_str());
+        }
+
+        if (ImGui::Checkbox("Fast FFT", &fastFFT)) {
+            gui::waterfall.setFastFFT(fastFFT);
         }
     }
 }

@@ -33,25 +33,25 @@
 #include <options.h>
 #include <gui/colormaps.h>
 
-// const int FFTSizes[] = {
-//     65536,
-//     32768,
-//     16384,
-//     8192,
-//     4096,
-//     2048
-// };
+const int FFTSizes[] = {
+    65536,
+    32768,
+    16384,
+    8192,
+    4096,
+    2048,
+    1024
+};
 
-// const char* FFTSizesStr[] = {
-//     "65536",
-//     "32768",
-//     "16384",
-//     "8192",
-//     "4096",
-//     "2048"
-// };
+const char* FFTSizesStr = "65536\0"
+                        "32768\0"
+                        "16384\0"
+                        "8192\0"
+                        "4096\0"
+                        "2048\0"
+                        "1024\0";
 
-// int fftSizeId = 0;
+int fftSizeId = 0;
 int fftSize = 8192 * 8;
 
 std::mutex fft_mtx;
@@ -63,26 +63,39 @@ char buf[1024];
 bool experimentalZoom = false;
 
 void fftHandler(dsp::complex_t* samples, int count, void* ctx) {
+    std::lock_guard<std::mutex> lck(fft_mtx);
+
     memcpy(fft_in, samples, count * sizeof(dsp::complex_t));
     fftwf_execute(p);
     int half = count / 2;
 
-    volk_32fc_s32f_power_spectrum_32f(FFTdata, (lv_32fc_t*)fft_out, count, count);
+    // volk_32fc_s32f_power_spectrum_32f(FFTdata, (lv_32fc_t*)fft_out, count, count);
 
-    memcpy(tempFFT, &FFTdata[half], half * sizeof(float));
-    memmove(&FFTdata[half], FFTdata, half * sizeof(float));
-    memcpy(FFTdata, tempFFT, half * sizeof(float));
+    // memcpy(tempFFT, &FFTdata[half], half * sizeof(float));
+    // memmove(&FFTdata[half], FFTdata, half * sizeof(float));
+    // memcpy(FFTdata, tempFFT, half * sizeof(float));
+
+    // float* fftBuf = gui::waterfall.getFFTBuffer();
+    // if (fftBuf == NULL) {
+    //     gui::waterfall.pushFFT();
+    //     return;
+    // }
+
+    // memcpy(fftBuf, FFTdata, count * sizeof(float));
+
+    // gui::waterfall.pushFFT();
 
     float* fftBuf = gui::waterfall.getFFTBuffer();
     if (fftBuf == NULL) {
         gui::waterfall.pushFFT();
         return;
     }
-    float last = FFTdata[0];
-    for (int i = 0; i < count; i++) {
-        last = (FFTdata[i] * 0.1f) + (last * 0.9f);
-        fftBuf[i] = last;
-    }
+
+    volk_32fc_s32f_power_spectrum_32f(tempFFT, (lv_32fc_t*)fft_out, count, count);
+
+    memcpy(fftBuf, &tempFFT[half], half * sizeof(float));
+    memcpy(&fftBuf[half], tempFFT, half * sizeof(float));
+
     gui::waterfall.pushFFT();
 }
 
@@ -553,6 +566,22 @@ void drawWindow() {
 
             if (ImGui::Button("Test Bug")) {
                 spdlog::error("Will this make the software crash?");
+            }
+
+            if (ImGui::Combo("##test_fft_size", &fftSizeId, FFTSizesStr)) {
+                std::lock_guard<std::mutex> lck(fft_mtx);
+                fftSize = FFTSizes[fftSizeId];
+
+                gui::waterfall.setRawFFTSize(fftSize);
+                sigpath::signalPath.setFFTSize(fftSize);
+
+                fftwf_free(fft_in);
+                fftwf_free(fft_out);
+                fftwf_destroy_plan(p);
+                
+                fft_in = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * fftSize);
+                fft_out = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * fftSize);
+                p = fftwf_plan_dft_1d(fftSize, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
             }
 
             ImGui::Spacing();
