@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 #include <imutils.h>
 #include <algorithm>
+#include <volk/volk.h>
 
 #include <spdlog/spdlog.h>
 
@@ -23,7 +24,7 @@ float DEFAULT_COLOR_MAP[][3] = {
     {0x4A, 0x00, 0x00}
 };
 
-void doZoom(int offset, int width, int outWidth, float* data, float* out, bool fast) {
+inline void doZoom(int offset, int width, int outWidth, float* data, float* out, bool fast) {
     // NOTE: REMOVE THAT SHIT, IT'S JUST A HACKY FIX
     if (offset < 0) {
         offset = 0;
@@ -38,19 +39,20 @@ void doZoom(int offset, int width, int outWidth, float* data, float* out, bool f
         for (int i = 0; i < outWidth; i++) {
             out[i] = data[(int)(offset + ((float)i * factor))];
         }
-        return;
     }
-
-    float id = offset;
-    float val, maxVal;
-    float next;
-    for (int i = 0; i < outWidth; i++) {
-        maxVal = -INFINITY;
-        for (int j = 0; j < factor; j++) {
-            if (data[(int)id + j] > maxVal) { maxVal = data[(int)id + j]; }
+    else {
+        float sFactor = ceilf(factor);
+        float id = offset;
+        float val, maxVal;
+        uint32_t maxId;
+        for (int i = 0; i < outWidth; i++) {
+            maxVal = -INFINITY;
+            for (int j = 0; j < sFactor; j++) {
+                if (data[(int)id + j] > maxVal) { maxVal = data[(int)id + j]; }
+            }
+            out[i] = maxVal;
+            id += factor;
         }
-        out[i] = maxVal;
-        id += factor;
     }
 }
 
