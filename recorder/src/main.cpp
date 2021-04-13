@@ -48,9 +48,24 @@ std::string genFileName(std::string prefix, bool isVfo, std::string name = "") {
 class RecorderModule : public ModuleManager::Instance {
 public:
     RecorderModule(std::string name) : folderSelect("%ROOT%/recordings") {
-        this->name = name;
+        this->name = name;        
 
-        recPath = "%ROOT%/recordings";
+        // Load config
+        config.aquire();
+        bool created = false;
+        
+        // Create config if it doesn't exist
+        if (!config.conf.contains(name)) {
+            config.conf[name]["mode"] = 1;
+            config.conf[name]["recPath"] = "%ROOT%/recordings";
+            config.conf[name]["audioStream"] = "Radio";
+            created = true;
+        }
+
+        recMode = config.conf[name]["mode"];
+        folderSelect.setPath(config.conf[name]["recPath"]);
+        selectedStreamName = config.conf[name]["audioStream"];
+        config.release(created);
 
         // Init audio path
         vol.init(&dummyStream, 1.0f);
@@ -92,6 +107,11 @@ public:
 private:
     void refreshStreams() {
         std::vector<std::string> names = sigpath::sinkManager.getStreamNames();
+
+        // If there are no stream, cancel
+        if (names.size() == 0) { return; }
+
+        // List streams
         streamNames.clear();
         streamNamesTxt = "";
         for (auto const& name : names) {
@@ -99,6 +119,7 @@ private:
             streamNamesTxt += name;
             streamNamesTxt += '\0';
         }
+
         if (selectedStreamName == "") {
             selectStream(streamNames[0]);
         }
@@ -129,12 +150,18 @@ private:
         if (_this->recording) { style::beginDisabled(); }
         ImGui::BeginGroup();
         ImGui::Columns(2, CONCAT("AirspyGainModeColumns##_", _this->name), false);
-        if (ImGui::RadioButton(CONCAT("Baseband##_recmode_", _this->name), !_this->recMode)) {
-            _this->recMode = false;
+        if (ImGui::RadioButton(CONCAT("Baseband##_recmode_", _this->name), _this->recMode == 0)) {
+            _this->recMode = 0;
+            config.aquire();
+            config.conf[_this->name]["mode"] = _this->recMode;
+            config.release(true);
         }
         ImGui::NextColumn();
-        if (ImGui::RadioButton(CONCAT("Audio##_recmode_", _this->name), _this->recMode)) {
-            _this->recMode = true;
+        if (ImGui::RadioButton(CONCAT("Audio##_recmode_", _this->name), _this->recMode == 1)) {
+            _this->recMode = 1;
+            config.aquire();
+            config.conf[_this->name]["mode"] = _this->recMode;
+            config.release(true);
         }
         ImGui::Columns(1, CONCAT("EndAirspyGainModeColumns##_", _this->name), false);
         ImGui::EndGroup();
@@ -143,13 +170,14 @@ private:
         // Recording path
         if (_this->folderSelect.render("##_recorder_fold_" + _this->name)) {
             if (_this->folderSelect.pathIsValid()) {
-                _this->recPath = _this->folderSelect.path;
+                config.aquire();
+                config.conf[_this->name]["recPath"] = _this->folderSelect.path;
+                config.release(true);
             }
         }
-        _this->pathValid = _this->folderSelect.pathIsValid();
 
         // Mode specific menu
-        if (_this->recMode) {
+        if (_this->recMode == 1) {
             _this->audioMenu(menuColumnWidth);
         }
         else {
@@ -158,11 +186,11 @@ private:
     }
 
     void basebandMenu(float menuColumnWidth) {
-        if (!pathValid) { style::beginDisabled(); }
+        if (!folderSelect.pathIsValid()) { style::beginDisabled(); }
         if (!recording) {
             if (ImGui::Button(CONCAT("Record##_recorder_rec_", name), ImVec2(menuColumnWidth, 0))) {
                 samplesWritten = 0;
-                std::string expandedPath = expandString(recPath + genFileName("/baseband_", false));
+                std::string expandedPath = expandString(folderSelect.path + genFileName("/baseband_", false));
                 sampleRate = sigpath::signalPath.getSampleRate();
                 basebandWriter = new WavWriter(expandedPath, 16, 2, sigpath::signalPath.getSampleRate());
                 if (basebandWriter->isOpen()) {
@@ -190,14 +218,24 @@ private:
             tm *dtm = gmtime(&diff);
             ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Recording %02d:%02d:%02d", dtm->tm_hour, dtm->tm_min, dtm->tm_sec);
         }
-        if (!pathValid) { style::endDisabled(); }
+        if (!folderSelect.pathIsValid()) { style::endDisabled(); }
     }
 
     void audioMenu(float menuColumnWidth) {
         ImGui::PushItemWidth(menuColumnWidth);
+
+        if (streamNames.size() == 0) {
+            refreshStreams();
+            ImGui::PopItemWidth();
+            return;
+        }
+
         if (recording) { style::beginDisabled(); }
         if (ImGui::Combo(CONCAT("##_recorder_strm_", name), &streamId, streamNamesTxt.c_str())) {
             selectStream(streamNames[streamId]);
+            config.aquire();
+            config.conf[name]["audioStream"] = streamNames[streamId];
+            config.release(true);
         }
         if (recording) { style::endDisabled(); }
 
@@ -217,11 +255,11 @@ private:
         }
         ImGui::PopItemWidth();
 
-        if (!pathValid || selectedStreamName == "") { style::beginDisabled(); }
+        if (!folderSelect.pathIsValid() || selectedStreamName == "") { style::beginDisabled(); }
         if (!recording) {
             if (ImGui::Button(CONCAT("Record##_recorder_rec_", name), ImVec2(menuColumnWidth, 0))) {
                 samplesWritten = 0;
-                std::string expandedPath = expandString(recPath + genFileName("/audio_", true, selectedStreamName));
+                std::string expandedPath = expandString(folderSelect.path + genFileName("/audio_", true, selectedStreamName));
                 sampleRate = sigpath::sinkManager.getStreamSampleRate(selectedStreamName);
                 audioWriter = new WavWriter(expandedPath, 16, 2, sigpath::sinkManager.getStreamSampleRate(selectedStreamName));
                 if (audioWriter->isOpen()) {
@@ -249,7 +287,7 @@ private:
             tm *dtm = gmtime(&diff);
             ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Recording %02d:%02d:%02d", dtm->tm_hour, dtm->tm_min, dtm->tm_sec);
         }
-        if (!pathValid || selectedStreamName == "") { style::endDisabled(); }
+        if (!folderSelect.pathIsValid() || selectedStreamName == "") { style::endDisabled(); }
     }
 
     static void _audioHandler(dsp::stereo_t *data, int count, void *ctx) {
@@ -276,11 +314,8 @@ private:
     std::string name;
     bool enabled = true;
 
-    std::string recPath = "";
-
-    bool recMode = 1;
+    int recMode = 1;
     bool recording = false;
-    bool pathValid = true;
 
     float audioVolume = 1.0f;
 
@@ -294,7 +329,7 @@ private:
     FolderSelect folderSelect;
 
     // Audio path
-    dsp::stream<dsp::stereo_t>* audioInput;
+    dsp::stream<dsp::stereo_t>* audioInput = NULL;
     dsp::Volume<dsp::stereo_t> vol;
     dsp::Splitter<dsp::stereo_t> audioSplit;
     dsp::stream<dsp::stereo_t> meterStream;
@@ -331,7 +366,7 @@ MOD_EXPORT void _INIT_() {
         }
     }
     json def = json({});
-    config.setPath(options::opts.root + "/radio_config.json");
+    config.setPath(options::opts.root + "/recorder_config.json");
     config.load(def);
     config.enableAutoSave();
 }
