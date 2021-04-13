@@ -107,6 +107,8 @@ namespace ImGui {
 
         void setFastFFT(bool fastFFT);
 
+        void setFullWaterfallUpdate(bool fullUpdate);
+
         bool centerFreqMoved = false;
         bool vfoFreqChanged = false;
         bool bandplanEnabled = false;
@@ -207,5 +209,6 @@ namespace ImGui {
         bool bandplanVisible = false;
 
         bool _fastFFT = true;
+        bool _fullUpdate = true;
     };
 };

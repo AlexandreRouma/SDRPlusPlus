@@ -8,6 +8,7 @@
 namespace displaymenu {
     bool showWaterfall;
     bool fastFFT = true;
+    bool fullWaterfallUpdate = true;
     int colorMapId = 0;
     std::vector<std::string> colorMapNames;
     std::string colorMapNamesTxt = "";
@@ -31,6 +32,12 @@ namespace displaymenu {
                 colorMapAuthor = map.author;
             }
         }
+
+        fastFFT = core::configManager.conf["fastFFT"];
+        gui::waterfall.setFastFFT(fastFFT);
+
+        fullWaterfallUpdate = core::configManager.conf["fullWaterfallUpdate"];
+        gui::waterfall.setFullWaterfallUpdate(fullWaterfallUpdate);
     }
 
     void draw(void* ctx) {
@@ -59,6 +66,16 @@ namespace displaymenu {
 
         if (ImGui::Checkbox("Fast FFT", &fastFFT)) {
             gui::waterfall.setFastFFT(fastFFT);
+            core::configManager.aquire();
+            core::configManager.conf["fastFFT"] = fastFFT;
+            core::configManager.release(true);
+        }
+
+        if (ImGui::Checkbox("Full Waterfall Update", &fullWaterfallUpdate)) {
+            gui::waterfall.setFullWaterfallUpdate(fullWaterfallUpdate);
+            core::configManager.aquire();
+            core::configManager.conf["fullWaterfallUpdate"] = fullWaterfallUpdate;
+            core::configManager.release(true);
         }
     }
 }

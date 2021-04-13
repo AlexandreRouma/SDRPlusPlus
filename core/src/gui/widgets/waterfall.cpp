@@ -320,7 +320,7 @@ namespace ImGui {
 
             if (viewBandwidth != wholeBandwidth) {
                 updateAllVFOs();
-                updateWaterfallFb();
+                if (_fullUpdate) { updateWaterfallFb(); };
             }
         }
         else {
@@ -718,7 +718,7 @@ namespace ImGui {
         lowerFreq = (centerFreq + viewOffset) - (viewBandwidth / 2.0);
         upperFreq = (centerFreq + viewOffset) + (viewBandwidth / 2.0);
         range = findBestRange(bandWidth, maxHSteps);
-        updateWaterfallFb();
+        if (_fullUpdate) { updateWaterfallFb(); };
         updateAllVFOs();
     }
 
@@ -740,7 +740,7 @@ namespace ImGui {
         viewOffset = offset;
         lowerFreq = (centerFreq + viewOffset) - (viewBandwidth / 2.0);
         upperFreq = (centerFreq + viewOffset) + (viewBandwidth / 2.0);
-        updateWaterfallFb();
+        if (_fullUpdate) { updateWaterfallFb(); };
         updateAllVFOs();
     }
 
@@ -766,13 +766,18 @@ namespace ImGui {
         return fftMax;
     }
 
+    void WaterFall::setFullWaterfallUpdate(bool fullUpdate) {
+        std::lock_guard<std::mutex> lck(buf_mtx);
+        _fullUpdate = fullUpdate;
+    }
+
     void WaterFall::setWaterfallMin(float min) {
         std::lock_guard<std::mutex> lck(buf_mtx);
         if (min == waterfallMin) {
             return;
         }
         waterfallMin = min;
-        updateWaterfallFb();
+        if (_fullUpdate) { updateWaterfallFb(); };
     }
 
     float WaterFall::getWaterfallMin() {
@@ -785,7 +790,7 @@ namespace ImGui {
             return;
         }
         waterfallMax = max;
-        updateWaterfallFb();
+        if (_fullUpdate) { updateWaterfallFb(); };
     }
 
     float WaterFall::getWaterfallMax() {

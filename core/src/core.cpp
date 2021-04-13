@@ -106,8 +106,10 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["bandPlanEnabled"] = true;
     defConfig["centerTuning"] = false;
     defConfig["colorMap"] = "Classic";
+    defConfig["fastFFT"] = true;
     defConfig["fftHeight"] = 300;
     defConfig["frequency"] = 100000000.0;
+    defConfig["fullWaterfallUpdate"] = true;
     defConfig["max"] = 0.0;
     defConfig["maximized"] = false;
     defConfig["menuOrder"] = {
