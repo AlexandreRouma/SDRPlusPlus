@@ -7,3 +7,4 @@ void windowInit();
 void drawWindow();
 void setViewBandwidthSlider(float bandwidth);
 bool sdrIsRunning();
+void setFFTSize(int size);

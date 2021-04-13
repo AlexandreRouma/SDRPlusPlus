@@ -97,7 +97,10 @@ void SignalPath::unbindIQStream(dsp::stream<dsp::complex_t>* stream) {
 void SignalPath::setFFTSize(int size) {
     fftSize = size;
     int skip = (sampleRate / fftRate) - fftSize;
+    reshape.stop();
     reshape.setSkip(skip);
+    reshape.setKeep(fftSize);
+    reshape.start();
 }
 
 void SignalPath::startFFT() {

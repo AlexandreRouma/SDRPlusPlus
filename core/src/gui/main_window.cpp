@@ -33,25 +33,6 @@
 #include <options.h>
 #include <gui/colormaps.h>
 
-const int FFTSizes[] = {
-    65536,
-    32768,
-    16384,
-    8192,
-    4096,
-    2048,
-    1024
-};
-
-const char* FFTSizesStr = "65536\0"
-                        "32768\0"
-                        "16384\0"
-                        "8192\0"
-                        "4096\0"
-                        "2048\0"
-                        "1024\0";
-
-int fftSizeId = 0;
 int fftSize = 8192 * 8;
 
 std::mutex fft_mtx;
@@ -64,6 +45,7 @@ bool experimentalZoom = false;
 
 void fftHandler(dsp::complex_t* samples, int count, void* ctx) {
     std::lock_guard<std::mutex> lck(fft_mtx);
+    if (count != fftSize) { return; }
 
     memcpy(fft_in, samples, count * sizeof(dsp::complex_t));
     fftwf_execute(p);
@@ -568,22 +550,6 @@ void drawWindow() {
                 spdlog::error("Will this make the software crash?");
             }
 
-            if (ImGui::Combo("##test_fft_size", &fftSizeId, FFTSizesStr)) {
-                std::lock_guard<std::mutex> lck(fft_mtx);
-                fftSize = FFTSizes[fftSizeId];
-
-                gui::waterfall.setRawFFTSize(fftSize);
-                sigpath::signalPath.setFFTSize(fftSize);
-
-                fftwf_free(fft_in);
-                fftwf_free(fft_out);
-                fftwf_destroy_plan(p);
-                
-                fft_in = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * fftSize);
-                fft_out = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * fftSize);
-                p = fftwf_plan_dft_1d(fftSize, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
-            }
-
             ImGui::Spacing();
         }
 
@@ -670,4 +636,20 @@ void setViewBandwidthSlider(float bandwidth) {
 
 bool sdrIsRunning() {
     return playing;
+}
+
+void setFFTSize(int size) {
+    std::lock_guard<std::mutex> lck(fft_mtx);
+    fftSize = size;
+
+    gui::waterfall.setRawFFTSize(fftSize);
+    sigpath::signalPath.setFFTSize(fftSize);
+
+    fftwf_free(fft_in);
+    fftwf_free(fft_out);
+    fftwf_destroy_plan(p);
+    
+    fft_in = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * fftSize);
+    fft_out = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * fftSize);
+    p = fftwf_plan_dft_1d(fftSize, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
 }
