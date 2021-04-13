@@ -6,6 +6,9 @@
 namespace bandplanmenu {
     int bandplanId;
     bool bandPlanEnabled;
+    int bandPlanPos = 0;
+
+    const char* bandPlanPosTxt = "Bottom\0Top\0";
 
     void init() {
         // todo: check if the bandplan wasn't removed
@@ -26,18 +29,31 @@ namespace bandplanmenu {
 
         bandPlanEnabled = core::configManager.conf["bandPlanEnabled"];
         bandPlanEnabled ? gui::waterfall.showBandplan() : gui::waterfall.hideBandplan();
+        bandPlanPos = core::configManager.conf["bandPlanPos"];
+        gui::waterfall.setBandPlanPos(bandPlanPos);
     }
 
     void draw(void* ctx) {
         float menuColumnWidth = ImGui::GetContentRegionAvailWidth();
         ImGui::PushItemWidth(menuColumnWidth);
-        if (ImGui::Combo("##_4_", &bandplanId, bandplan::bandplanNameTxt.c_str())) {
+        if (ImGui::Combo("##_bandplan_name_", &bandplanId, bandplan::bandplanNameTxt.c_str())) {
             gui::waterfall.bandplan = &bandplan::bandplans[bandplan::bandplanNames[bandplanId]];
             core::configManager.aquire();
             core::configManager.conf["bandPlan"] = bandplan::bandplanNames[bandplanId];
             core::configManager.release(true);
         }
         ImGui::PopItemWidth();
+
+        ImGui::Text("Position");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuColumnWidth - ImGui::GetCursorPosX());
+        if (ImGui::Combo("##_bandplan_pos_", &bandPlanPos, bandPlanPosTxt)) {
+            gui::waterfall.setBandPlanPos(bandPlanPos);
+            core::configManager.aquire();
+            core::configManager.conf["bandPlanPos"] = bandPlanPos;
+            core::configManager.release(true);
+        }
+
         if (ImGui::Checkbox("Enabled", &bandPlanEnabled)) {
             bandPlanEnabled ? gui::waterfall.showBandplan() : gui::waterfall.hideBandplan();
             core::configManager.aquire();

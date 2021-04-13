@@ -367,6 +367,18 @@ namespace ImGui {
         ImVec2 txtSz;
         bool startVis, endVis;
         uint32_t color, colorTrans;
+
+        float height = ImGui::CalcTextSize("0").y * 2.5f;
+        float bpBottom;
+
+        if (bandPlanPos == BANDPLAN_POS_BOTTOM) {
+            bpBottom = widgetPos.y + fftHeight + 10;
+        }
+        else {
+            bpBottom = widgetPos.y + height + 10;
+        }
+        
+
         for (int i = 0; i < count; i++) {
             start = bandplan->bands[i].start;
             end = bandplan->bands[i].end;
@@ -386,7 +398,6 @@ namespace ImGui {
             cPos = widgetPos.x + 50 + ((center - lowerFreq) * horizScale);
             width = bPos - aPos;
             txtSz = ImGui::CalcTextSize(bandplan->bands[i].name.c_str());
-            float height = txtSz.y * 2.5f;
             if (bandplan::colorTable.find(bandplan->bands[i].type.c_str()) != bandplan::colorTable.end()) {
                 color = bandplan::colorTable[bandplan->bands[i].type].colorValue;
                 colorTrans = bandplan::colorTable[bandplan->bands[i].type].transColorValue;
@@ -402,19 +413,19 @@ namespace ImGui {
                 bPos = widgetPos.x + 51;
             }
             if (width >= 1.0) {
-                window->DrawList->AddRectFilled(ImVec2(roundf(aPos), widgetPos.y + fftHeight + 10 - height), 
-                                        ImVec2(roundf(bPos), widgetPos.y + fftHeight + 10), colorTrans);
+                window->DrawList->AddRectFilled(ImVec2(roundf(aPos), bpBottom - height), 
+                                        ImVec2(roundf(bPos), bpBottom), colorTrans);
                 if (startVis) {
-                    window->DrawList->AddLine(ImVec2(roundf(aPos), widgetPos.y + fftHeight + 10 - height - 1), 
-                                        ImVec2(roundf(aPos), widgetPos.y + fftHeight + 9), color);
+                    window->DrawList->AddLine(ImVec2(roundf(aPos), bpBottom - height - 1), 
+                                        ImVec2(roundf(aPos), bpBottom - 1), color);
                 }
                 if (endVis) {
-                    window->DrawList->AddLine(ImVec2(roundf(bPos), widgetPos.y + fftHeight + 10 - height - 1), 
-                                        ImVec2(roundf(bPos), widgetPos.y + fftHeight + 9), color);
+                    window->DrawList->AddLine(ImVec2(roundf(bPos), bpBottom - height - 1), 
+                                        ImVec2(roundf(bPos), bpBottom - 1), color);
                 }
             }
             if (txtSz.x <= width) {
-                window->DrawList->AddText(ImVec2(cPos - (txtSz.x / 2.0), widgetPos.y + fftHeight + 10 - (height / 2.0f) - (txtSz.y / 2.0f)), 
+                window->DrawList->AddText(ImVec2(cPos - (txtSz.x / 2.0), bpBottom - (height / 2.0f) - (txtSz.y / 2.0f)), 
                                     IM_COL32(255, 255, 255, 255), bandplan->bands[i].name.c_str());
             }
         }
@@ -819,6 +830,10 @@ namespace ImGui {
             rawFFTs = (float*)malloc(rawFFTSize * wfSize * sizeof(float));
         }
         memset(rawFFTs, 0, rawFFTSize * waterfallHeight * sizeof(float));
+    }
+
+    void WaterFall::setBandPlanPos(int pos) {
+        bandPlanPos = pos;
     }
 
     void WaterfallVFO::setOffset(double offset) {

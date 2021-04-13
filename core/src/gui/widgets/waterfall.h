@@ -109,6 +109,8 @@ namespace ImGui {
 
         void setFullWaterfallUpdate(bool fullUpdate);
 
+        void setBandPlanPos(int pos);
+
         bool centerFreqMoved = false;
         bool vfoFreqChanged = false;
         bool bandplanEnabled = false;
@@ -123,6 +125,12 @@ namespace ImGui {
             REF_CENTER,
             REF_UPPER,
             _REF_COUNT
+        };
+
+        enum {
+            BANDPLAN_POS_BOTTOM,
+            BANDPLAN_POS_TOP,
+            _BANDPLAN_POS_COUNT
         };
 
 
@@ -210,5 +218,7 @@ namespace ImGui {
 
         bool _fastFFT = true;
         bool _fullUpdate = true;
+
+        int bandPlanPos = BANDPLAN_POS_BOTTOM;
     };
 };

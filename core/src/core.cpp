@@ -104,6 +104,7 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["bandColors"]["military"] = "#FFFF00FF";
     defConfig["bandPlan"] = "General";
     defConfig["bandPlanEnabled"] = true;
+    defConfig["bandPlanPos"] = 0;
     defConfig["centerTuning"] = false;
     defConfig["colorMap"] = "Classic";
     defConfig["fastFFT"] = false;
