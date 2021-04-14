@@ -57,6 +57,8 @@ public:
 
         deemp.init(&resamp.out, audioSampRate, tau);
 
+        if (deempId == 2) { deemp.bypass = true; }
+
     }
 
     void start() {
