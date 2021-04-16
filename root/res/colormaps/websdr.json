@@ -1,0 +1,11 @@
+{
+    "name": "WebSDR",
+    "author": "Ryzerth",
+    "map": [
+        "#000000",
+        "#000050",
+        "#FF00FF",
+        "#FFFF50",
+        "#FFFFFF"
+    ]
+}
