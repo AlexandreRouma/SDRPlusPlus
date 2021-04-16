@@ -6,7 +6,7 @@
 
 #ifdef _WIN32
 #include <Windows.h>
-#include <ShlObj_core.h>
+#include <ShlObj.h>
 #include <thread>
 #endif
 
