@@ -23,11 +23,11 @@ if (MSVC)
 else (MSVC)
     find_package(PkgConfig)
 
-    pkg_check_modules(LIBAIRSPYHF REQUIRED libairspy)
+    pkg_check_modules(LIBAIRSPY REQUIRED libairspy)
 
-    target_include_directories(airspy_source PUBLIC ${LIBAIRSPYHF_INCLUDE_DIRS})
-    target_link_directories(airspy_source PUBLIC ${LIBAIRSPYHF_LIBRARY_DIRS})
-    target_link_libraries(airspy_source PUBLIC ${LIBAIRSPYHF_LIBRARIES})
+    target_include_directories(airspy_source PUBLIC ${LIBAIRSPY_INCLUDE_DIRS})
+    target_link_directories(airspy_source PUBLIC ${LIBAIRSPY_LIBRARY_DIRS})
+    target_link_libraries(airspy_source PUBLIC ${LIBAIRSPY_LIBRARIES})
 endif (MSVC)
 
 # Install directives

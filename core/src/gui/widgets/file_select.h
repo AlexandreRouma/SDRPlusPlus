@@ -7,7 +7,7 @@
 #ifdef _WIN32
 #include <Windows.h>
 #include <thread>
-#include <ShObjIdl.h>
+#include <ShlObj.h>
 #endif
 
 class FileSelect {
