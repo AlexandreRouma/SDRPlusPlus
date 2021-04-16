@@ -5,7 +5,7 @@
 #include <signal_path/signal_path.h>
 #include <core.h>
 #include <gui/style.h>
-
+#include <dsp/math.h>
 #include <openFX3.h>
 #include <Si5351.h>
 

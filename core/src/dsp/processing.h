@@ -4,6 +4,7 @@
 #include <spdlog/spdlog.h>
 #include <string.h>
 #include <stdint.h>
+#include <dsp/math.h>
 
 namespace dsp {
     template <class T>

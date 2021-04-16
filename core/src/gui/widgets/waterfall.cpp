@@ -69,7 +69,7 @@ double freq_ranges[] = {
         10000000.0, 20000000.0, 25000000.0, 50000000.0
 };
 
-double findBestRange(double bandwidth, int maxSteps) {
+inline double findBestRange(double bandwidth, int maxSteps) {
     for (int i = 0; i < 32; i++) {
         if (bandwidth / freq_ranges[i] < (double)maxSteps) {
             return freq_ranges[i];
@@ -78,7 +78,7 @@ double findBestRange(double bandwidth, int maxSteps) {
     return 50000000.0;
 }
 
-void printAndScale(double freq, char* buf) {
+inline void printAndScale(double freq, char* buf) {
     double freqAbs = fabs(freq);
     if (freqAbs < 1000) {
         sprintf(buf, "%.6g", freq);

@@ -3,6 +3,7 @@
 #include <dsp/interpolation_taps.h>
 #include <math.h>
 #include <dsp/utils/macros.h>
+#include <dsp/math.h>
 
 namespace dsp {
     template <int ORDER>

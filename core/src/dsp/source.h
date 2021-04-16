@@ -1,5 +1,6 @@
 #pragma once
 #include <dsp/block.h>
+#include <dsp/math.h>
 
 namespace dsp {
     class SineSource : public generic_block<SineSource> {
