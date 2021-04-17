@@ -104,7 +104,7 @@ namespace dsp {
             }
 
             {
-                std::lock_guard<std::mutex> lck(ctrlMtx);
+                std::lock_guard<std::mutex> lck(generic_block<PolyphaseResampler<T>>::ctrlMtx);
                 int outCount = calcOutSize(count);
                 memcpy(&buffer[tapsPerPhase], _in->readBuf, count * sizeof(T));
                 _in->flush();
