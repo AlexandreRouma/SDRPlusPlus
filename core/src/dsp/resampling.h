@@ -103,35 +103,35 @@ namespace dsp {
                 return -1;
             }
 
-            generic_block<PolyphaseResampler<T>>::ctrlMtx.lock();
+            {
+                std::lock_guard<std::mutex> lck(ctrlMtx);
+                int outCount = calcOutSize(count);
+                memcpy(&buffer[tapsPerPhase], _in->readBuf, count * sizeof(T));
+                _in->flush();
 
-            int outCount = calcOutSize(count);
-
-            memcpy(&buffer[tapsPerPhase], _in->readBuf, count * sizeof(T));
-            _in->flush();
-
-            // Write to output
-            int outIndex = 0;
-            int _interp_m_1 = _interp - 1;
-            if constexpr (std::is_same_v<T, float>) {
-                for (int i = 0; outIndex < outCount; i += _decim) {
-                    int phase = i % _interp;
-                    volk_32f_x2_dot_prod_32f(&out.writeBuf[outIndex], &buffer[i / _interp], tapPhases[phase], tapsPerPhase);
-                    outIndex++;
+                // Write to output
+                int outIndex = 0;
+                int _interp_m_1 = _interp - 1;
+                if constexpr (std::is_same_v<T, float>) {
+                    for (int i = 0; outIndex < outCount; i += _decim) {
+                        int phase = i % _interp;
+                        volk_32f_x2_dot_prod_32f(&out.writeBuf[outIndex], &buffer[i / _interp], tapPhases[phase], tapsPerPhase);
+                        outIndex++;
+                    }
                 }
-            }
-            if constexpr (std::is_same_v<T, complex_t> || std::is_same_v<T, stereo_t>) {
-                for (int i = 0; outIndex < outCount; i += _decim) {
-                    int phase = i % _interp;
-                    volk_32fc_32f_dot_prod_32fc((lv_32fc_t*)&out.writeBuf[outIndex], (lv_32fc_t*)&buffer[(i / _interp)], tapPhases[phase], tapsPerPhase);
-                    outIndex++;
+                if constexpr (std::is_same_v<T, complex_t> || std::is_same_v<T, stereo_t>) {
+                    for (int i = 0; outIndex < outCount; i += _decim) {
+                        int phase = i % _interp;
+                        volk_32fc_32f_dot_prod_32fc((lv_32fc_t*)&out.writeBuf[outIndex], (lv_32fc_t*)&buffer[(i / _interp)], tapPhases[phase], tapsPerPhase);
+                        outIndex++;
+                    }
                 }
+                if (!out.swap(outCount)) {
+                    return -1;
+                }
+
+                memmove(buffer, &buffer[count], tapsPerPhase * sizeof(T));
             }
-            if (!out.swap(outCount)) { return -1; }
-
-            memmove(buffer, &buffer[count], tapsPerPhase * sizeof(T));
-
-            generic_block<PolyphaseResampler<T>>::ctrlMtx.unlock();
 
             return count;
         }

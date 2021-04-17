@@ -317,7 +317,8 @@ namespace ImGui {
 
         // If a vfo border is selected, resize VFO accordingly
         if (vfoBorderSelect) {
-            double dist = fabsf(mousePos.x - relatedVfo->lineMin.x);
+            double dist = (relatedVfo->reference == REF_CENTER) ? fabsf(mousePos.x - relatedVfo->lineMin.x) : (mousePos.x - relatedVfo->lineMin.x);
+            if (relatedVfo->reference == REF_UPPER) { dist = -dist; }
             double hzDist = dist * (viewBandwidth / (double)dataWidth);
             if (relatedVfo->reference == REF_CENTER) {
                 hzDist *= 2.0;
