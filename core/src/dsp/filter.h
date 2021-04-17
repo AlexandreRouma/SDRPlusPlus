@@ -41,16 +41,20 @@ namespace dsp {
         }
 
         void updateWindow(dsp::filter_window::generic_window* window) {
+            std::lock_guard<std::mutex> lck(generic_block<FIR<T>>::ctrlMtx);
             _window = window;
             volk_free(taps);
             tapCount = window->getTapCount();
             taps = (float*)volk_malloc(tapCount * sizeof(float), volk_get_alignment());
+            bufStart = &buffer[tapCount];
             window->createTaps(taps, tapCount);
         }
 
         int run() {
             int count = _in->read();
             if (count < 0) { return -1; }
+
+            generic_block<FIR<T>>::ctrlMtx.lock();
 
             memcpy(bufStart, _in->readBuf, count * sizeof(T));
             _in->flush();
@@ -69,6 +73,8 @@ namespace dsp {
             if (!out.swap(count)) { return -1; }
 
             memmove(buffer, &buffer[count], tapCount * sizeof(T));
+
+            generic_block<FIR<T>>::ctrlMtx.unlock();
 
             return count;
         }

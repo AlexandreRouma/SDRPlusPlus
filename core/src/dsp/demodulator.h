@@ -145,11 +145,8 @@ namespace dsp {
         }
 
         void setDeviation(float deviation) {
-            std::lock_guard<std::mutex> lck(generic_block<FMDemod>::ctrlMtx);
-            generic_block<FMDemod>::tempStop();
             _deviation = deviation;
             phasorSpeed = (2 * FL_M_PI) / (_sampleRate / _deviation);
-            generic_block<FMDemod>::tempStart();
         }
 
         float getDeviation() {
