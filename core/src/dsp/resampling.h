@@ -103,7 +103,7 @@ namespace dsp {
                 return -1;
             }
 
-            ctrlMtx.lock();
+            generic_block<PolyphaseResampler<T>>::ctrlMtx.lock();
 
             int outCount = calcOutSize(count);
 
@@ -131,7 +131,7 @@ namespace dsp {
 
             memmove(buffer, &buffer[count], tapsPerPhase * sizeof(T));
 
-            ctrlMtx.unlock();
+            generic_block<PolyphaseResampler<T>>::ctrlMtx.unlock();
 
             return count;
         }
