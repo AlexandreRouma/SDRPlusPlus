@@ -5,8 +5,8 @@
 
 namespace dsp {
     namespace math {
-        inline float sinc(float omega, float x, float norm) {
-            return (x == 0.0f) ? 1.0f : (sinf(omega*x)/(norm*x));
+        inline double sinc(double omega, double x, double norm) {
+            return (x == 0.0f) ? 1.0f : (sin(omega*x)/(norm*x));
         }
     }
 }

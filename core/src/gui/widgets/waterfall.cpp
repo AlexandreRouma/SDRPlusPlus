@@ -939,6 +939,9 @@ namespace ImGui {
 
         rectMin = ImVec2(widgetPos.x + 50 + left, widgetPos.y + 10);
         rectMax = ImVec2(widgetPos.x + 51 + right, widgetPos.y + fftHeight + 10);
+
+        lbwSelMin = ImVec2(rectMin.x - 1, rectMin.y);
+        lbwSelMax = ImVec2(rectMin.x + 1, rectMax.y);
     }
 
     void WaterfallVFO::draw(ImGuiWindow* window, bool selected) {

@@ -42,6 +42,14 @@ namespace ImGui {
         ImVec2 wfRectMax;
         ImVec2 wfLineMin;
         ImVec2 wfLineMax;
+        ImVec2 lbwSelMin;
+        ImVec2 lbwSelMax;
+        ImVec2 rbwSelMin;
+        ImVec2 rbwSelMax;
+        ImVec2 wfLbwSelMin;
+        ImVec2 wfLbwSelMax;
+        ImVec2 wfRbwSelMin;
+        ImVec2 wfRbwSelMax;
 
         bool centerOffsetChanged = false;
         bool lowerOffsetChanged = false;

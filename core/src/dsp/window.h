@@ -51,38 +51,21 @@ namespace dsp {
             }
 
             void createTaps(float* taps, int tapCount, float factor = 1.0f) {
-                // // Calculate cuttoff frequency
-                // float omega = 2.0f * FL_M_PI * (_cutoff / _sampleRate);
-                // if (omega > FL_M_PI) { omega = FL_M_PI; }
+                // Calculate cuttoff frequency
+                float omega = 2.0f * FL_M_PI * (_cutoff / _sampleRate);
+                if (omega > FL_M_PI) { omega = FL_M_PI; }
 
-                // // Generate taps
-                // float val;
-                // float sum = 0.0f;
-                // for (int i = 0; i < tapCount; i++) {
-                //     val = math::sinc(omega, i-(tapCount/2), FL_M_PI) * window_function::blackman(i, tapCount - 1);
-                //     taps[i] = val;
-                //     sum += val;
-                // }
-
-                // // Normalize taps and multiply by supplied factor
-                // for (int i = 0; i < tapCount; i++) {
-                //     taps[i] *= factor;
-                //     taps[i] /= sum;
-                // }
-
-                float fc = _cutoff / _sampleRate;
-                if (fc > 1.0f) {
-                    fc = 1.0f;
-                }
-                float tc = tapCount;
-                float sum = 0.0f;
+                // Generate taps
                 float val;
+                float sum = 0.0f;
+                float tc = tapCount;
                 for (int i = 0; i < tapCount; i++) {
-                    val = (sin(2.0f * FL_M_PI * fc * ((float)i - (tc / 2))) / ((float)i - (tc / 2))) * 
-                        (0.42f - (0.5f * cos(2.0f * FL_M_PI / tc)) + (0.8f * cos(4.0f * FL_M_PI / tc)));
-                    taps[i] = val; // tapCount - i - 1
+                    val = math::sinc(omega, (float)i - (tc/2), FL_M_PI) * window_function::blackman(i, tc - 1);
+                    taps[i] = val;
                     sum += val;
                 }
+
+                // Normalize taps and multiply by supplied factor
                 for (int i = 0; i < tapCount; i++) {
                     taps[i] *= factor;
                     taps[i] /= sum;
