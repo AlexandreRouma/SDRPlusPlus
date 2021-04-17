@@ -83,14 +83,14 @@ namespace dsp {
 
         void updateWindow(dsp::filter_window::generic_window* window) {
             std::lock_guard<std::mutex> lck(generic_block<PolyphaseResampler<T>>::ctrlMtx);
-            generic_block<PolyphaseResampler<T>>::tempStop();
+            //generic_block<PolyphaseResampler<T>>::tempStop();
             _window = window;
             volk_free(taps);
             tapCount = window->getTapCount();
             taps = (float*)volk_malloc(tapCount * sizeof(float), volk_get_alignment());
             window->createTaps(taps, tapCount, _interp);
             buildTapPhases();
-            generic_block<PolyphaseResampler<T>>::tempStart();
+            //generic_block<PolyphaseResampler<T>>::tempStart();
         }
 
         int calcOutSize(int in) {
@@ -102,6 +102,8 @@ namespace dsp {
             if (count < 0) {
                 return -1;
             }
+
+            ctrlMtx.lock();
 
             int outCount = calcOutSize(count);
 
@@ -128,6 +130,8 @@ namespace dsp {
             if (!out.swap(outCount)) { return -1; }
 
             memmove(buffer, &buffer[count], tapsPerPhase * sizeof(T));
+
+            ctrlMtx.unlock();
 
             return count;
         }

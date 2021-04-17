@@ -56,6 +56,11 @@ namespace ImGui {
         bool upperOffsetChanged = false;
         bool redrawRequired = true;
         bool lineVisible = true;
+        bool bandwidthChanged = false;
+
+        double minBandwidth;
+        double maxBandwidth;
+        bool bandwidthLocked;
     };
 
     class WaterFall {
@@ -228,5 +233,12 @@ namespace ImGui {
         bool _fullUpdate = true;
 
         int bandPlanPos = BANDPLAN_POS_BOTTOM;
+
+        // UI Select elements
+        bool freqScaleSelect = false;
+        bool vfoSelect = false;
+        bool vfoBorderSelect = false;
+        WaterfallVFO* relatedVfo = NULL;
+        ImVec2 mouseDownPos;
     };
 };

@@ -61,6 +61,7 @@ public:
         _vfo->setSampleRate(audioSampRate, audioSampRate);
         _vfo->setSnapInterval(snapInterval);
         _vfo->setReference(ImGui::WaterfallVFO::REF_CENTER);
+        _vfo->setBandwidthLimits(0, 0, true);
     }
 
     void setVFO(VFOManager::VFO* vfo) {

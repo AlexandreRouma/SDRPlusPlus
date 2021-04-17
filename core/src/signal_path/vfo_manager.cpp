@@ -1,13 +1,16 @@
 #include <signal_path/vfo_manager.h>
 #include <signal_path/signal_path.h>
 
-VFOManager::VFO::VFO(std::string name, int reference, double offset, double bandwidth, double sampleRate, int blockSize) {
+VFOManager::VFO::VFO(std::string name, int reference, double offset, double bandwidth, double sampleRate, double minBandwidth, double maxBandwidth, bool bandwidthLocked) {
     this->name = name;
     dspVFO = sigpath::signalPath.addVFO(name, sampleRate, bandwidth, offset);
     wtfVFO = new ImGui::WaterfallVFO;
     wtfVFO->setReference(reference);
     wtfVFO->setBandwidth(bandwidth);
     wtfVFO->setOffset(offset);
+    wtfVFO->minBandwidth = minBandwidth;
+    wtfVFO->maxBandwidth = maxBandwidth;
+    wtfVFO->bandwidthLocked = bandwidthLocked;
     output = dspVFO->out;
     gui::waterfall.vfos[name] = wtfVFO;
 }
@@ -32,8 +35,8 @@ void VFOManager::VFO::setCenterOffset(double offset) {
     dspVFO->setOffset(offset);
 }
 
-void VFOManager::VFO::setBandwidth(double bandwidth) {
-    wtfVFO->setBandwidth(bandwidth);
+void VFOManager::VFO::setBandwidth(double bandwidth, bool updateWaterfall) {
+    if (updateWaterfall) { wtfVFO->setBandwidth(bandwidth); }
     dspVFO->setBandwidth(bandwidth);
 }
 
@@ -46,25 +49,35 @@ void VFOManager::VFO::setReference(int ref) {
     wtfVFO->setReference(ref);
 }
 
-int VFOManager::VFO::getOutputBlockSize() {
-    // NOTE: This shouldn't be needed anymore
-    return 1; //dspVFO->getOutputBlockSize();
-}
-
 void VFOManager::VFO::setSnapInterval(double interval) {
     wtfVFO->setSnapInterval(interval);
 }
 
+void VFOManager::VFO::setBandwidthLimits(double minBandwidth, double maxBandwidth, bool bandwidthLocked) {
+    wtfVFO->minBandwidth = minBandwidth;
+    wtfVFO->maxBandwidth = maxBandwidth;
+    wtfVFO->bandwidthLocked = bandwidthLocked;
+}
+
+bool VFOManager::VFO::getBandwidthChanged(bool erase) {
+    bool val = wtfVFO->bandwidthChanged;
+    if (erase) { wtfVFO->bandwidthChanged = false; }
+    return val;
+}
+
+double VFOManager::VFO::getBandwidth() {
+    return wtfVFO->bandwidth;
+}
 
 VFOManager::VFOManager() {
     
 }
 
-VFOManager::VFO* VFOManager::createVFO(std::string name, int reference, double offset, double bandwidth, double sampleRate, int blockSize) {
+VFOManager::VFO* VFOManager::createVFO(std::string name, int reference, double offset, double bandwidth, double sampleRate, double minBandwidth, double maxBandwidth, bool bandwidthLocked) {
     if (vfos.find(name) != vfos.end() || name == "") {
         return NULL;
     }
-    VFOManager::VFO* vfo = new VFO(name, reference, offset, bandwidth, sampleRate, blockSize);
+    VFOManager::VFO* vfo = new VFO(name, reference, offset, bandwidth, sampleRate, minBandwidth, maxBandwidth, bandwidthLocked);
     vfos[name] = vfo;
     return vfo;
 }
@@ -98,11 +111,11 @@ void VFOManager::setCenterOffset(std::string name, double offset) {
     vfos[name]->setCenterOffset(offset);
 }
 
-void VFOManager::setBandwidth(std::string name, double bandwidth) {
+void VFOManager::setBandwidth(std::string name, double bandwidth, bool updateWaterfall) {
     if (vfos.find(name) == vfos.end()) {
         return;
     }
-    vfos[name]->setBandwidth(bandwidth);
+    vfos[name]->setBandwidth(bandwidth, updateWaterfall);
 }
 
 void VFOManager::setSampleRate(std::string name, double sampleRate, double bandwidth) {
@@ -119,11 +132,25 @@ void VFOManager::setReference(std::string name, int ref) {
     vfos[name]->setReference(ref);
 }
 
-int VFOManager::getOutputBlockSize(std::string name) {
+void VFOManager::setBandwidthLimits(std::string name, double minBandwidth, double maxBandwidth, bool bandwidthLocked) {
     if (vfos.find(name) == vfos.end()) {
-        return -1;
+        return;
     }
-    return vfos[name]->getOutputBlockSize();
+    vfos[name]->setBandwidthLimits(minBandwidth, maxBandwidth, bandwidthLocked);
+}
+
+bool VFOManager::getBandwidthChanged(std::string name, bool erase) {
+    if (vfos.find(name) == vfos.end()) {
+        return false;
+    }
+    return vfos[name]->getBandwidthChanged(erase);
+}
+
+double VFOManager::getBandwidth(std::string name) {
+    if (vfos.find(name) == vfos.end()) {
+        return NAN;
+    }
+    return vfos[name]->getBandwidth();
 }
 
 void VFOManager::updateFromWaterfall(ImGui::WaterFall* wtf) {

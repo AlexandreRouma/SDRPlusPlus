@@ -33,7 +33,7 @@ public:
     RadioModule(std::string name) {
         this->name = name;
 
-        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 200000, 200000, 1);
+        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 200000, 200000, 50000, 200000, false);
 
         ns.init(vfo->output);
 
@@ -70,7 +70,7 @@ public:
     }
 
     void enable() {
-        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 200000, 200000, 1);
+        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 200000, 200000, 50000, 200000, false);
 
         wfmDemod.setVFO(vfo);
         fmDemod.setVFO(vfo);

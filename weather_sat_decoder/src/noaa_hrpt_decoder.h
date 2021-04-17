@@ -72,6 +72,7 @@ public:
     void select() {
         _vfo->setSampleRate(NOAA_HRPT_VFO_SR, NOAA_HRPT_VFO_BW);
         _vfo->setReference(ImGui::WaterfallVFO::REF_CENTER);
+        _vfo->setBandwidthLimits(NOAA_HRPT_VFO_BW, NOAA_HRPT_VFO_BW, true);
     };
 
     void start() {

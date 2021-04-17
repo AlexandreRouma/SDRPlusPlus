@@ -9,16 +9,18 @@ public:
 
     class VFO {
     public:
-        VFO(std::string name, int reference, double offset, double bandwidth, double sampleRate, int blockSize);
+        VFO(std::string name, int reference, double offset, double bandwidth, double sampleRate, double minBandwidth, double maxBandwidth, bool bandwidthLocked);
         ~VFO();
 
         void setOffset(double offset);
         void setCenterOffset(double offset);
-        void setBandwidth(double bandwidth);
+        void setBandwidth(double bandwidth, bool updateWaterfall = true);
         void setSampleRate(double sampleRate, double bandwidth);
         void setReference(int ref);
-        int getOutputBlockSize();
         void setSnapInterval(double interval);
+        void setBandwidthLimits(double minBandwidth, double maxBandwidth, bool bandwidthLocked);
+        bool getBandwidthChanged(bool erase = true);
+        double getBandwidth();
 
         dsp::stream<dsp::complex_t>* output;
 
@@ -31,15 +33,17 @@ public:
         
     };
 
-    VFOManager::VFO* createVFO(std::string name, int reference, double offset, double bandwidth, double sampleRate, int blockSize);
+    VFOManager::VFO* createVFO(std::string name, int reference, double offset, double bandwidth, double sampleRate, double minBandwidth, double maxBandwidth, bool bandwidthLocked);
     void deleteVFO(VFOManager::VFO* vfo);
 
     void setOffset(std::string name, double offset);
     void setCenterOffset(std::string name, double offset);
-    void setBandwidth(std::string name, double bandwidth);
+    void setBandwidth(std::string name, double bandwidth, bool updateWaterfall = true);
     void setSampleRate(std::string name, double sampleRate, double bandwidth);
     void setReference(std::string name, int ref);
-    int getOutputBlockSize(std::string name);
+    void setBandwidthLimits(std::string name, double minBandwidth, double maxBandwidth, bool bandwidthLocked);
+    bool getBandwidthChanged(std::string name, bool erase = true);
+    double getBandwidth(std::string name);
 
     void updateFromWaterfall(ImGui::WaterFall* wtf);
 

@@ -220,6 +220,10 @@ namespace ImGui {
                 vfo->wfRectMax = ImVec2(vfo->rectMax.x, wfMax.y);
                 vfo->wfLineMin = ImVec2(vfo->lineMin.x, wfMin.y);
                 vfo->wfLineMax = ImVec2(vfo->lineMax.x, wfMax.y);
+                vfo->wfLbwSelMin = ImVec2(vfo->wfRectMin.x - 2, vfo->wfRectMin.y);
+                vfo->wfLbwSelMax = ImVec2(vfo->wfRectMin.x + 2, vfo->wfRectMax.y);
+                vfo->wfRbwSelMin = ImVec2(vfo->wfRectMax.x - 2, vfo->wfRectMin.y);
+                vfo->wfRbwSelMax = ImVec2(vfo->wfRectMax.x + 2, vfo->wfRectMax.y);
             }
             vfo->draw(window, name == selectedVFO);
         }
@@ -238,64 +242,93 @@ namespace ImGui {
     }
 
     void WaterFall::processInputs() {
-        WaterfallVFO* vfo = NULL;
+        // Pre calculate useful values
+        WaterfallVFO* selVfo = NULL;
         if (selectedVFO != "") {
-            vfo = vfos[selectedVFO];
+            selVfo = vfos[selectedVFO];
         }
         ImVec2 mousePos = ImGui::GetMousePos();
         ImVec2 drag = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
         ImVec2 dragOrigin(mousePos.x - drag.x, mousePos.y - drag.y);
 
         bool mouseHovered, mouseHeld;
-        bool mouseClicked = ImGui::ButtonBehavior(ImRect(fftAreaMin, fftAreaMax), GetID("WaterfallID"), &mouseHovered, &mouseHeld, 
+        bool mouseClicked = ImGui::ButtonBehavior(ImRect(fftAreaMin, wfMax), GetID("WaterfallID"), &mouseHovered, &mouseHeld, 
                                                 ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_PressedOnClick);
 
-        mouseClicked |= ImGui::ButtonBehavior(ImRect(wfMin, wfMax), GetID("WaterfallID2"), &mouseHovered, &mouseHeld, 
-                                                ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_PressedOnClick);
-        
         bool draging = ImGui::IsMouseDragging(ImGuiMouseButton_Left) && ImGui::IsWindowFocused();
         bool mouseInFreq = IS_IN_AREA(dragOrigin, freqAreaMin, freqAreaMax);
         bool mouseInFFT = IS_IN_AREA(dragOrigin, fftAreaMin, fftAreaMax);
         bool mouseInWaterfall = IS_IN_AREA(dragOrigin, wfMin, wfMax);
-        
 
-        // If mouse was clicked on a VFO, select VFO and return
-        // If mouse was clicked but not on a VFO, move selected VFO to position
+        // Deselect everything if the mouse is released
+        if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+            freqScaleSelect = false;
+            vfoSelect = false;
+            vfoBorderSelect = false;
+            lastDrag = 0;
+        }
+
+        // If mouse was clicked, check what was clicked
         if (mouseClicked) {
+            bool targetFound = false;
+            mouseDownPos = mousePos;
+
+            // First, check if a VFO border was selected
             for (auto const& [name, _vfo] : vfos) {
-                if (name == selectedVFO) {
-                    continue;
+                if (_vfo->bandwidthLocked) { continue; }
+                bool resizing = false;
+                if (_vfo->reference != REF_LOWER) {
+                    if (IS_IN_AREA(mousePos, _vfo->lbwSelMin, _vfo->lbwSelMax)) { resizing = true; }
+                    else if (IS_IN_AREA(mousePos, _vfo->wfLbwSelMin, _vfo->wfLbwSelMax)) { resizing = true; }
                 }
-                if (IS_IN_AREA(mousePos, _vfo->rectMin, _vfo->rectMax) || IS_IN_AREA(mousePos, _vfo->wfRectMin, _vfo->wfRectMax)) {
-                    selectedVFO = name;
-                    selectedVFOChanged = true;
-                    return;
+                if (_vfo->reference != REF_UPPER) {
+                    if (IS_IN_AREA(mousePos, _vfo->rbwSelMin, _vfo->rbwSelMax)) { resizing = true; }
+                    else if (IS_IN_AREA(mousePos, _vfo->wfRbwSelMin, _vfo->wfRbwSelMax)) { resizing = true; }  
+                } 
+                if (!resizing) { continue; }
+                relatedVfo = _vfo;
+                vfoBorderSelect = true;
+                targetFound = true;
+                break;
+            }
+
+            // Next, check if a VFO was selected
+            if (!targetFound) {
+                for (auto const& [name, _vfo] : vfos) {
+                    if (name == selectedVFO) {
+                        continue;
+                    }
+
+                    // If another VFO is selected, select it and cancel out
+                    if (IS_IN_AREA(mousePos, _vfo->rectMin, _vfo->rectMax) || IS_IN_AREA(mousePos, _vfo->wfRectMin, _vfo->wfRectMax)) {
+                        selectedVFO = name;
+                        selectedVFOChanged = true;
+                        targetFound = true;
+                        return;
+                    }
                 }
             }
-            if (vfo != NULL) {
-                int refCenter = mousePos.x - (widgetPos.x + 50);
-                if (refCenter >= 0 && refCenter < dataWidth) {
-                    double off = ((((double)refCenter / ((double)dataWidth / 2.0)) - 1.0) * (viewBandwidth / 2.0)) + viewOffset;
-                    off += centerFreq;
-                    off = (round(off / vfo->snapInterval) * vfo->snapInterval) - centerFreq;
-                    vfo->setOffset(off);
-                }
+
+            // Now, check frequency scale
+            if (!targetFound && mouseInFreq) {
+                freqScaleSelect = true;
             }
         }
 
-        // Draging VFO
-        if (draging && (mouseInFFT || mouseInWaterfall)) {
-            int refCenter = mousePos.x - (widgetPos.x + 50);
-            if (refCenter >= 0 && refCenter < dataWidth && mousePos.y > widgetPos.y && mousePos.y < (widgetPos.y + widgetSize.y) && vfo != NULL) {
-                double off = ((((double)refCenter / ((double)dataWidth / 2.0)) - 1.0) * (viewBandwidth / 2.0)) + viewOffset;
-                off += centerFreq;
-                off = (round(off / vfo->snapInterval) * vfo->snapInterval) - centerFreq;
-                vfo->setOffset(off);
+        // If a vfo border is selected, resize VFO accordingly
+        if (vfoBorderSelect) {
+            double dist = fabsf(mousePos.x - relatedVfo->lineMin.x);
+            double hzDist = dist * (viewBandwidth / (double)dataWidth);
+            if (relatedVfo->reference == REF_CENTER) {
+                hzDist *= 2.0;
             }
-        } 
+            hzDist = std::clamp<double>(hzDist, relatedVfo->minBandwidth, relatedVfo->maxBandwidth);
+            relatedVfo->setBandwidth(hzDist);
+            return;
+        }
 
-        // Draging frequency scale
-        if (draging && mouseInFreq) {
+        // If the frequency scale is selected, move it
+        if (freqScaleSelect) {
             double deltax = drag.x - lastDrag;
             lastDrag = drag.x;
             double viewDelta = deltax * (viewBandwidth / (double)dataWidth);
@@ -322,10 +355,21 @@ namespace ImGui {
                 updateAllVFOs();
                 if (_fullUpdate) { updateWaterfallFb(); };
             }
+            return;
         }
-        else {
-            lastDrag = 0;
-        }
+
+        // Finally, if nothing else was selected, just move the VFO
+        if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+            if (selVfo != NULL) {
+                int refCenter = mousePos.x - (widgetPos.x + 50);
+                if (refCenter >= 0 && refCenter < dataWidth) {
+                    double off = ((((double)refCenter / ((double)dataWidth / 2.0)) - 1.0) * (viewBandwidth / 2.0)) + viewOffset;
+                    off += centerFreq;
+                    off = (round(off / selVfo->snapInterval) * selVfo->snapInterval) - centerFreq;
+                    selVfo->setOffset(off);
+                }
+            }
+        }        
     }
 
     void WaterFall::setFastFFT(bool fastFFT) {
@@ -815,6 +859,11 @@ namespace ImGui {
             vfo->wfRectMax = ImVec2(vfo->rectMax.x, wfMax.y);
             vfo->wfLineMin = ImVec2(vfo->lineMin.x, wfMin.y);
             vfo->wfLineMax = ImVec2(vfo->lineMax.x, wfMax.y);
+
+            vfo->wfLbwSelMin = ImVec2(vfo->wfRectMin.x - 2, vfo->wfRectMin.y);
+            vfo->wfLbwSelMax = ImVec2(vfo->wfRectMin.x + 2, vfo->wfRectMax.y);
+            vfo->wfRbwSelMin = ImVec2(vfo->wfRectMax.x - 2, vfo->wfRectMin.y);
+            vfo->wfRbwSelMax = ImVec2(vfo->wfRectMax.x + 2, vfo->wfRectMax.y);
         }
     }
 
@@ -897,6 +946,7 @@ namespace ImGui {
             lowerOffset = upperOffset - bandwidth;
             centerOffsetChanged = true;
         }
+        bandwidthChanged = true;
         redrawRequired = true;
     }
 
@@ -940,8 +990,10 @@ namespace ImGui {
         rectMin = ImVec2(widgetPos.x + 50 + left, widgetPos.y + 10);
         rectMax = ImVec2(widgetPos.x + 51 + right, widgetPos.y + fftHeight + 10);
 
-        lbwSelMin = ImVec2(rectMin.x - 1, rectMin.y);
-        lbwSelMax = ImVec2(rectMin.x + 1, rectMax.y);
+        lbwSelMin = ImVec2(rectMin.x - 2, rectMin.y);
+        lbwSelMax = ImVec2(rectMin.x + 2, rectMax.y);
+        rbwSelMin = ImVec2(rectMax.x - 2, rectMin.y);
+        rbwSelMax = ImVec2(rectMax.x + 2, rectMax.y);
     }
 
     void WaterfallVFO::draw(ImGuiWindow* window, bool selected) {
@@ -949,6 +1001,16 @@ namespace ImGui {
         if (lineVisible) {
             window->DrawList->AddLine(lineMin, lineMax, selected ? IM_COL32(255, 0, 0, 255) : IM_COL32(255, 255, 0, 255));
         }
+
+        ImVec2 mousePos = ImGui::GetMousePos();
+        if (reference != REF_LOWER && !bandwidthLocked) {
+            if (IS_IN_AREA(mousePos, lbwSelMin, lbwSelMax)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW); }
+            else if (IS_IN_AREA(mousePos, wfLbwSelMin, wfLbwSelMax)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW); }
+        }
+        if (reference != REF_UPPER && !bandwidthLocked) {
+            if (IS_IN_AREA(mousePos, rbwSelMin, rbwSelMax)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW); }
+            else if (IS_IN_AREA(mousePos, wfRbwSelMin, wfRbwSelMax)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW); }
+        }        
     };
 
     void WaterFall::showWaterfall() {

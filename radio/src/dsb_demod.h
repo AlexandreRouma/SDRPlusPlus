@@ -80,6 +80,7 @@ public:
         _vfo->setSampleRate(bbSampRate, bw);
         _vfo->setSnapInterval(snapInterval);
         _vfo->setReference(ImGui::WaterfallVFO::REF_CENTER);
+        _vfo->setBandwidthLimits(bwMin, bwMax, false);
     }
 
     void setVFO(VFOManager::VFO* vfo) {
@@ -126,6 +127,15 @@ public:
             _config->conf[uiPrefix]["DSB"]["bandwidth"] = bw;
             _config->release(true);
         }
+        if (running) {
+            if (_vfo->getBandwidthChanged()) {
+                bw = _vfo->getBandwidth();
+                setBandwidth(bw, false);
+                _config->aquire();
+                _config->conf[uiPrefix]["DSB"]["bandwidth"] = bw;
+                _config->release(true);
+            }
+        }
 
         ImGui::Text("Snap Interval");
         ImGui::SameLine();
@@ -150,9 +160,9 @@ public:
     } 
 
 private:
-    void setBandwidth(float bandWidth) {
+    void setBandwidth(float bandWidth, bool updateWaterfall = true) {
         bw = bandWidth;
-        _vfo->setBandwidth(bw);
+        _vfo->setBandwidth(bw, updateWaterfall);
     }
 
     void setSnapInterval(float snapInt) {
