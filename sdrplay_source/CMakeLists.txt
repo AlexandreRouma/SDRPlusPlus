@@ -3,9 +3,11 @@ project(sdrplay_source)
 
 if (MSVC)
     set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")
-else()
-    set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -fpermissive")
-endif (MSVC)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -Wnounused-command-line-argument -undefined dynamic_lookup")
+else ()
+    set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
+endif ()
 
 include_directories("src/")
 
@@ -25,7 +27,7 @@ else (MSVC)
     find_package(PkgConfig)
 
     target_link_libraries(sdrplay_source PRIVATE sdrplay_api)
-endif (MSVC)
+endif ()
 
 # Install directives
 install(TARGETS sdrplay_source DESTINATION lib/sdrpp/plugins)

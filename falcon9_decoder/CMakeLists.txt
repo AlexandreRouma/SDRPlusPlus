@@ -3,9 +3,11 @@ project(falcon9_decoder)
 
 if (MSVC)
     set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")
-else()
-    set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -fpermissive")
-endif (MSVC)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -Wnounused-command-line-argument -undefined dynamic_lookup")
+else ()
+    set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
+endif ()
 
 file(GLOB_RECURSE SRC "src/*.cpp" "src/*.c")
 

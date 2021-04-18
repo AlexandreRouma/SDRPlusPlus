@@ -45,6 +45,20 @@ namespace dsp {
             running = false;
         }
 
+        void tempStart() {
+            if (tempStopped) {
+                doStart();
+                tempStopped = false;
+            }
+        }
+
+        void tempStop() {
+            if (running && !tempStopped) {
+                doStop();
+                tempStopped = true;
+            }
+        }
+
         virtual int calcOutSize(int inSize) { return inSize; }
 
         virtual int run() = 0;
@@ -105,20 +119,6 @@ namespace dsp {
             }
         }
 
-        void tempStart() {
-            if (tempStopped) {
-                doStart();
-                tempStopped = false;
-            }
-        }
-
-        void tempStop() {
-            if (running && !tempStopped) {
-                doStop();
-                tempStopped = true;
-            }
-        }
-
         std::vector<untyped_steam*> inputs;
         std::vector<untyped_steam*> outputs;
 
@@ -159,6 +159,20 @@ namespace dsp {
             running = false;
         }
 
+        void tempStart() {
+            if (tempStopped) {
+                doStart();
+                tempStopped = false;
+            }
+        }
+
+        void tempStop() {
+            if (running && !tempStopped) {
+                doStop();
+                tempStopped = true;
+            }
+        }
+
         virtual int calcOutSize(int inSize) { return inSize; }
 
         friend BLOCK;
@@ -181,20 +195,6 @@ namespace dsp {
         virtual void doStop() {
             for (auto& block : blocks) {
                 block->stop();
-            }
-        }
-
-        void tempStart() {
-            if (tempStopped) {
-                doStart();
-                tempStopped = false;
-            }
-        }
-
-        void tempStop() {
-            if (running && !tempStopped) {
-                doStop();
-                tempStopped = true;
             }
         }
 

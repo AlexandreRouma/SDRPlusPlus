@@ -3,9 +3,11 @@ project(bladerf_source)
 
 if (MSVC)
     set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")
-else()
-    set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -fpermissive")
-endif (MSVC)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -Wnounused-command-line-argument -undefined dynamic_lookup")
+else ()
+    set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
+endif ()
 
 include_directories("src/")
 
@@ -23,7 +25,7 @@ if (MSVC)
 else (MSVC)
     # Not in pkg-config
     target_link_libraries(bladerf_source PUBLIC libbladeRF)
-endif (MSVC)
+endif ()
 
 # Install directives
 install(TARGETS bladerf_source DESTINATION lib/sdrpp/plugins)

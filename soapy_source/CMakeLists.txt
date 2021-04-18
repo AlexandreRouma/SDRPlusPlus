@@ -3,9 +3,11 @@ project(soapy_source)
 
 if (MSVC)
     set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")
-else()
-    set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -fpermissive")
-endif (MSVC)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -Wnounused-command-line-argument -undefined dynamic_lookup")
+else ()
+    set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
+endif ()
 
 file(GLOB SRC "src/*.cpp")
 
@@ -29,7 +31,7 @@ else (MSVC)
     target_include_directories(soapy_source PUBLIC ${SOAPY_INCLUDE_DIRS})
     target_link_directories(soapy_source PUBLIC ${SOAPY_LIBRARY_DIRS})
     target_link_libraries(soapy_source PUBLIC ${SOAPY_LIBRARIES})
-endif (MSVC)
+endif ()
 
 # Install directives
 install(TARGETS soapy_source DESTINATION lib/sdrpp/plugins)
