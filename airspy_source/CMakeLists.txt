@@ -25,6 +25,10 @@ if (MSVC)
 else (MSVC)
     find_package(PkgConfig)
 
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        target_link_directories(sdrpp_core PUBLIC "/usr/local/include")
+    endif()
+
     pkg_check_modules(LIBAIRSPY REQUIRED libairspy)
 
     target_include_directories(airspy_source PUBLIC ${LIBAIRSPY_INCLUDE_DIRS})
