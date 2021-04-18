@@ -14,13 +14,17 @@
 #endif
 
 #ifdef _WIN32
-#include <Windows.h>
-#define MOD_EXPORT extern "C" __declspec(dllexport)
-#define SDRPP_MOD_EXTENTSION    ".dll"
+    #include <Windows.h>
+    #define MOD_EXPORT extern "C" __declspec(dllexport)
+    #define SDRPP_MOD_EXTENTSION    ".dll"
 #else
-#include <dlfcn.h>
-#define MOD_EXPORT extern "C"
-#define SDRPP_MOD_EXTENTSION    ".so"
+    #include <dlfcn.h>
+    #define MOD_EXPORT extern "C"
+    #ifdef __APPLE__
+        #define SDRPP_MOD_EXTENTSION    ".dylib"
+    #else
+        #define SDRPP_MOD_EXTENTSION    ".so"
+    #endif
 #endif
 
 class ModuleManager {
