@@ -299,6 +299,7 @@ private:
         float refreshBtnWdith = menuWidth - ImGui::GetCursorPosX();
         if (ImGui::Button(CONCAT("Refresh##_hackrf_refr_", _this->name), ImVec2(refreshBtnWdith, 0))) {
             _this->refresh();
+            _this->selectBySerial(_this->selectedSerial);
         }
 
         if (_this->running) { style::endDisabled(); }
