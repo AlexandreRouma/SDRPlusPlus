@@ -270,7 +270,7 @@ public:
         }
 
         if (ImGui::BeginTabItem("HIRS")) {
-            ImGui::BeginChild(ImGuiID("HIRSChild"));
+            ImGui::BeginChild("HIRSChild");
 
             ImGui::EndChild();
             ImGui::EndTabItem();
