@@ -1,7 +1,12 @@
 cmake_minimum_required(VERSION 3.13)
 project(sdrpp)
 
-set(CMAKE_INSTALL_PREFIX "/usr")
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set(CMAKE_INSTALL_PREFIX "/usr/local")
+else()
+    set(CMAKE_INSTALL_PREFIX "/usr")
+endif()
+
 
 option(OPT_BUILD_RTL_TCP_SOURCE "Build RTL-TCP Source Module (no dependencies required)" ON)
 option(OPT_BUILD_SPYSERVER_SOURCE "Build SpyServer Source Module (no dependencies required)" OFF)
@@ -126,7 +131,10 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/colormaps DESTINATION share/sdrpp
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/fonts DESTINATION share/sdrpp)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/icons DESTINATION share/sdrpp)
 configure_file(${CMAKE_SOURCE_DIR}/sdrpp.desktop ${CMAKE_CURRENT_BINARY_DIR}/sdrpp.desktop @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/sdrpp.desktop DESTINATION /usr/share/applications)
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/sdrpp.desktop DESTINATION /usr/share/applications)
+endif ()
 
 # Create uninstall target
 configure_file(${CMAKE_SOURCE_DIR}/cmake_uninstall.cmake ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake @ONLY)

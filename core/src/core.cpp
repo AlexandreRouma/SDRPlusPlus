@@ -29,7 +29,11 @@
 #endif
 
 #ifndef INSTALL_PREFIX
-    #define INSTALL_PREFIX "/usr"
+    #ifdef __APPLE__
+        #define INSTALL_PREFIX "/usr/local"
+    #else 
+        #define INSTALL_PREFIX "/usr"
+    #endif
 #endif
 
 namespace core {
