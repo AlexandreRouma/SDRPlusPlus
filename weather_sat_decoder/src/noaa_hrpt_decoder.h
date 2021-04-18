@@ -216,7 +216,7 @@ public:
         ImGui::BeginTabBar("NOAAHRPTTabs");
 
         if (ImGui::BeginTabItem("AVHRR RGB(221)")) {
-            ImGui::BeginChild(ImGuiID("AVHRRRGBChild"));
+            ImGui::BeginChild("AVHRRRGBChild");
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
             avhrrRGBImage.draw();
             ImGui::SetScrollHere(1.0f);
@@ -225,7 +225,7 @@ public:
         }
 
         if (ImGui::BeginTabItem("AVHRR 1")) {
-            ImGui::BeginChild(ImGuiID("AVHRR1Child"));
+            ImGui::BeginChild("AVHRR1Child");
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
             avhrr1Image.draw();
             ImGui::SetScrollHere(1.0f);
@@ -234,7 +234,7 @@ public:
         }
 
         if (ImGui::BeginTabItem("AVHRR 2")) {
-            ImGui::BeginChild(ImGuiID("AVHRR2Child"));
+            ImGui::BeginChild("AVHRR2Child");
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
             avhrr2Image.draw();
             ImGui::SetScrollHere(1.0f);
@@ -243,7 +243,7 @@ public:
         }
 
         if (ImGui::BeginTabItem("AVHRR 3")) {
-            ImGui::BeginChild(ImGuiID("AVHRR3Child"));
+            ImGui::BeginChild("AVHRR3Child");
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
             avhrr3Image.draw();
             ImGui::SetScrollHere(1.0f);
@@ -252,7 +252,7 @@ public:
         }
 
         if (ImGui::BeginTabItem("AVHRR 4")) {
-            ImGui::BeginChild(ImGuiID("AVHRR4Child"));
+            ImGui::BeginChild("AVHRR4Child");
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
             avhrr4Image.draw();
             ImGui::SetScrollHere(1.0f);
@@ -261,7 +261,7 @@ public:
         }
 
         if (ImGui::BeginTabItem("AVHRR 5")) {
-            ImGui::BeginChild(ImGuiID("AVHRR5Child"));
+            ImGui::BeginChild("AVHRR5Child");
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
             avhrr5Image.draw();
             ImGui::SetScrollHere(1.0f);
