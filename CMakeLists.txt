@@ -88,8 +88,8 @@ else()
     set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
 endif (MSVC)
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  set(CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS "${CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS} -undefined dynamic_lookup")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    include_directories("/usr/include")
 endif()
 
 add_executable(sdrpp "src/main.cpp" "win32/resources.rc")

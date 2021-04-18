@@ -10,10 +10,6 @@ else()
 endif (MSVC)
 add_definitions(-DSDRPP_IS_CORE)
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  set(CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS "${CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS} -undefined dynamic_lookup")
-endif()
-
 # Set the install prefix
 add_compile_definitions(INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
 
