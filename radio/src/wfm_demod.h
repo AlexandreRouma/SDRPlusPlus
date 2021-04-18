@@ -129,7 +129,6 @@ public:
 
         ImGui::SetNextItemWidth(menuWidth);
         if (ImGui::InputFloat(("##_radio_wfm_bw_" + uiPrefix).c_str(), &bw, 1, 100, "%.0f", 0)) {
-            spdlog::warn("TEST");
             bw = std::clamp<float>(bw, bwMin, bwMax);
             setBandwidth(bw);
             _config->aquire();

@@ -317,6 +317,7 @@ namespace ImGui {
 
         // If a vfo border is selected, resize VFO accordingly
         if (vfoBorderSelect) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
             double dist = (relatedVfo->reference == REF_CENTER) ? fabsf(mousePos.x - relatedVfo->lineMin.x) : (mousePos.x - relatedVfo->lineMin.x);
             if (relatedVfo->reference == REF_UPPER) { dist = -dist; }
             double hzDist = dist * (viewBandwidth / (double)dataWidth);
@@ -330,6 +331,7 @@ namespace ImGui {
 
         // If the frequency scale is selected, move it
         if (freqScaleSelect) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
             double deltax = drag.x - lastDrag;
             lastDrag = drag.x;
             double viewDelta = deltax * (viewBandwidth / (double)dataWidth);
