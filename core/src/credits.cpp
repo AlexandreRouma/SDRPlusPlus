@@ -25,6 +25,7 @@ namespace sdrpp_credits {
     };
 
     const char* patrons[] = {
+        "Croccydile",
         "Daniele D'Agnelli",
         "W4IPA",
         "Lee Donaghy",
