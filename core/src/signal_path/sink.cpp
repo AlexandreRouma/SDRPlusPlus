@@ -14,11 +14,11 @@ SinkManager::SinkManager() {
     registerSinkProvider("None", prov);
 }
 
-SinkManager::Stream::Stream(dsp::stream<dsp::stereo_t>* in, const Event<float>::EventHandler& srChangeHandler, float sampleRate) {
+SinkManager::Stream::Stream(dsp::stream<dsp::stereo_t>* in, const EventHandler<float>& srChangeHandler, float sampleRate) {
     init(in, srChangeHandler, sampleRate);
 }
 
-void SinkManager::Stream::init(dsp::stream<dsp::stereo_t>* in, const Event<float>::EventHandler& srChangeHandler, float sampleRate) {
+void SinkManager::Stream::init(dsp::stream<dsp::stereo_t>* in, const EventHandler<float>& srChangeHandler, float sampleRate) {
     _in = in;
     srChange.bindHandler(srChangeHandler);
     _sampleRate = sampleRate;

@@ -3,21 +3,22 @@
 #include <spdlog/spdlog.h>
 
 template <class T>
+struct EventHandler {
+    EventHandler() {}
+    EventHandler(void (*handler)(T, void*), void* ctx) {
+        this->handler = handler;
+        this->ctx = ctx;
+    }
+
+    void (*handler)(T, void*);
+    void* ctx;
+};
+
+template <class T>
 class Event {
 public:
     Event() {}
     ~Event() {}
-
-    struct EventHandler {
-        EventHandler() {}
-        EventHandler(void (*handler)(T, void*), void* ctx) {
-            this->handler = handler;
-            this->ctx = ctx;
-        }
-
-        void (*handler)(T, void*);
-        void* ctx;
-    };
 
     void emit(T value) {
         for (auto const& handler : handlers) {
@@ -25,11 +26,11 @@ public:
         }
     }
 
-    void bindHandler(const EventHandler& handler) {
+    void bindHandler(const EventHandler<T>& handler) {
         handlers.push_back(handler);
     }
 
-    void unbindHandler(const EventHandler& handler) {
+    void unbindHandler(const EventHandler<T>& handler) {
         if (handlers.find(handler) == handlers.end()) {
             spdlog::error("Tried to remove a non-existant event handler");
             return;
@@ -38,6 +39,6 @@ public:
     }
 
 private:
-    std::vector<EventHandler> handlers;
+    std::vector<EventHandler<T>> handlers;
 
 };

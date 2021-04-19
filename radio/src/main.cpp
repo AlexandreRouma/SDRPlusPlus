@@ -199,7 +199,7 @@ private:
 
     dsp::NullSink<dsp::complex_t> ns;
 
-    Event<float>::EventHandler srChangeHandler;
+    EventHandler<float> srChangeHandler;
     SinkManager::Stream stream;
 
 };
