@@ -261,8 +261,13 @@ int sdrpp_main(int argc, char *argv[]) {
     // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForOpenGL(window, true);
 
-    if (ImGui_ImplOpenGL3_Init(glsl_version)) {
-        spdlog::warn("Working!");
+    if (!ImGui_ImplOpenGL3_Init(glsl_version)) {
+        // If init fail, try to fall back on GLSL 1.2
+        spdlog::warn("Could not init using OpenGL with normal GLSL version, falling back to GLSL 1.2");
+        if (!ImGui_ImplOpenGL3_Init("#version 120")) {
+            spdlog::error("Failed to initialize OpenGL with GLSL 1.2");
+            return -1;
+        }
     }
 
     if (!style::setDarkStyle(resDir)) { return -1; }
