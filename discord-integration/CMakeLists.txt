@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(discord)
+project(discord-integration)
 
 if (MSVC)
     set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")
@@ -11,13 +11,11 @@ endif ()
 
 file(GLOB SRC "src/*.cpp")
 
-include_directories("src/" "discord-rpc/include")
+include_directories("src/")
 
-add_subdirectory("discord-rpc")
-
-add_library(discord SHARED ${SRC})
-target_link_libraries(discord PUBLIC sdrpp_core discord-rpc)
-set_target_properties(discord PROPERTIES PREFIX "")
+add_library(integration SHARED ${SRC})
+target_link_libraries(integration PUBLIC sdrpp_core discord-rpc)
+set_target_properties(integration PROPERTIES PREFIX "")
 
 # Install directives
-install(TARGETS discord DESTINATION lib/sdrpp/plugins)
+install(TARGETS integration DESTINATION lib/sdrpp/plugins)
