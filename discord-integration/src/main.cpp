@@ -8,11 +8,11 @@
 #include <discord_rpc.h>
 
 SDRPP_MOD_INFO {
-    /* Name:            */ "discord",
+    /* Name:            */ "discord-integration",
     /* Description:     */ "Discord Rich Presence module for SDR++",
     /* Author:          */ "Starman0620",
     /* Version:         */ 0, 0, 1,
-    /* Max instances    */ -1
+    /* Max instances    */ 1
 };
 
 void ready(const DiscordUser *request);
@@ -70,7 +70,7 @@ private:
 
     static void updatePresence() {
        presence.details = "Listening";
-       sprintf(freq, "%.2fMHz", gui::waterfall.getCenterFrequency()/1000000, 3);
+       sprintf(freq, "%.2fMHz", (float)gui::freqSelect.frequency/1000000);
        presence.state = freq;
        Discord_UpdatePresence(&presence);
     }
