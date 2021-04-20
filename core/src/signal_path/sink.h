@@ -25,9 +25,9 @@ public:
     class Stream {
     public:
         Stream() {}
-        Stream(dsp::stream<dsp::stereo_t>* in, const Event<float>::EventHandler& srChangeHandler, float sampleRate);
+        Stream(dsp::stream<dsp::stereo_t>* in, const EventHandler<float>& srChangeHandler, float sampleRate);
 
-        void init(dsp::stream<dsp::stereo_t>* in, const Event<float>::EventHandler& srChangeHandler, float sampleRate);
+        void init(dsp::stream<dsp::stereo_t>* in, const EventHandler<float>& srChangeHandler, float sampleRate);
 
         void start();
         void stop();

@@ -35,6 +35,7 @@ cp build/soapy_source/Release/soapy_source.dll sdrpp_windows_x64/modules/
 cp build/file_source/Release/file_source.dll sdrpp_windows_x64/modules/
 
 cp build/sdrplay_source/Release/sdrplay_source.dll sdrpp_windows_x64/modules/
+cp 'C:/Program Files/SDRplay/API/x64/sdrplay_api.dll' sdrpp_windows_x64/
 
 cp build/meteor_demodulator/Release/meteor_demodulator.dll sdrpp_windows_x64/modules/
 
