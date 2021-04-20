@@ -5,6 +5,8 @@
 #include <gui/style.h>
 #include <core.h>
 
+#include <discord_rpc.h>
+
 SDRPP_MOD_INFO {
     /* Name:            */ "discord",
     /* Description:     */ "Discord Rich Presence module for SDR++",
