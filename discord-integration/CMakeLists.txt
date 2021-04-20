@@ -9,13 +9,14 @@ else ()
     set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -fPIC")
 endif ()
 
+add_subdirectory("discord-rpc")
+
 file(GLOB SRC "src/*.cpp")
+include_directories("src/" "discord-rpc/include")
 
-include_directories("src/")
-
-add_library(integration SHARED ${SRC})
-target_link_libraries(integration PUBLIC sdrpp_core discord-rpc)
-set_target_properties(integration PROPERTIES PREFIX "")
+add_library(discord-integration SHARED ${SRC})
+target_link_libraries(discord-integration PUBLIC sdrpp_core discord-rpc)
+set_target_properties(discord-integration PROPERTIES PREFIX "")
 
 # Install directives
-install(TARGETS integration DESTINATION lib/sdrpp/plugins)
+install(TARGETS discord-integration DESTINATION lib/sdrpp/plugins)
