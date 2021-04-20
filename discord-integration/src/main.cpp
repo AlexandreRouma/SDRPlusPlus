@@ -4,21 +4,25 @@
 #include <gui/gui.h>
 #include <gui/style.h>
 #include <core.h>
-#include <cmath>
 #include <discord_rpc.h>
+#include <thread>
 
 SDRPP_MOD_INFO {
     /* Name:            */ "discord-integration",
     /* Description:     */ "Discord Rich Presence module for SDR++",
-    /* Author:          */ "Starman0620",
+    /* Author:          */ "Starman0620 & Ryzerth",
     /* Version:         */ 0, 0, 1,
     /* Max instances    */ 1
 };
 
-void ready(const DiscordUser *request);
-static DiscordRichPresence presence;
-static uint64_t lastFreq;
-static char* freq = new char[24];
+DiscordRichPresence presence;
+uint64_t lastFreq;
+char* freq = new char[24];
+
+// Threading
+int workerCounter = 0;
+std::thread workerThread;
+bool workerRunning;
 
 class PresenceModule : public ModuleManager::Instance {
 public:
@@ -26,20 +30,26 @@ public:
         this->name = name;
         gui::menu.registerEntry(name, menuHandler, this, this);
 
+        workerRunning = true;
+        workerThread = std::thread(&PresenceModule::worker, this);
+
         startPresence();
     }
 
     ~PresenceModule() {
-
+        workerRunning = false;
+        if (workerThread.joinable()) { workerThread.join(); }
     }
 
     void enable() {
         startPresence();
+        workerRunning = true;
         enabled = true;
     }
 
     void disable() {
         Discord_ClearPresence();
+        workerRunning = false;
         enabled = false;
     }
 
@@ -48,6 +58,19 @@ public:
     }
 
 private:
+
+    // Main thread
+    void worker() {
+        while (workerRunning) {
+            workerCounter++;
+            if(workerCounter >= 1000) {
+                workerCounter = 0;
+                updatePresence();
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+    }
+
     static void menuHandler(void* ctx) {
         PresenceModule* _this = (PresenceModule*)ctx;
         if (!_this->enabled) { style::beginDisabled(); }
