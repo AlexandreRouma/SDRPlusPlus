@@ -39,16 +39,16 @@ public:
 private:
     static void menuHandler(void* ctx) {
         PresenceModule* _this = (PresenceModule*)ctx;
-        if(!_this->enabled) { style::beginDisabled(); }
+        if (!_this->enabled) { style::beginDisabled(); }
 
         float menuWidth = ImGui::GetContentRegionAvailWidth();
+
+        // GUI
         ImGui::BeginGroup();
-
-        ImGui::Text("Hello, SDR++ world! - Starman0620");
-
+        ImGui::Text("Connecting to Discord...");
         ImGui::EndGroup();
         
-        if(!_this->enabled) { style::endDisabled(); }
+        if (!_this->enabled) { style::endDisabled(); }
     }
 
     std::string name;
