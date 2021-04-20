@@ -17,7 +17,7 @@ SDRPP_MOD_INFO {
 
 void ready(const DiscordUser *request);
 static DiscordRichPresence presence;
-static time_t lastUpdate = time(0);
+static uint64_t lastFreq;
 static char* freq = new char[24];
 
 class PresenceModule : public ModuleManager::Instance {
@@ -55,24 +55,21 @@ private:
         float menuWidth = ImGui::GetContentRegionAvailWidth();
 
         // GUI
+        // For now this is empty, it's just left in so the toggle checkbox remains.
         ImGui::BeginGroup();
-        ImGui::Text("SDR++ Rich Presence by Starman0620");
         ImGui::EndGroup();
-
-        // Very basic method of implenting a 10s timer
-        if (time(0) - lastUpdate > 10) {
-            updatePresence();
-            lastUpdate = time(0);
-        }
         
         if (!_this->enabled) { style::endDisabled(); }
     }
 
     static void updatePresence() {
-       presence.details = "Listening";
-       sprintf(freq, "%.2fMHz", (float)gui::freqSelect.frequency/1000000);
-       presence.state = freq;
-       Discord_UpdatePresence(&presence);
+        if (gui::freqSelect.frequency != lastFreq) {
+            presence.details = "Listening"; // This really doesn't need to be re-set each time but it'll remain since it will be used once proper status can be displayed
+            sprintf(freq, "%.2fMHz", (float)gui::freqSelect.frequency/1000000);
+            presence.state = freq;
+            Discord_UpdatePresence(&presence);
+            lastFreq = gui::freqSelect.frequency;
+        }
     }
 
     static void startPresence() {
