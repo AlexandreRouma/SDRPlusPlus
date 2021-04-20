@@ -15,11 +15,28 @@ SDRPP_MOD_INFO {
     /* Max instances    */ -1
 };
 
+static DiscordRichPresence presence;
+
 class PresenceModule : public ModuleManager::Instance {
 public:
     PresenceModule(std::string name) {
         this->name = name;
         gui::menu.registerEntry(name, menuHandler, this, this);
+
+        // Discord initialization
+        DiscordEventHandlers handlers;
+        memset(&handlers, 0, sizeof(handlers));
+        memset(&presence, 0, sizeof(presence));
+        Discord_Initialize("833485588954742864", &handlers, 1, "");
+
+        // Set the first presence
+        presence.state = "Loading...";
+        presence.details = "Initializing rich presence...";
+        presence.partySize = 1;
+        presence.partyMax = 1;
+        presence.startTimestamp = time(0);
+        presence.largeImageKey = "image_large";
+        Discord_UpdatePresence(&presence);
     }
 
     ~PresenceModule() {
