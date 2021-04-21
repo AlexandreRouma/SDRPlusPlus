@@ -11,7 +11,7 @@ SDRPP_MOD_INFO {
     /* Name:            */ "discord-integration",
     /* Description:     */ "Discord Rich Presence module for SDR++",
     /* Author:          */ "Starman0620 & Ryzerth",
-    /* Version:         */ 0, 0, 1,
+    /* Version:         */ 0, 0, 2,
     /* Max instances    */ 1
 };
 
@@ -28,7 +28,6 @@ class PresenceModule : public ModuleManager::Instance {
 public:
     PresenceModule(std::string name) {
         this->name = name;
-        gui::menu.registerEntry(name, menuHandler, this, this);
 
         workerRunning = true;
         workerThread = std::thread(&PresenceModule::worker, this);
@@ -68,20 +67,6 @@ private:
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
-    }
-
-    static void menuHandler(void* ctx) {
-        PresenceModule* _this = (PresenceModule*)ctx;
-        if (!_this->enabled) { style::beginDisabled(); }
-
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
-
-        // GUI
-        // For now this is empty, it's just left in so the toggle checkbox remains.
-        ImGui::BeginGroup();
-        ImGui::EndGroup();
-        
-        if (!_this->enabled) { style::endDisabled(); }
     }
 
     static void updatePresence() {
