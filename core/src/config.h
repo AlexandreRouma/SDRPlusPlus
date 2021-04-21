@@ -3,6 +3,7 @@
 #include <thread>
 #include <string>
 #include <mutex>
+#include <condition_variable>
 
 using nlohmann::json;
 
@@ -28,5 +29,9 @@ private:
     bool autoSaveEnabled = false;
     std::thread autoSaveThread;
     std::mutex mtx;
+
+    std::mutex termMtx;
+    std::condition_variable termCond;
+    bool termFlag = false;
 
 };
