@@ -433,6 +433,12 @@ public:
         channelParams = (tuner == sdrplay_api_Tuner_A) ? openDevParams->rxChannelA : openDevParams->rxChannelB;
         channelParams->rspDuoTunerParams.tuner1AmPortSel = amPort;
         sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_AmPortSelect, sdrplay_api_Update_Ext1_None);
+
+        // Refresh gains (for some reason they're lost)
+        channelParams->tunerParams.gain.LNAstate = lnaGain;
+        channelParams->tunerParams.gain.gRdB = gain;
+        sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
+        sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
     
     }
 
