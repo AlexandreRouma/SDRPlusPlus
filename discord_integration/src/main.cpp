@@ -8,7 +8,7 @@
 #include <thread>
 
 SDRPP_MOD_INFO {
-    /* Name:            */ "discord-integration",
+    /* Name:            */ "discord_integration",
     /* Description:     */ "Discord Rich Presence module for SDR++",
     /* Author:          */ "Starman0620 & Ryzerth",
     /* Version:         */ 0, 0, 2,
