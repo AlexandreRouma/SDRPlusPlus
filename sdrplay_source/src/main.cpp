@@ -428,13 +428,11 @@ public:
                 spdlog::error("Error while swapping tuners: {0}", (int)ret);
             }
         }
-        else {
-            channelParams->rspDuoTunerParams.tuner1AmPortSel = amPort;
-            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_AmPortSelect, sdrplay_api_Update_Ext1_None);
-        }
 
         // Change the channel params
         channelParams = (tuner == sdrplay_api_Tuner_A) ? openDevParams->rxChannelA : openDevParams->rxChannelB;
+        channelParams->rspDuoTunerParams.tuner1AmPortSel = amPort;
+        sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_AmPortSelect, sdrplay_api_Update_Ext1_None);
     
     }
 
@@ -480,7 +478,7 @@ private:
         sdrplay_api_ErrT err;
 
         _this->bufferIndex = 0;
-        _this->bufferSize = 8000000 / 200;
+        _this->bufferSize = (float)_this->sampleRate / 200.0f;
 
         // RSP1A Options
         if (_this->openDev.hwVer == SDRPLAY_RSP1A_ID) {
@@ -525,6 +523,7 @@ private:
         }
 
         // General options
+        _this->bandwidth = (_this->bandwidthId == 8) ? preferedBandwidth[_this->srId] : bandwidths[_this->bandwidthId];
         _this->openDevParams->devParams->fsFreq.fsHz = _this->sampleRate;
         _this->channelParams->tunerParams.bwType = _this->bandwidth;
         _this->channelParams->tunerParams.rfFreq.rfHz = _this->freq;
@@ -550,16 +549,9 @@ private:
         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_LoMode, sdrplay_api_Update_Ext1_None);
         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Ctrl_Decimation, sdrplay_api_Update_Ext1_None);
         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Ctrl_DCoffsetIQimbalance, sdrplay_api_Update_Ext1_None);
-        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Ctrl_Agc, sdrplay_api_Update_Ext1_None);
         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Frf, sdrplay_api_Update_Ext1_None);
         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
-
-        // Bandwidth
-        _this->bandwidth = (_this->bandwidthId == 8) ? preferedBandwidth[_this->srId] : bandwidths[_this->bandwidthId];
-        if (_this->running) {
-            _this->channelParams->tunerParams.bwType = _this->bandwidth;
-            sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_BwType, sdrplay_api_Update_Ext1_None);
-        }
+        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Ctrl_Agc, sdrplay_api_Update_Ext1_None);
 
         _this->running = true;
         spdlog::info("SDRPlaySourceModule '{0}': Start!", _this->name);
