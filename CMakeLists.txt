@@ -89,7 +89,7 @@ add_subdirectory("weather_sat_decoder")
 endif (OPT_BUILD_WEATHER_SAT_DECODER)
 
 if (OPT_BUILD_DISCORD_PRESENCE)
-add_subdirectory("discord-integration")
+add_subdirectory("discord_integration")
 endif (OPT_BUILD_DISCORD_PRESENCE)
 
 if (MSVC)
