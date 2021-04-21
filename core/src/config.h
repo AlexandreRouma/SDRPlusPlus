@@ -29,4 +29,8 @@ private:
     std::thread autoSaveThread;
     std::mutex mtx;
 
+    std::mutex termMtx;
+    std::condition_variable termCond;
+    bool termFlag = false;
+
 };

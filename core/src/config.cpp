@@ -48,13 +48,17 @@ void ConfigManager::save(bool lock) {
 void ConfigManager::enableAutoSave() {
     if (!autoSaveEnabled) {
         autoSaveEnabled = true;
+        termFlag = false;
         autoSaveThread = std::thread(autoSaveWorker, this);
     }
 }
 
 void ConfigManager::disableAutoSave() {
     if (autoSaveEnabled) {
+        std::unique_lock<std::mutex> lock(termMtx);
         autoSaveEnabled = false;
+        termFlag = true;
+        termCond.notify_one();
         autoSaveThread.join();
     }
 }
@@ -80,6 +84,11 @@ void ConfigManager::autoSaveWorker(ConfigManager* _this) {
             _this->save(false);
         }
         _this->mtx.unlock();
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+        // Sleep but listen for wakeup call
+        {
+            std::unique_lock<std::mutex> lock(_this->termMtx);
+            _this->termCond.wait_for(lock, std::chrono::milliseconds(1000), [_this]() { return _this->termFlag; } );
+        }
     }
 }
