@@ -44,6 +44,7 @@ cp "C:/Program Files (x86)/RtAudio/bin/rtaudio.dll" sdrpp_windows_x64/
 
 # Copy supporting libs
 cp 'C:/Program Files/PothosSDR/bin/libusb-1.0.dll' sdrpp_windows_x64/
+cp 'C:/Program Files/PothosSDR/bin/pthreadVC2.dll' sdrpp_windows_x64/
 
 Compress-Archive -Path sdrpp_windows_x64/ -DestinationPath sdrpp_windows_x64.zip
 

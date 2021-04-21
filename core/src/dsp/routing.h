@@ -70,6 +70,11 @@ namespace dsp {
 
         Reshaper(stream<T>* in, int keep, int skip) { init(in, keep, skip); }
 
+        // NOTE: For some reason, the base class destrcutor doesn't get called.... this is a temporary fix I guess
+        ~Reshaper() {
+            generic_block<Reshaper<T>>::stop();
+        }
+
         void init(stream<T>* in, int keep, int skip) {
             _in = in;
             _keep = keep;
@@ -114,7 +119,7 @@ namespace dsp {
         stream<T> out;
 
     private:
-        void doStart() {
+        void doStart() override {
             workThread = std::thread(&Reshaper<T>::loop, this);
             bufferWorkerThread = std::thread(&Reshaper<T>::bufferWorker, this);
         }
@@ -123,7 +128,7 @@ namespace dsp {
             while (run() >= 0);
         }
 
-        void doStop() {
+        void doStop() override {
             _in->stopReader();
             ringBuf.stopReader();
             out.stopWriter();
