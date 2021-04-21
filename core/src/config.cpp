@@ -55,10 +55,12 @@ void ConfigManager::enableAutoSave() {
 
 void ConfigManager::disableAutoSave() {
     if (autoSaveEnabled) {
-        std::unique_lock<std::mutex> lock(termMtx);
-        autoSaveEnabled = false;
-        termFlag = true;
-        termCond.notify_one();
+        {
+            std::unique_lock<std::mutex> lock(termMtx);
+            autoSaveEnabled = false;
+            termFlag = true;
+            termCond.notify_one();
+        }
         autoSaveThread.join();
     }
 }
