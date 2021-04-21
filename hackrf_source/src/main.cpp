@@ -208,11 +208,17 @@ private:
         HackRFSourceModule* _this = (HackRFSourceModule*)ctx;
         core::setInputSampleRate(_this->sampleRate);
         spdlog::info("HackRFSourceModule '{0}': Menu Select!", _this->name);
+        int ret = hackrf_init(); //Crunchy code to make soapy_source not conflict with hackrf_source
+        if(ret != HACKRF_SUCCESS) {
+                spdlog::error("HackRFSourceModule '{0}': Init failed({1})!", _this->name, ret);
+        }
+        _this->refresh();
     }
 
     static void menuDeselected(void* ctx) {
         HackRFSourceModule* _this = (HackRFSourceModule*)ctx;
         spdlog::info("HackRFSourceModule '{0}': Menu Deselect!", _this->name);
+        hackrf_exit();
     }
 
     int bandwidthIdToBw(int id) {
