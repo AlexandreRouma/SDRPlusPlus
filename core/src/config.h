@@ -3,6 +3,7 @@
 #include <thread>
 #include <string>
 #include <mutex>
+#include <condition_variable>
 
 using nlohmann::json;
 
