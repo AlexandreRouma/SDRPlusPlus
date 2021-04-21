@@ -42,15 +42,14 @@ public:
     }
 
     void enable() {
-        startPresence();
         workerRunning = true;
         enabled = true;
     }
 
     void disable() {
-        Discord_ClearPresence();
         workerRunning = false;
         enabled = false;
+        Discord_ClearPresence();
     }
 
     bool isEnabled() {
