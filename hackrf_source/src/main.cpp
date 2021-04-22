@@ -10,8 +10,6 @@
 #include <gui/widgets/stepped_slider.h>
 #include <options.h>
 
-#pragma optimize( "", off )
-
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
 SDRPP_MOD_INFO {
@@ -413,5 +411,3 @@ MOD_EXPORT void _END_() {
     config.disableAutoSave();
     config.save();
 }
-
-#pragma optimize( "", on )
