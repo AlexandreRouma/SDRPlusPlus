@@ -40,6 +40,7 @@ namespace core {
     ConfigManager configManager;
     ScriptManager scriptManager;
     ModuleManager moduleManager;
+    ModuleComManager modComManager;
 
     void setInputSampleRate(double samplerate) {
         // NOTE: Zoom controls won't work

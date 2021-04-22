@@ -15,6 +15,7 @@
 #include <raw_demod.h>
 #include <cw_demod.h>
 #include <options.h>
+#include <radio_interface.h>
 
 #define CONCAT(a, b)    ((std::string(a) + b).c_str())
 
@@ -63,6 +64,8 @@ public:
         stream.start();
 
         gui::menu.registerEntry(name, menuHandler, this, this);
+
+        core::modComManager.registerInterface("radio", name, moduleInterfaceHandler, this);
     }
 
     ~RadioModule() {
@@ -152,6 +155,13 @@ private:
         _this->audioSampRate = sampleRate;
         if (_this->currentDemod != NULL) {
             _this->currentDemod->setAudioSampleRate(_this->audioSampRate);
+        }
+    }
+
+    static void moduleInterfaceHandler(int code, void* in, void* out, void* ctx) {
+        RadioModule* _this = (RadioModule*)ctx;
+        if (code == RADIO_IFACE_CMD_GET_MODE) {
+            *(int*)out = _this->demodId;
         }
     }
 

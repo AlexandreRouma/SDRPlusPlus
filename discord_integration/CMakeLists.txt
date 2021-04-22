@@ -12,7 +12,7 @@ endif ()
 add_subdirectory("discord-rpc")
 
 file(GLOB SRC "src/*.cpp")
-include_directories("src/" "discord-rpc/include")
+include_directories("src/" "discord-rpc/include" "../radio/src/")
 
 add_library(discord_integration SHARED ${SRC})
 target_link_libraries(discord_integration PUBLIC sdrpp_core discord-rpc)
