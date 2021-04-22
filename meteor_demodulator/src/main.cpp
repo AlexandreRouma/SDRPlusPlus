@@ -71,7 +71,8 @@ public:
     }
 
     void enable() {
-        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 150000, INPUT_SAMPLE_RATE, 150000, 150000, true);
+        double bw = gui::waterfall.getBandwidth();
+        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, std::clamp<double>(savedOffset, -bw/2.0, bw/2.0), 150000, INPUT_SAMPLE_RATE, 150000, 150000, true);
 
         demod.setInput(vfo->output);
 
@@ -91,6 +92,7 @@ public:
         symSink.stop();
         sink.stop();
 
+        savedOffset = vfo->getOffset();
         sigpath::vfoManager.deleteVFO(vfo);
         enabled = false;
     }
@@ -167,7 +169,7 @@ private:
 
     std::string name;
     bool enabled = true;
-    
+    double savedOffset = 0;
     
 
     // DSP Chain

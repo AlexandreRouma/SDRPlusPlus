@@ -40,6 +40,7 @@ namespace core {
     ConfigManager configManager;
     ScriptManager scriptManager;
     ModuleManager moduleManager;
+    ModuleComManager modComManager;
 
     void setInputSampleRate(double samplerate) {
         // NOTE: Zoom controls won't work
@@ -151,6 +152,8 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["streams"] = json::object();
     defConfig["windowSize"]["h"] = 720;
     defConfig["windowSize"]["w"] = 1280;
+
+    defConfig["vfoOffsets"] = json::object();
 
 #ifdef _WIN32
     defConfig["modulesDirectory"] = "./modules";

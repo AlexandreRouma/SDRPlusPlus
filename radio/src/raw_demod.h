@@ -25,14 +25,17 @@ public:
 
         _config->aquire();
         if(_config->conf.contains(prefix)) {
-            if(!_config->conf[prefix].contains("RAW")) {
-               if (!_config->conf[prefix]["RAW"].contains("snapInterval")) { _config->conf[prefix]["RAW"]["snapInterval"] = snapInterval; }
+            if(!_config->conf[prefix].contains("CW")) {
+                _config->conf[prefix]["CW"]["snapInterval"] = snapInterval;
+                _config->conf[prefix]["CW"]["squelchLevel"] = squelchLevel;
             }
-            json conf = _config->conf[prefix]["RAW"];
-            snapInterval = conf["snapInterval"];
+            json conf = _config->conf[prefix]["CW"];
+            if (conf.contains("snapInterval")) { snapInterval = conf["snapInterval"]; }
+            if (conf.contains("squelchLevel")) { squelchLevel = conf["squelchLevel"]; }
         }
         else {
-            _config->conf[prefix]["RAW"]["snapInterval"] = snapInterval;
+            _config->conf[prefix]["CW"]["snapInterval"] = snapInterval;
+            _config->conf[prefix]["CW"]["squelchLevel"] = squelchLevel;
         }
         _config->release(true);
 
