@@ -26,16 +26,19 @@ public:
         _config->aquire();
         if(_config->conf.contains(prefix)) {
             if(!_config->conf[prefix].contains("AM")) {
-                if (!_config->conf[prefix]["AM"].contains("bandwidth")) { _config->conf[prefix]["AM"]["bandwidth"] = bw; }
-                if (!_config->conf[prefix]["AM"].contains("snapInterval")) { _config->conf[prefix]["AM"]["snapInterval"] = snapInterval; }
+                _config->conf[prefix]["AM"]["bandwidth"] = bw;
+                _config->conf[prefix]["AM"]["snapInterval"] = snapInterval;
+                _config->conf[prefix]["AM"]["squelchLevel"] = squelchLevel;
             }
             json conf = _config->conf[prefix]["AM"];
-            bw = conf["bandwidth"];
-            snapInterval = conf["snapInterval"];
+            if (conf.contains("bandwidth")) { bw = conf["bandwidth"]; }
+            if (conf.contains("snapInterval")) { snapInterval = conf["snapInterval"]; }
+            if (conf.contains("squelchLevel")) { squelchLevel = conf["squelchLevel"]; }
         }
         else {
             _config->conf[prefix]["AM"]["bandwidth"] = bw;
             _config->conf[prefix]["AM"]["snapInterval"] = snapInterval;
+            _config->conf[prefix]["AM"]["squelchLevel"] = squelchLevel;
         }
         _config->release(true);
 

@@ -73,7 +73,8 @@ public:
     }
 
     void enable() {
-        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 200000, 200000, 50000, 200000, false);
+        double bw = gui::waterfall.getBandwidth();
+        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, std::clamp<double>(savedOffset, -bw/2.0, bw/2.0), 200000, 200000, 50000, 200000, false);
 
         wfmDemod.setVFO(vfo);
         fmDemod.setVFO(vfo);
@@ -91,9 +92,8 @@ public:
 
     void disable() {
         currentDemod->stop();
+        savedOffset = vfo->getOffset();
         sigpath::vfoManager.deleteVFO(vfo);
-        //ns.setInput(vfo->output);
-        //ns.start();
         enabled = false;
     }
 
@@ -194,6 +194,7 @@ private:
     bool enabled = true;
     int demodId = 0;
     float audioSampRate = 48000;
+    double savedOffset;
     Demodulator* currentDemod = NULL;
 
     VFOManager::VFO* vfo;

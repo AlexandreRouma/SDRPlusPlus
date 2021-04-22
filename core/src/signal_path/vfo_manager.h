@@ -13,6 +13,7 @@ public:
         ~VFO();
 
         void setOffset(double offset);
+        double getOffset();
         void setCenterOffset(double offset);
         void setBandwidth(double bandwidth, bool updateWaterfall = true);
         void setSampleRate(double sampleRate, double bandwidth);
@@ -37,6 +38,7 @@ public:
     void deleteVFO(VFOManager::VFO* vfo);
 
     void setOffset(std::string name, double offset);
+    double getOffset(std::string name);
     void setCenterOffset(std::string name, double offset);
     void setBandwidth(std::string name, double bandwidth, bool updateWaterfall = true);
     void setSampleRate(std::string name, double sampleRate, double bandwidth);
