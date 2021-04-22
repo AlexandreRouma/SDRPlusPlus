@@ -22,6 +22,7 @@ option(OPT_BUILD_AUDIO_SINK "Build Audio Sink Module (Depedencies: rtaudio)" ON)
 option(OPT_BUILD_FALCON9_DECODER "Build the falcon9 live decoder (Dependencies: ffplay)" OFF)
 option(OPT_BUILD_METEOR_DEMODULATOR "Build the meteor demodulator module (no dependencies required)" ON)
 option(OPT_BUILD_WEATHER_SAT_DECODER "Build the HRPT decoder module (no dependencies required)" ON)
+option(OPT_BUILD_DISCORD_PRESENCE "Build the Discord Rich Presence module" ON)
 # Core of SDR++
 add_subdirectory("core")
 
@@ -86,6 +87,10 @@ endif (OPT_BUILD_METEOR_DEMODULATOR)
 if (OPT_BUILD_WEATHER_SAT_DECODER)
 add_subdirectory("weather_sat_decoder")
 endif (OPT_BUILD_WEATHER_SAT_DECODER)
+
+if (OPT_BUILD_DISCORD_PRESENCE)
+add_subdirectory("discord_integration")
+endif (OPT_BUILD_DISCORD_PRESENCE)
 
 if (MSVC)
     set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")
