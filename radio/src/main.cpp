@@ -194,7 +194,7 @@ private:
     bool enabled = true;
     int demodId = 0;
     float audioSampRate = 48000;
-    double savedOffset;
+    double savedOffset = 0;
     Demodulator* currentDemod = NULL;
 
     VFOManager::VFO* vfo;

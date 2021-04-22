@@ -75,24 +75,24 @@ private:
     void updatePresence() {
         double selectedFreq = gui::freqSelect.frequency;
         std::string selectedName = gui::waterfall.selectedVFO;
-        if (selectedFreq != lastFreq) {
-            lastFreq = selectedFreq;
-
-            strcpy(mode, "Raw");
-
-            if (core::modComManager.interfaceExists(selectedName)) {
-                if (core::modComManager.getModuleName(selectedName) == "radio") {
-                    int modeNum;
-                    core::modComManager.callInterface(selectedName, RADIO_IFACE_CMD_GET_MODE, NULL, &modeNum);
-                    if (modeNum == RADIO_IFACE_MODE_NFM) { strcpy(mode, "NFM"); }
-                    else if (modeNum == RADIO_IFACE_MODE_WFM) { strcpy(mode, "FM"); }
-                    else if (modeNum == RADIO_IFACE_MODE_AM) { strcpy(mode, "AM"); }
-                    else if (modeNum == RADIO_IFACE_MODE_DSB) { strcpy(mode, "DSB"); }
-                    else if (modeNum == RADIO_IFACE_MODE_USB) { strcpy(mode, "USB"); }
-                    else if (modeNum == RADIO_IFACE_MODE_CW) { strcpy(mode, "CW"); }
-                    else if (modeNum == RADIO_IFACE_MODE_LSB) { strcpy(mode, "LSB"); }
-                }
+        strcpy(mode, "Raw");
+        if (core::modComManager.interfaceExists(selectedName)) {
+            if (core::modComManager.getModuleName(selectedName) == "radio") {
+                int modeNum;
+                core::modComManager.callInterface(selectedName, RADIO_IFACE_CMD_GET_MODE, NULL, &modeNum);
+                if (modeNum == RADIO_IFACE_MODE_NFM) { strcpy(mode, "NFM"); }
+                else if (modeNum == RADIO_IFACE_MODE_WFM) { strcpy(mode, "FM"); }
+                else if (modeNum == RADIO_IFACE_MODE_AM) { strcpy(mode, "AM"); }
+                else if (modeNum == RADIO_IFACE_MODE_DSB) { strcpy(mode, "DSB"); }
+                else if (modeNum == RADIO_IFACE_MODE_USB) { strcpy(mode, "USB"); }
+                else if (modeNum == RADIO_IFACE_MODE_CW) { strcpy(mode, "CW"); }
+                else if (modeNum == RADIO_IFACE_MODE_LSB) { strcpy(mode, "LSB"); }
             }
+        }
+        
+        if (selectedFreq != lastFreq || mode != lastMode) {
+            lastFreq = selectedFreq;
+            lastMode = mode;
 
             // Print out frequency to buffer
             if (selectedFreq >= 1000000.0) {
@@ -134,6 +134,7 @@ private:
     double lastFreq;
     char* freq = new char[1024];
     char* mode = new char[1024];
+    std::string lastMode = "";
 
     // Threading
     int workerCounter = 0;
