@@ -6,7 +6,7 @@
 #include <signal_path/signal_path.h>
 #include <module.h>
 #include <options.h>
-
+#include <filesystem>
 #include <dsp/pll.h>
 #include <dsp/stream.h>
 #include <dsp/demodulator.h>
@@ -31,6 +31,8 @@ SDRPP_MOD_INFO {
     /* Max instances    */ -1
 };
 
+ConfigManager config;
+
 std::string genFileName(std::string prefix, std::string suffix) {
     time_t now = time(0);
     tm *ltm = localtime(&now);
@@ -47,6 +49,16 @@ public:
         this->name = name;
 
         writeBuffer = new int8_t[STREAM_BUFFER_SIZE];
+
+        // Load config
+        config.aquire();
+        bool created = false;
+        if (!config.conf.contains(name)) {
+            config.conf[name]["recPath"] = "%ROOT%/recordings";
+            created = true;
+        }
+        folderSelect.setPath(config.conf[name]["recPath"]);
+        config.release(created);
 
         vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 150000, INPUT_SAMPLE_RATE, 150000, 150000, true);
         demod.init(vfo->output, INPUT_SAMPLE_RATE, 72000.0f, 32, 0.6f, 0.1f, 0.005f);
@@ -112,7 +124,13 @@ private:
         ImGui::SetNextItemWidth(menuWidth);
         _this->constDiagram.draw();
 
-        _this->folderSelect.render("##meteor-recorder-" + _this->name);
+        if (_this->folderSelect.render("##meteor-recorder-" + _this->name)) {
+            if (_this->folderSelect.pathIsValid()) {
+                config.aquire();
+                config.conf[_this->name]["recPath"] = _this->folderSelect.path;
+                config.release(true);
+            }
+        }
 
         if (!_this->folderSelect.pathIsValid() && _this->enabled) { style::beginDisabled(); }
 
@@ -197,7 +215,17 @@ private:
 };
 
 MOD_EXPORT void _INIT_() {
-    // Nothing
+    // Create default recording directory
+    if (!std::filesystem::exists(options::opts.root + "/recordings")) {
+        spdlog::warn("Recordings directory does not exist, creating it");
+        if (!std::filesystem::create_directory(options::opts.root + "/recordings")) {
+            spdlog::error("Could not create recordings directory");
+        }
+    }
+    json def = json({});
+    config.setPath(options::opts.root + "/meteor_demodulator_config.json");
+    config.load(def);
+    config.enableAutoSave();
 }
 
 MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
@@ -209,5 +237,6 @@ MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
 }
 
 MOD_EXPORT void _END_() {
-    // Nothing either
+    config.disableAutoSave();
+    config.save();
 }

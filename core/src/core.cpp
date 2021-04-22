@@ -207,6 +207,11 @@ int sdrpp_main(int argc, char *argv[]) {
     json bandColors = core::configManager.conf["bandColors"];
     core::configManager.release();
 
+    if (!std::filesystem::is_directory(resDir)) {
+        spdlog::error("Resource directory doesn't exist! Please make sure that you've configured it correctly in config.json (check readme for details)");
+        return 1;
+    }
+
     // Create window with graphics context
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     GLFWwindow* window = glfwCreateWindow(winWidth, winHeight, "SDR++ v" VERSION_STR " (Built at " __TIME__ ", " __DATE__ ")", NULL, NULL);
@@ -223,6 +228,11 @@ int sdrpp_main(int argc, char *argv[]) {
 #endif
 
     // Load app icon
+    if (!std::filesystem::is_regular_file(resDir + "/icons/sdrpp.png")) {
+        spdlog::error("Icon file '{0}' doesn't exist!", resDir + "/icons/sdrpp.png");
+        return 1;
+    }
+
     GLFWimage icons[10];
     icons[0].pixels = stbi_load(((std::string)(resDir + "/icons/sdrpp.png")).c_str(), &icons[0].width, &icons[0].height, 0, 4);
     icons[1].pixels = (unsigned char*)malloc(16 * 16 * 4); icons[1].width = icons[1].height = 16;
