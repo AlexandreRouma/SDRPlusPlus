@@ -5,8 +5,6 @@
 #include <filesystem>
 #include <fstream>
 
-using nlohmann::json;
-
 bool ThemeManager::loadThemesFromDir(std::string path) {
     if (!std::filesystem::is_directory(path)) {
         spdlog::error("Theme directory doesn't exist: {0}", path);
@@ -31,6 +29,7 @@ bool ThemeManager::loadTheme(std::string path) {
 
     // Load defaults in theme
     Theme thm;
+    thm.author = "--";
 
     // Load JSON
     std::ifstream file(path.c_str());
@@ -38,61 +37,50 @@ bool ThemeManager::loadTheme(std::string path) {
     file >> data;
     file.close();
 
-    // Load theme
-    uint8_t val[4];
-    if (data.contains("Text")) {                    if (decodeRGBA(data["Text"], val)) {                    thm.Text = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("TextDisabled")) {            if (decodeRGBA(data["TextDisabled"], val)) {            thm.TextDisabled = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("WindowBg")) {                if (decodeRGBA(data["WindowBg"], val)) {                thm.WindowBg = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("ChildBg")) {                 if (decodeRGBA(data["ChildBg"], val)) {                 thm.ChildBg = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("PopupBg")) {                 if (decodeRGBA(data["PopupBg"], val)) {                 thm.PopupBg = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("Border")) {                  if (decodeRGBA(data["Border"], val)) {                  thm.Border = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("BorderShadow")) {            if (decodeRGBA(data["BorderShadow"], val)) {            thm.BorderShadow = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("FrameBg")) {                 if (decodeRGBA(data["FrameBg"], val)) {                 thm.FrameBg = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("FrameBgHovered")) {          if (decodeRGBA(data["FrameBgHovered"], val)) {          thm.FrameBgHovered = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("FrameBgActive")) {           if (decodeRGBA(data["FrameBgActive"], val)) {           thm.FrameBgActive = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("TitleBg")) {                 if (decodeRGBA(data["TitleBg"], val)) {                 thm.TitleBg = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("TitleBgActive")) {           if (decodeRGBA(data["TitleBgActive"], val)) {           thm.TitleBgActive = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("TitleBgCollapsed")) {        if (decodeRGBA(data["TitleBgCollapsed"], val)) {        thm.TitleBgCollapsed = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("MenuBarBg")) {               if (decodeRGBA(data["MenuBarBg"], val)) {               thm.MenuBarBg = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("ScrollbarBg")) {             if (decodeRGBA(data["ScrollbarBg"], val)) {             thm.ScrollbarBg = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("ScrollbarGrab")) {           if (decodeRGBA(data["ScrollbarGrab"], val)) {           thm.ScrollbarGrab = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("ScrollbarGrabHovered")) {    if (decodeRGBA(data["ScrollbarGrabHovered"], val)) {    thm.ScrollbarGrabHovered = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("ScrollbarGrabActive")) {     if (decodeRGBA(data["ScrollbarGrabActive"], val)) {     thm.ScrollbarGrabActive = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("CheckMark")) {               if (decodeRGBA(data["CheckMark"], val)) {               thm.CheckMark = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("SliderGrab")) {              if (decodeRGBA(data["SliderGrab"], val)) {              thm.SliderGrab = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("TeSliderGrabActivext")) {    if (decodeRGBA(data["SliderGrabActive"], val)) {        thm.SliderGrabActive = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("Button")) {                  if (decodeRGBA(data["Button"], val)) {                  thm.Button = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("ButtonHovered")) {           if (decodeRGBA(data["ButtonHovered"], val)) {           thm.ButtonHovered = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("ButtonActive")) {            if (decodeRGBA(data["ButtonActive"], val)) {            thm.ButtonActive = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("Header")) {                  if (decodeRGBA(data["Header"], val)) {                  thm.Header = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("HeaderHovered")) {           if (decodeRGBA(data["HeaderHovered"], val)) {           thm.HeaderHovered = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("HeaderActive")) {            if (decodeRGBA(data["HeaderActive"], val)) {            thm.HeaderActive = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("Separator")) {               if (decodeRGBA(data["Separator"], val)) {               thm.Separator = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("SeparatorHovered")) {        if (decodeRGBA(data["SeparatorHovered"], val)) {        thm.SeparatorHovered = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("SeparatorActive")) {         if (decodeRGBA(data["SeparatorActive"], val)) {         thm.SeparatorActive = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("ResizeGrip")) {              if (decodeRGBA(data["ResizeGrip"], val)) {              thm.ResizeGrip = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("ResizeGripHovered")) {       if (decodeRGBA(data["ResizeGripHovered"], val)) {       thm.ResizeGripHovered = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("ResizeGripActive")) {        if (decodeRGBA(data["ResizeGripActive"], val)) {        thm.ResizeGripActive = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("Tab")) {                     if (decodeRGBA(data["Tab"], val)) {                     thm.Tab = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("TabHovered")) {              if (decodeRGBA(data["TabHovered"], val)) {              thm.TabHovered = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("TabActive")) {               if (decodeRGBA(data["TabActive"], val)) {               thm.TabActive = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("TabUnfocused")) {            if (decodeRGBA(data["TabUnfocused"], val)) {            thm.TabUnfocused = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("TabUnfocusedActive")) {      if (decodeRGBA(data["TabUnfocusedActive"], val)) {      thm.TabUnfocusedActive = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("PlotLines")) {               if (decodeRGBA(data["PlotLines"], val)) {               thm.PlotLines = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("PlotLinesHovered")) {        if (decodeRGBA(data["PlotLinesHovered"], val)) {        thm.PlotLinesHovered = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("PlotHistogram")) {           if (decodeRGBA(data["PlotHistogram"], val)) {           thm.PlotHistogram = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("PlotHistogramHovered")) {    if (decodeRGBA(data["PlotHistogramHovered"], val)) {    thm.PlotHistogramHovered = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("TableHeaderBg")) {           if (decodeRGBA(data["TableHeaderBg"], val)) {           thm.TableHeaderBg = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("TableBorderStrong")) {       if (decodeRGBA(data["TableBorderStrong"], val)) {       thm.TableBorderStrong = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("TableBorderLight")) {        if (decodeRGBA(data["TableBorderLight"], val)) {        thm.TableBorderLight = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("TableRowBg")) {              if (decodeRGBA(data["TableRowBg"], val)) {              thm.TableRowBg = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("TableRowBgAlt")) {           if (decodeRGBA(data["TableRowBgAlt"], val)) {           thm.TableRowBgAlt = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("TextSelectedBg")) {          if (decodeRGBA(data["TextSelectedBg"], val)) {          thm.TextSelectedBg = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("DragDropTarget")) {          if (decodeRGBA(data["DragDropTarget"], val)) {          thm.DragDropTarget = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("NavHighlight")) {            if (decodeRGBA(data["NavHighlight"], val)) {            thm.NavHighlight = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("NavWindowingHighlight")) {   if (decodeRGBA(data["NavWindowingHighlight"], val)) {   thm.NavWindowingHighlight = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("NavWindowingDimBg")) {       if (decodeRGBA(data["NavWindowingDimBg"], val)) {       thm.NavWindowingDimBg = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
-    if (data.contains("ModalWindowDimBg")) {        if (decodeRGBA(data["ModalWindowDimBg"], val)) {        thm.ModalWindowDimBg = ImVec4((float)val[0]/255.0f, (float)val[1]/255.0f, (float)val[2]/255.0f, (float)val[3]/255.0f); } }
+    // Load theme name
+    if (!data.contains("name")) {
+        spdlog::error("Theme {0} is missing the name parameter", path);
+        return false;
+    }
+    if (!data["name"].is_string()) {
+        spdlog::error("Theme {0} contains invalid name field. Expected string", path);
+        return false;
+    }
+    std::string name = data["name"];
+
+    // Load theme author if available
+    if (data.contains("author")) {
+        if (!data["author"].is_string()) {
+            spdlog::error("Theme {0} contains invalid author field. Expected string", path);
+            return false;
+        }
+        thm.author = data["author"];
+    }
+
+    // Iterate through all parameters and check their contents
+    std::map<std::string, std::string> params = data;
+    for (auto const& [param, val] : params) {
+        if (param == "name" || param == "author") { continue; }
+
+        bool isValid = false;
+
+        // If param is a color, check that it's a valid RGBA hex value
+        if (IMGUI_COL_IDS.find(param) != IMGUI_COL_IDS.end()) {
+            if (val[0] != '#' || !std::all_of(val.begin() + 1, val.end(), ::isxdigit) || val.length() != 9) {
+                spdlog::error("Theme {0} contains invalid {1} field. Expected hex RGBA color", path, param);
+                return false;
+            }
+            isValid = true;
+        }
+
+        if (!isValid) {
+            spdlog::error("Theme {0} contains unknown {1} field.", path, param);
+            return false;
+        }
+    }
+    
+    thm.data = data;
+    themes[name] = thm;
 
     return true;
 }
@@ -103,62 +91,32 @@ bool ThemeManager::applyTheme(std::string name) {
         return false;
     }
 
+    ImGui::StyleColorsDark();
+
     auto& style = ImGui::GetStyle();
+
+    style.WindowRounding = 0.0f;
+    style.ChildRounding = 0.0f;
+    style.FrameRounding = 0.0f;
+    style.GrabRounding = 0.0f;
+    style.PopupRounding = 0.0f;
+    style.ScrollbarRounding = 0.0f;
+
     ImVec4* colors = style.Colors;
     Theme thm = themes[name];
-    colors[ImGuiCol_Text] = thm.Text;
-    colors[ImGuiCol_TextDisabled] = thm.TextDisabled;
-    colors[ImGuiCol_WindowBg] = thm.WindowBg;
-    colors[ImGuiCol_ChildBg] = thm.ChildBg;
-    colors[ImGuiCol_PopupBg] = thm.PopupBg;
-    colors[ImGuiCol_Border] = thm.Border;
-    colors[ImGuiCol_BorderShadow] = thm.BorderShadow;
-    colors[ImGuiCol_FrameBg] = thm.FrameBg;
-    colors[ImGuiCol_FrameBgHovered] = thm.FrameBgHovered;
-    colors[ImGuiCol_FrameBgActive] = thm.FrameBgActive;
-    colors[ImGuiCol_TitleBg] = thm.TitleBg;
-    colors[ImGuiCol_TitleBgActive] = thm.TitleBgActive;
-    colors[ImGuiCol_TitleBgCollapsed] = thm.TitleBgCollapsed;
-    colors[ImGuiCol_MenuBarBg] = thm.MenuBarBg;
-    colors[ImGuiCol_ScrollbarBg] = thm.ScrollbarBg;
-    colors[ImGuiCol_ScrollbarGrab] = thm.ScrollbarGrab;
-    colors[ImGuiCol_ScrollbarGrabHovered] = thm.ScrollbarGrabHovered;
-    colors[ImGuiCol_ScrollbarGrabActive] = thm.ScrollbarGrabActive;
-    colors[ImGuiCol_CheckMark] = thm.CheckMark;
-    colors[ImGuiCol_SliderGrab] = thm.SliderGrab;
-    colors[ImGuiCol_SliderGrabActive] = thm.SliderGrabActive;
-    colors[ImGuiCol_Button] = thm.Button;
-    colors[ImGuiCol_ButtonHovered] = thm.ButtonHovered;
-    colors[ImGuiCol_ButtonActive] = thm.ButtonActive;
-    colors[ImGuiCol_Header] = thm.Header;
-    colors[ImGuiCol_HeaderHovered] = thm.HeaderHovered;
-    colors[ImGuiCol_HeaderActive] = thm.HeaderActive;
-    colors[ImGuiCol_Separator] = thm.Separator;
-    colors[ImGuiCol_SeparatorHovered] = thm.SeparatorHovered;
-    colors[ImGuiCol_SeparatorActive] = thm.SeparatorActive;
-    colors[ImGuiCol_ResizeGrip] = thm.ResizeGrip;
-    colors[ImGuiCol_ResizeGripHovered] = thm.ResizeGripHovered;
-    colors[ImGuiCol_ResizeGripActive] = thm.ResizeGripActive;
-    colors[ImGuiCol_Tab] = thm.Tab;
-    colors[ImGuiCol_TabHovered] = thm.TabHovered;
-    colors[ImGuiCol_TabActive] = thm.TabActive;
-    colors[ImGuiCol_TabUnfocused] = thm.TabUnfocused;
-    colors[ImGuiCol_TabUnfocusedActive] = thm.TabUnfocusedActive;
-    colors[ImGuiCol_PlotLines] = thm.PlotLines;
-    colors[ImGuiCol_PlotLinesHovered] = thm.PlotLinesHovered;
-    colors[ImGuiCol_PlotHistogram] = thm.PlotHistogram;
-    colors[ImGuiCol_PlotHistogramHovered] = thm.PlotHistogramHovered;
-    colors[ImGuiCol_TableHeaderBg] = thm.TableHeaderBg;
-    colors[ImGuiCol_TableBorderStrong] = thm.TableBorderStrong;
-    colors[ImGuiCol_TableBorderLight] = thm.TableBorderLight;
-    colors[ImGuiCol_TableRowBg] = thm.TableRowBg;
-    colors[ImGuiCol_TableRowBgAlt] = thm.TableRowBgAlt;
-    colors[ImGuiCol_TextSelectedBg] = thm.TextSelectedBg;
-    colors[ImGuiCol_DragDropTarget] = thm.DragDropTarget;
-    colors[ImGuiCol_NavHighlight] = thm.NavHighlight;
-    colors[ImGuiCol_NavWindowingHighlight] = thm.NavWindowingHighlight;
-    colors[ImGuiCol_NavWindowingDimBg] = thm.NavWindowingDimBg;
-    colors[ImGuiCol_ModalWindowDimBg] = thm.ModalWindowDimBg;
+    
+    uint8_t ret[4];
+    std::map<std::string, std::string> params = thm.data;
+    for (auto const& [param, val] : params) {
+        if (param == "name" || param == "author") { continue; }
+
+        // If param is a color, check that it's a valid RGBA hex value
+        if (IMGUI_COL_IDS.find(param) != IMGUI_COL_IDS.end()) {
+            decodeRGBA(val, ret);
+            colors[IMGUI_COL_IDS[param]] = ImVec4((float)ret[0]/255.0f, (float)ret[1]/255.0f, (float)ret[2]/255.0f, (float)ret[3]/255.0f);
+            continue;
+        }
+    }
 
     return true;
 }
@@ -173,3 +131,59 @@ bool ThemeManager::decodeRGBA(std::string str, uint8_t out[4]) {
     out[3] = std::stoi(str.substr(7, 2), NULL, 16);
     return true;
 }
+
+std::map<std::string, int> ThemeManager::IMGUI_COL_IDS = {
+    {"Text",                    ImGuiCol_Text},
+    {"TextDisabled",            ImGuiCol_TextDisabled},
+    {"WindowBg",                ImGuiCol_WindowBg}, 
+    {"ChildBg",                 ImGuiCol_ChildBg},
+    {"PopupBg",                 ImGuiCol_PopupBg},
+    {"Border",                  ImGuiCol_Border},
+    {"BorderShadow",            ImGuiCol_BorderShadow},
+    {"FrameBg",                 ImGuiCol_FrameBg},
+    {"FrameBgHovered",          ImGuiCol_FrameBgHovered},
+    {"FrameBgActive",           ImGuiCol_FrameBgActive},
+    {"TitleBg",                 ImGuiCol_TitleBg},
+    {"TitleBgActive",           ImGuiCol_TitleBgActive},
+    {"TitleBgCollapsed",        ImGuiCol_TitleBgCollapsed},
+    {"MenuBarBg",               ImGuiCol_MenuBarBg},
+    {"ScrollbarBg",             ImGuiCol_ScrollbarBg},
+    {"ScrollbarGrab",           ImGuiCol_ScrollbarGrab},
+    {"ScrollbarGrabHovered",    ImGuiCol_ScrollbarGrabHovered},
+    {"ScrollbarGrabActive",     ImGuiCol_ScrollbarGrabActive},
+    {"CheckMark",               ImGuiCol_CheckMark},
+    {"SliderGrab",              ImGuiCol_SliderGrab},
+    {"SliderGrabActive",        ImGuiCol_SliderGrabActive},
+    {"Button",                  ImGuiCol_Button},
+    {"ButtonHovered",           ImGuiCol_ButtonHovered},
+    {"ButtonActive",            ImGuiCol_ButtonActive},
+    {"Header",                  ImGuiCol_Header},
+    {"HeaderHovered",           ImGuiCol_HeaderHovered},
+    {"HeaderActive",            ImGuiCol_HeaderActive},
+    {"Separator",               ImGuiCol_Separator},
+    {"SeparatorHovered",        ImGuiCol_SeparatorHovered},
+    {"SeparatorActive",         ImGuiCol_SeparatorActive},
+    {"ResizeGrip",              ImGuiCol_ResizeGrip},
+    {"ResizeGripHovered",       ImGuiCol_ResizeGripHovered},
+    {"ResizeGripActive",        ImGuiCol_ResizeGripActive},
+    {"Tab",                     ImGuiCol_Tab},
+    {"TabHovered",              ImGuiCol_TabHovered},
+    {"TabActive",               ImGuiCol_TabActive},
+    {"TabUnfocused",            ImGuiCol_TabUnfocused},
+    {"TabUnfocusedActive",      ImGuiCol_TabUnfocusedActive},
+    {"PlotLines",               ImGuiCol_PlotLines},
+    {"PlotLinesHovered",        ImGuiCol_PlotLinesHovered},
+    {"PlotHistogram",           ImGuiCol_PlotHistogram},
+    {"PlotHistogramHovered",    ImGuiCol_PlotHistogramHovered},
+    {"TableHeaderBg",           ImGuiCol_TableHeaderBg},
+    {"TableBorderStrong",       ImGuiCol_TableBorderStrong},
+    {"TableBorderLight",        ImGuiCol_TableBorderLight},
+    {"TableRowBg",              ImGuiCol_TableRowBg},
+    {"TableRowBgAlt",           ImGuiCol_TableRowBgAlt},
+    {"TextSelectedBg",          ImGuiCol_TextSelectedBg},
+    {"DragDropTarget",          ImGuiCol_DragDropTarget},
+    {"NavHighlight",            ImGuiCol_NavHighlight},
+    {"NavWindowingHighlight",   ImGuiCol_NavWindowingHighlight},
+    {"NavWindowingDimBg",       ImGuiCol_NavWindowingDimBg},
+    {"ModalWindowDimBg",        ImGuiCol_ModalWindowDimBg}
+};

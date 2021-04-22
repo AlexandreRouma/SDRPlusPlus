@@ -119,16 +119,31 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["fullWaterfallUpdate"] = false;
     defConfig["max"] = 0.0;
     defConfig["maximized"] = false;
-    defConfig["menuOrder"] = {
-        "Source",
-        "Radio",
-        "Recorder",
-        "Sinks",
-        "Audio",
-        "Scripting",
-        "Band Plan",
-        "Display"
-    };
+
+    // Menu
+    defConfig["menuElements"] = json::array();
+
+    defConfig["menuElements"][0]["name"] = "Source";
+    defConfig["menuElements"][0]["open"] = true;
+
+    defConfig["menuElements"][1]["name"] = "Radio";
+    defConfig["menuElements"][1]["open"] = true;
+
+    defConfig["menuElements"][2]["name"] = "Recorder";
+    defConfig["menuElements"][2]["open"] = true;
+
+    defConfig["menuElements"][3]["name"] = "Sinks";
+    defConfig["menuElements"][3]["open"] = true;
+
+    defConfig["menuElements"][4]["name"] = "Scripting";
+    defConfig["menuElements"][4]["open"] = false;
+
+    defConfig["menuElements"][5]["name"] = "Band Plan";
+    defConfig["menuElements"][5]["open"] = true;
+
+    defConfig["menuElements"][6]["name"] = "Display";
+    defConfig["menuElements"][6]["open"] = true;
+
     defConfig["menuWidth"] = 300;
     defConfig["min"] = -120.0;
 
@@ -169,12 +184,22 @@ int sdrpp_main(int argc, char *argv[]) {
     core::configManager.load(defConfig);
     core::configManager.enableAutoSave();
 
-    // Fix config
+    
     core::configManager.aquire();
+    // Fix missing elements in config
     for (auto const& item : defConfig.items()) {
         if (!core::configManager.conf.contains(item.key())) {
             spdlog::warn("Missing key in config {0}, repairing", item.key());
             core::configManager.conf[item.key()] = defConfig[item.key()];
+        }
+    }
+
+    // Remove unused elements
+    auto items = core::configManager.conf.items();
+    for (auto const& item : items) {
+        if (!defConfig.contains(item.key())) {
+            spdlog::warn("Unused key in config {0}, repairing", item.key());
+            core::configManager.conf.erase(item.key());
         }
     }
     core::configManager.release(true);

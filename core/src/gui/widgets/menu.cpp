@@ -13,7 +13,10 @@ void Menu::registerEntry(std::string name, void (*drawHandler)(void* ctx), void*
     item.inst = inst;
     items[name] = item;
     if (!isInOrderList(name)) {
-        order.push_back(name);
+        MenuOption_t opt;
+        opt.name = name;
+        opt.open = true;
+        order.push_back(opt);
     }
 }
 
@@ -21,33 +24,38 @@ void Menu::removeEntry(std::string name) {
     items.erase(name);
 }
 
-void Menu::draw() {
-    MenuItem_t item;
+bool Menu::draw() {
+    bool changed = false;
     float menuWidth = ImGui::GetContentRegionAvailWidth();
     ImGuiWindow* window = ImGui::GetCurrentWindow();
-    for (std::string name : order) {
-        if (items.find(name) == items.end()) {
+    for (MenuOption_t& opt : order) {
+        if (items.find(opt.name) == items.end()) {
             continue;
         }
-        item = items[name];
+        MenuItem_t& item = items[opt.name];
 
         ImRect orginalRect = window->WorkRect;
         if (item.inst != NULL) {
-            
             window->WorkRect = ImRect(orginalRect.Min, ImVec2(orginalRect.Max.x - ImGui::GetTextLineHeight() - 6, orginalRect.Max.y));
         }
 
-        if (ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+        if (ImGui::CollapsingHeader(opt.name.c_str(), opt.open ? ImGuiTreeNodeFlags_DefaultOpen : 0)) {
             if (item.inst != NULL) {
                 window->WorkRect = orginalRect;
                 ImVec2 pos = ImGui::GetCursorPos();
                 ImGui::SetCursorPosX(pos.x + menuWidth - ImGui::GetTextLineHeight() - 6);
                 ImGui::SetCursorPosY(pos.y - 10 - ImGui::GetTextLineHeight());
                 bool enabled = item.inst->isEnabled();
-                if (ImGui::Checkbox(("##_menu_checkbox_" + name).c_str(), &enabled)) {
+                if (ImGui::Checkbox(("##_menu_checkbox_" + opt.name).c_str(), &enabled)) {
                     enabled ? item.inst->enable() : item.inst->disable();
                 }
                 ImGui::SetCursorPos(pos);
+            }
+
+            // Check if the state changed
+            if (!opt.open) {
+                opt.open = true;
+                changed = true;
             }
 
             item.drawHandler(item.ctx);
@@ -59,17 +67,27 @@ void Menu::draw() {
             ImGui::SetCursorPosX(pos.x + menuWidth - ImGui::GetTextLineHeight() - 6);
             ImGui::SetCursorPosY(pos.y - 10 - ImGui::GetTextLineHeight());
             bool enabled = item.inst->isEnabled();
-            if (ImGui::Checkbox(("##_menu_checkbox_" + name).c_str(), &enabled)) {
+            if (ImGui::Checkbox(("##_menu_checkbox_" + opt.name).c_str(), &enabled)) {
                 enabled ? item.inst->enable() : item.inst->disable();
             }
             ImGui::SetCursorPos(pos);
+
+            if (opt.open) {
+                opt.open = false;
+                changed = true;
+            }
+        }
+        else if (opt.open) {
+            opt.open = false;
+            changed = true;
         }
     }
+    return changed;
 }
 
 bool Menu::isInOrderList(std::string name) {
-    for (std::string _name : order) {
-        if (_name == name) {
+    for (MenuOption_t opt : order) {
+        if (opt.name == name) {
             return true;
         }
     }

@@ -112,10 +112,23 @@ void windowInit() {
     credits::init();
 
     core::configManager.aquire();
-    gui::menu.order = core::configManager.conf["menuOrder"].get<std::vector<std::string>>();
+    json menuElements = core::configManager.conf["menuElements"];
     std::string modulesDir = core::configManager.conf["modulesDirectory"];
     std::string resourcesDir = core::configManager.conf["resourcesDirectory"];
     core::configManager.release();
+
+    // Load menu elements
+    gui::menu.order.clear();
+    for (auto& elem : menuElements) {
+        if (!elem.contains("name")) { spdlog::error("Menu element is missing name key"); continue; }
+        if (!elem["name"].is_string()) { spdlog::error("Menu element name isn't a string"); continue; }
+        if (!elem.contains("open")) { spdlog::error("Menu element is missing open key"); continue; }
+        if (!elem["open"].is_boolean()) { spdlog::error("Menu element name isn't a string"); continue; }
+        Menu::MenuOption_t opt;
+        opt.name = elem["name"];
+        opt.open = elem["open"];
+        gui::menu.order.push_back(opt);
+    }
 
     gui::menu.registerEntry("Source", sourecmenu::draw, NULL);
     gui::menu.registerEntry("Sinks", sinkmenu::draw, NULL);
@@ -541,7 +554,16 @@ void drawWindow() {
         ImGui::BeginChild("Left Column");
         float menuColumnWidth = ImGui::GetContentRegionAvailWidth();
 
-        gui::menu.draw();
+        if (gui::menu.draw()) {
+            core::configManager.aquire();
+            json arr = json::array();
+            for (int i = 0; i < gui::menu.order.size(); i++) {
+                arr[i]["name"] = gui::menu.order[i].name;
+                arr[i]["open"] = gui::menu.order[i].open;
+            }
+            core::configManager.conf["menuElements"] = arr;
+            core::configManager.release(true);
+        }
 
         if(ImGui::CollapsingHeader("Debug")) {
             ImGui::Text("Frame time: %.3f ms/frame", 1000.0 / ImGui::GetIO().Framerate);

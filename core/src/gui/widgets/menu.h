@@ -8,6 +8,11 @@ class Menu {
 public:
     Menu();
 
+    struct MenuOption_t {
+        std::string name;
+        bool open;
+    };
+
     struct MenuItem_t {
         void (*drawHandler)(void* ctx);
         void* ctx;
@@ -16,9 +21,9 @@ public:
 
     void registerEntry(std::string name, void (*drawHandler)(void* ctx), void* ctx = NULL, ModuleManager::Instance* inst = NULL);
     void removeEntry(std::string name);
-    void draw();
+    bool draw();
 
-    std::vector<std::string> order;
+    std::vector<MenuOption_t> order;
 
 private:
     bool isInOrderList(std::string name);
