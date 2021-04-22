@@ -59,9 +59,9 @@ void ConfigManager::disableAutoSave() {
             std::lock_guard<std::mutex> lock(termMtx);
             autoSaveEnabled = false;
             termFlag = true;
-            termCond.notify_one();
         }
-        autoSaveThread.join();
+        termCond.notify_one();
+        if (autoSaveThread.joinable()) { autoSaveThread.join(); }
     }
 }
 

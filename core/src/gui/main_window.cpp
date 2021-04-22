@@ -240,6 +240,15 @@ void windowInit() {
 
     centerTuning = core::configManager.conf["centerTuning"];
 
+    // Load each VFO's offset
+    for (auto const& [name, _vfo] : gui::waterfall.vfos) {
+        if (!core::configManager.conf["vfoOffsets"].contains(name)) {
+            continue;
+        }
+        double offset = core::configManager.conf["vfoOffsets"][name];
+        sigpath::vfoManager.setOffset(name, std::clamp<double>(offset, -bw/2.0, bw/2.0));
+    }
+
     core::configManager.release();
 }
 
@@ -360,7 +369,7 @@ void drawWindow() {
             gui::freqSelect.setFrequency(gui::waterfall.getCenterFrequency() + vfo->generalOffset);
             gui::freqSelect.frequencyChanged = false;
             core::configManager.aquire();
-            core::configManager.conf["frequency"] = gui::freqSelect.frequency;
+            core::configManager.conf["vfoOffsets"][gui::waterfall.selectedVFO] = vfo->generalOffset;
             core::configManager.release(true);
         }
     }
@@ -371,9 +380,6 @@ void drawWindow() {
         gui::waterfall.selectedVFOChanged = false;
         gui::freqSelect.setFrequency(vfo->generalOffset + gui::waterfall.getCenterFrequency());
         gui::freqSelect.frequencyChanged = false;
-        core::configManager.aquire();
-        core::configManager.conf["frequency"] = gui::freqSelect.frequency;
-        core::configManager.release(true);
     }
 
     if (gui::freqSelect.frequencyChanged) {
@@ -385,7 +391,10 @@ void drawWindow() {
             vfo->upperOffsetChanged = false;
         }
         core::configManager.aquire();
-        core::configManager.conf["frequency"] = gui::freqSelect.frequency;
+        core::configManager.conf["frequency"] = gui::waterfall.getCenterFrequency();
+        if (vfo != NULL) {
+            core::configManager.conf["vfoOffsets"][gui::waterfall.selectedVFO] = vfo->generalOffset;
+        }
         core::configManager.release(true);
     }
 
@@ -399,7 +408,7 @@ void drawWindow() {
             gui::freqSelect.setFrequency(gui::waterfall.getCenterFrequency());
         }
         core::configManager.aquire();
-        core::configManager.conf["frequency"] = gui::freqSelect.frequency;
+        core::configManager.conf["frequency"] = gui::waterfall.getCenterFrequency();
         core::configManager.release(true);
     }
 

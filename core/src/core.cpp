@@ -152,6 +152,8 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["windowSize"]["h"] = 720;
     defConfig["windowSize"]["w"] = 1280;
 
+    defConfig["vfoOffsets"] = json::object();
+
 #ifdef _WIN32
     defConfig["modulesDirectory"] = "./modules";
     defConfig["resourcesDirectory"] = "./res";
