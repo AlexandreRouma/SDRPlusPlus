@@ -129,6 +129,10 @@ namespace ImGui {
         bool bandplanEnabled = false;
         bandplan::BandPlan_t* bandplan = NULL;
 
+        bool mouseInFreq = false;
+        bool mouseInFFT = false;
+        bool mouseInWaterfall = false;
+
         std::map<std::string, WaterfallVFO*> vfos;
         std::string selectedVFO = "";
         bool selectedVFOChanged = false;

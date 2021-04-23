@@ -648,6 +648,19 @@ void drawWindow() {
 
     ImGui::EndChild();
 
+    // Handle scrollwheel
+    int wheel = ImGui::GetIO().MouseWheel;
+    if (wheel != 0 && (gui::waterfall.mouseInFFT || gui::waterfall.mouseInWaterfall)) {
+        double nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset + (vfo->snapInterval * wheel);
+        nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
+        setVFO(nfreq);
+        core::configManager.aquire();
+        core::configManager.conf["frequency"] = gui::waterfall.getCenterFrequency();
+        if (vfo != NULL) {
+            core::configManager.conf["vfoOffsets"][gui::waterfall.selectedVFO] = vfo->generalOffset;
+        }
+        core::configManager.release(true);
+    }
     
     ImGui::NextColumn();
     ImGui::BeginChild("WaterfallControls");

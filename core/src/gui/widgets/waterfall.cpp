@@ -256,9 +256,11 @@ namespace ImGui {
                                                 ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_PressedOnClick);
 
         bool draging = ImGui::IsMouseDragging(ImGuiMouseButton_Left) && ImGui::IsWindowFocused();
-        bool mouseInFreq = IS_IN_AREA(dragOrigin, freqAreaMin, freqAreaMax);
-        bool mouseInFFT = IS_IN_AREA(dragOrigin, fftAreaMin, fftAreaMax);
-        bool mouseInWaterfall = IS_IN_AREA(dragOrigin, wfMin, wfMax);
+        mouseInFreq = IS_IN_AREA(dragOrigin, freqAreaMin, freqAreaMax);
+        mouseInFFT = IS_IN_AREA(dragOrigin, fftAreaMin, fftAreaMax);
+        mouseInWaterfall = IS_IN_AREA(dragOrigin, wfMin, wfMax);
+
+        int mouseWheel = ImGui::GetIO().MouseWheel;
 
         // Deselect everything if the mouse is released
         if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
@@ -337,6 +339,33 @@ namespace ImGui {
             double viewDelta = deltax * (viewBandwidth / (double)dataWidth);
 
             viewOffset -= viewDelta;
+
+            if (viewOffset + (viewBandwidth / 2.0) > wholeBandwidth / 2.0) {
+                double freqOffset = (viewOffset + (viewBandwidth / 2.0)) - (wholeBandwidth / 2.0);
+                viewOffset = (wholeBandwidth / 2.0) - (viewBandwidth / 2.0);
+                centerFreq += freqOffset;
+                centerFreqMoved = true;
+            }
+            if (viewOffset - (viewBandwidth / 2.0) < -(wholeBandwidth / 2.0)) {
+                double freqOffset = (viewOffset - (viewBandwidth / 2.0)) + (wholeBandwidth / 2.0);
+                viewOffset = (viewBandwidth / 2.0) - (wholeBandwidth / 2.0);
+                centerFreq += freqOffset;
+                centerFreqMoved = true;
+            }
+
+            lowerFreq = (centerFreq + viewOffset) - (viewBandwidth / 2.0);
+            upperFreq = (centerFreq + viewOffset) + (viewBandwidth / 2.0);
+
+            if (viewBandwidth != wholeBandwidth) {
+                updateAllVFOs();
+                if (_fullUpdate) { updateWaterfallFb(); };
+            }
+            return;
+        }
+
+        // If the mouse wheel is moved on the frequency scale
+        if (mouseWheel != 0 && mouseInFreq) {
+            viewOffset -=  (double)mouseWheel * viewBandwidth / 20.0;
 
             if (viewOffset + (viewBandwidth / 2.0) > wholeBandwidth / 2.0) {
                 double freqOffset = (viewOffset + (viewBandwidth / 2.0)) - (wholeBandwidth / 2.0);
