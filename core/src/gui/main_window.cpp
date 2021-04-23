@@ -437,10 +437,14 @@ void drawWindow() {
     // Handle arrow keys
     if (vfo != NULL) {
         if (ImGui::IsKeyPressed(GLFW_KEY_LEFT) && !gui::freqSelect.digitHovered) {
-            setVFO(gui::waterfall.getCenterFrequency() + vfo->generalOffset - vfo->snapInterval);
+            double nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset - vfo->snapInterval;
+            nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
+            setVFO(nfreq);
         }
         if (ImGui::IsKeyPressed(GLFW_KEY_RIGHT) && !gui::freqSelect.digitHovered) {
-            setVFO(gui::waterfall.getCenterFrequency() + vfo->generalOffset + vfo->snapInterval);
+            double nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset + vfo->snapInterval;
+            nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
+            setVFO(nfreq);
         }
         core::configManager.aquire();
         core::configManager.conf["frequency"] = gui::waterfall.getCenterFrequency();

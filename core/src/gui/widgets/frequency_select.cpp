@@ -75,6 +75,13 @@ void FrequencySelect::decrementDigit(int i) {
     frequencyChanged = true;
 }
 
+void FrequencySelect::moveCursorToDigit(int i) {
+    double xpos, ypos;
+    glfwGetCursorPos(core::window, &xpos, &ypos);
+    float nxpos = (digitTopMaxs[i].x + digitTopMins[i].x) / 2.0f;
+    glfwSetCursorPos(core::window, nxpos, ypos);
+}
+
 void FrequencySelect::draw() {
     window = ImGui::GetCurrentWindow();
     widgetPos = ImGui::GetWindowContentRegionMin();
@@ -161,18 +168,35 @@ void FrequencySelect::draw() {
                 decrementDigit(i);
             }
             if (ImGui::IsKeyPressed(GLFW_KEY_LEFT) && i > 0) {
-                double xpos, ypos;
-                glfwGetCursorPos(core::window, &xpos, &ypos);
-                float nxpos = (digitTopMaxs[i - 1].x + digitTopMins[i - 1].x) / 2.0f;
-                glfwSetCursorPos(core::window, nxpos, ypos);
-                
+                moveCursorToDigit(i - 1);              
             }
             if (ImGui::IsKeyPressed(GLFW_KEY_RIGHT) && i < 11) {
-                double xpos, ypos;
-                glfwGetCursorPos(core::window, &xpos, &ypos);
-                float nxpos = (digitTopMaxs[i + 1].x + digitTopMins[i + 1].x) / 2.0f;
-                glfwSetCursorPos(core::window, nxpos, ypos);
+                moveCursorToDigit(i + 1);
             }
+
+            auto chars = ImGui::GetIO().InputQueueCharacters;
+
+            // For each keyboard characters, type it
+            for (int j = 0; j < chars.Size; j++) {
+                if (chars[j] >= '0' && chars[j] <= '9') {
+                    digits[i + j] = chars[j] - '0';
+                }
+                if ((i + j) < 11) { moveCursorToDigit(i + j + 1); }
+                frequencyChanged = true;
+            }
+
+            // Check each digit
+            // if (ImGui::IsKeyPressed(GLFW_KEY_KP_0)) { digits[i] = 0; if (i < 11) { moveCursorToDigit(i + 1); frequencyChanged = true; } }
+            // if (ImGui::IsKeyPressed(GLFW_KEY_KP_1)) { digits[i] = 1; if (i < 11) { moveCursorToDigit(i + 1); frequencyChanged = true; } }
+            // if (ImGui::IsKeyPressed(GLFW_KEY_KP_2)) { digits[i] = 2; if (i < 11) { moveCursorToDigit(i + 1); frequencyChanged = true; } }
+            // if (ImGui::IsKeyPressed(GLFW_KEY_KP_3)) { digits[i] = 3; if (i < 11) { moveCursorToDigit(i + 1); frequencyChanged = true; } }
+            // if (ImGui::IsKeyPressed(GLFW_KEY_KP_4)) { digits[i] = 4; if (i < 11) { moveCursorToDigit(i + 1); frequencyChanged = true; } }
+            // if (ImGui::IsKeyPressed(GLFW_KEY_KP_5)) { digits[i] = 5; if (i < 11) { moveCursorToDigit(i + 1); frequencyChanged = true; } }
+            // if (ImGui::IsKeyPressed(GLFW_KEY_KP_6)) { digits[i] = 6; if (i < 11) { moveCursorToDigit(i + 1); frequencyChanged = true; } }
+            // if (ImGui::IsKeyPressed(GLFW_KEY_KP_7)) { digits[i] = 7; if (i < 11) { moveCursorToDigit(i + 1); frequencyChanged = true; } }
+            // if (ImGui::IsKeyPressed(GLFW_KEY_KP_8)) { digits[i] = 8; if (i < 11) { moveCursorToDigit(i + 1); frequencyChanged = true; } }
+            // if (ImGui::IsKeyPressed(GLFW_KEY_KP_9)) { digits[i] = 9; if (i < 11) { moveCursorToDigit(i + 1); frequencyChanged = true; } }
+
             if (mw != 0) {
                 int count = abs(mw);
                 for (int j = 0; j < count; j++) {

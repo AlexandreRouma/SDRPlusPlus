@@ -19,6 +19,7 @@ private:
     void onResize();
     void incrementDigit(int i);
     void decrementDigit(int i);
+    void moveCursorToDigit(int i);
 
     ImVec2 widgetPos;
     ImVec2 widgetEndPos;
