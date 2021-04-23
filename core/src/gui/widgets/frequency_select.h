@@ -12,6 +12,7 @@ public:
 
     uint64_t frequency;
     bool frequencyChanged = false;
+    bool digitHovered = false;
 
 private:
     void onPosChange();

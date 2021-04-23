@@ -1,6 +1,7 @@
 #include <gui/widgets/frequency_select.h>
 #include <config.h>
 #include <gui/style.h>
+#include <glfw_window.h>
 #include <GLFW/glfw3.h>
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
@@ -127,6 +128,7 @@ void FrequencySelect::draw() {
     bool rightClick = ImGui::IsMouseClicked(ImGuiMouseButton_Right);
     int mw = ImGui::GetIO().MouseWheel;
     bool onDigit = false;
+    bool hovered = false;
 
     for (int i = 0; i < 12; i++) {
         onDigit = false;
@@ -145,6 +147,7 @@ void FrequencySelect::draw() {
             onDigit = true;
         }
         if (onDigit) {
+            hovered = true;
             if (rightClick) {
                 for (int j = i; j < 12; j++) {
                     digits[j] = 0;
@@ -157,6 +160,19 @@ void FrequencySelect::draw() {
             if (ImGui::IsKeyPressed(GLFW_KEY_DOWN)) {
                 decrementDigit(i);
             }
+            if (ImGui::IsKeyPressed(GLFW_KEY_LEFT) && i > 0) {
+                double xpos, ypos;
+                glfwGetCursorPos(core::window, &xpos, &ypos);
+                float nxpos = (digitTopMaxs[i - 1].x + digitTopMins[i - 1].x) / 2.0f;
+                glfwSetCursorPos(core::window, nxpos, ypos);
+                
+            }
+            if (ImGui::IsKeyPressed(GLFW_KEY_RIGHT) && i < 11) {
+                double xpos, ypos;
+                glfwGetCursorPos(core::window, &xpos, &ypos);
+                float nxpos = (digitTopMaxs[i + 1].x + digitTopMins[i + 1].x) / 2.0f;
+                glfwSetCursorPos(core::window, nxpos, ypos);
+            }
             if (mw != 0) {
                 int count = abs(mw);
                 for (int j = 0; j < count; j++) {
@@ -165,6 +181,8 @@ void FrequencySelect::draw() {
             }
         }
     }
+
+    digitHovered = hovered;
 
     uint64_t freq = 0;
     for (int i = 0; i < 12; i++) {

@@ -14,6 +14,7 @@
 #include <stb_image.h>
 #include <config.h>
 #include <core.h>
+#include <glfw_window.h>
 #include <options.h>
 #include <duktape/duktape.h>
 #include <duktape/duk_console.h>
@@ -41,6 +42,7 @@ namespace core {
     ScriptManager scriptManager;
     ModuleManager moduleManager;
     ModuleComManager modComManager;
+    GLFWwindow* window;
 
     void setInputSampleRate(double samplerate) {
         // NOTE: Zoom controls won't work
@@ -242,17 +244,17 @@ int sdrpp_main(int argc, char *argv[]) {
 
     // Create window with graphics context
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-    GLFWwindow* window = glfwCreateWindow(winWidth, winHeight, "SDR++ v" VERSION_STR " (Built at " __TIME__ ", " __DATE__ ")", NULL, NULL);
-    if (window == NULL)
+    core::window = glfwCreateWindow(winWidth, winHeight, "SDR++ v" VERSION_STR " (Built at " __TIME__ ", " __DATE__ ")", NULL, NULL);
+    if (core::window == NULL)
         return 1;
-    glfwMakeContextCurrent(window);
+    glfwMakeContextCurrent(core::window);
 
 #if (GLFW_VERSION_MAJOR == 3) && (GLFW_VERSION_MINOR >= 3)
     if (maximized) {
-        glfwMaximizeWindow(window);
+        glfwMaximizeWindow(core::window);
     }
 
-    glfwSetWindowMaximizeCallback(window, maximized_callback);
+    glfwSetWindowMaximizeCallback(core::window, maximized_callback);
 #endif
 
     // Load app icon
@@ -281,7 +283,7 @@ int sdrpp_main(int argc, char *argv[]) {
     stbir_resize_uint8(icons[0].pixels, icons[0].width, icons[0].height, icons[0].width * 4, icons[7].pixels, 128, 128, 128 * 4, 4);
     stbir_resize_uint8(icons[0].pixels, icons[0].width, icons[0].height, icons[0].width * 4, icons[8].pixels, 196, 196, 196 * 4, 4);
     stbir_resize_uint8(icons[0].pixels, icons[0].width, icons[0].height, icons[0].width * 4, icons[9].pixels, 256, 256, 256 * 4, 4);
-    glfwSetWindowIcon(window, 10, icons);
+    glfwSetWindowIcon(core::window, 10, icons);
     stbi_image_free(icons[0].pixels);
     for (int i = 1; i < 10; i++) {
         free(icons[i].pixels);
@@ -300,7 +302,7 @@ int sdrpp_main(int argc, char *argv[]) {
     io.IniFilename = NULL;
 
     // Setup Platform/Renderer bindings
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplGlfw_InitForOpenGL(core::window, true);
 
     if (!ImGui_ImplOpenGL3_Init(glsl_version)) {
         // If init fail, try to fall back on GLSL 1.2
@@ -313,7 +315,7 @@ int sdrpp_main(int argc, char *argv[]) {
 
     if (!style::setDarkStyle(resDir)) { return -1; }
 
-    LoadingScreen::setWindow(window);
+    LoadingScreen::setWindow(core::window);
 
     LoadingScreen::show("Loading icons");
     spdlog::info("Loading icons");
@@ -335,7 +337,7 @@ int sdrpp_main(int argc, char *argv[]) {
     int fsWidth, fsHeight, fsPosX, fsPosY;
 
     // Main loop
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(core::window)) {
         glfwPollEvents();
 
         // Start the Dear ImGui frame
@@ -350,13 +352,13 @@ int sdrpp_main(int argc, char *argv[]) {
             core::configManager.aquire();
             core::configManager.conf["maximized"]= _maximized;
             if (!maximized) {
-                glfwSetWindowSize(window, core::configManager.conf["windowSize"]["w"], core::configManager.conf["windowSize"]["h"]);
+                glfwSetWindowSize(core::window, core::configManager.conf["windowSize"]["w"], core::configManager.conf["windowSize"]["h"]);
             }
             core::configManager.release(true);
         }
 
         int _winWidth, _winHeight;
-        glfwGetWindowSize(window, &_winWidth, &_winHeight);
+        glfwGetWindowSize(core::window, &_winWidth, &_winHeight);
 
         if (ImGui::IsKeyPressed(GLFW_KEY_F11)) {
             fullScreen = !fullScreen;
@@ -364,13 +366,13 @@ int sdrpp_main(int argc, char *argv[]) {
                 spdlog::info("Fullscreen: ON");
                 fsWidth = _winWidth;
                 fsHeight = _winHeight;
-                glfwGetWindowPos(window, &fsPosX, &fsPosY);
+                glfwGetWindowPos(core::window, &fsPosX, &fsPosY);
                 const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-                glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, 0);
+                glfwSetWindowMonitor(core::window, monitor, 0, 0, mode->width, mode->height, 0);
             }
             else {
                 spdlog::info("Fullscreen: OFF");
-                glfwSetWindowMonitor(window, nullptr,  fsPosX, fsPosY, fsWidth, fsHeight, 0);
+                glfwSetWindowMonitor(core::window, nullptr,  fsPosX, fsPosY, fsWidth, fsHeight, 0);
             }
         }
 
@@ -392,7 +394,7 @@ int sdrpp_main(int argc, char *argv[]) {
         // Rendering
         ImGui::Render();
         int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
+        glfwGetFramebufferSize(core::window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
         glClearColor(0.0666f, 0.0666f, 0.0666f, 1.0f);
         //glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
@@ -400,7 +402,7 @@ int sdrpp_main(int argc, char *argv[]) {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapInterval(1); // Enable vsync
-        glfwSwapBuffers(window);
+        glfwSwapBuffers(core::window);
     }
 
     // Cleanup
@@ -408,7 +410,7 @@ int sdrpp_main(int argc, char *argv[]) {
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-    glfwDestroyWindow(window);
+    glfwDestroyWindow(core::window);
     glfwTerminate();
 
     return 0;
