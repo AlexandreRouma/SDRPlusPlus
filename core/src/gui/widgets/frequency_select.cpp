@@ -1,6 +1,7 @@
 #include <gui/widgets/frequency_select.h>
 #include <config.h>
 #include <gui/style.h>
+#include <GLFW/glfw3.h>
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -149,6 +150,12 @@ void FrequencySelect::draw() {
                     digits[j] = 0;
                 }
                 frequencyChanged = true;
+            }
+            if (ImGui::IsKeyPressed(GLFW_KEY_UP)) {
+                incrementDigit(i);
+            }
+            if (ImGui::IsKeyPressed(GLFW_KEY_DOWN)) {
+                decrementDigit(i);
             }
             if (mw != 0) {
                 int count = abs(mw);

@@ -379,6 +379,7 @@ void drawWindow() {
         vfo = gui::waterfall.vfos[gui::waterfall.selectedVFO];
     }
 
+    // Handke VFO movement
     if (vfo != NULL) {
         if (vfo->centerOffsetChanged) {
             if (centerTuning) {
@@ -394,12 +395,14 @@ void drawWindow() {
     
     sigpath::vfoManager.updateFromWaterfall(&gui::waterfall);
 
+    // Handle selection of another VFO
     if (gui::waterfall.selectedVFOChanged && vfo != NULL) {
         gui::waterfall.selectedVFOChanged = false;
         gui::freqSelect.setFrequency(vfo->generalOffset + gui::waterfall.getCenterFrequency());
         gui::freqSelect.frequencyChanged = false;
     }
 
+    // Handle change in selected frequency
     if (gui::freqSelect.frequencyChanged) {
         gui::freqSelect.frequencyChanged = false;
         setVFO(gui::freqSelect.frequency);
@@ -416,6 +419,7 @@ void drawWindow() {
         core::configManager.release(true);
     }
 
+    // Handle dragging the frequency scale
     if (gui::waterfall.centerFreqMoved) {
         gui::waterfall.centerFreqMoved = false;
         sigpath::sourceManager.tune(gui::waterfall.getCenterFrequency());
@@ -427,6 +431,22 @@ void drawWindow() {
         }
         core::configManager.aquire();
         core::configManager.conf["frequency"] = gui::waterfall.getCenterFrequency();
+        core::configManager.release(true);
+    }
+
+    // Handle arrow keys
+    if (vfo != NULL) {
+        if (ImGui::IsKeyPressed(GLFW_KEY_LEFT)) {
+            setVFO(gui::waterfall.getCenterFrequency() + vfo->generalOffset - vfo->snapInterval);
+        }
+        if (ImGui::IsKeyPressed(GLFW_KEY_RIGHT)) {
+            setVFO(gui::waterfall.getCenterFrequency() + vfo->generalOffset + vfo->snapInterval);
+        }
+        core::configManager.aquire();
+        core::configManager.conf["frequency"] = gui::waterfall.getCenterFrequency();
+        if (vfo != NULL) {
+            core::configManager.conf["vfoOffsets"][gui::waterfall.selectedVFO] = vfo->generalOffset;
+        }
         core::configManager.release(true);
     }
 
