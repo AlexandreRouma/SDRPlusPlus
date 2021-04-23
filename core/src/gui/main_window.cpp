@@ -42,6 +42,8 @@ float* tempFFT;
 float* FFTdata;
 char buf[1024];
 bool experimentalZoom = false;
+bool firstMenuRender = true;
+bool startedWithMenuClosed = false;
 
 void fftHandler(dsp::complex_t* samples, int count, void* ctx) {
     std::lock_guard<std::mutex> lck(fft_mtx);
@@ -235,6 +237,9 @@ void windowInit() {
     gui::waterfall.setWaterfallMax(fftMax);
 
     double frequency = core::configManager.conf["frequency"];
+
+    showMenu = core::configManager.conf["showMenu"];
+    startedWithMenuClosed = !showMenu;
 
     gui::freqSelect.setFrequency(frequency);
     gui::freqSelect.frequencyChanged = false;
@@ -443,6 +448,9 @@ void drawWindow() {
     ImGui::PushID(ImGui::GetID("sdrpp_menu_btn"));
     if (ImGui::ImageButton(icons::MENU, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
         showMenu = !showMenu;
+        core::configManager.aquire();
+        core::configManager.conf["showMenu"] = showMenu;
+        core::configManager.release(true);
     }
     ImGui::PopID();
 
@@ -554,7 +562,7 @@ void drawWindow() {
         ImGui::BeginChild("Left Column");
         float menuColumnWidth = ImGui::GetContentRegionAvailWidth();
 
-        if (gui::menu.draw()) {
+        if (gui::menu.draw(firstMenuRender)) {
             core::configManager.aquire();
             json arr = json::array();
             for (int i = 0; i < gui::menu.order.size(); i++) {
@@ -563,6 +571,12 @@ void drawWindow() {
             }
             core::configManager.conf["menuElements"] = arr;
             core::configManager.release(true);
+        }
+        if (startedWithMenuClosed) {
+            startedWithMenuClosed = false;  
+        }
+        else {
+            firstMenuRender = false;
         }
 
         if(ImGui::CollapsingHeader("Debug")) {
@@ -579,6 +593,11 @@ void drawWindow() {
 
             if (ImGui::Button("Test Bug")) {
                 spdlog::error("Will this make the software crash?");
+            }
+
+            if (ImGui::Button("Testing something")) {
+                gui::menu.order[0].open = true;
+                firstMenuRender = true;
             }
 
             ImGui::Spacing();

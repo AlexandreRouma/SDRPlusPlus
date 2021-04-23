@@ -147,6 +147,7 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["menuWidth"] = 300;
     defConfig["min"] = -120.0;
 
+    // Module instances
     defConfig["moduleInstances"]["Radio"] = "radio";
     defConfig["moduleInstances"]["Recorder"] = "recorder";
     defConfig["moduleInstances"]["SoapySDR Source"] = "soapy_source";
@@ -162,6 +163,7 @@ int sdrpp_main(int argc, char *argv[]) {
 
     defConfig["modules"] = json::array();
     defConfig["offset"] = 0.0;
+    defConfig["showMenu"] = true;
     defConfig["showWaterfall"] = true;
     defConfig["source"] = "";
     defConfig["streams"] = json::object();
@@ -202,6 +204,7 @@ int sdrpp_main(int argc, char *argv[]) {
             core::configManager.conf.erase(item.key());
         }
     }
+
     core::configManager.release(true);
 
     // Setup window

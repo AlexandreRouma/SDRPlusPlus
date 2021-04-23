@@ -24,7 +24,7 @@ void Menu::removeEntry(std::string name) {
     items.erase(name);
 }
 
-bool Menu::draw() {
+bool Menu::draw(bool updateStates) {
     bool changed = false;
     float menuWidth = ImGui::GetContentRegionAvailWidth();
     ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -39,7 +39,8 @@ bool Menu::draw() {
             window->WorkRect = ImRect(orginalRect.Min, ImVec2(orginalRect.Max.x - ImGui::GetTextLineHeight() - 6, orginalRect.Max.y));
         }
 
-        if (ImGui::CollapsingHeader(opt.name.c_str(), opt.open ? ImGuiTreeNodeFlags_DefaultOpen : 0)) {
+        if (updateStates) { ImGui::SetNextItemOpen(opt.open); }
+        if (ImGui::CollapsingHeader((opt.name + "##sdrpp_main_menu").c_str())) {
             if (item.inst != NULL) {
                 window->WorkRect = orginalRect;
                 ImVec2 pos = ImGui::GetCursorPos();
@@ -53,7 +54,7 @@ bool Menu::draw() {
             }
 
             // Check if the state changed
-            if (!opt.open) {
+            if (!opt.open && !updateStates) {
                 opt.open = true;
                 changed = true;
             }
@@ -72,12 +73,12 @@ bool Menu::draw() {
             }
             ImGui::SetCursorPos(pos);
 
-            if (opt.open) {
+            if (opt.open && !updateStates) {
                 opt.open = false;
                 changed = true;
             }
         }
-        else if (opt.open) {
+        else if (opt.open && !updateStates) {
             opt.open = false;
             changed = true;
         }

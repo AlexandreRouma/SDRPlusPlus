@@ -21,7 +21,7 @@ public:
 
     void registerEntry(std::string name, void (*drawHandler)(void* ctx), void* ctx = NULL, ModuleManager::Instance* inst = NULL);
     void removeEntry(std::string name);
-    bool draw();
+    bool draw(bool updateStates);
 
     std::vector<MenuOption_t> order;
 
