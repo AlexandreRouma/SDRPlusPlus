@@ -16,7 +16,7 @@ SDR++ is a cross-platform and open source SDR software with the aim of being blo
 * Cross-platform (Windows, Linux, OSX and BSD)
 * Full waterfall update when possible. Makes browsing signals easier and more pleasant
 
-## Comming soon
+## Coming soon
 
 * Digital demodulators and decoders
 * Light theme (I know you weirdos exist lol)
