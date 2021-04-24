@@ -52,12 +52,3 @@ jobs:
             with:
                 name: sdrpp_debian_amd64
                 path: /home/runner/work/SDRPlusPlus/SDRPlusPlus/sdrpp_debian_amd64.deb
-
-    build_windows:
-        runs-on: windows-latest
-
-        steps:
-        - uses: actions/checkout@v2
-        
-        - name: Testing Windows
-            run: echo test
