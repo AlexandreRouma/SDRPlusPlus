@@ -253,7 +253,7 @@ I will soon publish a contributing.md listing the code style to use.
 * [Tobias Mädel](https://github.com/Manawyrm)
 
 
-## Libaries used
+## Libraries used
 * [SoapySDR (PothosWare)](https://github.com/pothosware/SoapySDR)
 * [Dear ImGui (ocornut)](https://github.com/ocornut/imgui)
 * [spdlog (gabime)](https://github.com/gabime/spdlog)
