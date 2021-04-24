@@ -21,7 +21,7 @@ SDR++ is a cross-platform and open source SDR software with the aim of being blo
 * Digital demodulators and decoders
 * Light theme (I know you weirdos exist lol)
 * Waterfall color scheme editor
-* other small customisation options
+* Other small customisation options
 
 # Installing
 ## Windows
@@ -30,6 +30,8 @@ Download the latest release from [the Releases page](https://github.com/Alexandr
 To create a desktop short, rightclick the exe and select `Send to -> Desktop (create shortcut)`, then, rename the shortcut on the desktop to whatever you want.
 
 ## Linux
+
+### Debian-based (Ubuntu, Mint, etc)
 Download the latest release from [the Releases page](https://github.com/AlexandreRouma/SDRPlusPlus/releases) and extract to the directory of your choice.
 
 Then, run:
@@ -40,20 +42,26 @@ sudo dpkg -i sdrpp_debian_amd64.deb
 
 If `libvolk2-dev` is not available, use `libvolk1-dev`.
 
+### Arch-based
+Install the latest release from [the AUR](https://aur.archlinux.org/packages/sdrpp-git/)
+
+### Other
+There are currently no existing packages for other distributions, for these systems you'll have to [build from source](https://github.com/AlexandreRouma/SDRPlusPlus#building-on-linux--bsd).
+
 ## MacOS
 TODO
 
 ## BSD
-TODO
+There are currently no BSD packages, refer to [Building on Linux / BSD](https://github.com/AlexandreRouma/SDRPlusPlus#building-on-linux--bsd) for instructions on building from source.
 
 # Building on Windows
 ## Install dependencies
 * cmake
 * vcpkg
-* PothosSDR (This will install libraires for most SDRs)
+* PothosSDR (This will install libraries for most SDRs)
 * rtaudio
 
-After this, install the following depencies using vcpkg:
+After this, install the following dependencies using vcpkg:
 * fftw3
 * glfw
 * glew
@@ -168,7 +176,7 @@ First run SDR++ from the build directory to generate a default config file
 ./sdrpp -r ../root_dev/
 ```
 
-Then, you need to edit the `root_dev/config` file to point to the modules that were built. Here us a sample if what it would look like:
+Then, you need to edit the `root_dev/config` file to point to the modules that were built. Here is a sample of what it should look like:
 
 ```json
 ...
@@ -195,7 +203,7 @@ You also need to change the location of the resource and module directories, for
 
 Remember that these paths will be relative to the run directory.
 
-Off cours, remember to add entries for all modules that were built and that you wish to use.
+Of course, remember to add entries for all modules that were built and that you wish to use.
 
 Next, from the top directory, you can simply run:
 ```
@@ -208,7 +216,9 @@ Or, if you wish to run from the build directory, you need to correct directories
 ```
 
 ## Installing SDR++
-Coming soon!
+To install SDR++, run the following command in your ``build`` folder:
+```sh
+sudo make install```
 
 # Contributing
 
