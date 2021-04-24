@@ -43,7 +43,7 @@ sudo dpkg -i sdrpp_debian_amd64.deb
 If `libvolk2-dev` is not available, use `libvolk1-dev`.
 
 ### Arch-based
-Install the latest release from [the AUR](https://aur.archlinux.org/packages/sdrpp-git/)
+Install the latest release from the [sdrpp-git](https://aur.archlinux.org/packages/sdrpp-git/) AUR package
 
 ### Other
 There are currently no existing packages for other distributions, for these systems you'll have to [build from source](https://github.com/AlexandreRouma/SDRPlusPlus#building-on-linux--bsd).
