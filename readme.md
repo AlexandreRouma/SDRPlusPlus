@@ -218,7 +218,8 @@ Or, if you wish to run from the build directory, you need to correct directories
 ## Installing SDR++
 To install SDR++, run the following command in your ``build`` folder:
 ```sh
-sudo make install```
+sudo make install
+```
 
 # Contributing
 
