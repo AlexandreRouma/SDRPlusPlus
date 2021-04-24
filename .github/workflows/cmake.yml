@@ -47,3 +47,8 @@ jobs:
     - name: Create Deb Archive
       run: cd $GITHUB_WORKSPACE && sh make_debian_package.sh ${{runner.workspace}}/build
 
+    - name: Save Deb Archive
+        uses: actions/upload-artifact@v2
+        with:
+          name: deb-archive
+          path: ${{env.DAY_OF_WEEK}}/sdrpp_debian_amd64.deb
