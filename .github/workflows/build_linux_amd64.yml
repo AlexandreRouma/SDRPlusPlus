@@ -62,6 +62,12 @@ jobs:
         - name: Create Build Environment
           run: cmake -E make_directory ${{runner.workspace}}/build
 
+        - name: Download PothosSDR
+          run: wget "https://downloads.myriadrf.org/builds/PothosSDR/PothosSDR-2021.02.28-vc16-x64.exe" -outfile ${{runner.workspace}}/pothos.exe
+
+        - name: Install PothosSDR
+          run: mkdir "C:/Program Files/PothosSDR" ; 7z x ${{runner.workspace}}/pothos.exe -o"C:/Program Files/PothosSDR/"
+
         - name: Install vcpkg dependencies
           run: vcpkg install fftw3:x64-windows glew:x64-windows glfw3:x64-windows
 
