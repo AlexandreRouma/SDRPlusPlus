@@ -5,7 +5,7 @@
 #include <imutils.h>
 #include <algorithm>
 #include <volk/volk.h>
-
+#include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
 
 float DEFAULT_COLOR_MAP[][3] = {
@@ -366,6 +366,33 @@ namespace ImGui {
         // If the mouse wheel is moved on the frequency scale
         if (mouseWheel != 0 && mouseInFreq) {
             viewOffset -=  (double)mouseWheel * viewBandwidth / 20.0;
+
+            if (viewOffset + (viewBandwidth / 2.0) > wholeBandwidth / 2.0) {
+                double freqOffset = (viewOffset + (viewBandwidth / 2.0)) - (wholeBandwidth / 2.0);
+                viewOffset = (wholeBandwidth / 2.0) - (viewBandwidth / 2.0);
+                centerFreq += freqOffset;
+                centerFreqMoved = true;
+            }
+            if (viewOffset - (viewBandwidth / 2.0) < -(wholeBandwidth / 2.0)) {
+                double freqOffset = (viewOffset - (viewBandwidth / 2.0)) + (wholeBandwidth / 2.0);
+                viewOffset = (viewBandwidth / 2.0) - (wholeBandwidth / 2.0);
+                centerFreq += freqOffset;
+                centerFreqMoved = true;
+            }
+
+            lowerFreq = (centerFreq + viewOffset) - (viewBandwidth / 2.0);
+            upperFreq = (centerFreq + viewOffset) + (viewBandwidth / 2.0);
+
+            if (viewBandwidth != wholeBandwidth) {
+                updateAllVFOs();
+                if (_fullUpdate) { updateWaterfallFb(); };
+            }
+            return;
+        }
+
+        // If the left and right keys are pressed while hovering the freq scale, move it too
+        if ((ImGui::IsKeyPressed(GLFW_KEY_LEFT) || ImGui::IsKeyPressed(GLFW_KEY_RIGHT)) && mouseInFreq) {
+            viewOffset +=  ImGui::IsKeyPressed(GLFW_KEY_LEFT) ? (viewBandwidth / 20.0) : (-viewBandwidth / 20.0);
 
             if (viewOffset + (viewBandwidth / 2.0) > wholeBandwidth / 2.0) {
                 double freqOffset = (viewOffset + (viewBandwidth / 2.0)) - (wholeBandwidth / 2.0);

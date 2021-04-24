@@ -434,26 +434,6 @@ void drawWindow() {
         core::configManager.release(true);
     }
 
-    // Handle arrow keys
-    if (vfo != NULL) {
-        if (ImGui::IsKeyPressed(GLFW_KEY_LEFT) && !gui::freqSelect.digitHovered) {
-            double nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset - vfo->snapInterval;
-            nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
-            setVFO(nfreq);
-        }
-        if (ImGui::IsKeyPressed(GLFW_KEY_RIGHT) && !gui::freqSelect.digitHovered) {
-            double nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset + vfo->snapInterval;
-            nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
-            setVFO(nfreq);
-        }
-        core::configManager.aquire();
-        core::configManager.conf["frequency"] = gui::waterfall.getCenterFrequency();
-        if (vfo != NULL) {
-            core::configManager.conf["vfoOffsets"][gui::waterfall.selectedVFO] = vfo->generalOffset;
-        }
-        core::configManager.release(true);
-    }
-
     int _fftHeight = gui::waterfall.getFFTHeight();
     if (fftHeight != _fftHeight) {
         fftHeight = _fftHeight;
@@ -470,7 +450,7 @@ void drawWindow() {
 
     // To Bar
     ImGui::PushID(ImGui::GetID("sdrpp_menu_btn"));
-    if (ImGui::ImageButton(icons::MENU, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
+    if (ImGui::ImageButton(icons::MENU, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5) || ImGui::IsKeyPressed(GLFW_KEY_MENU, false)) {
         showMenu = !showMenu;
         core::configManager.aquire();
         core::configManager.conf["showMenu"] = showMenu;
@@ -482,7 +462,7 @@ void drawWindow() {
 
     if (playing) {
         ImGui::PushID(ImGui::GetID("sdrpp_stop_btn"));
-        if (ImGui::ImageButton(icons::STOP, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
+        if (ImGui::ImageButton(icons::STOP, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5) || ImGui::IsKeyPressed(GLFW_KEY_END, false)) {
             sigpath::sourceManager.stop();
             playing = false;
         }
@@ -490,7 +470,7 @@ void drawWindow() {
     }
     else { // TODO: Might need to check if there even is a device
         ImGui::PushID(ImGui::GetID("sdrpp_play_btn"));
-        if (ImGui::ImageButton(icons::PLAY, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
+        if (ImGui::ImageButton(icons::PLAY, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5) || ImGui::IsKeyPressed(GLFW_KEY_END, false)) {
             sigpath::sourceManager.start();
             // TODO: tune in module instead
             sigpath::sourceManager.tune(gui::waterfall.getCenterFrequency());
@@ -648,12 +628,40 @@ void drawWindow() {
 
     ImGui::EndChild();
 
+    // Handle arrow keys
+    if (vfo != NULL && (gui::waterfall.mouseInFFT || gui::waterfall.mouseInWaterfall)) {
+        if (ImGui::IsKeyPressed(GLFW_KEY_LEFT) && !gui::freqSelect.digitHovered) {
+            double nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset - vfo->snapInterval;
+            nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
+            setVFO(nfreq);
+        }
+        if (ImGui::IsKeyPressed(GLFW_KEY_RIGHT) && !gui::freqSelect.digitHovered) {
+            double nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset + vfo->snapInterval;
+            nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
+            setVFO(nfreq);
+        }
+        core::configManager.aquire();
+        core::configManager.conf["frequency"] = gui::waterfall.getCenterFrequency();
+        if (vfo != NULL) {
+            core::configManager.conf["vfoOffsets"][gui::waterfall.selectedVFO] = vfo->generalOffset;
+        }
+        core::configManager.release(true);
+    }
+
     // Handle scrollwheel
     int wheel = ImGui::GetIO().MouseWheel;
     if (wheel != 0 && (gui::waterfall.mouseInFFT || gui::waterfall.mouseInWaterfall)) {
-        double nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset + (vfo->snapInterval * wheel);
-        nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
+        double nfreq;
+        if (vfo != NULL) {
+            nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset + (vfo->snapInterval * wheel);
+            nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
+        }
+        else {
+            nfreq = gui::waterfall.getCenterFrequency() - (gui::waterfall.getViewBandwidth() * wheel / 20.0);
+        }
+        
         setVFO(nfreq);
+        gui::freqSelect.setFrequency(nfreq);
         core::configManager.aquire();
         core::configManager.conf["frequency"] = gui::waterfall.getCenterFrequency();
         if (vfo != NULL) {

@@ -74,7 +74,8 @@ namespace displaymenu {
 
     void draw(void* ctx) {
         float menuWidth = ImGui::GetContentRegionAvailWidth();
-        if (ImGui::Checkbox("Show Waterfall##_sdrpp", &showWaterfall)) {
+        if (ImGui::Checkbox("Show Waterfall##_sdrpp", &showWaterfall) || ImGui::IsKeyPressed(GLFW_KEY_HOME, false)) {
+            if (ImGui::IsKeyPressed(GLFW_KEY_HOME, false)) { showWaterfall = !showWaterfall; }
             showWaterfall ? gui::waterfall.showWaterfall() : gui::waterfall.hideWaterfall();
             core::configManager.aquire();
             core::configManager.conf["showWaterfall"] = showWaterfall;

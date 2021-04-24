@@ -42,6 +42,8 @@ cp build/meteor_demodulator/Release/meteor_demodulator.dll sdrpp_windows_x64/mod
 cp build/audio_sink/Release/audio_sink.dll sdrpp_windows_x64/modules/
 cp "C:/Program Files (x86)/RtAudio/bin/rtaudio.dll" sdrpp_windows_x64/
 
+cp build/discord_integration/Release/discord_integration.dll sdrpp_windows_x64/modules/
+
 # Copy supporting libs
 cp 'C:/Program Files/PothosSDR/bin/libusb-1.0.dll' sdrpp_windows_x64/
 cp 'C:/Program Files/PothosSDR/bin/pthreadVC2.dll' sdrpp_windows_x64/
