@@ -83,7 +83,7 @@ jobs:
           run: cmake --build . --config Release
 
         - name: Create Archive
-          run: $Env:GITHUB_WORKSPACE/make_windows_package.ps1 ${{runner.workspace}}/build $Env:GITHUB_WORKSPACE/root
+          run: &($Env:GITHUB_WORKSPACE + "/make_windows_package.ps1") ${{runner.workspace}}/build ($Env:GITHUB_WORKSPACE + "/root")
 
         - name: Save Archive
           uses: actions/upload-artifact@v2
