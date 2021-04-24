@@ -176,7 +176,7 @@ First run SDR++ from the build directory to generate a default config file
 ./sdrpp -r ../root_dev/
 ```
 
-Then, you need to edit the `root_dev/config` file to point to the modules that were built. Here is a sample of what it should look like:
+Then, you need to edit the `root_dev/config.json` file to point to the modules that were built. Here is a sample of what it should look like:
 
 ```json
 ...
