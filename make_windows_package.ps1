@@ -37,8 +37,8 @@ cp $build_dir/soapy_source/Release/soapy_source.dll sdrpp_windows_x64/modules/
 
 cp $build_dir/file_source/Release/file_source.dll sdrpp_windows_x64/modules/
 
-cp $build_dir/sdrplay_source/Release/sdrplay_source.dll sdrpp_windows_x64/modules/
-cp 'C:/Program Files/SDRplay/API/x64/sdrplay_api.dll' sdrpp_windows_x64/
+cp $build_dir/sdrplay_source/Release/sdrplay_source.dll sdrpp_windows_x64/modules/ -ErrorAction SilentlyContinue
+cp 'C:/Program Files/SDRplay/API/x64/sdrplay_api.dll' sdrpp_windows_x64/ -ErrorAction SilentlyContinue
 
 cp $build_dir/meteor_demodulator/Release/meteor_demodulator.dll sdrpp_windows_x64/modules/
 
