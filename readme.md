@@ -27,7 +27,7 @@ SDR++ is a cross-platform and open source SDR software with the aim of being blo
 ## Windows
 Download the latest release from [the Releases page](https://github.com/AlexandreRouma/SDRPlusPlus/releases) and extract to the directory of your choice.
 
-To create a desktop short, rightclick the exe and select `Send to -> Desktop (create shortcut)`, then, rename the shortcut on the desktop to whatever you want.
+To create a desktop shortcut, rightclick the exe and select `Send to -> Desktop (create shortcut)`, then, rename the shortcut on the desktop to whatever you want.
 
 ## Linux
 
@@ -82,7 +82,7 @@ cmake --build . --config Release
 ## Running for development
 If you wish to install SDR++, skip to the next step
 
-You will first need to edit the `root_dev/config` file to point to the modules that were built. Here us a sample if what it would look like:
+You will first need to edit the `root_dev/config.json` file to point to the modules that were built. Here is an example of what it should look like:
 
 ```json
 ...
@@ -107,7 +107,7 @@ You also need to change the location of the resource and module directories, for
 
 Remember that these paths will be relative to the run directory.
 
-Off cours, remember to add entries for all modules that were built and that you wish to use.
+Of course, remember to add entries for all modules that were built and that you wish to use.
 
 Next, from the top directory, you can simply run:
 ```
@@ -120,7 +120,7 @@ Or, if you wish to run from the build directory:
 ```
 
 ## Installing SDR++
-If you chose to run SDR++ for development, you do not need this step.
+If you choose to run SDR++ for development, you do not need this step.
 First, copy over the exe and DLLs from `build/Release/` to `root_dev`.
 
 Next you need to copy over all the modules that were compiled. To do so, copy the DLL file of the module (located in its build folder given below) to the `root_dev/modules` directory and other DLLs (that do not have the exact name of the modue) to the `root_dev` directory.
@@ -145,7 +145,7 @@ The modules built will be some of the following (Repeat the instructions above f
 * glfw
 * glew
 * libvolk
-  
+
 Next install dependencies based on the modules you wish to build:
 * soapy_source: SoapySDR + drivers for each SDRs (see SoapySDR docs)
 * airspyhf_source: libairspyhf
@@ -176,7 +176,7 @@ First run SDR++ from the build directory to generate a default config file
 ./sdrpp -r ../root_dev/
 ```
 
-Then, you need to edit the `root_dev/config.json` file to point to the modules that were built. Here is a sample of what it should look like:
+Then, you will need to edit the `root_dev/config.json` file to point to the modules that were built. Here is an example of what it should look like:
 
 ```json
 ...
@@ -210,7 +210,7 @@ Next, from the top directory, you can simply run:
 ./build/sdrpp -r root_dev
 ```
 
-Or, if you wish to run from the build directory, you need to correct directories in config.json, and:
+Or, if you wish to run from the build directory, you will need to correct the directories in the config.json file, and then run:
 ```
 ./sdrpp -r ../root_dev
 ```
@@ -223,7 +223,7 @@ sudo make install
 
 # Contributing
 
-Feel free to issue pull request and report bugs via the github issues.
+Feel free to submit pull requests and report bugs via the GitHub issue tracker.
 I will soon publish a contributing.md listing the code style to use.
 
 # Credits
