@@ -163,6 +163,10 @@ private:
         if (code == RADIO_IFACE_CMD_GET_MODE) {
             *(int*)out = _this->demodId;
         }
+        else if (code == RADIO_IFACE_CMD_SET_MODE) {
+            int in = *(int*)in;
+            if (in != _this->demodId) { _this->selectDemodById(in); }
+        }
     }
 
     void selectDemod(Demodulator* demod) {

@@ -1,7 +1,8 @@
 #pragma once
 
 enum {
-    RADIO_IFACE_CMD_GET_MODE
+    RADIO_IFACE_CMD_GET_MODE,
+    RADIO_IFACE_CMD_SET_MODE
 };
 
 enum {
