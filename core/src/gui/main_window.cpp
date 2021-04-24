@@ -396,9 +396,9 @@ void drawWindow() {
     sigpath::vfoManager.updateFromWaterfall(&gui::waterfall);
 
     // Handle selection of another VFO
-    if (gui::waterfall.selectedVFOChanged && vfo != NULL) {
+    if (gui::waterfall.selectedVFOChanged) {
+        gui::freqSelect.setFrequency((vfo != NULL) ? (vfo->generalOffset + gui::waterfall.getCenterFrequency()) : gui::waterfall.getCenterFrequency());
         gui::waterfall.selectedVFOChanged = false;
-        gui::freqSelect.setFrequency(vfo->generalOffset + gui::waterfall.getCenterFrequency());
         gui::freqSelect.frequencyChanged = false;
     }
 

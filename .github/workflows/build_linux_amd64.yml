@@ -1,6 +1,6 @@
 name: Linux Build
 
-on: [push]
+on: [push, pull_request]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -50,5 +50,5 @@ jobs:
     - name: Save Deb Archive
       uses: actions/upload-artifact@v2
       with:
-          name: deb-archive
+          name: sdrpp_debian_amd64
           path: /home/runner/work/SDRPlusPlus/SDRPlusPlus/sdrpp_debian_amd64.deb

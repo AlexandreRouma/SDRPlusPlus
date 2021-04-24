@@ -234,10 +234,12 @@ namespace ImGui {
         for (auto const& [name, vfo] : vfos) {
             available = true;
             selectedVFO = name;
+            selectedVFOChanged = true;
             return;
         }
         if (!available) {
             selectedVFO = "";
+            selectedVFOChanged = true;
         }
     }
 
