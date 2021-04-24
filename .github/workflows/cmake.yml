@@ -51,4 +51,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
           name: deb-archive
-          path: ${{env.GITHUB_WORKSPACE}}/sdrpp_debian_amd64.deb
+          path: /home/runner/work/SDRPlusPlus/SDRPlusPlus/sdrpp_debian_amd64.deb
