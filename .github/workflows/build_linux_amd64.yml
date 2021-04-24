@@ -73,3 +73,7 @@ jobs:
 
         - name: Install rtaudio
           run: git clone https://github.com/thestk/rtaudio ; cd rtaudio ; mkdir build ; cd build ; cmake .. ; cmake --build . --config Release ; cmake --install .
+
+        - name: Build
+          working-directory: ${{runner.workspace}}/build
+          run: cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -G "Visual Studio 15 2017 Win64"
