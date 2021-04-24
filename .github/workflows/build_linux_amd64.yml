@@ -45,13 +45,14 @@ jobs:
           run: cmake --build . --config $BUILD_TYPE
 
         - name: Create Deb Archive
-          run: cd $GITHUB_WORKSPACE && sh make_debian_package.sh ${{runner.workspace}}/build
+          working-directory: ${{runner.workspace}}
+          run: sh $GITHUB_WORKSPACE/make_debian_package.sh ${{runner.workspace}}/build
 
         - name: Save Deb Archive
           uses: actions/upload-artifact@v2
           with:
               name: sdrpp_debian_amd64
-              path: /home/runner/work/SDRPlusPlus/SDRPlusPlus/sdrpp_debian_amd64.deb
+              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
     build_windows:
         runs-on: windows-latest
@@ -68,6 +69,12 @@ jobs:
         - name: Install PothosSDR
           run: mkdir "C:/Program Files/PothosSDR" ; 7z x ${{runner.workspace}}/pothos.exe -o"C:/Program Files/PothosSDR/"
 
+        - name: Download SDRPlay API
+          run: Invoke-WebRequest -Uri "https://drive.google.com/uc?id=12UHPMwkfa67A11QZDmpCT4iwHnyJHWuu" -OutFile ${{runner.workspace}}/SDRPlay.zip
+
+        - name: Install SDRPlay API
+          run: 7z x ${{runner.workspace}}/SDRPlay.zip -o"C:/Program Files/"
+
         - name: Install vcpkg dependencies
           run: vcpkg install fftw3:x64-windows glew:x64-windows glfw3:x64-windows
 
@@ -76,7 +83,7 @@ jobs:
 
         - name: Prepare CMake
           working-directory: ${{runner.workspace}}/build
-          run: cmake "$Env:GITHUB_WORKSPACE" "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          run: cmake "$Env:GITHUB_WORKSPACE" "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DOPT_BUILD_SDRPLAY_SOURCE=ON
 
         - name: Build
           working-directory: ${{runner.workspace}}/build
