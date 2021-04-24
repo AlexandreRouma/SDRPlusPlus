@@ -72,11 +72,11 @@ jobs:
           run: vcpkg install fftw3:x64-windows glew:x64-windows glfw3:x64-windows
 
         - name: Install rtaudio
-          run: git clone https://github.com/thestk/rtaudio ; cd rtaudio ; mkdir build ; cd build ; cmake .. -G "Visual Studio 15 2017 Win64" ; cmake --build . --config Release ; cmake --install .
+          run: git clone https://github.com/thestk/rtaudio ; cd rtaudio ; mkdir build ; cd build ; cmake .. ; cmake --build . --config Release ; cmake --install .
 
         - name: Prepare CMake
           working-directory: ${{runner.workspace}}/build
-          run: cmake "$Env:GITHUB_WORKSPACE" "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -G "Visual Studio 15 2017 Win64"
+          run: cmake "$Env:GITHUB_WORKSPACE" "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
 
         - name: Build
           working-directory: ${{runner.workspace}}/build
