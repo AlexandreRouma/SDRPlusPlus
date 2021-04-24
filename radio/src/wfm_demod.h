@@ -176,13 +176,6 @@ public:
             _config->conf[uiPrefix]["WFM"]["squelchLevel"] = squelchLevel;
             _config->release(true);
         }
-    } 
-
-private:
-    void setBandwidth(float bandWidth, bool updateWaterfall = true) {
-        bw = bandWidth;
-        _vfo->setBandwidth(bw, updateWaterfall);
-        demod.setDeviation(bw / 2.0f);
     }
 
     void setDeempIndex(int id) {
@@ -197,6 +190,13 @@ private:
     void setSnapInterval(float snapInt) {
         snapInterval = snapInt;
         _vfo->setSnapInterval(snapInterval);
+    }
+
+private:
+    void setBandwidth(float bandWidth, bool updateWaterfall = true) {
+        bw = bandWidth;
+        _vfo->setBandwidth(bw, updateWaterfall);
+        demod.setDeviation(bw / 2.0f);
     }
 
     const float bwMax = 250000;
