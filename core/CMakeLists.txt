@@ -79,6 +79,8 @@ else()
         ${VOLK_LIBRARIES}
     )
 
+    message(${VOLK_LIBRARIES})
+
     if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         target_link_libraries(sdrpp_core PUBLIC stdc++fs)
     endif ()
