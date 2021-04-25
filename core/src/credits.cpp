@@ -29,6 +29,7 @@ namespace sdrpp_credits {
         "Daniele D'Agnelli",
         "W4IPA",
         "Lee Donaghy",
+        "ON4MU",
         "Passion-Radio.com",
         "Scanner School",
         "SignalsEverywhere"
