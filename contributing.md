@@ -53,3 +53,4 @@ If the module meets the code quality requirements, it may be added to the offici
 
 * All additions and/or bug fixes to the core must not add additional dependencies.
 
+* Use VSCode for development, VS seems to cause issues.
