@@ -96,28 +96,6 @@ jobs:
               name: sdrpp_debian_bullseye_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    build_ubuntu_bionic:
-        runs-on: ubuntu-latest
-
-        steps:
-        - uses: actions/checkout@v2
-        
-        - name: Create Docker Image
-          run: cd $GITHUB_WORKSPACE/docker_builds/ubuntu_bionic && docker build . --tag sdrpp_build
-
-        - name: Run Container
-          run: docker run --name build sdrpp_build /root/do_build.sh
-
-        - name: Recover Deb Archive
-          working-directory: ${{runner.workspace}}
-          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
-
-        - name: Save Deb Archive
-          uses: actions/upload-artifact@v2
-          with:
-              name: sdrpp_ubuntu_bionic_amd64
-              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
-
     build_ubuntu_focal:
         runs-on: ubuntu-latest
 
