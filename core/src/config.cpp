@@ -2,11 +2,7 @@
 #include <spdlog/spdlog.h>
 #include <fstream>
 
-#ifdef USE_EXPERIMENTAL_FS
-#include <experimental/filesystem>
-#else
 #include <filesystem>
-#endif
 
 ConfigManager::ConfigManager() {
 
