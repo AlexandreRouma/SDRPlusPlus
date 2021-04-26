@@ -15,7 +15,7 @@ cd SDRPlusPlus
 mkdir build
 cd build
 cmake ..
-make -j2
+make CXX_FLAGS=-DUSE_OLD_VOLK_ADD=1 -j2
 
 cd ..
 sh make_debian_package.sh ./build
