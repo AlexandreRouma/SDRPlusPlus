@@ -28,7 +28,6 @@ else (MSVC)
     pkg_check_modules(LIBAIRSPY REQUIRED libairspy)
 
     target_include_directories(airspy_source PUBLIC ${LIBAIRSPY_INCLUDE_DIRS})
-    target_link_directories(airspy_source PUBLIC ${LIBAIRSPY_LIBRARY_DIRS})
     target_link_libraries(airspy_source PUBLIC ${LIBAIRSPY_LIBRARIES})
 endif ()
 

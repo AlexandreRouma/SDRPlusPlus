@@ -28,7 +28,6 @@ else (MSVC)
     pkg_check_modules(LIBRTLSDR REQUIRED librtlsdr)
 
     target_include_directories(rtl_sdr_source PUBLIC ${LIBRTLSDR_INCLUDE_DIRS})
-    target_link_directories(rtl_sdr_source PUBLIC ${LIBRTLSDR_LIBRARY_DIRS})
     target_link_libraries(rtl_sdr_source PUBLIC ${LIBRTLSDR_LIBRARIES})
 endif ()
 

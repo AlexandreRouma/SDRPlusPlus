@@ -64,13 +64,6 @@ else()
         ${VOLK_INCLUDE_DIRS}
     )
 
-    target_link_directories(sdrpp_core PUBLIC
-        ${GLEW_LIBRARY_DIRS}
-        ${FFTW3_LIBRARY_DIRS}
-        ${GLFW3_LIBRARY_DIRS}
-        ${VOLK_LIBRARY_DIRS}
-    )
-
     target_link_libraries(sdrpp_core PUBLIC
         ${OPENGL_LIBRARIES}
         ${GLEW_LIBRARIES}
