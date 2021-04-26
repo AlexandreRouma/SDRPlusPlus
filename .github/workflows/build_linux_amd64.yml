@@ -12,7 +12,7 @@ jobs:
         # well on Windows or Mac.  You can convert this to a matrix build if you need
         # cross-platform coverage.
         # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-20.04
 
         steps:
         - uses: actions/checkout@v2
@@ -42,7 +42,7 @@ jobs:
           working-directory: ${{runner.workspace}}/build
           shell: bash
           # Execute the build.  You can specify a specific target with "--target <NAME>"
-          run: cmake --build . --config $BUILD_TYPE
+          run: cmake --build . --config $BUILD_TYPE -j2
 
         - name: Create Deb Archive
           working-directory: ${{runner.workspace}}
@@ -51,7 +51,7 @@ jobs:
         - name: Save Deb Archive
           uses: actions/upload-artifact@v2
           with:
-              name: sdrpp_debian_amd64
+              name: sdrpp_ubuntu20.04_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
     build_windows:
@@ -98,3 +98,45 @@ jobs:
           with:
               name: sdrpp_windows_x64
               path: ${{runner.workspace}}/sdrpp_windows_x64.zip
+  
+    build_debian10:
+        runs-on: ubuntu-latest
+
+        steps:
+        - uses: actions/checkout@v2
+        
+        - name: Create Docker Image
+          run: cd $GITHUB_WORKSPACE/docker_builds/debian10 && docker build . --tag sdrpp_build
+
+        - name: Run Container
+          run: docker run --name build -it sdrpp_build /root/do_build.sh
+
+        - name: Recover Deb Archive
+          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
+
+        - name: Save Deb Archive
+          uses: actions/upload-artifact@v2
+          with:
+              name: sdrpp_debian10_amd64
+              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
+
+    build_debian11:
+        runs-on: ubuntu-latest
+
+        steps:
+        - uses: actions/checkout@v2
+        
+        - name: Create Docker Image
+          run: cd $GITHUB_WORKSPACE/docker_builds/debian11 && docker build . --tag sdrpp_build
+
+        - name: Run Container
+          run: docker run --name build -it sdrpp_build /root/do_build.sh
+
+        - name: Recover Deb Archive
+          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
+
+        - name: Save Deb Archive
+          uses: actions/upload-artifact@v2
+          with:
+              name: sdrpp_debian11_amd64
+              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
