@@ -195,13 +195,13 @@ jobs:
         - name: Create Archive
           working-directory: ${{runner.workspace}}
           run: >
-            mkdir sdrpp_all
-            mv build_windows/sdrpp_windows_x64.zip sdrpp_all/
-            mv build_debian_buster/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_buster_amd64.deb
-            mv build_debian_bullseye/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bullseye_amd64.deb
-            mv build_debian_sid/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_sid_amd64.deb
-            mv build_ubuntu_focal/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_focal_amd64.deb
-            mv build_ubuntu_groovy/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_groovy_amd64.deb
+            mkdir sdrpp_all && 
+            mv build_windows/sdrpp_windows_x64.zip sdrpp_all/ && 
+            mv build_debian_buster/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_buster_amd64.deb && 
+            mv build_debian_bullseye/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bullseye_amd64.deb && 
+            mv build_debian_sid/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_sid_amd64.deb && 
+            mv build_ubuntu_focal/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_focal_amd64.deb && 
+            mv build_ubuntu_groovy/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_groovy_amd64.deb && 
             mv build_ubuntu_hirsute/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_hirsute_amd64.deb
 
         - uses: actions/upload-artifact@v2
