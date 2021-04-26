@@ -193,7 +193,6 @@ jobs:
           uses: actions/download-artifact@v2
 
         - name: Create Archive
-          working-directory: ${{runner.workspace}}
           run: >
             mkdir sdrpp_all && 
             mv sdrpp_windows_x64/sdrpp_windows_x64.zip sdrpp_all/ && 
@@ -207,4 +206,4 @@ jobs:
         - uses: actions/upload-artifact@v2
           with:
             name: sdrpp_all
-            path: ${{runner.workspace}}/sdrpp_all/
+            path: sdrpp_all/

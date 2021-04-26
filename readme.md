@@ -3,7 +3,7 @@
 ![Screenshot](https://i.imgur.com/EFOqwQQ.png)
 SDR++ is a cross-platform and open source SDR software with the aim of being bloat free and simple to use.
 
-![Linux Build](https://github.com/AlexandreRouma/SDRPlusPlus/workflows/Linux%20Build/badge.svg)
+![Build](https://github.com/AlexandreRouma/SDRPlusPlus/workflows/Build%20Binaries/badge.svg)
 
 * [Patreon](https://patreon.com/ryzerth)
 * [Discord Server](https://discord.gg/aFgWjyD)
