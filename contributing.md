@@ -49,6 +49,68 @@ For example, lets take the module named `cool_source`:
 
 If the module meets the code quality requirements, it may be added to the official repository. A module that doesn't require any external dependencies that the core doesn't already use may be enabled for build by default. Otherwise, they must be disabled for build by default with a `OPT_BUILD_MODULE_NAME` variable set to `OFF`.
 
+# JSON Formatting
+
+The ability to add new radio band allocation identifiers and color maps relies on JSON files. Proper formatting of these JSOn files is important for reference and readability. The folowing guides will show you how to properly format the JSON files for their respective uses.
+
+## Band Frequency Allocation 
+
+Please follow this guide to properly format the JSON files for custom radio band allocation identifiers.
+
+```json
+{
+    "name": "Single Word: Name of the band plan ",
+    "country_name": "Name of country, if applicable (Use 'Worldwide' otherwise)",
+    "country_code": "Two letter country code, if applicable (Use '--' otherwise",
+    "author_name": "Name of the original/main creator of the JSON file",
+    "author_url": "URL the author wishes to be associated with the file (personal website, GitHub, Twitter, etc)",
+    "bands": [ 
+        // Bands in this array must be sorted by their starting frequency
+        {
+            "name": "Name of the band",
+            "type": "Type of band (Amatuer, Broadcast, Marine, Military, or Satellite)",
+            "start": 148500, //In Hz, must be an integer
+            "end": 283500 //In Hz, must be an integer
+        },
+        {
+            "name": "Name of the band",
+            "type": "Type of band (Amatuer, Broadcast, Marine, Military, or Satellite)",
+            "start": 526500, //In Hz, must be an integer
+            "end": 1606500 //In Hz, must be an integer
+        }    
+    ]
+}
+```
+
+## Color Maps
+
+Please follow this guide to properly format the JSON files for custom color maps.
+
+```json
+{
+    "name": "Name of the color map in a single word",
+    "author": "Name of the original/main creator of the color map",
+    "map": [
+        // These are the color codes, in hexidecimal format, for the custom color scales for the waterfall. They must be entered as strings, not integers, with the hastag/pound-symbol proceeding the 6 digit number. 
+        "#000020",
+        "#000030",
+        "#000050",
+        "#000091",
+        "#1E90FF",
+        "#FFFFFF",
+        "#FFFF00",
+        "#FE6D16",
+        "#FE6D16",
+        "#FF0000",
+        "#FF0000",
+        "#C60000",
+        "#9F0000",
+        "#750000",
+        "#4A0000"
+    ]
+}
+```
+
 # Best Practices
 
 * All additions and/or bug fixes to the core must not add additional dependencies.
