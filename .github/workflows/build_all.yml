@@ -183,3 +183,29 @@ jobs:
           with:
               name: sdrpp_ubuntu_hirsute_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
+    
+    create_full_archive:
+        needs: ['build_windows', 'build_debian_buster', 'build_debian_bullseye', 'build_debian_sid', 'build_ubuntu_focal', 'build_ubuntu_groovy', 'build_ubuntu_hirsute']
+        runs-on: ubuntu-latest
+
+        steps:
+        - name: Download All Builds
+          working-directory: ${{runner.workspace}}
+          uses: actions/download-artifact@v2
+
+        - name: Create Archive
+          working-directory: ${{runner.workspace}}
+          run: >
+            mkdir sdrpp_all
+            mv build_windows/sdrpp_windows_x64.zip sdrpp_all/
+            mv build_debian_buster/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_buster_amd64.deb
+            mv build_debian_bullseye/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bullseye_amd64.deb
+            mv build_debian_sid/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_sid_amd64.deb
+            mv build_ubuntu_focal/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_focal_amd64.deb
+            mv build_ubuntu_groovy/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_groovy_amd64.deb
+            mv build_ubuntu_hirsute/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_hirsute_amd64.deb
+
+        - uses: actions/upload-artifact@v2
+          with:
+            name: sdrpp_all
+            path: ${{runner.workspace}}/sdrpp_all/
