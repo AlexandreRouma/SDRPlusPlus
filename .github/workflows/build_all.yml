@@ -190,7 +190,6 @@ jobs:
 
         steps:
         - name: Download All Builds
-          working-directory: ${{runner.workspace}}
           uses: actions/download-artifact@v2
 
         - name: Create Archive
