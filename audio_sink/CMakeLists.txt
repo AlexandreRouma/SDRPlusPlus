@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.10)
 project(audio_sink)
 
 if (MSVC)
@@ -19,22 +19,22 @@ set_target_properties(audio_sink PROPERTIES PREFIX "")
 
 if (MSVC)
     # Lib path
-    target_link_directories(sdrpp_core PUBLIC "C:/Program Files (x86)/RtAudio/lib")
+    target_link_directories(audio_sink PUBLIC "C:/Program Files (x86)/RtAudio/lib")
 
     # Misc headers
-    target_include_directories(sdrpp_core PUBLIC "C:/Program Files (x86)/RtAudio/include/rtaudio")
+    target_include_directories(audio_sink PUBLIC "C:/Program Files (x86)/RtAudio/include/rtaudio")
 
-    target_link_libraries(sdrpp_core PUBLIC rtaudio)
+    target_link_libraries(audio_sink PUBLIC rtaudio)
 else (MSVC)
     find_package(PkgConfig)
 
     pkg_check_modules(RTAUDIO REQUIRED rtaudio)
 
-    target_include_directories(sdrpp_core PUBLIC ${RTAUDIO_INCLUDE_DIRS})
+    target_include_directories(audio_sink PUBLIC ${RTAUDIO_INCLUDE_DIRS})
 
-    target_link_directories(sdrpp_core PUBLIC ${RTAUDIO_LIBRARY_DIRS})
+    target_link_directories(audio_sink PUBLIC ${RTAUDIO_LIBRARY_DIRS})
 
-    target_link_libraries(sdrpp_core PUBLIC ${RTAUDIO_LIBRARIES})
+    target_link_libraries(audio_sink PUBLIC ${RTAUDIO_LIBRARIES})
 
 endif ()
 

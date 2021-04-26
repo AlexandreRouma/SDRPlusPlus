@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.10)
 project(plutosdr_source)
 
 if (MSVC)
@@ -19,8 +19,8 @@ set_target_properties(plutosdr_source PROPERTIES PREFIX "")
 
 if (MSVC)
     # Lib path
-    target_link_directories(sdrpp_core PUBLIC "C:/Program Files/PothosSDR/lib/")
-    target_include_directories(sdrpp_core PUBLIC "C:/Program Files/PothosSDR/include/")
+    target_link_directories(plutosdr_source PUBLIC "C:/Program Files/PothosSDR/lib/")
+    target_include_directories(plutosdr_source PUBLIC "C:/Program Files/PothosSDR/include/")
 
     target_link_libraries(plutosdr_source PUBLIC libiio)
     target_link_libraries(plutosdr_source PUBLIC libad9361)

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.10)
 project(soapy_source)
 
 if (MSVC)
@@ -17,12 +17,12 @@ set_target_properties(soapy_source PROPERTIES PREFIX "")
 
 if (MSVC)
     # Lib path
-    target_link_directories(sdrpp_core PUBLIC "C:/Program Files/PothosSDR/lib/")
+    target_link_directories(soapy_source PUBLIC "C:/Program Files/PothosSDR/lib/")
 
     # Misc headers
-    target_include_directories(sdrpp_core PUBLIC "C:/Program Files/PothosSDR/include/")
+    target_include_directories(soapy_source PUBLIC "C:/Program Files/PothosSDR/include/")
 
-    target_link_libraries(sdrpp_core PUBLIC SoapySDR)
+    target_link_libraries(soapy_source PUBLIC SoapySDR)
 else (MSVC)
     find_package(PkgConfig)
 

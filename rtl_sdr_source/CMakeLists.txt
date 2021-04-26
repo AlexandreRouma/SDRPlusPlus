@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.10)
 project(rtl_sdr_source)
 
 if (MSVC)
@@ -19,7 +19,7 @@ set_target_properties(rtl_sdr_source PROPERTIES PREFIX "")
 
 if (MSVC)
     # Lib path
-    target_link_directories(sdrpp_core PUBLIC "C:/Program Files/PothosSDR/bin/")
+    target_link_directories(rtl_sdr_source PUBLIC "C:/Program Files/PothosSDR/bin/")
 
     target_link_libraries(rtl_sdr_source PUBLIC rtlsdr)
 else (MSVC)
