@@ -278,11 +278,11 @@ MOD_EXPORT void* _CREATE_INSTANCE_(std::string name) {
     return instance;
 }
 
-MOD_EXPORT void _DELETE_INSTANCE_() {
-    config.disableAutoSave();
-    config.save();
+MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
+    delete (AudioSinkModule*)instance;
 }
 
 MOD_EXPORT void _END_() {
-    
+    config.disableAutoSave();
+    config.save();
 }
