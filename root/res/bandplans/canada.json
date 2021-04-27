@@ -1,0 +1,207 @@
+{
+  "name": "Canada",
+  "country_name": "Canada",
+  "country_code": "CA",
+  "author_name": "Starman0620",
+  "author_url": "https://github.com/Starman0620/",
+  "bands": [
+    {
+      "name": "630m Ham Band",
+      "type": "amateur",
+      "start": 472000,
+      "end": 479000
+    },
+    {
+      "name": "AM Radio",
+      "type": "broadcast",
+      "start": 535000,
+      "end": 1705000
+    },
+    {
+      "name": "160m Ham Band",
+      "type": "amateur",
+      "start": 1800000,
+      "end": 2000000
+    },
+    {
+      "name": "80m Ham Band",
+      "type": "amateur",
+      "start": 3500000,
+      "end": 4000000
+    },
+    {
+      "name": "60m Ham Band",
+      "type": "amateur",
+      "start": 5351000,
+      "end": 5366000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 5950000,
+      "end": 6200000
+    },
+    {
+      "name": "40m Ham Band",
+      "type": "amateur",
+      "start": 7000000,
+      "end": 7300000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 9400000,
+      "end": 9900000
+    },
+    {
+      "name": "30m Ham Band",
+      "type": "amateur",
+      "start": 10100000,
+      "end": 10150000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 11650000,
+      "end": 12050000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 13600000,
+      "end": 13800000
+    },
+    {
+      "name": "20m Ham Band",
+      "type": "amateur",
+      "start": 14000000,
+      "end": 14350000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 15100000,
+      "end": 15800000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 17550000,
+      "end": 17900000
+    },
+    {
+      "name": "15m Ham Band",
+      "type": "amateur",
+      "start": 18068000,
+      "end": 21450000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 21450000,
+      "end": 21850000
+    },
+    {
+      "name": "12m Ham Band",
+      "type": "amateur",
+      "start": 24890000,
+      "end": 24990000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 25000000,
+      "end": 26000000
+    },
+    {
+      "name": "10m Ham Band",
+      "type": "amateur",
+      "start": 28000000,
+      "end": 29000000
+    },
+    {
+      "name": "Cordless Phones",
+      "type": "broadcast",
+      "start": 41000000,
+      "end": 50000000
+    },
+    {
+      "name": "6m Ham Band",
+      "type": "amateur",
+      "start": 50000000,
+      "end": 54000000
+    },
+    {
+      "name": "TV Channels 2-4",
+      "type": "broadcast",
+      "start": 54000000,
+      "end": 72000000
+    },
+    {
+      "name": "FM Broadcast",
+      "type": "broadcast",
+      "start": 76000000,
+      "end": 108000000
+    },
+    {
+      "name": "Air Band VOR/ILS",
+      "type": "aviation",
+      "start": 108000000,
+      "end": 117000000
+    },
+    {
+      "name": "Air Band Voice",
+      "type": "aviation",
+      "start": 117000000,
+      "end": 137000000
+    },
+    {
+      "name": "2m Ham Band",
+      "type": "amateur",
+      "start": 144000000,
+      "end": 148000000
+    },
+    {
+      "name": "Weatheradio",
+      "type": "amateur",
+      "start": 162400000,
+      "end": 162700000
+    },
+    {
+      "name": "TV Channels 7-13",
+      "type": "broadcast",
+      "start": 174000000,
+      "end": 216000000
+    },
+    {
+      "name": "70cm Ham Band",
+      "type": "amateur",
+      "start": 430000000,
+      "end": 450000000
+    },
+    {
+      "name": "TV Channels 14-36",
+      "type": "broadcast",
+      "start": 470000000,
+      "end": 608000000
+    },
+    {
+      "name": "TV Channels 38-51",
+      "type": "broadcast",
+      "start": 614000000,
+      "end": 806000000
+    },
+    {
+      "name": "Trunked Mobile",
+      "type": "broadcast",
+      "start": 806000000,
+      "end": 890000000
+    },
+    {
+      "name": "33cm Ham Band",
+      "type": "amateur",
+      "start": 902000000,
+      "end": 928000000
+    }
+  ]
+}
