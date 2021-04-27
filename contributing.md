@@ -29,6 +29,10 @@ int myFunction() {
 
 Note: If it makes the code cleaner, remember to use the `?` keyword instead of a `if else` statement.
 
+## Pointers
+
+Please use `type* name` for pointers.
+
 ## Structure
 
 Headers and their associated C++ files shall be in the same directory. All headers must use `#pragma once` instead of other include guards. Only include files in a header that are being used in that header. Include the rest in the associated C++ file.
