@@ -348,16 +348,16 @@
             "end": 24990000
         },
         {
-            "name": "SW 11m",
-            "type": "broadcast",
-            "start": 25650000,
-            "end": 26100000
-        },
-        {
             "name": "CB",
             "type": "amateur",
             "start": 25165000,
             "end": 30105000
+        },
+        {
+            "name": "SW 11m",
+            "type": "broadcast",
+            "start": 25650000,
+            "end": 26100000
         },
         {
             "name": "10m CW",

@@ -19,8 +19,8 @@ set_target_properties(plutosdr_source PROPERTIES PREFIX "")
 
 if (MSVC)
     # Lib path
-    target_link_directories(sdrpp_core PUBLIC "C:/Program Files/PothosSDR/lib/")
-    target_include_directories(sdrpp_core PUBLIC "C:/Program Files/PothosSDR/include/")
+    target_link_directories(plutosdr_source PUBLIC "C:/Program Files/PothosSDR/lib/")
+    target_include_directories(plutosdr_source PUBLIC "C:/Program Files/PothosSDR/include/")
 
     target_link_libraries(plutosdr_source PUBLIC libiio)
     target_link_libraries(plutosdr_source PUBLIC libad9361)
@@ -31,11 +31,9 @@ else (MSVC)
     pkg_check_modules(LIBAD9361 REQUIRED libad9361)
 
     target_include_directories(plutosdr_source PUBLIC ${LIBIIO_INCLUDE_DIRS})
-    target_link_directories(plutosdr_source PUBLIC ${LIBIIO_LIBRARY_DIRS})
     target_link_libraries(plutosdr_source PUBLIC ${LIBIIO_LIBRARIES})
 
     target_include_directories(plutosdr_source PUBLIC ${LIBAD9361_INCLUDE_DIRS})
-    target_link_directories(plutosdr_source PUBLIC ${LIBAD9361_LIBRARY_DIRS})
     target_link_libraries(plutosdr_source PUBLIC ${LIBAD9361_LIBRARIES})
 endif ()
 

@@ -137,7 +137,7 @@
             "start": 1452000000,
             "end": 1472000000
         },
-    	{
+        {
             "name": "1472 Vodafone SDL downlink",
             "type": "mobile.mno.vodafone",
             "start": 1472000000,
@@ -149,7 +149,7 @@
             "start": 1710000000,
             "end": 1740000000
         },
-	{
+        {
             "name": "1740 Telefonica FDD uplink",
             "type": "mobile.mno.telefonica",
             "start": 1740000000,
@@ -167,7 +167,7 @@
             "start": 1805000000,
             "end": 1835000000
         },
-	{
+        {
             "name": "1835 Telefonica FDD downlink",
             "type": "mobile.mno.telefonica",
             "start": 1835000000,
@@ -185,7 +185,7 @@
             "start": 1880000000,
             "end": 1900000000
         },
-	{
+        {
             "name": "1900.1 Telefonica",
             "type": "mobile.mno.telefonica",
             "start": 1900100000,
@@ -197,7 +197,7 @@
             "start": 1920000000,
             "end": 1940000000
         },
-	{
+        {
             "name": "1940 Telefonica FDD uplink",
             "type": "mobile.mno.telefonica",
             "start": 1940000000,
@@ -209,7 +209,7 @@
             "start": 1960000000,
             "end": 1980000000
         },
-	{
+        {
             "name": "2010.5 Telefonica",
             "type": "mobile.mno.telefonica",
             "start": 2010500000,
@@ -221,7 +221,7 @@
             "start": 2110000000,
             "end": 2130000000
         },
-	{
+        {
             "name": "2130 Telefonica FDD downlink",
             "type": "mobile.mno.telefonica",
             "start": 2130000000,
@@ -245,13 +245,13 @@
             "start": 2520000000,
             "end": 2540000000
         },
-	{
+        {
             "name": "2540 Telefonica FDD uplink",
             "type": "mobile.mno.telefonica",
             "start": 2540000000,
             "end": 2570000000
         },
-	{
+        {
             "name": "2570 Telefonica TDD",
             "type": "mobile.mno.telefonica",
             "start": 2570000000,
@@ -269,7 +269,7 @@
             "start": 2605000000,
             "end": 2610000000
         },
-	{
+        {
             "name": "2610 Telefonica TDD",
             "type": "mobile.mno.telefonica",
             "start": 2610000000,
@@ -287,7 +287,7 @@
             "start": 2640000000,
             "end": 2660000000
         },
-	{
+        {
             "name": "2660 Telefonica FDD downlink",
             "type": "mobile.mno.telefonica",
             "start": 2660000000,

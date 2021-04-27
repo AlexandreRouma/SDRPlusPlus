@@ -19,7 +19,7 @@ set_target_properties(airspyhf_source PROPERTIES PREFIX "")
 
 if (MSVC)
     # Lib path
-    target_link_directories(sdrpp_core PUBLIC "C:/Program Files/PothosSDR/bin/")
+    target_link_directories(airspyhf_source PUBLIC "C:/Program Files/PothosSDR/bin/")
 
     target_link_libraries(airspyhf_source PUBLIC airspyhf)
 else (MSVC)
@@ -28,7 +28,6 @@ else (MSVC)
     pkg_check_modules(LIBAIRSPYHF REQUIRED libairspyhf)
 
     target_include_directories(airspyhf_source PUBLIC ${LIBAIRSPYHF_INCLUDE_DIRS})
-    target_link_directories(airspyhf_source PUBLIC ${LIBAIRSPYHF_LIBRARY_DIRS})
     target_link_libraries(airspyhf_source PUBLIC ${LIBAIRSPYHF_LIBRARIES})
 endif ()
 

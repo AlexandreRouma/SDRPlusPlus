@@ -19,7 +19,7 @@ set_target_properties(hackrf_source PROPERTIES PREFIX "")
 
 if (MSVC)
     # Lib path
-    target_link_directories(sdrpp_core PUBLIC "C:/Program Files/PothosSDR/bin/")
+    target_link_directories(hackrf_source PUBLIC "C:/Program Files/PothosSDR/bin/")
 
     target_link_libraries(hackrf_source PUBLIC hackrf)
 else (MSVC)
@@ -28,7 +28,6 @@ else (MSVC)
     pkg_check_modules(LIBHACKRF REQUIRED libhackrf)
 
     target_include_directories(hackrf_source PUBLIC ${LIBHACKRF_INCLUDE_DIRS})
-    target_link_directories(hackrf_source PUBLIC ${LIBHACKRF_LIBRARY_DIRS})
     target_link_libraries(hackrf_source PUBLIC ${LIBHACKRF_LIBRARIES})
 endif ()
 
