@@ -57,7 +57,7 @@ public:
 
         deemp.init(&resamp.out, audioSampRate, tau);
 
-        if (deempId == 2) { deemp.bypass = true; }
+        if (deempId == 0) { deemp.bypass = true; }
 
     }
 
@@ -179,7 +179,7 @@ public:
     }
 
     void setDeempIndex(int id) {
-        if (id >= 2 || id < 0) {
+        if (id == 0) {
             deemp.bypass = true;
             return;
         }
@@ -202,15 +202,15 @@ private:
     const float bwMax = 250000;
     const float bwMin = 50000;
     const float bbSampRate = 250000;
-    const char* deempModes = "50µs\00075µs\000none\000";
-    const float deempVals[2] = { 50e-6, 75e-6 };
+    const char* deempModes = "none\00050µs\00075µs\000";
+    const float deempVals[3] = { 0, 50e-6, 75e-6 };
 
     std::string uiPrefix;
     float snapInterval = 100000;
     float audioSampRate = 48000;
     float squelchLevel = -100.0f;
     float bw = 200000;
-    int deempId = 0;
+    int deempId = 1;
     float tau = 50e-6;
     bool running = false;
 
