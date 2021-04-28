@@ -163,7 +163,7 @@
     },
     {
       "name": "Weatheradio",
-      "type": "amateur",
+      "type": "broadcast",
       "start": 162400000,
       "end": 162700000
     },
