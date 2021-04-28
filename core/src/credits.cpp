@@ -7,11 +7,14 @@ namespace sdrpp_credits {
         "Alexsey Shestacov",
         "Aosync",
         "Benjamin Kyd",
+        "Benjamin Vernoux",
         "Cropinghigh",
         "Howard0su",
+        "Joshua Kimsey",
         "Martin Hauke",
         "Paulo Matias",
         "Raov",
+        "Starman0620",
         "Szymon Zakrent",
         "Tobias Mädel"
     };

@@ -6,6 +6,7 @@ TODO
 
 ## Naming Convention
 
+- Files: `snake_case.h` `snake_case.cpp`
 - Namespaces: `CamelCase`
 - Classes: `CamelCase`
 - Structs: `CamelCase_t`
