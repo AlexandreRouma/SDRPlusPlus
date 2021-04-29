@@ -92,17 +92,6 @@ inline void printAndScale(double freq, char* buf) {
     else if (freqAbs < 1000000000000) {
         sprintf(buf, "%.6lgG", freq / 1000000000.0);
     }
-    // for (int i = strlen(buf) - 2; i >= 0; i--) {
-    //     if (buf[i] != '0') {
-    //         if (buf[i] == '.') {
-    //             i--;
-    //         }
-    //         char scale = buf[strlen(buf) - 1];
-    //         buf[i + 1] = scale;
-    //         buf[i + 2] = 0;
-    //         return;
-    //     }
-    // }
 }
 
 namespace ImGui {
@@ -430,7 +419,30 @@ namespace ImGui {
                     selVfo->setOffset(off);
                 }
             }
-        }        
+        }
+        else {
+            // Check if a VFO is hovered. If yes, show tooltip
+            for (auto const& [name, _vfo] : vfos) {
+                if (ImGui::IsMouseHoveringRect(_vfo->rectMin, _vfo->rectMax) || ImGui::IsMouseHoveringRect(_vfo->wfRectMin, _vfo->wfRectMax)) {
+                    char buf[128];
+                    ImGui::BeginTooltip();
+
+                    ImGui::Text(name.c_str());
+
+                    if (ImGui::IsKeyDown(GLFW_KEY_LEFT_CONTROL) || ImGui::IsKeyDown(GLFW_KEY_RIGHT_CONTROL)) {
+                        ImGui::Separator();
+                        printAndScale(_vfo->generalOffset + centerFreq, buf);
+                        ImGui::Text("Frequency: %sHz", buf);
+                        printAndScale(_vfo->bandwidth, buf);
+                        ImGui::Text("Bandwidth: %sHz", buf);
+                        ImGui::Text("Bandwidth Locked: %s", _vfo->bandwidthLocked ? "Yes" : "No");
+                    }
+
+                    ImGui::EndTooltip();
+                    break;
+                }
+            }
+        }      
     }
 
     void WaterFall::setFastFFT(bool fastFFT) {
