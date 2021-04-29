@@ -53,7 +53,7 @@ jobs:
               path: ${{runner.workspace}}/sdrpp_windows_x64.zip
 
     build_macos:
-        runs-on: windows-latest
+        runs-on: macos-latest
 
         steps:
         - uses: actions/checkout@v2
