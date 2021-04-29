@@ -45,10 +45,11 @@ bool FileSelect::render(std::string id) {
     return _pathChanged;
 }
 
-void FileSelect::setPath(std::string path) {
+void FileSelect::setPath(std::string path, bool markChanged) {
     this->path = path;
     std::string expandedPath = expandString(path);
     pathValid = std::filesystem::is_regular_file(expandedPath);
+    if (markChanged) { pathChanged = true; }
     strcpy(strPath, path.c_str());
 }
 

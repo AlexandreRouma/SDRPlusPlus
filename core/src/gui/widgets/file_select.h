@@ -10,7 +10,7 @@ class FileSelect {
 public:
     FileSelect(std::string defaultPath, std::vector<std::string> filter = {"All Files", "*"});
     bool render(std::string id);
-    void setPath(std::string path);
+    void setPath(std::string path, bool markChanged = false);
     bool pathIsValid();
 
     std::string expandString(std::string input);

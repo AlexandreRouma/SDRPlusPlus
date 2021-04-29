@@ -44,10 +44,11 @@ bool FolderSelect::render(std::string id) {
     return _pathChanged;
 }
 
-void FolderSelect::setPath(std::string path) {
+void FolderSelect::setPath(std::string path, bool markChanged) {
     this->path = path;
     std::string expandedPath = expandString(path);
     pathValid = std::filesystem::is_directory(expandedPath);
+    if (markChanged) { pathChanged = true; }
     strcpy(strPath, path.c_str());
 }
 

@@ -5,6 +5,7 @@
 #include <signal_path/signal_path.h>
 #include <wavreader.h>
 #include <core.h>
+#include <options.h>
 #include <gui/widgets/file_select.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
@@ -17,11 +18,16 @@ SDRPP_MOD_INFO {
     /* Max instances    */ 1
 };
 
+ConfigManager config;
 
 class FileSourceModule : public ModuleManager::Instance  {
 public:
     FileSourceModule(std::string name) : fileSelect("", {"Wav IQ Files (*.wav)", "*.wav", "All Files", "*"}) {
         this->name = name;
+
+        config.aquire();
+        fileSelect.setPath(config.conf["path"], true);
+        config.release();
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
@@ -105,6 +111,9 @@ private:
                     core::setInputSampleRate(_this->sampleRate);
                 }
                 catch (std::exception e) {}
+                config.aquire();
+                config.conf["path"] = _this->fileSelect.path;
+                config.release(true);
             }
         }
 
@@ -157,7 +166,11 @@ private:
 };
 
 MOD_EXPORT void _INIT_() {
-   // Do your one time init here
+    json def = json({});
+    def["path"] = "";
+    config.setPath(options::opts.root + "/file_source_config.json");
+    config.load(def);
+    config.enableAutoSave();
 }
 
 MOD_EXPORT void* _CREATE_INSTANCE_(std::string name) {
@@ -169,5 +182,6 @@ MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
 }
 
 MOD_EXPORT void _END_() {
-    // Do your one shutdown here
+    config.disableAutoSave();
+    config.save();
 }

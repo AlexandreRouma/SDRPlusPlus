@@ -9,7 +9,7 @@ class FolderSelect {
 public:
     FolderSelect(std::string defaultPath);
     bool render(std::string id);
-    void setPath(std::string path);
+    void setPath(std::string path, bool markChanged = false);
     bool pathIsValid();
 
     std::string expandString(std::string input);
