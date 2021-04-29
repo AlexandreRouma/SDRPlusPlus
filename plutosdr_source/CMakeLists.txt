@@ -31,9 +31,11 @@ else (MSVC)
     pkg_check_modules(LIBAD9361 REQUIRED libad9361)
 
     target_include_directories(plutosdr_source PUBLIC ${LIBIIO_INCLUDE_DIRS})
+    target_link_directories(plutosdr_source PUBLIC ${LIBIIO_LIBRARY_DIRS})
     target_link_libraries(plutosdr_source PUBLIC ${LIBIIO_LIBRARIES})
 
     target_include_directories(plutosdr_source PUBLIC ${LIBAD9361_INCLUDE_DIRS})
+    target_link_directories(plutosdr_source PUBLIC ${LIBAD9361_LIBRARY_DIRS})
     target_link_libraries(plutosdr_source PUBLIC ${LIBAD9361_LIBRARIES})
 endif ()
 
