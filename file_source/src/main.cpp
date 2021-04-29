@@ -20,7 +20,7 @@ SDRPP_MOD_INFO {
 
 class FileSourceModule : public ModuleManager::Instance  {
 public:
-    FileSourceModule(std::string name) : fileSelect("") {
+    FileSourceModule(std::string name) : fileSelect("", {"Wav IQ Files (*.wav)", "*.wav", "All Files", "*"}) {
         this->name = name;
 
         handler.ctx = this;

@@ -2,6 +2,7 @@
 #include <regex>
 #include <options.h>
 #include <filesystem>
+#include <gui/file_dialogs.h>
 
 FolderSelect::FolderSelect(std::string defaultPath) {
     setPath(defaultPath);
@@ -10,7 +11,7 @@ FolderSelect::FolderSelect(std::string defaultPath) {
 bool FolderSelect::render(std::string id) {
     bool _pathChanged = false;
     float menuColumnWidth = ImGui::GetContentRegionAvailWidth();
-#ifdef _WIN32
+
     float buttonWidth = ImGui::CalcTextSize("...").x + 20.0f;
     bool lastPathValid = pathValid;
     if (!lastPathValid) {
@@ -35,29 +36,9 @@ bool FolderSelect::render(std::string id) {
     if (ImGui::Button(("..." + id + "_winselect").c_str(), ImVec2(buttonWidth - 8.0f, 0)) && !dialogOpen) {
         dialogOpen = true;
         if (workerThread.joinable()) { workerThread.join(); }
-        workerThread = std::thread(&FolderSelect::windowsWorker, this);
+        workerThread = std::thread(&FolderSelect::worker, this);
     }
-#else
-    bool lastPathValid = pathValid;
-    if (!lastPathValid) {
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
-    }
-    ImGui::SetNextItemWidth(menuColumnWidth);
-    if (ImGui::InputText(id.c_str(), strPath, 2047)) {
-        path = std::string(strPath);
-        std::string expandedPath = expandString(strPath);
-        if (!std::filesystem::is_directory(expandedPath)) {
-            pathValid = false;
-        }
-        else {
-            pathValid = true;
-            _pathChanged = true;
-        }
-    }
-    if (!lastPathValid) {
-        ImGui::PopStyleColor();
-    }
-#endif
+    
     _pathChanged |= pathChanged;
     pathChanged = false;
     return _pathChanged;
@@ -79,31 +60,16 @@ bool FolderSelect::pathIsValid() {
     return pathValid;
 }
 
-#ifdef _WIN32
-void FolderSelect::windowsWorker() {
-        IFileOpenDialog *pFileOpen;
-        HRESULT hr;
+void FolderSelect::worker() {
+        auto fold = pfd::select_folder("Select Folder");
+        std::string res = fold.result();
 
-        // Create the FileOpenDialog object.
-        hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
-        
-        DWORD options;
-        pFileOpen->GetOptions(&options);
-        pFileOpen->SetOptions(options | FOS_PICKFOLDERS);
-
-        hr = pFileOpen->Show(NULL);
-        if (SUCCEEDED(hr)) {
-            PWSTR pszFilePath;
-            IShellItem *pItem;
-            hr = pFileOpen->GetResult(&pItem);
-            hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
-            wcstombs(strPath, pszFilePath, 2048);
-            CoTaskMemFree(pszFilePath);
-            path = std::string(strPath);
+        if (res != "") {
+            path = res;
+            strcpy(strPath, path.c_str());
             pathChanged = true;
         }
 
-        pathValid = std::filesystem::is_directory(path);
+        pathValid = std::filesystem::is_directory(expandString(path));
         dialogOpen = false;
 }
-#endif

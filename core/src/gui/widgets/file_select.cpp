@@ -2,17 +2,17 @@
 #include <regex>
 #include <options.h>
 #include <filesystem>
+#include <gui/file_dialogs.h>
 
-FileSelect::FileSelect(std::string defaultPath) {
-    path = defaultPath;
-    pathValid = std::filesystem::is_regular_file(path);
-    strcpy(strPath, path.c_str());
+FileSelect::FileSelect(std::string defaultPath, std::vector<std::string> filter) {
+    _filter = filter;
+    setPath(defaultPath);
 }
 
 bool FileSelect::render(std::string id) {
     bool _pathChanged = false;
     float menuColumnWidth = ImGui::GetContentRegionAvailWidth();
-#ifdef _WIN32
+
     float buttonWidth = ImGui::CalcTextSize("...").x + 20.0f;
     bool lastPathValid = pathValid;
     if (!lastPathValid) {
@@ -37,29 +37,9 @@ bool FileSelect::render(std::string id) {
     if (ImGui::Button(("..." + id + "_winselect").c_str(), ImVec2(buttonWidth - 8.0f, 0)) && !dialogOpen) {
         dialogOpen = true;
         if (workerThread.joinable()) { workerThread.join(); }
-        workerThread = std::thread(&FileSelect::windowsWorker, this);
+        workerThread = std::thread(&FileSelect::worker, this);
     }
-#else
-    bool lastPathValid = pathValid;
-    if (!lastPathValid) {
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
-    }
-    ImGui::SetNextItemWidth(menuColumnWidth);
-    if (ImGui::InputText(id.c_str(), strPath, 2047)) {
-        path = std::string(strPath);
-        std::string expandedPath = expandString(strPath);
-        if (!std::filesystem::is_regular_file(expandedPath)) {
-            pathValid = false;
-        }
-        else {
-            pathValid = true;
-            _pathChanged = true;
-        }
-    }
-    if (!lastPathValid) {
-        ImGui::PopStyleColor();
-    }
-#endif
+    
     _pathChanged |= pathChanged;
     pathChanged = false;
     return _pathChanged;
@@ -67,7 +47,8 @@ bool FileSelect::render(std::string id) {
 
 void FileSelect::setPath(std::string path) {
     this->path = path;
-    pathValid = std::filesystem::is_regular_file(path);
+    std::string expandedPath = expandString(path);
+    pathValid = std::filesystem::is_regular_file(expandedPath);
     strcpy(strPath, path.c_str());
 }
 
@@ -80,35 +61,16 @@ bool FileSelect::pathIsValid() {
     return pathValid;
 }
 
-#ifdef _WIN32
+void FileSelect::worker() {
+        auto file = pfd::open_file("Open File", "", _filter);
+        std::vector<std::string> res = file.result();
 
-void FileSelect::setWindowsFilter(COMDLG_FILTERSPEC* filt, int n) {
-    filter = filt;
-    filterCount = n;
-}
-
-void FileSelect::windowsWorker() {
-        IFileOpenDialog *pFileOpen;
-        HRESULT hr;
-
-        // Create the FileOpenDialog object.
-        hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
-        
-        if (filter != NULL) { pFileOpen->SetFileTypes(filterCount, filter); }
-
-        hr = pFileOpen->Show(NULL);
-        if (SUCCEEDED(hr)) {
-            PWSTR pszFilePath;
-            IShellItem *pItem;
-            hr = pFileOpen->GetResult(&pItem);
-            hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
-            wcstombs(strPath, pszFilePath, 2048);
-            CoTaskMemFree(pszFilePath);
-            path = std::string(strPath);
+        if (res.size() > 0) {
+            path = res[0];
+            strcpy(strPath, path.c_str());
             pathChanged = true;
         }
 
-        pathValid = std::filesystem::is_regular_file(path);
+        pathValid = std::filesystem::is_regular_file(expandString(path));
         dialogOpen = false;
 }
-#endif

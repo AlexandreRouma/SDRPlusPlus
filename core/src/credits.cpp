@@ -25,6 +25,7 @@ namespace sdrpp_credits {
         "RtAudio",
         "SoapySDR (PothosWare)",
         "spdlog (gabime)",
+        "Portable File Dialogs"
     };
 
     const char* patrons[] = {

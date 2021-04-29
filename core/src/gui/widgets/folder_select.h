@@ -3,12 +3,7 @@
 #include <imgui_internal.h>
 #include <stdint.h>
 #include <string>
-
-#ifdef _WIN32
-#include <Windows.h>
-#include <ShlObj.h>
 #include <thread>
-#endif
 
 class FolderSelect {
 public:
@@ -23,10 +18,8 @@ public:
     
 
 private:
-#ifdef _WIN32
-    void windowsWorker();
+    void worker();
     std::thread workerThread;
-#endif
 
     bool pathValid = false;
     bool dialogOpen = false;
