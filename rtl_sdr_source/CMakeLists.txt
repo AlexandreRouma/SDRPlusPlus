@@ -26,10 +26,11 @@ else (MSVC)
     find_package(PkgConfig)
 
     pkg_check_modules(LIBRTLSDR REQUIRED librtlsdr)
+    pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
 
-    target_include_directories(rtl_sdr_source PUBLIC ${LIBRTLSDR_INCLUDE_DIRS})
-    target_link_directories(rtl_sdr_source PUBLIC ${LIBRTLSDR_LIBRARY_DIRS})
-    target_link_libraries(rtl_sdr_source PUBLIC ${LIBRTLSDR_LIBRARIES})
+    target_include_directories(rtl_sdr_source PUBLIC ${LIBRTLSDR_INCLUDE_DIRS} ${LIBUSB_INCLUDE_DIRS})
+    target_link_directories(rtl_sdr_source PUBLIC ${LIBRTLSDR_LIBRARY_DIRS} ${LIBUSB_LIBRARY_DIRS})
+    target_link_libraries(rtl_sdr_source PUBLIC ${LIBRTLSDR_LIBRARIES} ${LIBUSB_LIBRARIES})
 endif ()
 
 # Install directives
