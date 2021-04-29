@@ -51,6 +51,25 @@ jobs:
           with:
               name: sdrpp_windows_x64
               path: ${{runner.workspace}}/sdrpp_windows_x64.zip
+
+    build_macos:
+        runs-on: windows-latest
+
+        steps:
+        - uses: actions/checkout@v2
+        
+        - name: Create Build Environment
+          run: cmake -E make_directory ${{runner.workspace}}/build
+
+        - name: Install dependencies
+          run: brew install fftw glew glfw volk airspy rt-audio hackrf rtl-sdr
+
+        - name: Prepare CMake
+          run: cmake $GITHUB_WORKSPACE -DOPT_BUILD_AIRSPYHF_SOURCE=OFF -DOPT_BUILD_PLUTOSDR_SOURCE=OFF -DOPT_BUILD_SOAPYSDR_SOURCE=OFF
+
+        - name: Build
+          working-directory: ${{runner.workspace}}/build
+          run: make -j3
   
     build_debian_buster:
         runs-on: ubuntu-latest
