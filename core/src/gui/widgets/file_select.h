@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <string>
 #include <thread>
+#include <vector>
 
 class FileSelect {
 public:

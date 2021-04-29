@@ -3,7 +3,6 @@
 #include <options.h>
 #include <filesystem>
 #include <gui/file_dialogs.h>
-#include <vector>
 
 FileSelect::FileSelect(std::string defaultPath, std::vector<std::string> filter) {
     _filter = filter;
