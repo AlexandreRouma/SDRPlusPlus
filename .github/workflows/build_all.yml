@@ -78,6 +78,16 @@ jobs:
         - name: Build
           working-directory: ${{runner.workspace}}/build
           run: make -j3
+
+        - name: Create Archive
+          working-directory: ${{runner.workspace}}
+          run: sh $GITHUB_WORKSPACE/make_macos_package.sh ${{runner.workspace}}/build
+
+        - name: Save Archive
+          uses: actions/upload-artifact@v2
+          with:
+              name: sdrpp_macos_amd64
+              path: ${{runner.workspace}}/sdrpp_macos_amd64.pkg
   
     build_debian_buster:
         runs-on: ubuntu-latest
@@ -223,6 +233,7 @@ jobs:
           run: >
             mkdir sdrpp_all && 
             mv sdrpp_windows_x64/sdrpp_windows_x64.zip sdrpp_all/ && 
+            mv sdrpp_macos_amd64/sdrpp_macos_amd64.pkg sdrpp_all/ && 
             mv sdrpp_debian_buster_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_buster_amd64.deb && 
             mv sdrpp_debian_bullseye_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bullseye_amd64.deb && 
             mv sdrpp_debian_sid_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_sid_amd64.deb && 
