@@ -32,6 +32,7 @@
 #include <gui/dialogs/loading_screen.h>
 #include <options.h>
 #include <gui/colormaps.h>
+#include <gui/widgets/snr_meter.h>
 
 int fftSize = 8192 * 8;
 
@@ -102,6 +103,8 @@ bool showMenu = true;
 bool centerTuning = false;
 dsp::stream<dsp::complex_t> dummyStream;
 bool demoWindow = false;
+
+float testSNR = 50;
 
 void windowInit() {
     LoadingScreen::show("Initializing UI");
@@ -515,6 +518,13 @@ void drawWindow() {
 
     ImGui::SameLine();
 
+    ImGui::SetCursorPosX(ImGui::GetWindowSize().x - 387);
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
+    ImGui::SetNextItemWidth(300);
+    ImGui::SNRMeter((vfo != NULL) ? gui::waterfall.selectedVFOSNR : 0);
+
+    ImGui::SameLine();
+
     // Logo button
     ImGui::SetCursorPosX(ImGui::GetWindowSize().x - 48);
     ImGui::SetCursorPosY(10);
@@ -603,6 +613,8 @@ void drawWindow() {
                 gui::menu.order[0].open = true;
                 firstMenuRender = true;
             }
+
+            ImGui::SliderFloat("Testing SNR meter", &testSNR, 0, 100);
 
             ImGui::Spacing();
         }

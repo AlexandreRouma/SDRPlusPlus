@@ -288,10 +288,6 @@ namespace ImGui {
             // Next, check if a VFO was selected
             if (!targetFound) {
                 for (auto const& [name, _vfo] : vfos) {
-                    if (name == selectedVFO) {
-                        continue;
-                    }
-
                     // If another VFO is selected, select it and cancel out
                     if (IS_IN_AREA(mousePos, _vfo->rectMin, _vfo->rectMax) || IS_IN_AREA(mousePos, _vfo->wfRectMin, _vfo->wfRectMax)) {
                         selectedVFO = name;
@@ -436,6 +432,16 @@ namespace ImGui {
                         printAndScale(_vfo->bandwidth, buf);
                         ImGui::Text("Bandwidth: %sHz", buf);
                         ImGui::Text("Bandwidth Locked: %s", _vfo->bandwidthLocked ? "Yes" : "No");
+
+                        float strength, snr;
+                        if (calculateVFOSignalInfo(_vfo, strength, snr)) {
+                            ImGui::Text("Strength: %0.1fdBFS", strength);
+                            ImGui::Text("SNR: %0.1fdB", snr);
+                        }
+                        else {
+                            ImGui::Text("Strength: ---.-dBFS");
+                            ImGui::Text("SNR: ---.-dB");
+                        }
                     }
 
                     ImGui::EndTooltip();
@@ -443,6 +449,50 @@ namespace ImGui {
                 }
             }
         }      
+    }
+
+    bool WaterFall::calculateVFOSignalInfo(WaterfallVFO* _vfo, float& strength, float& snr) {
+        if (rawFFTs == NULL || fftLines <= 0) { return false; }
+
+        // Calculate FFT index data
+        double vfoMinSizeFreq = _vfo->centerOffset - _vfo->bandwidth;
+        double vfoMinFreq = _vfo->centerOffset - (_vfo->bandwidth/2.0);
+        double vfoMaxFreq = _vfo->centerOffset + (_vfo->bandwidth/2.0);
+        double vfoMaxSizeFreq = _vfo->centerOffset + _vfo->bandwidth;
+        int vfoMinSideOffset = std::clamp<int>(((vfoMinSizeFreq / (wholeBandwidth/2.0)) * (double)(rawFFTSize/2)) + (rawFFTSize/2), 0, rawFFTSize);
+        int vfoMinOffset = std::clamp<int>(((vfoMinFreq / (wholeBandwidth/2.0)) * (double)(rawFFTSize/2)) + (rawFFTSize/2), 0, rawFFTSize);
+        int vfoMaxOffset = std::clamp<int>(((vfoMaxFreq / (wholeBandwidth/2.0)) * (double)(rawFFTSize/2)) + (rawFFTSize/2), 0, rawFFTSize);
+        int vfoMaxSideOffset = std::clamp<int>(((vfoMaxSizeFreq / (wholeBandwidth/2.0)) * (double)(rawFFTSize/2)) + (rawFFTSize/2), 0, rawFFTSize);
+
+        float* fftLine = &rawFFTs[currentFFTLine * rawFFTSize];
+
+        double avg = 0;
+        float max = -INFINITY;
+        int avgCount = 0;
+
+        // Calculate Left average
+        for (int i = vfoMinSideOffset; i < vfoMinOffset; i++) {
+            avg += fftLine[i];
+            avgCount++;
+        }
+
+        // Calculate Right average
+        for (int i = vfoMaxOffset + 1; i < vfoMaxSideOffset; i++) {
+            avg += fftLine[i];
+            avgCount++;
+        }
+
+        avg /= (double)(avgCount);
+
+        // Calculate max
+        for (int i = vfoMinOffset; i <= vfoMaxOffset; i++) {
+            if (fftLine[i] > max) { max = fftLine[i]; }
+        }
+
+        strength = max;
+        snr = max - avg;
+
+        return true;
     }
 
     void WaterFall::setFastFFT(bool fastFFT) {
@@ -747,6 +797,11 @@ namespace ImGui {
         else {
             doZoom(drawDataStart, drawDataSize, dataWidth, rawFFTs, latestFFT, _fastFFT);
             fftLines = 1;
+        }
+
+        if (selectedVFO != "" && vfos.size() > 0) {
+            float dummy;
+            calculateVFOSignalInfo(vfos[selectedVFO], dummy, selectedVFOSNR);
         }
         
         buf_mtx.unlock();
