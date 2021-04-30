@@ -209,7 +209,10 @@ public:
     }
 
     void selectFirst() {
-        if (devList.size() == 0) { return; }
+        if (devList.size() == 0) {
+            selectedName = "";
+            return;
+        }
         selectDev(devList[0], 0);
     }
 
@@ -231,19 +234,12 @@ public:
         openDev = dev;
         sdrplay_api_ErrT err;
 
-        if (deviceOpen) {
-            // TODO: Fix crash here
-            sdrplay_api_Uninit(openDev.dev);
-            sdrplay_api_ReleaseDevice(&openDev);
-        }
-
         openDev.tuner = sdrplay_api_Tuner_A;
         openDev.rspDuoMode = sdrplay_api_RspDuoMode_Single_Tuner;
         err = sdrplay_api_SelectDevice(&openDev);
         if (err != sdrplay_api_Success) {
             const char* errStr = sdrplay_api_GetErrorString(err);
             spdlog::error("Could not select RSP device: {0}", errStr);
-            deviceOpen = false;
             selectedName = "";
             return;
         }
@@ -255,7 +251,6 @@ public:
         if (err != sdrplay_api_Success) {
             const char* errStr = sdrplay_api_GetErrorString(err);
             spdlog::error("Could not get device params for RSP device: {0}", errStr);
-            deviceOpen = false;
             selectedName = "";
             return;
         }
@@ -264,7 +259,6 @@ public:
         if (err != sdrplay_api_Success) {
             const char* errStr = sdrplay_api_GetErrorString(err);
             spdlog::error("Could not init RSP device: {0}", errStr);
-            deviceOpen = false;
             selectedName = "";
             return;
         }
@@ -355,6 +349,8 @@ public:
             agc = config.conf["devices"][selectedName]["agc"];
         }
 
+        core::setInputSampleRate(sampleRate);
+
         // Per device options
         if (openDev.hwVer == SDRPLAY_RSP1_ID) {
             // No config to load
@@ -417,7 +413,9 @@ public:
         
         if (lnaGain >= lnaSteps) { lnaGain = lnaSteps - 1; }
 
-        deviceOpen = true;
+        // Release device after selecting
+        sdrplay_api_Uninit(openDev.dev);
+        sdrplay_api_ReleaseDevice(&openDev);
     }
     
     void rspDuoSelectTuner(sdrplay_api_TunerSelectT tuner, sdrplay_api_RspDuo_AmPortSelectT amPort) {
@@ -479,10 +477,42 @@ private:
         if (_this->running) {
             return;
         }
-        
-        // Do start procedure here
+
+        // First, aquire device
         sdrplay_api_ErrT err;
 
+        _this->openDev.tuner = sdrplay_api_Tuner_A;
+        _this->openDev.rspDuoMode = sdrplay_api_RspDuoMode_Single_Tuner;
+        err = sdrplay_api_SelectDevice(&_this->openDev);
+        if (err != sdrplay_api_Success) {
+            const char* errStr = sdrplay_api_GetErrorString(err);
+            spdlog::error("Could not select RSP device: {0}", errStr);
+            _this->selectedName = "";
+            return;
+        }
+
+        sdrplay_api_UnlockDeviceApi();
+        sdrplay_api_DebugEnable(_this->openDev.dev, sdrplay_api_DbgLvl_Message);
+
+        err = sdrplay_api_GetDeviceParams(_this->openDev.dev, &_this->openDevParams);
+        if (err != sdrplay_api_Success) {
+            const char* errStr = sdrplay_api_GetErrorString(err);
+            spdlog::error("Could not get device params for RSP device: {0}", errStr);
+            _this->selectedName = "";
+            return;
+        }
+
+        err = sdrplay_api_Init(_this->openDev.dev, &_this->cbFuncs, _this);
+        if (err != sdrplay_api_Success) {
+            const char* errStr = sdrplay_api_GetErrorString(err);
+            spdlog::error("Could not init RSP device: {0}", errStr);
+            _this->selectedName = "";
+            return;
+        }
+
+        _this->channelParams = _this->openDevParams->rxChannelA;
+
+        // Configure device
         _this->bufferIndex = 0;
         _this->bufferSize = (float)_this->sampleRate / 200.0f;
 
@@ -571,7 +601,9 @@ private:
         _this->running = false;
         _this->stream.stopWriter();
         
-        // Stop procedure here
+        // Release device after stopping
+        sdrplay_api_Uninit(_this->openDev.dev);
+        sdrplay_api_ReleaseDevice(&_this->openDev);
 
         _this->stream.clearWriteStop();
         spdlog::info("SDRPlaySourceModule '{0}': Stop!", _this->name);
@@ -604,7 +636,6 @@ private:
         }
 
 
-        ImGui::SetNextItemWidth(menuWidth);
         if (ImGui::Combo(CONCAT("##sdrplay_sr", _this->name), &_this->srId, sampleRatesTxt)) {
             _this->sampleRate = sampleRates[_this->srId];
             if (_this->bandwidthId == 8) {
@@ -614,6 +645,13 @@ private:
             config.aquire();
             config.conf["devices"][_this->selectedName]["sampleRate"] = _this->sampleRate;
             config.release(true);
+        }
+
+        ImGui::SameLine();
+        float refreshBtnWdith = menuWidth - ImGui::GetCursorPosX();
+        if (ImGui::Button(CONCAT("Refresh##sdrplay_refresh", _this->name), ImVec2(refreshBtnWdith, 0))) {
+            _this->refresh();
+            _this->selectByName(_this->selectedName);
         }
 
         if (_this->running) { style::endDisabled(); } 
@@ -630,7 +668,7 @@ private:
             config.release(true);
         }
 
-        if (_this->deviceOpen) {
+        if (_this->selectedName != "") {
             ImGui::PushItemWidth(menuWidth - ImGui::CalcTextSize("LNA Gain").x - 10);
             ImGui::Text("LNA Gain");
             ImGui::SameLine();
@@ -864,7 +902,6 @@ private:
     SourceManager::SourceHandler handler;
     bool running = false;
     double freq;
-    bool deviceOpen = false;
 
     sdrplay_api_CallbackFnsT cbFuncs;
 

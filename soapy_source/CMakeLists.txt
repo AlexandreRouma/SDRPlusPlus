@@ -29,6 +29,7 @@ else (MSVC)
     pkg_check_modules(SOAPY REQUIRED SoapySDR)
 
     target_include_directories(soapy_source PUBLIC ${SOAPY_INCLUDE_DIRS})
+    target_link_directories(soapy_source PUBLIC ${SOAPY_LIBRARY_DIRS})
     target_link_libraries(soapy_source PUBLIC ${SOAPY_LIBRARIES})
 endif ()
 

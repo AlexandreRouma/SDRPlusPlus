@@ -31,7 +31,7 @@ else (MSVC)
     pkg_check_modules(RTAUDIO REQUIRED rtaudio)
 
     target_include_directories(audio_sink PUBLIC ${RTAUDIO_INCLUDE_DIRS})
-
+    target_link_directories(audio_sink PUBLIC ${RTAUDIO_LIBRARY_DIRS})
     target_link_libraries(audio_sink PUBLIC ${RTAUDIO_LIBRARIES})
 
 endif ()

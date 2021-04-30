@@ -133,6 +133,8 @@ namespace ImGui {
         bool mouseInFFT = false;
         bool mouseInWaterfall = false;
 
+        float selectedVFOSNR = NAN;
+
         std::map<std::string, WaterfallVFO*> vfos;
         std::string selectedVFO = "";
         bool selectedVFOChanged = false;
@@ -162,6 +164,7 @@ namespace ImGui {
         void updateWaterfallFb();
         void updateWaterfallTexture();
         void updateAllVFOs();
+        bool calculateVFOSignalInfo(WaterfallVFO* vfo, float& strength, float& snr);
 
         bool waterfallUpdate = false;
 
