@@ -22,6 +22,13 @@ jobs:
         - name: Install PothosSDR
           run: mkdir "C:/Program Files/PothosSDR" ; 7z x ${{runner.workspace}}/pothos.exe -o"C:/Program Files/PothosSDR/"
 
+        - name: Download libusb
+          run: Invoke-WebRequest -Uri "https://github.com/libusb/libusb/releases/download/v1.0.23/libusb-1.0.23.7z" -OutFile ${{runner.workspace}}/libusb.7z
+
+        - name: Patch Pothos with earlier libusb version
+          working-directory: ${{runner.workspace}}
+          run: 7z x libusb.7z -olibusb_old ; rm "C:/Program Files/PothosSDR/bin/libusb-1.0.dll" ; cp "libusb_old/MS64/dll/libusb-1.0.dll" "C:/Program Files/PothosSDR/bin/"
+ 
         - name: Download SDRPlay API
           run: Invoke-WebRequest -Uri "https://drive.google.com/uc?id=12UHPMwkfa67A11QZDmpCT4iwHnyJHWuu" -OutFile ${{runner.workspace}}/SDRPlay.zip
 
