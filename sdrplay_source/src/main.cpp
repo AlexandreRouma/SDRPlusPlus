@@ -674,8 +674,10 @@ private:
             ImGui::SameLine();
             float pos = ImGui::GetCursorPosX();
             if (ImGui::SliderInt(CONCAT("##sdrplay_lna_gain", _this->name), &_this->lnaGain, _this->lnaSteps - 1, 0, "")) {
-                _this->channelParams->tunerParams.gain.LNAstate = _this->lnaGain;
-                sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
+                if (_this->running) {
+                    _this->channelParams->tunerParams.gain.LNAstate = _this->lnaGain;
+                    sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
+                }
                 config.aquire();
                 config.conf["devices"][_this->selectedName]["lnaGain"] = _this->lnaGain;
                 config.release(true);
@@ -686,8 +688,10 @@ private:
             ImGui::SameLine();
             ImGui::SetCursorPosX(pos);
             if (ImGui::SliderInt(CONCAT("##sdrplay_gain", _this->name), &_this->gain, 59, 20, "")) {
-                _this->channelParams->tunerParams.gain.gRdB = _this->gain;
-                sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
+                if (_this->running) {
+                    _this->channelParams->tunerParams.gain.gRdB = _this->gain;
+                    sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
+                }
                 config.aquire();
                 config.conf["devices"][_this->selectedName]["ifGain"] = _this->gain;
                 config.release(true);
@@ -699,11 +703,13 @@ private:
             ImGui::SameLine();
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             if (ImGui::Combo(CONCAT("##sdrplay_agc", _this->name), &_this->agc, agcModesTxt)) {
-                _this->channelParams->ctrlParams.agc.enable = agcModes[_this->agc];
-                sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Ctrl_Agc, sdrplay_api_Update_Ext1_None);
-                if (_this->agc == 0) {
-                    _this->channelParams->tunerParams.gain.gRdB = _this->gain;
-                    sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
+                if (_this->running) {
+                    _this->channelParams->ctrlParams.agc.enable = agcModes[_this->agc];
+                    sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Ctrl_Agc, sdrplay_api_Update_Ext1_None);
+                    if (_this->agc == 0) {
+                        _this->channelParams->tunerParams.gain.gRdB = _this->gain;
+                        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
+                    }
                 }
                 config.aquire();
                 config.conf["devices"][_this->selectedName]["agc"] = _this->agc;
@@ -743,22 +749,28 @@ private:
 
     void RSP1AMenu(float menuWidth) {
         if (ImGui::Checkbox(CONCAT("FM Notch##sdrplay_rsp1a_fmnotch", name), &rsp1a_fmNotch)) {
-            openDevParams->devParams->rsp1aParams.rfNotchEnable = rsp1a_fmNotch;
-            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp1a_RfNotchControl, sdrplay_api_Update_Ext1_None);
+            if (running) {
+                openDevParams->devParams->rsp1aParams.rfNotchEnable = rsp1a_fmNotch;
+                sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp1a_RfNotchControl, sdrplay_api_Update_Ext1_None);
+            }
             config.aquire();
             config.conf["devices"][selectedName]["fmNotch"] = rsp1a_fmNotch;
             config.release(true);
         }
         if (ImGui::Checkbox(CONCAT("DAB Notch##sdrplay_rsp1a_dabnotch", name), &rsp1a_dabNotch)) {
-            openDevParams->devParams->rsp1aParams.rfNotchEnable = rsp1a_dabNotch;
-            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp1a_RfDabNotchControl, sdrplay_api_Update_Ext1_None);
+            if (running) {
+                openDevParams->devParams->rsp1aParams.rfNotchEnable = rsp1a_dabNotch;
+                sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp1a_RfDabNotchControl, sdrplay_api_Update_Ext1_None);
+            }
             config.aquire();
             config.conf["devices"][selectedName]["dabNotch"] = rsp1a_dabNotch;
             config.release(true);
         }
         if (ImGui::Checkbox(CONCAT("Bias-T##sdrplay_rsp1a_biast", name), &rsp1a_biasT)) {
-            channelParams->rsp1aTunerParams.biasTEnable = rsp1a_biasT;
-            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp1a_BiasTControl, sdrplay_api_Update_Ext1_None);
+            if (running) {
+                channelParams->rsp1aTunerParams.biasTEnable = rsp1a_biasT;
+                sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp1a_BiasTControl, sdrplay_api_Update_Ext1_None);
+            }
             config.aquire();
             config.conf["devices"][selectedName]["biast"] = rsp1a_biasT;
             config.release(true);
@@ -770,24 +782,30 @@ private:
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##sdrplay_rsp2_ant", name), &rsp2_antennaPort, rsp2_antennaPortsTxt)) {
-            channelParams->rsp2TunerParams.antennaSel = rsp2_antennaPorts[rsp2_antennaPort];
-            channelParams->rsp2TunerParams.amPortSel = (rsp2_antennaPort == 2) ? sdrplay_api_Rsp2_AMPORT_1 : sdrplay_api_Rsp2_AMPORT_2;
-            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp2_AntennaControl, sdrplay_api_Update_Ext1_None);
-            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp2_AmPortSelect, sdrplay_api_Update_Ext1_None);
+            if (running) {
+                channelParams->rsp2TunerParams.antennaSel = rsp2_antennaPorts[rsp2_antennaPort];
+                channelParams->rsp2TunerParams.amPortSel = (rsp2_antennaPort == 2) ? sdrplay_api_Rsp2_AMPORT_1 : sdrplay_api_Rsp2_AMPORT_2;
+                sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp2_AntennaControl, sdrplay_api_Update_Ext1_None);
+                sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp2_AmPortSelect, sdrplay_api_Update_Ext1_None);
+            }
             config.aquire();
             config.conf["devices"][selectedName]["antenna"] = rsp2_antennaPort;
             config.release(true);
         }
         if (ImGui::Checkbox(CONCAT("MW/FM Notch##sdrplay_rsp2_notch", name), &rsp2_notch)) {
-            channelParams->rsp2TunerParams.rfNotchEnable = rsp2_notch;
-            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp2_RfNotchControl, sdrplay_api_Update_Ext1_None);
+            if (running) {
+                channelParams->rsp2TunerParams.rfNotchEnable = rsp2_notch;
+                sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp2_RfNotchControl, sdrplay_api_Update_Ext1_None);
+            }
             config.aquire();
             config.conf["devices"][selectedName]["notch"] = rsp2_notch;
             config.release(true);
         }
         if (ImGui::Checkbox(CONCAT("Bias-T##sdrplay_rsp2_biast", name), &rsp2_biasT)) {
-            channelParams->rsp2TunerParams.biasTEnable = rsp2_biasT;
-            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp2_BiasTControl, sdrplay_api_Update_Ext1_None);
+            if (running) {
+                channelParams->rsp2TunerParams.biasTEnable = rsp2_biasT;
+                sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp2_BiasTControl, sdrplay_api_Update_Ext1_None);
+            }
             config.aquire();
             config.conf["devices"][selectedName]["biast"] = rsp2_biasT;
             config.release(true);
@@ -800,35 +818,45 @@ private:
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
 
         if (ImGui::Combo(CONCAT("##sdrplay_rspduo_ant", name), &rspduo_antennaPort, rspduo_antennaPortsTxt)) {
-            rspDuoSelectAntennaPort(rspduo_antennaPort);
+            if (running) {
+                rspDuoSelectAntennaPort(rspduo_antennaPort);
+            }
             config.aquire();
             config.conf["devices"][selectedName]["antenna"] = rspduo_antennaPort;
             config.release(true);
         }
         if (ImGui::Checkbox(CONCAT("FM Notch##sdrplay_rspduo_notch", name), &rspduo_fmNotch)) {
-            channelParams->rspDuoTunerParams.rfNotchEnable = rspduo_fmNotch;
-            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_RfNotchControl, sdrplay_api_Update_Ext1_None);
+            if (running) {
+                channelParams->rspDuoTunerParams.rfNotchEnable = rspduo_fmNotch;
+                sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_RfNotchControl, sdrplay_api_Update_Ext1_None);
+            }
             config.aquire();
             config.conf["devices"][selectedName]["fmNotch"] = rspduo_fmNotch;
             config.release(true);
         }
         if (ImGui::Checkbox(CONCAT("DAB Notch##sdrplay_rspduo_dabnotch", name), &rspduo_dabNotch)) {
-            channelParams->rspDuoTunerParams.rfDabNotchEnable = rspduo_dabNotch;
-            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_RfDabNotchControl, sdrplay_api_Update_Ext1_None);
+            if (running) {
+                channelParams->rspDuoTunerParams.rfDabNotchEnable = rspduo_dabNotch;
+                sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_RfDabNotchControl, sdrplay_api_Update_Ext1_None);
+            }
             config.aquire();
             config.conf["devices"][selectedName]["dabNotch"] = rspduo_dabNotch;
             config.release(true);
         }
         if (ImGui::Checkbox(CONCAT("AM Notch##sdrplay_rspduo_dabnotch", name), &rspduo_amNotch)) {
-            channelParams->rspDuoTunerParams.tuner1AmNotchEnable = rspduo_amNotch;
-            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_Tuner1AmNotchControl, sdrplay_api_Update_Ext1_None);
+            if (running) {
+                channelParams->rspDuoTunerParams.tuner1AmNotchEnable = rspduo_amNotch;
+                sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_Tuner1AmNotchControl, sdrplay_api_Update_Ext1_None);
+            }
             config.aquire();
             config.conf["devices"][selectedName]["amNotch"] = rspduo_amNotch;
             config.release(true);
         }
         if (ImGui::Checkbox(CONCAT("Bias-T##sdrplay_rspduo_biast", name), &rspduo_biasT)) {
-            channelParams->rspDuoTunerParams.biasTEnable = rspduo_biasT;
-            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_BiasTControl, sdrplay_api_Update_Ext1_None);
+            if (running) {
+                channelParams->rspDuoTunerParams.biasTEnable = rspduo_biasT;
+                sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_BiasTControl, sdrplay_api_Update_Ext1_None);
+            }
             config.aquire();
             config.conf["devices"][selectedName]["biast"] = rspduo_biasT;
             config.release(true);
@@ -840,30 +868,38 @@ private:
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##sdrplay_rspdx_ant", name), &rspdx_antennaPort, rspdx_antennaPortsTxt)) {
-            openDevParams->devParams->rspDxParams.antennaSel = rspdx_antennaPorts[rspdx_antennaPort];
-            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_None, sdrplay_api_Update_RspDx_AntennaControl);
+            if (running) {
+                openDevParams->devParams->rspDxParams.antennaSel = rspdx_antennaPorts[rspdx_antennaPort];
+                sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_None, sdrplay_api_Update_RspDx_AntennaControl);
+            }
             config.aquire();
             config.conf["devices"][selectedName]["antenna"] = rspdx_antennaPort;
             config.release(true);
         }
 
         if (ImGui::Checkbox(CONCAT("FM Notch##sdrplay_rspdx_fmnotch", name), &rspdx_fmNotch)) {
-            openDevParams->devParams->rspDxParams.rfNotchEnable = rspdx_fmNotch;
-            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_None, sdrplay_api_Update_RspDx_RfNotchControl);
+            if (running) {
+                openDevParams->devParams->rspDxParams.rfNotchEnable = rspdx_fmNotch;
+                sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_None, sdrplay_api_Update_RspDx_RfNotchControl);
+            }
             config.aquire();
             config.conf["devices"][selectedName]["fmNotch"] = rspdx_fmNotch;
             config.release(true);
         }
         if (ImGui::Checkbox(CONCAT("DAB Notch##sdrplay_rspdx_dabnotch", name), &rspdx_dabNotch)) {
-            openDevParams->devParams->rspDxParams.rfDabNotchEnable = rspdx_dabNotch;
-            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_None, sdrplay_api_Update_RspDx_RfDabNotchControl);
+            if (running) {
+                openDevParams->devParams->rspDxParams.rfDabNotchEnable = rspdx_dabNotch;
+                sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_None, sdrplay_api_Update_RspDx_RfDabNotchControl);
+            }
             config.aquire();
             config.conf["devices"][selectedName]["dabNotch"] = rspdx_dabNotch;
             config.release(true);
         }
         if (ImGui::Checkbox(CONCAT("Bias-T##sdrplay_rspdx_biast", name), &rspdx_biasT)) {
-            openDevParams->devParams->rspDxParams.biasTEnable = rspdx_biasT;
-            sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_None, sdrplay_api_Update_RspDx_BiasTControl);
+            if (running) {
+                openDevParams->devParams->rspDxParams.biasTEnable = rspdx_biasT;
+                sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_None, sdrplay_api_Update_RspDx_BiasTControl);
+            }
             config.aquire();
             config.conf["devices"][selectedName]["biast"] = rspdx_biasT;
             config.release(true);
