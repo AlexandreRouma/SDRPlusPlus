@@ -198,6 +198,7 @@ private:
         AudioSink* _this = (AudioSink*)userData;
         int count = _this->stereoPacker.out.read();
         if (count < 0) { return 0; }
+        if (nBufferFrames != count) { spdlog::warn("Buffer size missmatch, wanted {0}, was asked for {1}", count, nBufferFrames); }
         memcpy(outputBuffer, _this->stereoPacker.out.readBuf, nBufferFrames * sizeof(dsp::stereo_t));
         _this->stereoPacker.out.flush();
         return 0;

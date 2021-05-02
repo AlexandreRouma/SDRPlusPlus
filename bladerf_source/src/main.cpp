@@ -14,7 +14,7 @@
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
 #define NUM_BUFFERS     128
-#define NUM_TRANSFERS   32
+#define NUM_TRANSFERS   1
 
 SDRPP_MOD_INFO {
     /* Name:            */ "bladerf_source",
@@ -135,7 +135,15 @@ public:
             return;
         }
 
+        // Gather info about the BladeRF
         channelCount = bladerf_get_channel_count(openDev, BLADERF_RX);
+        bladerf_get_sample_rate_range(openDev, BLADERF_CHANNEL_RX(0), &srRange);
+        bladerf_get_bandwidth_range(openDev, BLADERF_CHANNEL_RX(0), &bwRange);
+        bladerf_get_gain_range(openDev, BLADERF_CHANNEL_RX(0), &gainRange);
+
+        spdlog::warn("SR Range: {0}, {1}, {2}, {3}", srRange->min, srRange->max, srRange->step, srRange->scale);
+        spdlog::warn("BW Range: {0}, {1}, {2}, {3}", bwRange->min, bwRange->max, bwRange->step, bwRange->scale);
+        spdlog::warn("Gain Range: {0}, {1}, {2}, {3}", gainRange->min, gainRange->max, gainRange->step, gainRange->scale);
 
         // TODO: Gen sample rate list automatically by detecting which version is selected
 
@@ -180,27 +188,29 @@ private:
         int ret = bladerf_open_with_devinfo(&_this->openDev, &info);
         if (ret != 0) {
             spdlog::error("Could not open device {0}", info.serial);
-
-            
             return;
         }
 
+        _this->bufferSize = _this->sampleRate / 200.0;
+        _this->bufferSize /= 1024;
+        _this->bufferSize *= 1024;
+
         bladerf_sample_rate wantedSr = _this->sampleRate;
         bladerf_sample_rate actualSr;
+        bladerf_sample_rate actualBw;
         bladerf_set_sample_rate(_this->openDev, BLADERF_CHANNEL_RX(0), wantedSr, &actualSr);
         bladerf_set_frequency(_this->openDev, BLADERF_CHANNEL_RX(0), _this->freq);
+        bladerf_set_bandwidth(_this->openDev, BLADERF_CHANNEL_RX(0), 56000000, &actualBw);
+        bladerf_set_gain_mode(_this->openDev, BLADERF_CHANNEL_RX(0), BLADERF_GAIN_MANUAL);
+        bladerf_set_gain(_this->openDev, BLADERF_CHANNEL_RX(0), _this->testGain);
 
         if (actualSr != wantedSr) {
             spdlog::warn("Sample rate rejected: {0} vs {1}", actualSr, wantedSr);
             return;
         }
 
-        // Start stream
-        ret = bladerf_init_stream(&_this->rxStream, _this->openDev, callback, &_this->streamBuffers, NUM_BUFFERS, BLADERF_FORMAT_SC16_Q11, 8192, NUM_TRANSFERS, _this);
-        if (ret != 0) {
-            spdlog::error("Could not start stream {0}", ret);
-            return;
-        }
+        // Setup syncronous transfer
+        bladerf_sync_config(_this->openDev, BLADERF_RX_X1, BLADERF_FORMAT_SC16_Q11, 16, _this->bufferSize, 8, 3500);
 
         bladerf_enable_module(_this->openDev, BLADERF_CHANNEL_RX(0), true);
 
@@ -271,25 +281,28 @@ private:
         if (_this->running) { style::endDisabled(); }
 
         // General config BS
+        if (ImGui::SliderInt("Test Gain", &_this->testGain, 0, 77)) {
+            if (_this->running) {
+                spdlog::info("Setting gain to {0}", _this->testGain);
+                bladerf_set_gain(_this->openDev, BLADERF_CHANNEL_RX(0), _this->testGain);
+            }
+        }
 
     }
 
     void worker() {
-        bladerf_stream(rxStream, BLADERF_RX_X1);
-    }
-
-    static void* callback(struct bladerf *dev, struct bladerf_stream *stream, struct bladerf_metadata *meta, void *samples, size_t num_samples, void *user_data) {
-        // TODO: Convert with volk
-        BladeRFSourceModule* _this = (BladeRFSourceModule*)user_data;
-        int16_t* samples16 = (int16_t*)samples;
-        _this->currentBuffer = ((_this->currentBuffer + 1) % NUM_BUFFERS);
-        for (size_t i = 0; i < num_samples; i++) {
-            _this->stream.writeBuf[i].re = (float)samples16[(2 * i)] / 32768.0f;
-            _this->stream.writeBuf[i].im = (float)samples16[(2 * i) + 1] / 32768.0f;
-            if (!_this->stream.swap(num_samples)) { return _this->streamBuffers[_this->currentBuffer];; }
+        int16_t* buffer = new int16_t[bufferSize * 2];
+        bladerf_metadata meta;
+        while (true) {
+            int ret = bladerf_sync_rx(openDev, buffer, bufferSize, &meta, 3500);
+            if (ret != 0) { printf("Error: %d\n", ret); break; }
+            for (int i = 0; i < bufferSize; i++) {
+                stream.writeBuf[i].re = (float)buffer[(i * 2)] / 32768.0f;
+                stream.writeBuf[i].im = (float)buffer[(i * 2) + 1] / 32768.0f;
+            }
+            if (!stream.swap(bufferSize)) { break; }
         }
-
-        return _this->streamBuffers[_this->currentBuffer];
+        delete[] buffer;
     }
 
     std::string name;
@@ -303,11 +316,18 @@ private:
     double freq;
     int devId = 0;
     int srId = 0;
+    int chanId = 0;
 
-    int channelCount = 0;
-    int currentBuffer = 0;
-    void** streamBuffers;
+    int channelCount;
+
+    const bladerf_range* srRange;
+    const bladerf_range* bwRange;
+    const bladerf_range* gainRange;
+
+    int bufferSize;
     struct bladerf_stream* rxStream;
+
+    int testGain;
 
     std::thread workerThread;
 
