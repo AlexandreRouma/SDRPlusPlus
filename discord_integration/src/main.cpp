@@ -134,8 +134,8 @@ private:
     // Rich Presence
     DiscordRichPresence presence;
     double lastFreq;
-    char* freq = new char[1024];
-    char* mode = new char[1024];
+    char freq[1024];
+    char mode[1024];
     std::string lastMode = "";
 
     // Threading
