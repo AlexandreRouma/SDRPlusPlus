@@ -70,7 +70,7 @@ public:
     BladeRFSourceModule(std::string name) {
         this->name = name;
 
-        sampleRate = 768000.0;
+        sampleRate = 1000000.0;
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
@@ -119,7 +119,8 @@ public:
             return;
         }
         for (int i = 0; i < devCount; i++) {
-            devListTxt += devInfoList[i].serial;
+            // Keep only the first 32 character of the serial number for display
+            devListTxt += std::string(devInfoList[i].serial).substr(0, 32);
             devListTxt += '\0';
         }
     }
@@ -135,15 +136,14 @@ public:
             return;
         }
 
-        // Gather info about the BladeRF
+        // Gather info about the BladeRF's ranges
         channelCount = bladerf_get_channel_count(openDev, BLADERF_RX);
         bladerf_get_sample_rate_range(openDev, BLADERF_CHANNEL_RX(0), &srRange);
         bladerf_get_bandwidth_range(openDev, BLADERF_CHANNEL_RX(0), &bwRange);
         bladerf_get_gain_range(openDev, BLADERF_CHANNEL_RX(0), &gainRange);
 
-        spdlog::warn("SR Range: {0}, {1}, {2}, {3}", srRange->min, srRange->max, srRange->step, srRange->scale);
-        spdlog::warn("BW Range: {0}, {1}, {2}, {3}", bwRange->min, bwRange->max, bwRange->step, bwRange->scale);
-        spdlog::warn("Gain Range: {0}, {1}, {2}, {3}", gainRange->min, gainRange->max, gainRange->step, gainRange->scale);
+        srId = 1;
+        sampleRate = sampleRates[1];
 
         // TODO: Gen sample rate list automatically by detecting which version is selected
 
@@ -191,28 +191,23 @@ private:
             return;
         }
 
+        // Calculate buffer size, must be a multiple of 1024
         _this->bufferSize = _this->sampleRate / 200.0;
         _this->bufferSize /= 1024;
         _this->bufferSize *= 1024;
         if (_this->bufferSize < 1024) { _this->bufferSize = 1024; }
 
-        bladerf_sample_rate wantedSr = _this->sampleRate;
-        bladerf_sample_rate actualSr;
-        bladerf_sample_rate actualBw;
-        bladerf_set_sample_rate(_this->openDev, BLADERF_CHANNEL_RX(0), wantedSr, &actualSr);
+        // Setup device parameters
+        bladerf_set_sample_rate(_this->openDev, BLADERF_CHANNEL_RX(0), _this->sampleRate, NULL);
         bladerf_set_frequency(_this->openDev, BLADERF_CHANNEL_RX(0), _this->freq);
-        bladerf_set_bandwidth(_this->openDev, BLADERF_CHANNEL_RX(0), 56000000, &actualBw);
+        bladerf_set_bandwidth(_this->openDev, BLADERF_CHANNEL_RX(0), 56000000, NULL);
         bladerf_set_gain_mode(_this->openDev, BLADERF_CHANNEL_RX(0), BLADERF_GAIN_MANUAL);
         bladerf_set_gain(_this->openDev, BLADERF_CHANNEL_RX(0), _this->testGain);
-
-        if (actualSr != wantedSr) {
-            spdlog::warn("Sample rate rejected: {0} vs {1}", actualSr, wantedSr);
-            return;
-        }
 
         // Setup syncronous transfer
         bladerf_sync_config(_this->openDev, BLADERF_RX_X1, BLADERF_FORMAT_SC16_Q11, 16, _this->bufferSize, 8, 3500);
 
+        // Enable streaming
         bladerf_enable_module(_this->openDev, BLADERF_CHANNEL_RX(0), true);
 
         _this->running = true;
@@ -229,11 +224,15 @@ private:
         _this->running = false;
         _this->stream.stopWriter();
         
+        // Disable streaming
         bladerf_enable_module(_this->openDev, BLADERF_CHANNEL_RX(0), false);
+
+        // Wait for read worker to terminate
         if (_this->workerThread.joinable()) {
             _this->workerThread.join();
         }
 
+        // Close device
         bladerf_close(_this->openDev);
 
         _this->stream.clearWriteStop();
@@ -294,12 +293,17 @@ private:
     void worker() {
         int16_t* buffer = new int16_t[bufferSize * 2];
         bladerf_metadata meta;
+        
         while (true) {
+            // Receive from the stream and break on error
             int ret = bladerf_sync_rx(openDev, buffer, bufferSize, &meta, 3500);
-            if (ret != 0) { printf("Error: %d\n", ret); break; }
+            if (ret != 0) { break; }
+
+            // Convert to complex float and swap buffers
             volk_16i_s32f_convert_32f((float*)stream.writeBuf, buffer, 32768.0f, bufferSize * 2);
             if (!stream.swap(bufferSize)) { break; }
         }
+
         delete[] buffer;
     }
 

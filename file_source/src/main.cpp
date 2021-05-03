@@ -128,10 +128,7 @@ private:
 
         while (true) {
             _this->reader->readSamples(inBuf, blockSize * 2 * sizeof(int16_t));
-            for (int i = 0; i < blockSize; i++) {
-                _this->stream.writeBuf[i].re = (float)inBuf[i * 2] / (float)0x7FFF;
-                _this->stream.writeBuf[i].im = (float)inBuf[(i * 2) + 1] / (float)0x7FFF;
-            }
+            volk_16i_s32f_convert_32f((float*)_this->stream.writeBuf, inBuf, 32768.0f, blockSize * 2);
             if (!_this->stream.swap(blockSize)) { break; };
         }
 
