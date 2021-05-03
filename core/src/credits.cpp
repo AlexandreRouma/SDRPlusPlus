@@ -36,7 +36,8 @@ namespace sdrpp_credits {
         "ON4MU",
         "Passion-Radio.com",
         "Scanner School",
-        "SignalsEverywhere"
+        "SignalsEverywhere",
+        "Syne Ardwin (WI9SYN)"
     };
 
     const int contributorCount = sizeof(contributors) / sizeof(char*);

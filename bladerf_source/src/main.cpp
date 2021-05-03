@@ -133,11 +133,14 @@ public:
         bandwidths.push_back(bwRange->max);
         bandwidthsTxt += getBandwdithScaled(bwRange->max);
         bandwidthsTxt += '\0';
+        bandwidthsTxt += "Auto";
+        bandwidthsTxt += '\0';
 
         srId = 0;
         sampleRate = sampleRates[0];
 
-        bwId = 0;
+        // Set bandwidth to auto as default
+        bwId = bandwidths.size();
 
         bladerf_close(openDev);
     }
@@ -192,7 +195,7 @@ private:
         // Setup device parameters
         bladerf_set_sample_rate(_this->openDev, BLADERF_CHANNEL_RX(0), _this->sampleRate, NULL);
         bladerf_set_frequency(_this->openDev, BLADERF_CHANNEL_RX(0), _this->freq);
-        bladerf_set_bandwidth(_this->openDev, BLADERF_CHANNEL_RX(0), _this->bandwidths[_this->bwId], NULL);
+        bladerf_set_bandwidth(_this->openDev, BLADERF_CHANNEL_RX(0), (_this->bwId == _this->bandwidths.size()) ? _this->sampleRate : _this->bandwidths[_this->bwId], NULL);
         bladerf_set_gain_mode(_this->openDev, BLADERF_CHANNEL_RX(0), BLADERF_GAIN_MANUAL);
         bladerf_set_gain(_this->openDev, BLADERF_CHANNEL_RX(0), _this->testGain);
 
@@ -272,10 +275,12 @@ private:
 
         if (_this->running) { style::endDisabled(); }
 
-        ImGui::SetNextItemWidth(menuWidth);
+        ImGui::Text("Bandwidth");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##_balderf_bw_sel_", _this->name), &_this->bwId, _this->bandwidthsTxt.c_str())) {
             if (_this->running) {
-                bladerf_set_bandwidth(_this->openDev, BLADERF_CHANNEL_RX(0), _this->bandwidths[_this->bwId], NULL);
+                bladerf_set_bandwidth(_this->openDev, BLADERF_CHANNEL_RX(0), (_this->bwId == _this->bandwidths.size()) ? _this->sampleRate : _this->bandwidths[_this->bwId], NULL);
             }
             // Save config
         }
