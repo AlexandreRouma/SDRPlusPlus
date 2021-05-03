@@ -73,6 +73,8 @@ private:
     }
 
     void updatePresence() {
+        char freq[1024];
+        char mode[1024];
         double selectedFreq = gui::freqSelect.frequency;
         std::string selectedName = gui::waterfall.selectedVFO;
         strcpy(mode, "Raw");
@@ -134,8 +136,6 @@ private:
     // Rich Presence
     DiscordRichPresence presence;
     double lastFreq;
-    char freq[1024];
-    char mode[1024];
     std::string lastMode = "";
 
     // Threading
