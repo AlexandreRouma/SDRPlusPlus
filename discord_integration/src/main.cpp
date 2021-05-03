@@ -123,6 +123,8 @@ private:
         presence.details = "Initializing rich presence...";
         presence.startTimestamp = time(0);
         presence.largeImageKey = "sdrpp_large";
+        presence.smallImageKey = "github";
+        presence.smallImageText = "SDRPlusPlus on GitHub";
         Discord_UpdatePresence(&presence);
     }
 
