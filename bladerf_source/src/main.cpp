@@ -24,44 +24,6 @@ SDRPP_MOD_INFO {
     /* Max instances    */ 1
 };
 
-const uint64_t sampleRates[] = {
-    520834,
-    1000000,
-    2000000,
-    4000000,
-    5000000,
-    8000000,
-    10000000,
-    15000000,
-    20000000,
-    25000000,
-    30000000,
-    35000000,
-    40000000,
-    45000000,
-    50000000,
-    55000000,
-    61440000
-};
-
-const char* sampleRatesTxt = 
-    "520.834KHz\0"
-    "1MHz\0"
-    "2MHz\0"
-    "4MHz\0"
-    "5MHz\0"
-    "8MHz\0"
-    "10MHz\0"
-    "15MHz\0"
-    "20MHz\0"
-    "25MHz\0"
-    "30MHz\0"
-    "35MHz\0"
-    "40MHz\0"
-    "45MHz\0"
-    "50MHz\0"
-    "55MHz\0"
-    "61.44MHz\0";
 
 ConfigManager config;
 
@@ -120,7 +82,7 @@ public:
         }
         for (int i = 0; i < devCount; i++) {
             // Keep only the first 32 character of the serial number for display
-            devListTxt += std::string(devInfoList[i].serial).substr(0, 32);
+            devListTxt += std::string(devInfoList[i].serial).substr(0, 16);
             devListTxt += '\0';
         }
     }
@@ -142,10 +104,40 @@ public:
         bladerf_get_bandwidth_range(openDev, BLADERF_CHANNEL_RX(0), &bwRange);
         bladerf_get_gain_range(openDev, BLADERF_CHANNEL_RX(0), &gainRange);
 
-        srId = 1;
-        sampleRate = sampleRates[1];
+        // Generate sampleRate and Bandwidth lists
+        sampleRates.clear();
+        sampleRatesTxt = "";
+        sampleRates.push_back(srRange->min);
+        sampleRatesTxt += getBandwdithScaled(srRange->min);
+        sampleRatesTxt += '\0';
+        for (int i = 2000000; i < srRange->max; i += 2000000) {
+            sampleRates.push_back(i);
+            sampleRatesTxt += getBandwdithScaled(i);
+            sampleRatesTxt += '\0';
+        }
+        sampleRates.push_back(srRange->max);
+        sampleRatesTxt += getBandwdithScaled(srRange->max);
+        sampleRatesTxt += '\0';
 
-        // TODO: Gen sample rate list automatically by detecting which version is selected
+        // Generate bandwidth list
+        bandwidths.clear();
+        bandwidthsTxt = "";
+        bandwidths.push_back(bwRange->min);
+        bandwidthsTxt += getBandwdithScaled(bwRange->min);
+        bandwidthsTxt += '\0';
+        for (int i = 2000000; i < bwRange->max; i += 2000000) {
+            bandwidths.push_back(i);
+            bandwidthsTxt += getBandwdithScaled(i);
+            bandwidthsTxt += '\0';
+        }
+        bandwidths.push_back(bwRange->max);
+        bandwidthsTxt += getBandwdithScaled(bwRange->max);
+        bandwidthsTxt += '\0';
+
+        srId = 0;
+        sampleRate = sampleRates[0];
+
+        bwId = 0;
 
         bladerf_close(openDev);
     }
@@ -200,7 +192,7 @@ private:
         // Setup device parameters
         bladerf_set_sample_rate(_this->openDev, BLADERF_CHANNEL_RX(0), _this->sampleRate, NULL);
         bladerf_set_frequency(_this->openDev, BLADERF_CHANNEL_RX(0), _this->freq);
-        bladerf_set_bandwidth(_this->openDev, BLADERF_CHANNEL_RX(0), 56000000, NULL);
+        bladerf_set_bandwidth(_this->openDev, BLADERF_CHANNEL_RX(0), _this->bandwidths[_this->bwId], NULL);
         bladerf_set_gain_mode(_this->openDev, BLADERF_CHANNEL_RX(0), BLADERF_GAIN_MANUAL);
         bladerf_set_gain(_this->openDev, BLADERF_CHANNEL_RX(0), _this->testGain);
 
@@ -261,8 +253,8 @@ private:
             // Save config
         }
 
-        if (ImGui::Combo(CONCAT("##_balderf_sr_sel_", _this->name), &_this->srId, sampleRatesTxt)) {
-            _this->sampleRate = sampleRates[_this->srId];
+        if (ImGui::Combo(CONCAT("##_balderf_sr_sel_", _this->name), &_this->srId, _this->sampleRatesTxt.c_str())) {
+            _this->sampleRate = _this->sampleRates[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
             // Save config
         }
@@ -279,6 +271,14 @@ private:
         }
 
         if (_this->running) { style::endDisabled(); }
+
+        ImGui::SetNextItemWidth(menuWidth);
+        if (ImGui::Combo(CONCAT("##_balderf_bw_sel_", _this->name), &_this->bwId, _this->bandwidthsTxt.c_str())) {
+            if (_this->running) {
+                bladerf_set_bandwidth(_this->openDev, BLADERF_CHANNEL_RX(0), _this->bandwidths[_this->bwId], NULL);
+            }
+            // Save config
+        }
 
         // General config BS
         if (ImGui::SliderInt("Test Gain", &_this->testGain, (_this->gainRange != NULL) ? _this->gainRange->min : 0, (_this->gainRange != NULL) ? _this->gainRange->max : 60)) {
@@ -317,6 +317,7 @@ private:
     double freq;
     int devId = 0;
     int srId = 0;
+    int bwId = 0;
     int chanId = 0;
 
     int channelCount;
@@ -324,6 +325,11 @@ private:
     const bladerf_range* srRange = NULL;
     const bladerf_range* bwRange = NULL;
     const bladerf_range* gainRange = NULL;
+
+    std::vector<uint64_t> sampleRates;
+    std::string sampleRatesTxt;
+    std::vector<uint64_t> bandwidths;
+    std::string bandwidthsTxt;
 
     int bufferSize;
     struct bladerf_stream* rxStream;
