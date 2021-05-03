@@ -41,10 +41,4 @@ namespace color {
         g += m;
         b += m;
     }
-
-    inline void interpRGB(float ar, float ag, float ab, float br, float bg, float bb, float& or, float& og, float& ob, float ratio) {
-        or = ar + (br - ar) * ratio;
-        og = ag + (bg - ag) * ratio;
-        ob = ab + (bb - ab) * ratio;
-    }
 }
