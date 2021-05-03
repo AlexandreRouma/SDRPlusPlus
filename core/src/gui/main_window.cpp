@@ -15,7 +15,6 @@
 #include <signal_path/dsp.h>
 #include <gui/icons.h>
 #include <gui/widgets/bandplan.h>
-#include <watcher.h>
 #include <signal_path/vfo_manager.h>
 #include <gui/style.h>
 #include <config.h>
@@ -84,14 +83,10 @@ void fftHandler(dsp::complex_t* samples, int count, void* ctx) {
     gui::waterfall.pushFFT();
 }
 
-watcher<uint64_t> freq((uint64_t)90500000);
-watcher<double> vfoFreq(92000000.0);
 float fftMin = -70.0;
 float fftMax = 0.0;
-watcher<double> offset(0.0, true);
 float bw = 8000000;
 bool playing = false;
-watcher<bool> dcbias(false, false);
 bool showCredits = false;
 std::string audioStreamName = "";
 std::string sourceName = "";
@@ -598,9 +593,6 @@ void drawWindow() {
             ImGui::Text("Framerate: %.1f FPS", ImGui::GetIO().Framerate);
             ImGui::Text("Center Frequency: %.0f Hz", gui::waterfall.getCenterFrequency());
             ImGui::Text("Source name: %s", sourceName.c_str());
-            if (ImGui::Checkbox("Test technique", &dcbias.val)) {
-                //sigpath::signalPath.setDCBiasCorrection(dcbias.val);
-            }
             ImGui::Checkbox("Show demo window", &demoWindow);
             ImGui::Checkbox("Experimental zoom", &experimentalZoom);
             ImGui::Text("ImGui version: %s", ImGui::GetVersion());

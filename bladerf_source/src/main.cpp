@@ -194,6 +194,7 @@ private:
         _this->bufferSize = _this->sampleRate / 200.0;
         _this->bufferSize /= 1024;
         _this->bufferSize *= 1024;
+        if (_this->bufferSize < 1024) { _this->bufferSize = 1024; }
 
         bladerf_sample_rate wantedSr = _this->sampleRate;
         bladerf_sample_rate actualSr;
@@ -255,13 +256,13 @@ private:
         if (_this->running) { style::beginDisabled(); }
 
         ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::Combo(CONCAT("##_airspyhf_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
+        if (ImGui::Combo(CONCAT("##_balderf_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
             // Select device
             core::setInputSampleRate(_this->sampleRate);
             // Save config
         }
 
-        if (ImGui::Combo(CONCAT("##_airspyhf_sr_sel_", _this->name), &_this->srId, sampleRatesTxt)) {
+        if (ImGui::Combo(CONCAT("##_balderf_sr_sel_", _this->name), &_this->srId, sampleRatesTxt)) {
             _this->sampleRate = sampleRates[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
             // Save config
@@ -269,7 +270,7 @@ private:
 
         ImGui::SameLine();
         float refreshBtnWdith = menuWidth - ImGui::GetCursorPosX();
-        if (ImGui::Button(CONCAT("Refresh##_airspyhf_refr_", _this->name), ImVec2(refreshBtnWdith, 0))) {
+        if (ImGui::Button(CONCAT("Refresh##_balderf_refr_", _this->name), ImVec2(refreshBtnWdith, 0))) {
             _this->refresh();
             config.aquire();
             std::string devSerial = config.conf["device"];
@@ -281,7 +282,7 @@ private:
         if (_this->running) { style::endDisabled(); }
 
         // General config BS
-        if (ImGui::SliderInt("Test Gain", &_this->testGain, 0, 77)) {
+        if (ImGui::SliderInt("Test Gain", &_this->testGain, (_this->gainRange != NULL) ? _this->gainRange->min : 0, (_this->gainRange != NULL) ? _this->gainRange->max : 60)) {
             if (_this->running) {
                 spdlog::info("Setting gain to {0}", _this->testGain);
                 bladerf_set_gain(_this->openDev, BLADERF_CHANNEL_RX(0), _this->testGain);
@@ -296,10 +297,7 @@ private:
         while (true) {
             int ret = bladerf_sync_rx(openDev, buffer, bufferSize, &meta, 3500);
             if (ret != 0) { printf("Error: %d\n", ret); break; }
-            for (int i = 0; i < bufferSize; i++) {
-                stream.writeBuf[i].re = (float)buffer[(i * 2)] / 32768.0f;
-                stream.writeBuf[i].im = (float)buffer[(i * 2) + 1] / 32768.0f;
-            }
+            volk_16i_s32f_convert_32f((float*)stream.writeBuf, buffer, 32768.0f, bufferSize * 2);
             if (!stream.swap(bufferSize)) { break; }
         }
         delete[] buffer;
@@ -309,7 +307,6 @@ private:
     bladerf* openDev;
     bool enabled = true;
     dsp::stream<dsp::complex_t> stream;
-    //dsp::Packer<dsp::complex_t> packer(&steam, 2048);
     double sampleRate;
     SourceManager::SourceHandler handler;
     bool running = false;
@@ -320,14 +317,14 @@ private:
 
     int channelCount;
 
-    const bladerf_range* srRange;
-    const bladerf_range* bwRange;
-    const bladerf_range* gainRange;
+    const bladerf_range* srRange = NULL;
+    const bladerf_range* bwRange = NULL;
+    const bladerf_range* gainRange = NULL;
 
     int bufferSize;
     struct bladerf_stream* rxStream;
 
-    int testGain;
+    int testGain = 0;
 
     std::thread workerThread;
 

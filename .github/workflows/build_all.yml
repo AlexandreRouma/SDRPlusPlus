@@ -73,7 +73,7 @@ jobs:
 
         - name: Prepare CMake
           working-directory: ${{runner.workspace}}/build
-          run: cmake $GITHUB_WORKSPACE -DOPT_BUILD_AIRSPYHF_SOURCE=OFF -DOPT_BUILD_PLUTOSDR_SOURCE=OFF -DOPT_BUILD_SOAPY_SOURCE=OFF -DOPT_BUILD_AIRSPY_SOURCE=OFF
+          run: cmake $GITHUB_WORKSPACE -DOPT_BUILD_AIRSPYHF_SOURCE=OFF -DOPT_BUILD_PLUTOSDR_SOURCE=OFF -DOPT_BUILD_SOAPY_SOURCE=OFF
 
         - name: Build
           working-directory: ${{runner.workspace}}/build

@@ -7,7 +7,7 @@
 #include <dsp/processing.h>
 #include <dsp/sink.h>
 #include <mutex>
-#include <event.h>
+#include <utils/event.h>
 #include <vector>
 
 class SinkManager {

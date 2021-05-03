@@ -168,4 +168,43 @@ namespace dsp {
         stream<float>* _in;
 
     };
+
+    class Int16CToComplex : public generic_block<Int16CToComplex> {
+    public:
+        Int16CToComplex() {}
+
+        Int16CToComplex(stream<int16_t>* in) { init(in); }
+
+        void init(stream<int16_t>* in) {
+            _in = in;
+            generic_block<Int16CToComplex>::registerInput(_in);
+            generic_block<Int16CToComplex>::registerOutput(&out);
+        }
+
+        void setInput(stream<int16_t>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<Int16CToComplex>::ctrlMtx);
+            generic_block<Int16CToComplex>::tempStop();
+            generic_block<Int16CToComplex>::unregisterInput(_in);
+            _in = in;
+            generic_block<Int16CToComplex>::registerInput(_in);
+            generic_block<Int16CToComplex>::tempStart();
+        }
+
+        int run() {
+            int count = _in->read();
+            if (count < 0) { return -1; }
+
+            volk_16i_s32f_convert_32f((float*)out.writeBuf, _in->readBuf, 32768.0f, count * 2);
+
+            _in->flush();
+            if (!out.swap(count)) { return -1; }
+            return count;
+        }
+
+        stream<complex_t> out;
+
+    private:
+        stream<int16_t>* _in;
+
+    };
 }

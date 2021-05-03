@@ -7,6 +7,7 @@
 #include <volk/volk.h>
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
+#include <utils/color.h>
 
 float DEFAULT_COLOR_MAP[][3] = {
     {0x00, 0x00, 0x20},

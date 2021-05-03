@@ -69,6 +69,18 @@ void FrequencySelect::decrementDigit(int i) {
         digits[i]--;
     }
     else {
+        if (i == 0) { return; }
+
+        // Check if there are non zero digits afterwards
+        bool otherNoneZero = false;
+        for (int j = i - 1; j >= 0; j--) {
+            if (digits[j] > 0) {
+                otherNoneZero = true;
+                break;
+            }
+        }
+        if (!otherNoneZero) { return; }
+
         digits[i] = 9;
         decrementDigit(i - 1);
     }

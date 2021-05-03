@@ -1,5 +1,4 @@
 #include <imgui.h>
-#include <watcher.h>
 #include <config.h>
 #include <core.h>
 #include <gui/style.h>

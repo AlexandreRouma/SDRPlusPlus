@@ -1,6 +1,5 @@
 #include <imgui.h>
 #include <module.h>
-#include <watcher.h>
 #include <wav.h>
 #include <dsp/types.h>
 #include <dsp/stream.h>
