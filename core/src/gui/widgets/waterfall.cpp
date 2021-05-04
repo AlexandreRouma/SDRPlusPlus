@@ -202,18 +202,6 @@ namespace ImGui {
 
     void WaterFall::drawVFOs() {
         for (auto const& [name, vfo] : vfos) {
-            if (vfo->redrawRequired) {
-                vfo->redrawRequired = false;
-                vfo->updateDrawingVars(viewBandwidth, dataWidth, viewOffset, widgetPos, fftHeight);
-                vfo->wfRectMin = ImVec2(vfo->rectMin.x, wfMin.y);
-                vfo->wfRectMax = ImVec2(vfo->rectMax.x, wfMax.y);
-                vfo->wfLineMin = ImVec2(vfo->lineMin.x, wfMin.y);
-                vfo->wfLineMax = ImVec2(vfo->lineMax.x, wfMax.y);
-                vfo->wfLbwSelMin = ImVec2(vfo->wfRectMin.x - 2, vfo->wfRectMin.y);
-                vfo->wfLbwSelMax = ImVec2(vfo->wfRectMin.x + 2, vfo->wfRectMax.y);
-                vfo->wfRbwSelMin = ImVec2(vfo->wfRectMax.x - 2, vfo->wfRectMin.y);
-                vfo->wfRbwSelMax = ImVec2(vfo->wfRectMax.x + 2, vfo->wfRectMax.y);
-            }
             vfo->draw(window, name == selectedVFO);
         }
     }
@@ -710,6 +698,8 @@ namespace ImGui {
         window->DrawList->AddLine(ImVec2(widgetPos.x, widgetPos.y + fftHeight + 50), ImVec2(widgetPos.x + widgetSize.x, widgetPos.y + fftHeight + 50), IM_COL32(50, 50, 50, 255), 1.0);
 
         processInputs();
+
+        updateAllVFOs(true);
         
         drawFFT();
         if (waterfallVisible) {
@@ -980,14 +970,14 @@ namespace ImGui {
         return waterfallMax;
     }
 
-    void WaterFall::updateAllVFOs() {
+    void WaterFall::updateAllVFOs(bool checkRedrawRequired) {
         for (auto const& [name, vfo] : vfos) {
+            if (checkRedrawRequired && !vfo->redrawRequired) { continue; }
             vfo->updateDrawingVars(viewBandwidth, dataWidth, viewOffset, widgetPos, fftHeight);
             vfo->wfRectMin = ImVec2(vfo->rectMin.x, wfMin.y);
             vfo->wfRectMax = ImVec2(vfo->rectMax.x, wfMax.y);
             vfo->wfLineMin = ImVec2(vfo->lineMin.x, wfMin.y);
             vfo->wfLineMax = ImVec2(vfo->lineMax.x, wfMax.y);
-
             vfo->wfLbwSelMin = ImVec2(vfo->wfRectMin.x - 2, vfo->wfRectMin.y);
             vfo->wfLbwSelMax = ImVec2(vfo->wfRectMin.x + 2, vfo->wfRectMax.y);
             vfo->wfRbwSelMin = ImVec2(vfo->wfRectMax.x - 2, vfo->wfRectMin.y);
