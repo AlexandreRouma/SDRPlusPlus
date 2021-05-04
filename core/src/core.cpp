@@ -137,14 +137,17 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["menuElements"][3]["name"] = "Sinks";
     defConfig["menuElements"][3]["open"] = true;
 
-    defConfig["menuElements"][4]["name"] = "Scripting";
-    defConfig["menuElements"][4]["open"] = false;
+    defConfig["menuElements"][4]["name"] = "VFO Color";
+    defConfig["menuElements"][4]["open"] = true;
 
-    defConfig["menuElements"][5]["name"] = "Band Plan";
-    defConfig["menuElements"][5]["open"] = true;
+    defConfig["menuElements"][5]["name"] = "Scripting";
+    defConfig["menuElements"][5]["open"] = false;
 
-    defConfig["menuElements"][6]["name"] = "Display";
+    defConfig["menuElements"][6]["name"] = "Band Plan";
     defConfig["menuElements"][6]["open"] = true;
+
+    defConfig["menuElements"][7]["name"] = "Display";
+    defConfig["menuElements"][7]["open"] = true;
 
     defConfig["menuWidth"] = 300;
     defConfig["min"] = -120.0;
