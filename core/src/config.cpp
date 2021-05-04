@@ -48,11 +48,11 @@ void ConfigManager::save() {
 }
 
 void ConfigManager::enableAutoSave() {
-    if (!autoSaveEnabled) { autoSaveEnabled = true; }
+    autoSaveEnabled = true;
 }
 
 void ConfigManager::disableAutoSave() {
-    if (autoSaveEnabled) { autoSaveEnabled = false; }
+    autoSaveEnabled = false;
 }
 
 void ConfigManager::aquire() {
