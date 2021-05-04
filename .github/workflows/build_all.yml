@@ -43,7 +43,7 @@ jobs:
 
         - name: Prepare CMake
           working-directory: ${{runner.workspace}}/build
-          run: cmake "$Env:GITHUB_WORKSPACE" "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DOPT_BUILD_SDRPLAY_SOURCE=ON
+          run: cmake "$Env:GITHUB_WORKSPACE" "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_BLADERF_SOURCE=ON
 
         - name: Build
           working-directory: ${{runner.workspace}}/build
@@ -69,11 +69,11 @@ jobs:
           run: cmake -E make_directory ${{runner.workspace}}/build
 
         - name: Install dependencies
-          run: brew install fftw glew glfw volk airspy rt-audio hackrf rtl-sdr
+          run: brew install fftw glew glfw volk airspy rt-audio hackrf rtl-sdr libbladerf
 
         - name: Prepare CMake
           working-directory: ${{runner.workspace}}/build
-          run: cmake $GITHUB_WORKSPACE -DOPT_BUILD_AIRSPYHF_SOURCE=OFF -DOPT_BUILD_PLUTOSDR_SOURCE=OFF -DOPT_BUILD_SOAPY_SOURCE=OFF
+          run: cmake $GITHUB_WORKSPACE -DOPT_BUILD_AIRSPYHF_SOURCE=OFF -DOPT_BUILD_PLUTOSDR_SOURCE=OFF -DOPT_BUILD_SOAPY_SOURCE=OFF -DOPT_BUILD_BLADERF_SOURCE=ON
 
         - name: Build
           working-directory: ${{runner.workspace}}/build

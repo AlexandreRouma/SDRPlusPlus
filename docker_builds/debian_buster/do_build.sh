@@ -4,7 +4,7 @@ cd /root
 
 # Install dependencies and tools
 apt update
-apt install -y build-essential cmake git libfftw3-dev libglfw3-dev libglew-dev libvolk1-dev libsoapysdr-dev libairspyhf-dev libairspy-dev libiio-dev libad9361-dev librtaudio-dev libhackrf-dev librtlsdr-dev p7zip-full wget
+apt install -y build-essential cmake git libfftw3-dev libglfw3-dev libglew-dev libvolk1-dev libsoapysdr-dev libairspyhf-dev libairspy-dev libiio-dev libad9361-dev librtaudio-dev libhackrf-dev librtlsdr-dev libbladerf-dev p7zip-full wget
 
 # Install SDRPlay libraries
 wget https://www.sdrplay.com/software/SDRplay_RSP_API-Linux-3.07.1.run
@@ -18,7 +18,7 @@ git clone https://github.com/AlexandreRouma/SDRPlusPlus
 cd SDRPlusPlus
 mkdir build
 cd build
-cmake .. -DOPT_BUILD_SDRPLAY_SOURCE=ON
+cmake .. -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_BLADERF_SOURCE=ON
 make -j2
 
 cd ..
