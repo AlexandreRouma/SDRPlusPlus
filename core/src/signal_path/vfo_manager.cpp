@@ -73,6 +73,14 @@ double VFOManager::VFO::getBandwidth() {
     return wtfVFO->bandwidth;
 }
 
+void VFOManager::VFO::setColor(ImU32 color) {
+    wtfVFO->color = color;
+}
+
+std::string VFOManager::VFO::getName() {
+    return name;
+}
+
 VFOManager::VFOManager() {
     
 }
@@ -83,6 +91,7 @@ VFOManager::VFO* VFOManager::createVFO(std::string name, int reference, double o
     }
     VFOManager::VFO* vfo = new VFO(name, reference, offset, bandwidth, sampleRate, minBandwidth, maxBandwidth, bandwidthLocked);
     vfos[name] = vfo;
+    vfoCreatedEvent.emit(vfo);
     return vfo;
 }
 
@@ -97,6 +106,7 @@ void VFOManager::deleteVFO(VFOManager::VFO* vfo) {
     if (name == "") {
         return;
     }
+    vfoDeletedEvent.emit(vfo);
     vfos.erase(name);
     delete vfo;
 }
@@ -162,6 +172,17 @@ double VFOManager::getBandwidth(std::string name) {
         return NAN;
     }
     return vfos[name]->getBandwidth();
+}
+
+void  VFOManager::setColor(std::string name, ImU32 color) {
+    if (vfos.find(name) == vfos.end()) {
+        return;
+    }
+    return vfos[name]->setColor(color);
+}
+
+bool VFOManager::vfoExists(std::string name) {
+    return (vfos.find(name) != vfos.end());
 }
 
 void VFOManager::updateFromWaterfall(ImGui::WaterFall* wtf) {

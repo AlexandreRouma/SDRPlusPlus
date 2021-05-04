@@ -161,10 +161,18 @@ private:
         if (_this->running) { style::beginDisabled(); }
 
         ImGui::SetNextItemWidth(menuWidth - portWidth);
-        ImGui::InputText(CONCAT("##_ip_select_", _this->name), _this->ip, 1024);
+        if (ImGui::InputText(CONCAT("##_ip_select_", _this->name), _this->ip, 1024)) {
+            config.aquire();
+            config.conf["host"] = std::string(_this->ip);
+            config.release(true);
+        }
         ImGui::SameLine();
         ImGui::SetNextItemWidth(portWidth);
-        ImGui::InputInt(CONCAT("##_port_select_", _this->name), &_this->port, 0);
+        if (ImGui::InputInt(CONCAT("##_port_select_", _this->name), &_this->port, 0)) {
+            config.aquire();
+            config.conf["port"] = _this->port;
+            config.release(true);
+        }
 
         ImGui::SetNextItemWidth(menuWidth);
         if (ImGui::Combo(CONCAT("##_rtltcp_sr_", _this->name), &_this->srId, _this->srTxt.c_str())) {

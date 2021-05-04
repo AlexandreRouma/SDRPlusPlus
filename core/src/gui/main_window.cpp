@@ -32,6 +32,7 @@
 #include <options.h>
 #include <gui/colormaps.h>
 #include <gui/widgets/snr_meter.h>
+#include <gui/menus/vfo_color.h>
 
 int fftSize = 8192 * 8;
 
@@ -135,6 +136,7 @@ void windowInit() {
     gui::menu.registerEntry("Scripting", scriptingmenu::draw, NULL);
     gui::menu.registerEntry("Band Plan", bandplanmenu::draw, NULL);
     gui::menu.registerEntry("Display", displaymenu::draw, NULL);
+    gui::menu.registerEntry("VFO Color", vfo_color_menu::draw, NULL);
     
     gui::freqSelect.init();
 
@@ -214,6 +216,7 @@ void windowInit() {
     scriptingmenu::init();
     bandplanmenu::init();
     displaymenu::init();
+    vfo_color_menu::init();
 
     // TODO for 0.2.5
     // Add "select file" option for the file source

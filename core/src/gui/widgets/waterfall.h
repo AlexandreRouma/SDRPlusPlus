@@ -61,6 +61,8 @@ namespace ImGui {
         double minBandwidth;
         double maxBandwidth;
         bool bandwidthLocked;
+
+        ImU32 color = IM_COL32(255, 255, 255, 50);
     };
 
     class WaterFall {

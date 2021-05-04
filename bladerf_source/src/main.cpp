@@ -195,7 +195,8 @@ private:
         // Setup device parameters
         bladerf_set_sample_rate(_this->openDev, BLADERF_CHANNEL_RX(0), _this->sampleRate, NULL);
         bladerf_set_frequency(_this->openDev, BLADERF_CHANNEL_RX(0), _this->freq);
-        bladerf_set_bandwidth(_this->openDev, BLADERF_CHANNEL_RX(0), (_this->bwId == _this->bandwidths.size()) ? _this->sampleRate : _this->bandwidths[_this->bwId], NULL);
+        bladerf_set_bandwidth(_this->openDev, BLADERF_CHANNEL_RX(0), (_this->bwId == _this->bandwidths.size()) ? 
+                            std::clamp<uint64_t>(_this->sampleRate, _this->bwRange->min, _this->bwRange->max) : _this->bandwidths[_this->bwId], NULL);
         bladerf_set_gain_mode(_this->openDev, BLADERF_CHANNEL_RX(0), BLADERF_GAIN_MANUAL);
         bladerf_set_gain(_this->openDev, BLADERF_CHANNEL_RX(0), _this->testGain);
 
@@ -280,7 +281,8 @@ private:
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##_balderf_bw_sel_", _this->name), &_this->bwId, _this->bandwidthsTxt.c_str())) {
             if (_this->running) {
-                bladerf_set_bandwidth(_this->openDev, BLADERF_CHANNEL_RX(0), (_this->bwId == _this->bandwidths.size()) ? _this->sampleRate : _this->bandwidths[_this->bwId], NULL);
+                bladerf_set_bandwidth(_this->openDev, BLADERF_CHANNEL_RX(0), (_this->bwId == _this->bandwidths.size()) ? 
+                            std::clamp<uint64_t>(_this->sampleRate, _this->bwRange->min, _this->bwRange->max) : _this->bandwidths[_this->bwId], NULL);
             }
             // Save config
         }

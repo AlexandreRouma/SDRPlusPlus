@@ -174,6 +174,8 @@ int sdrpp_main(int argc, char *argv[]) {
 
     defConfig["vfoOffsets"] = json::object();
 
+    defConfig["vfoColors"]["Radio"] = "#FFFFFF";
+
 #ifdef _WIN32
     defConfig["modulesDirectory"] = "./modules";
     defConfig["resourcesDirectory"] = "./res";
@@ -193,7 +195,7 @@ int sdrpp_main(int argc, char *argv[]) {
     // Fix missing elements in config
     for (auto const& item : defConfig.items()) {
         if (!core::configManager.conf.contains(item.key())) {
-            spdlog::warn("Missing key in config {0}, repairing", item.key());
+            spdlog::info("Missing key in config {0}, repairing", item.key());
             core::configManager.conf[item.key()] = defConfig[item.key()];
         }
     }
@@ -202,7 +204,7 @@ int sdrpp_main(int argc, char *argv[]) {
     auto items = core::configManager.conf.items();
     for (auto const& item : items) {
         if (!defConfig.contains(item.key())) {
-            spdlog::warn("Unused key in config {0}, repairing", item.key());
+            spdlog::info("Unused key in config {0}, repairing", item.key());
             core::configManager.conf.erase(item.key());
         }
     }

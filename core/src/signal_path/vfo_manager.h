@@ -2,6 +2,7 @@
 #include <dsp/vfo.h>
 #include <gui/widgets/waterfall.h>
 #include <gui/gui.h>
+#include <utils/event.h>
 
 class VFOManager {
 public:
@@ -22,6 +23,8 @@ public:
         void setBandwidthLimits(double minBandwidth, double maxBandwidth, bool bandwidthLocked);
         bool getBandwidthChanged(bool erase = true);
         double getBandwidth();
+        void setColor(ImU32 color);
+        std::string getName();
 
         dsp::stream<dsp::complex_t>* output;
 
@@ -46,8 +49,14 @@ public:
     void setBandwidthLimits(std::string name, double minBandwidth, double maxBandwidth, bool bandwidthLocked);
     bool getBandwidthChanged(std::string name, bool erase = true);
     double getBandwidth(std::string name);
+    void setColor(std::string name, ImU32 color);
+    std::string getName();
+    bool vfoExists(std::string name);
 
     void updateFromWaterfall(ImGui::WaterFall* wtf);
+
+    Event<VFOManager::VFO*> vfoCreatedEvent;
+    Event<VFOManager::VFO*> vfoDeletedEvent;
 
 private:
     std::map<std::string, VFO*> vfos;
