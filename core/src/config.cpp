@@ -5,7 +5,7 @@
 #include <filesystem>
 
 ConfigManager::ConfigManager() {
-
+    lastSave = std::chrono::system_clock::now();
 }
 
 ConfigManager::~ConfigManager() {
@@ -25,7 +25,7 @@ void ConfigManager::load(json def, bool lock) {
     if (!std::filesystem::exists(path)) {
         spdlog::warn("Config file '{0}' does not exist, creating it", path);
         conf = def;
-        save(false);
+        save();
     }
     if (!std::filesystem::is_regular_file(path)) {
         spdlog::error("Config file '{0}' isn't a file", path);
@@ -35,35 +35,24 @@ void ConfigManager::load(json def, bool lock) {
     std::ifstream file(path.c_str());
     file >> conf;
     file.close();
+
+    lastSave = std::chrono::system_clock::now();
+
     if (lock) { mtx.unlock(); }
 }
 
-void ConfigManager::save(bool lock) {
-    if (lock) { mtx.lock(); }
+void ConfigManager::save() {
     std::ofstream file(path.c_str());
     file << conf.dump(4);
     file.close();
-    if (lock) { mtx.unlock(); }
 }
 
 void ConfigManager::enableAutoSave() {
-    if (!autoSaveEnabled) {
-        autoSaveEnabled = true;
-        termFlag = false;
-        autoSaveThread = std::thread(autoSaveWorker, this);
-    }
+    if (!autoSaveEnabled) { autoSaveEnabled = true; }
 }
 
 void ConfigManager::disableAutoSave() {
-    if (autoSaveEnabled) {
-        {
-            std::lock_guard<std::mutex> lock(termMtx);
-            autoSaveEnabled = false;
-            termFlag = true;
-        }
-        termCond.notify_one();
-        if (autoSaveThread.joinable()) { autoSaveThread.join(); }
-    }
+    if (autoSaveEnabled) { autoSaveEnabled = false; }
 }
 
 void ConfigManager::aquire() {
@@ -71,27 +60,14 @@ void ConfigManager::aquire() {
 }
 
 void ConfigManager::release(bool changed) {
-    this->changed |= changed;
-    mtx.unlock();
-}
+    auto now = std::chrono::system_clock::now();
+    std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastSave);
 
-void ConfigManager::autoSaveWorker(ConfigManager* _this) {
-    while (_this->autoSaveEnabled) {
-        if (!_this->mtx.try_lock()) {
-            spdlog::warn("ConfigManager locked, waiting...");
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-            continue;
-        }
-        if (_this->changed) {
-            _this->changed = false;
-            _this->save(false);
-        }
-        _this->mtx.unlock();
+    if (changed && autoSaveEnabled && ms.count() >= 1000) {
+        save();
 
-        // Sleep but listen for wakeup call
-        {
-            std::unique_lock<std::mutex> lock(_this->termMtx);
-            _this->termCond.wait_for(lock, std::chrono::milliseconds(1000), [_this]() { return _this->termFlag; } );
-        }
+        // need to call now() again in case save has been very slow
+        lastSave = std::chrono::system_clock::now();
     }
+    mtx.unlock();
 }
