@@ -25,6 +25,8 @@
 #include <gui/menus/bandplan.h>
 #include <gui/menus/sink.h>
 #include <gui/menus/scripting.h>
+#include <gui/menus/vfo_color.h>
+#include <gui/menus/module_manager.h>
 #include <gui/dialogs/credits.h>
 #include <filesystem>
 #include <signal_path/source.h>
@@ -32,7 +34,6 @@
 #include <options.h>
 #include <gui/colormaps.h>
 #include <gui/widgets/snr_meter.h>
-#include <gui/menus/vfo_color.h>
 
 int fftSize = 8192 * 8;
 
@@ -102,6 +103,19 @@ bool demoWindow = false;
 
 float testSNR = 50;
 
+EventHandler<VFOManager::VFO*> vfoCreatedHandler;
+void vfoAddedHandler(VFOManager::VFO* vfo, void* ctx) {
+    std::string name = vfo->getName();
+    core::configManager.aquire();
+    if (!core::configManager.conf["vfoOffsets"].contains(name)) {
+        core::configManager.release();
+        return;
+    }
+    double offset = core::configManager.conf["vfoOffsets"][name];
+    core::configManager.release();
+    sigpath::vfoManager.setOffset(name, std::clamp<double>(offset, -bw/2.0, bw/2.0));
+}
+
 void windowInit() {
     LoadingScreen::show("Initializing UI");
     gui::waterfall.init();
@@ -137,6 +151,7 @@ void windowInit() {
     gui::menu.registerEntry("Band Plan", bandplanmenu::draw, NULL);
     gui::menu.registerEntry("Display", displaymenu::draw, NULL);
     gui::menu.registerEntry("VFO Color", vfo_color_menu::draw, NULL);
+    gui::menu.registerEntry("Module Manager", module_manager_menu::draw, NULL);
     
     gui::freqSelect.init();
 
@@ -150,6 +165,9 @@ void windowInit() {
 
     sigpath::signalPath.init(8000000, 20, fftSize, &dummyStream, (dsp::complex_t*)fft_in, fftHandler);
     sigpath::signalPath.start();
+
+    vfoCreatedHandler.handler = vfoAddedHandler;
+    sigpath::vfoManager.vfoCreatedEvent.bindHandler(vfoCreatedHandler);
 
     spdlog::info("Loading modules");
 
@@ -217,6 +235,7 @@ void windowInit() {
     bandplanmenu::init();
     displaymenu::init();
     vfo_color_menu::init();
+    module_manager_menu::init();
 
     // TODO for 0.2.5
     // Add "select file" option for the file source
@@ -258,15 +277,6 @@ void windowInit() {
     gui::waterfall.setFFTHeight(fftHeight);
 
     centerTuning = core::configManager.conf["centerTuning"];
-
-    // Load each VFO's offset
-    for (auto const& [name, _vfo] : gui::waterfall.vfos) {
-        if (!core::configManager.conf["vfoOffsets"].contains(name)) {
-            continue;
-        }
-        double offset = core::configManager.conf["vfoOffsets"][name];
-        sigpath::vfoManager.setOffset(name, std::clamp<double>(offset, -bw/2.0, bw/2.0));
-    }
 
     core::configManager.release();
 }

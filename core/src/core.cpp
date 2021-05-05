@@ -171,7 +171,11 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["showMenu"] = true;
     defConfig["showWaterfall"] = true;
     defConfig["source"] = "";
-    defConfig["streams"] = json::object();
+
+    defConfig["streams"]["Radio"]["muted"] = false;
+    defConfig["streams"]["Radio"]["sink"] = "Audio";
+    defConfig["streams"]["Radio"]["volume"] = 1.0f;
+
     defConfig["windowSize"]["h"] = 720;
     defConfig["windowSize"]["w"] = 1280;
 

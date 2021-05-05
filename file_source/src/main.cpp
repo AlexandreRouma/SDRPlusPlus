@@ -43,6 +43,7 @@ public:
     }
 
     ~FileSourceModule() {
+        
         spdlog::info("FileSourceModule '{0}': Instance deleted!", name);
     }
 

@@ -88,6 +88,28 @@ public:
     }
 
     ~RecorderModule() {
+        // Stop recording
+        if (recording) {
+            if (recMode == 1) {
+                audioSplit.unbindStream(&audioHandlerStream);
+                audioHandler.stop();
+                audioWriter->close();
+                delete audioWriter;
+            }
+            else {
+                sigpath::signalPath.unbindIQStream(&basebandStream);
+                basebandHandler.stop();
+                basebandWriter->close();
+                delete basebandWriter;
+            }
+        }
+
+        vol.stop();
+        audioSplit.stop();
+        meter.stop();
+
+        gui::menu.removeEntry(name);
+
         delete[] wavSampleBuf;
     }
 

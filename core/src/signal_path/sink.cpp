@@ -108,6 +108,14 @@ void SinkManager::registerStream(std::string name, SinkManager::Stream* stream) 
 
     streams[name] = stream;
     streamNames.push_back(name);
+
+    // Load config
+    core::configManager.aquire();
+    bool available = core::configManager.conf["streams"].contains(name);
+    core::configManager.release();
+    if (available) { loadStreamConfig(name); }
+
+    streamRegisteredEvnt.emit(name);
 }
 
 void SinkManager::unregisterStream(std::string name) {
@@ -115,10 +123,12 @@ void SinkManager::unregisterStream(std::string name) {
         spdlog::error("Cannot unregister stream '{0}', this stream doesn't exist", name);
         return;
     }
-    spdlog::error("unregisterStream NOT IMPLEMENTED!!!!!!!");
+    streamUnregisteredEvnt.emit(name);
     SinkManager::Stream* stream = streams[name];
+    stream->stop();
     delete stream->sink;
-    delete stream;
+    streams.erase(name);
+    streamNames.erase(std::remove(streamNames.begin(), streamNames.end(), name), streamNames.end());
 }
 
 void SinkManager::startStream(std::string name) {

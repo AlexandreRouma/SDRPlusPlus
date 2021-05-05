@@ -100,11 +100,17 @@ void ModuleManager::createInstance(std::string name, std::string module) {
 }
 
 void ModuleManager::deleteInstance(std::string name) {
-    spdlog::error("DELETE INSTANCE NOT IMPLEMENTED");
+    if (instances.find(name) == instances.end()) {
+        spdlog::error("Tried to remove non-existant instance '{0}'", name);
+        return;
+    }
+    Instance_t inst  = instances[name];
+    inst.module.deleteInstance(inst.instance);
+    instances.erase(name);
 }
 
 void ModuleManager::deleteInstance(ModuleManager::Instance* instance) {
-    spdlog::error("DELETE INSTANCE NOT IMPLEMENTED");
+    spdlog::error("Delete instance not implemented");
 }
 
 void ModuleManager::enableInstance(std::string name) {

@@ -86,7 +86,6 @@ public:
 
     int countModuleInstances(std::string module);
 
-private:
     std::map<std::string, ModuleManager::Module_t> modules;
     std::map<std::string, ModuleManager::Instance_t> instances;
 

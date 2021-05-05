@@ -68,12 +68,19 @@ public:
     }
 
     ~RadioModule() {
-        
+        core::modComManager.unregisterInterface(name);
+        gui::menu.removeEntry(name);
+        stream.stop();
+        if (enabled) {
+            currentDemod->stop();
+            sigpath::vfoManager.deleteVFO(vfo);
+        }
+        sigpath::sinkManager.unregisterStream(name);
     }
 
     void enable() {
         double bw = gui::waterfall.getBandwidth();
-        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, std::clamp<double>(savedOffset, -bw/2.0, bw/2.0), 200000, 200000, 50000, 200000, false);
+        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, std::clamp<double>(0, -bw/2.0, bw/2.0), 200000, 200000, 50000, 200000, false);
 
         wfmDemod.setVFO(vfo);
         fmDemod.setVFO(vfo);
@@ -91,7 +98,6 @@ public:
 
     void disable() {
         currentDemod->stop();
-        savedOffset = vfo->getOffset();
         sigpath::vfoManager.deleteVFO(vfo);
         enabled = false;
     }
@@ -197,7 +203,6 @@ private:
     bool enabled = true;
     int demodId = 0;
     float audioSampRate = 48000;
-    double savedOffset = 0;
     Demodulator* currentDemod = NULL;
 
     VFOManager::VFO* vfo;
