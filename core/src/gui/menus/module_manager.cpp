@@ -32,8 +32,11 @@ namespace module_manager_menu {
         ImGui::BeginTable("Module Manager Table", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
         ImGui::TableSetupColumn("Name");
         ImGui::TableSetupColumn("Type");
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 16);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 10);
         ImGui::TableHeadersRow();
+
+        float height = ImGui::CalcTextSize("-").y;
+
         for (auto& [name, inst] : core::moduleManager.instances) {
             // TEMPORARY EXCLUSION FOR SOURCES AND SINKS
             std::string type = inst.module.info->name;
@@ -51,12 +54,21 @@ namespace module_manager_menu {
             ImGui::Text(inst.module.info->name);
 
             ImGui::TableSetColumnIndex(2);
-            if (ImGui::Button(("-##module_mgr_"+name).c_str(), ImVec2(16,0))) {
+            ImVec2 origPos = ImGui::GetCursorPos();
+            ImGui::SetCursorPos(ImVec2(origPos.x - 3, origPos.y));
+            if (ImGui::Button(("##module_mgr_"+name).c_str(), ImVec2(height,height))) {
                 core::moduleManager.deleteInstance(name);
             }
+            ImGui::SetCursorPos(ImVec2(origPos.x + 2, origPos.y - 5));
+            ImGui::Text("_");
         }
+        ImGui::EndTable();
 
-        // Add module row
+        // Add module row with slightly different settings
+        ImGui::BeginTable("Module Manager Add Table", 3);
+        ImGui::TableSetupColumn("Name");
+        ImGui::TableSetupColumn("Type");
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 16);
         ImGui::TableNextRow();
 
         ImGui::TableSetColumnIndex(0);
@@ -73,7 +85,6 @@ namespace module_manager_menu {
             core::moduleManager.createInstance(modName, modTypes[modTypeId]);
         }
         if (strlen(modName) == 0) { style::endDisabled(); }
-
         ImGui::EndTable();
     }
 }

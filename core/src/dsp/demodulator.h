@@ -213,12 +213,9 @@ namespace dsp {
 
             _in->flush();
 
-            float avg;
-            volk_32f_accumulator_s32f(&avg, out.writeBuf, count);
-            avg /= (float)count;
-
             for (int i = 0; i < count; i++) {
                 out.writeBuf[i] -= avg;
+                avg += out.writeBuf[i] * 10e-4;
             }
 
             if (!out.swap(count)) { return -1; }
@@ -229,6 +226,7 @@ namespace dsp {
 
     private:
         stream<complex_t>* _in;
+        float avg = 0;
 
     };
 

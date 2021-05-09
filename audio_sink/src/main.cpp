@@ -199,6 +199,13 @@ private:
         int count = _this->stereoPacker.out.read();
         if (count < 0) { return 0; }
         if (nBufferFrames != count) { spdlog::warn("Buffer size missmatch, wanted {0}, was asked for {1}", count, nBufferFrames); }
+
+        for (int i = 0; i < count; i++) {
+            if (_this->stereoPacker.out.readBuf[i].l == NAN || _this->stereoPacker.out.readBuf[i].r == NAN) { spdlog::error("NAN in audio data"); }
+            if (_this->stereoPacker.out.readBuf[i].l == INFINITY || _this->stereoPacker.out.readBuf[i].r == INFINITY) { spdlog::error("INFINITY in audio data"); }
+            if (_this->stereoPacker.out.readBuf[i].l == -INFINITY || _this->stereoPacker.out.readBuf[i].r == -INFINITY) { spdlog::error("-INFINITY in audio data"); }
+        }
+
         memcpy(outputBuffer, _this->stereoPacker.out.readBuf, nBufferFrames * sizeof(dsp::stereo_t));
         _this->stereoPacker.out.flush();
         return 0;
