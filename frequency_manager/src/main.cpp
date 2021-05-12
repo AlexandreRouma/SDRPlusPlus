@@ -571,9 +571,9 @@ private:
 		// saved frequencies table
 		static ImGuiTableFlags table_flags = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg;
 		ImGui::BeginTable("bookmarks_table", 2, table_flags, ImVec2(0.0f, 300));
-		ImGui::TableSetupScrollFreeze(0, 1);
 		ImGui::TableSetupColumn("Description", ImGuiTableColumnFlags_WidthStretch, 67);
 		ImGui::TableSetupColumn("Frequency", ImGuiTableColumnFlags_WidthStretch, 33);
+		ImGui::TableSetupScrollFreeze(0, 1);
 		ImGui::TableHeadersRow();
 		static bool tmpzzz;
 		if (_this->displayed_bookmarks.size() > 0)
