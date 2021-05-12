@@ -23,7 +23,7 @@ option(OPT_BUILD_FALCON9_DECODER "Build the falcon9 live decoder (Dependencies: 
 option(OPT_BUILD_METEOR_DEMODULATOR "Build the meteor demodulator module (no dependencies required)" ON)
 option(OPT_BUILD_WEATHER_SAT_DECODER "Build the HRPT decoder module (no dependencies required)" ON)
 option(OPT_BUILD_DISCORD_PRESENCE "Build the Discord Rich Presence module" ON)
-option(OPT_BUILD_FREQUENCY_MANAGER "Build the Frequency Manager module" ON)
+option(OPT_BUILD_FREQUENCY_MANAGER "Build the Frequency Manager module" OFF)
 # Core of SDR++
 add_subdirectory("core")
 
