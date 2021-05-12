@@ -11,10 +11,10 @@ endif ()
 
 file(GLOB SRC "src/*.cpp")
 
-include_directories("src/")
+include_directories("src/" "../radio/src" "../core/src" "../core/src/gui" "../core/src/imgui")
 
 add_library(frequency_manager SHARED ${SRC})
-target_link_libraries(frequency_manager PRIVATE sdrpp_core)
+target_link_libraries(frequency_manager PUBLIC sdrpp_core)
 set_target_properties(frequency_manager PROPERTIES PREFIX "")
 
 # Install directives
