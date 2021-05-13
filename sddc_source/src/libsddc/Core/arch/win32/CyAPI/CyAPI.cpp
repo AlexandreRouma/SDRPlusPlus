@@ -102,7 +102,6 @@ CCyUSBDevice::~CCyUSBDevice(void)
     if (hDevNotification) {
         if (! UnregisterDeviceNotification(hDevNotification))
             throw "Failed to close the device notification handle.";
-
         hDevNotification = 0;
     }
 
@@ -2039,12 +2038,12 @@ bool CCyUSBEndPoint::FinishDataXfer(PUCHAR buf, LONG &bufLen, OVERLAPPED *ov, PU
 
     // If a buffer was provided, pass-back the Isoc packet info records
     if (pktInfos && (bufLen > 0)) {
-        ZeroMemory(pktInfos, pTransfer->IsoPacketLength);
+        //ZeroMemory(pktInfos, pTransfer->IsoPacketLength);
         PUCHAR pktPtr = pXmitBuf + pTransfer->IsoPacketOffset;
         memcpy(pktInfos, pktPtr, pTransfer->IsoPacketLength);
     }
 
-    delete[] pXmitBuf;     // [] Changed in 1.5.1.3
+//    delete[] pXmitBuf;     // [] Changed in 1.5.1.3
 
     return rResult && (UsbdStatus == 0) && (NtStatus == 0);
 }
@@ -2057,7 +2056,7 @@ PUCHAR CCyUSBEndPoint::BeginBufferedXfer(PUCHAR buf, LONG bufLen, OVERLAPPED *ov
 
     int iXmitBufSize = sizeof (SINGLE_TRANSFER) + bufLen;
     PUCHAR pXmitBuf = new UCHAR[iXmitBufSize];
-    ZeroMemory (pXmitBuf, iXmitBufSize);
+    ZeroMemory (pXmitBuf, sizeof(SINGLE_TRANSFER));
 
     PSINGLE_TRANSFER pTransfer = (PSINGLE_TRANSFER) pXmitBuf;
     pTransfer->ucEndpointAddress = Address;
@@ -2066,7 +2065,7 @@ PUCHAR CCyUSBEndPoint::BeginBufferedXfer(PUCHAR buf, LONG bufLen, OVERLAPPED *ov
     pTransfer->BufferLength = bufLen;
 
     // Copy buf into pXmitBuf
-    UCHAR *ptr = (PUCHAR) pTransfer + pTransfer->BufferOffset;
+    UCHAR *ptr = (PUCHAR)pXmitBuf + sizeof(SINGLE_TRANSFER);
     memcpy (ptr, buf, bufLen);
 
     DWORD dwReturnBytes;
@@ -2095,7 +2094,7 @@ PUCHAR CCyUSBEndPoint::BeginDirectXfer(PUCHAR buf, LONG bufLen, OVERLAPPED *ov)
     if ( hDevice == INVALID_HANDLE_VALUE ) return NULL;
 
     int iXmitBufSize = sizeof (SINGLE_TRANSFER);
-    PUCHAR pXmitBuf = new UCHAR[iXmitBufSize];
+    PUCHAR pXmitBuf = (PUCHAR)ov + sizeof(OVERLAPPED);
     ZeroMemory (pXmitBuf, iXmitBufSize);
 
     PSINGLE_TRANSFER pTransfer = (PSINGLE_TRANSFER) pXmitBuf;
@@ -2334,7 +2333,7 @@ PUCHAR CCyControlEndPoint::BeginDataXfer(PUCHAR buf, LONG bufLen, OVERLAPPED *ov
 
     int iXmitBufSize = sizeof (SINGLE_TRANSFER) + bufLen;
     UCHAR *pXmitBuf = new UCHAR[iXmitBufSize];
-    ZeroMemory (pXmitBuf, iXmitBufSize);
+    ZeroMemory (pXmitBuf, sizeof(SINGLE_TRANSFER));
 
     // The Control Endpoint has a 1 sec resolution on its timeout
     // But, TimeOut is in milliseconds.
@@ -2412,14 +2411,14 @@ PUCHAR CCyIsocEndPoint::BeginBufferedXfer(PUCHAR buf, LONG bufLen, OVERLAPPED *o
 {
     if ( hDevice == INVALID_HANDLE_VALUE ) return NULL;
 
-	int pkts;
-	if(MaxPktSize)
-		pkts = bufLen / MaxPktSize;       // Number of packets implied by bufLen & pktSize
-	else
-	{
-		pkts = 0;
-		return NULL;
-	}
+    int pkts;
+    if(MaxPktSize)
+        pkts = bufLen / MaxPktSize;       // Number of packets implied by bufLen & pktSize
+    else
+    {
+        pkts = 0;
+        return NULL;
+    }
 
     if (bufLen % MaxPktSize) pkts++;
 
@@ -2427,7 +2426,7 @@ PUCHAR CCyIsocEndPoint::BeginBufferedXfer(PUCHAR buf, LONG bufLen, OVERLAPPED *o
 
     int iXmitBufSize = sizeof (SINGLE_TRANSFER) + (pkts * sizeof(ISO_PACKET_INFO)) + bufLen;
     UCHAR *pXmitBuf = new UCHAR[iXmitBufSize];
-    ZeroMemory (pXmitBuf, iXmitBufSize);
+    ZeroMemory (pXmitBuf, sizeof(SINGLE_TRANSFER) + (pkts * sizeof(ISO_PACKET_INFO)));
 
     PSINGLE_TRANSFER pTransfer = (PSINGLE_TRANSFER) pXmitBuf;
     pTransfer->ucEndpointAddress = Address;
@@ -2467,14 +2466,14 @@ PUCHAR CCyIsocEndPoint::BeginDirectXfer(PUCHAR buf, LONG bufLen, OVERLAPPED *ov)
 {
     if ( hDevice == INVALID_HANDLE_VALUE ) return NULL;
 
-	int pkts;
-	if(MaxPktSize)
-		pkts = bufLen / MaxPktSize;       // Number of packets implied by bufLen & pktSize
-	else
-	{
-		pkts = 0;
-		return NULL;
-	}
+    int pkts;
+    if(MaxPktSize)
+        pkts = bufLen / MaxPktSize;       // Number of packets implied by bufLen & pktSize
+    else
+    {
+        pkts = 0;
+        return NULL;
+    }
 
     if (bufLen % MaxPktSize) pkts++;
 
@@ -2946,7 +2945,7 @@ FX3_FWDWNLOAD_ERROR_CODE CCyFX3Device::DownloadUserIMGtoI2CE2PROM(PUCHAR buffer_
 
 //______________________________________________________________________________
 
-FX3_FWDWNLOAD_ERROR_CODE CCyFX3Device::DownloadFwToRam(PUCHAR buffer_p, UINT fw_size, UCHAR opCode)
+FX3_FWDWNLOAD_ERROR_CODE CCyFX3Device::DownloadFwToRam(const UCHAR *buffer_p, UINT fw_size, UCHAR opCode)
 {
     UCHAR downloadBuffer[BUFSIZE_UPORT];
     UCHAR uploadbuffer[BUFSIZE_UPORT];
@@ -3113,7 +3112,7 @@ FX3_FWDWNLOAD_ERROR_CODE CCyFX3Device::DownloadFw(char *fileName, FX3_FWDWNLOAD_
     UINT fwSize = 0;
     PUCHAR FwImage;
     FILE *FwImagePtr;
-    int error;
+    //int error;
 
 //  error = fopen_s(&FwImagePtr, fileName, "rb");
     FwImagePtr = fopen( fileName, "rb");

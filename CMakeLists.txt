@@ -18,6 +18,7 @@ option(OPT_BUILD_SDRPLAY_SOURCE "Build SDRplay Source Module (Depedencies: libsd
 option(OPT_BUILD_PLUTOSDR_SOURCE "Build PlutoSDR Source Module (Depedencies: libiio, libad9361)" ON)
 option(OPT_BUILD_HACKRF_SOURCE "Build HackRF Source Module (Depedencies: libhackrf)" ON)
 option(OPT_BUILD_RTL_SDR_SOURCE "Build RTL-SDR Source Module (Depedencies: librtlsdr)" ON)
+option(OPT_BUILD_SDDC_SOURCE "Build SDDC Source Module (Depedencies: libusb-1.0)" OFF)
 option(OPT_BUILD_AUDIO_SINK "Build Audio Sink Module (Depedencies: rtaudio)" ON)
 option(OPT_BUILD_FALCON9_DECODER "Build the falcon9 live decoder (Dependencies: ffplay)" OFF)
 option(OPT_BUILD_METEOR_DEMODULATOR "Build the meteor demodulator module (no dependencies required)" ON)
@@ -71,6 +72,10 @@ endif (OPT_BUILD_HACKRF_SOURCE)
 if (OPT_BUILD_RTL_SDR_SOURCE)
 add_subdirectory("rtl_sdr_source")
 endif (OPT_BUILD_RTL_SDR_SOURCE)
+
+if (OPT_BUILD_SDDC_SOURCE)
+add_subdirectory("sddc_source")
+endif (OPT_BUILD_SDDC_SOURCE)
 
 if (OPT_BUILD_AUDIO_SINK)
 add_subdirectory("audio_sink")

@@ -580,6 +580,7 @@ public:
     ~CCyFX3Device(void);
     bool IsBootLoaderRunning();
     FX3_FWDWNLOAD_ERROR_CODE DownloadFw(char *fileName, FX3_FWDWNLOAD_MEDIA_TYPE enMediaType);
+    FX3_FWDWNLOAD_ERROR_CODE DownloadFwToRam(const UCHAR *buffer_p, UINT fw_size, UCHAR opCode = 0xA0);
 
 private:
 
@@ -589,7 +590,6 @@ private:
     bool DownloadBufferToDevice(UINT start_addr, USHORT count, UCHAR *data_buf, UCHAR opCode);
     bool UploadBufferFromDevice(UINT start_addr, USHORT count, UCHAR *data_buf, UCHAR opCode);
 
-    FX3_FWDWNLOAD_ERROR_CODE DownloadFwToRam(PUCHAR buffer_p, UINT fw_size, UCHAR opCode);
     FX3_FWDWNLOAD_ERROR_CODE DownloadUserIMGtoI2CE2PROM(PUCHAR buffer_p, UINT fw_size, UCHAR opCode);
     FX3_FWDWNLOAD_ERROR_CODE DownloadUserIMGtoSPIFLASH(PUCHAR buffer_p, UINT fw_size, UCHAR opCode);
 
