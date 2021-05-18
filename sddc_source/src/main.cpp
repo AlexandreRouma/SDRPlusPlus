@@ -183,11 +183,11 @@ private:
         if (_this->running) { style::beginDisabled(); }
 
         ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::Combo(CONCAT("##_airspyhf_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
+        if (ImGui::Combo(CONCAT("##_sddc_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
             // Select here
         }
 
-        if (ImGui::Combo(CONCAT("##_airspyhf_sr_sel_", _this->name), &_this->srId, _this->sampleRateListTxt.c_str())) {
+        if (ImGui::Combo(CONCAT("##_sddc_sr_sel_", _this->name), &_this->srId, _this->sampleRateListTxt.c_str())) {
             _this->sampleRate = _this->sampleRateList[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
             // Select SR here
@@ -195,7 +195,7 @@ private:
 
         ImGui::SameLine();
         float refreshBtnWdith = menuWidth - ImGui::GetCursorPosX();
-        if (ImGui::Button(CONCAT("Refresh##_airspyhf_refr_", _this->name), ImVec2(refreshBtnWdith, 0))) {
+        if (ImGui::Button(CONCAT("Refresh##_sddc_refr_", _this->name), ImVec2(refreshBtnWdith, 0))) {
             _this->refresh();
             // Reselect and reset samplerate if it changed
         }

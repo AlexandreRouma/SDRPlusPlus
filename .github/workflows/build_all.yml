@@ -17,7 +17,7 @@ jobs:
           run: cmake -E make_directory ${{runner.workspace}}/build
 
         - name: Download PothosSDR
-          run: Invoke-WebRequest -Uri "https://downloads.myriadrf.org/builds/PothosSDR/PothosSDR-2021.02.28-vc16-x64.exe" -OutFile ${{runner.workspace}}/pothos.exe
+          run: Invoke-WebRequest -Uri "https://downloads.myriadrf.org/builds/PothosSDR/PothosSDR-2020.01.26-vc14-x64.exe" -OutFile ${{runner.workspace}}/pothos.exe
 
         - name: Install PothosSDR
           run: mkdir "C:/Program Files/PothosSDR" ; 7z x ${{runner.workspace}}/pothos.exe -o"C:/Program Files/PothosSDR/"
