@@ -217,7 +217,7 @@ private:
 };
 
 MOD_EXPORT void _INIT_() {
-    // Nothing here
+    // Nothing here (testing)
 }
 
 MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
