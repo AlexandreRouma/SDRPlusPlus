@@ -241,6 +241,18 @@ namespace ImGui {
 
         int mouseWheel = ImGui::GetIO().MouseWheel;
 
+        bool mouseMoved = false;
+        if (mousePos.x != lastMousePos.x || mousePos.y != lastMousePos.y) { mouseMoved = true; }
+        lastMousePos = mousePos;
+
+        std::string hoveredVFOName = "";
+        for (auto const& [name, _vfo] : vfos) {
+            if (ImGui::IsMouseHoveringRect(_vfo->rectMin, _vfo->rectMax) || ImGui::IsMouseHoveringRect(_vfo->wfRectMin, _vfo->wfRectMax)) {
+                hoveredVFOName = name;
+                break;
+            }
+        }
+
         // Deselect everything if the mouse is released
         if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
             freqScaleSelect = false;
@@ -274,16 +286,11 @@ namespace ImGui {
             }
 
             // Next, check if a VFO was selected
-            if (!targetFound) {
-                for (auto const& [name, _vfo] : vfos) {
-                    // If another VFO is selected, select it and cancel out
-                    if (IS_IN_AREA(mousePos, _vfo->rectMin, _vfo->rectMax) || IS_IN_AREA(mousePos, _vfo->wfRectMin, _vfo->wfRectMax)) {
-                        selectedVFO = name;
-                        selectedVFOChanged = true;
-                        targetFound = true;
-                        return;
-                    }
-                }
+            if (!targetFound && hoveredVFOName != "") {
+                selectedVFO = hoveredVFOName;
+                selectedVFOChanged = true;
+                targetFound = true;
+                return;
             }
 
             // Now, check frequency scale
@@ -393,7 +400,7 @@ namespace ImGui {
         }
 
         // Finally, if nothing else was selected, just move the VFO
-        if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && (mouseInFFT|mouseInWaterfall)) {
+        if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && (mouseInFFT|mouseInWaterfall) && (mouseMoved || hoveredVFOName == "")) {
             if (selVfo != NULL) {
                 int refCenter = mousePos.x - (widgetPos.x + 50);
                 if (refCenter >= 0 && refCenter < dataWidth) {
@@ -404,7 +411,7 @@ namespace ImGui {
                 }
             }
         }
-        else {
+        else if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
             // Check if a VFO is hovered. If yes, show tooltip
             for (auto const& [name, _vfo] : vfos) {
                 if (ImGui::IsMouseHoveringRect(_vfo->rectMin, _vfo->rectMax) || ImGui::IsMouseHoveringRect(_vfo->wfRectMin, _vfo->wfRectMax)) {

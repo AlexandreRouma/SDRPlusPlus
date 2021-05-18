@@ -249,5 +249,7 @@ namespace ImGui {
         bool vfoBorderSelect = false;
         WaterfallVFO* relatedVfo = NULL;
         ImVec2 mouseDownPos;
+
+        ImVec2 lastMousePos;
     };
 };
