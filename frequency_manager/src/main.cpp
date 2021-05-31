@@ -196,7 +196,6 @@ private:
             FrequencyBookmark& bm = _this->bookmarks[_this->editedBookmarkName];
             _this->editOpen = _this->bookmarkEditDialog(bm);
         }
-
         if (_this->addOpen) {
             FrequencyBookmark& bm = _this->bookmarks[_this->editedBookmarkName];
             _this->addOpen = _this->bookmarkEditDialog(bm);

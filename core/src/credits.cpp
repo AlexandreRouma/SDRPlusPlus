@@ -9,6 +9,7 @@ namespace sdrpp_credits {
         "Benjamin Kyd",
         "Benjamin Vernoux",
         "Cropinghigh",
+        "Fred F4EED"
         "Howard0su",
         "Joshua Kimsey",
         "Martin Hauke",

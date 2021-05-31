@@ -1,0 +1,496 @@
+{
+    "name": "France",
+    "country_name": "France",
+    "country_code": "FR",
+    "author_name": "Fred F4EED",
+    "author_url": "http://f4eed.wordpress.com",
+    "bands": [
+        {
+            "name": "137KHz - Radioamateur",
+            "type": "amateur",
+            "start": 135500,
+            "end": 137800
+        },
+		{
+            "name": "Grande ondes",
+            "type": "broadcast",
+            "start": 148500,
+            "end": 519000
+        },
+		{
+            "name": "472KHz - Radioamateur",
+            "type": "amateur",
+            "start": 472000,
+            "end": 479000
+        },
+        {
+            "name": "Ondes moyennes (AM Broadcast)",
+            "type": "broadcast",
+            "start": 520000,
+            "end": 1705000
+        },
+        {
+            "name": "Marine - HF",
+            "type": "marine",
+            "start": 1607000,
+            "end": 1810000
+        },
+        {
+            "name": "160m - Radioamateur",
+            "type": "amateur",
+            "start": 1810000,
+            "end": 1850000
+        },
+        {
+            "name": "120m - radiodiffusion",
+            "type": "broadcast",
+            "start": 2300000,
+            "end": 2500000
+        },
+        {
+            "name": "Marine - HF",
+            "type": "marine",
+            "start": 2500000,
+            "end": 2850000
+        },		
+        {
+            "name": "Aviation - HF",
+            "type": "aviation",
+            "start": 2850000,
+            "end": 3155000
+        },		
+        {
+            "name": "Marine - HF",
+            "type": "marine",
+            "start": 3155000,
+            "end": 3400000
+        },							
+        {
+            "name": "90m - radiodiffusion",
+            "type": "broadcast",
+            "start": 3200000,
+            "end": 3400000
+        },
+        {
+            "name": "Aviation - HF",
+            "type": "aviation",
+            "start": 3400000,
+            "end": 3500000
+        },	
+        {
+            "name": "Marine - HF",
+            "type": "marine",
+            "start": 3500000,
+            "end": 3600000
+        },	
+        {
+            "name": "80m - Radioamateur",
+            "type": "amateur",
+            "start": 3600000,
+            "end": 3800000
+        },
+        {
+            "name": "75m - radiodiffusion",
+            "type": "broadcast",
+            "start": 3900000,
+            "end": 4000000
+        },
+        {
+            "name": "Marine - HF",
+            "type": "marine",
+            "start": 4065000,
+            "end": 4440000
+        },		
+        {
+            "name": "Aviation - HF",
+            "type": "aviation",
+            "start": 4650000,
+            "end": 4750000
+        },	
+
+        {
+            "name": "60m - radiodiffusion",
+            "type": "broadcast",
+            "start": 4750000,
+            "end": 4995000
+        },
+        {
+			"name": "60m - radiodiffusion",
+            "type": "broadcast",
+            "start": 5005000,
+            "end": 5060000
+        },
+        {
+            "name": "60m - Radioamateur",
+            "type": "amateur",
+            "start": 5351500,
+            "end": 5366500
+        },
+        {
+            "name": "Aviation - HF",
+            "type": "aviation",
+            "start": 5450000,
+            "end": 5730000
+        },			
+        {
+            "name": "49m - radiodiffusion",
+            "type": "broadcast",
+            "start": 5900000,
+            "end": 6200000
+        },
+        {
+            "name": "Marine - HF",
+            "type": "marine",
+            "start": 6200000,
+            "end":   6525000
+        },
+        {
+            "name": "Aviation - HF",
+            "type": "aviation",
+            "start": 6525000,
+            "end": 6765000
+        },	
+        {
+            "name": "40m - Radioamateur",
+            "type": "amateur",
+            "start": 7000000,
+            "end": 7200000
+        },
+        {
+            "name": "41m - radiodiffusion",
+            "type": "broadcast",
+            "start": 7200000,
+            "end": 7450000
+        },
+        {
+            "name": "Marine - HF",
+            "type": "marine",
+            "start": 8195000,
+            "end": 8815000
+        },		
+        {
+            "name": "Aviation - HF",
+            "type": "aviation",
+            "start": 8815000,
+            "end": 9040000
+        },		
+        {
+            "name": "31m - radiodiffusion",
+            "type": "broadcast",
+            "start": 9400000,
+            "end": 9900000
+        },
+        {
+            "name": "Aviation - HF",
+            "type": "aviation",
+            "start": 10005000,
+            "end": 10100000
+        },				
+        {
+            "name": "30m - Radioamateur",
+            "type": "amateur",
+            "start": 10100000,
+            "end": 10150000
+        },
+        {
+            "name": "Aviation - HF",
+            "type": "aviation",
+            "start": 11175000,
+            "end": 11400000
+        },		
+        {
+            "name": "25m - radiodiffusion",
+            "type": "broadcast",
+            "start": 11600000,
+            "end": 12100000
+        },
+        {
+            "name": "Marine - HF",
+            "type": "marine",
+            "start": 12230000,
+            "end": 13200000
+        },				
+        {
+            "name": "Aviation - HF",
+            "type": "aviation",
+            "start": 13200000,
+            "end": 13360000
+        },				
+        {
+            "name": "21m - radiodiffusion",
+            "type": "broadcast",
+            "start": 13570000,
+            "end": 13870000
+        },
+        {
+            "name": "20m - Radioamateur",
+            "type": "amateur",
+            "start": 14000000,
+            "end": 14350000
+        },
+        {
+            "name": "Aviation - HF",
+            "type": "aviation",
+            "start": 15010000,
+            "end": 15100000
+        },
+        {
+            "name": "19m - radiodiffusion",
+            "type": "broadcast",
+            "start": 15100000,
+            "end": 15800000
+        },
+        {
+            "name": "Marine - HF",
+            "type": "marine",
+            "start": 16360000,
+            "end": 17410000
+        },			
+        {
+            "name": "16m - radiodiffusion",
+            "type": "broadcast",
+            "start": 17480000,
+            "end": 17900000
+        },
+        {
+            "name": "Aviation - HF",
+            "type": "aviation",
+            "start": 17900000,
+            "end": 18030000
+        },
+        {
+            "name": "17m - Radioamateur",
+            "type": "amateur",
+            "start": 18068000,
+            "end": 18168000
+        },
+        {
+            "name": "Marine - HF",
+            "type": "marine",
+            "start": 18780000,
+            "end": 18900000
+        },				
+        {
+            "name": "15m - radiodiffusion",
+            "type": "broadcast",
+            "start": 18900000,
+            "end": 19020000
+        },
+        {
+            "name": "Marine - HF",
+            "type": "marine",
+            "start": 19680000,
+            "end": 19800000
+        },		
+        {
+            "name": "15m - Radioamateur",
+            "type": "amateur",
+            "start": 21000000,
+            "end": 21450000
+        },
+        {
+            "name": "13 mètres - radiodiffusion",
+            "type": "broadcast",
+            "start": 21450000,
+            "end": 21850000
+        },
+        {
+            "name": "Aviation - HF",
+            "type": "aviation",
+            "start": 21925000,
+            "end": 22000000
+        },
+        {
+            "name": "Marine - HF",
+            "type": "marine",
+            "start": 22000000,
+            "end": 22855000
+        },	
+        {
+            "name": "Aviation - HF",
+            "type": "aviation",
+            "start": 23200000,
+            "end": 23350000
+        },
+        {
+            "name": "12m - Radioamateur",
+            "type": "amateur",
+            "start": 24890000,
+            "end": 24990000
+        },
+		{
+            "name": "Marine - HF",
+            "type": "marine",
+            "start": 25070000,
+            "end": 25210000
+        },	
+        {
+            "name": "11m - radiodiffusion",
+            "type": "broadcast",
+            "start": 25670000,
+            "end": 26100000
+        },
+		{
+            "name": "Marine - HF",
+            "type": "marine",
+            "start": 26100000,
+            "end": 26175000
+        },		
+        {
+            "name": "11m - CB",
+            "type": "amateur",
+            "start": 26960000,
+            "end": 27230000
+        },
+        {
+            "name": "10m - Radioamateur",
+            "type": "amateur",
+            "start": 28000000,
+            "end": 29700000
+        },
+        {
+            "name": "6m - Radioamateur",
+            "type": "amateur",
+            "start": 50000000,
+            "end": 54000000
+        },
+        {
+            "name": "Bande FM - Radiodif.",
+            "type": "broadcast",
+            "start": 80000000,
+            "end": 108000000
+        },
+        {
+            "name": "Aviation - VOR/ILS",
+            "type": "aviation",
+            "start": 108000000,
+            "end": 118000000
+        },
+        {
+            "name": "Aviation - Voie",
+            "type": "aviation",
+            "start": 118000000,
+            "end": 137000000
+        },
+        {
+            "name": "Polar Orbiting Satellites",
+            "type": "satellite",
+            "start": 137000000,
+            "end": 138000000
+        },
+        {
+            "name": "2m - Radioamateur",
+            "type": "amateur",
+            "start": 144000000,
+            "end": 146000000
+        },
+        {
+            "name": "Marine",
+            "type": "marine",
+            "start": 156000000,
+            "end": 162025000
+        },
+        {
+            "name": "NOAA Weather Radio",
+            "type": "broadcast",
+            "start": 162362500,
+            "end": 162587500
+        },
+        {
+            "name": "Military Aviation",
+            "type": "military",
+            "start": 225000000,
+            "end": 380000000
+        },
+        {
+            "name": "Satelitte militAviatione",
+            "type": "military",
+            "start": 240000000,
+            "end": 270000000
+        },
+        {
+            "name": "70cm - Radioamateur",
+            "type": "amateur",
+            "start": 420000000,
+            "end": 450000000
+        },
+        {
+            "name": "PMR446",
+            "type": "amateur",
+            "start": 446000000,
+            "end": 446200000
+        },
+        {
+            "name": "23cm - Radioamateur",
+            "type": "amateur",
+            "start": 1240000000,
+            "end": 1300000000
+        },
+        {
+            "name": "13cm - Radioamateur",
+            "type": "amateur",
+            "start": 2300000000,
+            "end": 2450000000
+        },
+        {
+            "name": "9cm - Radioamateur",
+            "type": "amateur",
+            "start": 3400000000,
+            "end": 3475000000
+        },
+        {
+            "name": "6cm - Radioamateur",
+            "type": "amateur",
+            "start": 5650000000,
+            "end": 5850000000
+        },		
+        {
+            "name": "3cm - Radioamateur",
+            "type": "amateur",
+            "start": 10000000000,
+            "end": 10500000000
+        },
+		{
+            "name": "5,650GHz - Radioamateur",
+            "type": "amateur",
+            "start": 5650000000,
+            "end": 5850000000
+        },		
+        {
+            "name": "12mm - Radioamateur",
+            "type": "amateur",
+            "start": 24000000000,
+            "end": 24250000000
+        },	
+        {
+            "name": "6mm - Radioamateur",
+            "type": "amateur",
+            "start": 47000000000,
+            "end": 47200000000
+        },
+        {
+            "name": "4mm - Radioamateur",
+            "type": "amateur",
+            "start": 75500000000,
+            "end": 81500000000
+        },	
+        {
+            "name": "2,5mm - Radioamateur",
+            "type": "amateur",
+            "start": 122250000000,
+            "end": 123000000000
+        },
+        {
+            "name": "2mm - Radioamateur",
+            "type": "amateur",
+            "start": 134000000000,
+            "end": 141000000000
+        },
+        {
+            "name": "1mm - Radioamateur",
+            "type": "amateur",
+            "start": 241000000000,
+            "end": 250000000000
+        }		
+    ]
+}

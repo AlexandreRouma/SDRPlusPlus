@@ -247,6 +247,7 @@ I will soon publish a contributing.md listing the code style to use.
 * [Benjamin Kyd](https://github.com/benkyd)
 * [Benjamin Vernoux](https://github.com/bvernoux)
 * [Cropinghigh](https://github.com/cropinghigh)
+* [Fred F4EED](http://f4eed.wordpress.com/)
 * [Howard0su](https://github.com/howard0su)
 * [Joshua Kimsey](https://github.com/JoshuaKimsey)
 * [Martin Hauke](https://github.com/mnhauke)
