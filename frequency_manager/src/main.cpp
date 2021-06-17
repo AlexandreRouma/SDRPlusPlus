@@ -82,16 +82,58 @@ private:
         }
     }
 
-    bool bookmarkEditDialog(FrequencyBookmark& bm) {
+    bool bookmarkEditDialog() {
         bool open = true;
+
         std::string id = "Edit##freq_manager_edit_popup_" + name;
         ImGui::OpenPopup(id.c_str());
-        FrequencyBookmark tmp = bm;
+
+        char nameBuf[1024];
+        strcpy(nameBuf, editedBookmarkName.c_str());
+
         if (ImGui::BeginPopup(id.c_str(), ImGuiWindowFlags_NoResize)) {
-            if (ImGui::Button("Apply")) {
-                bm = tmp;
-                open = false;
+            ImGui::BeginTable(("freq_manager_edit_table"+name).c_str(), 2);
+            
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Name");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::SetNextItemWidth(200);
+            if (ImGui::InputText(("##freq_manager_edit_name"+name).c_str(), nameBuf, 1023)) {
+                editedBookmarkName = nameBuf;
             }
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Frequency");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::SetNextItemWidth(200);
+            ImGui::InputDouble(("##freq_manager_edit_freq"+name).c_str(), &editedBookmark.frequency);        
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Bandwidth");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::SetNextItemWidth(200);
+            ImGui::InputDouble(("##freq_manager_edit_bw"+name).c_str(), &editedBookmark.bandwidth);         
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Mode");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::SetNextItemWidth(200);
+            char* testList = "WFM\0";
+            int testInt = 0;
+            ImGui::Combo(("##freq_manager_edit_mode"+name).c_str(), &testInt, testList);
+
+            ImGui::EndTable();
+
+            if (strlen(nameBuf) == 0) { style::beginDisabled(); }
+            if (ImGui::Button("Apply")) {
+                open = false;
+                bookmarks[nameBuf] = editedBookmark;
+            }
+            if (strlen(nameBuf) == 0) { style::endDisabled(); }
             ImGui::SameLine();
             if (ImGui::Button("Cancel")) {
                 open = false;
@@ -109,6 +151,13 @@ private:
         std::vector<std::string> selectedNames;
         for (auto& [name, bm] : _this->bookmarks) { if (bm.selected) { selectedNames.push_back(name); } }
 
+        ImGui::Text("List");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        char* testList = "Bad music\0";
+        int testInt = 0;
+        ImGui::Combo(("##freq_manager_list_sel"+_this->name).c_str(), &testInt, testList);
+
         //Draw buttons on top of the list
         ImGui::BeginTable(("freq_manager_btn_table"+_this->name).c_str(), 3);
         ImGui::TableNextRow();
@@ -116,32 +165,39 @@ private:
         ImGui::TableSetColumnIndex(0);
         if (ImGui::Button(("Add##_freq_mgr_add_" + _this->name).c_str(), ImVec2(ImGui::GetContentRegionAvailWidth(), 0))) {
             // If there's no VFO selected, just save the center freq
-            FrequencyBookmark bm;
             if (gui::waterfall.selectedVFO == "") {
-                bm.frequency = gui::waterfall.getCenterFrequency();
-                bm.bandwidth = 0;
-                bm.mode = -1;
+                _this->editedBookmark.frequency = gui::waterfall.getCenterFrequency();
+                _this->editedBookmark.bandwidth = 0;
+                _this->editedBookmark.mode = -1;
             }
             else {
-                bm.frequency = gui::waterfall.getCenterFrequency() + sigpath::vfoManager.getOffset(gui::waterfall.selectedVFO);
-                bm.bandwidth = sigpath::vfoManager.getBandwidth(gui::waterfall.selectedVFO);
-                bm.mode = -1;
+                _this->editedBookmark.frequency = gui::waterfall.getCenterFrequency() + sigpath::vfoManager.getOffset(gui::waterfall.selectedVFO);
+                _this->editedBookmark.bandwidth = sigpath::vfoManager.getBandwidth(gui::waterfall.selectedVFO);
+                _this->editedBookmark.mode = -1;
                 if (core::modComManager.getModuleName(gui::waterfall.selectedVFO) == "radio") {
                     int mode;
                     core::modComManager.callInterface(gui::waterfall.selectedVFO, RADIO_IFACE_CMD_GET_MODE, NULL, &mode);
-                    bm.mode = mode;
+                    _this->editedBookmark.mode = mode;
                 }
             }
 
-            bm.selected = false;
-
-            char name[1024];
-            sprintf(name, "Test Bookmark (%d)", _this->testN);
-            _this->bookmarks[name] = bm;
-            _this->testN++;
+            _this->editedBookmark.selected = false;
 
             _this->editOpen = true;
-            _this->editedBookmarkName = name;
+
+            // Find new unique default name
+            if (_this->bookmarks.find("New Bookmark") == _this->bookmarks.end()) {
+                _this->editedBookmarkName = "New Bookmark";
+            }
+            else {
+                char buf[64];
+                for (int i = 1; i < 1000; i++) {
+                    sprintf(buf, "New Bookmark (%d)", i);
+                    if (_this->bookmarks.find(buf) == _this->bookmarks.end()) { break; }
+                }
+                _this->editedBookmarkName = buf;
+            }
+            
         }
 
         ImGui::TableSetColumnIndex(1);
@@ -153,6 +209,7 @@ private:
         if (selectedNames.size() != 1) { style::beginDisabled(); }
         if (ImGui::Button(("Edit##_freq_mgr_edt_" + _this->name).c_str(), ImVec2(ImGui::GetContentRegionAvailWidth(), 0))) {
             _this->editOpen = true;
+            _this->editedBookmark = _this->bookmarks[selectedNames[0]];
             _this->editedBookmarkName = selectedNames[0];
         }
         if (selectedNames.size() != 1) { style::endDisabled(); }
@@ -193,23 +250,18 @@ private:
         if (selectedNames.size() != 1) { style::endDisabled(); }
 
         if (_this->editOpen) {
-            FrequencyBookmark& bm = _this->bookmarks[_this->editedBookmarkName];
-            _this->editOpen = _this->bookmarkEditDialog(bm);
-        }
-        if (_this->addOpen) {
-            FrequencyBookmark& bm = _this->bookmarks[_this->editedBookmarkName];
-            _this->addOpen = _this->bookmarkEditDialog(bm);
+            _this->editOpen = _this->bookmarkEditDialog();
         }
     }
 
     std::string name;
     bool enabled = true;
     bool editOpen = false;
-    bool addOpen = false;
 
     std::map<std::string, FrequencyBookmark> bookmarks;
 
     std::string editedBookmarkName = "";
+    FrequencyBookmark editedBookmark;
 
     int testN = 0;
 

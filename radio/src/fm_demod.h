@@ -172,7 +172,7 @@ private:
     const float bbSampRate = 50000;
 
     std::string uiPrefix;
-    float snapInterval = 10000;
+    float snapInterval = 2500;
     float audioSampRate = 48000;
     float bw = 50000;
     bool running = false;

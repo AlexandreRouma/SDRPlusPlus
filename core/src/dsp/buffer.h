@@ -214,4 +214,79 @@ namespace dsp {
         std::condition_variable canReadVar;
         std::condition_variable canWriteVar;
     };
+
+    template <class T>
+    class BufferBlock : public generic_block<BufferBlock<T>> {
+    public:
+        BufferBlock() {}
+
+        BufferBlock(stream<T>* in, int bufferSize) { init(in, bufferSize); }
+
+        ~BufferBlock(stream<T>* in, int bufferSize) {
+            generic_block<BufferBlock<T>>::stop();
+            delete[] buffer;
+        }
+
+        void init(stream<T>* in, int bufferSize) {
+            _in = in;
+            _bufferSize = bufferSize;
+            buffer = new T[_bufferSize];
+            generic_block<BufferBlock<T>>::registerInput(_in);
+        }
+
+        void setInput(stream<T>* in) {
+            std::lock_guard<std::mutex> lck(generic_block<BufferBlock<T>>::ctrlMtx);
+            generic_block<BufferBlock<T>>::tempStop();
+            generic_block<BufferBlock<T>>::unregisterInput(_in);
+            _in = in;
+            generic_block<BufferBlock<T>>::registerInput(_in);
+            generic_block<BufferBlock<T>>::tempStart();
+        }
+
+        int run() {
+            int count = _in->read();
+            if (count < 0) { return -1; }
+            
+            // If there's enough space in the buffer, write data. Otherwise, discard
+            {
+                std::lock_guard<std::mutex> lck(bufferMtx);
+                if (dataInBuffer + count <= _bufferSize) {
+                    memcpy(&buffer[dataInBuffer], _in->readBuf, count);
+                    dataInBuffer += count;
+                }
+            }
+
+            // Notify reader that data is available
+            cnd.notify_all();
+
+            _in->flush();
+            return count;
+        }
+
+        void readWorker() {
+            
+        }
+
+    private:
+        void doStart() {
+                        
+        }
+
+        void doStop() {
+                        
+        }
+
+        stream<T>* _in;
+        int _bufferSize;
+
+        T* buffer;
+        int dataInBuffer = 0;
+        std::mutex bufferMtx;
+
+        std::condition_variable cnd;
+        bool stopReaderThread = false;
+
+        std::thread readerThread;
+
+    };
 };

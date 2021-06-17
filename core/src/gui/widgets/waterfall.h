@@ -154,7 +154,6 @@ namespace ImGui {
             _BANDPLAN_POS_COUNT
         };
 
-
     private:
         void drawWaterfall();
         void drawFFT();
