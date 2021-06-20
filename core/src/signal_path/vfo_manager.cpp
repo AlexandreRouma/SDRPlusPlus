@@ -1,5 +1,6 @@
 #include <signal_path/vfo_manager.h>
 #include <signal_path/signal_path.h>
+#include <gui/gui.h>
 
 VFOManager::VFO::VFO(std::string name, int reference, double offset, double bandwidth, double sampleRate, double minBandwidth, double maxBandwidth, bool bandwidthLocked) {
     this->name = name;

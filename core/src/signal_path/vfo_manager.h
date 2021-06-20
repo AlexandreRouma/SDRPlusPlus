@@ -1,7 +1,6 @@
 #pragma once
 #include <dsp/vfo.h>
 #include <gui/widgets/waterfall.h>
-#include <gui/gui.h>
 #include <utils/event.h>
 
 class VFOManager {

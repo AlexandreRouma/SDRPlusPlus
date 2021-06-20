@@ -1,6 +1,7 @@
 #include <imgui.h>
 #include <config.h>
 #include <core.h>
+#include <gui/gui.h>
 #include <gui/style.h>
 #include <signal_path/signal_path.h>
 #include <radio_demod.h>
@@ -52,7 +53,7 @@ public:
         dsbDemod.init(name, vfo, audioSampRate, 6000, &config);
         rawDemod.init(name, vfo, audioSampRate, audioSampRate, &config);
         cwDemod.init(name, vfo, audioSampRate, 200, &config);
-        
+
         srChangeHandler.ctx = this;
         srChangeHandler.handler = sampleRateChangeHandler;
         stream.init(wfmDemod.getOutput(), srChangeHandler, audioSampRate);

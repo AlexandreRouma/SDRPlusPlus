@@ -4,7 +4,7 @@ SignalPath::SignalPath() {
     
 }
 
-void SignalPath::init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream<dsp::complex_t>* input, dsp::complex_t* fftBuffer, void fftHandler(dsp::complex_t*,int,void*)) {
+void SignalPath::init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream<dsp::complex_t>* input, dsp::complex_t* fftBuffer, void fftHandler(dsp::complex_t*,int,void*), void* fftHandlerCtx) {
     this->sampleRate = sampleRate;
     this->fftRate = fftRate;
     this->fftSize = fftSize;
@@ -14,7 +14,7 @@ void SignalPath::init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream
 
     reshape.init(&fftStream, fftSize, (sampleRate / fftRate) - fftSize);
     split.bindStream(&fftStream);
-    fftHandlerSink.init(&reshape.out, fftHandler, NULL);
+    fftHandlerSink.init(&reshape.out, fftHandler, fftHandlerCtx);
 }
 
 void SignalPath::setSampleRate(double sampleRate) {

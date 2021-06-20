@@ -68,7 +68,7 @@ namespace displaymenu {
                 break;
             }
         }
-        setFFTSize(FFTSizes[fftSizeId]);
+        gui::mainWindow.setFFTSize(FFTSizes[fftSizeId]);
 
     }
 
@@ -100,7 +100,7 @@ namespace displaymenu {
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo("##test_fft_size", &fftSizeId, FFTSizesStr)) {
-            setFFTSize(FFTSizes[fftSizeId]);
+            gui::mainWindow.setFFTSize(FFTSizes[fftSizeId]);
             core::configManager.aquire();
             core::configManager.conf["fftSize"] = FFTSizes[fftSizeId];
             core::configManager.release(true);

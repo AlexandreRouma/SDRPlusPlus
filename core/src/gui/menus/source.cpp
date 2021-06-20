@@ -37,7 +37,7 @@ namespace sourecmenu {
         }
         float itemWidth = ImGui::GetContentRegionAvailWidth();
 
-        if (sdrIsRunning()) { style::beginDisabled(); }
+        if (gui::mainWindow.sdrIsRunning()) { style::beginDisabled(); }
         
         ImGui::SetNextItemWidth(itemWidth);
         if (ImGui::Combo("##source", &sourceId, items.c_str())) {
@@ -47,7 +47,7 @@ namespace sourecmenu {
             core::configManager.release(true);
         }
 
-        if (sdrIsRunning()) { style::endDisabled(); }
+        if (gui::mainWindow.sdrIsRunning()) { style::endDisabled(); }
 
         sigpath::sourceManager.showSelectedMenu();
 

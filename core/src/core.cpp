@@ -51,7 +51,7 @@ namespace core {
         gui::waterfall.setViewOffset(0);
         gui::waterfall.setViewBandwidth(samplerate);
         sigpath::signalPath.setSampleRate(samplerate);
-        setViewBandwidthSlider(samplerate);
+        gui::mainWindow.setViewBandwidthSlider(samplerate);
     }
 };
 
@@ -338,7 +338,7 @@ int sdrpp_main(int argc, char *argv[]) {
     spdlog::info("Loading band plans color table");
     bandplan::loadColorTable(bandColors);
 
-    windowInit();
+    gui::mainWindow.init();
 
     spdlog::info("Ready.");
 
@@ -397,7 +397,7 @@ int sdrpp_main(int argc, char *argv[]) {
         if (winWidth > 0 && winHeight > 0) {
             ImGui::SetNextWindowPos(ImVec2(0, 0));
             ImGui::SetNextWindowSize(ImVec2(_winWidth, _winHeight));
-            drawWindow();
+            gui::mainWindow.draw();
         }
 
         // Rendering

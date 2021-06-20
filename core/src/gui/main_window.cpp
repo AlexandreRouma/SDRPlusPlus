@@ -11,11 +11,9 @@
 #include <complex>
 #include <gui/widgets/waterfall.h>
 #include <gui/widgets/frequency_select.h>
-#include <fftw3.h>
 #include <signal_path/dsp.h>
 #include <gui/icons.h>
 #include <gui/widgets/bandplan.h>
-#include <signal_path/vfo_manager.h>
 #include <gui/style.h>
 #include <config.h>
 #include <signal_path/signal_path.h>
@@ -34,89 +32,9 @@
 #include <options.h>
 #include <gui/colormaps.h>
 #include <gui/widgets/snr_meter.h>
+#include <gui/tuner.h>
 
-int fftSize = 8192 * 8;
-
-std::mutex fft_mtx;
-fftwf_complex *fft_in, *fft_out;
-fftwf_plan p;
-float* tempFFT;
-float* FFTdata;
-char buf[1024];
-bool experimentalZoom = false;
-bool firstMenuRender = true;
-bool startedWithMenuClosed = false;
-
-void fftHandler(dsp::complex_t* samples, int count, void* ctx) {
-    std::lock_guard<std::mutex> lck(fft_mtx);
-    if (count != fftSize) { return; }
-
-    memcpy(fft_in, samples, count * sizeof(dsp::complex_t));
-    fftwf_execute(p);
-    int half = count / 2;
-
-    // volk_32fc_s32f_power_spectrum_32f(FFTdata, (lv_32fc_t*)fft_out, count, count);
-
-    // memcpy(tempFFT, &FFTdata[half], half * sizeof(float));
-    // memmove(&FFTdata[half], FFTdata, half * sizeof(float));
-    // memcpy(FFTdata, tempFFT, half * sizeof(float));
-
-    // float* fftBuf = gui::waterfall.getFFTBuffer();
-    // if (fftBuf == NULL) {
-    //     gui::waterfall.pushFFT();
-    //     return;
-    // }
-
-    // memcpy(fftBuf, FFTdata, count * sizeof(float));
-
-    // gui::waterfall.pushFFT();
-
-    float* fftBuf = gui::waterfall.getFFTBuffer();
-    if (fftBuf == NULL) {
-        gui::waterfall.pushFFT();
-        return;
-    }
-
-    volk_32fc_s32f_power_spectrum_32f(tempFFT, (lv_32fc_t*)fft_out, count, count);
-
-    memcpy(fftBuf, &tempFFT[half], half * sizeof(float));
-    memcpy(&fftBuf[half], tempFFT, half * sizeof(float));
-
-    gui::waterfall.pushFFT();
-}
-
-float fftMin = -70.0;
-float fftMax = 0.0;
-float bw = 8000000;
-bool playing = false;
-bool showCredits = false;
-std::string audioStreamName = "";
-std::string sourceName = "";
-int menuWidth = 300;
-bool grabbingMenu = false;
-int newWidth = 300;
-int fftHeight = 300;
-bool showMenu = true;
-bool centerTuning = false;
-dsp::stream<dsp::complex_t> dummyStream;
-bool demoWindow = false;
-
-float testSNR = 50;
-
-EventHandler<VFOManager::VFO*> vfoCreatedHandler;
-void vfoAddedHandler(VFOManager::VFO* vfo, void* ctx) {
-    std::string name = vfo->getName();
-    core::configManager.aquire();
-    if (!core::configManager.conf["vfoOffsets"].contains(name)) {
-        core::configManager.release();
-        return;
-    }
-    double offset = core::configManager.conf["vfoOffsets"][name];
-    core::configManager.release();
-    sigpath::vfoManager.setOffset(name, std::clamp<double>(offset, -bw/2.0, bw/2.0));
-}
-
-void windowInit() {
+void MainWindow::init() {
     LoadingScreen::show("Initializing UI");
     gui::waterfall.init();
     gui::waterfall.setRawFFTSize(fftSize);
@@ -161,12 +79,13 @@ void windowInit() {
     
     fft_in = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * fftSize);
     fft_out = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * fftSize);
-    p = fftwf_plan_dft_1d(fftSize, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftwPlan = fftwf_plan_dft_1d(fftSize, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
 
-    sigpath::signalPath.init(8000000, 20, fftSize, &dummyStream, (dsp::complex_t*)fft_in, fftHandler);
+    sigpath::signalPath.init(8000000, 20, fftSize, &dummyStream, (dsp::complex_t*)fft_in, fftHandler, this);
     sigpath::signalPath.start();
 
     vfoCreatedHandler.handler = vfoAddedHandler;
+    vfoCreatedHandler.ctx = this;
     sigpath::vfoManager.vfoCreatedEvent.bindHandler(vfoCreatedHandler);
 
     spdlog::info("Loading modules");
@@ -238,13 +157,7 @@ void windowInit() {
     module_manager_menu::init();
 
     // TODO for 0.2.5
-    // Add "select file" option for the file source
-    // Have a good directory system on both linux and windows
-    // Switch to double buffering (should fix occassional underruns)
     // Fix gain not updated on startup, soapysdr
-
-    // TODO for 0.2.6
-    // Add a module add/remove/change order menu
 
     // Update UI settings
     LoadingScreen::show("Loading configuration");
@@ -276,113 +189,48 @@ void windowInit() {
     fftHeight = core::configManager.conf["fftHeight"];
     gui::waterfall.setFFTHeight(fftHeight);
 
-    centerTuning = core::configManager.conf["centerTuning"];
+    tuningMode = core::configManager.conf["centerTuning"] ? tuner::TUNER_MODE_CENTER : tuner::TUNER_MODE_NORMAL;
 
     core::configManager.release();
 }
 
-void setVFO(double freq) {
-    double viewBW = gui::waterfall.getViewBandwidth();
-    double BW = gui::waterfall.getBandwidth();
-    if (gui::waterfall.selectedVFO == "") {
-        gui::waterfall.setViewOffset((BW / 2.0) - (viewBW / 2.0));
-        gui::waterfall.setCenterFrequency(freq);
-        sigpath::sourceManager.tune(freq);
+void MainWindow::fftHandler(dsp::complex_t* samples, int count, void* ctx) {
+    MainWindow* _this = (MainWindow*)ctx;
+    std::lock_guard<std::mutex> lck(_this->fft_mtx);
+    if (count != _this->fftSize) { return; }
+
+    memcpy(_this->fft_in, samples, count * sizeof(dsp::complex_t));
+    fftwf_execute(_this->fftwPlan);
+    int half = count / 2;
+
+    float* fftBuf = gui::waterfall.getFFTBuffer();
+    if (fftBuf == NULL) {
+        gui::waterfall.pushFFT();
         return;
     }
 
-    ImGui::WaterfallVFO* vfo = gui::waterfall.vfos[gui::waterfall.selectedVFO];
+    volk_32fc_s32f_power_spectrum_32f(_this->tempFFT, (lv_32fc_t*)_this->fft_out, count, count);
 
-    double currentOff =  vfo->centerOffset;
-    double currentTune = gui::waterfall.getCenterFrequency() + vfo->generalOffset;
-    double delta = freq - currentTune;
+    memcpy(fftBuf, &_this->tempFFT[half], half * sizeof(float));
+    memcpy(&fftBuf[half], _this->tempFFT, half * sizeof(float));
 
-    double newVFO = currentOff + delta;
-    double vfoBW = vfo->bandwidth;
-    double vfoBottom = newVFO - (vfoBW / 2.0);
-    double vfoTop = newVFO + (vfoBW / 2.0);
-
-    double view = gui::waterfall.getViewOffset();
-    double viewBottom = view - (viewBW / 2.0);
-    double viewTop = view + (viewBW / 2.0);
-
-    double wholeFreq = gui::waterfall.getCenterFrequency();
-    double bottom = -(BW / 2.0);
-    double top = (BW / 2.0);
-
-    if (centerTuning) {
-        gui::waterfall.setViewOffset((BW / 2.0) - (viewBW / 2.0));
-        gui::waterfall.setCenterFrequency(freq);
-        gui::waterfall.setViewOffset(0);
-        sigpath::vfoManager.setOffset(gui::waterfall.selectedVFO, 0);
-        sigpath::sourceManager.tune(freq);
-        return;
-    }
-
-    // VFO still fints in the view
-    if (vfoBottom > viewBottom && vfoTop < viewTop) {
-        sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFO);
-        return;
-    }
-
-    // VFO too low for current SDR tuning
-    if (vfoBottom < bottom) {
-        gui::waterfall.setViewOffset((BW / 2.0) - (viewBW / 2.0));
-        double newVFOOffset = (BW / 2.0) - (vfoBW / 2.0) - (viewBW / 10.0);
-        sigpath::vfoManager.setOffset(gui::waterfall.selectedVFO, newVFOOffset);
-        gui::waterfall.setCenterFrequency(freq - newVFOOffset);
-        sigpath::sourceManager.tune(freq - newVFOOffset);
-        return;
-    }
-
-    // VFO too high for current SDR tuning
-    if (vfoTop > top) {
-        gui::waterfall.setViewOffset((viewBW / 2.0) - (BW / 2.0));
-        double newVFOOffset = (vfoBW / 2.0) - (BW / 2.0) + (viewBW / 10.0);
-        sigpath::vfoManager.setOffset(gui::waterfall.selectedVFO, newVFOOffset);
-        gui::waterfall.setCenterFrequency(freq - newVFOOffset);
-        sigpath::sourceManager.tune(freq - newVFOOffset);
-        return;
-    }
-
-    // VFO is still without the SDR's bandwidth
-    if (delta < 0) {
-        double newViewOff = vfoTop - (viewBW / 2.0) + (viewBW / 10.0);
-        double newViewBottom = newViewOff - (viewBW / 2.0);
-        double newViewTop = newViewOff + (viewBW / 2.0);
-
-        if (newViewBottom > bottom) {
-            gui::waterfall.setViewOffset(newViewOff);
-            sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFO);
-            return;
-        }
-
-        gui::waterfall.setViewOffset((BW / 2.0) - (viewBW / 2.0));
-        double newVFOOffset = (BW / 2.0) - (vfoBW / 2.0) - (viewBW / 10.0);
-        sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFOOffset);
-        gui::waterfall.setCenterFrequency(freq - newVFOOffset);
-        sigpath::sourceManager.tune(freq - newVFOOffset);
-    }
-    else {
-        double newViewOff = vfoBottom + (viewBW / 2.0) - (viewBW / 10.0);
-        double newViewBottom = newViewOff - (viewBW / 2.0);
-        double newViewTop = newViewOff + (viewBW / 2.0);
-
-        if (newViewTop < top) {
-            gui::waterfall.setViewOffset(newViewOff);
-            sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFO);
-            return;
-        }
-
-        gui::waterfall.setViewOffset((viewBW / 2.0) - (BW / 2.0));
-        double newVFOOffset = (vfoBW / 2.0) - (BW / 2.0) + (viewBW / 10.0);
-        sigpath::vfoManager.setCenterOffset(gui::waterfall.selectedVFO, newVFOOffset);
-        gui::waterfall.setCenterFrequency(freq - newVFOOffset);
-        sigpath::sourceManager.tune(freq - newVFOOffset);
-    }
+    gui::waterfall.pushFFT();
 }
 
-void drawWindow() {
+void MainWindow::vfoAddedHandler(VFOManager::VFO* vfo, void* ctx) {
+    MainWindow* _this = (MainWindow*)ctx;
+    std::string name = vfo->getName();
+    core::configManager.aquire();
+    if (!core::configManager.conf["vfoOffsets"].contains(name)) {
+        core::configManager.release();
+        return;
+    }
+    double offset = core::configManager.conf["vfoOffsets"][name];
+    core::configManager.release();
+    sigpath::vfoManager.setOffset(name, std::clamp<double>(offset, -_this->bw/2.0, _this->bw/2.0));
+}
+
+void MainWindow::draw() {
     ImGui::Begin("Main", NULL, WINDOW_FLAGS);
 
     ImGui::WaterfallVFO* vfo = NULL;
@@ -390,11 +238,11 @@ void drawWindow() {
         vfo = gui::waterfall.vfos[gui::waterfall.selectedVFO];
     }
 
-    // Handke VFO movement
+    // Handle VFO movement
     if (vfo != NULL) {
         if (vfo->centerOffsetChanged) {
-            if (centerTuning) {
-                setVFO(gui::waterfall.getCenterFrequency() + vfo->generalOffset);
+            if (tuningMode == tuner::TUNER_MODE_CENTER) {
+                tuner::tune(tuner::TUNER_MODE_CENTER, gui::waterfall.selectedVFO, gui::waterfall.getCenterFrequency() + vfo->generalOffset);
             }
             gui::freqSelect.setFrequency(gui::waterfall.getCenterFrequency() + vfo->generalOffset);
             gui::freqSelect.frequencyChanged = false;
@@ -416,7 +264,7 @@ void drawWindow() {
     // Handle change in selected frequency
     if (gui::freqSelect.frequencyChanged) {
         gui::freqSelect.frequencyChanged = false;
-        setVFO(gui::freqSelect.frequency);
+        tuner::tune(tuningMode, gui::waterfall.selectedVFO, gui::freqSelect.frequency);
         if (vfo != NULL) {
             vfo->centerOffsetChanged = false;
             vfo->lowerOffsetChanged = false;
@@ -502,12 +350,12 @@ void drawWindow() {
     ImGui::SameLine();
 
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 9);
-    if (centerTuning) {
+    if (tuningMode == tuner::TUNER_MODE_CENTER) {
         ImGui::PushID(ImGui::GetID("sdrpp_ena_st_btn"));
         if (ImGui::ImageButton(icons::CENTER_TUNING, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
-            centerTuning = false;
+            tuningMode = tuner::TUNER_MODE_NORMAL;
             core::configManager.aquire();
-            core::configManager.conf["centerTuning"] = centerTuning;
+            core::configManager.conf["centerTuning"] = false;
             core::configManager.release(true);
         }
         ImGui::PopID();
@@ -515,10 +363,10 @@ void drawWindow() {
     else { // TODO: Might need to check if there even is a device
         ImGui::PushID(ImGui::GetID("sdrpp_dis_st_btn"));
         if (ImGui::ImageButton(icons::NORMAL_TUNING, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
-            centerTuning = true;
-            setVFO(gui::freqSelect.frequency);
+            tuningMode = tuner::TUNER_MODE_CENTER;
+            tuner::tune(tuner::TUNER_MODE_CENTER, gui::waterfall.selectedVFO, gui::freqSelect.frequency);
             core::configManager.aquire();
-            core::configManager.conf["centerTuning"] = centerTuning;
+            core::configManager.conf["centerTuning"] = true;
             core::configManager.release(true);
         }
         ImGui::PopID();
@@ -607,7 +455,6 @@ void drawWindow() {
             ImGui::Text("Center Frequency: %.0f Hz", gui::waterfall.getCenterFrequency());
             ImGui::Text("Source name: %s", sourceName.c_str());
             ImGui::Checkbox("Show demo window", &demoWindow);
-            ImGui::Checkbox("Experimental zoom", &experimentalZoom);
             ImGui::Text("ImGui version: %s", ImGui::GetVersion());
 
             if (ImGui::Button("Test Bug")) {
@@ -618,8 +465,6 @@ void drawWindow() {
                 gui::menu.order[0].open = true;
                 firstMenuRender = true;
             }
-
-            ImGui::SliderFloat("Testing SNR meter", &testSNR, 0, 100);
 
             ImGui::Spacing();
         }
@@ -650,12 +495,12 @@ void drawWindow() {
         if (ImGui::IsKeyPressed(GLFW_KEY_LEFT) && !gui::freqSelect.digitHovered) {
             double nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset - vfo->snapInterval;
             nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
-            setVFO(nfreq);
+            tuner::tune(tuningMode, gui::waterfall.selectedVFO, nfreq);
         }
         if (ImGui::IsKeyPressed(GLFW_KEY_RIGHT) && !gui::freqSelect.digitHovered) {
             double nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset + vfo->snapInterval;
             nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
-            setVFO(nfreq);
+            tuner::tune(tuningMode, gui::waterfall.selectedVFO, nfreq);
         }
         core::configManager.aquire();
         core::configManager.conf["frequency"] = gui::waterfall.getCenterFrequency();
@@ -676,8 +521,7 @@ void drawWindow() {
         else {
             nfreq = gui::waterfall.getCenterFrequency() - (gui::waterfall.getViewBandwidth() * wheel / 20.0);
         }
-        
-        setVFO(nfreq);
+        tuner::tune(tuningMode, gui::waterfall.selectedVFO, nfreq);
         gui::freqSelect.setFrequency(nfreq);
         core::configManager.aquire();
         core::configManager.conf["frequency"] = gui::waterfall.getCenterFrequency();
@@ -742,15 +586,15 @@ void drawWindow() {
     }
 }
 
-void setViewBandwidthSlider(float bandwidth) {
+void MainWindow::setViewBandwidthSlider(float bandwidth) {
     bw = bandwidth;
 }
 
-bool sdrIsRunning() {
+bool MainWindow::sdrIsRunning() {
     return playing;
 }
 
-void setFFTSize(int size) {
+void MainWindow::setFFTSize(int size) {
     std::lock_guard<std::mutex> lck(fft_mtx);
     fftSize = size;
 
@@ -759,9 +603,9 @@ void setFFTSize(int size) {
 
     fftwf_free(fft_in);
     fftwf_free(fft_out);
-    fftwf_destroy_plan(p);
+    fftwf_destroy_plan(fftwPlan);
     
     fft_in = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * fftSize);
     fft_out = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * fftSize);
-    p = fftwf_plan_dft_1d(fftSize, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftwPlan = fftwf_plan_dft_1d(fftSize, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
 }

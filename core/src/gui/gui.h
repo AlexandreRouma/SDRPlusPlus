@@ -4,11 +4,14 @@
 #include <gui/widgets/menu.h>
 #include <gui/dialogs/loading_screen.h>
 #include <module.h>
+#include <gui/main_window.h>
 
 namespace gui {
     SDRPP_EXPORT ImGui::WaterFall waterfall;
     SDRPP_EXPORT FrequencySelect freqSelect;
     SDRPP_EXPORT Menu menu;
+
+    SDRPP_EXPORT MainWindow mainWindow;
 
     void selectSource(std::string name);
 };
