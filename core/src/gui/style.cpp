@@ -29,8 +29,8 @@ namespace style {
         auto& style = ImGui::GetStyle();
         ImVec4* colors = style.Colors;
         ImVec4 btnCol = colors[ImGuiCol_Button];
-        ImVec4 frameCol = colors[ImGuiCol_Button];
-        ImVec4 textCol = colors[ImGuiCol_Button];
+        ImVec4 frameCol = colors[ImGuiCol_FrameBg];
+        ImVec4 textCol = colors[ImGuiCol_Text];
         btnCol.w = 0.15f;
         frameCol.w = 0.30f;
         textCol.w = 0.65f;
