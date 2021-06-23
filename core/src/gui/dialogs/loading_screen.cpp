@@ -7,6 +7,7 @@
 #include <gui/icons.h>
 #include <gui/style.h>
 #include <credits.h>
+#include <gui/gui.h>
 
 namespace LoadingScreen {
     GLFWwindow* _win;
@@ -76,7 +77,7 @@ namespace LoadingScreen {
         int display_w, display_h;
         glfwGetFramebufferSize(_win, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
-        glClearColor(0.0666f, 0.0666f, 0.0666f, 1.0f);
+        glClearColor(gui::themeManager.clearColor.x, gui::themeManager.clearColor.y, gui::themeManager.clearColor.z, gui::themeManager.clearColor.w);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

@@ -6,6 +6,22 @@
 #include <fstream>
 
 bool ThemeManager::loadThemesFromDir(std::string path) {
+    // TEST JUST TO DUMP THE ORIGINAL THEME
+    auto& style = ImGui::GetStyle();
+    ImVec4* colors = style.Colors;
+
+    printf("\n\n");
+    for (auto [name, id] : IMGUI_COL_IDS) {
+        ImVec4 col = colors[id];
+        uint8_t r = 255 - (col.x * 255.0f);
+        uint8_t g = 255 - (col.y * 255.0f);
+        uint8_t b = 255 - (col.z * 255.0f);
+        uint8_t a = col.w * 255.0f;
+        printf("\"%s\": \"#%02X%02X%02X%02X\",\n", name.c_str(), r, g, b, a);
+    }
+    printf("\n\n");
+
+
     if (!std::filesystem::is_directory(path)) {
         spdlog::error("Theme directory doesn't exist: {0}", path);
         return false;
@@ -48,6 +64,11 @@ bool ThemeManager::loadTheme(std::string path) {
     }
     std::string name = data["name"];
 
+    if (themes.find(name) != themes.end()) {
+        spdlog::error("A theme named '{0}' already exists", name);
+        return false;
+    }
+
     // Load theme author if available
     if (data.contains("author")) {
         if (!data["author"].is_string()) {
@@ -61,6 +82,15 @@ bool ThemeManager::loadTheme(std::string path) {
     std::map<std::string, std::string> params = data;
     for (auto const& [param, val] : params) {
         if (param == "name" || param == "author") { continue; }
+
+        // Exception for non-imgu colors
+        if (param == "WaterfallBackground" || param == "ClearColor") {
+            if (val[0] != '#' || !std::all_of(val.begin() + 1, val.end(), ::isxdigit) || val.length() != 9) {
+                spdlog::error("Theme {0} contains invalid {1} field. Expected hex RGBA color", path, param);
+                return false;
+            }
+            continue;
+        }
 
         bool isValid = false;
 
@@ -110,6 +140,18 @@ bool ThemeManager::applyTheme(std::string name) {
     for (auto const& [param, val] : params) {
         if (param == "name" || param == "author") { continue; }
 
+        if (param == "WaterfallBackground") {
+            decodeRGBA(val, ret);
+            waterfallBg = ImVec4((float)ret[0]/255.0f, (float)ret[1]/255.0f, (float)ret[2]/255.0f, (float)ret[3]/255.0f);
+            continue;
+        }
+
+        if (param == "ClearColor") {
+            decodeRGBA(val, ret);
+            clearColor = ImVec4((float)ret[0]/255.0f, (float)ret[1]/255.0f, (float)ret[2]/255.0f, (float)ret[3]/255.0f);
+            continue;
+        }
+
         // If param is a color, check that it's a valid RGBA hex value
         if (IMGUI_COL_IDS.find(param) != IMGUI_COL_IDS.end()) {
             decodeRGBA(val, ret);
@@ -130,6 +172,12 @@ bool ThemeManager::decodeRGBA(std::string str, uint8_t out[4]) {
     out[2] = std::stoi(str.substr(5, 2), NULL, 16);
     out[3] = std::stoi(str.substr(7, 2), NULL, 16);
     return true;
+}
+
+std::vector<std::string> ThemeManager::getThemeNames() {
+    std::vector<std::string> names;
+    for (auto [name, theme] : themes) { names.push_back(name); }
+    return names;
 }
 
 std::map<std::string, int> ThemeManager::IMGUI_COL_IDS = {

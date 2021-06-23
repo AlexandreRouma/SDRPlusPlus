@@ -131,6 +131,7 @@ namespace ImGui {
 
         ImU32 trace = ImGui::GetColorU32(ImGuiCol_PlotLines);
         ImU32 shadow = ImGui::GetColorU32(ImGuiCol_PlotLines, 0.2);
+        ImU32 text = ImGui::GetColorU32(ImGuiCol_Text);
 
         // Vertical scale
         for (float line = startLine; line > fftMin; line -= vRange) {
@@ -140,7 +141,7 @@ namespace ImGui {
                                     IM_COL32(50, 50, 50, 255), 1.0);
             sprintf(buf, "%d", (int)line);
             ImVec2 txtSz = ImGui::CalcTextSize(buf);
-            window->DrawList->AddText(ImVec2(widgetPos.x + 40 - txtSz.x, roundf(yPos - (txtSz.y / 2.0))), IM_COL32( 255, 255, 255, 255 ), buf);
+            window->DrawList->AddText(ImVec2(widgetPos.x + 40 - txtSz.x, roundf(yPos - (txtSz.y / 2.0))), text, buf);
         }
 
         // Horizontal scale
@@ -153,10 +154,10 @@ namespace ImGui {
                                     IM_COL32(50, 50, 50, 255), 1.0);
             window->DrawList->AddLine(ImVec2(roundf(xPos), widgetPos.y + fftHeight + 10), 
                                     ImVec2(roundf(xPos), widgetPos.y + fftHeight + 17),
-                                    IM_COL32(255, 255, 255, 255), 1.0);
+                                    text, 1.0);
             printAndScale(freq, buf);
             ImVec2 txtSz = ImGui::CalcTextSize(buf);
-            window->DrawList->AddText(ImVec2(roundf(xPos - (txtSz.x / 2.0)), widgetPos.y + fftHeight + 10 + txtSz.y), IM_COL32( 255, 255, 255, 255 ), buf);
+            window->DrawList->AddText(ImVec2(roundf(xPos - (txtSz.x / 2.0)), widgetPos.y + fftHeight + 10 + txtSz.y), text, buf);
         }
 
         // Data
@@ -176,11 +177,11 @@ namespace ImGui {
         // X Axis
         window->DrawList->AddLine(ImVec2(widgetPos.x + 50, widgetPos.y + fftHeight + 10), 
                                     ImVec2(widgetPos.x + dataWidth + 50, widgetPos.y + fftHeight + 10),
-                                    IM_COL32(255, 255, 255, 255), 1.0);
+                                    text, 1.0);
         // Y Axis
         window->DrawList->AddLine(ImVec2(widgetPos.x + 50, widgetPos.y + 9), 
                                     ImVec2(widgetPos.x + 50, widgetPos.y + fftHeight + 9),
-                                    IM_COL32(255, 255, 255, 255), 1.0);
+                                    text, 1.0);
 
         
     }
@@ -193,7 +194,7 @@ namespace ImGui {
         window->DrawList->AddImage((void*)(intptr_t)textureId, wfMin, wfMax);
         ImVec2 mPos = ImGui::GetMousePos();
 
-        if (IS_IN_AREA(mPos, wfMin, wfMax)) {
+        if (IS_IN_AREA(mPos, wfMin, wfMax) && !gui::mainWindow.lockWaterfallControls) {
             for (auto const& [name, vfo] : vfos) {
                 window->DrawList->AddRectFilled(vfo->wfRectMin, vfo->wfRectMax, vfo->color);
                 window->DrawList->AddLine(vfo->wfLineMin, vfo->wfLineMax, (name == selectedVFO) ? IM_COL32(255, 0, 0, 255) : IM_COL32(255, 255, 0, 255));
@@ -701,11 +702,13 @@ namespace ImGui {
             onResize();
         }
 
-        window->DrawList->AddRectFilled(widgetPos, widgetEndPos, IM_COL32( 0, 0, 0, 255 ));
+        //window->DrawList->AddRectFilled(widgetPos, widgetEndPos, IM_COL32( 0, 0, 0, 255 ));
+        ImU32 bg = ImGui::ColorConvertFloat4ToU32(gui::themeManager.waterfallBg);
+        window->DrawList->AddRectFilled(widgetPos, widgetEndPos, bg);
         window->DrawList->AddRect(widgetPos, widgetEndPos, IM_COL32( 50, 50, 50, 255 ));
         window->DrawList->AddLine(ImVec2(widgetPos.x, widgetPos.y + fftHeight + 50), ImVec2(widgetPos.x + widgetSize.x, widgetPos.y + fftHeight + 50), IM_COL32(50, 50, 50, 255), 1.0);
 
-        processInputs();
+        if (!gui::mainWindow.lockWaterfallControls) { processInputs(); }
 
         updateAllVFOs(true);
         
@@ -724,28 +727,30 @@ namespace ImGui {
         }
 
         // Handle fft resize
-        ImVec2 winSize = ImGui::GetWindowSize();
-        ImVec2 mousePos = ImGui::GetMousePos();
-        mousePos.x -= widgetPos.x;
-        mousePos.y -= widgetPos.y;
-        bool click = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
-        bool down = ImGui::IsMouseDown(ImGuiMouseButton_Left);
-        if (draggingFW) {
-            newFFTAreaHeight = mousePos.y;
-            newFFTAreaHeight = std::clamp<float>(newFFTAreaHeight, 150, widgetSize.y - 50);
-            ImGui::GetForegroundDrawList()->AddLine(ImVec2(widgetPos.x, newFFTAreaHeight + widgetPos.y), ImVec2(widgetEndPos.x, newFFTAreaHeight + widgetPos.y), 
-                                                    ImGui::GetColorU32(ImGuiCol_SeparatorActive));
-        }
-        if (mousePos.y >= newFFTAreaHeight - 2 && mousePos.y <= newFFTAreaHeight + 2 && mousePos.x > 0 && mousePos.x < widgetSize.x) {
-            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
-            if (click) {
-                draggingFW = true;
+        if (!gui::mainWindow.lockWaterfallControls) { 
+            ImVec2 winSize = ImGui::GetWindowSize();
+            ImVec2 mousePos = ImGui::GetMousePos();
+            mousePos.x -= widgetPos.x;
+            mousePos.y -= widgetPos.y;
+            bool click = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+            bool down = ImGui::IsMouseDown(ImGuiMouseButton_Left);
+            if (draggingFW) {
+                newFFTAreaHeight = mousePos.y;
+                newFFTAreaHeight = std::clamp<float>(newFFTAreaHeight, 150, widgetSize.y - 50);
+                ImGui::GetForegroundDrawList()->AddLine(ImVec2(widgetPos.x, newFFTAreaHeight + widgetPos.y), ImVec2(widgetEndPos.x, newFFTAreaHeight + widgetPos.y), 
+                                                        ImGui::GetColorU32(ImGuiCol_SeparatorActive));
             }
-        }
-        if(!down && draggingFW) {
-            draggingFW = false;
-            FFTAreaHeight = newFFTAreaHeight;
-            onResize();
+            if (mousePos.y >= newFFTAreaHeight - 2 && mousePos.y <= newFFTAreaHeight + 2 && mousePos.x > 0 && mousePos.x < widgetSize.x) {
+                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
+                if (click) {
+                    draggingFW = true;
+                }
+            }
+            if(!down && draggingFW) {
+                draggingFW = false;
+                FFTAreaHeight = newFFTAreaHeight;
+                onResize();
+            }
         }
 
         buf_mtx.unlock();
@@ -1128,14 +1133,16 @@ namespace ImGui {
             window->DrawList->AddLine(lineMin, lineMax, selected ? IM_COL32(255, 0, 0, 255) : IM_COL32(255, 255, 0, 255));
         }
 
-        ImVec2 mousePos = ImGui::GetMousePos();
-        if (reference != REF_LOWER && !bandwidthLocked) {
-            if (IS_IN_AREA(mousePos, lbwSelMin, lbwSelMax)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW); }
-            else if (IS_IN_AREA(mousePos, wfLbwSelMin, wfLbwSelMax)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW); }
-        }
-        if (reference != REF_UPPER && !bandwidthLocked) {
-            if (IS_IN_AREA(mousePos, rbwSelMin, rbwSelMax)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW); }
-            else if (IS_IN_AREA(mousePos, wfRbwSelMin, wfRbwSelMax)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW); }
+        if (!gui::mainWindow.lockWaterfallControls) {
+            ImVec2 mousePos = ImGui::GetMousePos();
+            if (reference != REF_LOWER && !bandwidthLocked) {
+                if (IS_IN_AREA(mousePos, lbwSelMin, lbwSelMax)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW); }
+                else if (IS_IN_AREA(mousePos, wfLbwSelMin, wfLbwSelMax)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW); }
+            }
+            if (reference != REF_UPPER && !bandwidthLocked) {
+                if (IS_IN_AREA(mousePos, rbwSelMin, rbwSelMax)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW); }
+                else if (IS_IN_AREA(mousePos, wfRbwSelMin, wfRbwSelMax)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW); }
+            }
         }
     };
 

@@ -20,6 +20,9 @@ public:
 
     std::vector<std::string> getThemeNames();
 
+    ImVec4 waterfallBg = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);;
+    ImVec4 clearColor = ImVec4(0.0666f, 0.0666f, 0.0666f, 1.0f);
+
 private:
     static bool decodeRGBA(std::string str, uint8_t out[4]);
 

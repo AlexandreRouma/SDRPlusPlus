@@ -19,6 +19,7 @@
 #include <duktape/duktape.h>
 #include <duktape/duk_console.h>
 #include <filesystem>
+#include <gui/menus/theme.h>
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb_image_resize.h>
@@ -165,6 +166,9 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["moduleInstances"]["File Source"] = "file_source";
     defConfig["moduleInstances"]["SDRplay Source"] = "sdrplay_source";
     defConfig["moduleInstances"]["Audio Sink"] = "audio_sink";
+
+    // Themes
+    defConfig["theme"] = "Dark";
 
     defConfig["modules"] = json::array();
     defConfig["offset"] = 0.0;
@@ -322,7 +326,8 @@ int sdrpp_main(int argc, char *argv[]) {
         }
     }
 
-    if (!style::setDarkStyle(resDir)) { return -1; }
+    if (!style::loadFonts(resDir)) { return -1; }
+    thememenu::init(resDir);
 
     LoadingScreen::setWindow(core::window);
 
@@ -405,8 +410,8 @@ int sdrpp_main(int argc, char *argv[]) {
         int display_w, display_h;
         glfwGetFramebufferSize(core::window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
-        glClearColor(0.0666f, 0.0666f, 0.0666f, 1.0f);
-        //glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
+        //glClearColor(0.0666f, 0.0666f, 0.0666f, 1.0f);
+        glClearColor(gui::themeManager.clearColor.x, gui::themeManager.clearColor.y, gui::themeManager.clearColor.z, gui::themeManager.clearColor.w);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

@@ -25,6 +25,7 @@
 #include <gui/menus/scripting.h>
 #include <gui/menus/vfo_color.h>
 #include <gui/menus/module_manager.h>
+#include <gui/menus/theme.h>
 #include <gui/dialogs/credits.h>
 #include <filesystem>
 #include <signal_path/source.h>
@@ -68,6 +69,7 @@ void MainWindow::init() {
     gui::menu.registerEntry("Scripting", scriptingmenu::draw, NULL);
     gui::menu.registerEntry("Band Plan", bandplanmenu::draw, NULL);
     gui::menu.registerEntry("Display", displaymenu::draw, NULL);
+    gui::menu.registerEntry("Theme", thememenu::draw, NULL);
     gui::menu.registerEntry("VFO Color", vfo_color_menu::draw, NULL);
     gui::menu.registerEntry("Module Manager", module_manager_menu::draw, NULL);
     
@@ -423,7 +425,7 @@ void MainWindow::draw() {
     }
 
     // Left Column
-
+    lockWaterfallControls = false;
     if (showMenu) {
         ImGui::Columns(3, "WindowColumns", false);
         ImGui::SetColumnWidth(0, menuWidth);
@@ -490,45 +492,47 @@ void MainWindow::draw() {
 
     ImGui::EndChild();
 
-    // Handle arrow keys
-    if (vfo != NULL && (gui::waterfall.mouseInFFT || gui::waterfall.mouseInWaterfall)) {
-        if (ImGui::IsKeyPressed(GLFW_KEY_LEFT) && !gui::freqSelect.digitHovered) {
-            double nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset - vfo->snapInterval;
-            nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
-            tuner::tune(tuningMode, gui::waterfall.selectedVFO, nfreq);
+    if (!lockWaterfallControls) {
+        // Handle arrow keys
+        if (vfo != NULL && (gui::waterfall.mouseInFFT || gui::waterfall.mouseInWaterfall)) {
+            if (ImGui::IsKeyPressed(GLFW_KEY_LEFT) && !gui::freqSelect.digitHovered) {
+                double nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset - vfo->snapInterval;
+                nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
+                tuner::tune(tuningMode, gui::waterfall.selectedVFO, nfreq);
+            }
+            if (ImGui::IsKeyPressed(GLFW_KEY_RIGHT) && !gui::freqSelect.digitHovered) {
+                double nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset + vfo->snapInterval;
+                nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
+                tuner::tune(tuningMode, gui::waterfall.selectedVFO, nfreq);
+            }
+            core::configManager.aquire();
+            core::configManager.conf["frequency"] = gui::waterfall.getCenterFrequency();
+            if (vfo != NULL) {
+                core::configManager.conf["vfoOffsets"][gui::waterfall.selectedVFO] = vfo->generalOffset;
+            }
+            core::configManager.release(true);
         }
-        if (ImGui::IsKeyPressed(GLFW_KEY_RIGHT) && !gui::freqSelect.digitHovered) {
-            double nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset + vfo->snapInterval;
-            nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
-            tuner::tune(tuningMode, gui::waterfall.selectedVFO, nfreq);
-        }
-        core::configManager.aquire();
-        core::configManager.conf["frequency"] = gui::waterfall.getCenterFrequency();
-        if (vfo != NULL) {
-            core::configManager.conf["vfoOffsets"][gui::waterfall.selectedVFO] = vfo->generalOffset;
-        }
-        core::configManager.release(true);
-    }
 
-    // Handle scrollwheel
-    int wheel = ImGui::GetIO().MouseWheel;
-    if (wheel != 0 && (gui::waterfall.mouseInFFT || gui::waterfall.mouseInWaterfall)) {
-        double nfreq;
-        if (vfo != NULL) {
-            nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset + (vfo->snapInterval * wheel);
-            nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
+        // Handle scrollwheel
+        int wheel = ImGui::GetIO().MouseWheel;
+        if (wheel != 0 && (gui::waterfall.mouseInFFT || gui::waterfall.mouseInWaterfall)) {
+            double nfreq;
+            if (vfo != NULL) {
+                nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset + (vfo->snapInterval * wheel);
+                nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
+            }
+            else {
+                nfreq = gui::waterfall.getCenterFrequency() - (gui::waterfall.getViewBandwidth() * wheel / 20.0);
+            }
+            tuner::tune(tuningMode, gui::waterfall.selectedVFO, nfreq);
+            gui::freqSelect.setFrequency(nfreq);
+            core::configManager.aquire();
+            core::configManager.conf["frequency"] = gui::waterfall.getCenterFrequency();
+            if (vfo != NULL) {
+                core::configManager.conf["vfoOffsets"][gui::waterfall.selectedVFO] = vfo->generalOffset;
+            }
+            core::configManager.release(true);
         }
-        else {
-            nfreq = gui::waterfall.getCenterFrequency() - (gui::waterfall.getViewBandwidth() * wheel / 20.0);
-        }
-        tuner::tune(tuningMode, gui::waterfall.selectedVFO, nfreq);
-        gui::freqSelect.setFrequency(nfreq);
-        core::configManager.aquire();
-        core::configManager.conf["frequency"] = gui::waterfall.getCenterFrequency();
-        if (vfo != NULL) {
-            core::configManager.conf["vfoOffsets"][gui::waterfall.selectedVFO] = vfo->generalOffset;
-        }
-        core::configManager.release(true);
     }
     
     ImGui::NextColumn();

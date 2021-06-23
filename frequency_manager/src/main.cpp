@@ -5,9 +5,11 @@
 #include <gui/style.h>
 #include <core.h>
 #include <thread>
+#include <options.h>
 #include <radio_interface.h>
 #include <signal_path/signal_path.h>
 #include <vector>
+#include <gui/tuner.h>
 
 SDRPP_MOD_INFO {
     /* Name:            */ "frequency_manager",
@@ -23,6 +25,8 @@ struct FrequencyBookmark {
     int mode;
     bool selected;
 };
+
+ConfigManager config;
 
 class FrequencyManagerModule : public ModuleManager::Instance {
 public:
@@ -78,12 +82,20 @@ private:
             gui::waterfall.centerFreqMoved = true;
         }
         else {
-
+            tuner::tune(tuner::TUNER_MODE_NORMAL, vfoName, bm.frequency);
+            if (core::modComManager.interfaceExists(vfoName)) {
+                if (core::modComManager.getModuleName(vfoName) == "radio") {
+                    int mode = bm.mode;
+                    core::modComManager.callInterface(vfoName, RADIO_IFACE_CMD_SET_MODE, &mode, NULL);
+                    // TODO: Set bandwidth as well
+                }
+            }
         }
     }
 
     bool bookmarkEditDialog() {
         bool open = true;
+        gui::mainWindow.lockWaterfallControls = true;
 
         std::string id = "Edit##freq_manager_edit_popup_" + name;
         ImGui::OpenPopup(id.c_str());
@@ -131,7 +143,13 @@ private:
             if (strlen(nameBuf) == 0) { style::beginDisabled(); }
             if (ImGui::Button("Apply")) {
                 open = false;
+                
+                // If editing, delete the original one
+                if (editOpen) {
+                    bookmarks.erase(firstEeditedBookmarkName);
+                }
                 bookmarks[nameBuf] = editedBookmark;
+                
             }
             if (strlen(nameBuf) == 0) { style::endDisabled(); }
             ImGui::SameLine();
@@ -141,6 +159,32 @@ private:
             ImGui::EndPopup();
         }
         return open;
+    }
+
+    void loadByName(std::string listName) {
+        if (std::find(listNames.begin(), listNames.end(), listName) == listNames.end()) { return; }
+        bookmarks.clear();
+        config.aquire();
+        for (auto [bmName, bm] : config.conf["lists"][listName].items()) {
+            FrequencyBookmark fbm;
+            fbm.frequency = bm["frequency"];
+            fbm.bandwidth = bm["bandwidth"];
+            fbm.mode = bm["mode"];
+            fbm.selected = false;
+            bookmarks[bmName] = fbm;
+        }
+        config.release();
+    }
+
+    void saveByName(std::string listName) {
+        config.aquire();
+        config.conf["lists"][listName] = json::object();
+        for (auto [bmName, bm] : bookmarks) {
+            config.conf["lists"][listName][bmName]["frequency"] = bm.frequency;
+            config.conf["lists"][listName][bmName]["bandwidth"] = bm.bandwidth;
+            config.conf["lists"][listName][bmName]["mode"] = bm.mode;
+        }
+        config.release(true);
     }
 
     static void menuHandler(void* ctx) {
@@ -211,13 +255,14 @@ private:
             _this->editOpen = true;
             _this->editedBookmark = _this->bookmarks[selectedNames[0]];
             _this->editedBookmarkName = selectedNames[0];
+            _this->firstEeditedBookmarkName = selectedNames[0];
         }
         if (selectedNames.size() != 1) { style::endDisabled(); }
         
         ImGui::EndTable();
 
         // Bookmark list
-        ImGui::BeginTable(("freq_manager_bkm_table"+_this->name).c_str(), 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg, ImVec2(0, 300));
+        ImGui::BeginTable(("freq_manager_bkm_table"+_this->name).c_str(), 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg, ImVec2(0, 200));
         ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableSetupColumn("Bookmark", ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableHeadersRow();
@@ -235,8 +280,6 @@ private:
             ImGui::TableSetColumnIndex(1);
             ImGui::Text(freqToStr(bm.frequency).c_str());
             ImVec2 max = ImGui::GetCursorPos();
-            
-            
         }
         
         ImGui::EndTable();
@@ -249,6 +292,10 @@ private:
         }
         if (selectedNames.size() != 1) { style::endDisabled(); }
 
+        if (_this->createOpen) {
+            _this->createOpen = _this->bookmarkEditDialog();
+        }
+
         if (_this->editOpen) {
             _this->editOpen = _this->bookmarkEditDialog();
         }
@@ -256,19 +303,30 @@ private:
 
     std::string name;
     bool enabled = true;
+    bool createOpen = false;
     bool editOpen = false;
 
     std::map<std::string, FrequencyBookmark> bookmarks;
 
     std::string editedBookmarkName = "";
+    std::string firstEeditedBookmarkName = "";
     FrequencyBookmark editedBookmark;
+
+    std::vector<std::string> listNames;
+    std::string selectedListName;
+    int selectedListId = 0;
 
     int testN = 0;
 
 };
 
 MOD_EXPORT void _INIT_() {
-    // Nothing here (testing)
+    json def = json({});
+    def["selectedList"] = "General";
+    def["lists"]["General"] = json::array();
+    config.setPath(options::opts.root + "/frequency_manager_config.json");
+    config.load(def);
+    config.enableAutoSave();
 }
 
 MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {

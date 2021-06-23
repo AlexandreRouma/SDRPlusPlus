@@ -29,8 +29,8 @@ namespace ImGui {
 
         float zeroDb = roundf(((-val_min) / (val_max - val_min)) * size.x);
 
-        window->DrawList->AddRectFilled(min, min + ImVec2(zeroDb, lineHeight), IM_COL32( 0, 255, 0, 127 ));
-        window->DrawList->AddRectFilled(min + ImVec2(zeroDb, 0), min + ImVec2(size.x, lineHeight), IM_COL32( 255, 0, 0, 127 ));
+        window->DrawList->AddRectFilled(min, min + ImVec2(zeroDb, lineHeight), IM_COL32( 9, 136, 9, 255 ));
+        window->DrawList->AddRectFilled(min + ImVec2(zeroDb, 0), min + ImVec2(size.x, lineHeight), IM_COL32( 136, 9, 9, 255 ));
 
         float end = roundf(((avg - val_min) / (val_max - val_min)) * size.x);
         float endP = roundf(((peak - val_min) / (val_max - val_min)) * size.x);

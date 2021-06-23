@@ -22,6 +22,8 @@ public:
     // TODO: Replace with it's own class 
     void setVFO(double freq);
 
+    bool lockWaterfallControls = false;
+
 private:
     static void fftHandler(dsp::complex_t* samples, int count, void* ctx);
     static void vfoAddedHandler(VFOManager::VFO* vfo, void* ctx);

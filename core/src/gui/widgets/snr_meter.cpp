@@ -17,6 +17,8 @@ namespace ImGui {
         ImVec2 size = CalcItemSize(size_arg, CalcItemWidth(), 26);
         ImRect bb(min, min + size);
 
+        ImU32 text = ImGui::GetColorU32(ImGuiCol_Text);
+
         float lineHeight = size.y;
 
         ItemSize(size, style.FramePadding.y);
@@ -30,14 +32,14 @@ namespace ImGui {
         char buf[32];
 
         window->DrawList->AddRectFilled(min + ImVec2(0, 1), min + ImVec2(roundf((float)val * ratio), 10), IM_COL32(0, 136, 255, 255));
-        window->DrawList->AddLine(min, min + ImVec2(0, 9), IM_COL32(255, 255, 255, 255));
-        window->DrawList->AddLine(min + ImVec2(0, 9), min + ImVec2(size.x + 1, 9), IM_COL32(255, 255, 255, 255));
+        window->DrawList->AddLine(min, min + ImVec2(0, 9), text);
+        window->DrawList->AddLine(min + ImVec2(0, 9), min + ImVec2(size.x + 1, 9), text);
 
         for (int i = 0; i < 10; i++) {
-            window->DrawList->AddLine(min + ImVec2(roundf((float)i * it), 9), min + ImVec2(roundf((float)i * it), 14), IM_COL32(255, 255, 255, 255));
+            window->DrawList->AddLine(min + ImVec2(roundf((float)i * it), 9), min + ImVec2(roundf((float)i * it), 14), text);
             sprintf(buf, "%d", i * 10);
             ImVec2 sz = ImGui::CalcTextSize(buf);
-            window->DrawList->AddText(min + ImVec2(roundf(((float)i * it) - (sz.x/2.0)) + 1, 16), IM_COL32(255, 255, 255, 255), buf);
+            window->DrawList->AddText(min + ImVec2(roundf(((float)i * it) - (sz.x/2.0)) + 1, 16), text, buf);
         }
     }
 }
