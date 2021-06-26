@@ -11,6 +11,7 @@ namespace tuner {
         gui::waterfall.setViewOffset((BW / 2.0) - (viewBW / 2.0));
         gui::waterfall.setCenterFrequency(freq);
         gui::waterfall.setViewOffset(0);
+        sigpath::sourceManager.tune(freq);
     }
 
     void normalTuning(std::string vfoName, double freq) {

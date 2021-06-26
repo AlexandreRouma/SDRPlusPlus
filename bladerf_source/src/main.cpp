@@ -10,6 +10,7 @@
 #include <gui/widgets/stepped_slider.h>
 #include <libbladeRF.h>
 #include <dsp/processing.h>
+#include <algorithm>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -44,9 +45,12 @@ public:
         handler.stream = &stream;
 
         refresh();
-        selectFirst();
 
         // Select device here
+        config.aquire();
+        std::string serial = config.conf["device"];
+        config.release();
+        selectBySerial(serial);
         core::setInputSampleRate(sampleRate);
 
         sigpath::sourceManager.registerSource("BladeRF", &handler);
@@ -91,18 +95,55 @@ public:
         if (devCount > 0) { selectByInfo(&devInfoList[0]); }
     }
 
-    void selectByInfo(bladerf_devinfo* info) {
+    void selectBySerial(std::string serial, bool reloadChannelId = true) {
+        if (serial == "") { 
+            selectFirst();
+            return;
+        }
+        for (int i = 0; i < devCount; i++) {
+            bladerf_devinfo info = devInfoList[i];
+            if (serial == info.serial) {
+                devId = i;
+                selectByInfo(&info, reloadChannelId);
+                return;
+            }
+        }
+    }
+
+    void selectByInfo(bladerf_devinfo* info, bool reloadChannelId = true) {
         int ret = bladerf_open_with_devinfo(&openDev, info);
         if (ret != 0) {
             spdlog::error("Could not open device {0}", info->serial);
+            selectedSerial = "";
             return;
+        }
+
+        selectedSerial = info->serial;
+        for (int i = 0; i < devCount; i++) {
+            if (selectedSerial == devInfoList[i].serial) { devId = i; }
         }
 
         // Gather info about the BladeRF's ranges
         channelCount = bladerf_get_channel_count(openDev, BLADERF_RX);
-        bladerf_get_sample_rate_range(openDev, BLADERF_CHANNEL_RX(0), &srRange);
-        bladerf_get_bandwidth_range(openDev, BLADERF_CHANNEL_RX(0), &bwRange);
-        bladerf_get_gain_range(openDev, BLADERF_CHANNEL_RX(0), &gainRange);
+
+        // Load the channelId if there are more than 1 channel
+        if (reloadChannelId) {
+            config.aquire();
+            if (channelCount > 1 && config.conf["devices"].contains(info->serial)) {
+                if (config.conf["devices"][info->serial].contains("channelId")) {
+                    chanId = config.conf["devices"][info->serial]["channelId"];
+                }
+                else { chanId = 0; }
+            }
+            else { chanId = 0; }
+            config.release();
+        }
+
+        chanId = std::clamp<int>(chanId, 0, channelCount - 1);
+
+        bladerf_get_sample_rate_range(openDev, BLADERF_CHANNEL_RX(chanId), &srRange);
+        bladerf_get_bandwidth_range(openDev, BLADERF_CHANNEL_RX(chanId), &bwRange);
+        bladerf_get_gain_range(openDev, BLADERF_CHANNEL_RX(chanId), &gainRange);
 
         // Generate sampleRate and Bandwidth lists
         sampleRates.clear();
@@ -135,6 +176,17 @@ public:
         bandwidthsTxt += '\0';
         bandwidthsTxt += "Auto";
         bandwidthsTxt += '\0';
+
+        // Generate list of channel names
+        channelNamesTxt = "";
+        char buf[32];
+        for (int i = 0; i < channelCount; i++) {
+            sprintf(buf, "RX %d", i+1);
+            channelNamesTxt += buf;
+            channelNamesTxt += '\0';
+        }
+
+        // Load settings here
 
         srId = 0;
         sampleRate = sampleRates[0];
@@ -193,18 +245,18 @@ private:
         if (_this->bufferSize < 1024) { _this->bufferSize = 1024; }
 
         // Setup device parameters
-        bladerf_set_sample_rate(_this->openDev, BLADERF_CHANNEL_RX(0), _this->sampleRate, NULL);
-        bladerf_set_frequency(_this->openDev, BLADERF_CHANNEL_RX(0), _this->freq);
-        bladerf_set_bandwidth(_this->openDev, BLADERF_CHANNEL_RX(0), (_this->bwId == _this->bandwidths.size()) ? 
+        bladerf_set_sample_rate(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->sampleRate, NULL);
+        bladerf_set_frequency(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->freq);
+        bladerf_set_bandwidth(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), (_this->bwId == _this->bandwidths.size()) ? 
                             std::clamp<uint64_t>(_this->sampleRate, _this->bwRange->min, _this->bwRange->max) : _this->bandwidths[_this->bwId], NULL);
-        bladerf_set_gain_mode(_this->openDev, BLADERF_CHANNEL_RX(0), BLADERF_GAIN_MANUAL);
-        bladerf_set_gain(_this->openDev, BLADERF_CHANNEL_RX(0), _this->testGain);
+        bladerf_set_gain_mode(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), BLADERF_GAIN_MANUAL);
+        bladerf_set_gain(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->testGain);
 
         // Setup syncronous transfer
         bladerf_sync_config(_this->openDev, BLADERF_RX_X1, BLADERF_FORMAT_SC16_Q11, 16, _this->bufferSize, 8, 3500);
 
         // Enable streaming
-        bladerf_enable_module(_this->openDev, BLADERF_CHANNEL_RX(0), true);
+        bladerf_enable_module(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), true);
 
         _this->running = true;
         _this->workerThread = std::thread(&BladeRFSourceModule::worker, _this);
@@ -221,7 +273,7 @@ private:
         _this->stream.stopWriter();
         
         // Disable streaming
-        bladerf_enable_module(_this->openDev, BLADERF_CHANNEL_RX(0), false);
+        bladerf_enable_module(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), false);
 
         // Wait for read worker to terminate
         if (_this->workerThread.joinable()) {
@@ -239,7 +291,7 @@ private:
         BladeRFSourceModule* _this = (BladeRFSourceModule*)ctx;
         _this->freq = freq;
         if (_this->running) {
-            bladerf_set_frequency(_this->openDev, BLADERF_CHANNEL_RX(0), _this->freq);
+            bladerf_set_frequency(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->freq);
         }
         spdlog::info("BladeRFSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
@@ -252,9 +304,12 @@ private:
 
         ImGui::SetNextItemWidth(menuWidth);
         if (ImGui::Combo(CONCAT("##_balderf_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
-            // Select device
+            bladerf_devinfo info = _this->devInfoList[_this->devId];
+            _this->selectByInfo(&info);
             core::setInputSampleRate(_this->sampleRate);
-            // Save config
+            config.aquire();
+            config.conf["device"] = _this->selectedSerial;
+            config.release(true);
         }
 
         if (ImGui::Combo(CONCAT("##_balderf_sr_sel_", _this->name), &_this->srId, _this->sampleRatesTxt.c_str())) {
@@ -263,16 +318,17 @@ private:
             // Save config
         }
 
+        // Refresh button
         ImGui::SameLine();
         float refreshBtnWdith = menuWidth - ImGui::GetCursorPosX();
         if (ImGui::Button(CONCAT("Refresh##_balderf_refr_", _this->name), ImVec2(refreshBtnWdith, 0))) {
             _this->refresh();
-            config.aquire();
-            std::string devSerial = config.conf["device"];
-            config.release();
-            // Reselect device
+            _this->selectBySerial(_this->selectedSerial, false);
             core::setInputSampleRate(_this->sampleRate);
         }
+
+        // Channel selection (only show if more than one channel)
+
 
         if (_this->running) { style::endDisabled(); }
 
@@ -281,7 +337,7 @@ private:
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##_balderf_bw_sel_", _this->name), &_this->bwId, _this->bandwidthsTxt.c_str())) {
             if (_this->running) {
-                bladerf_set_bandwidth(_this->openDev, BLADERF_CHANNEL_RX(0), (_this->bwId == _this->bandwidths.size()) ? 
+                bladerf_set_bandwidth(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), (_this->bwId == _this->bandwidths.size()) ? 
                             std::clamp<uint64_t>(_this->sampleRate, _this->bwRange->min, _this->bwRange->max) : _this->bandwidths[_this->bwId], NULL);
             }
             // Save config
@@ -291,7 +347,7 @@ private:
         if (ImGui::SliderInt("Test Gain", &_this->testGain, (_this->gainRange != NULL) ? _this->gainRange->min : 0, (_this->gainRange != NULL) ? _this->gainRange->max : 60)) {
             if (_this->running) {
                 spdlog::info("Setting gain to {0}", _this->testGain);
-                bladerf_set_gain(_this->openDev, BLADERF_CHANNEL_RX(0), _this->testGain);
+                bladerf_set_gain(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->testGain);
             }
         }
 
@@ -338,6 +394,8 @@ private:
     std::vector<uint64_t> bandwidths;
     std::string bandwidthsTxt;
 
+    std::string channelNamesTxt;
+
     int bufferSize;
     struct bladerf_stream* rxStream;
 
@@ -348,6 +406,8 @@ private:
     int devCount = 0;
     bladerf_devinfo* devInfoList = NULL;
     std::string devListTxt;
+
+    std::string selectedSerial;
 };
 
 MOD_EXPORT void _INIT_() {
