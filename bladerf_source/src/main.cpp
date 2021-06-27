@@ -25,7 +25,6 @@ SDRPP_MOD_INFO {
     /* Max instances    */ 1
 };
 
-
 ConfigManager config;
 
 class BladeRFSourceModule : public ModuleManager::Instance {
@@ -144,6 +143,7 @@ public:
         bladerf_get_sample_rate_range(openDev, BLADERF_CHANNEL_RX(chanId), &srRange);
         bladerf_get_bandwidth_range(openDev, BLADERF_CHANNEL_RX(chanId), &bwRange);
         bladerf_get_gain_range(openDev, BLADERF_CHANNEL_RX(chanId), &gainRange);
+        int gainModeCount = bladerf_get_gain_modes(openDev, BLADERF_CHANNEL_RX(chanId), &gainModes);
 
         // Generate sampleRate and Bandwidth lists
         sampleRates.clear();
@@ -186,13 +186,97 @@ public:
             channelNamesTxt += '\0';
         }
 
+        // Generate gain mode list
+        gainModeNames.clear();
+        gainModesTxt = "";
+        for (int i = 0; i < gainModeCount; i++) {
+            std::string gm = gainModes[i].name;
+            gm[0] = gm[0] & (~0x20);
+            gainModeNames.push_back(gm);
+            gainModesTxt += gm;
+            gainModesTxt += '\0';
+        }
+
         // Load settings here
+        config.aquire();
 
-        srId = 0;
-        sampleRate = sampleRates[0];
+        if (!config.conf["devices"].contains(selectedSerial)) {
+            config.conf["devices"][info->serial]["channelId"] = 0;
+            config.conf["devices"][selectedSerial]["sampleRate"] = sampleRates[0];
+            config.conf["devices"][selectedSerial]["bandwidth"] = bandwidths.size(); // Auto
+            config.conf["devices"][selectedSerial]["gainMode"] = "Manual";
+            config.conf["devices"][selectedSerial]["overallGain"] = gainRange->min;
+        }
 
-        // Set bandwidth to auto as default
-        bwId = bandwidths.size();
+        // Load sample rate
+        if (config.conf["devices"][selectedSerial].contains("sampleRate")) {
+            bool found = false;
+            uint64_t sr = config.conf["devices"][selectedSerial]["sampleRate"];
+            for (int i = 0; i < sampleRates.size(); i++) {
+                if (sr == sampleRates[i]) {
+                    srId = i;
+                    sampleRate = sampleRates[i];
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                srId = 0;
+                sampleRate = sampleRates[0];
+            }
+        }
+        else {
+            srId = 0;
+            sampleRate = sampleRates[0];
+        }
+
+        // Load bandwidth
+        if (config.conf["devices"][selectedSerial].contains("bandwidth")) {
+            bwId = config.conf["devices"][selectedSerial]["bandwidth"];
+            bwId = std::clamp<int>(bwId, 0, bandwidths.size());
+        }
+        else {
+            bwId = 0;
+        }
+        config.release(true);
+
+        // Load gain mode
+        if (config.conf["devices"][selectedSerial].contains("gainMode")) {
+            std::string gm = config.conf["devices"][selectedSerial]["gainMode"];
+            bool found = false;
+            for (int i = 0; i < gainModeNames.size(); i++) {
+                if (gainModeNames[i] == gm) {
+                    gainMode = i;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                for (int i = 0; i < gainModeNames.size(); i++) {
+                    if (gainModeNames[i] == "Manual") {
+                        gainMode = i;
+                        break;
+                    }
+                }
+            }
+        }
+        else {
+            for (int i = 0; i < gainModeNames.size(); i++) {
+                if (gainModeNames[i] == "Manual") {
+                    gainMode = i;
+                    break;
+                }
+            }
+        }
+
+        // Load gain
+        if (config.conf["devices"][selectedSerial].contains("overallGain")) {
+            overallGain = config.conf["devices"][selectedSerial]["overallGain"];
+            overallGain = std::clamp<int>(overallGain, gainRange->min, gainRange->max);
+        }
+        else {
+            overallGain = gainRange->min;
+        }
 
         bladerf_close(openDev);
     }
@@ -249,8 +333,14 @@ private:
         bladerf_set_frequency(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->freq);
         bladerf_set_bandwidth(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), (_this->bwId == _this->bandwidths.size()) ? 
                             std::clamp<uint64_t>(_this->sampleRate, _this->bwRange->min, _this->bwRange->max) : _this->bandwidths[_this->bwId], NULL);
-        bladerf_set_gain_mode(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), BLADERF_GAIN_MANUAL);
-        bladerf_set_gain(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->testGain);
+        bladerf_set_gain_mode(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->gainModes[_this->gainMode].mode);
+
+        // If gain mode is manual, set the gain
+        if (_this->gainModes[_this->gainMode].mode == BLADERF_GAIN_MANUAL) {
+            bladerf_set_gain(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->overallGain);
+        }
+        
+        _this->streamingEnabled = true;
 
         // Setup syncronous transfer
         bladerf_sync_config(_this->openDev, BLADERF_RX_X1, BLADERF_FORMAT_SC16_Q11, 16, _this->bufferSize, 8, 3500);
@@ -271,14 +361,15 @@ private:
         }
         _this->running = false;
         _this->stream.stopWriter();
-        
-        // Disable streaming
-        bladerf_enable_module(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), false);
 
+        _this->streamingEnabled = false;
         // Wait for read worker to terminate
         if (_this->workerThread.joinable()) {
             _this->workerThread.join();
         }
+        
+        // Disable streaming
+        bladerf_enable_module(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), false);
 
         // Close device
         bladerf_close(_this->openDev);
@@ -315,7 +406,11 @@ private:
         if (ImGui::Combo(CONCAT("##_balderf_sr_sel_", _this->name), &_this->srId, _this->sampleRatesTxt.c_str())) {
             _this->sampleRate = _this->sampleRates[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
-            // Save config
+            if (_this->selectedSerial != "") {
+                config.aquire();
+                config.conf["devices"][_this->selectedSerial]["sampleRate"] = _this->sampleRates[_this->srId];
+                config.release(true);
+            }
         }
 
         // Refresh button
@@ -328,7 +423,17 @@ private:
         }
 
         // Channel selection (only show if more than one channel)
-
+        if (_this->channelCount > 1) {
+            ImGui::Text("RX Channel");
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+            ImGui::Combo(CONCAT("##_balderf_ch_sel_", _this->name), &_this->chanId, _this->channelNamesTxt.c_str());
+            if (_this->selectedSerial != "") {
+                config.aquire();
+                config.conf["devices"][_this->selectedSerial]["channelId"] = _this->chanId;
+                config.release(true);
+            }
+        }
 
         if (_this->running) { style::endDisabled(); }
 
@@ -340,16 +445,48 @@ private:
                 bladerf_set_bandwidth(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), (_this->bwId == _this->bandwidths.size()) ? 
                             std::clamp<uint64_t>(_this->sampleRate, _this->bwRange->min, _this->bwRange->max) : _this->bandwidths[_this->bwId], NULL);
             }
-            // Save config
+            if (_this->selectedSerial != "") {
+                config.aquire();
+                config.conf["devices"][_this->selectedSerial]["bandwidth"] = _this->bwId;
+                config.release(true);
+            }
         }
 
         // General config BS
-        if (ImGui::SliderInt("Test Gain", &_this->testGain, (_this->gainRange != NULL) ? _this->gainRange->min : 0, (_this->gainRange != NULL) ? _this->gainRange->max : 60)) {
+        ImGui::Text("Gain control mode");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::Combo(CONCAT("##_balderf_gm_sel_", _this->name), &_this->gainMode, _this->gainModesTxt.c_str())) {
             if (_this->running) {
-                spdlog::info("Setting gain to {0}", _this->testGain);
-                bladerf_set_gain(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->testGain);
+                bladerf_set_gain_mode(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->gainModes[_this->gainMode].mode);
+            }
+            // if switched to manual, reset gains
+            if (_this->gainModes[_this->gainMode].mode == BLADERF_GAIN_MANUAL && _this->running) {
+                bladerf_set_gain(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->overallGain);
+            }
+            if (_this->selectedSerial != "") {
+                config.aquire();
+                config.conf["devices"][_this->selectedSerial]["gainMode"] = _this->gainModeNames[_this->gainMode];
+                config.release(true);
             }
         }
+
+        if (_this->gainModes[_this->gainMode].mode != BLADERF_GAIN_MANUAL) { style::beginDisabled(); }
+        ImGui::Text("Gain");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::SliderInt("##_balderf_oag_sel_", &_this->overallGain, (_this->gainRange != NULL) ? _this->gainRange->min : 0, (_this->gainRange != NULL) ? _this->gainRange->max : 60)) {
+            if (_this->running) {
+                spdlog::info("Setting gain to {0}", _this->overallGain);
+                bladerf_set_gain(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->overallGain);
+            }
+            if (_this->selectedSerial != "") {
+                config.aquire();
+                config.conf["devices"][_this->selectedSerial]["overallGain"] = _this->overallGain;
+                config.release(true);
+            }
+        }
+        if (_this->gainModes[_this->gainMode].mode != BLADERF_GAIN_MANUAL) { style::endDisabled(); }
 
     }
 
@@ -357,7 +494,7 @@ private:
         int16_t* buffer = new int16_t[bufferSize * 2];
         bladerf_metadata meta;
         
-        while (true) {
+        while (streamingEnabled) {
             // Receive from the stream and break on error
             int ret = bladerf_sync_rx(openDev, buffer, bufferSize, &meta, 3500);
             if (ret != 0) { break; }
@@ -382,6 +519,8 @@ private:
     int srId = 0;
     int bwId = 0;
     int chanId = 0;
+    int gainMode = 0;
+    bool streamingEnabled = false;
 
     int channelCount;
 
@@ -399,7 +538,7 @@ private:
     int bufferSize;
     struct bladerf_stream* rxStream;
 
-    int testGain = 0;
+    int overallGain = 0;
 
     std::thread workerThread;
 
@@ -408,6 +547,13 @@ private:
     std::string devListTxt;
 
     std::string selectedSerial;
+
+    bool isBlade1 = false;
+
+    const bladerf_gain_modes* gainModes;
+    std::vector<std::string> gainModeNames;
+    std::string gainModesTxt;
+    int gainModeCount;
 };
 
 MOD_EXPORT void _INIT_() {
