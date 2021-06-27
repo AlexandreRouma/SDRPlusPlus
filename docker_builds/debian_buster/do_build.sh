@@ -18,7 +18,7 @@ git clone https://github.com/AlexandreRouma/SDRPlusPlus
 cd SDRPlusPlus
 mkdir build
 cd build
-cmake .. -DOPT_BUILD_SDRPLAY_SOURCE=ON
+cmake .. -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_BLADERF_SOURCE=OFF
 make -j2
 
 cd ..
