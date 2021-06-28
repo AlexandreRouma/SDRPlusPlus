@@ -459,6 +459,10 @@ void MainWindow::draw() {
             ImGui::Checkbox("Show demo window", &demoWindow);
             ImGui::Text("ImGui version: %s", ImGui::GetVersion());
 
+            ImGui::Checkbox("Bypass buffering", &sigpath::signalPath.inputBuffer.bypass);
+
+            ImGui::Text("Buffering: %d", (sigpath::signalPath.inputBuffer.writeCur - sigpath::signalPath.inputBuffer.readCur + 20) % 20);
+            
             if (ImGui::Button("Test Bug")) {
                 spdlog::error("Will this make the software crash?");
             }

@@ -21,6 +21,8 @@ public:
     void startFFT();
     void stopFFT();
 
+    dsp::SampleFrameBuffer<dsp::complex_t> inputBuffer;
+
 private:
     struct VFO_t {
         dsp::stream<dsp::complex_t>* inputStream;
