@@ -92,6 +92,7 @@ public:
 
     void selectFirst() {
         if (devCount > 0) { selectByInfo(&devInfoList[0]); }
+        else { selectedSerial = ""; }
     }
 
     void selectBySerial(std::string serial, bool reloadChannelId = true) {

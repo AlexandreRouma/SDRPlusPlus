@@ -154,19 +154,24 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["min"] = -120.0;
 
     // Module instances
-    defConfig["moduleInstances"]["Radio"] = "radio";
-    defConfig["moduleInstances"]["Recorder"] = "recorder";
+    defConfig["moduleInstances"]["Airspy Source"] = "airspy_source";
+    defConfig["moduleInstances"]["AirspyHF+ Source"] = "airspyhf_source";
+    defConfig["moduleInstances"]["BladeRF Source"] = "bladerf_source";
+    defConfig["moduleInstances"]["File Source"] = "file_source";
+    defConfig["moduleInstances"]["HackRF Source"] = "hackrf_source";
+    defConfig["moduleInstances"]["LimeSDR Source"] = "limesdr_source";
+    defConfig["moduleInstances"]["RTL-SDR Source"] = "rtl_sdr_source";
+    defConfig["moduleInstances"]["RTL-TCP Source"] = "rtl_tcp_source";
+    defConfig["moduleInstances"]["SDRplay Source"] = "sdrplay_source";
     defConfig["moduleInstances"]["SoapySDR Source"] = "soapy_source";
     defConfig["moduleInstances"]["PlutoSDR Source"] = "plutosdr_source";
-    defConfig["moduleInstances"]["BladeRF Source"] = "bladerf_source";
-    defConfig["moduleInstances"]["HackRF Source"] = "hackrf_source";
-    defConfig["moduleInstances"]["RTL-TCP Source"] = "rtl_tcp_source";
-    defConfig["moduleInstances"]["RTL-SDR Source"] = "rtl_sdr_source";
-    defConfig["moduleInstances"]["AirspyHF+ Source"] = "airspyhf_source";
-    defConfig["moduleInstances"]["Airspy Source"] = "airspy_source";
-    defConfig["moduleInstances"]["File Source"] = "file_source";
-    defConfig["moduleInstances"]["SDRplay Source"] = "sdrplay_source";
+
     defConfig["moduleInstances"]["Audio Sink"] = "audio_sink";
+
+    defConfig["moduleInstances"]["Radio"] = "radio";
+
+    defConfig["moduleInstances"]["Recorder"] = "recorder";
+    
 
     // Themes
     defConfig["theme"] = "Dark";

@@ -24,6 +24,9 @@ cp 'C:/Program Files/PothosSDR/bin/airspy.dll' sdrpp_windows_x64/
 cp $build_dir/hackrf_source/Release/hackrf_source.dll sdrpp_windows_x64/modules/
 cp 'C:/Program Files/PothosSDR/bin/hackrf.dll' sdrpp_windows_x64/
 
+cp $build_dir/hackrf_source/Release/hackrf_source.dll sdrpp_windows_x64/modules/
+cp 'C:/Program Files/PothosSDR/bin/hackrf.dll' sdrpp_windows_x64/
+
 cp $build_dir/rtl_sdr_source/Release/rtl_sdr_source.dll sdrpp_windows_x64/modules/
 cp 'C:/Program Files/PothosSDR/bin/rtlsdr.dll' sdrpp_windows_x64/
 

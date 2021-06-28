@@ -139,6 +139,16 @@ The modules built will be some of the following (Repeat the instructions above f
 
 
 # Building on Linux / BSD
+## Select which modules you wish to build
+Depending on which module you want to build, you will need to install some additional dependencies.
+Here are listed every module that requires addition dependencies. If a module enabled by default and you do not wish to install a perticular dependency (or can't, eg. the BladeRF module on Debian Buster),
+you can disable it using the module parameter listed in the table below
+
+* soapy_source: SoapySDR + drivers for each SDRs (see SoapySDR docs)
+* airspyhf_source: libairspyhf
+* plutosdr_source: libiio, libad9361
+* audio_sink: librtaudio-dev
+
 ## Install dependencies
 * cmake
 * fftw3
@@ -146,11 +156,7 @@ The modules built will be some of the following (Repeat the instructions above f
 * glew
 * libvolk
 
-Next install dependencies based on the modules you wish to build:
-* soapy_source: SoapySDR + drivers for each SDRs (see SoapySDR docs)
-* airspyhf_source: libairspyhf
-* plutosdr_source: libiio, libad9361
-* audio_sink: librtaudio-dev
+Next install dependencies based on the modules you wish to build (See previous step)
 
 Note: make sure you're using GCC 8 or later as older versions do not have `std::filesystem` built-in.
 
@@ -220,6 +226,80 @@ To install SDR++, run the following command in your ``build`` folder:
 ```sh
 sudo make install
 ```
+
+# Module List
+
+Not all modules are built by default. I decided to disable the build of those with large libraries, libraries that can't be installed through the package manager (or pothos) and those that are still in beta.
+Modules in beta are still included in releases for the most part but not enabled in SDR++ (need to be instantiated).
+
+## Sources
+
+| Name             | Stage      | Dependencies      | Option                     | Built by default| Built in Release        | Enabled in SDR++ by default |
+|------------------|------------|-------------------|----------------------------|:---------------:|:-----------------------:|:---------------------------:|
+| airspy_source    | Working    | libairspy         | OPT_BUILD_AIRSPY_SOURCE    | ✅              | ✅                     | ✅                         |
+| airspyhf_source  | Working    | libairspyhf       | OPT_BUILD_AIRSPYHF_SOURCE  | ✅              | ✅                     | ✅                         |
+| bladerf_source   | Beta       | libbladeRF        | OPT_BUILD_BLADERF_SOURCE   | ⛔              | ⚠️ (not Debian Buster) | ✅                         |
+| file_source      | Working    | -                 | OPT_BUILD_FILE_SOURCE      | ✅              | ✅                     | ✅                         |
+| hackrf_source    | Working    | libhackrf         | OPT_BUILD_HACKRF_SOURCE    | ✅              | ✅                     | ✅                         |
+| limesdr_source   | Beta       | liblimesuite      | OPT_BUILD_LIMESDR_SOURCE   | ⛔              | ✅                     | ✅                         |
+| sddc_source      | Unfinished | -                 | OPT_BUILD_SDDC_SOURCE      | ⛔              | ⛔                     | ⛔                         |
+| rtl_sdr_source   | Working    | librtlsdr         | OPT_BUILD_RTL_SDR_SOURCE   | ✅              | ✅                     | ✅                         |
+| rtl_tcp_source   | Working    | -                 | OPT_BUILD_RTL_TCP_SOURCE   | ✅              | ✅                     | ✅                         |
+| sdrplay_source   | Working    | SDRplay API       | OPT_BUILD_SDRPLAY_SOURCE   | ⛔              | ✅                     | ✅                         |
+| soapy_source     | Working    | soapysdr          | OPT_BUILD_SOAPY_SOURCE     | ✅              | ✅                     | ✅                         |
+| spyserver_source | Unfinished | -                 | OPT_BUILD_SPYSERVER_SOURCE | ⛔              | ⛔                     | ⛔                         |
+| plutosdr_source  | Working    | libiio, libad9361 | OPT_BUILD_PLUTOSDR_SOURCE  | ✅              | ✅                     | ✅                         |
+
+## Sinks
+
+| Name             | Stage      | Dependencies      | Option                     | Built by default| Built in Release        | Enabled in SDR++ by default |
+|------------------|------------|-------------------|----------------------------|:---------------:|:-----------------------:|:---------------------------:|
+| audio_sink       | Working    | rtaudio           | OPT_BUILD_AUDIO_SINK       | ✅              | ✅                     | ✅                         |
+
+## Decoders
+
+| Name                | Stage      | Dependencies | Option                        | Built by default| Built in Release        | Enabled in SDR++ by default |
+|---------------------|------------|--------------|-------------------------------|:---------------:|:-----------------------:|:---------------------------:|
+| falcon9_decoder     | Beta       | ffplay       | OPT_BUILD_FALCON9_DECODER     | ⛔              | ⛔                     | ⛔                         |
+| meteor_demodulator  | Working    | -            | OPT_BUILD_METEOR_DEMODULATOR  | ✅              | ✅                     | ⛔                         |
+| radio               | Working    | -            | OPT_BUILD_RADIO               | ✅              | ✅                     | ✅                         |
+| weather_sat_decoder | Unfinished | -            | OPT_BUILD_WEATHER_SAT_DECODER | ⛔              | ⛔                     | ⛔                         |
+
+## Misc
+
+| Name                | Stage      | Dependencies | Option                        | Built by default| Built in Release        | Enabled in SDR++ by default |
+|---------------------|------------|--------------|-------------------------------|:---------------:|:-----------------------:|:---------------------------:|
+| discord_integration | Working    | -            | OPT_BUILD_DISCORD_PRESENCE    | ✅              | ✅                     | ⛔                         |
+| frequency_manager   | Unfinished | -            | OPT_BUILD_FREQUENCY_MANAGER   | ⛔              | ⛔                     | ⛔                         |
+| recorder            | Working    | -            | OPT_BUILD_RECORDER            | ✅              | ✅                     | ✅                         |
+
+# Toubleshooting
+
+First, please make sure you're running the latest automated build. If your issue is linked to a bug it is likely that is has already been fixed in later releases
+
+## "hash collision" error when starting
+
+You likely installed the `soapysdr-module-all` package on Ubuntu/Debian. If not it's still a SoapySDR bug caused by multiple soapy modules comming in conflict. Uninstall anything related to SoapySDR then install soapysdr itself and only the soapy modules you actually need.
+
+## "I don't see -insert module name here-, what's going on?"
+
+If the module was included in a later update, it's not enabled in the config. The easiest way to fix this is just to delete the `config.json` file and let SDR++ recreate it (you will lose your setting relating to the main UI like VFO colors, zoom level and theme).
+The best option however is to edit the config file to add an instance of the module you wish to hae enabled (see the Module List).
+
+## SDR++ crashes when stopping a RTL-SDR
+
+This is a bug recently introduced by libusb1.4
+To solve, this, simply downgrade to libusb1.3
+
+## SDR++ crashes when starting a HackRF
+
+If you also have the SoapySDR module loaded (not necessarily enabled), this is a bug in libhackrf. It's caused by libhackrf not checking if it's already initialized. 
+The solution until a fixed libhackrf version is released is to completely remove the soapy_source module from SDR++. To do this, delete `modules/soapy_source.dll` on windows
+or `/usr/share/sdrpp/plugins/soapy_source.so` on linux.
+
+## Issue not listed here?
+
+If you still have an issue, please open an issue about it or ask on the discord. I'll try to respond as quickly as I can. Please avoid trying to contact me on every platform imaginable thinking I'll respond faster though...
 
 # Contributing
 
