@@ -225,7 +225,7 @@ namespace dsp {
         SampleFrameBuffer(stream<T>* in) { init(in); }
 
         ~SampleFrameBuffer() {
-            stop();
+            generic_block<SampleFrameBuffer<T>>::stop();
             out.stopWriter();
             stopWorker = true;
             cnd.notify_all();
