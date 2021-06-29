@@ -433,5 +433,7 @@ int sdrpp_main(int argc, char *argv[]) {
     glfwDestroyWindow(core::window);
     glfwTerminate();
 
+    sigpath::signalPath.stop();
+
     return 0;
 }
