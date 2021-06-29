@@ -165,7 +165,7 @@ namespace ImGui {
         void updateWaterfallFb();
         void updateWaterfallTexture();
         void updateAllVFOs(bool checkRedrawRequired = false);
-        bool calculateVFOSignalInfo(WaterfallVFO* vfo, float& strength, float& snr);
+        bool calculateVFOSignalInfo(float* fftLine, WaterfallVFO* vfo, float& strength, float& snr);
 
         bool waterfallUpdate = false;
 

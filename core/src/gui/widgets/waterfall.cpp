@@ -431,7 +431,7 @@ namespace ImGui {
                         ImGui::Text("Bandwidth Locked: %s", _vfo->bandwidthLocked ? "Yes" : "No");
 
                         float strength, snr;
-                        if (calculateVFOSignalInfo(_vfo, strength, snr)) {
+                        if (calculateVFOSignalInfo(waterfallVisible ? &rawFFTs[currentFFTLine * rawFFTSize] : rawFFTs, _vfo, strength, snr)) {
                             ImGui::Text("Strength: %0.1fdBFS", strength);
                             ImGui::Text("SNR: %0.1fdB", snr);
                         }
@@ -448,8 +448,8 @@ namespace ImGui {
         }      
     }
 
-    bool WaterFall::calculateVFOSignalInfo(WaterfallVFO* _vfo, float& strength, float& snr) {
-        if (rawFFTs == NULL || fftLines <= 0) { return false; }
+    bool WaterFall::calculateVFOSignalInfo(float* fftLine, WaterfallVFO* _vfo, float& strength, float& snr) {
+        if (fftLine == NULL || fftLines <= 0) { return false; }
 
         // Calculate FFT index data
         double vfoMinSizeFreq = _vfo->centerOffset - _vfo->bandwidth;
@@ -460,8 +460,6 @@ namespace ImGui {
         int vfoMinOffset = std::clamp<int>(((vfoMinFreq / (wholeBandwidth/2.0)) * (double)(rawFFTSize/2)) + (rawFFTSize/2), 0, rawFFTSize);
         int vfoMaxOffset = std::clamp<int>(((vfoMaxFreq / (wholeBandwidth/2.0)) * (double)(rawFFTSize/2)) + (rawFFTSize/2), 0, rawFFTSize);
         int vfoMaxSideOffset = std::clamp<int>(((vfoMaxSizeFreq / (wholeBandwidth/2.0)) * (double)(rawFFTSize/2)) + (rawFFTSize/2), 0, rawFFTSize);
-
-        float* fftLine = &rawFFTs[currentFFTLine * rawFFTSize];
 
         double avg = 0;
         float max = -INFINITY;
@@ -804,7 +802,7 @@ namespace ImGui {
 
         if (selectedVFO != "" && vfos.size() > 0) {
             float dummy;
-            calculateVFOSignalInfo(vfos[selectedVFO], dummy, selectedVFOSNR);
+            calculateVFOSignalInfo(waterfallVisible ? &rawFFTs[currentFFTLine * rawFFTSize] : rawFFTs, vfos[selectedVFO], dummy, selectedVFOSNR);
         }
         
         buf_mtx.unlock();
