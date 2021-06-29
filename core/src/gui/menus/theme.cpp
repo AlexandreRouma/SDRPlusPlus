@@ -1,7 +1,7 @@
 #include <gui/menus/theme.h>
 #include <gui/gui.h>
 #include <options.h>
-#include <core.h>>
+#include <core.h>
 
 namespace thememenu {
     int themeId;

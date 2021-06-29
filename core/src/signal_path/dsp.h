@@ -20,6 +20,7 @@ public:
     void setFFTSize(int size);
     void startFFT();
     void stopFFT();
+    void setBuffering(bool enabled);
 
     dsp::SampleFrameBuffer<dsp::complex_t> inputBuffer;
 
@@ -43,4 +44,5 @@ private:
     double fftRate;
     int fftSize;
     int inputBlockSize;
+    bool bufferingEnabled = false;
 };

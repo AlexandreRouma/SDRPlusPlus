@@ -461,7 +461,7 @@ void MainWindow::draw() {
 
             ImGui::Checkbox("Bypass buffering", &sigpath::signalPath.inputBuffer.bypass);
 
-            ImGui::Text("Buffering: %d", (sigpath::signalPath.inputBuffer.writeCur - sigpath::signalPath.inputBuffer.readCur + 20) % 20);
+            ImGui::Text("Buffering: %d", (sigpath::signalPath.inputBuffer.writeCur - sigpath::signalPath.inputBuffer.readCur + 32) % 32);
             
             if (ImGui::Button("Test Bug")) {
                 spdlog::error("Will this make the software crash?");

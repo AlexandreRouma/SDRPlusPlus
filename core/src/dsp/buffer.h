@@ -224,14 +224,6 @@ namespace dsp {
 
         SampleFrameBuffer(stream<T>* in) { init(in); }
 
-        ~SampleFrameBuffer() {
-            generic_block<SampleFrameBuffer<T>>::stop();
-            out.stopWriter();
-            stopWorker = true;
-            cnd.notify_all();
-            if (readWorkerThread.joinable()) { readWorkerThread.join(); }
-        }
-
         void init(stream<T>* in) {
             _in = in;
 
@@ -241,8 +233,6 @@ namespace dsp {
 
             generic_block<SampleFrameBuffer<T>>::registerInput(in);
             generic_block<SampleFrameBuffer<T>>::registerOutput(&out);
-
-            readWorkerThread = std::thread(&SampleFrameBuffer::worker, this);
         }
 
         void setInput(stream<T>* in) {
@@ -275,9 +265,9 @@ namespace dsp {
                 writeCur++;
                 writeCur = ((writeCur) % TEST_BUFFER_SIZE);
 
-                if (((writeCur - readCur + TEST_BUFFER_SIZE) % TEST_BUFFER_SIZE) >= (TEST_BUFFER_SIZE-2)) {
-                    spdlog::warn("Overflow");
-                }
+                // if (((writeCur - readCur + TEST_BUFFER_SIZE) % TEST_BUFFER_SIZE) >= (TEST_BUFFER_SIZE-2)) {
+                //     spdlog::warn("Overflow");
+                // }
             }
             cnd.notify_all();
             _in->flush();
@@ -311,6 +301,25 @@ namespace dsp {
         bool bypass = false;
 
     private:
+        void doStart() {
+            generic_block<SampleFrameBuffer<T>>::workerThread = std::thread(&generic_block<SampleFrameBuffer<T>>::workerLoop, this);
+            readWorkerThread = std::thread(&SampleFrameBuffer<T>::worker, this);
+        }
+
+        void doStop() {
+            _in->stopReader();
+            out.stopWriter();
+            stopWorker = true;
+            cnd.notify_all();
+
+            if (generic_block<SampleFrameBuffer<T>>::workerThread.joinable()) { generic_block<SampleFrameBuffer<T>>::workerThread.join(); }
+            if (readWorkerThread.joinable()) { readWorkerThread.join(); }
+
+            _in->clearReadStop();
+            out.clearWriteStop();
+            stopWorker = false;
+        }
+
         stream<T>* _in;
 
         std::thread readWorkerThread;

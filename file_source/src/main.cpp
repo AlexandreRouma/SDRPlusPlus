@@ -63,11 +63,13 @@ private:
     static void menuSelected(void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
         core::setInputSampleRate(_this->sampleRate);
+        sigpath::signalPath.setBuffering(false);
         spdlog::info("FileSourceModule '{0}': Menu Select!", _this->name);
     }
 
     static void menuDeselected(void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
+        sigpath::signalPath.setBuffering(true);
         spdlog::info("FileSourceModule '{0}': Menu Deselect!", _this->name);
     }
     

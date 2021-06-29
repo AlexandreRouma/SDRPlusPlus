@@ -117,3 +117,7 @@ void SignalPath::stopFFT() {
     reshape.stop();
     fftHandlerSink.stop();
 }
+
+void SignalPath::setBuffering(bool enabled) {
+    inputBuffer.bypass = !enabled;
+}

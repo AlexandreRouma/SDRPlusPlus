@@ -314,8 +314,8 @@ private:
     static void _audioHandler(dsp::stereo_t *data, int count, void *ctx) {
         RecorderModule* _this = (RecorderModule*)ctx;
         for (int i = 0; i < count; i++) {
-            _this->wavSampleBuf[(2*i)] = data[i].l * 32767.0f;
-            _this->wavSampleBuf[(2*i) + 1] = data[i].r * 32767.0f;
+            _this->wavSampleBuf[(2*i)] = std::clamp<int>(data[i].l * 32767.0f, -32768, 32767);
+            _this->wavSampleBuf[(2*i) + 1] = std::clamp<int>(data[i].r * 32767.0f, -32768, 32767);
         }
         _this->audioWriter->writeSamples(_this->wavSampleBuf, count * 2 * sizeof(int16_t));
         _this->samplesWritten += count;
