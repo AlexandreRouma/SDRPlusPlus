@@ -617,3 +617,7 @@ void MainWindow::setFFTSize(int size) {
     fft_out = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * fftSize);
     fftwPlan = fftwf_plan_dft_1d(fftSize, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
 }
+
+bool MainWindow::isPlaying() {
+    return playing;
+}
