@@ -913,6 +913,7 @@ private:
     static void streamCB(short *xi, short *xq, sdrplay_api_StreamCbParamsT *params,
                         unsigned int numSamples, unsigned int reset, void *cbContext) {
         SDRPlaySourceModule* _this = (SDRPlaySourceModule*)cbContext;
+        // TODO: Optimise using volk and math
         if (!_this->running) { return; }
         for (int i = 0; i < numSamples; i++) {
             int id = _this->bufferIndex++;
