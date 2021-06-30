@@ -258,7 +258,7 @@ public:
 
         // Load gain
         if (config.conf["devices"][selectedDevName].contains("gain")) {
-            gain = config.conf["devices"][selectedDevName]["bandwidth"];
+            gain = config.conf["devices"][selectedDevName]["gain"];
             gain = std::clamp<int>(bwId, 0, 73);
         }
         else {
@@ -411,8 +411,7 @@ private:
             ImGui::Text("RX Channel");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            ImGui::Combo("##limesdr_ch_sel", &_this->chanId, _this->channelNamesTxt.c_str());
-            if (_this->selectedDevName != "") {
+            if (ImGui::Combo("##limesdr_ch_sel", &_this->chanId, _this->channelNamesTxt.c_str()) && _this->selectedDevName != "") {
                 config.aquire();
                 config.conf["devices"][_this->selectedDevName]["channel"] = _this->chanId;
                 config.release(true);

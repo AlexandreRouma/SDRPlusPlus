@@ -108,6 +108,7 @@ public:
                 return;
             }
         }
+        selectFirst();
     }
 
     void selectByInfo(bladerf_devinfo* info, bool reloadChannelId = true) {
@@ -457,7 +458,7 @@ private:
         ImGui::Text("Gain control mode");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::Combo(CONCAT("##_balderf_gm_sel_", _this->name), &_this->gainMode, _this->gainModesTxt.c_str())) {
+        if (ImGui::Combo(CONCAT("##_balderf_gm_sel_", _this->name), &_this->gainMode, _this->gainModesTxt.c_str()) && _this->selectedSerial != "") {
             if (_this->running) {
                 bladerf_set_gain_mode(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->gainModes[_this->gainMode].mode);
             }
@@ -472,7 +473,7 @@ private:
             }
         }
 
-        if (_this->gainModes[_this->gainMode].mode != BLADERF_GAIN_MANUAL) { style::beginDisabled(); }
+        if (_this->selectedSerial != "") { if (_this->gainModes[_this->gainMode].mode != BLADERF_GAIN_MANUAL) { style::beginDisabled(); } }
         ImGui::Text("Gain");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
@@ -487,7 +488,7 @@ private:
                 config.release(true);
             }
         }
-        if (_this->gainModes[_this->gainMode].mode != BLADERF_GAIN_MANUAL) { style::endDisabled(); }
+        if (_this->selectedSerial != "") { if (_this->gainModes[_this->gainMode].mode != BLADERF_GAIN_MANUAL) { style::endDisabled(); } }
 
     }
 
