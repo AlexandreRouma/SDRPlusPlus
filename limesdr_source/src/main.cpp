@@ -142,6 +142,8 @@ public:
         // List antennas
         lms_name_t antennaNames[16];
         antennaCount = LMS_GetAntennaList(dev, false, chanId, antennaNames);
+        antennaNameList.clear();
+        antennaListTxt = "";
         for (int i = 0; i < antennaCount; i++) {
             antennaNameList.push_back(antennaNames[i]);
             antennaListTxt += antennaNames[i];
@@ -151,6 +153,8 @@ public:
         // List supported sample rates
         lms_range_t srRange;
         LMS_GetSampleRateRange(dev, false, &srRange);
+        sampleRates.clear();
+        sampleRatesTxt = "";
         sampleRates.push_back(srRange.min);
         sampleRatesTxt += getBandwdithScaled(srRange.min);
         sampleRatesTxt += '\0';
@@ -166,7 +170,8 @@ public:
         // List supported bandwidths
         lms_range_t bwRange;
         LMS_GetLPFBWRange(dev, false, &bwRange);
-        spdlog::warn("bw step {0}", bwRange.step);
+        bandwidths.clear();
+        bandwidthsTxt = "";
         bandwidths.push_back(bwRange.min);
         bandwidthsTxt += getBandwdithScaled(bwRange.min);
         bandwidthsTxt += '\0';
@@ -259,7 +264,7 @@ public:
         // Load gain
         if (config.conf["devices"][selectedDevName].contains("gain")) {
             gain = config.conf["devices"][selectedDevName]["gain"];
-            gain = std::clamp<int>(bwId, 0, 73);
+            gain = std::clamp<int>(gain, 0, 73);
         }
         else {
             gain = 0;
