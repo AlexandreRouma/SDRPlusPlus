@@ -28,6 +28,7 @@ const double sampleRates[] = {
     1920000,
     2048000,
     2160000,
+    2400000,
     2560000,
     2880000,
     3200000
@@ -41,6 +42,7 @@ const char* sampleRatesTxt[] = {
     "1.92MHz",
     "2.048MHz",
     "2.16MHz",
+    "2.4MHz",
     "2.56MHz",
     "2.88MHz",
     "3.2MHz"
