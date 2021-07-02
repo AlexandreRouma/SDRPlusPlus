@@ -167,11 +167,12 @@ private:
     static void moduleInterfaceHandler(int code, void* in, void* out, void* ctx) {
         RadioModule* _this = (RadioModule*)ctx;
         if (code == RADIO_IFACE_CMD_GET_MODE) {
-            *(int*)out = _this->demodId;
+            int* _out = (int*)out;
+            *_out = _this->demodId;
         }
         else if (code == RADIO_IFACE_CMD_SET_MODE) {
-            int in = *(int*)in;
-            if (in != _this->demodId) { _this->selectDemodById(in); }
+            int* _in = (int*)in;
+            if (*_in != _this->demodId) { _this->selectDemodById(*_in); }
         }
     }
 

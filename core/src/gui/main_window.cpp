@@ -397,32 +397,35 @@ void MainWindow::draw() {
     }
 
     // Handle menu resize
-    float curY = ImGui::GetCursorPosY();
     ImVec2 winSize = ImGui::GetWindowSize();
     ImVec2 mousePos = ImGui::GetMousePos();
-    bool click = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
-    bool down = ImGui::IsMouseDown(ImGuiMouseButton_Left);
-    if (grabbingMenu) {
-        newWidth = mousePos.x;
-        newWidth = std::clamp<float>(newWidth, 250, winSize.x - 250);
-        ImGui::GetForegroundDrawList()->AddLine(ImVec2(newWidth, curY), ImVec2(newWidth, winSize.y - 10), ImGui::GetColorU32(ImGuiCol_SeparatorActive));
-    }
-    if (mousePos.x >= newWidth - 2 && mousePos.x <= newWidth + 2 && mousePos.y > curY) {
-        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-        if (click) {
-            grabbingMenu = true;
+    if (!lockWaterfallControls) {
+        float curY = ImGui::GetCursorPosY();
+        bool click = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+        bool down = ImGui::IsMouseDown(ImGuiMouseButton_Left);
+        if (grabbingMenu) {
+            newWidth = mousePos.x;
+            newWidth = std::clamp<float>(newWidth, 250, winSize.x - 250);
+            ImGui::GetForegroundDrawList()->AddLine(ImVec2(newWidth, curY), ImVec2(newWidth, winSize.y - 10), ImGui::GetColorU32(ImGuiCol_SeparatorActive));
+        }
+        if (mousePos.x >= newWidth - 2 && mousePos.x <= newWidth + 2 && mousePos.y > curY) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+            if (click) {
+                grabbingMenu = true;
+            }
+        }
+        else {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+        }
+        if(!down && grabbingMenu) {
+            grabbingMenu = false;
+            menuWidth = newWidth;
+            core::configManager.aquire();
+            core::configManager.conf["menuWidth"] = menuWidth;
+            core::configManager.release(true);
         }
     }
-    else {
-        ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
-    }
-    if(!down && grabbingMenu) {
-        grabbingMenu = false;
-        menuWidth = newWidth;
-        core::configManager.aquire();
-        core::configManager.conf["menuWidth"] = menuWidth;
-        core::configManager.release(true);
-    }
+
 
     // Left Column
     lockWaterfallControls = false;
