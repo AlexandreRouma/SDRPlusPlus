@@ -406,7 +406,7 @@ private:
         if (selectedNames.size() != 1 && _this->selectedListName != "") { style::endDisabled(); }
 
         //Draw import and export buttons
-        ImGui::BeginTable(("freq_manager_btn_table"+_this->name).c_str(), 2);
+        ImGui::BeginTable(("freq_manager_bottom_btn_table"+_this->name).c_str(), 2);
         ImGui::TableNextRow();
 
         ImGui::TableSetColumnIndex(0);
