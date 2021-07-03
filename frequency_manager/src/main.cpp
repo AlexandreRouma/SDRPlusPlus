@@ -10,13 +10,14 @@
 #include <signal_path/signal_path.h>
 #include <vector>
 #include <gui/tuner.h>
+#include <gui/file_dialogs.h>
 
 SDRPP_MOD_INFO {
     /* Name:            */ "frequency_manager",
     /* Description:     */ "Frequency manager module for SDR++",
     /* Author:          */ "Ryzerth;zimm",
     /* Version:         */ 0, 3, 0,
-    /* Max instances    */ -1
+    /* Max instances    */ 1
 };
 
 struct FrequencyBookmark {
@@ -27,6 +28,20 @@ struct FrequencyBookmark {
 };
 
 ConfigManager config;
+
+const char* demodModeList[] = {
+    "NFM",
+    "WFM",
+    "AM",
+    "DSB",
+    "USB",
+    "CW",
+    "LSB",
+    "RAW"
+};
+
+const char* demodModeListTxt = "NFM\0WFM\0AM\0DSB\0USB\0CW\0LSB\0RAW\0";
+
 
 class FrequencyManagerModule : public ModuleManager::Instance {
 public:
@@ -141,9 +156,8 @@ private:
             ImGui::Text("Mode");
             ImGui::TableSetColumnIndex(1);
             ImGui::SetNextItemWidth(200);
-            char* testList = "WFM\0";
-            int testInt = 0;
-            ImGui::Combo(("##freq_manager_edit_mode"+name).c_str(), &testInt, testList);
+
+            ImGui::Combo(("##freq_manager_edit_mode"+name).c_str(), &editedBookmark.mode, demodModeListTxt);
 
             ImGui::EndTable();
 
@@ -191,11 +205,18 @@ private:
             if (strlen(nameBuf) == 0) { style::beginDisabled(); }
             if (ImGui::Button("Apply")) {
                 open = false;
+
                 config.aquire();
-                config.conf["lists"][editedListName] = json::object();
+                if (renameListOpen) {
+                    config.conf["lists"][editedListName] = config.conf["lists"][firstEditedListName];
+                    config.conf["lists"].erase(firstEditedListName);
+                }
+                else {
+                    config.conf["lists"][editedListName] = json::object();
+                }
                 config.release(true);
                 refreshLists();
-                loadByName(selectedListName);
+                loadByName(editedListName);
             }
             if (strlen(nameBuf) == 0) { style::endDisabled(); }
             ImGui::SameLine();
@@ -238,7 +259,6 @@ private:
             return;
         }
         selectedListId = std::distance(listNames.begin(), std::find(listNames.begin(), listNames.end(), listName));
-        spdlog::warn("Set id to {0} {1}", selectedListId, listName);
         selectedListName = listName;
         config.aquire();
         for (auto [bmName, bm] : config.conf["lists"][listName].items()) {
@@ -279,19 +299,23 @@ private:
             _this->loadByName(_this->listNames[_this->selectedListId]);
         }
         ImGui::SameLine();
+        if (_this->listNames.size() == 0) { style::beginDisabled(); }
         if (ImGui::Button(("Rename##_freq_mgr_ren_lst_" + _this->name).c_str(), ImVec2(btnSize, 0))) {
-            // Rename list here
+            _this->firstEditedListName = _this->listNames[_this->selectedListId];
+            _this->editedListName = _this->firstEditedListName;
+            _this->renameListOpen = true;
         }
+        if (_this->listNames.size() == 0) { style::endDisabled(); }
         ImGui::SameLine();
         if (ImGui::Button(("+##_freq_mgr_add_lst_" + _this->name).c_str(), ImVec2(lineHeight, 0))) {
             // Find new unique default name
-            if (std::find(_this->listNames.begin(), _this->listNames.end(), "New Bookmark") == _this->listNames.end()) {
-                _this->editedListName = "New Bookmark";
+            if (std::find(_this->listNames.begin(), _this->listNames.end(), "New List") == _this->listNames.end()) {
+                _this->editedListName = "New List";
             }
             else {
                 char buf[64];
                 for (int i = 1; i < 1000; i++) {
-                    sprintf(buf, "New Bookmark (%d)", i);
+                    sprintf(buf, "New List (%d)", i);
                     if (std::find(_this->listNames.begin(), _this->listNames.end(), buf) == _this->listNames.end()) { break; }
                 }
                 _this->editedListName = buf;
@@ -299,7 +323,9 @@ private:
             _this->newListOpen = true;
         }
         ImGui::SameLine();
+        if (_this->selectedListName == "") { style::beginDisabled(); }
         if (ImGui::Button(("-##_freq_mgr_del_lst_" + _this->name).c_str(), ImVec2(lineHeight, 0))) {
+            if (_this->selectedListName == "") { style::endDisabled(); }
             config.aquire();
             config.conf["lists"].erase(_this->selectedListName);
             config.release(true);
@@ -312,9 +338,11 @@ private:
                 _this->selectedListName = "";
             }
         }
-
+        else {
+            if (_this->selectedListName == "") { style::endDisabled(); }
+        }
+        
         if (_this->selectedListName == "") { style::beginDisabled(); }
-
         //Draw buttons on top of the list
         ImGui::BeginTable(("freq_manager_btn_table"+_this->name).c_str(), 3);
         ImGui::TableNextRow();
@@ -325,12 +353,12 @@ private:
             if (gui::waterfall.selectedVFO == "") {
                 _this->editedBookmark.frequency = gui::waterfall.getCenterFrequency();
                 _this->editedBookmark.bandwidth = 0;
-                _this->editedBookmark.mode = -1;
+                _this->editedBookmark.mode = 7;
             }
             else {
                 _this->editedBookmark.frequency = gui::waterfall.getCenterFrequency() + sigpath::vfoManager.getOffset(gui::waterfall.selectedVFO);
                 _this->editedBookmark.bandwidth = sigpath::vfoManager.getBandwidth(gui::waterfall.selectedVFO);
-                _this->editedBookmark.mode = -1;
+                _this->editedBookmark.mode = 7;
                 if (core::modComManager.getModuleName(gui::waterfall.selectedVFO) == "radio") {
                     int mode;
                     core::modComManager.callInterface(gui::waterfall.selectedVFO, RADIO_IFACE_CMD_GET_MODE, NULL, &mode);
@@ -357,11 +385,12 @@ private:
         }
 
         ImGui::TableSetColumnIndex(1);
+        if (selectedNames.size() == 0 && _this->selectedListName != "") { style::beginDisabled(); }
         if (ImGui::Button(("Remove##_freq_mgr_rem_" + _this->name).c_str(), ImVec2(ImGui::GetContentRegionAvailWidth(), 0))) {
-            for (auto& name : selectedNames) { _this->bookmarks.erase(name); }
+            for (auto& _name : selectedNames) { _this->bookmarks.erase(_name); }
             _this->saveByName(_this->selectedListName);
         }
-
+        if (selectedNames.size() == 0 && _this->selectedListName != "") { style::endDisabled(); }
         ImGui::TableSetColumnIndex(2);
         if (selectedNames.size() != 1 && _this->selectedListName != "") { style::beginDisabled(); }
         if (ImGui::Button(("Edit##_freq_mgr_edt_" + _this->name).c_str(), ImVec2(ImGui::GetContentRegionAvailWidth(), 0))) {
@@ -391,7 +420,7 @@ private:
             }
 
             ImGui::TableSetColumnIndex(1);
-            ImGui::Text(freqToStr(bm.frequency).c_str());
+            ImGui::Text("%s %s", freqToStr(bm.frequency).c_str(), demodModeList[bm.mode]);
             ImVec2 max = ImGui::GetCursorPos();
         }
         
@@ -410,15 +439,24 @@ private:
         ImGui::TableNextRow();
 
         ImGui::TableSetColumnIndex(0);
-        if (ImGui::Button(("Import##_freq_mgr_imp_" + _this->name).c_str(), ImVec2(ImGui::GetContentRegionAvailWidth(), 0))) {
-            
+        if (ImGui::Button(("Import##_freq_mgr_imp_" + _this->name).c_str(), ImVec2(ImGui::GetContentRegionAvailWidth(), 0)) && !_this->importOpen) {
+            _this->importOpen = true;
+            _this->importDialog = new pfd::open_file("Import bookmarks", "", {"JSON Files (*.json)", "*.json", "All Files", "*"}, true);
         }
 
         ImGui::TableSetColumnIndex(1);
-        if (ImGui::Button(("Export##_freq_mgr_exp_" + _this->name).c_str(), ImVec2(ImGui::GetContentRegionAvailWidth(), 0))) {
-            
+        if (selectedNames.size() == 0 && _this->selectedListName != "") { style::beginDisabled(); }
+        if (ImGui::Button(("Export##_freq_mgr_exp_" + _this->name).c_str(), ImVec2(ImGui::GetContentRegionAvailWidth(), 0)) && !_this->exportOpen) {
+            _this->exportedBookmarks = json::object();
+            config.aquire();
+            for (auto& _name : selectedNames) {
+                _this->exportedBookmarks["bookmarks"][_name] = config.conf["lists"][_this->selectedListName][_name];
+            }
+            config.release();
+            _this->exportOpen = true;
+            _this->exportDialog = new pfd::save_file("Export bookmarks", "", {"JSON Files (*.json)", "*.json", "All Files", "*"}, true);
         }
-        
+        if (selectedNames.size() == 0 && _this->selectedListName != "") { style::endDisabled(); }
         ImGui::EndTable();
 
         if (_this->selectedListName == "") { style::endDisabled(); }
@@ -434,6 +472,73 @@ private:
         if (_this->newListOpen) {
             _this->newListOpen = _this->newListDialog();
         }
+
+        if (_this->renameListOpen) {
+            _this->renameListOpen = _this->newListDialog();
+        }
+
+        // Handle import and export
+        if (_this->importOpen && _this->importDialog->ready()) {
+            _this->importOpen = false;
+            std::vector<std::string> paths = _this->importDialog->result();
+            if (paths.size() > 0 && _this->listNames.size() > 0) {
+                _this->importBookmarks(paths[0]);
+            }
+            delete _this->importDialog;
+        }
+        if (_this->exportOpen && _this->exportDialog->ready()) {
+            _this->exportOpen = false;
+            std::string path = _this->exportDialog->result();
+            if (path != "") {
+                _this->exportBookmarks(path);
+            }
+            delete _this->exportDialog;
+        }
+    }
+
+    json exportedBookmarks;
+    bool importOpen = false;
+    bool exportOpen = false;
+    pfd::open_file* importDialog;
+    pfd::save_file* exportDialog;
+
+    void importBookmarks(std::string path) {
+        std::ifstream fs(path);
+        json importBookmarks;
+        fs >> importBookmarks;
+
+        if (!importBookmarks.contains("bookmarks")) {
+            spdlog::error("File does not contains any bookmarks");
+            return;
+        }
+
+        if (!importBookmarks["bookmarks"].is_object()) {
+            spdlog::error("Bookmark attribute is invalid");
+            return;
+        }
+
+        // Load every bookmark
+        for (auto const [_name, bm] : importBookmarks["bookmarks"].items()) {
+            if (bookmarks.find(_name) != bookmarks.end()) {
+                spdlog::warn("Bookmark with the name '{0}' already exists in list, skipping", _name);
+                continue;
+            }
+            FrequencyBookmark fbm;
+            fbm.frequency = bm["frequency"];
+            fbm.bandwidth = bm["bandwidth"];
+            fbm.mode = bm["mode"];
+            fbm.selected = false;
+            bookmarks[_name] = fbm;
+        }
+        saveByName(selectedListName);
+
+        fs.close();
+    }
+
+    void exportBookmarks(std::string path) {
+        std::ofstream fs(path);
+        exportedBookmarks >> fs;
+        fs.close();
     }
 
     std::string name;
@@ -441,6 +546,7 @@ private:
     bool createOpen = false;
     bool editOpen = false;
     bool newListOpen = false;
+    bool renameListOpen = false;
 
     std::map<std::string, FrequencyBookmark> bookmarks;
 
@@ -454,6 +560,7 @@ private:
     int selectedListId = 0;
 
     std::string editedListName;
+    std::string firstEditedListName;
 
     int testN = 0;
 

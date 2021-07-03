@@ -138,6 +138,9 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["menuElements"][3]["name"] = "Sinks";
     defConfig["menuElements"][3]["open"] = true;
 
+    defConfig["menuElements"][3]["name"] = "Frequency Manager";
+    defConfig["menuElements"][3]["open"] = true;
+
     defConfig["menuElements"][4]["name"] = "VFO Color";
     defConfig["menuElements"][4]["open"] = true;
 
@@ -170,6 +173,7 @@ int sdrpp_main(int argc, char *argv[]) {
 
     defConfig["moduleInstances"]["Radio"] = "radio";
 
+    defConfig["moduleInstances"]["Frequency Manager"] = "frequency_manager";
     defConfig["moduleInstances"]["Recorder"] = "recorder";
     
 

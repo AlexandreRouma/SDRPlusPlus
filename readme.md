@@ -270,7 +270,7 @@ Modules in beta are still included in releases for the most part but not enabled
 | Name                | Stage      | Dependencies | Option                        | Built by default| Built in Release        | Enabled in SDR++ by default |
 |---------------------|------------|--------------|-------------------------------|:---------------:|:-----------------------:|:---------------------------:|
 | discord_integration | Working    | -            | OPT_BUILD_DISCORD_PRESENCE    | ✅              | ✅                     | ⛔                         |
-| frequency_manager   | Unfinished | -            | OPT_BUILD_FREQUENCY_MANAGER   | ⛔              | ⛔                     | ⛔                         |
+| frequency_manager   | Beta       | -            | OPT_BUILD_FREQUENCY_MANAGER   | ✅              | ✅                     | ✅                         |
 | recorder            | Working    | -            | OPT_BUILD_RECORDER            | ✅              | ✅                     | ✅                         |
 
 # Toubleshooting
