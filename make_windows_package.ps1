@@ -55,6 +55,7 @@ cp $build_dir/radio/Release/radio.dll sdrpp_windows_x64/modules/
 
 # Copy misc modules
 cp $build_dir/discord_integration/Release/discord_integration.dll sdrpp_windows_x64/modules/
+cp $build_dir/frequency_manager/Release/frequency_manager.dll sdrpp_windows_x64/modules/
 cp $build_dir/recorder/Release/recorder.dll sdrpp_windows_x64/modules/
 
 
