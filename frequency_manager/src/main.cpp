@@ -202,7 +202,9 @@ private:
                 editedListName = nameBuf;
             }
 
-            if (strlen(nameBuf) == 0) { style::beginDisabled(); }
+            bool alreadyExists = (std::find(listNames.begin(), listNames.end(), editedListName) != listNames.end());
+
+            if (strlen(nameBuf) == 0 || alreadyExists) { style::beginDisabled(); }
             if (ImGui::Button("Apply")) {
                 open = false;
 
@@ -218,7 +220,7 @@ private:
                 refreshLists();
                 loadByName(editedListName);
             }
-            if (strlen(nameBuf) == 0) { style::endDisabled(); }
+            if (strlen(nameBuf) == 0 || alreadyExists) { style::endDisabled(); }
             ImGui::SameLine();
             if (ImGui::Button("Cancel")) {
                 open = false;

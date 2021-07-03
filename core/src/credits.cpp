@@ -18,7 +18,8 @@ namespace sdrpp_credits {
         "Raov",
         "Starman0620",
         "Szymon Zakrent",
-        "Tobias Mädel"
+        "Tobias Mädel",
+        "Zimm"
     };
 
     const char* libraries[] = {
