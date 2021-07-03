@@ -99,7 +99,7 @@ jobs:
           run: cd $GITHUB_WORKSPACE/docker_builds/debian_buster && docker build . --tag sdrpp_build
 
         - name: Run Container
-          run: docker run --name build --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
+          run: docker run --name build -v $GITHUB_WORKSPACE:/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
 
         - name: Recover Deb Archive
           working-directory: ${{runner.workspace}}
@@ -121,7 +121,7 @@ jobs:
           run: cd $GITHUB_WORKSPACE/docker_builds/debian_bullseye && docker build . --tag sdrpp_build
 
         - name: Run Container
-          run: docker run --name build --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
+          run: docker run --name build -v $GITHUB_WORKSPACE:/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
 
         - name: Recover Deb Archive
           working-directory: ${{runner.workspace}}
@@ -143,7 +143,7 @@ jobs:
           run: cd $GITHUB_WORKSPACE/docker_builds/debian_sid && docker build . --tag sdrpp_build
 
         - name: Run Container
-          run: docker run --name build --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
+          run: docker run --name build -v $GITHUB_WORKSPACE:/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
 
         - name: Recover Deb Archive
           working-directory: ${{runner.workspace}}
@@ -165,7 +165,7 @@ jobs:
           run: cd $GITHUB_WORKSPACE/docker_builds/ubuntu_focal && docker build . --tag sdrpp_build
 
         - name: Run Container
-          run: docker run --name build --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
+          run: docker run --name build -v $GITHUB_WORKSPACE:/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
 
         - name: Recover Deb Archive
           working-directory: ${{runner.workspace}}
@@ -187,7 +187,7 @@ jobs:
           run: cd $GITHUB_WORKSPACE/docker_builds/ubuntu_groovy && docker build . --tag sdrpp_build
 
         - name: Run Container
-          run: docker run --name build --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
+          run: docker run --name build -v $GITHUB_WORKSPACE:/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
 
         - name: Recover Deb Archive
           working-directory: ${{runner.workspace}}
@@ -209,7 +209,7 @@ jobs:
           run: cd $GITHUB_WORKSPACE/docker_builds/ubuntu_hirsute && docker build . --tag sdrpp_build
 
         - name: Run Container
-          run: docker run --name build --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
+          run: docker run --name build -v $GITHUB_WORKSPACE:/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
 
         - name: Recover Deb Archive
           working-directory: ${{runner.workspace}}
