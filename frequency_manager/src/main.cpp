@@ -235,6 +235,7 @@ private:
             selectedListName = "";
             selectedListId = 0;
             loadFirst();
+            return;
         }
         selectedListId = std::distance(listNames.begin(), std::find(listNames.begin(), listNames.end(), listName));
         spdlog::warn("Set id to {0} {1}", selectedListId, listName);

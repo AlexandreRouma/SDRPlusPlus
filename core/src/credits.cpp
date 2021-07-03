@@ -13,6 +13,7 @@ namespace sdrpp_credits {
         "Howard0su",
         "Joshua Kimsey",
         "Martin Hauke",
+        "Marvin Sinister",
         "Paulo Matias",
         "Raov",
         "Starman0620",

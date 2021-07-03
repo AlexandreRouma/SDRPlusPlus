@@ -331,6 +331,7 @@ I will soon publish a contributing.md listing the code style to use.
 * [Howard0su](https://github.com/howard0su)
 * [Joshua Kimsey](https://github.com/JoshuaKimsey)
 * [Martin Hauke](https://github.com/mnhauke)
+* [Marvin Sinister](https://github.com/marvin-sinister)
 * [Paulo Matias](https://github.com/thotypous)
 * [Raov](https://twitter.com/raov_birbtog)
 * [Starman0620](https://github.com/Starman0620)
