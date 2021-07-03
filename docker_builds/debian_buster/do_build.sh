@@ -13,8 +13,6 @@ wget https://www.sdrplay.com/software/SDRplay_RSP_API-Linux-3.07.1.run
 cp x86_64/libsdrplay_api.so.3.07 /usr/lib/libsdrplay_api.so
 cp inc/* /usr/include/
 
-git clone https://github.com/AlexandreRouma/SDRPlusPlus
-
 cd SDRPlusPlus
 mkdir build
 cd build
