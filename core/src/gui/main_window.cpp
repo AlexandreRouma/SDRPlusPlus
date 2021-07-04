@@ -88,7 +88,7 @@ void MainWindow::init() {
 
     vfoCreatedHandler.handler = vfoAddedHandler;
     vfoCreatedHandler.ctx = this;
-    sigpath::vfoManager.vfoCreatedEvent.bindHandler(vfoCreatedHandler);
+    sigpath::vfoManager.vfoCreatedEvent.bindHandler(&vfoCreatedHandler);
 
     spdlog::info("Loading modules");
 

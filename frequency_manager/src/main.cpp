@@ -55,11 +55,16 @@ public:
         refreshLists();
         loadByName(selList);
 
+        fftRedrawHandler.ctx = this;
+        fftRedrawHandler.handler = fftRedraw;
+
         gui::menu.registerEntry(name, menuHandler, this, NULL);
+        gui::waterfall.onFFTRedraw.bindHandler(&fftRedrawHandler);
     }
 
     ~FrequencyManagerModule() {
         gui::menu.removeEntry(name);
+        gui::waterfall.onFFTRedraw.unbindHandler(&fftRedrawHandler);
     }
 
     void enable() {
@@ -461,6 +466,8 @@ private:
         if (selectedNames.size() == 0 && _this->selectedListName != "") { style::endDisabled(); }
         ImGui::EndTable();
 
+        ImGui::Checkbox("Show on FFT", &_this->showBookmarksOnFFT);
+
         if (_this->selectedListName == "") { style::endDisabled(); }
 
         if (_this->createOpen) {
@@ -495,6 +502,32 @@ private:
                 _this->exportBookmarks(path);
             }
             delete _this->exportDialog;
+        }
+    }
+
+    static void fftRedraw(ImGui::WaterFall::FFTRedrawArgs args, void* ctx) {
+        FrequencyManagerModule* _this = (FrequencyManagerModule*)ctx;
+        if (!_this->showBookmarksOnFFT) { return; }
+
+        for (auto const [_name, bm] : _this->bookmarks) {
+            double centerXpos = args.min.x + std::round((bm.frequency - args.lowFreq) * args.freqToPixelRatio);
+            
+            if (bm.frequency >= args.lowFreq && bm.frequency <= args.highFreq) {
+                args.window->DrawList->AddLine(ImVec2(centerXpos, args.min.y), ImVec2(centerXpos, args.max.y), IM_COL32(255, 255, 0, 255));
+            }
+
+            ImVec2 nameSize = ImGui::CalcTextSize(_name.c_str());
+            ImVec2 rectMin = ImVec2(centerXpos-(nameSize.x/2)-5, args.min.y);
+            ImVec2 rectMax = ImVec2(centerXpos+(nameSize.x/2)+5, args.min.y+nameSize.y);
+            ImVec2 clampedRectMin = ImVec2(std::clamp<double>(rectMin.x, args.min.x, args.max.x), rectMin.y);
+            ImVec2 clampedRectMax = ImVec2(std::clamp<double>(rectMax.x, args.min.x, args.max.x), rectMax.y);
+
+            if (clampedRectMax.x - clampedRectMin.x > 0) {
+                args.window->DrawList->AddRectFilled(clampedRectMin, clampedRectMax, IM_COL32(255, 255, 0, 255));
+            }
+            if (rectMin.x >= args.min.x && rectMax.x <= args.max.x) {
+                args.window->DrawList->AddText(ImVec2(centerXpos-(nameSize.x/2), args.min.y), IM_COL32(0, 0, 0, 255), _name.c_str());
+            }
         }
     }
 
@@ -549,6 +582,10 @@ private:
     bool editOpen = false;
     bool newListOpen = false;
     bool renameListOpen = false;
+
+    bool showBookmarksOnFFT = false;
+
+    EventHandler<ImGui::WaterFall::FFTRedrawArgs> fftRedrawHandler;
 
     std::map<std::string, FrequencyBookmark> bookmarks;
 

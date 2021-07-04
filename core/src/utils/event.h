@@ -22,16 +22,16 @@ public:
 
     void emit(T value) {
         for (auto const& handler : handlers) {
-            handler.handler(value, handler.ctx);
+            handler->handler(value, handler->ctx);
         }
     }
 
-    void bindHandler(const EventHandler<T>& handler) {
+    void bindHandler(EventHandler<T>* handler) {
         handlers.push_back(handler);
     }
 
-    void unbindHandler(const EventHandler<T>& handler) {
-        if (handlers.find(handler) == handlers.end()) {
+    void unbindHandler(EventHandler<T>* handler) {
+        if (std::find(handlers.begin(), handlers.end(), handler) == handlers.end()) {
             spdlog::error("Tried to remove a non-existant event handler");
             return;
         }
@@ -39,6 +39,6 @@ public:
     }
 
 private:
-    std::vector<EventHandler<T>> handlers;
+    std::vector<EventHandler<T>*> handlers;
 
 };

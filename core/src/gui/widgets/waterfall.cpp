@@ -174,6 +174,16 @@ namespace ImGui {
             }
         }
 
+        FFTRedrawArgs args;
+        args.min = ImVec2(widgetPos.x + 50, widgetPos.y + 9);
+        args.max = ImVec2(widgetPos.x + dataWidth + 50, widgetPos.y + fftHeight + 10);
+        args.lowFreq = lowerFreq;
+        args.highFreq = upperFreq;
+        args.freqToPixelRatio = horizScale;
+        args.pixelToFreqRatio = viewBandwidth / (double)dataWidth;
+        args.window = window;
+        onFFTRedraw.emit(args);
+
         // X Axis
         window->DrawList->AddLine(ImVec2(widgetPos.x + 50, widgetPos.y + fftHeight + 10), 
                                     ImVec2(widgetPos.x + dataWidth + 50, widgetPos.y + fftHeight + 10),
@@ -182,8 +192,6 @@ namespace ImGui {
         window->DrawList->AddLine(ImVec2(widgetPos.x + 50, widgetPos.y + 9), 
                                     ImVec2(widgetPos.x + 50, widgetPos.y + fftHeight + 9),
                                     text, 1.0);
-
-        
     }
 
     void WaterFall::drawWaterfall() {

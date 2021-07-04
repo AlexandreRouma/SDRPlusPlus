@@ -5,6 +5,7 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <GL/glew.h>
+#include <utils/event.h>
 
 #define WATERFALL_RESOLUTION    1000000
 
@@ -140,6 +141,18 @@ namespace ImGui {
         std::map<std::string, WaterfallVFO*> vfos;
         std::string selectedVFO = "";
         bool selectedVFOChanged = false;
+
+        struct FFTRedrawArgs {
+            ImVec2 min;
+            ImVec2 max;
+            double lowFreq;
+            double highFreq;
+            double freqToPixelRatio;
+            double pixelToFreqRatio;
+            ImGuiWindow* window;
+        };
+
+        Event<FFTRedrawArgs> onFFTRedraw;
 
         enum {
             REF_LOWER,

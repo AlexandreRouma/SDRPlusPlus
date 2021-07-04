@@ -56,7 +56,7 @@ public:
 
         srChangeHandler.ctx = this;
         srChangeHandler.handler = sampleRateChangeHandler;
-        stream.init(wfmDemod.getOutput(), srChangeHandler, audioSampRate);
+        stream.init(wfmDemod.getOutput(), &srChangeHandler, audioSampRate);
         sigpath::sinkManager.registerStream(name, &stream);
 
         selectDemodById(demodId);
