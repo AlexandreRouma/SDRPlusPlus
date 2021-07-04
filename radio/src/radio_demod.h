@@ -12,6 +12,7 @@ public:
     virtual VFOManager::VFO* getVFO() = 0;
     virtual void setAudioSampleRate(float sampleRate) = 0;
     virtual float getAudioSampleRate() = 0;
+    virtual void setBandwidth(float bandWidth, bool updateWaterfall = true) = 0;
     virtual dsp::stream<dsp::stereo_t>* getOutput() = 0;
     virtual void showMenu() = 0;
 };

@@ -118,6 +118,7 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["fastFFT"] = false;
     defConfig["fftHeight"] = 300;
     defConfig["fftSize"] = 65536;
+    defConfig["fftWindow"] = 0;
     defConfig["frequency"] = 100000000.0;
     defConfig["fullWaterfallUpdate"] = false;
     defConfig["max"] = 0.0;

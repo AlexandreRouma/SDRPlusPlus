@@ -162,8 +162,8 @@ public:
         }
     } 
 
-private:
     void setBandwidth(float bandWidth, bool updateWaterfall = true) {
+        bandWidth = std::clamp<float>(bandWidth, bwMin, bwMax);
         bw = bandWidth;
         _vfo->setBandwidth(bw, updateWaterfall);
         float audioBW = std::min<float>(audioSampRate / 2.0f, bw / 2.0f);
@@ -173,6 +173,7 @@ private:
         resamp.updateWindow(&win);
     }
 
+private:
     void setSnapInterval(float snapInt) {
         snapInterval = snapInt;
         _vfo->setSnapInterval(snapInterval);

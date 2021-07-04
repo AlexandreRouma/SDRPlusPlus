@@ -192,12 +192,14 @@ public:
         _vfo->setSnapInterval(snapInterval);
     }
 
-private:
     void setBandwidth(float bandWidth, bool updateWaterfall = true) {
+        bandWidth = std::clamp<float>(bandWidth, bwMin, bwMax);
         bw = bandWidth;
         _vfo->setBandwidth(bw, updateWaterfall);
         demod.setDeviation(bw / 2.0f);
     }
+
+private:
 
     const float bwMax = 250000;
     const float bwMin = 50000;

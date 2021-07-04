@@ -116,6 +116,10 @@ public:
         }
 
         // TODO: Allow selection of the bandwidth
+    }
+
+    void setBandwidth(float bandWidth, bool updateWaterfall = true) {
+        // Do nothing
     } 
 
 private:

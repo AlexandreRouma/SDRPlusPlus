@@ -14,6 +14,7 @@ namespace displaymenu {
     std::vector<std::string> colorMapNames;
     std::string colorMapNamesTxt = "";
     std::string colorMapAuthor = "";
+    int selectedWindow = 0;
 
     const int FFTSizes[] = {
         65536,
@@ -70,6 +71,8 @@ namespace displaymenu {
         }
         gui::mainWindow.setFFTSize(FFTSizes[fftSizeId]);
 
+        selectedWindow = std::clamp<int>((int)core::configManager.conf["fftWindow"], 0, _FFT_WINDOW_COUNT-1);
+        gui::mainWindow.setFFTWindow(selectedWindow);
     }
 
     void draw(void* ctx) {
@@ -99,10 +102,20 @@ namespace displaymenu {
         ImGui::Text("FFT Size");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::Combo("##test_fft_size", &fftSizeId, FFTSizesStr)) {
+        if (ImGui::Combo("##sdrpp_fft_size", &fftSizeId, FFTSizesStr)) {
             gui::mainWindow.setFFTSize(FFTSizes[fftSizeId]);
             core::configManager.aquire();
             core::configManager.conf["fftSize"] = FFTSizes[fftSizeId];
+            core::configManager.release(true);
+        }
+
+        ImGui::Text("FFT Window");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::Combo("##sdrpp_fft_window", &selectedWindow, "Rectangular\0Blackman\0")) {
+            gui::mainWindow.setFFTWindow(selectedWindow);
+            core::configManager.aquire();
+            core::configManager.conf["fftWindow"] = selectedWindow;
             core::configManager.release(true);
         }
 

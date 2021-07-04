@@ -161,8 +161,8 @@ public:
         }
     } 
 
-private:
     void setBandwidth(float bandWidth, bool updateWaterfall = true) {
+        bandWidth = std::clamp<float>(bandWidth, bwMin, bwMax);
         bw = bandWidth;
         _vfo->setBandwidth(bw, updateWaterfall);
         demod.setBandWidth(bw);
@@ -173,6 +173,7 @@ private:
         resamp.updateWindow(&win);
     }
 
+private:
     void setSnapInterval(float snapInt) {
         snapInterval = snapInt;
         _vfo->setSnapInterval(snapInterval);

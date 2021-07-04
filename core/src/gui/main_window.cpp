@@ -40,8 +40,8 @@ void MainWindow::init() {
     gui::waterfall.init();
     gui::waterfall.setRawFFTSize(fftSize);
 
-    tempFFT = new float[fftSize];
-    FFTdata = new float[fftSize];
+    appliedWindow = new float[fftSize];
+    generateFFTWindow(selectedWindow, fftSize);
 
     credits::init();
 
@@ -201,21 +201,23 @@ void MainWindow::fftHandler(dsp::complex_t* samples, int count, void* ctx) {
     std::lock_guard<std::mutex> lck(_this->fft_mtx);
     if (count != _this->fftSize) { return; }
 
-    memcpy(_this->fft_in, samples, count * sizeof(dsp::complex_t));
-    fftwf_execute(_this->fftwPlan);
-    int half = count / 2;
+    // Apply window
+    volk_32fc_32f_multiply_32fc((lv_32fc_t*)_this->fft_in, (lv_32fc_t*)samples, _this->appliedWindow, count);
 
+    // Execute FFT
+    fftwf_execute(_this->fftwPlan);
+
+    // Get the FFT buffer
     float* fftBuf = gui::waterfall.getFFTBuffer();
     if (fftBuf == NULL) {
         gui::waterfall.pushFFT();
         return;
     }
 
-    volk_32fc_s32f_power_spectrum_32f(_this->tempFFT, (lv_32fc_t*)_this->fft_out, count, count);
+    // Take power of spectrum
+    volk_32fc_s32f_power_spectrum_32f(fftBuf, (lv_32fc_t*)_this->fft_out, count, count);
 
-    memcpy(fftBuf, &_this->tempFFT[half], half * sizeof(float));
-    memcpy(&fftBuf[half], _this->tempFFT, half * sizeof(float));
-
+    // Push back data
     gui::waterfall.pushFFT();
 }
 
@@ -619,6 +621,30 @@ void MainWindow::setFFTSize(int size) {
     fft_in = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * fftSize);
     fft_out = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * fftSize);
     fftwPlan = fftwf_plan_dft_1d(fftSize, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
+
+    delete appliedWindow;
+
+    appliedWindow = new float[fftSize];
+    generateFFTWindow(selectedWindow, fftSize);
+}
+
+void MainWindow::setFFTWindow(int win) {
+    std::lock_guard<std::mutex> lck(fft_mtx);
+    selectedWindow = win;
+    generateFFTWindow(selectedWindow, fftSize);
+}
+
+void MainWindow::generateFFTWindow(int win, int size) {
+    if (win == FFT_WINDOW_RECTANGULAR) {
+        for (int i = 0; i < size; i++) {
+            appliedWindow[i] = (i%2) ? 1 : -1;
+        }
+    }
+    else if (win == FFT_WINDOW_BLACKMAN) {
+        for (int i = 0; i < size; i++) {
+            appliedWindow[i] = ((i%2) ? dsp::window_function::blackman(i, size) : -dsp::window_function::blackman(i, size))*2;
+        }
+    }
 }
 
 bool MainWindow::isPlaying() {

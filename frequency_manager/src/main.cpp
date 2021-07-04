@@ -15,7 +15,7 @@
 SDRPP_MOD_INFO {
     /* Name:            */ "frequency_manager",
     /* Description:     */ "Frequency manager module for SDR++",
-    /* Author:          */ "Ryzerth;zimm",
+    /* Author:          */ "Ryzerth;Zimm",
     /* Version:         */ 0, 3, 0,
     /* Max instances    */ 1
 };
@@ -125,8 +125,9 @@ private:
             if (core::modComManager.interfaceExists(vfoName)) {
                 if (core::modComManager.getModuleName(vfoName) == "radio") {
                     int mode = bm.mode;
+                    float bandwidth = bm.bandwidth;
                     core::modComManager.callInterface(vfoName, RADIO_IFACE_CMD_SET_MODE, &mode, NULL);
-                    // TODO: Set bandwidth as well
+                    core::modComManager.callInterface(vfoName, RADIO_IFACE_CMD_SET_BANDWIDTH, &bandwidth, NULL);
                 }
             }
             tuner::tune(tuner::TUNER_MODE_NORMAL, vfoName, bm.frequency);
@@ -594,6 +595,9 @@ private:
         }
 
         ImGui::BeginTooltip();
+        ImGui::Text(hoveredBookmarkName.c_str());
+        ImGui::Separator();
+        ImGui::Text("Frequency: %s", freqToStr(hoveredBookmark.frequency).c_str());
         ImGui::Text("Bandwidth: %s", freqToStr(hoveredBookmark.bandwidth).c_str());
         ImGui::Text("Mode: %s", demodModeList[hoveredBookmark.mode]);
         ImGui::EndTooltip();

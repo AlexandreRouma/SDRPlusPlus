@@ -11,6 +11,12 @@
 
 #define WINDOW_FLAGS    ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground
 
+enum {
+    FFT_WINDOW_RECTANGULAR,
+    FFT_WINDOW_BLACKMAN,
+    _FFT_WINDOW_COUNT
+};
+
 class MainWindow {
 public:
     void init();
@@ -18,6 +24,7 @@ public:
     void setViewBandwidthSlider(float bandwidth);
     bool sdrIsRunning();
     void setFFTSize(int size);
+    void setFFTWindow(int win);
 
     // TODO: Replace with it's own class 
     void setVFO(double freq);
@@ -27,6 +34,7 @@ public:
     bool lockWaterfallControls = false;
 
 private:
+    void generateFFTWindow(int win, int size);
     static void fftHandler(dsp::complex_t* samples, int count, void* ctx);
     static void vfoAddedHandler(VFOManager::VFO* vfo, void* ctx);
 
@@ -35,8 +43,7 @@ private:
     std::mutex fft_mtx;
     fftwf_complex *fft_in, *fft_out;
     fftwf_plan fftwPlan;
-    float* tempFFT;
-    float* FFTdata;
+    float* appliedWindow;
     
     // GUI Variables
     bool firstMenuRender = true;
@@ -56,6 +63,7 @@ private:
     int tuningMode = tuner::TUNER_MODE_NORMAL;
     dsp::stream<dsp::complex_t> dummyStream;
     bool demoWindow = false;
+    int selectedWindow = 0;
 
     EventHandler<VFOManager::VFO*> vfoCreatedHandler;
 

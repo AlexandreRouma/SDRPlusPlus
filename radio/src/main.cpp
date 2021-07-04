@@ -174,6 +174,10 @@ private:
             int* _in = (int*)in;
             if (*_in != _this->demodId) { _this->selectDemodById(*_in); }
         }
+        else if (code == RADIO_IFACE_CMD_SET_BANDWIDTH) {
+            float* _in = (float*)in;
+            _this->currentDemod->setBandwidth(*_in, true);
+        }
     }
 
     void selectDemod(Demodulator* demod) {
