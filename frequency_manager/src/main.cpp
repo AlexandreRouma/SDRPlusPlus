@@ -57,14 +57,18 @@ public:
 
         fftRedrawHandler.ctx = this;
         fftRedrawHandler.handler = fftRedraw;
+        inputHandler.ctx = this;
+        inputHandler.handler = fftInput;
 
         gui::menu.registerEntry(name, menuHandler, this, NULL);
         gui::waterfall.onFFTRedraw.bindHandler(&fftRedrawHandler);
+        gui::waterfall.onInputProcess.bindHandler(&inputHandler);
     }
 
     ~FrequencyManagerModule() {
         gui::menu.removeEntry(name);
         gui::waterfall.onFFTRedraw.unbindHandler(&fftRedrawHandler);
+        gui::waterfall.onInputProcess.unbindHandler(&inputHandler);
     }
 
     void enable() {
@@ -85,19 +89,28 @@ private:
         if (freq >= 1000000.0) {
             sprintf(str, "%.06lf", freq / 1000000.0);
             int len = strlen(str) - 1;
-            while ((str[len] == '0' || str[len] == '.') && len > 0) { len--; }
+            while ((str[len] == '0' || str[len] == '.') && len > 0) {
+                len--;
+                if (str[len] == '.') { len--; break; }
+            }
             return std::string(str).substr(0, len + 1) + "MHz";
         }
         else if (freq >= 1000.0) {
             sprintf(str, "%.06lf", freq / 1000.0);
             int len = strlen(str) - 1;
-            while ((str[len] == '0' || str[len] == '.') && len > 0) { len--; }
+            while ((str[len] == '0' || str[len] == '.') && len > 0) {
+                len--;
+                if (str[len] == '.') { len--; break; }
+            }
             return std::string(str).substr(0, len + 1) + "KHz";
         }
         else {
             sprintf(str, "%.06lf", freq);
             int len = strlen(str) - 1;
-            while ((str[len] == '0' || str[len] == '.') && len > 0) { len--; }
+            while ((str[len] == '0' || str[len] == '.') && len > 0) {
+                len--;
+                if (str[len] == '.') { len--; break; }
+            }
             return std::string(str).substr(0, len + 1) + "Hz";
         }
     }
@@ -109,7 +122,6 @@ private:
             gui::waterfall.centerFreqMoved = true;
         }
         else {
-            tuner::tune(tuner::TUNER_MODE_NORMAL, vfoName, bm.frequency);
             if (core::modComManager.interfaceExists(vfoName)) {
                 if (core::modComManager.getModuleName(vfoName) == "radio") {
                     int mode = bm.mode;
@@ -117,6 +129,7 @@ private:
                     // TODO: Set bandwidth as well
                 }
             }
+            tuner::tune(tuner::TUNER_MODE_NORMAL, vfoName, bm.frequency);
         }
     }
 
@@ -531,6 +544,61 @@ private:
         }
     }
 
+    bool mouseAlreadyDown = false;
+    static void fftInput(ImGui::WaterFall::InputHandlerArgs args, void* ctx) {
+        FrequencyManagerModule* _this = (FrequencyManagerModule*)ctx;
+        if (!_this->showBookmarksOnFFT) { return; }
+
+        // First check that the mouse clicked outside of any label. Also get the bookmark that's hovered
+        bool inALabel = false;
+        FrequencyBookmark hoveredBookmark;
+        std::string hoveredBookmarkName;
+        for (auto const [_name, bm] : _this->bookmarks) {
+            double centerXpos = args.fftRectMin.x + std::round((bm.frequency - args.lowFreq) * args.freqToPixelRatio);
+            ImVec2 nameSize = ImGui::CalcTextSize(_name.c_str());
+            ImVec2 rectMin = ImVec2(centerXpos-(nameSize.x/2)-5, args.fftRectMin.y);
+            ImVec2 rectMax = ImVec2(centerXpos+(nameSize.x/2)+5, args.fftRectMin.y+nameSize.y);
+            ImVec2 clampedRectMin = ImVec2(std::clamp<double>(rectMin.x, args.fftRectMin.x, args.fftRectMax.x), rectMin.y);
+            ImVec2 clampedRectMax = ImVec2(std::clamp<double>(rectMax.x, args.fftRectMin.x, args.fftRectMax.x), rectMax.y);
+
+            if (ImGui::IsMouseHoveringRect(clampedRectMin, clampedRectMax)) {
+                inALabel = true;
+                hoveredBookmark = bm;
+                hoveredBookmarkName = _name;
+                break;
+            }
+        }
+
+        // Check if mouse was already down
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !inALabel) {
+            _this->mouseAlreadyDown = true;
+        }
+        if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+            _this->mouseAlreadyDown = false;
+        }
+
+        // If yes, cancel
+        if (_this->mouseAlreadyDown || !inALabel) { return; }
+
+        gui::waterfall.inputHandled = true;
+
+        double centerXpos = args.fftRectMin.x + std::round((hoveredBookmark.frequency - args.lowFreq) * args.freqToPixelRatio);
+        ImVec2 nameSize = ImGui::CalcTextSize(hoveredBookmarkName.c_str());
+        ImVec2 rectMin = ImVec2(centerXpos-(nameSize.x/2)-5, args.fftRectMin.y);
+        ImVec2 rectMax = ImVec2(centerXpos+(nameSize.x/2)+5, args.fftRectMin.y+nameSize.y);
+        ImVec2 clampedRectMin = ImVec2(std::clamp<double>(rectMin.x, args.fftRectMin.x, args.fftRectMax.x), rectMin.y);
+        ImVec2 clampedRectMax = ImVec2(std::clamp<double>(rectMax.x, args.fftRectMin.x, args.fftRectMax.x), rectMax.y);
+
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+            applyBookmark(hoveredBookmark, gui::waterfall.selectedVFO);
+        }
+
+        ImGui::BeginTooltip();
+        ImGui::Text("Bandwidth: %s", freqToStr(hoveredBookmark.bandwidth).c_str());
+        ImGui::Text("Mode: %s", demodModeList[hoveredBookmark.mode]);
+        ImGui::EndTooltip();
+    }
+
     json exportedBookmarks;
     bool importOpen = false;
     bool exportOpen = false;
@@ -586,6 +654,7 @@ private:
     bool showBookmarksOnFFT = false;
 
     EventHandler<ImGui::WaterFall::FFTRedrawArgs> fftRedrawHandler;
+    EventHandler<ImGui::WaterFall::InputHandlerArgs> inputHandler;
 
     std::map<std::string, FrequencyBookmark> bookmarks;
 

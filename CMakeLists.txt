@@ -37,6 +37,14 @@ option(OPT_BUILD_DISCORD_PRESENCE "Build the Discord Rich Presence module" ON)
 option(OPT_BUILD_FREQUENCY_MANAGER "Build the Frequency Manager module" ON)
 option(OPT_BUILD_RECORDER "Audio and baseband recorder" ON)
 
+# Compiler arguments for each platform
+if (MSVC)
+    set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup")
+else ()
+    set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
+endif ()
 
 # Core of SDR++
 add_subdirectory("core")
@@ -136,15 +144,6 @@ endif (OPT_BUILD_FREQUENCY_MANAGER)
 if (OPT_BUILD_RECORDER)
 add_subdirectory("recorder")
 endif (OPT_BUILD_RECORDER)
-
-
-if (MSVC)
-    set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup")
-else ()
-    set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
-endif ()
 
 add_executable(sdrpp "src/main.cpp" "win32/resources.rc")
 target_link_libraries(sdrpp PRIVATE sdrpp_core)

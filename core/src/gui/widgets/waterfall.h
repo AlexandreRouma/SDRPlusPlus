@@ -35,6 +35,9 @@ namespace ImGui {
         double snapInterval = 5000;
         int reference = REF_CENTER;
 
+        bool leftClamped;
+        bool rightClamped;
+
         ImVec2 rectMin;
         ImVec2 rectMax;
         ImVec2 lineMin;
@@ -153,6 +156,22 @@ namespace ImGui {
         };
 
         Event<FFTRedrawArgs> onFFTRedraw;
+
+        struct InputHandlerArgs {
+            ImVec2 fftRectMin;
+            ImVec2 fftRectMax;
+            ImVec2 freqScaleRectMin;
+            ImVec2 freqScaleRectMax;
+            ImVec2 waterfallRectMin;
+            ImVec2 waterfallRectMax;
+            double lowFreq;
+            double highFreq;
+            double freqToPixelRatio;
+            double pixelToFreqRatio;
+        };
+
+        bool inputHandled = false;
+        Event<InputHandlerArgs> onInputProcess;
 
         enum {
             REF_LOWER,

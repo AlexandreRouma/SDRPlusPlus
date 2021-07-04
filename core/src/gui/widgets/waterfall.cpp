@@ -205,6 +205,7 @@ namespace ImGui {
         if (IS_IN_AREA(mPos, wfMin, wfMax) && !gui::mainWindow.lockWaterfallControls) {
             for (auto const& [name, vfo] : vfos) {
                 window->DrawList->AddRectFilled(vfo->wfRectMin, vfo->wfRectMax, vfo->color);
+                if (!vfo->lineVisible) { continue; }
                 window->DrawList->AddLine(vfo->wfLineMin, vfo->wfLineMax, (name == selectedVFO) ? IM_COL32(255, 0, 0, 255) : IM_COL32(255, 255, 0, 255));
             }
         }
@@ -714,7 +715,22 @@ namespace ImGui {
         window->DrawList->AddRect(widgetPos, widgetEndPos, IM_COL32( 50, 50, 50, 255 ));
         window->DrawList->AddLine(ImVec2(widgetPos.x, widgetPos.y + fftHeight + 50), ImVec2(widgetPos.x + widgetSize.x, widgetPos.y + fftHeight + 50), IM_COL32(50, 50, 50, 255), 1.0);
 
-        if (!gui::mainWindow.lockWaterfallControls) { processInputs(); }
+        if (!gui::mainWindow.lockWaterfallControls) {
+            inputHandled = false;
+            InputHandlerArgs args;
+            args.fftRectMin = fftAreaMin;
+            args.fftRectMax = fftAreaMax;
+            args.freqScaleRectMin = freqAreaMin;
+            args.freqScaleRectMax = freqAreaMax;
+            args.waterfallRectMin = wfMin;
+            args.waterfallRectMax = wfMax;
+            args.lowFreq = lowerFreq;
+            args.highFreq = upperFreq;
+            args.freqToPixelRatio = (double)dataWidth / viewBandwidth;
+            args.pixelToFreqRatio = viewBandwidth / (double)dataWidth;
+            onInputProcess.emit(args);
+            if (!inputHandled) { processInputs(); }
+        }
 
         updateAllVFOs(true);
         
@@ -1001,6 +1017,7 @@ namespace ImGui {
             vfo->wfLbwSelMax = ImVec2(vfo->wfRectMin.x + 2, vfo->wfRectMax.y);
             vfo->wfRbwSelMin = ImVec2(vfo->wfRectMax.x - 2, vfo->wfRectMin.y);
             vfo->wfRbwSelMax = ImVec2(vfo->wfRectMax.x + 2, vfo->wfRectMax.y);
+            vfo->redrawRequired = false;
         }
     }
 
@@ -1102,27 +1119,40 @@ namespace ImGui {
         int left = roundf((((lowerOffset - viewOffset) / (viewBandwidth / 2.0)) + 1.0) * ((double)dataWidth / 2.0));
         int right = roundf((((upperOffset - viewOffset) / (viewBandwidth / 2.0)) + 1.0) * ((double)dataWidth / 2.0));
 
+        // Check weather the line is visible
         if (left >= 0 && left < dataWidth && reference == REF_LOWER) {
-            lineMin = ImVec2(widgetPos.x + 50 + left, widgetPos.y + 9);
-            lineMax = ImVec2(widgetPos.x + 50 + left, widgetPos.y + fftHeight + 9);
             lineVisible = true;
         }
         else if (center >= 0 && center < dataWidth && reference == REF_CENTER) {
-            lineMin = ImVec2(widgetPos.x + 50 + center, widgetPos.y + 9);
-            lineMax = ImVec2(widgetPos.x + 50 + center, widgetPos.y + fftHeight + 9);
             lineVisible = true;
         }
         else if (right >= 0 && right < dataWidth && reference == REF_UPPER) {
-            lineMin = ImVec2(widgetPos.x + 50 + right, widgetPos.y + 9);
-            lineMax = ImVec2(widgetPos.x + 50 + right, widgetPos.y + fftHeight + 9);
             lineVisible = true;
         }
         else {
             lineVisible = false;
         }
 
+        // Calculate the position of the line
+        if (reference == REF_LOWER) {
+            lineMin = ImVec2(widgetPos.x + 50 + left, widgetPos.y + 9);
+            lineMax = ImVec2(widgetPos.x + 50 + left, widgetPos.y + fftHeight + 9);
+        }
+        else if (reference == REF_CENTER) {
+            lineMin = ImVec2(widgetPos.x + 50 + center, widgetPos.y + 9);
+            lineMax = ImVec2(widgetPos.x + 50 + center, widgetPos.y + fftHeight + 9);
+        }
+        else if (reference == REF_UPPER) {
+            lineMin = ImVec2(widgetPos.x + 50 + right, widgetPos.y + 9);
+            lineMax = ImVec2(widgetPos.x + 50 + right, widgetPos.y + fftHeight + 9);
+        }
+
+        int _left = left;
+        int _right = right;
         left = std::clamp<int>(left, 0, dataWidth - 1);
         right = std::clamp<int>(right, 0, dataWidth - 1);
+        if (left != _left) { leftClamped = true; }
+        if (right != _right) { rightClamped = true; }
 
         rectMin = ImVec2(widgetPos.x + 50 + left, widgetPos.y + 10);
         rectMax = ImVec2(widgetPos.x + 51 + right, widgetPos.y + fftHeight + 10);
@@ -1141,11 +1171,11 @@ namespace ImGui {
 
         if (!gui::mainWindow.lockWaterfallControls) {
             ImVec2 mousePos = ImGui::GetMousePos();
-            if (reference != REF_LOWER && !bandwidthLocked) {
+            if (reference != REF_LOWER && !bandwidthLocked && !leftClamped) {
                 if (IS_IN_AREA(mousePos, lbwSelMin, lbwSelMax)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW); }
                 else if (IS_IN_AREA(mousePos, wfLbwSelMin, wfLbwSelMax)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW); }
             }
-            if (reference != REF_UPPER && !bandwidthLocked) {
+            if (reference != REF_UPPER && !bandwidthLocked && !rightClamped) {
                 if (IS_IN_AREA(mousePos, rbwSelMin, rbwSelMax)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW); }
                 else if (IS_IN_AREA(mousePos, wfRbwSelMin, wfRbwSelMax)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW); }
             }
