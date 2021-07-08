@@ -1,5 +1,7 @@
 build/
 .vscode/
+.vs/
+.idea/
 *.old
 *.dll
 *.exe
@@ -7,5 +9,5 @@ build/
 *.wav
 .DS_Store
 root_dev/
-sdrpp_v0.2.5_beta_x64
-sdrpp_v0.2.5_beta_x64_new_wf
+Folder.DotSettings.user
+CMakeSettings.json

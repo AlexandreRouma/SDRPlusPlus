@@ -48,34 +48,54 @@ TODO
 There are currently no BSD packages, refer to [Building on Linux / BSD](https://github.com/AlexandreRouma/SDRPlusPlus#building-on-linux--bsd) for instructions on building from source.
 
 # Building on Windows
+The prefered IDE is [VS Code](https://code.visualstudio.com/) in order to have similar development experience across platforms and to build with CMake using the command line.
+
 ## Install dependencies
-* cmake
-* vcpkg
-* PothosSDR (This will install libraries for most SDRs)
-* rtaudio
+* [cmake](https://cmake.org)
+* [vcpkg](https://vcpkg.io)
+* [PothosSDR](https://github.com/pothosware/PothosSDR) (This will install libraries for most SDRs)
+* [RtAudio](https://www.music.mcgill.ca/~gary/rtaudio/) (You have to build and install it in `C:/Program Files (x86)/RtAudio/`)
 
 After this, install the following dependencies using vcpkg:
 * fftw3
-* glfw
+* glfw3
 * glew
+You are probably going to build in 64 bit so make sure vcpkg installs the correct versions using `.\vcpkg.exe install <package>:x64-windows`
 
-## Building
+
+## Building using the command line
+**IMPORTANT:** Replace `<vcpkg install directory>` with vcpkg's install directory.
 ```
 mkdir build
 cd build
-cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/Users/Alex/vcpkg/scripts/buildsystems/vcpkg.cmake" -G "Visual Studio 15 2017 Win64"
+cmake .. "-DCMAKE_TOOLCHAIN_FILE=<vcpkg install directory>/scripts/buildsystems/vcpkg.cmake" -G "Visual Studio 16 2019"
 cmake --build . --config Release
 ```
 
-## Create a new root directory
+## Running for development
+### Create a new configuration root directory
 ```
 ./create_root.bat
 ```
+This will create the `root_dev` directory that will be used to save the configs of sdrpp and the modules.
 
-## Running for development
-If you wish to install SDR++, skip to the next step
+You will next need to edit the `root_dev/config.json` file to point to the modules that were built. If the file is missing in your folder run the application once and it will create one with default value -- see later on how to run the application.
 
-You will first need to edit the `root_dev/config.json` file to point to the modules that were built. Here is an example of what it should look like:
+### Run SDR++ from the command line
+
+From the top directory, you can simply run:
+```
+./build/Release/sdrpp.exe -r root_dev -s
+```
+
+Or, if you wish to run from the build directory e.g. `build/Release` and adapt the relative path to the `root_dev` folder:
+```
+./sdrpp.exe -r ../../root_dev -s
+```
+The optional `-s` argument is for keeping the console active in order to see the error messages.
+
+Because all the paths are relative, for the rest of the command line instructions we are going to assume you are running from the top directory using the former command.
+As mentioned previously you need to edit `root_dev/config.json` to add the modules that were built. From the default configuration file you need to add the paths in the `modules` section. Add to this list all the modules you wish to use.
 
 ```json
 ...
@@ -92,25 +112,14 @@ You will first need to edit the `root_dev/config.json` file to point to the modu
 You also need to change the location of the resource and module directories, for development, I recommend:
 ```json
 ...
-"modulesDirectory": "../root_dev/modules",
+"modulesDirectory": "root_dev/modules",
 ...
-"resourcesDirectory": "../root_dev/res",
+"resourcesDirectory": "root_dev/res",
 ...
 ```
 
 Remember that these paths will be relative to the run directory.
 
-Of course, remember to add entries for all modules that were built and that you wish to use.
-
-Next, from the top directory, you can simply run:
-```
-./build/Release/sdrpp.exe -r root_dev
-```
-
-Or, if you wish to run from the build directory:
-```
-./Release/sdrpp.exe -r ../root_dev
-```
 
 ## Installing SDR++
 If you choose to run SDR++ for development, you do not need this step.
@@ -286,7 +295,7 @@ To solve, this, simply downgrade to libusb1.3
 
 ## SDR++ crashes when starting a HackRF
 
-If you also have the SoapySDR module loaded (not necessarily enabled), this is a bug in libhackrf. It's caused by libhackrf not checking if it's already initialized. 
+If you also have the SoapySDR module loaded (not necessarily enabled), this is a bug in libhackrf. It's caused by libhackrf not checking if it's already initialized.
 The solution until a fixed libhackrf version is released is to completely remove the soapy_source module from SDR++. To do this, delete `modules/soapy_source.dll` on windows
 or `/usr/share/sdrpp/plugins/soapy_source.so` on linux.
 
@@ -302,7 +311,6 @@ I will soon publish a contributing.md listing the code style to use.
 # Credits
 
 ## Patrons
-
 * [Croccydile](https://example.com/)
 * [Daniele D'Agnelli](https://linkedin.com/in/dagnelli)
 * [W4IPA](https://twitter.com/W4IPAstroke5)
