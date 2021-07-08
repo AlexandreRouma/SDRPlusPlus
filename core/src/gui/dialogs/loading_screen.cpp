@@ -35,37 +35,40 @@ namespace LoadingScreen {
         ImGui::PopFont();
         ImGui::SameLine();
         ImGui::Image(icons::LOGO, ImVec2(128, 128));
-        ImGui::Spacing();
-        ImGui::Spacing();
-        ImGui::Spacing();
+        // ImGui::Spacing();
+        // ImGui::Spacing();
+        // ImGui::Spacing();
 
-        ImGui::Text("This software is brought to you by\n\n");
+        // ImGui::Text("This software is brought to you by\n\n");
 
-        ImGui::Columns(3, "CreditColumns", true);
+        // ImGui::Columns(3, "CreditColumns", true);
 
-        ImGui::Text("Contributors");
-        for (int i = 0; i < sdrpp_credits::contributorCount; i++) {
-            ImGui::BulletText("%s", sdrpp_credits::contributors[i]);
-        }
+        // ImGui::Text("Contributors");
+        // for (int i = 0; i < sdrpp_credits::contributorCount; i++) {
+        //     ImGui::BulletText("%s", sdrpp_credits::contributors[i]);
+        // }
 
-        ImGui::NextColumn();
-        ImGui::Text("Libraries");
-        for (int i = 0; i < sdrpp_credits::libraryCount; i++) {
-            ImGui::BulletText("%s", sdrpp_credits::libraries[i]);
-        }
+        // ImGui::NextColumn();
+        // ImGui::Text("Libraries");
+        // for (int i = 0; i < sdrpp_credits::libraryCount; i++) {
+        //     ImGui::BulletText("%s", sdrpp_credits::libraries[i]);
+        // }
 
-        ImGui::NextColumn();
-        ImGui::Text("Patrons");
-        for (int i = 0; i < sdrpp_credits::patronCount; i++) {
-            ImGui::BulletText("%s", sdrpp_credits::patrons[i]);
-        }
+        // ImGui::NextColumn();
+        // ImGui::Text("Patrons");
+        // for (int i = 0; i < sdrpp_credits::patronCount; i++) {
+        //     ImGui::BulletText("%s", sdrpp_credits::patrons[i]);
+        // }
 
-        ImGui::Columns(1, "CreditColumnsEnd", true);
+        // ImGui::Columns(1, "CreditColumnsEnd", true);
 
-        ImGui::Spacing();
-        ImGui::Spacing();
-        ImGui::Spacing();
+        // ImGui::Spacing();
+        // ImGui::Spacing();
+        // ImGui::Spacing();
+        ImVec2 origPos = ImGui::GetCursorPos();
+        ImGui::SetCursorPosY(origPos.y + 50);
         ImGui::Text("%s", msg.c_str());
+        ImGui::SetCursorPos(origPos);
 
         ImGui::EndPopup();
         ImGui::PopStyleVar(1);

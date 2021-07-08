@@ -219,7 +219,7 @@ public:
             ImGui::BeginChild("AVHRRRGBChild");
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
             avhrrRGBImage.draw();
-            ImGui::SetScrollHere(1.0f);
+            ImGui::SetScrollHereY(1.0f);
             ImGui::EndChild();
             ImGui::EndTabItem();
         }
@@ -228,7 +228,7 @@ public:
             ImGui::BeginChild("AVHRR1Child");
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
             avhrr1Image.draw();
-            ImGui::SetScrollHere(1.0f);
+            ImGui::SetScrollHereY(1.0f);
             ImGui::EndChild();
             ImGui::EndTabItem();
         }
@@ -237,7 +237,7 @@ public:
             ImGui::BeginChild("AVHRR2Child");
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
             avhrr2Image.draw();
-            ImGui::SetScrollHere(1.0f);
+            ImGui::SetScrollHereY(1.0f);
             ImGui::EndChild();
             ImGui::EndTabItem();
         }
@@ -246,7 +246,7 @@ public:
             ImGui::BeginChild("AVHRR3Child");
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
             avhrr3Image.draw();
-            ImGui::SetScrollHere(1.0f);
+            ImGui::SetScrollHereY(1.0f);
             ImGui::EndChild();
             ImGui::EndTabItem();
         }
@@ -255,7 +255,7 @@ public:
             ImGui::BeginChild("AVHRR4Child");
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
             avhrr4Image.draw();
-            ImGui::SetScrollHere(1.0f);
+            ImGui::SetScrollHereY(1.0f);
             ImGui::EndChild();
             ImGui::EndTabItem();
         }
@@ -264,7 +264,7 @@ public:
             ImGui::BeginChild("AVHRR5Child");
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
             avhrr5Image.draw();
-            ImGui::SetScrollHere(1.0f);
+            ImGui::SetScrollHereY(1.0f);
             ImGui::EndChild();
             ImGui::EndTabItem();
         }

@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <imgui_plot.h>
 #include <thread>
 #include <complex>
 #include <gui/widgets/waterfall.h>
