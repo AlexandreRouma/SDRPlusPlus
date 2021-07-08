@@ -52,7 +52,7 @@ The prefered IDE is [VS Code](https://code.visualstudio.com/) in order to have s
 
 ## Install dependencies
 * [cmake](https://cmake.org)
-* [vcpkg](https://vcpkg.io) (Below we assume it is installed in `C:\src\` as suggested in the documentation.)
+* [vcpkg](https://vcpkg.io)
 * [PothosSDR](https://github.com/pothosware/PothosSDR) (This will install libraries for most SDRs)
 * [RtAudio](https://www.music.mcgill.ca/~gary/rtaudio/) (You have to build and install it in `C:/Program Files (x86)/RtAudio/`)
 
@@ -64,10 +64,11 @@ You are probably going to build in 64 bit so make sure vcpkg installs the correc
 
 
 ## Building using the command line
+**IMPORTANT:** Replace `<vcpkg install directory>` with vcpkg's install directory.
 ```
 mkdir build
 cd build
-cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/src/vcpkg/scripts/buildsystems/vcpkg.cmake" -G "Visual Studio 16 2019"
+cmake .. "-DCMAKE_TOOLCHAIN_FILE=<vcpkg install directory>/scripts/buildsystems/vcpkg.cmake" -G "Visual Studio 16 2019"
 cmake --build . --config Release
 ```
 
@@ -80,7 +81,7 @@ This will create the `root_dev` directory that will be used to save the configs 
 
 You will next need to edit the `root_dev/config.json` file to point to the modules that were built. If the file is missing in your folder run the application once and it will create one with default value -- see later on how to run the application.
 
-### Running from the command line
+### Run SDR++ from the command line
 
 From the top directory, you can simply run:
 ```
