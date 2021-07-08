@@ -14,6 +14,7 @@ namespace sdrpp_credits {
         "Joshua Kimsey",
         "Martin Hauke",
         "Marvin Sinister",
+        "Maxime Biette",
         "Paulo Matias",
         "Raov",
         "Starman0620",

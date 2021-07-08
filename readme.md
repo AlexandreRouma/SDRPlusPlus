@@ -333,6 +333,7 @@ I will soon publish a contributing.md listing the code style to use.
 * [Joshua Kimsey](https://github.com/JoshuaKimsey)
 * [Martin Hauke](https://github.com/mnhauke)
 * [Marvin Sinister](https://github.com/marvin-sinister)
+* [Maxime Biette](https://github.com/mbiette)
 * [Paulo Matias](https://github.com/thotypous)
 * [Raov](https://twitter.com/raov_birbtog)
 * [Starman0620](https://github.com/Starman0620)
