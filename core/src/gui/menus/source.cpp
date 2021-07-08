@@ -7,8 +7,40 @@
 #include <signal_path/signal_path.h>
 
 namespace sourecmenu {
+    int offsetMode = 0;
     int sourceId = 0;
-    double freqOffset = 0.0;
+    double customOffset = 0.0;
+    double effectiveOffset = 0.0;
+
+    enum {
+        OFFSET_MODE_NONE,
+        OFFSET_MODE_CUSTOM,
+        OFFSET_MODE_SPYVERTER,
+        OFFSET_MODE_HAM_IT_UP,
+        OFFSET_MODE_DK5AV_XB,
+        OFFSET_MODE_KU_LNB_9750,
+        OFFSET_MODE_KU_LNB_10700,
+        _OFFSET_MODE_COUNT
+    };
+
+    const char* offsetModesTxt = "None\0"
+                                "Custom\0"
+                                "SpyVerter\0"
+                                "Ham-It-Up\0"
+                                "DK5AV X-Band\0"
+                                "Ku LNB (9750MHz)\0"
+                                "Ku LNB (10700MHz)\0";
+
+    void updateOffset() {
+        if (offsetMode == OFFSET_MODE_CUSTOM) {         effectiveOffset = customOffset; }
+        else if (offsetMode == OFFSET_MODE_SPYVERTER) { effectiveOffset = 120000000; }          // 120MHz Up-conversion
+        else if (offsetMode == OFFSET_MODE_HAM_IT_UP) { effectiveOffset = 125000000; }          // 125MHz Up-conversion
+        else if (offsetMode == OFFSET_MODE_DK5AV_XB) {  effectiveOffset = -6800000000; }         // 6.8GHz Down-conversion
+        else if (offsetMode == OFFSET_MODE_KU_LNB_9750) { effectiveOffset = -9750000000; }       // 9.750GHz Down-conversion
+        else if (offsetMode == OFFSET_MODE_KU_LNB_10700) {  effectiveOffset = -10700000000; }    // 10.7GHz Down-conversion
+        else { effectiveOffset = 0; }
+        sigpath::sourceManager.setTuningOffset(effectiveOffset);
+    }
 
     void init() {
         core::configManager.aquire();
@@ -24,8 +56,9 @@ namespace sourecmenu {
         else {
             spdlog::warn("No source available...");
         }
-        freqOffset = core::configManager.conf["offset"];
-        sigpath::sourceManager.setTuningOffset(freqOffset);
+        customOffset = core::configManager.conf["offset"];
+        offsetMode = core::configManager.conf["offsetMode"];
+        updateOffset();
         core::configManager.release();
     }
 
@@ -51,12 +84,32 @@ namespace sourecmenu {
 
         sigpath::sourceManager.showSelectedMenu();
 
-        ImGui::SetNextItemWidth(itemWidth - ImGui::CalcTextSize("Offset (Hz)").x - 10);
-        if (ImGui::InputDouble("Offset (Hz)##freq_offset", &freqOffset, 1.0, 100.0)) {
-            sigpath::sourceManager.setTuningOffset(freqOffset);
+        ImGui::Text("Offset mode");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(itemWidth - ImGui::GetCursorPosX());
+        if (ImGui::Combo("##_sdrpp_offset_mode", &offsetMode, offsetModesTxt)) {
+            updateOffset();
             core::configManager.aquire();
-            core::configManager.conf["offset"] = freqOffset;
+            core::configManager.conf["offsetMode"] = offsetMode;
             core::configManager.release(true);
         }
+
+        ImGui::Text("Offset");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(itemWidth - ImGui::GetCursorPosX());
+        if (offsetMode == OFFSET_MODE_CUSTOM) {
+            if (ImGui::InputDouble("##freq_offset", &customOffset, 1.0, 100.0)) {
+                updateOffset();
+                core::configManager.aquire();
+                core::configManager.conf["offset"] = customOffset;
+                core::configManager.release(true);
+            }
+        }
+        else {
+            style::beginDisabled();
+            ImGui::InputDouble("##freq_offset", &effectiveOffset, 1.0, 100.0);
+            style::endDisabled();
+        }
+        
     }
 }

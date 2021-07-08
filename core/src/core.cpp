@@ -182,6 +182,7 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["theme"] = "Dark";
 
     defConfig["modules"] = json::array();
+    defConfig["offsetMode"] = (int)0; // Off
     defConfig["offset"] = 0.0;
     defConfig["showMenu"] = true;
     defConfig["showWaterfall"] = true;
