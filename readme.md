@@ -32,7 +32,7 @@ Download the latest release from [the Releases page](https://github.com/Alexandr
 Then, run:
 
 ```sh
-sudo apt install libfftw3-dev libglfw3-dev libglew-dev libvolk2-dev libsoapysdr-dev libairspyhf-dev libiio-dev libad9361-dev librtaudio-dev libhackrf-dev
+sudo apt install libfftw3-dev libglfw3-dev libglew-dev libvolk2-dev libsoapysdr-dev libairspyhf-dev libiio-dev libad9361-dev librtaudio-dev portaudio19-dev libhackrf-dev
 sudo dpkg -i sdrpp_debian_amd64.deb
 ```
 
@@ -70,6 +70,7 @@ After this, install the following dependencies using vcpkg:
 * fftw3
 * glfw3
 * glew
+* portaudio
 
 You are probably going to build in 64 bit so make sure vcpkg installs the correct versions using `.\vcpkg.exe install <package>:x64-windows`
 
@@ -169,6 +170,7 @@ you can disable it using the module parameter listed in the table below
 * airspyhf_source: libairspyhf
 * plutosdr_source: libiio, libad9361
 * audio_sink: librtaudio-dev
+* dev_portaudio_sink: portaudio19-dev
 
 ## Install dependencies
 
@@ -284,9 +286,10 @@ Modules in beta are still included in releases for the most part but not enabled
 
 ## Sinks
 
-| Name             | Stage      | Dependencies      | Option                     | Built by default| Built in Release        | Enabled in SDR++ by default |
-|------------------|------------|-------------------|----------------------------|:---------------:|:-----------------------:|:---------------------------:|
-| audio_sink       | Working    | rtaudio           | OPT_BUILD_AUDIO_SINK       | ✅              | ✅                     | ✅                         |
+| Name               | Stage      | Dependencies     | Option                       | Built by default| Built in Release        | Enabled in SDR++ by default |
+|--------------------|------------|------------------|------------------------------|:---------------:|:-----------------------:|:---------------------------:|
+| audio_sink         | Working    | rtaudio          | OPT_BUILD_AUDIO_SINK         | ✅              | ✅                     | ✅                         |
+| portaudio_sink     | Working    | portaudio        | OPT_BUILD_DEV_PORTAUDIO_SINK | ✅              | ✅                     | ✅                         |
 
 ## Decoders
 

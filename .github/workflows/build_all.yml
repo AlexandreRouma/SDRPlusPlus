@@ -36,7 +36,7 @@ jobs:
           run: 7z x ${{runner.workspace}}/SDRPlay.zip -o"C:/Program Files/"
 
         - name: Install vcpkg dependencies
-          run: vcpkg install fftw3:x64-windows glew:x64-windows glfw3:x64-windows
+          run: vcpkg install fftw3:x64-windows glew:x64-windows glfw3:x64-windows portaudio:x64-windows
 
         - name: Install rtaudio
           run: git clone https://github.com/thestk/rtaudio ; cd rtaudio ; mkdir build ; cd build ; cmake .. ; cmake --build . --config Release ; cmake --install .

@@ -46,6 +46,8 @@ cp 'C:/Program Files/PothosSDR/bin/libad9361.dll' sdrpp_windows_x64/
 # Copy sink modules
 cp $build_dir/audio_sink/Release/audio_sink.dll sdrpp_windows_x64/modules/
 cp "C:/Program Files (x86)/RtAudio/bin/rtaudio.dll" sdrpp_windows_x64/
+cp $build_dir/dev_portaudio_sink/Release/portaudio_sink.dll sdrpp_windows_x64/modules/
+cp $build_dir/dev_portaudio_sink/Release/portaudio.dll sdrpp_windows_x64/
 
 
 # Copy decoder modules

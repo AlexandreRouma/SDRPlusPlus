@@ -81,4 +81,6 @@ namespace dsp {
         float l;
         float r;
     };
+
+    using mono_t = float;
 }
