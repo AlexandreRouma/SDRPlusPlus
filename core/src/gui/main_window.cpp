@@ -452,6 +452,7 @@ void MainWindow::draw() {
 
             // Update enabled and disabled modules
             for (auto [_name, inst] : core::moduleManager.instances) {
+                if (!core::configManager.conf["moduleInstances"].contains(_name)) { continue; }
                 core::configManager.conf["moduleInstances"][_name]["enabled"] = inst.instance->isEnabled();
             }
 
