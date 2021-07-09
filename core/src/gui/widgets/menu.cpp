@@ -106,6 +106,7 @@ bool Menu::draw(bool updateStates) {
                 bool enabled = item.inst->isEnabled();
                 if (ImGui::Checkbox(("##_menu_checkbox_" + opt.name).c_str(), &enabled)) {
                     enabled ? item.inst->enable() : item.inst->disable();
+                    changed = true;
                 }
                 ImGui::SetCursorPos(pos);
             }
@@ -127,6 +128,7 @@ bool Menu::draw(bool updateStates) {
             bool enabled = item.inst->isEnabled();
             if (ImGui::Checkbox(("##_menu_checkbox_" + opt.name).c_str(), &enabled)) {
                 enabled ? item.inst->enable() : item.inst->disable();
+                changed = true;
             }
             ImGui::SetCursorPos(pos);
 

@@ -158,17 +158,28 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["min"] = -120.0;
 
     // Module instances
-    defConfig["moduleInstances"]["Airspy Source"] = "airspy_source";
-    defConfig["moduleInstances"]["AirspyHF+ Source"] = "airspyhf_source";
-    defConfig["moduleInstances"]["BladeRF Source"] = "bladerf_source";
-    defConfig["moduleInstances"]["File Source"] = "file_source";
-    defConfig["moduleInstances"]["HackRF Source"] = "hackrf_source";
-    defConfig["moduleInstances"]["LimeSDR Source"] = "limesdr_source";
-    defConfig["moduleInstances"]["RTL-SDR Source"] = "rtl_sdr_source";
-    defConfig["moduleInstances"]["RTL-TCP Source"] = "rtl_tcp_source";
-    defConfig["moduleInstances"]["SDRplay Source"] = "sdrplay_source";
-    defConfig["moduleInstances"]["SoapySDR Source"] = "soapy_source";
-    defConfig["moduleInstances"]["PlutoSDR Source"] = "plutosdr_source";
+    defConfig["moduleInstances"]["Airspy Source"]["module"] = "airspy_source";
+    defConfig["moduleInstances"]["Airspy Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["AirspyHF+ Source"]["module"] = "airspyhf_source";
+    defConfig["moduleInstances"]["AirspyHF+ Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["BladeRF Source"]["module"] = "bladerf_source";
+    defConfig["moduleInstances"]["BladeRF Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["File Source"]["module"] = "file_source";
+    defConfig["moduleInstances"]["File Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["HackRF Source"]["module"] = "hackrf_source";
+    defConfig["moduleInstances"]["HackRF Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["LimeSDR Source"]["module"] = "limesdr_source";
+    defConfig["moduleInstances"]["LimeSDR Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["RTL-SDR Source"]["module"] = "rtl_sdr_source";
+    defConfig["moduleInstances"]["RTL-SDR Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["RTL-TCP Source"]["module"] = "rtl_tcp_source";
+    defConfig["moduleInstances"]["RTL-TCP Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["SDRplay Source"]["module"] = "sdrplay_source";
+    defConfig["moduleInstances"]["SDRplay Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["SoapySDR Source"]["module"] = "soapy_source";
+    defConfig["moduleInstances"]["SoapySDR Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["PlutoSDR Source"]["module"] = "plutosdr_source";
+    defConfig["moduleInstances"]["PlutoSDR Source"]["enabled"] = true;
 
     defConfig["moduleInstances"]["Audio Sink"] = "audio_sink";
 
@@ -230,6 +241,16 @@ int sdrpp_main(int argc, char *argv[]) {
             spdlog::info("Unused key in config {0}, repairing", item.key());
             core::configManager.conf.erase(item.key());
         }
+    }
+
+    // Update to new module representation in config if needed
+    for (auto [_name, inst] : core::configManager.conf["moduleInstances"].items()) {
+        if (!inst.is_string()) { continue; }
+        std::string mod = inst;
+        json newMod;
+        newMod["module"] = mod;
+        newMod["enabled"] = true;
+        core::configManager.conf["moduleInstances"][_name] = newMod;
     }
 
     core::configManager.release(true);

@@ -111,7 +111,7 @@ void MainWindow::init() {
     // Read module config
     core::configManager.acquire();
     std::vector<std::string> modules = core::configManager.conf["modules"];
-    std::map<std::string, std::string> modList = core::configManager.conf["moduleInstances"];
+    auto modList = core::configManager.conf["moduleInstances"].items();
     core::configManager.release();
 
     // Load additional modules specified through config
@@ -122,10 +122,13 @@ void MainWindow::init() {
     }
 
     // Create module instances
-    for (auto const& [name, module] : modList) {
-        spdlog::info("Initializing {0} ({1})", name, module);
-        LoadingScreen::show("Initializing " + name + " (" + module + ")");
-        core::moduleManager.createInstance(name, module);
+    for (auto const& [name, _module] : modList) {
+        std::string mod = _module["module"];
+        bool enabled = _module["enabled"];
+        spdlog::info("Initializing {0} ({1})", name, mod);
+        LoadingScreen::show("Initializing " + name + " (" + mod + ")");
+        core::moduleManager.createInstance(name, mod);
+        if (!enabled) { core::moduleManager.disableInstance(name); }
     }
 
     // Load color maps
@@ -446,6 +449,12 @@ void MainWindow::draw() {
                 arr[i]["open"] = gui::menu.order[i].open;
             }
             core::configManager.conf["menuElements"] = arr;
+
+            // Update enabled and disabled modules
+            for (auto [_name, inst] : core::moduleManager.instances) {
+                core::configManager.conf["moduleInstances"][_name]["enabled"] = inst.instance->isEnabled();
+            }
+
             core::configManager.release(true);
         }
         if (startedWithMenuClosed) {
