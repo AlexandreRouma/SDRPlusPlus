@@ -33,7 +33,7 @@ public:
 
         bool created = false;
         std::string device = "";
-        config.aquire();
+        config.acquire();
         if (!config.conf.contains(_streamName)) {
             created = true;
             config.conf[_streamName]["device"] = "";
@@ -95,7 +95,7 @@ public:
     void selectById(int id) {
         devId = id;
         bool created = false;
-        config.aquire();
+        config.acquire();
         if (!config.conf[_streamName]["devices"].contains(devList[id].name)) {
             created = true;
             config.conf[_streamName]["devices"][devList[id].name] = devList[id].preferredSampleRate;
@@ -138,7 +138,7 @@ public:
         ImGui::SetNextItemWidth(menuWidth);
         if (ImGui::Combo(("##_audio_sink_dev_"+_streamName).c_str(), &devId, txtDevList.c_str())) {
             selectById(devId);
-            config.aquire();
+            config.acquire();
             config.conf[_streamName]["device"] = devList[devId].name;
             config.release(true);
         }
@@ -151,7 +151,7 @@ public:
                 doStop();
                 doStart();
             }
-            config.aquire();
+            config.acquire();
             config.conf[_streamName]["devices"][devList[devId].name] = sampleRate;
             config.release(true);
         }

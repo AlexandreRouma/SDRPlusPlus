@@ -23,7 +23,7 @@ public:
         bw = bandWidth;
         _config = config;
 
-        _config->aquire();
+        _config->acquire();
         if(_config->conf.contains(prefix)) {
             if(!_config->conf[prefix].contains("CW")) {
                 _config->conf[prefix]["CW"]["snapInterval"] = snapInterval;
@@ -100,7 +100,7 @@ public:
         if (ImGui::InputFloat(("##_radio_raw_snap_" + uiPrefix).c_str(), &snapInterval, 1, 100, "%.0f", 0)) {
             if (snapInterval < 1) { snapInterval = 1; }
             setSnapInterval(snapInterval);
-            _config->aquire();
+            _config->acquire();
             _config->conf[uiPrefix]["RAW"]["snapInterval"] = snapInterval;
             _config->release(true);
         }
@@ -110,7 +110,7 @@ public:
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::SliderFloat(("##_radio_raw_squelch_" + uiPrefix).c_str(), &squelchLevel, -100.0f, 0.0f, "%.3fdB")) {
             squelch.setLevel(squelchLevel);
-            _config->aquire();
+            _config->acquire();
             _config->conf[uiPrefix]["RAW"]["squelchLevel"] = squelchLevel;
             _config->release(true);
         }

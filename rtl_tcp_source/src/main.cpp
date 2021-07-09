@@ -62,7 +62,7 @@ public:
         }
         srId = 7;
 
-        config.aquire();
+        config.acquire();
         std::string hostStr = config.conf["host"];
         port = config.conf["port"];
         directSamplingMode = config.conf["directSamplingMode"];
@@ -164,14 +164,14 @@ private:
 
         ImGui::SetNextItemWidth(menuWidth - portWidth);
         if (ImGui::InputText(CONCAT("##_ip_select_", _this->name), _this->ip, 1024)) {
-            config.aquire();
+            config.acquire();
             config.conf["host"] = std::string(_this->ip);
             config.release(true);
         }
         ImGui::SameLine();
         ImGui::SetNextItemWidth(portWidth);
         if (ImGui::InputInt(CONCAT("##_port_select_", _this->name), &_this->port, 0)) {
-            config.aquire();
+            config.acquire();
             config.conf["port"] = _this->port;
             config.release(true);
         }

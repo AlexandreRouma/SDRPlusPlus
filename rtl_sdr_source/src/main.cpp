@@ -77,7 +77,7 @@ public:
 
         refresh();
 
-        config.aquire();
+        config.acquire();
         if (!config.conf["device"].is_string()) {
             selectedDevName = "";
             config.conf["device"] = "";
@@ -156,7 +156,7 @@ public:
         std::sort(gainList.begin(), gainList.end());
 
         bool created = false;
-        config.aquire();
+        config.acquire();
         if (!config.conf["devices"].contains(selectedDevName)) {
             created = true;
             config.conf["devices"][selectedDevName]["sampleRate"] = sampleRate;
@@ -313,7 +313,7 @@ private:
             _this->selectById(_this->devId);
             core::setInputSampleRate(_this->sampleRate);
             if (_this->selectedDevName != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["device"] = _this->selectedDevName;
                 config.release(true);
             }
@@ -323,7 +323,7 @@ private:
             _this->sampleRate = sampleRates[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
             if (_this->selectedDevName != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedDevName]["sampleRate"] = _this->sampleRate;
                 config.release(true);
             }
@@ -360,7 +360,7 @@ private:
                 }
             }
             if (_this->selectedDevName != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedDevName]["directSampling"] = _this->directSamplingMode;
                 config.release(true);
             }
@@ -371,7 +371,7 @@ private:
                 rtlsdr_set_bias_tee(_this->openDev, _this->biasT);
             }
             if (_this->selectedDevName != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedDevName]["biasT"] = _this->biasT;
                 config.release(true);
             }
@@ -382,7 +382,7 @@ private:
                 rtlsdr_set_offset_tuning(_this->openDev, _this->offsetTuning);
             }
             if (_this->selectedDevName != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedDevName]["offsetTuning"] = _this->offsetTuning;
                 config.release(true);
             }
@@ -393,7 +393,7 @@ private:
                 rtlsdr_set_agc_mode(_this->openDev, _this->rtlAgc);
             }
             if (_this->selectedDevName != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedDevName]["rtlAgc"] = _this->rtlAgc;
                 config.release(true);
             }
@@ -410,7 +410,7 @@ private:
                 }
             }
             if (_this->selectedDevName != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedDevName]["tunerAgc"] = _this->tunerAgc;
                 config.release(true);
             }
@@ -424,7 +424,7 @@ private:
                 rtlsdr_set_tuner_gain(_this->openDev, _this->gainList[_this->gainId]);
             }
             if (_this->selectedDevName != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedDevName]["gain"] = _this->gainId;
                 config.release(true);
             }

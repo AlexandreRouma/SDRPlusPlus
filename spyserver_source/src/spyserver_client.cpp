@@ -199,7 +199,7 @@ void SpyServerClient::worker() {
             spdlog::warn("Dev type: {0}", devInfo.DeviceType);
         }
         // else if (type == MSG_TYPE_FLOAT_IQ) {
-        //     //if (iqStream.aquire() < 0) { return; }
+        //     //if (iqStream.acquire() < 0) { return; }
         //     len = receiveSync(dummyBuf, msgHeader.BodySize);
         //     //iqStream.write(msgHeader.BodySize);
         //     if (len < 0) {

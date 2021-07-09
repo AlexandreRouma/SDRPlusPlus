@@ -66,7 +66,7 @@ void ConfigManager::disableAutoSave() {
     }
 }
 
-void ConfigManager::aquire() {
+void ConfigManager::acquire() {
     mtx.lock();
 }
 

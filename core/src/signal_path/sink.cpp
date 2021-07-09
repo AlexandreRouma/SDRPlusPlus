@@ -110,7 +110,7 @@ void SinkManager::registerStream(std::string name, SinkManager::Stream* stream) 
     streamNames.push_back(name);
 
     // Load config
-    core::configManager.aquire();
+    core::configManager.acquire();
     bool available = core::configManager.conf["streams"].contains(name);
     core::configManager.release();
     if (available) { loadStreamConfig(name); }
@@ -206,7 +206,7 @@ void SinkManager::showVolumeSlider(std::string name, std::string prefix, float w
         ImGui::PushID(ImGui::GetID(("sdrpp_unmute_btn_" + name).c_str()));
         if (ImGui::ImageButton(icons::MUTED, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), btwBorder)) {
             stream->volumeAjust.setMuted(false);
-            core::configManager.aquire();
+            core::configManager.acquire();
             saveStreamConfig(name);
             core::configManager.release(true);
         }
@@ -216,7 +216,7 @@ void SinkManager::showVolumeSlider(std::string name, std::string prefix, float w
         ImGui::PushID(ImGui::GetID(("sdrpp_mute_btn_" + name).c_str()));
         if (ImGui::ImageButton(icons::UNMUTED, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), btwBorder)) {
             stream->volumeAjust.setMuted(true);
-            core::configManager.aquire();
+            core::configManager.acquire();
             saveStreamConfig(name);
             core::configManager.release(true);
         }
@@ -229,7 +229,7 @@ void SinkManager::showVolumeSlider(std::string name, std::string prefix, float w
     ImGui::SetCursorPosY(ypos + ((height - sliderHeight) / 2.0f) + btwBorder);
     if (ImGui::SliderFloat((prefix + name).c_str(), &stream->guiVolume, 0.0f, 1.0f, "")) {
         stream->setVolume(stream->guiVolume);
-        core::configManager.aquire();
+        core::configManager.acquire();
         saveStreamConfig(name);
         core::configManager.release(true);
     }
@@ -267,7 +267,7 @@ void SinkManager::saveStreamConfig(std::string name) {
     core::configManager.conf["streams"][name] = conf;
 }
 
-// Note: aquire and release config before running this
+// Note: acquire and release config before running this
 void SinkManager::loadSinksFromConfig() {
     for (auto const& [name, stream] : streams) {
         if (!core::configManager.conf["streams"].contains(name)) { continue; }
@@ -301,7 +301,7 @@ void SinkManager::showMenu() {
             if (stream->running) {
                 stream->sink->start();
             }
-            core::configManager.aquire();
+            core::configManager.acquire();
             saveStreamConfig(name);
             core::configManager.release(true);
         }

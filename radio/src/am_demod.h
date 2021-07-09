@@ -23,7 +23,7 @@ public:
         bw = bandWidth;
         _config = config;
 
-        _config->aquire();
+        _config->acquire();
         if(_config->conf.contains(prefix)) {
             if(!_config->conf[prefix].contains("AM")) {
                 _config->conf[prefix]["AM"]["bandwidth"] = bw;
@@ -126,7 +126,7 @@ public:
         if (ImGui::InputFloat(("##_radio_am_bw_" + uiPrefix).c_str(), &bw, 1, 100, "%.0f", 0)) {
             bw = std::clamp<float>(bw, bwMin, bwMax);
             setBandwidth(bw);
-            _config->aquire();
+            _config->acquire();
             _config->conf[uiPrefix]["AM"]["bandwidth"] = bw;
             _config->release(true);
         }
@@ -134,7 +134,7 @@ public:
             if (_vfo->getBandwidthChanged()) {
                 bw = _vfo->getBandwidth();
                 setBandwidth(bw, false);
-                _config->aquire();
+                _config->acquire();
                 _config->conf[uiPrefix]["AM"]["bandwidth"] = bw;
                 _config->release(true);
             }
@@ -146,7 +146,7 @@ public:
         if (ImGui::InputFloat(("##_radio_am_snap_" + uiPrefix).c_str(), &snapInterval, 1, 100, "%.0f", 0)) {
             if (snapInterval < 1) { snapInterval = 1; }
             setSnapInterval(snapInterval);
-            _config->aquire();
+            _config->acquire();
             _config->conf[uiPrefix]["AM"]["snapInterval"] = snapInterval;
             _config->release(true);
         }
@@ -156,7 +156,7 @@ public:
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::SliderFloat(("##_radio_am_squelch_" + uiPrefix).c_str(), &squelchLevel, -100.0f, 0.0f, "%.3fdB")) {
             squelch.setLevel(squelchLevel);
-            _config->aquire();
+            _config->acquire();
             _config->conf[uiPrefix]["AM"]["squelchLevel"] = squelchLevel;
             _config->release(true);
         }

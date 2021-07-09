@@ -25,7 +25,7 @@ public:
     FileSourceModule(std::string name) : fileSelect("", {"Wav IQ Files (*.wav)", "*.wav", "All Files", "*"}) {
         this->name = name;
 
-        config.aquire();
+        config.acquire();
         fileSelect.setPath(config.conf["path"], true);
         config.release();
 
@@ -114,7 +114,7 @@ private:
                     core::setInputSampleRate(_this->sampleRate);
                 }
                 catch (std::exception e) {}
-                config.aquire();
+                config.acquire();
                 config.conf["path"] = _this->fileSelect.path;
                 config.release(true);
             }

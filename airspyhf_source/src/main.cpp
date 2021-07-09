@@ -42,7 +42,7 @@ public:
 
         refresh();
 
-        config.aquire();
+        config.acquire();
         std::string devSerial = config.conf["device"];
         config.release();
         selectByString(devSerial);
@@ -145,7 +145,7 @@ public:
         selectedSerStr = std::string(buf);
 
         // Load config here
-        config.aquire();
+        config.acquire();
         bool created = false;
         if (!config.conf["devices"].contains(selectedSerStr)) {
             created = true;
@@ -276,7 +276,7 @@ private:
             _this->selectBySerial(_this->devList[_this->devId]);
             core::setInputSampleRate(_this->sampleRate);
             if (_this->selectedSerStr != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["device"] = _this->selectedSerStr;
                 config.release(true);
             }
@@ -286,7 +286,7 @@ private:
             _this->sampleRate = _this->sampleRateList[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
             if (_this->selectedSerStr != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedSerStr]["sampleRate"] = _this->sampleRate;
                 config.release(true);
             }
@@ -296,7 +296,7 @@ private:
         float refreshBtnWdith = menuWidth - ImGui::GetCursorPosX();
         if (ImGui::Button(CONCAT("Refresh##_airspyhf_refr_", _this->name), ImVec2(refreshBtnWdith, 0))) {
             _this->refresh();
-            config.aquire();
+            config.acquire();
             std::string devSerial = config.conf["device"];
             config.release();
             _this->selectByString(devSerial);
@@ -316,7 +316,7 @@ private:
                 }
             }
             if (_this->selectedSerStr != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedSerStr]["agcMode"] = _this->agcMode;
                 config.release(true);
             }
@@ -329,7 +329,7 @@ private:
                 airspyhf_set_hf_lna(_this->openDev, _this->hfLNA);
             }      
             if (_this->selectedSerStr != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedSerStr]["lna"] = _this->hfLNA;
                 config.release(true);
             }
@@ -343,7 +343,7 @@ private:
                 airspyhf_set_hf_att(_this->openDev, _this->atten / 6.0f);
             }
             if (_this->selectedSerStr != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedSerStr]["attenuation"] = _this->atten;
                 config.release(true);
             }

@@ -62,7 +62,7 @@ public:
     FrequencyManagerModule(std::string name) {
         this->name = name;
 
-        config.aquire();
+        config.acquire();
         std::string selList = config.conf["selectedList"];
         bookmarkDisplayMode = config.conf["bookmarkDisplayMode"];
         config.release();
@@ -243,7 +243,7 @@ private:
             if (ImGui::Button("Apply")) {
                 open = false;
 
-                config.aquire();
+                config.acquire();
                 if (renameListOpen) {
                     config.conf["lists"][editedListName] = config.conf["lists"][firstEditedListName];
                     config.conf["lists"].erase(firstEditedListName);
@@ -282,7 +282,7 @@ private:
             for (auto [listName, list] : config.conf["lists"].items()) {
                 bool shown = list["showOnWaterfall"];
                 if (ImGui::Checkbox((listName+"##freq_manager_sel_list_").c_str(), &shown)) {
-                    config.aquire();
+                    config.acquire();
                     config.conf["lists"][listName]["showOnWaterfall"] = shown;
                     refreshWaterfallBookmarks(false);
                     config.release(true);
@@ -301,7 +301,7 @@ private:
         listNames.clear();
         listNamesTxt = "";
 
-        config.aquire();
+        config.acquire();
         for (auto [_name, list] : config.conf["lists"].items()) {
             listNames.push_back(_name);
             listNamesTxt += _name;
@@ -311,7 +311,7 @@ private:
     }
 
     void refreshWaterfallBookmarks(bool lockConfig = true) {
-        if (lockConfig) { config.aquire(); }
+        if (lockConfig) { config.acquire(); }
         waterfallBookmarks.clear();
         for (auto [listName, list] : config.conf["lists"].items()) {
             if (!((bool)list["showOnWaterfall"])) { continue; }
@@ -348,7 +348,7 @@ private:
         }
         selectedListId = std::distance(listNames.begin(), std::find(listNames.begin(), listNames.end(), listName));
         selectedListName = listName;
-        config.aquire();
+        config.acquire();
         for (auto [bmName, bm] : config.conf["lists"][listName]["bookmarks"].items()) {
             FrequencyBookmark fbm;
             fbm.frequency = bm["frequency"];
@@ -361,7 +361,7 @@ private:
     }
 
     void saveByName(std::string listName) {
-        config.aquire();
+        config.acquire();
         config.conf["lists"][listName]["bookmarks"] = json::object();
         for (auto [bmName, bm] : bookmarks) {
             config.conf["lists"][listName]["bookmarks"][bmName]["frequency"] = bm.frequency;
@@ -386,7 +386,7 @@ private:
         ImGui::SetNextItemWidth(menuWidth - 24 - (2*lineHeight) - btnSize);
         if (ImGui::Combo(("##freq_manager_list_sel"+_this->name).c_str(), &_this->selectedListId, _this->listNamesTxt.c_str())) {
             _this->loadByName(_this->listNames[_this->selectedListId]);
-            config.aquire();
+            config.acquire();
             config.conf["selectedList"] = _this->selectedListName;
             config.release(true);
         }
@@ -418,7 +418,7 @@ private:
         if (_this->selectedListName == "") { style::beginDisabled(); }
         if (ImGui::Button(("-##_freq_mgr_del_lst_" + _this->name).c_str(), ImVec2(lineHeight, 0))) {
             if (_this->selectedListName == "") { style::endDisabled(); }
-            config.aquire();
+            config.acquire();
             config.conf["lists"].erase(_this->selectedListName);
             _this->refreshWaterfallBookmarks(false);
             config.release(true);
@@ -542,7 +542,7 @@ private:
         if (selectedNames.size() == 0 && _this->selectedListName != "") { style::beginDisabled(); }
         if (ImGui::Button(("Export##_freq_mgr_exp_" + _this->name).c_str(), ImVec2(ImGui::GetContentRegionAvailWidth(), 0)) && !_this->exportOpen) {
             _this->exportedBookmarks = json::object();
-            config.aquire();
+            config.acquire();
             for (auto& _name : selectedNames) {
                 _this->exportedBookmarks["bookmarks"][_name] = config.conf["lists"][_this->selectedListName]["bookmarks"][_name];
             }
@@ -561,7 +561,7 @@ private:
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(("##_freq_mgr_dms_" + _this->name).c_str(), &_this->bookmarkDisplayMode, bookmarkDisplayModesTxt)) {
-            config.aquire();
+            config.acquire();
             config.conf["bookmarkDisplayMode"] = _this->bookmarkDisplayMode;
             config.release(true);
         }
@@ -835,7 +835,7 @@ MOD_EXPORT void _INIT_() {
     config.enableAutoSave();
 
     // Check if of list and convert if they're the old type
-    config.aquire();
+    config.acquire();
     if (!config.conf.contains("bookmarkDisplayMode")) {
         config.conf["bookmarkDisplayMode"] = BOOKMARK_DISP_MODE_TOP;
     }

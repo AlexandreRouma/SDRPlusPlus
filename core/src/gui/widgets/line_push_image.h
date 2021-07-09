@@ -13,7 +13,7 @@ namespace ImGui {
 
         void draw(const ImVec2& size_arg = ImVec2(0, 0));
 
-        uint8_t* aquireNextLine(int count = 1);
+        uint8_t* acquireNextLine(int count = 1);
 
         void releaseNextLine();
 

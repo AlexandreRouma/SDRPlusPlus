@@ -127,7 +127,7 @@ public:
             channelNamesTxt += '\0';
         }
 
-        config.aquire();
+        config.acquire();
         if (config.conf["devices"].contains(selectedDevName)) {
             if (config.conf["devices"][selectedDevName].contains("channel")) {
                 chanId = config.conf["devices"][selectedDevName]["channel"];
@@ -186,7 +186,7 @@ public:
         bandwidthsTxt += "Auto";
         bandwidthsTxt += '\0';
 
-        config.aquire();
+        config.acquire();
 
         if (!config.conf["devices"].contains(selectedDevName)) {
             config.conf["devices"][selectedDevName]["sampleRate"] = sampleRates[0];
@@ -388,7 +388,7 @@ private:
         if (ImGui::Combo("##limesdr_dev_sel", &_this->devId, _this->devListTxt.c_str())) {
             _this->selectByInfoStr(_this->devList[_this->devId]);
             core::setInputSampleRate(_this->sampleRate);
-            config.aquire();
+            config.acquire();
             config.conf["device"] = _this->selectedDevName;
             config.release(true);
         }
@@ -397,7 +397,7 @@ private:
             _this->sampleRate = _this->sampleRates[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
             if (_this->selectedDevName != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedDevName]["sampleRate"] = _this->sampleRates[_this->srId];
                 config.release(true);
             }
@@ -417,7 +417,7 @@ private:
             ImGui::SameLine();
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             if (ImGui::Combo("##limesdr_ch_sel", &_this->chanId, _this->channelNamesTxt.c_str()) && _this->selectedDevName != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedDevName]["channel"] = _this->chanId;
                 config.release(true);
             }
@@ -433,7 +433,7 @@ private:
                 LMS_SetAntenna(_this->openDev, false, _this->chanId, _this->antennaId);
             }
             if (_this->selectedDevName != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedDevName]["antenna"] = _this->antennaNameList[_this->antennaId];
                 config.release(true);
             }
@@ -447,7 +447,7 @@ private:
                 LMS_SetLPFBW(_this->openDev, false, _this->chanId, (_this->bwId == _this->bandwidths.size()) ? _this->getBestBandwidth(_this->sampleRate) : _this->bandwidths[_this->bwId]);
             }
             if (_this->selectedDevName != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedDevName]["bandwidth"] = _this->bwId;
                 config.release(true);
             }
@@ -461,7 +461,7 @@ private:
                 LMS_SetGaindB(_this->openDev, false, _this->chanId, _this->gain);
             }
             if (_this->selectedDevName != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedDevName]["gain"] = _this->gain;
                 config.release(true);
             }

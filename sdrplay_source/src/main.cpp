@@ -135,7 +135,7 @@ public:
 
         refresh();
 
-        config.aquire();
+        config.acquire();
         std::string confSelectDev = config.conf["device"];
         config.release();
         selectByName(confSelectDev);
@@ -145,7 +145,7 @@ public:
         // }
 
         // Select device from config
-        // config.aquire();
+        // config.acquire();
         // std::string devSerial = config.conf["device"];
         // config.release();
         // selectByString(devSerial);
@@ -284,7 +284,7 @@ public:
         }
 
         bool created = false;
-        config.aquire();
+        config.acquire();
         if (!config.conf["devices"].contains(selectedName)) {
             created = true;
             config.conf["devices"][selectedName]["sampleRate"] = sampleRates[0];
@@ -478,7 +478,7 @@ private:
             return;
         }
 
-        // First, aquire device
+        // First, acquire device
         sdrplay_api_ErrT err;
 
         _this->openDev.tuner = sdrplay_api_Tuner_A;
@@ -630,7 +630,7 @@ private:
        
         if (ImGui::Combo(CONCAT("##sdrplay_dev", _this->name), &_this->devId, _this->devListTxt.c_str())) {
             _this->selectById(_this->devId);
-            config.aquire();
+            config.acquire();
             config.conf["device"] = _this->devNameList[_this->devId];
             config.release(true);
         }
@@ -642,7 +642,7 @@ private:
                 _this->bandwidth = preferedBandwidth[_this->srId];
             }
             core::setInputSampleRate(_this->sampleRate);
-            config.aquire();
+            config.acquire();
             config.conf["devices"][_this->selectedName]["sampleRate"] = _this->sampleRate;
             config.release(true);
         }
@@ -663,7 +663,7 @@ private:
                 _this->channelParams->tunerParams.bwType = _this->bandwidth;
                 sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_BwType, sdrplay_api_Update_Ext1_None);
             }
-            config.aquire();
+            config.acquire();
             config.conf["devices"][_this->selectedName]["bwMode"] = _this->bandwidthId;
             config.release(true);
         }
@@ -678,7 +678,7 @@ private:
                     _this->channelParams->tunerParams.gain.LNAstate = _this->lnaGain;
                     sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
                 }
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedName]["lnaGain"] = _this->lnaGain;
                 config.release(true);
             }
@@ -692,7 +692,7 @@ private:
                     _this->channelParams->tunerParams.gain.gRdB = _this->gain;
                     sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
                 }
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedName]["ifGain"] = _this->gain;
                 config.release(true);
             }
@@ -711,7 +711,7 @@ private:
                         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
                     }
                 }
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedName]["agc"] = _this->agc;
                 config.release(true);
             }
@@ -753,7 +753,7 @@ private:
                 openDevParams->devParams->rsp1aParams.rfNotchEnable = rsp1a_fmNotch;
                 sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp1a_RfNotchControl, sdrplay_api_Update_Ext1_None);
             }
-            config.aquire();
+            config.acquire();
             config.conf["devices"][selectedName]["fmNotch"] = rsp1a_fmNotch;
             config.release(true);
         }
@@ -762,7 +762,7 @@ private:
                 openDevParams->devParams->rsp1aParams.rfNotchEnable = rsp1a_dabNotch;
                 sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp1a_RfDabNotchControl, sdrplay_api_Update_Ext1_None);
             }
-            config.aquire();
+            config.acquire();
             config.conf["devices"][selectedName]["dabNotch"] = rsp1a_dabNotch;
             config.release(true);
         }
@@ -771,7 +771,7 @@ private:
                 channelParams->rsp1aTunerParams.biasTEnable = rsp1a_biasT;
                 sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp1a_BiasTControl, sdrplay_api_Update_Ext1_None);
             }
-            config.aquire();
+            config.acquire();
             config.conf["devices"][selectedName]["biast"] = rsp1a_biasT;
             config.release(true);
         }
@@ -788,7 +788,7 @@ private:
                 sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp2_AntennaControl, sdrplay_api_Update_Ext1_None);
                 sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp2_AmPortSelect, sdrplay_api_Update_Ext1_None);
             }
-            config.aquire();
+            config.acquire();
             config.conf["devices"][selectedName]["antenna"] = rsp2_antennaPort;
             config.release(true);
         }
@@ -797,7 +797,7 @@ private:
                 channelParams->rsp2TunerParams.rfNotchEnable = rsp2_notch;
                 sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp2_RfNotchControl, sdrplay_api_Update_Ext1_None);
             }
-            config.aquire();
+            config.acquire();
             config.conf["devices"][selectedName]["notch"] = rsp2_notch;
             config.release(true);
         }
@@ -806,7 +806,7 @@ private:
                 channelParams->rsp2TunerParams.biasTEnable = rsp2_biasT;
                 sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp2_BiasTControl, sdrplay_api_Update_Ext1_None);
             }
-            config.aquire();
+            config.acquire();
             config.conf["devices"][selectedName]["biast"] = rsp2_biasT;
             config.release(true);
         }
@@ -821,7 +821,7 @@ private:
             if (running) {
                 rspDuoSelectAntennaPort(rspduo_antennaPort);
             }
-            config.aquire();
+            config.acquire();
             config.conf["devices"][selectedName]["antenna"] = rspduo_antennaPort;
             config.release(true);
         }
@@ -830,7 +830,7 @@ private:
                 channelParams->rspDuoTunerParams.rfNotchEnable = rspduo_fmNotch;
                 sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_RfNotchControl, sdrplay_api_Update_Ext1_None);
             }
-            config.aquire();
+            config.acquire();
             config.conf["devices"][selectedName]["fmNotch"] = rspduo_fmNotch;
             config.release(true);
         }
@@ -839,7 +839,7 @@ private:
                 channelParams->rspDuoTunerParams.rfDabNotchEnable = rspduo_dabNotch;
                 sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_RfDabNotchControl, sdrplay_api_Update_Ext1_None);
             }
-            config.aquire();
+            config.acquire();
             config.conf["devices"][selectedName]["dabNotch"] = rspduo_dabNotch;
             config.release(true);
         }
@@ -848,7 +848,7 @@ private:
                 channelParams->rspDuoTunerParams.tuner1AmNotchEnable = rspduo_amNotch;
                 sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_Tuner1AmNotchControl, sdrplay_api_Update_Ext1_None);
             }
-            config.aquire();
+            config.acquire();
             config.conf["devices"][selectedName]["amNotch"] = rspduo_amNotch;
             config.release(true);
         }
@@ -857,7 +857,7 @@ private:
                 channelParams->rspDuoTunerParams.biasTEnable = rspduo_biasT;
                 sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_BiasTControl, sdrplay_api_Update_Ext1_None);
             }
-            config.aquire();
+            config.acquire();
             config.conf["devices"][selectedName]["biast"] = rspduo_biasT;
             config.release(true);
         }
@@ -872,7 +872,7 @@ private:
                 openDevParams->devParams->rspDxParams.antennaSel = rspdx_antennaPorts[rspdx_antennaPort];
                 sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_None, sdrplay_api_Update_RspDx_AntennaControl);
             }
-            config.aquire();
+            config.acquire();
             config.conf["devices"][selectedName]["antenna"] = rspdx_antennaPort;
             config.release(true);
         }
@@ -882,7 +882,7 @@ private:
                 openDevParams->devParams->rspDxParams.rfNotchEnable = rspdx_fmNotch;
                 sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_None, sdrplay_api_Update_RspDx_RfNotchControl);
             }
-            config.aquire();
+            config.acquire();
             config.conf["devices"][selectedName]["fmNotch"] = rspdx_fmNotch;
             config.release(true);
         }
@@ -891,7 +891,7 @@ private:
                 openDevParams->devParams->rspDxParams.rfDabNotchEnable = rspdx_dabNotch;
                 sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_None, sdrplay_api_Update_RspDx_RfDabNotchControl);
             }
-            config.aquire();
+            config.acquire();
             config.conf["devices"][selectedName]["dabNotch"] = rspdx_dabNotch;
             config.release(true);
         }
@@ -900,7 +900,7 @@ private:
                 openDevParams->devParams->rspDxParams.biasTEnable = rspdx_biasT;
                 sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_None, sdrplay_api_Update_RspDx_BiasTControl);
             }
-            config.aquire();
+            config.acquire();
             config.conf["devices"][selectedName]["biast"] = rspdx_biasT;
             config.release(true);
         }

@@ -16,7 +16,7 @@ public:
     void save(bool lock = true);
     void enableAutoSave();
     void disableAutoSave();
-    void aquire();
+    void acquire();
     void release(bool changed = false);
 
     json conf;

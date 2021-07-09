@@ -13,7 +13,7 @@ namespace ImGui {
 
         void draw(const ImVec2& size_arg = ImVec2(0, 0));
 
-        dsp::complex_t* aquireBuffer();
+        dsp::complex_t* acquireBuffer();
 
         void releaseBuffer();
 

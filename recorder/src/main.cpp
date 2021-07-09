@@ -50,7 +50,7 @@ public:
         this->name = name;        
 
         // Load config
-        config.aquire();
+        config.acquire();
         bool created = false;
         
         // Create config if it doesn't exist
@@ -173,14 +173,14 @@ private:
         ImGui::Columns(2, CONCAT("AirspyGainModeColumns##_", _this->name), false);
         if (ImGui::RadioButton(CONCAT("Baseband##_recmode_", _this->name), _this->recMode == 0)) {
             _this->recMode = 0;
-            config.aquire();
+            config.acquire();
             config.conf[_this->name]["mode"] = _this->recMode;
             config.release(true);
         }
         ImGui::NextColumn();
         if (ImGui::RadioButton(CONCAT("Audio##_recmode_", _this->name), _this->recMode == 1)) {
             _this->recMode = 1;
-            config.aquire();
+            config.acquire();
             config.conf[_this->name]["mode"] = _this->recMode;
             config.release(true);
         }
@@ -191,7 +191,7 @@ private:
         // Recording path
         if (_this->folderSelect.render("##_recorder_fold_" + _this->name)) {
             if (_this->folderSelect.pathIsValid()) {
-                config.aquire();
+                config.acquire();
                 config.conf[_this->name]["recPath"] = _this->folderSelect.path;
                 config.release(true);
             }
@@ -254,7 +254,7 @@ private:
         if (recording) { style::beginDisabled(); }
         if (ImGui::Combo(CONCAT("##_recorder_strm_", name), &streamId, streamNamesTxt.c_str())) {
             selectStream(streamNames[streamId]);
-            config.aquire();
+            config.acquire();
             config.conf[name]["audioStream"] = streamNames[streamId];
             config.release(true);
         }

@@ -44,7 +44,7 @@ void MainWindow::init() {
 
     credits::init();
 
-    core::configManager.aquire();
+    core::configManager.acquire();
     json menuElements = core::configManager.conf["menuElements"];
     std::string modulesDir = core::configManager.conf["modulesDirectory"];
     std::string resourcesDir = core::configManager.conf["resourcesDirectory"];
@@ -109,7 +109,7 @@ void MainWindow::init() {
     }
 
     // Read module config
-    core::configManager.aquire();
+    core::configManager.acquire();
     std::vector<std::string> modules = core::configManager.conf["modules"];
     std::map<std::string, std::string> modList = core::configManager.conf["moduleInstances"];
     core::configManager.release();
@@ -162,7 +162,7 @@ void MainWindow::init() {
 
     // Update UI settings
     LoadingScreen::show("Loading configuration");
-    core::configManager.aquire();
+    core::configManager.acquire();
     fftMin = core::configManager.conf["min"];
     fftMax = core::configManager.conf["max"];
     gui::waterfall.setFFTMin(fftMin);
@@ -223,7 +223,7 @@ void MainWindow::fftHandler(dsp::complex_t* samples, int count, void* ctx) {
 void MainWindow::vfoAddedHandler(VFOManager::VFO* vfo, void* ctx) {
     MainWindow* _this = (MainWindow*)ctx;
     std::string name = vfo->getName();
-    core::configManager.aquire();
+    core::configManager.acquire();
     if (!core::configManager.conf["vfoOffsets"].contains(name)) {
         core::configManager.release();
         return;
@@ -249,7 +249,7 @@ void MainWindow::draw() {
             }
             gui::freqSelect.setFrequency(gui::waterfall.getCenterFrequency() + vfo->generalOffset);
             gui::freqSelect.frequencyChanged = false;
-            core::configManager.aquire();
+            core::configManager.acquire();
             core::configManager.conf["vfoOffsets"][gui::waterfall.selectedVFO] = vfo->generalOffset;
             core::configManager.release(true);
         }
@@ -273,7 +273,7 @@ void MainWindow::draw() {
             vfo->lowerOffsetChanged = false;
             vfo->upperOffsetChanged = false;
         }
-        core::configManager.aquire();
+        core::configManager.acquire();
         core::configManager.conf["frequency"] = gui::waterfall.getCenterFrequency();
         if (vfo != NULL) {
             core::configManager.conf["vfoOffsets"][gui::waterfall.selectedVFO] = vfo->generalOffset;
@@ -291,7 +291,7 @@ void MainWindow::draw() {
         else {
             gui::freqSelect.setFrequency(gui::waterfall.getCenterFrequency());
         }
-        core::configManager.aquire();
+        core::configManager.acquire();
         core::configManager.conf["frequency"] = gui::waterfall.getCenterFrequency();
         core::configManager.release(true);
     }
@@ -299,7 +299,7 @@ void MainWindow::draw() {
     int _fftHeight = gui::waterfall.getFFTHeight();
     if (fftHeight != _fftHeight) {
         fftHeight = _fftHeight;
-        core::configManager.aquire();
+        core::configManager.acquire();
         core::configManager.conf["fftHeight"] = fftHeight;
         core::configManager.release(true);
     }
@@ -314,7 +314,7 @@ void MainWindow::draw() {
     ImGui::PushID(ImGui::GetID("sdrpp_menu_btn"));
     if (ImGui::ImageButton(icons::MENU, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5) || ImGui::IsKeyPressed(GLFW_KEY_MENU, false)) {
         showMenu = !showMenu;
-        core::configManager.aquire();
+        core::configManager.acquire();
         core::configManager.conf["showMenu"] = showMenu;
         core::configManager.release(true);
     }
@@ -357,7 +357,7 @@ void MainWindow::draw() {
         ImGui::PushID(ImGui::GetID("sdrpp_ena_st_btn"));
         if (ImGui::ImageButton(icons::CENTER_TUNING, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
             tuningMode = tuner::TUNER_MODE_NORMAL;
-            core::configManager.aquire();
+            core::configManager.acquire();
             core::configManager.conf["centerTuning"] = false;
             core::configManager.release(true);
         }
@@ -368,7 +368,7 @@ void MainWindow::draw() {
         if (ImGui::ImageButton(icons::NORMAL_TUNING, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
             tuningMode = tuner::TUNER_MODE_CENTER;
             tuner::tune(tuner::TUNER_MODE_CENTER, gui::waterfall.selectedVFO, gui::freqSelect.frequency);
-            core::configManager.aquire();
+            core::configManager.acquire();
             core::configManager.conf["centerTuning"] = true;
             core::configManager.release(true);
         }
@@ -421,7 +421,7 @@ void MainWindow::draw() {
         if(!down && grabbingMenu) {
             grabbingMenu = false;
             menuWidth = newWidth;
-            core::configManager.aquire();
+            core::configManager.acquire();
             core::configManager.conf["menuWidth"] = menuWidth;
             core::configManager.release(true);
         }
@@ -439,7 +439,7 @@ void MainWindow::draw() {
         float menuColumnWidth = ImGui::GetContentRegionAvailWidth();
 
         if (gui::menu.draw(firstMenuRender)) {
-            core::configManager.aquire();
+            core::configManager.acquire();
             json arr = json::array();
             for (int i = 0; i < gui::menu.order.size(); i++) {
                 arr[i]["name"] = gui::menu.order[i].name;
@@ -513,7 +513,7 @@ void MainWindow::draw() {
                 nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
                 tuner::tune(tuningMode, gui::waterfall.selectedVFO, nfreq);
             }
-            core::configManager.aquire();
+            core::configManager.acquire();
             core::configManager.conf["frequency"] = gui::waterfall.getCenterFrequency();
             if (vfo != NULL) {
                 core::configManager.conf["vfoOffsets"][gui::waterfall.selectedVFO] = vfo->generalOffset;
@@ -534,7 +534,7 @@ void MainWindow::draw() {
             }
             tuner::tune(tuningMode, gui::waterfall.selectedVFO, nfreq);
             gui::freqSelect.setFrequency(nfreq);
-            core::configManager.aquire();
+            core::configManager.acquire();
             core::configManager.conf["frequency"] = gui::waterfall.getCenterFrequency();
             if (vfo != NULL) {
                 core::configManager.conf["vfoOffsets"][gui::waterfall.selectedVFO] = vfo->generalOffset;
@@ -563,7 +563,7 @@ void MainWindow::draw() {
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10);
     if (ImGui::VSliderFloat("##_8_", ImVec2(20.0, 150.0), &fftMax, 0.0, -160.0f, "")) {
         fftMax = std::max<float>(fftMax, fftMin + 10);
-        core::configManager.aquire();
+        core::configManager.acquire();
         core::configManager.conf["max"] = fftMax;
         core::configManager.release(true);
     }
@@ -575,7 +575,7 @@ void MainWindow::draw() {
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10);
     if (ImGui::VSliderFloat("##_9_", ImVec2(20.0, 150.0), &fftMin, 0.0, -160.0f, "")) {
         fftMin = std::min<float>(fftMax - 10, fftMin);
-        core::configManager.aquire();
+        core::configManager.acquire();
         core::configManager.conf["min"] = fftMin;
         core::configManager.release(true);
     }
