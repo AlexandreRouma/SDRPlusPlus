@@ -28,5 +28,13 @@ public:
 private:
     bool isInOrderList(std::string name);
 
+    bool menuClicked = false;
+    std::string clickedMenuName = "";
+    std::string draggedMenuName = "";
+    std::vector<float> headerTops;
+    int insertBefore = -1;
+    std::string insertBeforeName = "";
+    std::vector<std::string> displayedNames;
+
     std::map<std::string, MenuItem_t> items;
 };

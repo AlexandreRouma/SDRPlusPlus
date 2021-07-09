@@ -1,6 +1,7 @@
 #include <gui/widgets/menu.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include <gui/style.h>
 
 Menu::Menu() {
 
@@ -26,17 +27,59 @@ void Menu::removeEntry(std::string name) {
 
 bool Menu::draw(bool updateStates) {
     bool changed = false;
+    headerTops.clear();
+    displayedNames.clear();
     float menuWidth = ImGui::GetContentRegionAvailWidth();
     ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+    int id = 0;
+
+    ImU32 textColor = ImGui::GetColorU32(ImGuiCol_Text);
+
     for (MenuOption_t& opt : order) {
         if (items.find(opt.name) == items.end()) {
             continue;
         }
+        if (opt.name == draggedMenuName) {
+            ImGui::BeginTooltip();
+            ImGui::Text("%s", draggedMenuName.c_str());
+            ImGui::EndTooltip();
+            continue;
+        }
+
+        if (id == insertBefore && draggedMenuName != "") {
+            if (updateStates) { ImGui::SetNextItemOpen(false); }
+            ImVec2 posMin = ImGui::GetCursorScreenPos();
+            ImVec2 posMax = ImVec2(posMin.x + menuWidth, posMin.y + ImGui::GetFrameHeight());
+            style::beginDisabled();
+            ImGui::CollapsingHeader((draggedMenuName + "##sdrpp_main_menu_dragging").c_str());
+            style::endDisabled();
+            window->DrawList->AddRect(posMin, posMax, textColor);
+        }
+        id++;
+        
         MenuItem_t& item = items[opt.name];
+        
 
         ImRect orginalRect = window->WorkRect;
         if (item.inst != NULL) {
             window->WorkRect = ImRect(orginalRect.Min, ImVec2(orginalRect.Max.x - ImGui::GetTextLineHeight() - 6, orginalRect.Max.y));
+        }
+
+        ImVec2 posMin = ImGui::GetCursorScreenPos();
+        ImVec2 posMax = ImVec2(posMin.x + menuWidth, posMin.y + ImGui::GetFrameHeight());
+
+        headerTops.push_back(posMin.y);
+        displayedNames.push_back(opt.name);
+
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsMouseHoveringRect(posMin, posMax)) {
+            menuClicked = true;
+            clickedMenuName = opt.name;
+        }
+
+        if (menuClicked && ImGui::IsMouseDragging(ImGuiMouseButton_Left) && draggedMenuName == "" && clickedMenuName == opt.name) {
+            draggedMenuName = opt.name;
+            continue;
         }
 
         if (updateStates) { ImGui::SetNextItemOpen(opt.open); }
@@ -83,6 +126,69 @@ bool Menu::draw(bool updateStates) {
             changed = true;
         }
     }
+
+    if (!ImGui::IsMouseDown(ImGuiMouseButton_Left) && menuClicked) {
+        
+        if (draggedMenuName != "") {
+            // Move menu
+            int movedId = 0;
+            MenuOption_t movedOpt;
+            for (int i = 0; i < order.size(); i++) {
+                if (order[i].name == draggedMenuName) {
+                    movedId = i;
+                    movedOpt = order[i];
+                    break;
+                }
+            }
+
+            order.erase(order.begin() + movedId);
+
+            if (insertBefore == headerTops.size()) {
+                order.push_back(movedOpt);
+            }
+            else if (insertBeforeName != "") {
+                int beforeId = 0;
+                for (int i = 0; i < order.size(); i++) {
+                    if (order[i].name == insertBeforeName) {
+                        beforeId = i;
+                        break;
+                    }
+                }
+                order.insert(order.begin() + beforeId, movedOpt);
+            }
+            changed = true;
+        }
+        
+        menuClicked = false;
+        draggedMenuName = "";
+        insertBeforeName = "";
+        insertBefore = -1;
+    }
+
+
+    if (insertBefore == headerTops.size() && draggedMenuName != "") {
+        if (updateStates) { ImGui::SetNextItemOpen(false); }
+        ImVec2 posMin = ImGui::GetCursorScreenPos();
+        ImVec2 posMax = ImVec2(posMin.x + menuWidth, posMin.y + ImGui::GetFrameHeight());
+        style::beginDisabled();
+        ImGui::CollapsingHeader((draggedMenuName + "##sdrpp_main_menu_dragging").c_str());
+        style::endDisabled();
+        window->DrawList->AddRect(posMin, posMax, textColor);
+    }
+
+    if (draggedMenuName != "") {
+        insertBefore = headerTops.size();
+        ImVec2 mPos = ImGui::GetMousePos();
+        for (int i = 0; i < headerTops.size(); i++) {
+            if (headerTops[i] > mPos.y) {
+                insertBefore = i;
+                insertBeforeName = displayedNames[i];
+                break;
+            }
+        }
+    }
+    
+
     return changed;
 }
 
