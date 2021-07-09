@@ -33,10 +33,12 @@ bool Menu::draw(bool updateStates) {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
 
     int id = 0;
+    int rawId = 0;
 
     ImU32 textColor = ImGui::GetColorU32(ImGuiCol_Text);
 
     for (MenuOption_t& opt : order) {
+        rawId++;
         if (items.find(opt.name) == items.end()) {
             continue;
         }
@@ -52,7 +54,17 @@ bool Menu::draw(bool updateStates) {
             ImVec2 posMin = ImGui::GetCursorScreenPos();
             ImVec2 posMax = ImVec2(posMin.x + menuWidth, posMin.y + ImGui::GetFrameHeight());
             style::beginDisabled();
+            ImRect orignalRect = window->WorkRect;
             ImGui::CollapsingHeader((draggedMenuName + "##sdrpp_main_menu_dragging").c_str());
+            if (items[draggedOpt.name].inst != NULL) {
+                window->WorkRect = orignalRect;
+                ImVec2 pos = ImGui::GetCursorPos();
+                ImGui::SetCursorPosX(pos.x + menuWidth - ImGui::GetTextLineHeight() - 6);
+                ImGui::SetCursorPosY(pos.y - 10 - ImGui::GetTextLineHeight());
+                bool enabled = items[draggedOpt.name].inst->isEnabled();
+                ImGui::Checkbox(("##_menu_checkbox_" + draggedOpt.name).c_str(), &enabled);
+                ImGui::SetCursorPos(pos);
+            }
             style::endDisabled();
             window->DrawList->AddRect(posMin, posMax, textColor);
         }
@@ -79,6 +91,8 @@ bool Menu::draw(bool updateStates) {
 
         if (menuClicked && ImGui::IsMouseDragging(ImGuiMouseButton_Left) && draggedMenuName == "" && clickedMenuName == opt.name) {
             draggedMenuName = opt.name;
+            draggedId = rawId-1;
+            draggedOpt = opt;
             continue;
         }
 
@@ -131,20 +145,10 @@ bool Menu::draw(bool updateStates) {
         
         if (draggedMenuName != "") {
             // Move menu
-            int movedId = 0;
-            MenuOption_t movedOpt;
-            for (int i = 0; i < order.size(); i++) {
-                if (order[i].name == draggedMenuName) {
-                    movedId = i;
-                    movedOpt = order[i];
-                    break;
-                }
-            }
-
-            order.erase(order.begin() + movedId);
+            order.erase(order.begin() + draggedId);
 
             if (insertBefore == headerTops.size()) {
-                order.push_back(movedOpt);
+                order.push_back(draggedOpt);
             }
             else if (insertBeforeName != "") {
                 int beforeId = 0;
@@ -154,7 +158,7 @@ bool Menu::draw(bool updateStates) {
                         break;
                     }
                 }
-                order.insert(order.begin() + beforeId, movedOpt);
+                order.insert(order.begin() + beforeId, draggedOpt);
             }
             changed = true;
         }
@@ -171,7 +175,17 @@ bool Menu::draw(bool updateStates) {
         ImVec2 posMin = ImGui::GetCursorScreenPos();
         ImVec2 posMax = ImVec2(posMin.x + menuWidth, posMin.y + ImGui::GetFrameHeight());
         style::beginDisabled();
+        ImRect orignalRect = window->WorkRect;
         ImGui::CollapsingHeader((draggedMenuName + "##sdrpp_main_menu_dragging").c_str());
+        if (items[draggedOpt.name].inst != NULL) {
+            window->WorkRect = orignalRect;
+            ImVec2 pos = ImGui::GetCursorPos();
+            ImGui::SetCursorPosX(pos.x + menuWidth - ImGui::GetTextLineHeight() - 6);
+            ImGui::SetCursorPosY(pos.y - 10 - ImGui::GetTextLineHeight());
+            bool enabled = items[draggedOpt.name].inst->isEnabled();
+            ImGui::Checkbox(("##_menu_checkbox_" + draggedOpt.name).c_str(), &enabled);
+            ImGui::SetCursorPos(pos);
+        }
         style::endDisabled();
         window->DrawList->AddRect(posMin, posMax, textColor);
     }

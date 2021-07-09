@@ -36,5 +36,8 @@ private:
     std::string insertBeforeName = "";
     std::vector<std::string> displayedNames;
 
+    int draggedId = 0;
+    MenuOption_t draggedOpt;
+
     std::map<std::string, MenuItem_t> items;
 };
