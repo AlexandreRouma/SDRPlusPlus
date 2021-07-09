@@ -213,8 +213,8 @@ int sdrpp_main(int argc, char *argv[]) {
     core::configManager.load(defConfig);
     core::configManager.enableAutoSave();
 
-    
-    core::configManager.aquire();
+
+    core::configManager.acquire();
     // Fix missing elements in config
     for (auto const& item : defConfig.items()) {
         if (!core::configManager.conf.contains(item.key())) {
@@ -253,8 +253,8 @@ int sdrpp_main(int argc, char *argv[]) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 #endif
-    
-    core::configManager.aquire();
+
+    core::configManager.acquire();
     int winWidth = core::configManager.conf["windowSize"]["w"];
     int winHeight = core::configManager.conf["windowSize"]["h"];
     maximized = core::configManager.conf["maximized"];
@@ -375,7 +375,7 @@ int sdrpp_main(int argc, char *argv[]) {
 
         if (_maximized != maximized) {
             _maximized = maximized;
-            core::configManager.aquire();
+            core::configManager.acquire();
             core::configManager.conf["maximized"]= _maximized;
             if (!maximized) {
                 glfwSetWindowSize(core::window, core::configManager.conf["windowSize"]["w"], core::configManager.conf["windowSize"]["h"]);
@@ -405,7 +405,7 @@ int sdrpp_main(int argc, char *argv[]) {
         if ((_winWidth != winWidth || _winHeight != winHeight) && !maximized && _winWidth > 0 && _winHeight > 0) {
             winWidth = _winWidth;
             winHeight = _winHeight;
-            core::configManager.aquire();
+            core::configManager.acquire();
             core::configManager.conf["windowSize"]["w"] = winWidth;
             core::configManager.conf["windowSize"]["h"] = winHeight;
             core::configManager.release(true);

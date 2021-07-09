@@ -70,7 +70,7 @@ namespace dsp {
             while (run() >= 0);
         }
 
-        void aquire() {
+        void acquire() {
             ctrlMtx.lock();
         }
 

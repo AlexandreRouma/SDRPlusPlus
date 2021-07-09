@@ -12,7 +12,7 @@ namespace ImGui {
 
         void draw(const ImVec2& size_arg = ImVec2(0, 0));
 
-        float* aquireBuffer();
+        float* acquireBuffer();
 
         void releaseBuffer();
 

@@ -38,7 +38,7 @@ namespace bandplanmenu {
         ImGui::PushItemWidth(menuColumnWidth);
         if (ImGui::Combo("##_bandplan_name_", &bandplanId, bandplan::bandplanNameTxt.c_str())) {
             gui::waterfall.bandplan = &bandplan::bandplans[bandplan::bandplanNames[bandplanId]];
-            core::configManager.aquire();
+            core::configManager.acquire();
             core::configManager.conf["bandPlan"] = bandplan::bandplanNames[bandplanId];
             core::configManager.release(true);
         }
@@ -49,14 +49,14 @@ namespace bandplanmenu {
         ImGui::SetNextItemWidth(menuColumnWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo("##_bandplan_pos_", &bandPlanPos, bandPlanPosTxt)) {
             gui::waterfall.setBandPlanPos(bandPlanPos);
-            core::configManager.aquire();
+            core::configManager.acquire();
             core::configManager.conf["bandPlanPos"] = bandPlanPos;
             core::configManager.release(true);
         }
 
         if (ImGui::Checkbox("Enabled", &bandPlanEnabled)) {
             bandPlanEnabled ? gui::waterfall.showBandplan() : gui::waterfall.hideBandplan();
-            core::configManager.aquire();
+            core::configManager.acquire();
             core::configManager.conf["bandPlanEnabled"] = bandPlanEnabled;
             core::configManager.release(true);
         }

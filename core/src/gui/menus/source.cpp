@@ -43,7 +43,7 @@ namespace sourecmenu {
     }
 
     void init() {
-        core::configManager.aquire();
+        core::configManager.acquire();
         std::string name = core::configManager.conf["source"];
         auto it = std::find(sigpath::sourceManager.sourceNames.begin(), sigpath::sourceManager.sourceNames.end(), name);
         if (it != sigpath::sourceManager.sourceNames.end()) {
@@ -71,11 +71,11 @@ namespace sourecmenu {
         float itemWidth = ImGui::GetContentRegionAvailWidth();
 
         if (gui::mainWindow.sdrIsRunning()) { style::beginDisabled(); }
-        
+
         ImGui::SetNextItemWidth(itemWidth);
         if (ImGui::Combo("##source", &sourceId, items.c_str())) {
             sigpath::sourceManager.selectSource(sigpath::sourceManager.sourceNames[sourceId]);
-            core::configManager.aquire();
+            core::configManager.acquire();
             core::configManager.conf["source"] = sigpath::sourceManager.sourceNames[sourceId];
             core::configManager.release(true);
         }
@@ -89,7 +89,7 @@ namespace sourecmenu {
         ImGui::SetNextItemWidth(itemWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo("##_sdrpp_offset_mode", &offsetMode, offsetModesTxt)) {
             updateOffset();
-            core::configManager.aquire();
+            core::configManager.acquire();
             core::configManager.conf["offsetMode"] = offsetMode;
             core::configManager.release(true);
         }
@@ -100,7 +100,7 @@ namespace sourecmenu {
         if (offsetMode == OFFSET_MODE_CUSTOM) {
             if (ImGui::InputDouble("##freq_offset", &customOffset, 1.0, 100.0)) {
                 updateOffset();
-                core::configManager.aquire();
+                core::configManager.acquire();
                 core::configManager.conf["offset"] = customOffset;
                 core::configManager.release(true);
             }
@@ -110,6 +110,6 @@ namespace sourecmenu {
             ImGui::InputDouble("##freq_offset", &effectiveOffset, 1.0, 100.0);
             style::endDisabled();
         }
-        
+
     }
 }

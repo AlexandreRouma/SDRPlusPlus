@@ -33,7 +33,7 @@ public:
     PlutoSDRSourceModule(std::string name) {
         this->name = name;
 
-        config.aquire();
+        config.acquire();
         std::string _ip = config.conf["IP"];
         strcpy(&ip[3], _ip.c_str());
         sampleRate = config.conf["sampleRate"];
@@ -160,7 +160,7 @@ private:
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::InputText(CONCAT("##_pluto_ip_", _this->name), &_this->ip[3], 16)) {
-            config.aquire();
+            config.acquire();
             config.conf["IP"] = &_this->ip[3];
             config.release(true);
         }
@@ -172,7 +172,7 @@ private:
         if (ImGui::InputFloat(CONCAT("##_samplerate_select_", _this->name), &_this->sampleRate, 1, 1000, 0)) {
             _this->sampleRate = std::clamp<float>(_this->sampleRate, 500000, 61000000);
             core::setInputSampleRate(_this->sampleRate);
-            config.aquire();
+            config.acquire();
             config.conf["sampleRate"] = _this->sampleRate;
             config.release(true);
         }
@@ -185,7 +185,7 @@ private:
             if (_this->running) {
                 iio_channel_attr_write(iio_device_find_channel(_this->phy, "voltage0", false), "gain_control_mode", gainModes[_this->gainMode]);
             }
-            config.aquire();
+            config.acquire();
             config.conf["gainMode"] = _this->gainMode;
             config.release(true);
         }
@@ -198,7 +198,7 @@ private:
             if (_this->running) {
                 iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "voltage0", false),"hardwaregain", round(_this->gain));
             }
-            config.aquire();
+            config.acquire();
             config.conf["gain"] = _this->gain;
             config.release(true);
         }

@@ -25,7 +25,7 @@ namespace vfo_color_menu {
     void init() {
         // Load colors from config
         bool modified = false;
-        core::configManager.aquire();
+        core::configManager.acquire();
         json conf = core::configManager.conf["vfoColors"];
         for (auto& [name, val] : conf.items()) {
             // If not a string, repair with default
@@ -90,7 +90,7 @@ namespace vfo_color_menu {
                 vfoColors[name] = ImVec4(r, g, b, 1.0f);
                 vfo->color = IM_COL32((int)roundf(r * 255), (int)roundf(g * 255), (int)roundf(b * 255), 50);
                 hue += delta;
-                core::configManager.aquire();
+                core::configManager.acquire();
                 char buf[16];
                 sprintf(buf, "#%02X%02X%02X", (int)roundf(r * 255), (int)roundf(g * 255), (int)roundf(b * 255));
                 core::configManager.conf["vfoColors"][name] = buf;
@@ -103,7 +103,7 @@ namespace vfo_color_menu {
             for (auto& [name, vfo] : gui::waterfall.vfos) {
                 vfoColors[name] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
                 vfo->color = IM_COL32(255, 255, 255, 50);
-                core::configManager.aquire();
+                core::configManager.acquire();
                 char buf[16];
                 core::configManager.conf["vfoColors"][name] = "#FFFFFF";
                 core::configManager.release(true);
@@ -123,7 +123,7 @@ namespace vfo_color_menu {
             if (ImGui::ColorEdit3(("##vfo_color_"+name).c_str(), (float*)&col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel)) {
                 vfoColors[name] = col;
                 vfo->color = IM_COL32((int)roundf(col.x * 255), (int)roundf(col.y * 255), (int)roundf(col.z * 255), 50);
-                core::configManager.aquire();
+                core::configManager.acquire();
                 char buf[16];
                 sprintf(buf, "#%02X%02X%02X", (int)roundf(col.x * 255), (int)roundf(col.y * 255), (int)roundf(col.z * 255));
                 core::configManager.conf["vfoColors"][name] = buf;

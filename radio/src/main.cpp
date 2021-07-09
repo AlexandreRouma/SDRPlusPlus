@@ -38,7 +38,7 @@ public:
 
         ns.init(vfo->output);
 
-        config.aquire();
+        config.acquire();
         if (!config.conf.contains(name)) {
             config.conf[name]["selectedDemodId"] = 1;
         }
@@ -200,7 +200,7 @@ private:
         if (id == 5) { selectDemod(&cwDemod); }
         if (id == 6) { selectDemod(&lsbDemod); }
         if (id == 7) { selectDemod(&rawDemod); }
-        config.aquire();
+        config.acquire();
         config.conf[name]["selectedDemodId"] = demodId;
         config.release(true);
     }

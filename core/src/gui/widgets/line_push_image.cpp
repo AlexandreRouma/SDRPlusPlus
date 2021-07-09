@@ -42,7 +42,7 @@ namespace ImGui {
         window->DrawList->AddImage((void*)(intptr_t)textureId, min, ImVec2(min.x + width, min.y + height));
     }
 
-    uint8_t* LinePushImage::aquireNextLine(int count) {
+    uint8_t* LinePushImage::acquireNextLine(int count) {
         bufferMtx.lock();
 
         int oldLineCount = _lineCount;

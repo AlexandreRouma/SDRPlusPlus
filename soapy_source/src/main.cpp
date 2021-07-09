@@ -36,7 +36,7 @@ public:
         refresh();
 
         // Select default device
-        config.aquire();
+        config.acquire();
         std::string devName = config.conf["device"];
         config.release();
         selectDevice(devName);
@@ -206,7 +206,7 @@ private:
 
         SoapySDR::Device::unmake(dev);
 
-        config.aquire();
+        config.acquire();
         if (config.conf["devices"].contains(name)) {
             if(config.conf["devices"][name].contains("antenna")) {
                 uiAntennaId = config.conf["devices"][name]["antenna"];
@@ -273,7 +273,7 @@ private:
         if (hasAgc) {
             conf["agc"] = agc;
         }
-        config.aquire();
+        config.acquire();
         config.conf["devices"][devArgs["label"]] = conf;
         config.release(true);
     }
@@ -363,7 +363,7 @@ private:
         ImGui::SetNextItemWidth(menuWidth);
         if (ImGui::Combo(CONCAT("##_dev_select_", _this->name), &_this->devId, _this->txtDevList.c_str())) {
             _this->selectDevice(_this->devList[_this->devId]["label"]);
-            config.aquire();
+            config.acquire();
             config.conf["device"] = _this->devList[_this->devId]["label"];
             config.release(true);
         }

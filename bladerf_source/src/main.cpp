@@ -46,7 +46,7 @@ public:
         refresh();
 
         // Select device here
-        config.aquire();
+        config.acquire();
         std::string serial = config.conf["device"];
         config.release();
         selectBySerial(serial);
@@ -129,7 +129,7 @@ public:
 
         // Load the channelId if there are more than 1 channel
         if (reloadChannelId) {
-            config.aquire();
+            config.acquire();
             if (channelCount > 1 && config.conf["devices"].contains(info->serial)) {
                 if (config.conf["devices"][info->serial].contains("channelId")) {
                     chanId = config.conf["devices"][info->serial]["channelId"];
@@ -200,7 +200,7 @@ public:
         }
 
         // Load settings here
-        config.aquire();
+        config.acquire();
 
         if (!config.conf["devices"].contains(selectedSerial)) {
             config.conf["devices"][info->serial]["channelId"] = 0;
@@ -400,7 +400,7 @@ private:
             bladerf_devinfo info = _this->devInfoList[_this->devId];
             _this->selectByInfo(&info);
             core::setInputSampleRate(_this->sampleRate);
-            config.aquire();
+            config.acquire();
             config.conf["device"] = _this->selectedSerial;
             config.release(true);
         }
@@ -409,7 +409,7 @@ private:
             _this->sampleRate = _this->sampleRates[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
             if (_this->selectedSerial != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedSerial]["sampleRate"] = _this->sampleRates[_this->srId];
                 config.release(true);
             }
@@ -431,7 +431,7 @@ private:
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             ImGui::Combo(CONCAT("##_balderf_ch_sel_", _this->name), &_this->chanId, _this->channelNamesTxt.c_str());
             if (_this->selectedSerial != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedSerial]["channelId"] = _this->chanId;
                 config.release(true);
             }
@@ -448,7 +448,7 @@ private:
                             std::clamp<uint64_t>(_this->sampleRate, _this->bwRange->min, _this->bwRange->max) : _this->bandwidths[_this->bwId], NULL);
             }
             if (_this->selectedSerial != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedSerial]["bandwidth"] = _this->bwId;
                 config.release(true);
             }
@@ -467,7 +467,7 @@ private:
                 bladerf_set_gain(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->overallGain);
             }
             if (_this->selectedSerial != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedSerial]["gainMode"] = _this->gainModeNames[_this->gainMode];
                 config.release(true);
             }
@@ -483,7 +483,7 @@ private:
                 bladerf_set_gain(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->overallGain);
             }
             if (_this->selectedSerial != "") {
-                config.aquire();
+                config.acquire();
                 config.conf["devices"][_this->selectedSerial]["overallGain"] = _this->overallGain;
                 config.release(true);
             }

@@ -30,7 +30,7 @@ namespace ImGui {
         }
     }
 
-    dsp::complex_t* ConstellationDiagram::aquireBuffer() {
+    dsp::complex_t* ConstellationDiagram::acquireBuffer() {
         bufferMtx.lock();
         return buffer;
     }

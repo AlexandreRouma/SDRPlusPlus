@@ -32,7 +32,7 @@ namespace ImGui {
         }
     }
 
-    float* SymbolDiagram::aquireBuffer() {
+    float* SymbolDiagram::acquireBuffer() {
         bufferMtx.lock();
         return buffer;
     }

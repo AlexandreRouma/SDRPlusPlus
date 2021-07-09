@@ -11,7 +11,7 @@ namespace thememenu {
     void init(std::string resDir) {
         // TODO: Not hardcode theme directory
         gui::themeManager.loadThemesFromDir(resDir + "/themes/");
-        core::configManager.aquire();
+        core::configManager.acquire();
         std::string selectedThemeName = core::configManager.conf["theme"];
         core::configManager.release();
 
@@ -39,7 +39,7 @@ namespace thememenu {
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo("##theme_select_combo", &themeId, themeNamesTxt.c_str())) {
             gui::themeManager.applyTheme(themeNames[themeId]);
-            core::configManager.aquire();
+            core::configManager.acquire();
             core::configManager.conf["theme"] = themeNames[themeId];
             core::configManager.release(true);
         }

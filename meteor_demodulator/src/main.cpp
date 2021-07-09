@@ -51,7 +51,7 @@ public:
         writeBuffer = new int8_t[STREAM_BUFFER_SIZE];
 
         // Load config
-        config.aquire();
+        config.acquire();
         bool created = false;
         if (!config.conf.contains(name)) {
             config.conf[name]["recPath"] = "%ROOT%/recordings";
@@ -136,7 +136,7 @@ private:
 
         if (_this->folderSelect.render("##meteor-recorder-" + _this->name)) {
             if (_this->folderSelect.pathIsValid()) {
-                config.aquire();
+                config.acquire();
                 config.conf[_this->name]["recPath"] = _this->folderSelect.path;
                 config.release(true);
             }
@@ -178,7 +178,7 @@ private:
     static void symSinkHandler(dsp::complex_t* data, int count, void* ctx) {
         MeteorDemodulatorModule* _this = (MeteorDemodulatorModule*)ctx;
 
-        dsp::complex_t* buf = _this->constDiagram.aquireBuffer();
+        dsp::complex_t* buf = _this->constDiagram.acquireBuffer();
         memcpy(buf, data, 1024 * sizeof(dsp::complex_t));
         _this->constDiagram.releaseBuffer();
     }
