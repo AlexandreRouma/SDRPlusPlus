@@ -27,12 +27,10 @@ void Menu::removeEntry(std::string name) {
 
 bool Menu::draw(bool updateStates) {
     bool changed = false;
-    headerTops.clear();
-    displayedNames.clear();
     float menuWidth = ImGui::GetContentRegionAvailWidth();
     ImGuiWindow* window = ImGui::GetCurrentWindow();
 
-    int id = 0;
+    int displayedCount = 0;
     int rawId = 0;
 
     ImU32 textColor = ImGui::GetColorU32(ImGuiCol_Text);
@@ -49,7 +47,7 @@ bool Menu::draw(bool updateStates) {
             continue;
         }
 
-        if (id == insertBefore && draggedMenuName != "") {
+        if (displayedCount == insertBefore && !draggedMenuName.empty()) {
             if (updateStates) { ImGui::SetNextItemOpen(false); }
             ImVec2 posMin = ImGui::GetCursorScreenPos();
             ImVec2 posMax = ImVec2(posMin.x + menuWidth, posMin.y + ImGui::GetFrameHeight());
@@ -68,7 +66,7 @@ bool Menu::draw(bool updateStates) {
             style::endDisabled();
             window->DrawList->AddRect(posMin, posMax, textColor);
         }
-        id++;
+        displayedCount++;
         
         MenuItem_t& item = items[opt.name];
         
@@ -81,15 +79,15 @@ bool Menu::draw(bool updateStates) {
         ImVec2 posMin = ImGui::GetCursorScreenPos();
         ImVec2 posMax = ImVec2(posMin.x + menuWidth, posMin.y + ImGui::GetFrameHeight());
 
-        headerTops.push_back(posMin.y);
-        displayedNames.push_back(opt.name);
+        headerTops[displayedCount-1] = posMin.y;
+        optionIDs[displayedCount-1] = rawId-1;
 
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsMouseHoveringRect(posMin, posMax)) {
             menuClicked = true;
             clickedMenuName = opt.name;
         }
 
-        if (menuClicked && ImGui::IsMouseDragging(ImGuiMouseButton_Left) && draggedMenuName == "" && clickedMenuName == opt.name) {
+        if (menuClicked && ImGui::IsMouseDragging(ImGuiMouseButton_Left) && draggedMenuName.empty() && clickedMenuName == opt.name) {
             draggedMenuName = opt.name;
             draggedId = rawId-1;
             draggedOpt = opt;
@@ -145,11 +143,11 @@ bool Menu::draw(bool updateStates) {
 
     if (!ImGui::IsMouseDown(ImGuiMouseButton_Left) && menuClicked) {
         
-        if (draggedMenuName != "") {
+        if (!draggedMenuName.empty()) {
             // Move menu
             order.erase(order.begin() + draggedId);
 
-            if (insertBefore == headerTops.size()) {
+            if (insertBefore == displayedCount) {
                 order.push_back(draggedOpt);
             }
             else if (insertBeforeName != "") {
@@ -172,7 +170,7 @@ bool Menu::draw(bool updateStates) {
     }
 
 
-    if (insertBefore == headerTops.size() && draggedMenuName != "") {
+    if (insertBefore == displayedCount && !draggedMenuName.empty()) {
         if (updateStates) { ImGui::SetNextItemOpen(false); }
         ImVec2 posMin = ImGui::GetCursorScreenPos();
         ImVec2 posMax = ImVec2(posMin.x + menuWidth, posMin.y + ImGui::GetFrameHeight());
@@ -192,18 +190,17 @@ bool Menu::draw(bool updateStates) {
         window->DrawList->AddRect(posMin, posMax, textColor);
     }
 
-    if (draggedMenuName != "") {
-        insertBefore = headerTops.size();
+    if (!draggedMenuName.empty()) {
+        insertBefore = displayedCount;
         ImVec2 mPos = ImGui::GetMousePos();
-        for (int i = 0; i < headerTops.size(); i++) {
+        for (int i = 0; i < displayedCount; i++) {
             if (headerTops[i] > mPos.y) {
                 insertBefore = i;
-                insertBeforeName = displayedNames[i];
+                insertBeforeName = order[optionIDs[i]].name;
                 break;
             }
         }
     }
-    
 
     return changed;
 }

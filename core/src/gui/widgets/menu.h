@@ -4,6 +4,8 @@
 #include <map>
 #include <module.h>
 
+#define MAX_MENU_COUNT      1024
+
 class Menu {
 public:
     Menu();
@@ -31,13 +33,14 @@ private:
     bool menuClicked = false;
     std::string clickedMenuName = "";
     std::string draggedMenuName = "";
-    std::vector<float> headerTops;
     int insertBefore = -1;
     std::string insertBeforeName = "";
-    std::vector<std::string> displayedNames;
 
     int draggedId = 0;
     MenuOption_t draggedOpt;
 
     std::map<std::string, MenuItem_t> items;
+
+    float headerTops[MAX_MENU_COUNT];
+    int optionIDs[MAX_MENU_COUNT];
 };
