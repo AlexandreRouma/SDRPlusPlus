@@ -1151,8 +1151,8 @@ namespace ImGui {
         int _right = right;
         left = std::clamp<int>(left, 0, dataWidth - 1);
         right = std::clamp<int>(right, 0, dataWidth - 1);
-        if (left != _left) { leftClamped = true; }
-        if (right != _right) { rightClamped = true; }
+        leftClamped = (left != _left);
+        rightClamped = (right != _right);
 
         rectMin = ImVec2(widgetPos.x + 50 + left, widgetPos.y + 10);
         rectMax = ImVec2(widgetPos.x + 51 + right, widgetPos.y + fftHeight + 10);

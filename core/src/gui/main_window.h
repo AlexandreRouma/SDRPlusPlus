@@ -65,6 +65,8 @@ private:
     bool demoWindow = false;
     int selectedWindow = 0;
 
+    bool initComplete = false;
+
     EventHandler<VFOManager::VFO*> vfoCreatedHandler;
 
 };

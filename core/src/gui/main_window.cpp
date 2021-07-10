@@ -196,6 +196,21 @@ void MainWindow::init() {
     tuningMode = core::configManager.conf["centerTuning"] ? tuner::TUNER_MODE_CENTER : tuner::TUNER_MODE_NORMAL;
 
     core::configManager.release();
+
+    // Correct the offset of all VFOs so that they fit on the screen
+    float finalBwHalf = gui::waterfall.getBandwidth() / 2.0;
+    for (auto& [_name, _vfo] : gui::waterfall.vfos) {
+        if (_vfo->lowerOffset < -finalBwHalf) {
+            sigpath::vfoManager.setCenterOffset(_name, (_vfo->bandwidth/2)-finalBwHalf);
+            continue;
+        }
+        if (_vfo->upperOffset > finalBwHalf) {
+            sigpath::vfoManager.setCenterOffset(_name, finalBwHalf-(_vfo->bandwidth/2));
+            continue;
+        }
+    }
+
+    initComplete = true;
 }
 
 void MainWindow::fftHandler(dsp::complex_t* samples, int count, void* ctx) {
@@ -233,7 +248,8 @@ void MainWindow::vfoAddedHandler(VFOManager::VFO* vfo, void* ctx) {
     }
     double offset = core::configManager.conf["vfoOffsets"][name];
     core::configManager.release();
-    sigpath::vfoManager.setOffset(name, std::clamp<double>(offset, -_this->bw/2.0, _this->bw/2.0));
+
+    sigpath::vfoManager.setOffset(name, _this->initComplete ? std::clamp<double>(offset, -_this->bw/2.0, _this->bw/2.0) : offset);
 }
 
 void MainWindow::draw() {
