@@ -84,16 +84,16 @@ namespace dsp {
 
     private:
         void doStop() {
-            _in->stopReader();
+            if (_in) _in->stopReader();
             data.stopWriter();
             if (generic_block<RingBufferSink<T>>::workerThread.joinable()) {
                 generic_block<RingBufferSink<T>>::workerThread.join();
             }
-            _in->clearReadStop();
+            if (_in) _in->clearReadStop();
             data.clearWriteStop();
         }
 
-        stream<T>* _in;
+        stream<T>* _in = NULL;
 
     };
 
