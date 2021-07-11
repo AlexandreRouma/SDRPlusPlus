@@ -8,7 +8,9 @@ namespace dsp {
     template <class T>
     class RingBuffer {
     public:
-        RingBuffer() {
+        RingBuffer():
+            _buffer{nullptr}
+        {
 
         }
 
