@@ -8,9 +8,7 @@ namespace dsp {
     template <class T>
     class RingBuffer {
     public:
-        RingBuffer() {
-
-        }
+        RingBuffer() {}
 
         RingBuffer(int maxLatency) { init(maxLatency); }
 
@@ -200,7 +198,7 @@ namespace dsp {
         }
 
     private:
-        T* _buffer;
+        T* _buffer = NULL;
         int size;
         int readc;
         int writec;
