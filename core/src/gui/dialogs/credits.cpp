@@ -55,6 +55,10 @@ namespace credits {
         ImGui::Spacing();
         ImGui::Text("SDR++ v" VERSION_STR);
 
+        ImVec2 dispSize = ImGui::GetIO().DisplaySize;
+        ImVec2 winSize = ImGui::GetWindowSize();
+        ImGui::SetWindowPos(ImVec2(std::round((dispSize.x/2) - (winSize.x/2)), std::round((dispSize.y/2) - (winSize.y/2))));
+
         ImGui::EndPopup();
         ImGui::PopStyleVar(1);
     }
