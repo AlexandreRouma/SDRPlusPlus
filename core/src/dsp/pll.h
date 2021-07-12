@@ -10,6 +10,7 @@ namespace dsp {
     class CostasLoop: public generic_block<CostasLoop<ORDER>> {
     public:
         CostasLoop() {}
+
         CostasLoop(stream<complex_t>* in, float loopBandwidth) { init(in, loopBandwidth); }
 
         void init(stream<complex_t>* in, float loopBandwidth) {
@@ -25,9 +26,11 @@ namespace dsp {
 
             generic_block<CostasLoop<ORDER>>::registerInput(_in);
             generic_block<CostasLoop<ORDER>>::registerOutput(&out);
+            generic_block<CostasLoop<ORDER>>::_block_init = true;
         }
 
         void setInput(stream<complex_t>* in) {
+            assert(generic_block<CostasLoop<ORDER>>::_block_init);
             generic_block<CostasLoop<ORDER>>::tempStop();
             generic_block<CostasLoop<ORDER>>::unregisterInput(_in);
             _in = in;
@@ -36,6 +39,7 @@ namespace dsp {
         }
 
         void setLoopBandwidth(float loopBandwidth) {
+            assert(generic_block<CostasLoop<ORDER>>::_block_init);
             generic_block<CostasLoop<ORDER>>::tempStop();
             _loopBandwidth = loopBandwidth;
             float dampningFactor = sqrtf(2.0f) / 2.0f;
@@ -121,6 +125,7 @@ namespace dsp {
     class CarrierTrackingPLL: public generic_block<CarrierTrackingPLL<T>> {
     public:
         CarrierTrackingPLL() {}
+
         CarrierTrackingPLL(stream<complex_t>* in, float loopBandwidth) { init(in, loopBandwidth); }
 
         void init(stream<complex_t>* in, float loopBandwidth) {
@@ -136,9 +141,11 @@ namespace dsp {
 
             generic_block<CarrierTrackingPLL<T>>::registerInput(_in);
             generic_block<CarrierTrackingPLL<T>>::registerOutput(&out);
+            generic_block<CarrierTrackingPLL<T>>::_block_init = true;
         }
 
         void setInput(stream<complex_t>* in) {
+            assert(generic_block<CarrierTrackingPLL<T>>::_block_init);
             generic_block<CarrierTrackingPLL<T>>::tempStop();
             generic_block<CarrierTrackingPLL<T>>::unregisterInput(_in);
             _in = in;
@@ -147,6 +154,7 @@ namespace dsp {
         }
 
         void setLoopBandwidth(float loopBandwidth) {
+            assert(generic_block<CarrierTrackingPLL<T>>::_block_init);
             generic_block<CarrierTrackingPLL<T>>::tempStop();
             _loopBandwidth = loopBandwidth;
             float dampningFactor = sqrtf(2.0f) / 2.0f;
@@ -224,6 +232,7 @@ namespace dsp {
     class PLL: public generic_block<PLL> {
     public:
         PLL() {}
+
         PLL(stream<complex_t>* in, float loopBandwidth) { init(in, loopBandwidth); }
 
         void init(stream<complex_t>* in, float loopBandwidth) {
@@ -239,9 +248,11 @@ namespace dsp {
 
             generic_block<PLL>::registerInput(_in);
             generic_block<PLL>::registerOutput(&out);
+            generic_block<PLL>::_block_init = true;
         }
 
         void setInput(stream<complex_t>* in) {
+            assert(generic_block<PLL>::_block_init);
             generic_block<PLL>::tempStop();
             generic_block<PLL>::unregisterInput(_in);
             _in = in;
@@ -250,6 +261,7 @@ namespace dsp {
         }
 
         void setLoopBandwidth(float loopBandwidth) {
+            assert(generic_block<PLL>::_block_init);
             generic_block<PLL>::tempStop();
             _loopBandwidth = loopBandwidth;
             float dampningFactor = sqrtf(2.0f) / 2.0f;

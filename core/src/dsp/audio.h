@@ -12,9 +12,11 @@ namespace dsp {
             _in = in;
             generic_block<MonoToStereo>::registerInput(_in);
             generic_block<MonoToStereo>::registerOutput(&out);
+            generic_block<MonoToStereo>::_block_init = true;
         }
 
         void setInput(stream<float>* in) {
+            assert(generic_block<MonoToStereo>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<MonoToStereo>::ctrlMtx);
             generic_block<MonoToStereo>::tempStop();
             generic_block<MonoToStereo>::unregisterInput(_in);
@@ -53,9 +55,11 @@ namespace dsp {
             generic_block<ChannelsToStereo>::registerInput(_in_left);
             generic_block<ChannelsToStereo>::registerInput(_in_right);
             generic_block<ChannelsToStereo>::registerOutput(&out);
+            generic_block<ChannelsToStereo>::_block_init = true;
         }
 
         void setInput(stream<float>* in_left, stream<float>* in_right) {
+            assert(generic_block<ChannelsToStereo>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<ChannelsToStereo>::ctrlMtx);
             generic_block<ChannelsToStereo>::tempStop();
             generic_block<ChannelsToStereo>::unregisterInput(_in_left);
@@ -100,9 +104,11 @@ namespace dsp {
         StereoToMono(stream<stereo_t>* in) { init(in); }
 
         ~StereoToMono() {
+            if (!generic_block<StereoToMono>::_block_init) { return; }
             generic_block<StereoToMono>::stop();
             delete[] l_buf;
             delete[] r_buf;
+            generic_block<StereoToMono>::_block_init = false;
         }
 
         void init(stream<stereo_t>* in) {
@@ -111,9 +117,11 @@ namespace dsp {
             r_buf = new float[STREAM_BUFFER_SIZE];
             generic_block<StereoToMono>::registerInput(_in);
             generic_block<StereoToMono>::registerOutput(&out);
+            generic_block<StereoToMono>::_block_init = true;
         }
 
         void setInput(stream<stereo_t>* in) {
+            assert(generic_block<StereoToMono>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<StereoToMono>::ctrlMtx);
             generic_block<StereoToMono>::tempStop();
             generic_block<StereoToMono>::unregisterInput(_in);
@@ -155,9 +163,11 @@ namespace dsp {
             generic_block<StereoToChannels>::registerInput(_in);
             generic_block<StereoToChannels>::registerOutput(&out_left);
             generic_block<StereoToChannels>::registerOutput(&out_right);
+            generic_block<StereoToChannels>::_block_init = true;
         }
 
         void setInput(stream<stereo_t>* in) {
+            assert(generic_block<StereoToChannels>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<StereoToChannels>::ctrlMtx);
             generic_block<StereoToChannels>::tempStop();
             generic_block<StereoToChannels>::unregisterInput(_in);

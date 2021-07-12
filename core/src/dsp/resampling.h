@@ -14,10 +14,12 @@ namespace dsp {
         PolyphaseResampler(stream<T>* in, dsp::filter_window::generic_window* window, float inSampleRate, float outSampleRate) { init(in, window, inSampleRate, outSampleRate); }
 
         ~PolyphaseResampler() {
+            if (!generic_block<PolyphaseResampler<T>>::_block_init) { return; }
             generic_block<PolyphaseResampler<T>>::stop();
             volk_free(buffer);
             volk_free(taps);
             freeTapPhases();
+            generic_block<PolyphaseResampler<T>>::_block_init = false;
         }
 
         void init(stream<T>* in, dsp::filter_window::generic_window* window, float inSampleRate, float outSampleRate) {
@@ -40,9 +42,11 @@ namespace dsp {
             memset(buffer, 0, STREAM_BUFFER_SIZE * sizeof(T) * 2);
             generic_block<PolyphaseResampler<T>>::registerInput(_in);
             generic_block<PolyphaseResampler<T>>::registerOutput(&out);
+            generic_block<PolyphaseResampler<T>>::_block_init = true;
         }
 
         void setInput(stream<T>* in) {
+            assert(generic_block<PolyphaseResampler<T>>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<PolyphaseResampler<T>>::ctrlMtx);
             generic_block<PolyphaseResampler<T>>::tempStop();
             generic_block<PolyphaseResampler<T>>::unregisterInput(_in);
@@ -52,6 +56,7 @@ namespace dsp {
         }
 
         void setInSampleRate(float inSampleRate) {
+            assert(generic_block<PolyphaseResampler<T>>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<PolyphaseResampler<T>>::ctrlMtx);
             generic_block<PolyphaseResampler<T>>::tempStop();
             _inSampleRate = inSampleRate;
@@ -63,6 +68,7 @@ namespace dsp {
         }
 
         void setOutSampleRate(float outSampleRate) {
+            assert(generic_block<PolyphaseResampler<T>>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<PolyphaseResampler<T>>::ctrlMtx);
             generic_block<PolyphaseResampler<T>>::tempStop();
             _outSampleRate = outSampleRate;
@@ -74,14 +80,17 @@ namespace dsp {
         }
 
         int getInterpolation() {
+            assert(generic_block<PolyphaseResampler<T>>::_block_init);
             return _interp;
         }
 
         int getDecimation() {
+            assert(generic_block<PolyphaseResampler<T>>::_block_init);
             return _decim;
         }
 
         void updateWindow(dsp::filter_window::generic_window* window) {
+            assert(generic_block<PolyphaseResampler<T>>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<PolyphaseResampler<T>>::ctrlMtx);
             generic_block<PolyphaseResampler<T>>::tempStop();
             _window = window;
@@ -94,6 +103,7 @@ namespace dsp {
         }
 
         int calcOutSize(int in) {
+            assert(generic_block<PolyphaseResampler<T>>::_block_init);
             return (in * _interp) / _decim;
         }
 
@@ -185,89 +195,6 @@ namespace dsp {
 
         int tapsPerPhase;
         std::vector<float*> tapPhases;
-
-    };
-
-    class PowerDecimator : public generic_block<PowerDecimator> {
-    public:
-        PowerDecimator() {}
-
-        PowerDecimator(stream<complex_t>* in, int power, int tapCount) { init(in, power, tapCount); }
-
-        void init(stream<complex_t>* in, int power, int tapCount) {
-            _in = in;
-            _power = power;
-            _tapCount = tapCount;
-
-            // Allocate buffers
-            for (int i = 0; i < _power; i++) {
-                buffers[i] = new complex_t[STREAM_BUFFER_SIZE / (i+1)];
-                bufferStart[i] = &buffers[i][_tapCount - 1];
-            }
-
-            // Create taps
-            genHalfbandTaps();
-
-            generic_block<PowerDecimator>::registerInput(_in);
-            generic_block<PowerDecimator>::registerOutput(&out);
-        }
-
-        void setInput(stream<complex_t>* in) {
-            std::lock_guard<std::mutex> lck(generic_block<PowerDecimator>::ctrlMtx);
-            generic_block<PowerDecimator>::tempStop();
-            generic_block<PowerDecimator>::unregisterInput(_in);
-            _in = in;
-            generic_block<PowerDecimator>::registerInput(_in);
-            generic_block<PowerDecimator>::tempStart();
-        }
-
-        void setPower(unsigned int power) {
-            std::lock_guard<std::mutex> lck(generic_block<PowerDecimator>::ctrlMtx);
-            generic_block<PowerDecimator>::tempStop();
-            _power = power;
-            generic_block<PowerDecimator>::tempStart();
-        }
-
-        int run() {
-            int count = _in->read();
-            if (count < 0) { return -1; }
-            
-            if (!out.swap(count)) { return -1; }
-            return count; 
-        }
-
-        stream<complex_t> out;
-
-    private:
-        void genHalfbandTaps() {
-            if (taps != NULL) { delete[] taps; }
-            taps = new float[_tapCount];
-
-            // Using Blackman-harris windows
-            int half = _tapCount / 2;
-            for (int i = 0; i < _tapCount; i++) {
-                taps[i] = sinc((FL_M_PI / 2.0f) * (i-half)) * blackmanHarrisWin(i, _tapCount - 1);
-                printf("%f\n", taps[i]);
-            }
-        }
-
-        inline float sinc(float x) {
-            return ((x == 0) ? 1.0f : (sinf(x)/x)) / FL_M_PI;
-        }
-
-        inline float blackmanHarrisWin(float n, float N) {
-            return 0.35875f - (0.48829f*cosf(2.0f*FL_M_PI*(n/N))) + (0.14128f*cosf(4.0f*FL_M_PI*(n/N))) - (0.01168f*cosf(6.0f*FL_M_PI*(n/N)));
-        }
-
-        int _power = 0;
-        int _tapCount = 31;
-        stream<complex_t>* _in;
-
-        // Buffer lists, sets max decimation to 2^32
-        complex_t* buffers[32];
-        complex_t* bufferStart[32];
-
-        float* taps = NULL;
 
     };
 }

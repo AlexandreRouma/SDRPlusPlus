@@ -13,7 +13,9 @@ namespace dsp {
         Deframer(stream<uint8_t>* in, int frameLen, uint8_t* syncWord, int syncLen) { init(in, frameLen, syncWord, syncLen); }
 
         ~Deframer() {
+            if (!generic_block<Deframer>::_block_init) { return; }
             generic_block<Deframer>::stop();
+            generic_block<Deframer>::_block_init = false;
         }
 
         void init(stream<uint8_t>* in, int frameLen, uint8_t* syncWord, int syncLen) {
@@ -29,6 +31,17 @@ namespace dsp {
             
             generic_block<Deframer>::registerInput(_in);
             generic_block<Deframer>::registerOutput(&out);
+            generic_block<Deframer>::_block_init = true;
+        }
+
+        void setInput(stream<uint8_t>* in) {
+            assert(generic_block<Deframer>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<Deframer>::ctrlMtx);
+            generic_block<Deframer>::tempStop();
+            generic_block<Deframer>::unregisterInput(_in);
+            _in = in;
+            generic_block<Deframer>::registerInput(_in);
+            generic_block<Deframer>::tempStart();
         }
 
         int run() {
@@ -148,6 +161,17 @@ namespace dsp {
             
             generic_block<ManchesterDeframer>::registerInput(_in);
             generic_block<ManchesterDeframer>::registerOutput(&out);
+            generic_block<ManchesterDeframer>::_block_init = true;
+        }
+
+        void setInput(stream<float>* in) {
+            assert(generic_block<ManchesterDeframer>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<ManchesterDeframer>::ctrlMtx);
+            generic_block<ManchesterDeframer>::tempStop();
+            generic_block<ManchesterDeframer>::unregisterInput(_in);
+            _in = in;
+            generic_block<ManchesterDeframer>::registerInput(_in);
+            generic_block<ManchesterDeframer>::tempStart();
         }
 
         int run() {
@@ -226,6 +250,17 @@ namespace dsp {
             
             generic_block<SymbolDeframer>::registerInput(_in);
             generic_block<SymbolDeframer>::registerOutput(&out);
+            generic_block<SymbolDeframer>::_block_init = true;
+        }
+
+        void setInput(stream<uint8_t>* in) {
+            assert(generic_block<SymbolDeframer>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<SymbolDeframer>::ctrlMtx);
+            generic_block<SymbolDeframer>::tempStop();
+            generic_block<SymbolDeframer>::unregisterInput(_in);
+            _in = in;
+            generic_block<SymbolDeframer>::registerInput(_in);
+            generic_block<SymbolDeframer>::tempStart();
         }
 
         int run() {
@@ -296,6 +331,17 @@ namespace dsp {
             _inverted = inverted;
             generic_block<ManchesterDecoder>::registerInput(_in);
             generic_block<ManchesterDecoder>::registerOutput(&out);
+            generic_block<ManchesterDecoder>::_block_init = true;
+        }
+
+        void setInput(stream<float>* in) {
+            assert(generic_block<ManchesterDecoder>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<ManchesterDecoder>::ctrlMtx);
+            generic_block<ManchesterDecoder>::tempStop();
+            generic_block<ManchesterDecoder>::unregisterInput(_in);
+            _in = in;
+            generic_block<ManchesterDecoder>::registerInput(_in);
+            generic_block<ManchesterDecoder>::tempStart();
         }
 
         int run() {
@@ -337,6 +383,17 @@ namespace dsp {
             
             generic_block<BitPacker>::registerInput(_in);
             generic_block<BitPacker>::registerOutput(&out);
+            generic_block<BitPacker>::_block_init = true;
+        }
+
+        void setInput(stream<uint8_t>* in) {
+            assert(generic_block<BitPacker>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<BitPacker>::ctrlMtx);
+            generic_block<BitPacker>::tempStop();
+            generic_block<BitPacker>::unregisterInput(_in);
+            _in = in;
+            generic_block<BitPacker>::registerInput(_in);
+            generic_block<BitPacker>::tempStart();
         }
 
         int run() {

@@ -18,9 +18,11 @@ namespace dsp {
                 generic_block<HRPTDemux>::registerOutput(&SSPDOut);
                 generic_block<HRPTDemux>::registerOutput(&MTVZAOut);
                 generic_block<HRPTDemux>::registerOutput(&MSUMROut);
+                generic_block<HRPTDemux>::_block_init = true;
             }
 
             void setInput(stream<uint8_t>* in) {
+                assert(generic_block<HRPTDemux>::_block_init);
                 std::lock_guard<std::mutex> lck(generic_block<HRPTDemux>::ctrlMtx);
                 generic_block<HRPTDemux>::tempStop();
                 generic_block<HRPTDemux>::unregisterInput(_in);

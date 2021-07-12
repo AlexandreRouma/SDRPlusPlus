@@ -31,9 +31,11 @@ namespace dsp {
                 generic_block<HRPTDemux>::registerOutput(&AVHRRChan3Out);
                 generic_block<HRPTDemux>::registerOutput(&AVHRRChan4Out);
                 generic_block<HRPTDemux>::registerOutput(&AVHRRChan5Out);
+                generic_block<HRPTDemux>::_block_init = true;
             }
 
             void setInput(stream<uint8_t>* in) {
+                assert(generic_block<HRPTDemux>::_block_init);
                 std::lock_guard<std::mutex> lck(generic_block<HRPTDemux>::ctrlMtx);
                 generic_block<HRPTDemux>::tempStop();
                 generic_block<HRPTDemux>::unregisterInput(_in);

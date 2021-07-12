@@ -24,10 +24,13 @@ namespace dsp {
         virtual void init() {}
 
         virtual ~generic_block() {
+            if (!_block_init) { return; }
             stop();
+            _block_init = false;
         }
 
         virtual void start() {
+            assert(_block_init);
             std::lock_guard<std::mutex> lck(ctrlMtx);
             if (running) {
                 return;
@@ -37,6 +40,7 @@ namespace dsp {
         }
 
         virtual void stop() {
+            assert(_block_init);
             std::lock_guard<std::mutex> lck(ctrlMtx);
             if (!running) {
                 return;
@@ -46,6 +50,7 @@ namespace dsp {
         }
 
         void tempStart() {
+            assert(_block_init);
             if (tempStopped) {
                 doStart();
                 tempStopped = false;
@@ -53,13 +58,17 @@ namespace dsp {
         }
 
         void tempStop() {
+            assert(_block_init);
             if (running && !tempStopped) {
                 doStop();
                 tempStopped = true;
             }
         }
 
-        virtual int calcOutSize(int inSize) { return inSize; }
+        virtual int calcOutSize(int inSize) {
+            assert(_block_init);
+            return inSize;
+        }
 
         virtual int run() = 0;
         
@@ -119,16 +128,17 @@ namespace dsp {
             }
         }
 
+    protected:
+        bool _block_init = false;
+
+        std::mutex ctrlMtx;
+
         std::vector<untyped_steam*> inputs;
         std::vector<untyped_steam*> outputs;
 
         bool running = false;
         bool tempStopped = false;
-
         std::thread workerThread;
-
-    protected:
-        std::mutex ctrlMtx;
 
     };
 
@@ -138,10 +148,13 @@ namespace dsp {
         virtual void init() {}
 
         virtual ~generic_hier_block() {
+            if (!_block_init) { return; }
             stop();
+            _block_init = false;
         }
 
         virtual void start() {
+            assert(_block_init);
             std::lock_guard<std::mutex> lck(ctrlMtx);
             if (running) {
                 return;
@@ -151,6 +164,7 @@ namespace dsp {
         }
 
         virtual void stop() {
+            assert(_block_init);
             std::lock_guard<std::mutex> lck(ctrlMtx);
             if (!running) {
                 return;
@@ -160,6 +174,7 @@ namespace dsp {
         }
 
         void tempStart() {
+            assert(_block_init);
             if (tempStopped) {
                 doStart();
                 tempStopped = false;
@@ -167,13 +182,17 @@ namespace dsp {
         }
 
         void tempStop() {
+            assert(_block_init);
             if (running && !tempStopped) {
                 doStop();
                 tempStopped = true;
             }
         }
 
-        virtual int calcOutSize(int inSize) { return inSize; }
+        virtual int calcOutSize(int inSize) {
+            assert(_block_init);
+            return inSize;
+        }
 
         friend BLOCK;
 
@@ -203,6 +222,7 @@ namespace dsp {
         bool running = false;
 
     protected:
+        bool _block_init = false;
         std::mutex ctrlMtx;
 
     };

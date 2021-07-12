@@ -7,6 +7,7 @@ namespace dsp {
     class EdgeTrigClockRecovery : public generic_block<EdgeTrigClockRecovery> {
     public:
         EdgeTrigClockRecovery() {}
+        
         EdgeTrigClockRecovery(stream<float>* in, int omega) { init(in, omega); }
 
         void init(stream<float>* in, int omega) {
@@ -14,9 +15,11 @@ namespace dsp {
             samplesPerSymbol = omega;
             generic_block<EdgeTrigClockRecovery>::registerInput(_in);
             generic_block<EdgeTrigClockRecovery>::registerOutput(&out);
+            generic_block<EdgeTrigClockRecovery>::_block_init = true;
         }
 
         void setInput(stream<float>* in) {
+            assert(generic_block<EdgeTrigClockRecovery>::_block_init);
             generic_block<EdgeTrigClockRecovery>::tempStop();
             generic_block<EdgeTrigClockRecovery>::unregisterInput(_in);
             _in = in;
@@ -69,6 +72,7 @@ namespace dsp {
     class MMClockRecovery : public generic_block<MMClockRecovery<T>> {
     public:
         MMClockRecovery() {}
+
         MMClockRecovery(stream<T>* in, float omega, float gainOmega, float muGain, float omegaRelLimit) {
             init(in, omega, gainOmega, muGain, omegaRelLimit);
         }
@@ -88,9 +92,11 @@ namespace dsp {
 
             generic_block<MMClockRecovery<T>>::registerInput(_in);
             generic_block<MMClockRecovery<T>>::registerOutput(&out);
+            generic_block<MMClockRecovery<T>>::_block_init = true;
         }
 
         void setOmega(float omega, float omegaRelLimit) {
+            assert(generic_block<MMClockRecovery<T>>::_block_init);
             generic_block<MMClockRecovery<T>>::tempStop();
             omegaMin = _omega - (_omega * _omegaRelLimit);
             omegaMax = _omega + (_omega * _omegaRelLimit);
@@ -100,6 +106,7 @@ namespace dsp {
         }
 
         void setGains(float omegaGain, float muGain) {
+            assert(generic_block<MMClockRecovery<T>>::_block_init);
             generic_block<MMClockRecovery<T>>::tempStop();
             _gainOmega = omegaGain;
             _muGain = muGain;
@@ -107,6 +114,7 @@ namespace dsp {
         }
 
         void setOmegaRelLimit(float omegaRelLimit) {
+            assert(generic_block<MMClockRecovery<T>>::_block_init);
             generic_block<MMClockRecovery<T>>::tempStop();
             _omegaRelLimit = omegaRelLimit;
             omegaMin = _omega - (_omega * _omegaRelLimit);
@@ -115,6 +123,7 @@ namespace dsp {
         }
 
         void setInput(stream<T>* in) {
+            assert(generic_block<MMClockRecovery<T>>::_block_init);
             generic_block<MMClockRecovery<T>>::tempStop();
             generic_block<MMClockRecovery<T>>::unregisterInput(_in);
             _in = in;

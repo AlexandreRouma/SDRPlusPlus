@@ -16,9 +16,11 @@ namespace dsp {
         void init(stream<T>* in) {
             _in = in;
             generic_block<Splitter>::registerInput(_in);
+            generic_block<Splitter>::_block_init = true;
         }
 
         void setInput(stream<T>* in) {
+            assert(generic_block<Splitter>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<Splitter>::ctrlMtx);
             generic_block<Splitter>::tempStop();
             generic_block<Splitter>::unregisterInput(_in);
@@ -28,6 +30,7 @@ namespace dsp {
         }
 
         void bindStream(stream<T>* stream) {
+            assert(generic_block<Splitter>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<Splitter>::ctrlMtx);
             generic_block<Splitter>::tempStop();
             out.push_back(stream);
@@ -36,6 +39,7 @@ namespace dsp {
         }
 
         void unbindStream(stream<T>* stream) {
+            assert(generic_block<Splitter>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<Splitter>::ctrlMtx);
             generic_block<Splitter>::tempStop();
             generic_block<Splitter>::unregisterOutput(stream);
@@ -71,6 +75,7 @@ namespace dsp {
         Reshaper(stream<T>* in, int keep, int skip) { init(in, keep, skip); }
 
         // NOTE: For some reason, the base class destrcutor doesn't get called.... this is a temporary fix I guess
+        // I also don't check for _block_init for the exact sample reason, something's weird
         ~Reshaper() {
             generic_block<Reshaper<T>>::stop();
         }
@@ -82,9 +87,11 @@ namespace dsp {
             ringBuf.init(keep * 2);
             generic_block<Reshaper<T>>::registerInput(_in);
             generic_block<Reshaper<T>>::registerOutput(&out);
+            generic_block<Reshaper<T>>::_block_init = true;
         }
 
         void setInput(stream<T>* in) {
+            assert(generic_block<Reshaper<T>>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<Reshaper<T>>::ctrlMtx);
             generic_block<Reshaper<T>>::tempStop();
             generic_block<Reshaper<T>>::unregisterInput(_in);
@@ -94,6 +101,7 @@ namespace dsp {
         }
 
         void setKeep(int keep) {
+            assert(generic_block<Reshaper<T>>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<Reshaper<T>>::ctrlMtx);
             generic_block<Reshaper<T>>::tempStop();
             _keep = keep;
@@ -102,6 +110,7 @@ namespace dsp {
         }
 
         void setSkip(int skip) {
+            assert(generic_block<Reshaper<T>>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<Reshaper<T>>::ctrlMtx);
             generic_block<Reshaper<T>>::tempStop();
             _skip = skip;
@@ -182,7 +191,6 @@ namespace dsp {
         std::thread bufferWorkerThread;
         std::thread workThread;
         int _keep, _skip;
-        
 
     };
 }

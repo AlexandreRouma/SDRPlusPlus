@@ -62,10 +62,6 @@ namespace dsp {
 
         FalconRS(stream<uint8_t>* in) { init(in); }
 
-        ~FalconRS() {
-            generic_block<FalconRS>::stop();
-        }
-
         void init(stream<uint8_t>* in) {
             _in = in;
 
@@ -76,6 +72,17 @@ namespace dsp {
             
             generic_block<FalconRS>::registerInput(_in);
             generic_block<FalconRS>::registerOutput(&out);
+            generic_block<FalconRS>::_block_init = true;
+        }
+
+        void setInput(stream<uint8_t>* in) {
+            assert(generic_block<FalconRS>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<FalconRS>::ctrlMtx);
+            generic_block<FalconRS>::tempStop();
+            generic_block<FalconRS>::unregisterInput(_in);
+            _in = in;
+            generic_block<FalconRS>::registerInput(_in);
+            generic_block<FalconRS>::tempStart();
         }
 
         int run() {

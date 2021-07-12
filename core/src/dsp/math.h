@@ -16,6 +16,40 @@ namespace dsp {
             generic_block<Add<T>>::registerInput(a);
             generic_block<Add<T>>::registerInput(b);
             generic_block<Add<T>>::registerOutput(&out);
+            generic_block<Add<T>>::_block_init = true;
+        }
+
+        void setInputs(stream<T>* a, stream<T>* b) {
+            assert(generic_block<Add<T>>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<Add<T>>::ctrlMtx);
+            generic_block<Add<T>>::tempStop();
+            generic_block<Add<T>>::unregisterInput(_a);
+            generic_block<Add<T>>::unregisterInput(_b);
+            _a = a;
+            _b = b;
+            generic_block<Add<T>>::registerInput(_a);
+            generic_block<Add<T>>::registerInput(_b);
+            generic_block<Add<T>>::tempStart();
+        }
+
+        void setInputA(stream<T>* a) {
+            assert(generic_block<Add<T>>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<Add<T>>::ctrlMtx);
+            generic_block<Add<T>>::tempStop();
+            generic_block<Add<T>>::unregisterInput(_a);
+            _a = a;
+            generic_block<Add<T>>::registerInput(_a);
+            generic_block<Add<T>>::tempStart();
+        }
+
+        void setInputB(stream<T>* b) {
+            assert(generic_block<Add<T>>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<Add<T>>::ctrlMtx);
+            generic_block<Add<T>>::tempStop();
+            generic_block<Add<T>>::unregisterInput(_b);
+            _b = b;
+            generic_block<Add<T>>::registerInput(_b);
+            generic_block<Add<T>>::tempStart();
         }
 
         int run() {
@@ -51,18 +85,52 @@ namespace dsp {
     };
 
     template <class T>
-    class Substract : public generic_block<Substract<T>> {
+    class Subtract : public generic_block<Subtract<T>> {
     public:
-        Substract() {}
+        Subtract() {}
 
-        Substract(stream<T>* a, stream<T>* b) { init(a, b); }
+        Subtract(stream<T>* a, stream<T>* b) { init(a, b); }
 
         void init(stream<T>* a, stream<T>* b) {
             _a = a;
             _b = b;
-            generic_block<Substract<T>>::registerInput(a);
-            generic_block<Substract<T>>::registerInput(b);
-            generic_block<Substract<T>>::registerOutput(&out);
+            generic_block<Subtract<T>>::registerInput(a);
+            generic_block<Subtract<T>>::registerInput(b);
+            generic_block<Subtract<T>>::registerOutput(&out);
+            generic_block<Subtract<T>>::_block_init = true;
+        }
+
+        void setInputs(stream<T>* a, stream<T>* b) {
+            assert(generic_block<Subtract<T>>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<Subtract<T>>::ctrlMtx);
+            generic_block<Subtract<T>>::tempStop();
+            generic_block<Subtract<T>>::unregisterInput(_a);
+            generic_block<Subtract<T>>::unregisterInput(_b);
+            _a = a;
+            _b = b;
+            generic_block<Subtract<T>>::registerInput(_a);
+            generic_block<Subtract<T>>::registerInput(_b);
+            generic_block<Subtract<T>>::tempStart();
+        }
+
+        void setInputA(stream<T>* a) {
+            assert(generic_block<Subtract<T>>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<Subtract<T>>::ctrlMtx);
+            generic_block<Subtract<T>>::tempStop();
+            generic_block<Subtract<T>>::unregisterInput(_a);
+            _a = a;
+            generic_block<Subtract<T>>::registerInput(_a);
+            generic_block<Subtract<T>>::tempStart();
+        }
+
+        void setInputB(stream<T>* b) {
+            assert(generic_block<Subtract<T>>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<Subtract<T>>::ctrlMtx);
+            generic_block<Subtract<T>>::tempStop();
+            generic_block<Subtract<T>>::unregisterInput(_b);
+            _b = b;
+            generic_block<Subtract<T>>::registerInput(_b);
+            generic_block<Subtract<T>>::tempStart();
         }
 
         int run() {
@@ -110,6 +178,40 @@ namespace dsp {
             generic_block<Multiply>::registerInput(a);
             generic_block<Multiply>::registerInput(b);
             generic_block<Multiply>::registerOutput(&out);
+            generic_block<Multiply>::_block_init = true;
+        }
+
+        void setInputs(stream<T>* a, stream<T>* b) {
+            assert(generic_block<Multiply<T>>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<Multiply<T>>::ctrlMtx);
+            generic_block<Multiply<T>>::tempStop();
+            generic_block<Multiply<T>>::unregisterInput(_a);
+            generic_block<Multiply<T>>::unregisterInput(_b);
+            _a = a;
+            _b = b;
+            generic_block<Multiply<T>>::registerInput(_a);
+            generic_block<Multiply<T>>::registerInput(_b);
+            generic_block<Multiply<T>>::tempStart();
+        }
+
+        void setInputA(stream<T>* a) {
+            assert(generic_block<Multiply<T>>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<Multiply<T>>::ctrlMtx);
+            generic_block<Multiply<T>>::tempStop();
+            generic_block<Multiply<T>>::unregisterInput(_a);
+            _a = a;
+            generic_block<Multiply<T>>::registerInput(_a);
+            generic_block<Multiply<T>>::tempStart();
+        }
+
+        void setInputB(stream<T>* b) {
+            assert(generic_block<Multiply<T>>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<Multiply<T>>::ctrlMtx);
+            generic_block<Multiply<T>>::tempStop();
+            generic_block<Multiply<T>>::unregisterInput(_b);
+            _b = b;
+            generic_block<Multiply<T>>::registerInput(_b);
+            generic_block<Multiply<T>>::tempStart();
         }
 
         int run() {

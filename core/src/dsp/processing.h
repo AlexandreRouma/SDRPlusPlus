@@ -22,9 +22,11 @@ namespace dsp {
             phaseDelta = lv_cmake(std::cos((_freq / _sampleRate) * 2.0f * FL_M_PI), std::sin((_freq / _sampleRate) * 2.0f * FL_M_PI));
             generic_block<FrequencyXlator<T>>::registerInput(_in);
             generic_block<FrequencyXlator<T>>::registerOutput(&out);
+            generic_block<FrequencyXlator<T>>::_block_init = true;
         }
 
-        void setInputSize(stream<complex_t>* in) {
+        void setInput(stream<complex_t>* in) {
+            assert(generic_block<FrequencyXlator<T>>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<FrequencyXlator<T>>::ctrlMtx);
             generic_block<FrequencyXlator<T>>::tempStop();
             generic_block<FrequencyXlator<T>>::unregisterInput(_in);
@@ -34,22 +36,24 @@ namespace dsp {
         }
 
         void setSampleRate(float sampleRate) {
-            // No need to restart
+            assert(generic_block<FrequencyXlator<T>>::_block_init);
             _sampleRate = sampleRate;
             phaseDelta = lv_cmake(std::cos((_freq / _sampleRate) * 2.0f * FL_M_PI), std::sin((_freq / _sampleRate) * 2.0f * FL_M_PI));
         }
 
         float getSampleRate() {
+            assert(generic_block<FrequencyXlator<T>>::_block_init);
             return _sampleRate;
         }
 
         void setFrequency(float freq) {
-            // No need to restart
+            assert(generic_block<FrequencyXlator<T>>::_block_init);
             _freq = freq;
             phaseDelta = lv_cmake(std::cos((_freq / _sampleRate) * 2.0f * FL_M_PI), std::sin((_freq / _sampleRate) * 2.0f * FL_M_PI));
         }
 
         float getFrequency() {
+            assert(generic_block<FrequencyXlator<T>>::_block_init);
             return _freq;
         }
 
@@ -94,9 +98,11 @@ namespace dsp {
             _CorrectedFallRate = _fallRate / _sampleRate;
             generic_block<AGC>::registerInput(_in);
             generic_block<AGC>::registerOutput(&out);
+            generic_block<AGC>::_block_init = true;
         }
 
         void setInput(stream<float>* in) {
+            assert(generic_block<AGC>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<AGC>::ctrlMtx);
             generic_block<AGC>::tempStop();
             generic_block<AGC>::unregisterInput(_in);
@@ -106,12 +112,14 @@ namespace dsp {
         }
 
         void setSampleRate(float sampleRate) {
+            assert(generic_block<AGC>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<AGC>::ctrlMtx);
             _sampleRate = sampleRate;
             _CorrectedFallRate = _fallRate / _sampleRate;
         }
 
         void setFallRate(float fallRate) {
+            assert(generic_block<AGC>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<AGC>::ctrlMtx);
             _fallRate = fallRate;
             _CorrectedFallRate = _fallRate / _sampleRate;
@@ -160,9 +168,11 @@ namespace dsp {
             _rate = rate;
             generic_block<ComplexAGC>::registerInput(_in);
             generic_block<ComplexAGC>::registerOutput(&out);
+            generic_block<ComplexAGC>::_block_init = true;
         }
 
         void setInput(stream<complex_t>* in) {
+            assert(generic_block<ComplexAGC>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<ComplexAGC>::ctrlMtx);
             generic_block<ComplexAGC>::tempStop();
             generic_block<ComplexAGC>::unregisterInput(_in);
@@ -172,14 +182,17 @@ namespace dsp {
         }
 
         void setSetPoint(float setPoint) {
+            assert(generic_block<ComplexAGC>::_block_init);
             _setPoint = setPoint;
         }
 
         void setMaxGain(float maxGain) {
+            assert(generic_block<ComplexAGC>::_block_init);
             _maxGain = maxGain;
         }
 
         void setRate(float rate) {
+            assert(generic_block<ComplexAGC>::_block_init);
             _rate = rate;
         }
 
@@ -222,9 +235,11 @@ namespace dsp {
             _in = in;
             generic_block<DelayImag>::registerInput(_in);
             generic_block<DelayImag>::registerOutput(&out);
+            generic_block<DelayImag>::_block_init = true;
         }
 
         void setInput(stream<complex_t>* in) {
+            assert(generic_block<DelayImag>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<DelayImag>::ctrlMtx);
             generic_block<DelayImag>::tempStop();
             generic_block<DelayImag>::unregisterInput(_in);
@@ -272,9 +287,11 @@ namespace dsp {
             _volume = volume;
             generic_block<Volume<T>>::registerInput(_in);
             generic_block<Volume<T>>::registerOutput(&out);
+            generic_block<Volume<T>>::_block_init = true;
         }
 
-        void setInputSize(stream<T>* in) {
+        void setInput(stream<T>* in) {
+            assert(generic_block<Volume<T>>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<Volume<T>>::ctrlMtx);
             generic_block<Volume<T>>::tempStop();
             generic_block<Volume<T>>::unregisterInput(_in);
@@ -284,19 +301,23 @@ namespace dsp {
         }
 
         void setVolume(float volume) {
+            assert(generic_block<Volume<T>>::_block_init);
             _volume = volume;
             level = powf(_volume, 2);
         }
 
         float getVolume() {
+            assert(generic_block<Volume<T>>::_block_init);
             return _volume;
         }
 
         void setMuted(bool muted) {
+            assert(generic_block<Volume<T>>::_block_init);
             _muted = muted;
         }
 
         bool getMuted() {
+            assert(generic_block<Volume<T>>::_block_init);
             return _muted;
         }
 
@@ -343,8 +364,10 @@ namespace dsp {
         Squelch(stream<complex_t>* in, float level) { init(in, level); }
 
         ~Squelch() {
+            if (!generic_block<Squelch>::_block_init) { return; }
             generic_block<Squelch>::stop();
             delete[] normBuffer;
+            generic_block<Squelch>::_block_init = false;
         }
 
         void init(stream<complex_t>* in, float level) {
@@ -353,9 +376,11 @@ namespace dsp {
             normBuffer = new float[STREAM_BUFFER_SIZE];
             generic_block<Squelch>::registerInput(_in);
             generic_block<Squelch>::registerOutput(&out);
+            generic_block<Squelch>::_block_init = true;
         }
 
         void setInput(stream<complex_t>* in) {
+            assert(generic_block<Squelch>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<Squelch>::ctrlMtx);
             generic_block<Squelch>::tempStop();
             generic_block<Squelch>::unregisterInput(_in);
@@ -365,10 +390,12 @@ namespace dsp {
         }
 
         void setLevel(float level) {
+            assert(generic_block<Squelch>::_block_init);
             _level = level;
         }
 
         float getLevel() {
+            assert(generic_block<Squelch>::_block_init);
             return _level;
         }
 
@@ -415,9 +442,11 @@ namespace dsp {
             samples = count;
             generic_block<Packer<T>>::registerInput(_in);
             generic_block<Packer<T>>::registerOutput(&out);
+            generic_block<Packer<T>>::_block_init = true;
         }
 
         void setInput(stream<T>* in) {
+            assert(generic_block<Packer<T>>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<Packer<T>>::ctrlMtx);
             generic_block<Packer<T>>::tempStop();
             generic_block<Packer<T>>::unregisterInput(_in);
@@ -427,6 +456,7 @@ namespace dsp {
         }
 
         void setSampleCount(int count) {
+            assert(generic_block<Packer<T>>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<Packer<T>>::ctrlMtx);
             generic_block<Packer<T>>::tempStop();
             samples = count;
@@ -473,8 +503,10 @@ namespace dsp {
         Threshold(stream<float>* in) { init(in); }
 
         ~Threshold() {
+            if (!generic_block<Threshold>::_block_init) { return; }
             generic_block<Threshold>::stop();
             delete[] normBuffer;
+            generic_block<Threshold>::_block_init = false;
         }
 
         void init(stream<float>* in) {
@@ -482,9 +514,11 @@ namespace dsp {
             normBuffer = new float[STREAM_BUFFER_SIZE];
             generic_block<Threshold>::registerInput(_in);
             generic_block<Threshold>::registerOutput(&out);
+            generic_block<Threshold>::_block_init = true;
         }
 
         void setInput(stream<float>* in) {
+            assert(generic_block<Threshold>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<Threshold>::ctrlMtx);
             generic_block<Threshold>::tempStop();
             generic_block<Threshold>::unregisterInput(_in);
@@ -494,10 +528,12 @@ namespace dsp {
         }
 
         void setLevel(float level) {
+            assert(generic_block<Threshold>::_block_init);
             _level = level;
         }
 
         float getLevel() {
+            assert(generic_block<Threshold>::_block_init);
             return _level;
         }
 

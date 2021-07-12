@@ -14,15 +14,22 @@ namespace dsp {
 
         FalconPacketSync(stream<uint8_t>* in) { init(in); }
 
-        ~FalconPacketSync() {
-            generic_block<FalconPacketSync>::stop();
-        }
-
         void init(stream<uint8_t>* in) {
             _in = in;
             
             generic_block<FalconPacketSync>::registerInput(_in);
             generic_block<FalconPacketSync>::registerOutput(&out);
+            generic_block<FalconPacketSync>::_block_init = true;
+        }
+
+        void setInput(stream<uint8_t>* in) {
+            assert(generic_block<FalconPacketSync>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<FalconPacketSync>::ctrlMtx);
+            generic_block<FalconPacketSync>::tempStop();
+            generic_block<FalconPacketSync>::unregisterInput(_in);
+            _in = in;
+            generic_block<FalconPacketSync>::registerInput(_in);
+            generic_block<FalconPacketSync>::tempStart();
         }
 
         int run() {

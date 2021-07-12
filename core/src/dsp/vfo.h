@@ -10,7 +10,11 @@ namespace dsp {
     public:
         VFO() {}
 
-        ~VFO() { stop(); }
+        ~VFO() {
+            if (!_init) { return; }
+            stop();
+            _init = false;
+        }
 
         VFO(stream<complex_t>* in, float offset, float inSampleRate, float outSampleRate, float bandWidth) {
             init(in, offset, inSampleRate, outSampleRate, bandWidth);
@@ -33,21 +37,26 @@ namespace dsp {
             resamp.updateWindow(&win);
 
             out = &resamp.out;
+
+            _init = true;
         }
 
         void start() {
+            assert(_init);
             if (running) { return; }
             xlator.start();
             resamp.start();
         }
 
         void stop() {
+            assert(_init);
             if (!running) { return; }
             xlator.stop();
             resamp.stop();
         }
 
         void setInSampleRate(float inSampleRate) {
+            assert(_init);
             _inSampleRate = inSampleRate;
             if (running) { xlator.stop(); resamp.stop(); }
             xlator.setSampleRate(_inSampleRate);
@@ -61,6 +70,7 @@ namespace dsp {
         }
 
         void setOutSampleRate(float outSampleRate) {
+            assert(_init);
             _outSampleRate = outSampleRate;
             if (running) { resamp.stop(); }
             resamp.setOutSampleRate(_outSampleRate);
@@ -73,6 +83,7 @@ namespace dsp {
         }
 
         void setOutSampleRate(float outSampleRate, float bandWidth) {
+            assert(_init);
             _outSampleRate = outSampleRate;
             _bandWidth = bandWidth;
             if (running) { resamp.stop(); }
@@ -86,11 +97,13 @@ namespace dsp {
         }
 
         void setOffset(float offset) {
+            assert(_init);
             _offset = offset;
             xlator.setFrequency(-_offset);
         }
 
         void setBandwidth(float bandWidth) {
+            assert(_init);
             _bandWidth = bandWidth;
             float realCutoff = std::min<float>(_bandWidth, std::min<float>(_inSampleRate, _outSampleRate)) / 2.0f;
             win.setCutoff(realCutoff);
@@ -101,6 +114,7 @@ namespace dsp {
         stream<complex_t>* out;
 
     private:
+        bool _init = false;
         bool running = false;
         float _offset, _inSampleRate, _outSampleRate, _bandWidth;
         filter_window::BlackmanWindow win;

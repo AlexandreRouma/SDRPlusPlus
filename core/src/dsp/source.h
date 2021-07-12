@@ -20,9 +20,11 @@ namespace dsp {
             phase = lv_cmake(1.0f, 0.0f);
             phaseDelta = lv_cmake(std::cos((_freq / _sampleRate) * 2.0f * FL_M_PI), std::sin((_freq / _sampleRate) * 2.0f * FL_M_PI));
             generic_block<SineSource>::registerOutput(&out);
+            generic_block<SineSource>::_block_init = true;
         }
 
         void setBlockSize(int blockSize) {
+            assert(generic_block<SineSource>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<SineSource>::ctrlMtx);
             generic_block<SineSource>::tempStop();
             _blockSize = blockSize;
@@ -30,26 +32,29 @@ namespace dsp {
         }
 
         int getBlockSize() {
+            assert(generic_block<SineSource>::_block_init);
             return _blockSize;
         }
 
         void setSampleRate(float sampleRate) {
-            // No need to restart
+            assert(generic_block<SineSource>::_block_init);
             _sampleRate = sampleRate;
             phaseDelta = lv_cmake(std::cos((_freq / _sampleRate) * 2.0f * FL_M_PI), std::sin((_freq / _sampleRate) * 2.0f * FL_M_PI));
         }
 
         float getSampleRate() {
+            assert(generic_block<SineSource>::_block_init);
             return _sampleRate;
         }
 
         void setFrequency(float freq) {
-            // No need to restart
+            assert(generic_block<SineSource>::_block_init);
             _freq = freq;
             phaseDelta = lv_cmake(std::cos((_freq / _sampleRate) * 2.0f * FL_M_PI), std::sin((_freq / _sampleRate) * 2.0f * FL_M_PI));
         }
 
         float getFrequency() {
+            assert(generic_block<SineSource>::_block_init);
             return _freq;
         }
 
@@ -82,9 +87,11 @@ namespace dsp {
             _handler = handler;
             _ctx = ctx;
             generic_block<HandlerSource<T>>::registerOutput(&out);
+            generic_block<HandlerSource<T>>::_block_init = true;
         }
 
         void setHandler(int (*handler)(T* data, void* ctx), void* ctx) {
+            assert(generic_block<HandlerSource<T>>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<HandlerSource<T>>::ctrlMtx);
             generic_block<HandlerSource<T>>::tempStop();
             _handler = handler;

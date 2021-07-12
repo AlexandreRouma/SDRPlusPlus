@@ -13,9 +13,11 @@ namespace dsp {
         FIR(stream<T>* in, dsp::filter_window::generic_window* window) { init(in, window); }
 
         ~FIR() {
+            if (!generic_block<FIR<T>>::_block_init) { return; }
             generic_block<FIR<T>>::stop();
             volk_free(buffer);
             volk_free(taps);
+            generic_block<FIR<T>>::_block_init = false;
         }
 
         void init(stream<T>* in, dsp::filter_window::generic_window* window) {
@@ -29,9 +31,11 @@ namespace dsp {
             bufStart = &buffer[tapCount];
             generic_block<FIR<T>>::registerInput(_in);
             generic_block<FIR<T>>::registerOutput(&out);
+            generic_block<FIR<T>>::_block_init = true;
         }
 
         void setInput(stream<T>* in) {
+            assert(generic_block<FIR<T>>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<FIR<T>>::ctrlMtx);
             generic_block<FIR<T>>::tempStop();
             generic_block<FIR<T>>::unregisterInput(_in);
@@ -41,6 +45,7 @@ namespace dsp {
         }
 
         void updateWindow(dsp::filter_window::generic_window* window) {
+            assert(generic_block<FIR<T>>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<FIR<T>>::ctrlMtx);
             _window = window;
             volk_free(taps);
@@ -99,8 +104,6 @@ namespace dsp {
 
         BFMDeemp(stream<stereo_t>* in, float sampleRate, float tau) { init(in, sampleRate, tau); }
 
-        ~BFMDeemp() { generic_block<BFMDeemp>::stop(); }
-
         void init(stream<stereo_t>* in, float sampleRate, float tau) {
             _in = in;
             _sampleRate = sampleRate;
@@ -109,9 +112,11 @@ namespace dsp {
             alpha = dt / (_tau + dt);
             generic_block<BFMDeemp>::registerInput(_in);
             generic_block<BFMDeemp>::registerOutput(&out);
+            generic_block<BFMDeemp>::_block_init = true;
         }
 
         void setInput(stream<stereo_t>* in) {
+            assert(generic_block<BFMDeemp>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<BFMDeemp>::ctrlMtx);
             generic_block<BFMDeemp>::tempStop();
             generic_block<BFMDeemp>::unregisterInput(_in);
@@ -121,12 +126,14 @@ namespace dsp {
         }
 
         void setSampleRate(float sampleRate) {
+            assert(generic_block<BFMDeemp>::_block_init);
             _sampleRate = sampleRate;
             float dt = 1.0f / _sampleRate;
             alpha = dt / (_tau + dt);
         }
 
         void setTau(float tau) {
+            assert(generic_block<BFMDeemp>::_block_init);
             _tau = tau;
             float dt = 1.0f / _sampleRate;
             alpha = dt / (_tau + dt);

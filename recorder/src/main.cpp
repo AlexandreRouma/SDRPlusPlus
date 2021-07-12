@@ -159,7 +159,7 @@ private:
         audioInput = sigpath::sinkManager.bindStream(name);
         if (audioInput == NULL) { return; }
         selectedStreamName = name;
-        vol.setInputSize(audioInput);
+        vol.setInput(audioInput);
         vol.start();
     }
 

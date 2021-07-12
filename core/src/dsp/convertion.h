@@ -14,9 +14,11 @@ namespace dsp {
             _in = in;
             generic_block<ComplexToStereo>::registerInput(_in);
             generic_block<ComplexToStereo>::registerOutput(&out);
+            generic_block<ComplexToStereo>::_block_init = true;
         }
 
         void setInput(stream<complex_t>* in) {
+            assert(generic_block<ComplexToStereo>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<ComplexToStereo>::ctrlMtx);
             generic_block<ComplexToStereo>::tempStop();
             generic_block<ComplexToStereo>::unregisterInput(_in);
@@ -53,9 +55,11 @@ namespace dsp {
             _in = in;
             generic_block<ComplexToReal>::registerInput(_in);
             generic_block<ComplexToReal>::registerOutput(&out);
+            generic_block<ComplexToReal>::_block_init = true;
         }
 
         void setInput(stream<complex_t>* in) {
+            assert(generic_block<ComplexToReal>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<ComplexToReal>::ctrlMtx);
             generic_block<ComplexToReal>::tempStop();
             generic_block<ComplexToReal>::unregisterInput(_in);
@@ -92,9 +96,11 @@ namespace dsp {
             _in = in;
             generic_block<ComplexToImag>::registerInput(_in);
             generic_block<ComplexToImag>::registerOutput(&out);
+            generic_block<ComplexToImag>::_block_init = true;
         }
 
         void setInput(stream<complex_t>* in) {
+            assert(generic_block<ComplexToImag>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<ComplexToImag>::ctrlMtx);
             generic_block<ComplexToImag>::tempStop();
             generic_block<ComplexToImag>::unregisterInput(_in);
@@ -129,8 +135,10 @@ namespace dsp {
         RealToComplex(stream<float>* in) { init(in); }
 
         ~RealToComplex() {
+            if (!generic_block<RealToComplex>::_block_init) { return; }
             generic_block<RealToComplex>::stop();
             delete[] nullBuffer;
+            generic_block<RealToComplex>::_block_init = false;
         }
 
         void init(stream<float>* in) {
@@ -139,9 +147,11 @@ namespace dsp {
             memset(nullBuffer, 0, STREAM_BUFFER_SIZE * sizeof(float));
             generic_block<RealToComplex>::registerInput(_in);
             generic_block<RealToComplex>::registerOutput(&out);
+            generic_block<RealToComplex>::_block_init = true;
         }
 
         void setInput(stream<float>* in) {
+            assert(generic_block<RealToComplex>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<RealToComplex>::ctrlMtx);
             generic_block<RealToComplex>::tempStop();
             generic_block<RealToComplex>::unregisterInput(_in);
@@ -179,9 +189,11 @@ namespace dsp {
             _in = in;
             generic_block<Int16CToComplex>::registerInput(_in);
             generic_block<Int16CToComplex>::registerOutput(&out);
+            generic_block<Int16CToComplex>::_block_init = true;
         }
 
         void setInput(stream<int16_t>* in) {
+            assert(generic_block<Int16CToComplex>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<Int16CToComplex>::ctrlMtx);
             generic_block<Int16CToComplex>::tempStop();
             generic_block<Int16CToComplex>::unregisterInput(_in);

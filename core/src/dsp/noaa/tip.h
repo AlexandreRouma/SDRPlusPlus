@@ -17,9 +17,11 @@ namespace dsp {
                 generic_block<TIPDemux>::registerOutput(&SEMOut);
                 generic_block<TIPDemux>::registerOutput(&DCSOut);
                 generic_block<TIPDemux>::registerOutput(&SBUVOut);
+                generic_block<TIPDemux>::_block_init = true;
             }
 
             void setInput(stream<uint8_t>* in) {
+                assert(generic_block<TIPDemux>::_block_init);
                 std::lock_guard<std::mutex> lck(generic_block<TIPDemux>::ctrlMtx);
                 generic_block<TIPDemux>::tempStop();
                 generic_block<TIPDemux>::unregisterInput(_in);

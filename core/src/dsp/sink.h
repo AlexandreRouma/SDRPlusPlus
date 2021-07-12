@@ -16,9 +16,11 @@ namespace dsp {
             _handler = handler;
             _ctx = ctx;
             generic_block<HandlerSink<T>>::registerInput(_in);
+            generic_block<HandlerSink<T>>::_block_init = true;
         }
 
         void setInput(stream<T>* in) {
+            assert(generic_block<HandlerSink<T>>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<HandlerSink<T>>::ctrlMtx);
             generic_block<HandlerSink<T>>::tempStop();
             generic_block<HandlerSink<T>>::unregisterInput(_in);
@@ -28,6 +30,7 @@ namespace dsp {
         }
 
         void setHandler(void (*handler)(T* data, int count, void* ctx), void* ctx) {
+            assert(generic_block<HandlerSink<T>>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<HandlerSink<T>>::ctrlMtx);
             generic_block<HandlerSink<T>>::tempStop();
             _handler = handler;
@@ -61,9 +64,11 @@ namespace dsp {
             _in = in;
             data.init(480); // TODO: Use an argument
             generic_block<RingBufferSink<T>>::registerInput(_in);
+            generic_block<RingBufferSink<T>>::_block_init = true;
         }
 
         void setInput(stream<T>* in) {
+            assert(generic_block<RingBufferSink<T>>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<RingBufferSink<T>>::ctrlMtx);
             generic_block<RingBufferSink<T>>::tempStop();
             generic_block<RingBufferSink<T>>::unregisterInput(_in);
@@ -107,9 +112,11 @@ namespace dsp {
         void init(stream<T>* in) {
             _in = in;
             generic_block<NullSink<T>>::registerInput(_in);
+            generic_block<NullSink<T>>::_block_init = true;
         }
 
         void setInput(stream<T>* in) {
+            assert(generic_block<NullSink<T>>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<NullSink<T>>::ctrlMtx);
             generic_block<NullSink<T>>::tempStop();
             generic_block<NullSink<T>>::unregisterInput(_in);
@@ -138,17 +145,21 @@ namespace dsp {
         FileSink(stream<T>* in, std::string path) { init(in, path); }
 
         ~FileSink() {
+            if (!generic_block<FileSink<T>>::_block_init) { return; }
             generic_block<FileSink<T>>::stop();
             if (file.is_open()) { file.close(); }
+            generic_block<FileSink<T>>::_block_init = false;
         }
 
         void init(stream<T>* in, std::string path) {
             _in = in;
             file = std::ofstream(path, std::ios::binary);
             generic_block<FileSink<T>>::registerInput(_in);
+            generic_block<FileSink<T>>::_block_init = true;
         }
 
         void setInput(stream<T>* in) {
+            assert(generic_block<FileSink<T>>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<FileSink<T>>::ctrlMtx);
             generic_block<FileSink<T>>::tempStop();
             generic_block<FileSink<T>>::unregisterInput(_in);
@@ -158,6 +169,7 @@ namespace dsp {
         }
 
         bool isOpen() {
+            assert(generic_block<FileSink<T>>::_block_init);
             return file.is_open();
         }
 

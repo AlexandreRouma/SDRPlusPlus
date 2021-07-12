@@ -16,9 +16,11 @@ namespace dsp {
         void init(stream<stereo_t>* in) {
             _in = in;
             generic_block<LevelMeter>::registerInput(_in);
+            generic_block<LevelMeter>::_block_init = true;
         }
 
         void setInput(stream<stereo_t>* in) {
+            assert(generic_block<LevelMeter>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<LevelMeter>::ctrlMtx);
             generic_block<LevelMeter>::tempStop();
             generic_block<LevelMeter>::unregisterInput(_in);

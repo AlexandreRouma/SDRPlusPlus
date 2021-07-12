@@ -22,9 +22,11 @@ namespace dsp {
                 generic_block<MSUMRDemux>::registerOutput(&msumr4Out);
                 generic_block<MSUMRDemux>::registerOutput(&msumr5Out);
                 generic_block<MSUMRDemux>::registerOutput(&msumr6Out);
+                generic_block<MSUMRDemux>::_block_init = true;
             }
 
             void setInput(stream<uint8_t>* in) {
+                assert(generic_block<MSUMRDemux>::_block_init);
                 std::lock_guard<std::mutex> lck(generic_block<MSUMRDemux>::ctrlMtx);
                 generic_block<MSUMRDemux>::tempStop();
                 generic_block<MSUMRDemux>::unregisterInput(_in);
