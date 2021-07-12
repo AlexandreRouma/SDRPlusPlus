@@ -7,7 +7,7 @@
 #define STREAM_BUFFER_SIZE  1000000
 
 namespace dsp {
-    class untyped_steam {
+    class untyped_stream {
     public:
         virtual bool swap(int size) { return false; }
         virtual int read() { return -1; }
@@ -19,7 +19,7 @@ namespace dsp {
     };
 
     template <class T>
-    class stream : public untyped_steam {
+    class stream : public untyped_stream {
     public:
         stream() {
             writeBuf = (T*)volk_malloc(STREAM_BUFFER_SIZE * sizeof(T), volk_get_alignment());

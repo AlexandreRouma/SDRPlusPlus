@@ -87,19 +87,19 @@ namespace dsp {
             ctrlMtx.unlock();
         }
 
-        void registerInput(untyped_steam* inStream) {
+        void registerInput(untyped_stream* inStream) {
             inputs.push_back(inStream);
         }
 
-        void unregisterInput(untyped_steam* inStream) {
+        void unregisterInput(untyped_stream* inStream) {
             inputs.erase(std::remove(inputs.begin(), inputs.end(), inStream), inputs.end());
         }
 
-        void registerOutput(untyped_steam* outStream) {
+        void registerOutput(untyped_stream* outStream) {
             outputs.push_back(outStream);
         }
 
-        void unregisterOutput(untyped_steam* outStream) {
+        void unregisterOutput(untyped_stream* outStream) {
             outputs.erase(std::remove(outputs.begin(), outputs.end(), outStream), outputs.end());
         }
 
@@ -133,8 +133,8 @@ namespace dsp {
 
         std::mutex ctrlMtx;
 
-        std::vector<untyped_steam*> inputs;
-        std::vector<untyped_steam*> outputs;
+        std::vector<untyped_stream*> inputs;
+        std::vector<untyped_stream*> outputs;
 
         bool running = false;
         bool tempStopped = false;
