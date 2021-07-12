@@ -225,7 +225,7 @@ private:
     std::string sampleRateListTxt;
 };
 
-MOD_EXPORT void _INIT_() {
+MOD_EXPORT void SDRPP_MOD_INIT() {
     json def = json({});
     def["devices"] = json({});
     def["device"] = "";
@@ -234,15 +234,15 @@ MOD_EXPORT void _INIT_() {
     config.enableAutoSave();
 }
 
-MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
+MOD_EXPORT ModuleManager::Instance* SDRPP_MOD_CREATE_INSTANCE(std::string name) {
     return new AirspyHFSourceModule(name);
 }
 
-MOD_EXPORT void _DELETE_INSTANCE_(ModuleManager::Instance* instance) {
+MOD_EXPORT void SDRPP_MOD_DELETE_INSTANCE(ModuleManager::Instance* instance) {
     delete (AirspyHFSourceModule*)instance;
 }
 
-MOD_EXPORT void _END_() {
+MOD_EXPORT void SDRPP_MOD_END() {
     config.disableAutoSave();
     config.save();
 }

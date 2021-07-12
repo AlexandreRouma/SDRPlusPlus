@@ -229,22 +229,22 @@ private:
 
 };
 
-MOD_EXPORT void _INIT_() {
+MOD_EXPORT void SDRPP_MOD_INIT() {
     json def = json({});
     config.setPath(options::opts.root + "/radio_config.json");
     config.load(def);
     config.enableAutoSave();
 }
 
-MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
+MOD_EXPORT ModuleManager::Instance* SDRPP_MOD_CREATE_INSTANCE(std::string name) {
     return new RadioModule(name);
 }
 
-MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
+MOD_EXPORT void SDRPP_MOD_DELETE_INSTANCE(void* instance) {
     delete (RadioModule*)instance;
 }
 
-MOD_EXPORT void _END_() {
+MOD_EXPORT void SDRPP_MOD_END() {
     config.disableAutoSave();
     config.save();
 }

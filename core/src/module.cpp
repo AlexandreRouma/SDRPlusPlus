@@ -22,10 +22,10 @@ ModuleManager::Module_t ModuleManager::loadModule(std::string path) {
         return mod;
     }
     mod.info = (ModuleInfo_t*)GetProcAddress(mod.handle, "_INFO_");
-    mod.init = (void(*)())GetProcAddress(mod.handle, "_INIT_");
-    mod.createInstance = (Instance*(*)(std::string))GetProcAddress(mod.handle, "_CREATE_INSTANCE_");
-    mod.deleteInstance = (void(*)(Instance*))GetProcAddress(mod.handle, "_DELETE_INSTANCE_");
-    mod.end = (void(*)())GetProcAddress(mod.handle, "_END_");
+    mod.init = (void(*)())GetProcAddress(mod.handle, "SDRPP_MOD_INIT");
+    mod.createInstance = (Instance*(*)(std::string))GetProcAddress(mod.handle, "SDRPP_MOD_CREATE_INSTANCE");
+    mod.deleteInstance = (void(*)(Instance*))GetProcAddress(mod.handle, "SDRPP_MOD_DELETE_INSTANCE");
+    mod.end = (void(*)())GetProcAddress(mod.handle, "SDRPP_MOD_END");
 #else
     mod.handle = dlopen(path.c_str(), RTLD_LAZY);
     if (mod.handle == NULL) {
@@ -34,10 +34,10 @@ ModuleManager::Module_t ModuleManager::loadModule(std::string path) {
         return mod;
     }
     mod.info = (ModuleInfo_t*)dlsym(mod.handle, "_INFO_");
-    mod.init = (void(*)())dlsym(mod.handle, "_INIT_");
-    mod.createInstance = (Instance*(*)(std::string))dlsym(mod.handle, "_CREATE_INSTANCE_");
-    mod.deleteInstance = (void(*)(Instance*))dlsym(mod.handle, "_DELETE_INSTANCE_");
-    mod.end = (void(*)())dlsym(mod.handle, "_END_");
+    mod.init = (void(*)())dlsym(mod.handle, "SDRPP_MOD_INIT");
+    mod.createInstance = (Instance*(*)(std::string))dlsym(mod.handle, "SDRPP_MOD_CREATE_INSTANCE");
+    mod.deleteInstance = (void(*)(Instance*))dlsym(mod.handle, "SDRPP_MOD_DELETE_INSTANCE");
+    mod.end = (void(*)())dlsym(mod.handle, "SDRPP_MOD_END");
 #endif
     if (mod.info == NULL) {
         spdlog::error("{0} is missing _INFO_ symbol", path);
@@ -45,22 +45,22 @@ ModuleManager::Module_t ModuleManager::loadModule(std::string path) {
         return mod;
     }
     if (mod.init == NULL) {
-        spdlog::error("{0} is missing _INIT_ symbol", path);
+        spdlog::error("{0} is missing SDRPP_MOD_INIT symbol", path);
         mod.handle = NULL;
         return mod;
     }
     if (mod.createInstance == NULL) {
-        spdlog::error("{0} is missing _CREATE_INSTANCE_ symbol", path);
+        spdlog::error("{0} is missing SDRPP_MOD_CREATE_INSTANCE symbol", path);
         mod.handle = NULL;
         return mod;
     }
     if (mod.deleteInstance == NULL) {
-        spdlog::error("{0} is missing _DELETE_INSTANCE_ symbol", path);
+        spdlog::error("{0} is missing SDRPP_MOD_DELETE_INSTANCE symbol", path);
         mod.handle = NULL;
         return mod;
     }
     if (mod.end == NULL) {
-        spdlog::error("{0} is missing _END_ symbol", path);
+        spdlog::error("{0} is missing SDRPP_MOD_END symbol", path);
         mod.handle = NULL;
         return mod;
     }

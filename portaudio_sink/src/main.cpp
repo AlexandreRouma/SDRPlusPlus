@@ -319,20 +319,20 @@ private:
 
 };
 
-MOD_EXPORT void _INIT_() {
+MOD_EXPORT void SDRPP_MOD_INIT() {
     // Nothing here
     // TODO: Do instancing here (in source modules as well) to prevent multiple loads
 }
 
-MOD_EXPORT void* _CREATE_INSTANCE_(std::string name) {
+MOD_EXPORT void* SDRPP_MOD_CREATE_INSTANCE(std::string name) {
     AudioSinkModule* instance = new AudioSinkModule(name);
     return instance;
 }
 
-MOD_EXPORT void _DELETE_INSTANCE_() {
+MOD_EXPORT void SDRPP_MOD_DELETE_INSTANCE() {
     
 }
 
-MOD_EXPORT void _END_() {
+MOD_EXPORT void SDRPP_MOD_END() {
     
 }

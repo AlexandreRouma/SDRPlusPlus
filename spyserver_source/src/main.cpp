@@ -161,18 +161,18 @@ private:
     int directSamplingMode = 0;
 };
 
-MOD_EXPORT void _INIT_() {
+MOD_EXPORT void SDRPP_MOD_INIT() {
    // Do your one time init here
 }
 
-MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
+MOD_EXPORT ModuleManager::Instance* SDRPP_MOD_CREATE_INSTANCE(std::string name) {
     return new SpyServerSourceModule(name);
 }
 
-MOD_EXPORT void _DELETE_INSTANCE_(ModuleManager::Instance* instance) {
+MOD_EXPORT void SDRPP_MOD_DELETE_INSTANCE(ModuleManager::Instance* instance) {
     delete (SpyServerSourceModule*)instance;
 }
 
-MOD_EXPORT void _END_() {
+MOD_EXPORT void SDRPP_MOD_END() {
     // Do your one shutdown here
 }

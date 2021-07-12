@@ -145,18 +145,18 @@ private:
 
 };
 
-MOD_EXPORT void _INIT_() {
+MOD_EXPORT void SDRPP_MOD_INIT() {
     // Nothing here
 }
 
-MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
+MOD_EXPORT ModuleManager::Instance* SDRPP_MOD_CREATE_INSTANCE(std::string name) {
     return new DiscordIntegrationModule(name);
 }
 
-MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
+MOD_EXPORT void SDRPP_MOD_DELETE_INSTANCE(void* instance) {
     delete (DiscordIntegrationModule*)instance;
 }
 
-MOD_EXPORT void _END_() {
+MOD_EXPORT void SDRPP_MOD_END() {
     // Nothing here
 }

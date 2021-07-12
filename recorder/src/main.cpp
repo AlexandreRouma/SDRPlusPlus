@@ -372,7 +372,7 @@ struct RecorderContext_t {
     std::string name;
 };
 
-MOD_EXPORT void _INIT_() {
+MOD_EXPORT void SDRPP_MOD_INIT() {
     // Create default recording directory
     if (!std::filesystem::exists(options::opts.root + "/recordings")) {
         spdlog::warn("Recordings directory does not exist, creating it");
@@ -386,15 +386,15 @@ MOD_EXPORT void _INIT_() {
     config.enableAutoSave();
 }
 
-MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
+MOD_EXPORT ModuleManager::Instance* SDRPP_MOD_CREATE_INSTANCE(std::string name) {
     return new RecorderModule(name);
 }
 
-MOD_EXPORT void _DELETE_INSTANCE_(ModuleManager::Instance* inst) {
+MOD_EXPORT void SDRPP_MOD_DELETE_INSTANCE(ModuleManager::Instance* inst) {
     delete (RecorderModule*)inst;
 }
 
-MOD_EXPORT void _END_(RecorderContext_t* ctx) {
+MOD_EXPORT void SDRPP_MOD_END(RecorderContext_t* ctx) {
     config.disableAutoSave();
     config.save();
 }
