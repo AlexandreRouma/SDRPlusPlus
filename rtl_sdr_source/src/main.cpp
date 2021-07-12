@@ -296,7 +296,16 @@ private:
     static void tune(double freq, void* ctx) {
         RTLSDRSourceModule* _this = (RTLSDRSourceModule*)ctx;
         if (_this->running) {
-            rtlsdr_set_center_freq(_this->openDev, freq);
+            uint32_t newFreq = freq;
+            int i;
+            for (i = 0; i < 10; i++) {
+                rtlsdr_set_center_freq(_this->openDev, freq);
+                if (rtlsdr_get_center_freq(_this->openDev) == newFreq) { break; }
+            }
+            if (i > 1) {
+                spdlog::warn("RTL-SDR took {0} attempts to tune...", i);
+            }
+            
         }
         _this->freq = freq;
         spdlog::info("RTLSDRSourceModule '{0}': Tune: {1}!", _this->name, freq);

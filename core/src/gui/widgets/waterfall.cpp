@@ -202,7 +202,7 @@ namespace ImGui {
         window->DrawList->AddImage((void*)(intptr_t)textureId, wfMin, wfMax);
         ImVec2 mPos = ImGui::GetMousePos();
 
-        if (IS_IN_AREA(mPos, wfMin, wfMax) && !gui::mainWindow.lockWaterfallControls) {
+        if (IS_IN_AREA(mPos, wfMin, wfMax) && !gui::mainWindow.lockWaterfallControls && !inputHandled) {
             for (auto const& [name, vfo] : vfos) {
                 window->DrawList->AddRectFilled(vfo->wfRectMin, vfo->wfRectMax, vfo->color);
                 if (!vfo->lineVisible) { continue; }
@@ -749,7 +749,7 @@ namespace ImGui {
         }
 
         // Handle fft resize
-        if (!gui::mainWindow.lockWaterfallControls) { 
+        if (!gui::mainWindow.lockWaterfallControls && !inputHandled) { 
             ImVec2 winSize = ImGui::GetWindowSize();
             ImVec2 mousePos = ImGui::GetMousePos();
             mousePos.x -= widgetPos.x;
@@ -1169,7 +1169,7 @@ namespace ImGui {
             window->DrawList->AddLine(lineMin, lineMax, selected ? IM_COL32(255, 0, 0, 255) : IM_COL32(255, 255, 0, 255));
         }
 
-        if (!gui::mainWindow.lockWaterfallControls) {
+        if (!gui::mainWindow.lockWaterfallControls && !gui::waterfall.inputHandled) {
             ImVec2 mousePos = ImGui::GetMousePos();
             if (reference != REF_LOWER && !bandwidthLocked && !leftClamped) {
                 if (IS_IN_AREA(mousePos, lbwSelMin, lbwSelMax)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW); }
