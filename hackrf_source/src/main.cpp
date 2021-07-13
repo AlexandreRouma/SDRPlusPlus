@@ -228,7 +228,7 @@ private:
             return;
         }
 
-        int err = hackrf_open_by_serial(_this->selectedSerial.c_str(), &_this->openDev);
+        hackrf_error err = hackrf_open_by_serial(_this->selectedSerial.c_str(), &_this->openDev);
         if (err != HACKRF_SUCCESS) {
             spdlog::error("Could not open HackRF {0}: {1}", _this->selectedSerial, hackrf_error_name(err));
             return;
@@ -257,7 +257,7 @@ private:
         _this->running = false;
         _this->stream.stopWriter();
         // TODO: Stream stop
-        int err = hackrf_close(_this->openDev);
+        hackrf_error err = hackrf_close(_this->openDev);
         if (err != HACKRF_SUCCESS) {
             spdlog::error("Could not close HackRF {0}: {1}", _this->selectedSerial, hackrf_error_name(err));
         }
