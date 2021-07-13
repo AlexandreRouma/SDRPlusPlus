@@ -40,6 +40,8 @@ namespace dsp {
 
             buffer = (T*)volk_malloc(STREAM_BUFFER_SIZE * sizeof(T) * 2, volk_get_alignment());
             memset(buffer, 0, STREAM_BUFFER_SIZE * sizeof(T) * 2);
+            counter = 0;
+            offset = 0;
             generic_block<PolyphaseResampler<T>>::registerInput(_in);
             generic_block<PolyphaseResampler<T>>::registerOutput(&out);
             generic_block<PolyphaseResampler<T>>::_block_init = true;
@@ -51,6 +53,8 @@ namespace dsp {
             generic_block<PolyphaseResampler<T>>::tempStop();
             generic_block<PolyphaseResampler<T>>::unregisterInput(_in);
             _in = in;
+            counter = 0;
+            offset = 0;
             generic_block<PolyphaseResampler<T>>::registerInput(_in);
             generic_block<PolyphaseResampler<T>>::tempStart();
         }
@@ -64,6 +68,8 @@ namespace dsp {
             _interp = _outSampleRate / _gcd;
             _decim = _inSampleRate / _gcd;
             buildTapPhases();
+            counter = 0;
+            offset = 0;
             generic_block<PolyphaseResampler<T>>::tempStart();
         }
 
@@ -76,6 +82,8 @@ namespace dsp {
             _interp = _outSampleRate / _gcd;
             _decim = _inSampleRate / _gcd;
             buildTapPhases();
+            counter = 0;
+            offset = 0;
             generic_block<PolyphaseResampler<T>>::tempStart();
         }
 
@@ -99,6 +107,8 @@ namespace dsp {
             taps = (float*)volk_malloc(tapCount * sizeof(float), volk_get_alignment());
             window->createTaps(taps, tapCount, _interp);
             buildTapPhases();
+            counter = 0;
+            offset = 0;
             generic_block<PolyphaseResampler<T>>::tempStart();
         }
 
