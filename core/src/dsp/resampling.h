@@ -113,28 +113,39 @@ namespace dsp {
                 return -1;
             }
 
-            int outCount = calcOutSize(count);
             memcpy(&buffer[tapsPerPhase], _in->readBuf, count * sizeof(T));
             _in->flush();
 
             // Write to output
             int outIndex = 0;
-            int _interp_m_1 = _interp - 1;
+            int inOffset = offset;
+            int _counter = counter;
             if constexpr (std::is_same_v<T, float>) {
-                for (int i = 0; outIndex < outCount; i += _decim) {
-                    int phase = i % _interp;
-                    volk_32f_x2_dot_prod_32f(&out.writeBuf[outIndex], &buffer[i / _interp], tapPhases[phase], tapsPerPhase);
-                    outIndex++;
+                while (inOffset < count) {
+                    volk_32f_x2_dot_prod_32f(&out.writeBuf[outIndex++], &buffer[inOffset], tapPhases[_counter], tapsPerPhase);
+                    _counter += _decim;
+                    while (_counter >= _interp) {
+                        _counter -= _interp;
+                        inOffset++;
+                    }
                 }
+
             }
             if constexpr (std::is_same_v<T, complex_t> || std::is_same_v<T, stereo_t>) {
-                for (int i = 0; outIndex < outCount; i += _decim) {
-                    int phase = i % _interp;
-                    volk_32fc_32f_dot_prod_32fc((lv_32fc_t*)&out.writeBuf[outIndex], (lv_32fc_t*)&buffer[(i / _interp)], tapPhases[phase], tapsPerPhase);
-                    outIndex++;
+                while (inOffset < count) {
+                    volk_32fc_32f_dot_prod_32fc((lv_32fc_t*)&out.writeBuf[outIndex++], (lv_32fc_t*)&buffer[inOffset], tapPhases[_counter], tapsPerPhase);
+                    _counter += _decim;
+                    while (_counter >= _interp) {
+                        _counter -= _interp;
+                        inOffset++;
+                    }
                 }
             }
-            if (!out.swap(outCount)) { return -1; }
+            
+            if (!out.swap(outIndex)) { return -1; }
+
+            offset = inOffset - count;
+            counter = _counter;
 
             memmove(buffer, &buffer[count], tapsPerPhase * sizeof(T));
 
@@ -192,6 +203,9 @@ namespace dsp {
         int _interp, _decim;
         float _inSampleRate, _outSampleRate;
         float* taps;
+
+        int counter = 0;
+        int offset = 0;
 
         int tapsPerPhase;
         std::vector<float*> tapPhases;
