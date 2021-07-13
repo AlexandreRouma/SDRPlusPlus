@@ -124,24 +124,19 @@ namespace dsp {
                 while (inOffset < count) {
                     volk_32f_x2_dot_prod_32f(&out.writeBuf[outIndex++], &buffer[inOffset], tapPhases[_counter], tapsPerPhase);
                     _counter += _decim;
-                    while (_counter >= _interp) {
-                        _counter -= _interp;
-                        inOffset++;
-                    }
+                    inOffset += (_counter / _interp);
+                    _counter = (_counter % _interp);
                 }
-
             }
             if constexpr (std::is_same_v<T, complex_t> || std::is_same_v<T, stereo_t>) {
                 while (inOffset < count) {
                     volk_32fc_32f_dot_prod_32fc((lv_32fc_t*)&out.writeBuf[outIndex++], (lv_32fc_t*)&buffer[inOffset], tapPhases[_counter], tapsPerPhase);
                     _counter += _decim;
-                    while (_counter >= _interp) {
-                        _counter -= _interp;
-                        inOffset++;
-                    }
+                    inOffset += (_counter / _interp);
+                    _counter = (_counter % _interp);
                 }
             }
-            
+
             if (!out.swap(outIndex)) { return -1; }
 
             offset = inOffset - count;
