@@ -305,18 +305,18 @@ Modules in beta are still included in releases for the most part but not enabled
 | frequency_manager   | Beta       | -            | OPT_BUILD_FREQUENCY_MANAGER   | ✅              | ✅                     | ✅                         |
 | recorder            | Working    | -            | OPT_BUILD_RECORDER            | ✅              | ✅                     | ✅                         |
 
-# Toubleshooting
+# Troubleshooting
 
 First, please make sure you're running the latest automated build. If your issue is linked to a bug it is likely that is has already been fixed in later releases
 
 ## "hash collision" error when starting
 
-You likely installed the `soapysdr-module-all` package on Ubuntu/Debian. If not it's still a SoapySDR bug caused by multiple soapy modules comming in conflict. Uninstall anything related to SoapySDR then install soapysdr itself and only the soapy modules you actually need.
+You likely installed the `soapysdr-module-all` package on Ubuntu/Debian. If not it's still a SoapySDR bug caused by multiple soapy modules coming in conflict. Uninstall anything related to SoapySDR then install soapysdr itself and only the soapy modules you actually need.
 
 ## "I don't see -insert module name here-, what's going on?"
 
 If the module was included in a later update, it's not enabled in the config. The easiest way to fix this is just to delete the `config.json` file and let SDR++ recreate it (you will lose your setting relating to the main UI like VFO colors, zoom level and theme).
-The best option however is to edit the config file to add an instance of the module you wish to hae enabled (see the Module List).
+The best option however is to edit the config file to add an instance of the module you wish to have enabled (see the Module List).
 
 ## SDR++ crashes when stopping a RTL-SDR
 
