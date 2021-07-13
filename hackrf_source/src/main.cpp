@@ -301,6 +301,7 @@ private:
         if (ImGui::Button(CONCAT("Refresh##_hackrf_refr_", _this->name), ImVec2(refreshBtnWdith, 0))) {
             _this->refresh();
             _this->selectBySerial(_this->selectedSerial);
+	    core::setInputSampleRate(_this->sampleRate);
         }
 
         if (_this->running) { style::endDisabled(); }
