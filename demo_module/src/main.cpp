@@ -18,7 +18,7 @@ public:
     }
 
     ~DemoModule() {
-        
+        gui::menu.removeEntry(name);
     }
 
     void enable() {

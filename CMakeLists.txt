@@ -36,6 +36,7 @@ option(OPT_BUILD_WEATHER_SAT_DECODER "Build the HRPT decoder module (no dependen
 option(OPT_BUILD_DISCORD_PRESENCE "Build the Discord Rich Presence module" ON)
 option(OPT_BUILD_FREQUENCY_MANAGER "Build the Frequency Manager module" ON)
 option(OPT_BUILD_RECORDER "Audio and baseband recorder" ON)
+option(OPT_BUILD_RIGCTL_SERVER "Rigctl backend for controlling SDR++ with software like gpredict" ON)
 
 # Compiler arguments for each platform
 if (MSVC)
@@ -144,6 +145,10 @@ endif (OPT_BUILD_FREQUENCY_MANAGER)
 if (OPT_BUILD_RECORDER)
 add_subdirectory("recorder")
 endif (OPT_BUILD_RECORDER)
+
+if (OPT_BUILD_RIGCTL_SERVER)
+add_subdirectory("rigctl_server")
+endif (OPT_BUILD_RIGCTL_SERVER)
 
 add_executable(sdrpp "src/main.cpp" "win32/resources.rc")
 target_link_libraries(sdrpp PRIVATE sdrpp_core)

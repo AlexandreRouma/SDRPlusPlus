@@ -15,6 +15,8 @@
 #include <regex>
 #include <options.h>
 #include <gui/widgets/folder_select.h>
+#include <recorder_interface.h>
+#include <core.h>
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
 SDRPP_MOD_INFO {
@@ -55,7 +57,7 @@ public:
         
         // Create config if it doesn't exist
         if (!config.conf.contains(name)) {
-            config.conf[name]["mode"] = 1;
+            config.conf[name]["mode"] = RECORDER_MODE_AUDIO;
             config.conf[name]["recPath"] = "%ROOT%/recordings";
             config.conf[name]["audioStream"] = "Radio";
             created = true;
@@ -85,12 +87,15 @@ public:
         refreshStreams();
 
         gui::menu.registerEntry(name, menuHandler, this);
+        core::modComManager.registerInterface("recorder", name, moduleInterfaceHandler, this);
     }
 
     ~RecorderModule() {
+        core::modComManager.unregisterInterface(name);
+        
         // Stop recording
         if (recording) {
-            if (recMode == 1) {
+            if (recMode == RECORDER_MODE_AUDIO) {
                 audioSplit.unbindStream(&audioHandlerStream);
                 audioHandler.stop();
                 audioWriter->close();
@@ -171,15 +176,15 @@ private:
         if (_this->recording) { style::beginDisabled(); }
         ImGui::BeginGroup();
         ImGui::Columns(2, CONCAT("AirspyGainModeColumns##_", _this->name), false);
-        if (ImGui::RadioButton(CONCAT("Baseband##_recmode_", _this->name), _this->recMode == 0)) {
-            _this->recMode = 0;
+        if (ImGui::RadioButton(CONCAT("Baseband##_recmode_", _this->name), _this->recMode == RECORDER_MODE_BASEBAND)) {
+            _this->recMode = RECORDER_MODE_BASEBAND;
             config.acquire();
             config.conf[_this->name]["mode"] = _this->recMode;
             config.release(true);
         }
         ImGui::NextColumn();
-        if (ImGui::RadioButton(CONCAT("Audio##_recmode_", _this->name), _this->recMode == 1)) {
-            _this->recMode = 1;
+        if (ImGui::RadioButton(CONCAT("Audio##_recmode_", _this->name), _this->recMode == RECORDER_MODE_AUDIO)) {
+            _this->recMode = RECORDER_MODE_AUDIO;
             config.acquire();
             config.conf[_this->name]["mode"] = _this->recMode;
             config.release(true);
@@ -198,7 +203,7 @@ private:
         }
 
         // Mode specific menu
-        if (_this->recMode == 1) {
+        if (_this->recMode == RECORDER_MODE_AUDIO) {
             _this->audioMenu(menuColumnWidth);
         }
         else {
@@ -210,29 +215,15 @@ private:
         if (!folderSelect.pathIsValid()) { style::beginDisabled(); }
         if (!recording) {
             if (ImGui::Button(CONCAT("Record##_recorder_rec_", name), ImVec2(menuColumnWidth, 0))) {
-                samplesWritten = 0;
-                std::string expandedPath = expandString(folderSelect.path + genFileName("/baseband_", false));
-                sampleRate = sigpath::signalPath.getSampleRate();
-                basebandWriter = new WavWriter(expandedPath, 16, 2, sigpath::signalPath.getSampleRate());
-                if (basebandWriter->isOpen()) {
-                    basebandHandler.start();
-                    sigpath::signalPath.bindIQStream(&basebandStream);
-                    recording = true;
-                    spdlog::info("Recording to '{0}'", expandedPath);
-                }
-                else {
-                    spdlog::error("Could not create '{0}'", expandedPath);
-                }
+                std::lock_guard lck(recMtx);
+                startRecording();
             }
             ImGui::TextColored(ImGui::GetStyleColorVec4(ImGuiCol_Text), "Idle --:--:--");
         }
         else {
             if (ImGui::Button(CONCAT("Stop##_recorder_rec_", name), ImVec2(menuColumnWidth, 0))) {
-                recording = false;
-                sigpath::signalPath.unbindIQStream(&basebandStream);
-                basebandHandler.stop();
-                basebandWriter->close();
-                delete basebandWriter;
+                std::lock_guard lck(recMtx);
+                stopRecording();
             }
             uint64_t seconds = samplesWritten / (uint64_t)sampleRate;
             time_t diff = seconds;
@@ -279,29 +270,15 @@ private:
         if (!folderSelect.pathIsValid() || selectedStreamName == "") { style::beginDisabled(); }
         if (!recording) {
             if (ImGui::Button(CONCAT("Record##_recorder_rec_", name), ImVec2(menuColumnWidth, 0))) {
-                samplesWritten = 0;
-                std::string expandedPath = expandString(folderSelect.path + genFileName("/audio_", true, selectedStreamName));
-                sampleRate = sigpath::sinkManager.getStreamSampleRate(selectedStreamName);
-                audioWriter = new WavWriter(expandedPath, 16, 2, sigpath::sinkManager.getStreamSampleRate(selectedStreamName));
-                if (audioWriter->isOpen()) {
-                    recording = true;
-                    audioHandler.start();
-                    audioSplit.bindStream(&audioHandlerStream);
-                    spdlog::info("Recording to '{0}'", expandedPath);
-                }
-                else {
-                    spdlog::error("Could not create '{0}'", expandedPath);
-                }
+                std::lock_guard lck(recMtx);
+                startRecording();
             }
             ImGui::TextColored(ImGui::GetStyleColorVec4(ImGuiCol_Text), "Idle --:--:--");
         }
         else {
             if (ImGui::Button(CONCAT("Stop##_recorder_rec_", name), ImVec2(menuColumnWidth, 0))) {
-                recording = false;
-                audioSplit.unbindStream(&audioHandlerStream);
-                audioHandler.stop();
-                audioWriter->close();
-                delete audioWriter;
+                std::lock_guard lck(recMtx);
+                stopRecording();
             }
             uint64_t seconds = samplesWritten / (uint64_t)sampleRate;
             time_t diff = seconds;
@@ -325,6 +302,76 @@ private:
         _this->samplesWritten += count;
     }
 
+    static void moduleInterfaceHandler(int code, void* in, void* out, void* ctx) {
+        RecorderModule* _this = (RecorderModule*)ctx;
+        std::lock_guard lck(_this->recMtx);
+        if (code == RECORDER_IFACE_CMD_GET_MODE) {
+            int* _out = (int*)out;
+            *_out = _this->recMode;
+        }
+        else if (code == RECORDER_IFACE_CMD_SET_MODE) {
+            if (_this->recording) { return; }
+            int* _in = (int*)in;
+            _this->recMode = std::clamp<int>(*_in, 0, 1);
+        }
+        else if (code == RECORDER_IFACE_CMD_START) {
+            if (!_this->recording) { _this->startRecording(); }
+        }
+        else if (code == RECORDER_IFACE_CMD_STOP) {
+            if (_this->recording) { _this->stopRecording(); }
+        }
+    }
+
+    void startRecording() {
+        if (recMode == RECORDER_MODE_BASEBAND) {
+            samplesWritten = 0;
+            std::string expandedPath = expandString(folderSelect.path + genFileName("/baseband_", false));
+            sampleRate = sigpath::signalPath.getSampleRate();
+            basebandWriter = new WavWriter(expandedPath, 16, 2, sigpath::signalPath.getSampleRate());
+            if (basebandWriter->isOpen()) {
+                basebandHandler.start();
+                sigpath::signalPath.bindIQStream(&basebandStream);
+                recording = true;
+                spdlog::info("Recording to '{0}'", expandedPath);
+            }
+            else {
+                spdlog::error("Could not create '{0}'", expandedPath);
+            }
+        }
+        else if (recMode == RECORDER_MODE_AUDIO) {
+            samplesWritten = 0;
+            std::string expandedPath = expandString(folderSelect.path + genFileName("/audio_", true, selectedStreamName));
+            sampleRate = sigpath::sinkManager.getStreamSampleRate(selectedStreamName);
+            audioWriter = new WavWriter(expandedPath, 16, 2, sigpath::sinkManager.getStreamSampleRate(selectedStreamName));
+            if (audioWriter->isOpen()) {
+                recording = true;
+                audioHandler.start();
+                audioSplit.bindStream(&audioHandlerStream);
+                spdlog::info("Recording to '{0}'", expandedPath);
+            }
+            else {
+                spdlog::error("Could not create '{0}'", expandedPath);
+            }
+        }
+    }
+
+    void stopRecording() {
+        if (recMode == 0) {
+            recording = false;
+            sigpath::signalPath.unbindIQStream(&basebandStream);
+            basebandHandler.stop();
+            basebandWriter->close();
+            delete basebandWriter;
+        }
+        else if (recMode == 1) {
+            recording = false;
+            audioSplit.unbindStream(&audioHandlerStream);
+            audioHandler.stop();
+            audioWriter->close();
+            delete audioWriter;
+        }
+    }
+
 
     std::string name;
     bool enabled = true;
@@ -340,6 +387,8 @@ private:
     float lvlR = -90.0f;
 
     dsp::stream<dsp::stereo_t> dummyStream;
+    
+    std::mutex recMtx;
 
     FolderSelect folderSelect;
 

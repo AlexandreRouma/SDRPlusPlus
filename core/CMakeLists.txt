@@ -48,6 +48,9 @@ if (MSVC)
     find_package(FFTW3f CONFIG REQUIRED)
     target_link_libraries(sdrpp_core PUBLIC FFTW3::fftw3f)
 
+    # WinSock2
+    target_link_libraries(sdrpp_core PUBLIC wsock32 ws2_32)
+
 else()
     find_package(PkgConfig)
     find_package(OpenGL REQUIRED)

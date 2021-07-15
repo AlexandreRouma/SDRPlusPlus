@@ -1,66 +1,128 @@
 #pragma once
+#include <stdint.h>
 #include <string>
 #include <vector>
-#include <thread>
-#include <chrono>
 #include <mutex>
+#include <inttypes.h>
+#include <memory>
+#include <thread>
+#include <condition_variable>
 
-struct TCPAsyncRead {
-    int timeout;
-    int count;
-    void (*handler)(int count, char* data, void* ctx);
-    void* ctx;
-};
+#ifdef _WIN32
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#else
+#include <unistd.h>
+#include <strings.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h> 
+#endif
 
-struct TCPAsyncWrite {
-    int timeoutMs;
-    int count;
-    char* data;
-};
+namespace net {
+#ifdef _WIN32
+    typedef SOCKET Socket;
+#else
+    typedef int Socket;
+#endif
 
-enum {
-    NET_ERR_OK = 0,
-    NET_ERR_TIMEOUT = -1,
-    NET_ERR_SYSTEM = -2
-};
+    enum Protocol {
+        PROTO_TCP,
+        PROTO_UDP
+    };
 
-class TCPClient {
-public:
-    TCPClient();
-    ~TCPClient();
+    struct ConnReadEntry {
+        int count;
+        uint8_t* buf;
+        void (*handler)(int count, uint8_t* buf, void* ctx);
+        void* ctx;
+    };
 
-    bool connect(std::string host, int port);
-    bool disconnect();
+    struct ConnWriteEntry {
+        int count;
+        uint8_t* buf;
+    };
 
-    int enableAsync();
-    int disableAsync();
+    class ConnClass {
+    public:
+        ConnClass(Socket sock);
+        ~ConnClass();
 
-    bool isAsync();
+        void close();
+        bool isOpen();
+        void waitForEnd();
 
-    int read(char* data, int count, int timeout = -1);
-    int write(char* data, int count, int timeout = -1);
+        int read(int count, uint8_t* buf);
+        bool write(int count, uint8_t* buf);
+        void readAsync(int count, uint8_t* buf, void (*handler)(int count, uint8_t* buf, void* ctx), void* ctx);
+        void writeAsync(int count, uint8_t* buf);
 
-    int asyncRead(int count, void (*handler)(int count, char* data, void* ctx), int timeout = -1);
-    int asyncWrite(char* data, int count, int timeout = -1);
+    private:
+        void readWorker();
+        void writeWorker();
 
-    bool isOpen();
+        bool stopWorkers = false;
+        bool connectionOpen = false;
 
-    int close();
+        std::mutex readMtx;
+        std::mutex writeMtx;
+        std::mutex readQueueMtx;
+        std::mutex writeQueueMtx;
+        std::mutex connectionOpenMtx;
+        std::mutex closeMtx;
+        std::condition_variable readQueueCnd;
+        std::condition_variable writeQueueCnd;
+        std::condition_variable connectionOpenCnd;
+        std::vector<ConnReadEntry> readQueue;
+        std::vector<ConnWriteEntry> writeQueue;
+        std::thread readWorkerThread;
+        std::thread writeWorkerThread;
 
-private:
-    void readWorker();
-    void writeWorker();
+        Socket _sock;
 
-    std::mutex readQueueMtx;
-    std::vector<TCPAsyncRead> readQueue;
+    };
 
-    std::mutex writeQueueMtx;
-    std::vector<TCPAsyncWrite> writeQueue;
+    typedef std::unique_ptr<ConnClass> Conn;
 
-    std::thread readWorkerThread;
-    std::thread writeWorkerThread;
+    struct ListenerAcceptEntry {
+        void (*handler)(Conn conn, void* ctx);
+        void* ctx;
+    };
 
-    bool open = false;
-    bool async = false;
+    class ListenerClass {
+    public:
+        ListenerClass(Socket listenSock);
+        ~ListenerClass();
 
-};
+        Conn accept();
+        void acceptAsync(void (*handler)(Conn conn, void* ctx), void* ctx);
+
+        void close();
+        bool isListening();
+
+    private:
+        void worker();
+
+        bool listening = false;
+        bool stopWorker = false;
+
+        std::mutex acceptMtx;
+        std::mutex acceptQueueMtx;
+        std::condition_variable acceptQueueCnd;
+        std::vector<ListenerAcceptEntry> acceptQueue;
+        std::thread acceptWorkerThread;
+
+        Socket sock;
+
+    };
+
+    typedef std::unique_ptr<ListenerClass> Listener;
+
+    Conn connect(Protocol proto, std::string host, uint16_t port);
+    Listener listen(Protocol proto, std::string host, uint16_t port);
+
+#ifdef _WIN32
+    extern bool winsock_init;
+#endif
+}
