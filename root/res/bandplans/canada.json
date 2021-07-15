@@ -114,6 +114,12 @@
       "end": 26000000
     },
     {
+      "name": "CB",
+      "type": "amateur",
+      "start": 26960000,
+      "end": 27410000
+    },
+    {
       "name": "10m Ham Band",
       "type": "amateur",
       "start": 28000000,
