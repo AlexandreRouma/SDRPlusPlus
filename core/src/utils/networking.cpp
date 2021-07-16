@@ -61,7 +61,7 @@ namespace net {
     }
 
     int ConnClass::read(int count, uint8_t* buf) {
-        assert(connectionOpen);
+        if (!connectionOpen) { return -1; }
         std::lock_guard lck(readMtx);
 #ifdef _WIN32
         int ret = recv(_sock, (char*)buf, count, 0);
@@ -79,7 +79,7 @@ namespace net {
     }
 
     bool ConnClass::write(int count, uint8_t* buf) {
-        assert(connectionOpen);
+        if (!connectionOpen) { return false; }
         std::lock_guard lck(writeMtx);
 #ifdef _WIN32
         int ret = send(_sock, (char*)buf, count, 0);
@@ -97,7 +97,7 @@ namespace net {
     }
 
     void ConnClass::readAsync(int count, uint8_t* buf, void (*handler)(int count, uint8_t* buf, void* ctx), void* ctx) {
-        assert(connectionOpen);
+        if (!connectionOpen) { return; }
         // Create entry
         ConnReadEntry entry;
         entry.count = count;
@@ -116,7 +116,7 @@ namespace net {
     }
 
     void ConnClass::writeAsync(int count, uint8_t* buf) {
-        assert(connectionOpen);
+        if (!connectionOpen) { return; }
         // Create entry
         ConnWriteEntry entry;
         entry.count = count;
@@ -194,7 +194,7 @@ namespace net {
     }
 
     Conn ListenerClass::accept() {
-        assert(listening);
+        if (!listening) { return NULL; }
         std::lock_guard lck(acceptMtx);
         Socket _sock;
 
@@ -210,7 +210,7 @@ namespace net {
     }
 
     void ListenerClass::acceptAsync(void (*handler)(Conn conn, void* ctx), void* ctx) {
-        assert(listening);
+        if (!listening) { return; }
         // Create entry
         ListenerAcceptEntry entry;
         entry.handler = handler;
@@ -231,16 +231,17 @@ namespace net {
             std::lock_guard lck(acceptQueueMtx);
             stopWorker = true;
         }
+        acceptQueueCnd.notify_all();
 
         if (listening) {
 #ifdef _WIN32
             closesocket(sock);
 #else
+            ::shutdown(sock, SHUT_RDWR);
             ::close(sock);
 #endif
         }
 
-        acceptQueueCnd.notify_all();
         if (acceptWorkerThread.joinable()) { acceptWorkerThread.join(); }
 
 
