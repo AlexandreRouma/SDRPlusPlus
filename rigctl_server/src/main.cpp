@@ -174,16 +174,20 @@ private:
             }
 
             char buf[128];
-            sprintf(buf, "%" PRIu64, (uint64_t)freq);
+            sprintf(buf, "%" PRIu64 "\n", (uint64_t)freq);
             client->write(strlen(buf), (uint8_t*)buf);
         }
         else if (parts[0] == "AOS") {
             // TODO: Start Recorder
             core::modComManager.callInterface("Recorder", RECORDER_IFACE_CMD_START, NULL, NULL);
+            resp = "RPRT 0\n";
+            client->write(resp.size(), (uint8_t*)resp.c_str());
         }
         else if (parts[0] == "LOS") {
             // TODO: Stop Recorder
              core::modComManager.callInterface("Recorder", RECORDER_IFACE_CMD_STOP, NULL, NULL);
+             resp = "RPRT 0\n";
+            client->write(resp.size(), (uint8_t*)resp.c_str());
         }
         else if (parts[0] == "q") {
             // Will close automatically

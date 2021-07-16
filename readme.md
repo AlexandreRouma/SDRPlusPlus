@@ -304,6 +304,7 @@ Modules in beta are still included in releases for the most part but not enabled
 | discord_integration | Working    | -            | OPT_BUILD_DISCORD_PRESENCE    | ✅              | ✅                     | ⛔                         |
 | frequency_manager   | Beta       | -            | OPT_BUILD_FREQUENCY_MANAGER   | ✅              | ✅                     | ✅                         |
 | recorder            | Working    | -            | OPT_BUILD_RECORDER            | ✅              | ✅                     | ✅                         |
+| rigctl_server       | Unfinished | -            | OPT_BUILD_RIGCTL_SERVER       | ✅              | ✅                     | ⛔                         |
 
 # Troubleshooting
 

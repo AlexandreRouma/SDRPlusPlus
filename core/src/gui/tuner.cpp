@@ -11,6 +11,7 @@ namespace tuner {
         gui::waterfall.setViewOffset((BW / 2.0) - (viewBW / 2.0));
         gui::waterfall.setCenterFrequency(freq);
         gui::waterfall.setViewOffset(0);
+        gui::freqSelect.setFrequency(freq);
         sigpath::sourceManager.tune(freq);
     }
 
@@ -22,12 +23,6 @@ namespace tuner {
 
         double viewBW = gui::waterfall.getViewBandwidth();
         double BW = gui::waterfall.getBandwidth();
-        if (vfoName == "") {
-            gui::waterfall.setViewOffset((BW / 2.0) - (viewBW / 2.0));
-            gui::waterfall.setCenterFrequency(freq);
-            sigpath::sourceManager.tune(freq);
-            return;
-        }
 
         ImGui::WaterfallVFO* vfo = gui::waterfall.vfos[vfoName];
 
