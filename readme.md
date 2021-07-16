@@ -345,6 +345,7 @@ I will soon publish a contributing.md listing the code style to use.
 
 * [Croccydile](https://example.com/)
 * [Daniele D'Agnelli](https://linkedin.com/in/dagnelli)
+* [Eric Johnson](https://example.com/)
 * [W4IPA](https://twitter.com/W4IPAstroke5)
 * [Lee Donaghy](https://github.com/github)
 * [ON4MU](https://github.com/)
