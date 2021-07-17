@@ -75,7 +75,7 @@ std::vector<float> PortaudioInterface::getValidSampleRates(int channelCount, int
 }
 
 template<typename BufferT, typename AudioObjectT>
-int PortaudioInterface::call_back(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
+int PortaudioStream::call_back(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
                                   const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags,
                                   void *userData) noexcept
 {
@@ -98,7 +98,7 @@ int PortaudioInterface::call_back(const void *inputBuffer, void *outputBuffer, u
 }
 
 template<typename BufferT, typename AudioObjectT>
-bool PortaudioInterface::open(const AudioDevice_t &device, BufferT *buffer, float sampleRate) {
+bool PortaudioStream::open(const AudioDevice_t &device, BufferT *buffer, float sampleRate) {
     PaStreamParameters outputParams;
     auto deviceInfo = Pa_GetDeviceInfo(device.deviceId);
     outputParams.channelCount = device.channels;
@@ -131,10 +131,10 @@ bool PortaudioInterface::open(const AudioDevice_t &device, BufferT *buffer, floa
 
     return true;
 }
-template bool PortaudioInterface::open<dsp::stream<dsp::stereo_t>, dsp::stereo_t>(const AudioDevice_t &device, dsp::stream<dsp::stereo_t> *buffer, float sampleRate);
-template bool PortaudioInterface::open<dsp::stream<dsp::mono_t>, dsp::mono_t>(const AudioDevice_t &device, dsp::stream<dsp::mono_t> *buffer, float sampleRate);
+template bool PortaudioStream::open<dsp::stream<dsp::stereo_t>, dsp::stereo_t>(const AudioDevice_t &device, dsp::stream<dsp::stereo_t> *buffer, float sampleRate);
+template bool PortaudioStream::open<dsp::stream<dsp::mono_t>, dsp::mono_t>(const AudioDevice_t &device, dsp::stream<dsp::mono_t> *buffer, float sampleRate);
 
-void PortaudioInterface::close() {
+void PortaudioStream::close() {
     Pa_StopStream(stream);
     Pa_CloseStream(stream);
     stream = nullptr;

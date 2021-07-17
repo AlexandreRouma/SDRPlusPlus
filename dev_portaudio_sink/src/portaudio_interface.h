@@ -3,6 +3,7 @@
 #include <vector>
 #include <portaudio.h>
 #include <audio_device.h>
+#include <atomic>
 
 
 class PortaudioInterface {
@@ -11,13 +12,15 @@ public:
     ~PortaudioInterface();
     static std::vector<AudioDevice_t> getDeviceList();
 
-    template <typename RingBufferT, typename AudioObjectT>
-    bool open(const AudioDevice_t &device, RingBufferT *ring_buffer, float sampleRate);
-
-    void close();
-
 private:
     static std::vector<float> getValidSampleRates(int channelCount, int deviceId, PaTime latency);
+};
+
+class PortaudioStream {
+public:
+    template <typename RingBufferT, typename AudioObjectT>
+    bool open(const AudioDevice_t &device, RingBufferT *ring_buffer, float sampleRate);
+    void close();
 
     template <typename RingBufferT, typename AudioObjectT>
     static int call_back(
@@ -27,7 +30,7 @@ private:
             const PaStreamCallbackTimeInfo* timeInfo,
             PaStreamCallbackFlags statusFlags,
             void *userData
-            ) noexcept;
-
-    PaStream *stream;
+    ) noexcept;
+private:
+    PaStream *stream = nullptr;
 };

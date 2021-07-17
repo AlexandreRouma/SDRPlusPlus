@@ -147,7 +147,7 @@ private:
         int bufferFrames = (int)sampleRate / 60;
         if (device.channels == 2) {
             stereoPacker.setSampleCount(bufferFrames);
-            if (!audioInterface.open<dsp::stream<dsp::stereo_t>, dsp::stereo_t>(device, &stereoPacker.out, sampleRate)){
+            if (!audioStream.open<dsp::stream<dsp::stereo_t>, dsp::stereo_t>(device, &stereoPacker.out, sampleRate)){
                 spdlog::info("Audio device error.");
                 running = false;
                 return;
@@ -156,7 +156,7 @@ private:
         }
         else {
             monoPacker.setSampleCount(bufferFrames);
-            if (!audioInterface.open<dsp::stream<dsp::mono_t>, dsp::mono_t>(device, &monoPacker.out, sampleRate)) {
+            if (!audioStream.open<dsp::stream<dsp::mono_t>, dsp::mono_t>(device, &monoPacker.out, sampleRate)) {
                 spdlog::info("Audio device error.");
                 running = false;
                 return;
@@ -172,7 +172,7 @@ private:
         stereoPacker.stop();
         monoPacker.out.stopReader();
         stereoPacker.out.stopReader();
-        audioInterface.close();
+        audioStream.close();
         monoPacker.out.clearReadStop();
         stereoPacker.out.clearReadStop();
     }
@@ -205,7 +205,8 @@ private:
     bool running = false;
     int devId = 0;
     std::vector<AudioDevice_t> deviceList;
-    PortaudioInterface audioInterface{};
+
+    PortaudioStream audioStream {};
 };
 
 class PortaudioSinkModule : public ModuleManager::Instance {
@@ -237,6 +238,7 @@ private:
 
     bool enabled = true;
     SinkManager::SinkProvider provider;
+    PortaudioInterface audioInterface {};
 };
 
 MOD_EXPORT void _INIT_() {
