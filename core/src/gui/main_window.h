@@ -33,6 +33,8 @@ public:
 
     bool lockWaterfallControls = false;
 
+    Event<bool> onPlayStateChange;
+
 private:
     void generateFFTWindow(int win, int size);
     static void fftHandler(dsp::complex_t* samples, int count, void* ctx);

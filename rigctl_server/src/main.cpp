@@ -185,8 +185,8 @@ private:
         }
         else if (parts[0] == "LOS") {
             // TODO: Stop Recorder
-             core::modComManager.callInterface("Recorder", RECORDER_IFACE_CMD_STOP, NULL, NULL);
-             resp = "RPRT 0\n";
+            core::modComManager.callInterface("Recorder", RECORDER_IFACE_CMD_STOP, NULL, NULL);
+            resp = "RPRT 0\n";
             client->write(resp.size(), (uint8_t*)resp.c_str());
         }
         else if (parts[0] == "q") {

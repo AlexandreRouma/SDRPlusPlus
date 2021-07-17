@@ -264,6 +264,11 @@ namespace dsp {
             generic_block<SampleFrameBuffer<T>>::tempStart();
         }
 
+        void flush() {
+            std::unique_lock lck(bufMtx);
+            readCur = writeCur;
+        }
+
         int run() {
             // Wait for data
             int count = _in->read();

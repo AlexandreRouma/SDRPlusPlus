@@ -284,27 +284,28 @@ Modules in beta are still included in releases for the most part but not enabled
 
 ## Sinks
 
-| Name             | Stage      | Dependencies      | Option                     | Built by default| Built in Release        | Enabled in SDR++ by default |
-|------------------|------------|-------------------|----------------------------|:---------------:|:-----------------------:|:---------------------------:|
-| audio_sink       | Working    | rtaudio           | OPT_BUILD_AUDIO_SINK       | ✅              | ✅                     | ✅                         |
+| Name               | Stage      | Dependencies | Option                       | Built by default| Built in Release | Enabled in SDR++ by default |
+|--------------------|------------|--------------|------------------------------|:---------------:|:----------------:|:---------------------------:|
+| audio_sink         | Working    | rtaudio      | OPT_BUILD_AUDIO_SINK         | ✅              | ✅              | ✅                         |
+| new_portaudio_sink | Beta       | portaudio    | OPT_BUILD_NEW_PORTAUDIO_SINK | ⛔              | ✅              | ⛔                         |
 
 ## Decoders
 
-| Name                | Stage      | Dependencies | Option                        | Built by default| Built in Release        | Enabled in SDR++ by default |
-|---------------------|------------|--------------|-------------------------------|:---------------:|:-----------------------:|:---------------------------:|
-| falcon9_decoder     | Beta       | ffplay       | OPT_BUILD_FALCON9_DECODER     | ⛔              | ⛔                     | ⛔                         |
-| meteor_demodulator  | Working    | -            | OPT_BUILD_METEOR_DEMODULATOR  | ✅              | ✅                     | ⛔                         |
-| radio               | Working    | -            | OPT_BUILD_RADIO               | ✅              | ✅                     | ✅                         |
-| weather_sat_decoder | Unfinished | -            | OPT_BUILD_WEATHER_SAT_DECODER | ⛔              | ⛔                     | ⛔                         |
+| Name                | Stage      | Dependencies | Option                        | Built by default| Built in Release | Enabled in SDR++ by default |
+|---------------------|------------|--------------|-------------------------------|:---------------:|:----------------:|:---------------------------:|
+| falcon9_decoder     | Beta       | ffplay       | OPT_BUILD_FALCON9_DECODER     | ⛔              | ⛔              | ⛔                         |
+| meteor_demodulator  | Working    | -            | OPT_BUILD_METEOR_DEMODULATOR  | ✅              | ✅              | ⛔                         |
+| radio               | Working    | -            | OPT_BUILD_RADIO               | ✅              | ✅              | ✅                         |
+| weather_sat_decoder | Unfinished | -            | OPT_BUILD_WEATHER_SAT_DECODER | ⛔              | ⛔              | ⛔                         |
 
 ## Misc
 
-| Name                | Stage      | Dependencies | Option                        | Built by default| Built in Release        | Enabled in SDR++ by default |
-|---------------------|------------|--------------|-------------------------------|:---------------:|:-----------------------:|:---------------------------:|
-| discord_integration | Working    | -            | OPT_BUILD_DISCORD_PRESENCE    | ✅              | ✅                     | ⛔                         |
-| frequency_manager   | Beta       | -            | OPT_BUILD_FREQUENCY_MANAGER   | ✅              | ✅                     | ✅                         |
-| recorder            | Working    | -            | OPT_BUILD_RECORDER            | ✅              | ✅                     | ✅                         |
-| rigctl_server       | Unfinished | -            | OPT_BUILD_RIGCTL_SERVER       | ✅              | ✅                     | ⛔                         |
+| Name                | Stage      | Dependencies | Option                      | Built by default | Built in Release | Enabled in SDR++ by default |
+|---------------------|------------|--------------|-----------------------------|:----------------:|:----------------:|:---------------------------:|
+| discord_integration | Working    | -            | OPT_BUILD_DISCORD_PRESENCE  | ✅              | ✅               | ⛔                         |
+| frequency_manager   | Beta       | -            | OPT_BUILD_FREQUENCY_MANAGER | ✅              | ✅               | ✅                         |
+| recorder            | Working    | -            | OPT_BUILD_RECORDER          | ✅              | ✅               | ✅                         |
+| rigctl_server       | Unfinished | -            | OPT_BUILD_RIGCTL_SERVER     | ✅              | ✅               | ⛔                         |
 
 # Troubleshooting
 
