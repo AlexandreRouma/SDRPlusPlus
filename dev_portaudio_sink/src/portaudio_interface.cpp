@@ -41,8 +41,9 @@ std::vector<AudioDevice_t> PortaudioInterface::getDeviceList() {
         if (deviceInfo->maxOutputChannels < 1) {
             continue;
         }
+        const PaHostApiInfo *hostApiInfo = Pa_GetHostApiInfo(deviceInfo->hostApi);
         AudioDevice_t dev{
-                deviceInfo->name,
+                std::string(hostApiInfo->name).append(" - ").append(deviceInfo->name),
                 deviceId,
                 std::min<int>(deviceInfo->maxOutputChannels, 2)};
         dev.sampleRates = std::move(getValidSampleRates(dev.channels, deviceId, deviceInfo->defaultLowOutputLatency));
