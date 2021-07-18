@@ -2,6 +2,7 @@
 #include <string>
 #include <map>
 #include <json.hpp>
+#include <utils/event.h>
 
 #ifdef _WIN32
 #ifdef SDRPP_IS_CORE
@@ -83,8 +84,13 @@ public:
     void enableInstance(std::string name);
     void disableInstance(std::string name);
     bool instanceEnabled(std::string name);
+    std::string getInstanceModuleName(std::string name);
 
     int countModuleInstances(std::string module);
+
+    Event<std::string> onInstanceCreated;
+    Event<std::string> onInstanceDelete;
+    Event<std::string> onInstanceDeleted;
 
     std::map<std::string, ModuleManager::Module_t> modules;
     std::map<std::string, ModuleManager::Instance_t> instances;

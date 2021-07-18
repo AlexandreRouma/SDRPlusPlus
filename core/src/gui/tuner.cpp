@@ -5,7 +5,10 @@
 
 namespace tuner {
     void centerTuning(std::string vfoName, double freq) {
-        if (vfoName != "") { sigpath::vfoManager.setOffset(vfoName, 0); }
+        if (vfoName != "") {
+            if (gui::waterfall.vfos.find(vfoName) == gui::waterfall.vfos.end()) { return; }
+            sigpath::vfoManager.setOffset(vfoName, 0);
+        }
         double BW = gui::waterfall.getBandwidth();
         double viewBW = gui::waterfall.getViewBandwidth();
         gui::waterfall.setViewOffset((BW / 2.0) - (viewBW / 2.0));
@@ -20,6 +23,7 @@ namespace tuner {
             centerTuning(vfoName, freq);
             return;
         }
+        if (gui::waterfall.vfos.find(vfoName) == gui::waterfall.vfos.end()) { return; }
 
         double viewBW = gui::waterfall.getViewBandwidth();
         double BW = gui::waterfall.getBandwidth();

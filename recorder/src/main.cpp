@@ -39,7 +39,7 @@ std::string genFileName(std::string prefix, bool isVfo, std::string name = "") {
     tm *ltm = localtime(&now);
     char buf[1024];
     double freq = gui::waterfall.getCenterFrequency();;
-    if (isVfo) {
+    if (isVfo && gui::waterfall.vfos.find(name) != gui::waterfall.vfos.end()) {
         freq += gui::waterfall.vfos[name]->generalOffset;
     }
     sprintf(buf, "%.0lfHz_%02d-%02d-%02d_%02d-%02d-%02d.wav", freq, ltm->tm_hour, ltm->tm_min, ltm->tm_sec, ltm->tm_mday, ltm->tm_mon + 1, ltm->tm_year + 1900);

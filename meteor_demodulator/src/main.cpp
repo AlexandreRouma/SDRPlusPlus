@@ -15,7 +15,7 @@
 #include <dsp/processing.h>
 #include <dsp/routing.h>
 #include <dsp/sink.h>
-
+#include <meteor_demodulator_interface.h>
 #include <gui/widgets/folder_select.h>
 #include <gui/widgets/constellation_diagram.h>
 
@@ -76,6 +76,7 @@ public:
         sink.start();
         
         gui::menu.registerEntry(name, menuHandler, this, this);
+        core::modComManager.registerInterface("meteor_demodulator", name, moduleInterfaceHandler, this);
     }
 
     ~MeteorDemodulatorModule() {
@@ -146,26 +147,13 @@ private:
 
         if (_this->recording) {
             if (ImGui::Button(CONCAT("Stop##_recorder_rec_", _this->name), ImVec2(menuWidth, 0))) {
-                std::lock_guard<std::mutex> lck(_this->recMtx);
-                _this->recording = false;
-                _this->recFile.close();
-                _this->dataWritten = 0;
+                _this->stopRecording();
             }
             ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Recording %.2fMB", (float)_this->dataWritten / 1000000.0f);
         }
         else {
             if (ImGui::Button(CONCAT("Record##_recorder_rec_", _this->name), ImVec2(menuWidth, 0))) {
-                std::lock_guard<std::mutex> lck(_this->recMtx);
-                _this->dataWritten = 0;
-                std::string filename = genFileName(_this->folderSelect.expandString(_this->folderSelect.path) + "/meteor", ".s");
-                _this->recFile = std::ofstream(filename, std::ios::binary);
-                if (_this->recFile.is_open()) {
-                    spdlog::info("Recording to '{0}'", filename);
-                    _this->recording = true;
-                }
-                else {
-                    spdlog::error("Could not open file for recording!");
-                }                
+                _this->startRecording();              
             }
             ImGui::Text("Idle --.--MB");
         }
@@ -193,6 +181,37 @@ private:
         }
         _this->recFile.write((char*)_this->writeBuffer, count * 2);
         _this->dataWritten += count * 2;
+    }
+
+    void startRecording() {
+        std::lock_guard<std::mutex> lck(recMtx);
+        dataWritten = 0;
+        std::string filename = genFileName(folderSelect.expandString(folderSelect.path) + "/meteor", ".s");
+        recFile = std::ofstream(filename, std::ios::binary);
+        if (recFile.is_open()) {
+            spdlog::info("Recording to '{0}'", filename);
+            recording = true;
+        }
+        else {
+            spdlog::error("Could not open file for recording!");
+        }  
+    }
+
+    void stopRecording() {
+        std::lock_guard<std::mutex> lck(recMtx);
+        recording = false;
+        recFile.close();
+        dataWritten = 0;
+    }
+
+    static void moduleInterfaceHandler(int code, void* in, void* out, void* ctx) {
+        MeteorDemodulatorModule* _this = (MeteorDemodulatorModule*)ctx;
+        if (code == METEOR_DEMODULATOR_IFACE_CMD_START) {
+            if (!_this->recording) { _this->startRecording(); }
+        }
+        else if (code == METEOR_DEMODULATOR_IFACE_CMD_STOP) {
+            if (_this->recording) { _this->stopRecording(); }
+        }
     }
 
     std::string name;

@@ -92,7 +92,7 @@ VFOManager::VFO* VFOManager::createVFO(std::string name, int reference, double o
     }
     VFOManager::VFO* vfo = new VFO(name, reference, offset, bandwidth, sampleRate, minBandwidth, maxBandwidth, bandwidthLocked);
     vfos[name] = vfo;
-    vfoCreatedEvent.emit(vfo);
+    onVfoCreated.emit(vfo);
     return vfo;
 }
 
@@ -107,9 +107,10 @@ void VFOManager::deleteVFO(VFOManager::VFO* vfo) {
     if (name == "") {
         return;
     }
-    vfoDeletedEvent.emit(vfo);
+    onVfoDelete.emit(vfo);
     vfos.erase(name);
     delete vfo;
+    onVfoDeleted.emit(name);
 }
 
 void VFOManager::setOffset(std::string name, double offset) {

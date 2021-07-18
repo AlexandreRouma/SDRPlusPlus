@@ -72,7 +72,7 @@ namespace vfo_color_menu {
         }
 
         vfoAddHndl.handler = vfoAddHandler;
-        sigpath::vfoManager.vfoCreatedEvent.bindHandler(&vfoAddHndl);
+        sigpath::vfoManager.onVfoCreated.bindHandler(&vfoAddHndl);
         core::configManager.release(modified);
     }
 

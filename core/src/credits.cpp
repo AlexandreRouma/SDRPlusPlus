@@ -2,7 +2,6 @@
 
 namespace sdrpp_credits {
     const char* contributors[] = {
-        "Alexandre Rouma (Author)",
         "Aang23",
         "Alexsey Shestacov",
         "Aosync",

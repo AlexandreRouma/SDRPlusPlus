@@ -87,7 +87,7 @@ void MainWindow::init() {
 
     vfoCreatedHandler.handler = vfoAddedHandler;
     vfoCreatedHandler.ctx = this;
-    sigpath::vfoManager.vfoCreatedEvent.bindHandler(&vfoCreatedHandler);
+    sigpath::vfoManager.onVfoCreated.bindHandler(&vfoCreatedHandler);
 
     spdlog::info("Loading modules");
 
@@ -211,6 +211,8 @@ void MainWindow::init() {
     }
 
     initComplete = true;
+
+    onInitComplete.emit(true);
 }
 
 void MainWindow::fftHandler(dsp::complex_t* samples, int count, void* ctx) {

@@ -54,8 +54,9 @@ public:
 
     void updateFromWaterfall(ImGui::WaterFall* wtf);
 
-    Event<VFOManager::VFO*> vfoCreatedEvent;
-    Event<VFOManager::VFO*> vfoDeletedEvent;
+    Event<VFOManager::VFO*> onVfoCreated;
+    Event<VFOManager::VFO*> onVfoDelete;
+    Event<std::string> onVfoDeleted;
 
 private:
     std::map<std::string, VFO*> vfos;

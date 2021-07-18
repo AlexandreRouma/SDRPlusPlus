@@ -219,4 +219,127 @@ namespace dsp {
         stream<int16_t>* _in;
 
     };
+
+    class ComplexToInt16C : public generic_block<ComplexToInt16C> {
+    public:
+        ComplexToInt16C() {}
+
+        ComplexToInt16C(stream<complex_t>* in) { init(in); }
+
+        void init(stream<complex_t>* in) {
+            _in = in;
+            generic_block<ComplexToInt16C>::registerInput(_in);
+            generic_block<ComplexToInt16C>::registerOutput(&out);
+            generic_block<ComplexToInt16C>::_block_init = true;
+        }
+
+        void setInput(stream<complex_t>* in) {
+            assert(generic_block<ComplexToInt16C>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<ComplexToInt16C>::ctrlMtx);
+            generic_block<ComplexToInt16C>::tempStop();
+            generic_block<ComplexToInt16C>::unregisterInput(_in);
+            _in = in;
+            generic_block<ComplexToInt16C>::registerInput(_in);
+            generic_block<ComplexToInt16C>::tempStart();
+        }
+
+        int run() {
+            int count = _in->read();
+            if (count < 0) { return -1; }
+
+            volk_32f_s32f_convert_16i(out.writeBuf, (float*)_in->readBuf, 32768.0f, count * 2);
+
+            _in->flush();
+            if (!out.swap(count)) { return -1; }
+            return count;
+        }
+
+        stream<int16_t> out;
+
+    private:
+        stream<complex_t>* _in;
+
+    };
+
+    class Int16ToFloat : public generic_block<Int16ToFloat> {
+    public:
+        Int16ToFloat() {}
+
+        Int16ToFloat(stream<int16_t>* in) { init(in); }
+
+        void init(stream<int16_t>* in) {
+            _in = in;
+            generic_block<Int16ToFloat>::registerInput(_in);
+            generic_block<Int16ToFloat>::registerOutput(&out);
+            generic_block<Int16ToFloat>::_block_init = true;
+        }
+
+        void setInput(stream<int16_t>* in) {
+            assert(generic_block<Int16ToFloat>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<Int16ToFloat>::ctrlMtx);
+            generic_block<Int16ToFloat>::tempStop();
+            generic_block<Int16ToFloat>::unregisterInput(_in);
+            _in = in;
+            generic_block<Int16ToFloat>::registerInput(_in);
+            generic_block<Int16ToFloat>::tempStart();
+        }
+
+        int run() {
+            int count = _in->read();
+            if (count < 0) { return -1; }
+
+            volk_16i_s32f_convert_32f(out.writeBuf, _in->readBuf, 32768.0f, count);
+
+            _in->flush();
+            if (!out.swap(count)) { return -1; }
+            return count;
+        }
+
+        stream<float> out;
+
+    private:
+        stream<int16_t>* _in;
+
+    };
+
+    class FloatToInt16 : public generic_block<FloatToInt16> {
+    public:
+        FloatToInt16() {}
+
+        FloatToInt16(stream<float>* in) { init(in); }
+
+        void init(stream<float>* in) {
+            _in = in;
+            generic_block<FloatToInt16>::registerInput(_in);
+            generic_block<FloatToInt16>::registerOutput(&out);
+            generic_block<FloatToInt16>::_block_init = true;
+        }
+
+        void setInput(stream<float>* in) {
+            assert(generic_block<FloatToInt16>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<FloatToInt16>::ctrlMtx);
+            generic_block<FloatToInt16>::tempStop();
+            generic_block<FloatToInt16>::unregisterInput(_in);
+            _in = in;
+            generic_block<FloatToInt16>::registerInput(_in);
+            generic_block<FloatToInt16>::tempStart();
+        }
+
+        int run() {
+            int count = _in->read();
+            if (count < 0) { return -1; }
+
+            volk_32f_s32f_convert_16i(out.writeBuf, _in->readBuf, 32768.0f, count);
+
+            _in->flush();
+            if (!out.swap(count)) { return -1; }
+            return count;
+        }
+
+        stream<int16_t> out;
+
+    private:
+        stream<float>* _in;
+
+    };
 }
