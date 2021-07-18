@@ -143,7 +143,7 @@ bool ModuleManager::instanceEnabled(std::string name) {
 std::string ModuleManager::getInstanceModuleName(std::string name) {
     if (instances.find(name) == instances.end()) {
         spdlog::error("Cannot get module name of'{0}', instance doesn't exist", name);
-        return false;
+        return "";
     }
     return std::string(instances[name].module.info->name);
 }
