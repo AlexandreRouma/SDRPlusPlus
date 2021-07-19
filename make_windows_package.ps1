@@ -42,6 +42,8 @@ cp $build_dir/plutosdr_source/Release/plutosdr_source.dll sdrpp_windows_x64/modu
 cp 'C:/Program Files/PothosSDR/bin/libiio.dll' sdrpp_windows_x64/
 cp 'C:/Program Files/PothosSDR/bin/libad9361.dll' sdrpp_windows_x64/
 
+cp $build_dir/spyserver_source/Release/spyserver_source.dll sdrpp_windows_x64/modules/
+
 
 # Copy sink modules
 cp $build_dir/audio_sink/Release/audio_sink.dll sdrpp_windows_x64/modules/
@@ -57,6 +59,7 @@ cp $build_dir/radio/Release/radio.dll sdrpp_windows_x64/modules/
 cp $build_dir/discord_integration/Release/discord_integration.dll sdrpp_windows_x64/modules/
 cp $build_dir/frequency_manager/Release/frequency_manager.dll sdrpp_windows_x64/modules/
 cp $build_dir/recorder/Release/recorder.dll sdrpp_windows_x64/modules/
+cp $build_dir/rigctl_server/Release/rigctl_server.dll sdrpp_windows_x64/modules/
 
 
 # Copy supporting libs
