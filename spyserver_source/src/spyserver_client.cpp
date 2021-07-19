@@ -11,6 +11,8 @@ namespace spyserver {
         client = std::move(conn);
         output = out;
 
+        output->clearWriteStop();
+
         sendHandshake("SDR++");
 
         client->readAsync(sizeof(SpyServerMessageHeader), (uint8_t*)&receivedHeader, dataHandler, this);
@@ -31,6 +33,7 @@ namespace spyserver {
     }
 
     void SpyServerClientClass::close() {
+        output->stopWriter();
         client->close();
     }
 

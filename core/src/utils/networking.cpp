@@ -36,6 +36,7 @@ namespace net {
 #ifdef _WIN32
             closesocket(_sock);
 #else
+            ::shutdown(_sock, SHUT_RDWR);
             ::close(_sock);
 #endif
         }
