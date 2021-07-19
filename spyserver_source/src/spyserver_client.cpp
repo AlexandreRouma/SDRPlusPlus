@@ -102,9 +102,10 @@ namespace spyserver {
             return;
         }
 
-        //printf("MSG Proto: 0x%08X, MsgType: 0x%08X, StreamType: 0x%08X, Seq: 0x%08X, Size: %d\n", _this->receivedHeader.ProtocolID, _this->receivedHeader.MessageType, _this->receivedHeader.StreamType, _this->receivedHeader.SequenceNumber, _this->receivedHeader.BodySize);
+        printf("MSG Proto: 0x%08X, MsgType: 0x%08X, StreamType: 0x%08X, Seq: 0x%08X, Size: %d\n", _this->receivedHeader.ProtocolID, _this->receivedHeader.MessageType, _this->receivedHeader.StreamType, _this->receivedHeader.SequenceNumber, _this->receivedHeader.BodySize);
 
         int mtype = _this->receivedHeader.MessageType & 0xFFFF;
+        int mflags = (_this->receivedHeader.MessageType & 0xFFFF0000) >> 16;
 
         if (mtype == SPYSERVER_MSG_TYPE_DEVICE_INFO) {
             {
@@ -117,15 +118,18 @@ namespace spyserver {
         }
         else if (mtype == SPYSERVER_MSG_TYPE_UINT8_IQ) {
             int sampCount = _this->receivedHeader.BodySize / (sizeof(uint8_t)*2);
+            float gain = pow(10, (double)mflags / 20.0);
+            float scale = 1.0f / (gain * 128.0f);
             for (int i = 0; i < sampCount; i++) {
-                _this->output->writeBuf[i].re = ((float)_this->readBuf[(2*i)] / 128.0f)-1.0f;
-                _this->output->writeBuf[i].im = ((float)_this->readBuf[(2*i)+1] / 128.0f)-1.0f;
+                _this->output->writeBuf[i].re = ((float)_this->readBuf[(2*i)] - 128.0f) * scale;
+                _this->output->writeBuf[i].im = ((float)_this->readBuf[(2*i)+1] - 128.0f) * scale;
             }
             _this->output->swap(sampCount);
         }
         else if (mtype == SPYSERVER_MSG_TYPE_INT16_IQ) {
             int sampCount = _this->receivedHeader.BodySize / (sizeof(int16_t)*2);
-            volk_16i_s32f_convert_32f((float*)_this->output->writeBuf, (int16_t*)_this->readBuf, 32768.0, sampCount*2);
+            float gain = pow(10, (double)mflags / 20.0);
+            volk_16i_s32f_convert_32f((float*)_this->output->writeBuf, (int16_t*)_this->readBuf, 32768.0 * gain, sampCount*2);
             _this->output->swap(sampCount);
         }
         else if (mtype == SPYSERVER_MSG_TYPE_INT24_IQ) {
@@ -134,7 +138,8 @@ namespace spyserver {
         }
         else if (mtype == SPYSERVER_MSG_TYPE_FLOAT_IQ) {
             int sampCount = _this->receivedHeader.BodySize / sizeof(dsp::complex_t);
-            memcpy(_this->output->writeBuf, _this->readBuf, _this->receivedHeader.BodySize);
+            float gain = pow(10, (double)mflags / 20.0);
+            volk_32f_s32f_multiply_32f((float*)_this->output->writeBuf, (float*)_this->readBuf, gain, sampCount*2);
             _this->output->swap(sampCount);
         }
 
