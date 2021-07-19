@@ -93,8 +93,7 @@ namespace spyserver {
         SpyServerClientClass* _this = (SpyServerClientClass*)ctx;
 
         if (count < sizeof(SpyServerMessageHeader)) {
-            printf("ERROR: Incomplete message header\n");
-            return;
+            _this->readSize(sizeof(SpyServerMessageHeader)-count, &buf[count]);
         }
 
         int size = _this->readSize(_this->receivedHeader.BodySize, _this->readBuf);
