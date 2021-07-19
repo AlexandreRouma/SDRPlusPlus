@@ -1,4 +1,3 @@
-#pragma once
 #include <utils/networking.h>
 #include <assert.h>
 

@@ -25,10 +25,12 @@ namespace spyserver {
     }
 
     void SpyServerClientClass::startStream() {
+        output->clearWriteStop();
         setSetting(SPYSERVER_SETTING_STREAMING_ENABLED, true);
     }
 
     void SpyServerClientClass::stopStream() {
+        output->stopWriter();
         setSetting(SPYSERVER_SETTING_STREAMING_ENABLED, false);
     }
 
