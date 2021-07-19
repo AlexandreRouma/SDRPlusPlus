@@ -38,6 +38,12 @@ const SpyServerStreamFormat streamFormats[] = {
     SPYSERVER_STREAM_FORMAT_FLOAT
 };
 
+const int streamFormatsBitCount[] = {
+    8,
+    16,
+    32
+};
+
 ConfigManager config;
 
 class AirspyHFSourceModule : public ModuleManager::Instance {
@@ -113,18 +119,23 @@ private:
         if (_this->running) {
             return;
         }
+
+        int digiGain = 0;
+        int srvBits = streamFormatsBitCount[_this->iqType];
+        if (srvBits < _this->client->devInfo.Resolution) {
+            digiGain = std::ceil(((double)_this->client->devInfo.Resolution - (double)srvBits)*6.02);
+        }
         
         _this->client->setSetting(SPYSERVER_SETTING_IQ_FORMAT, streamFormats[_this->iqType]);
         _this->client->setSetting(SPYSERVER_SETTING_IQ_DECIMATION, _this->srId);
         _this->client->setSetting(SPYSERVER_SETTING_IQ_FREQUENCY, _this->freq);
-        _this->client->setSetting(SPYSERVER_SETTING_IQ_DIGITAL_GAIN, 0);
         _this->client->setSetting(SPYSERVER_SETTING_STREAMING_MODE, SPYSERVER_STREAM_MODE_IQ_ONLY);
-        
         _this->client->setSetting(SPYSERVER_SETTING_GAIN, _this->gain);
+        _this->client->setSetting(SPYSERVER_SETTING_IQ_DIGITAL_GAIN, digiGain);
         _this->client->startStream();
 
         _this->running = true;
-        spdlog::info("AirspyHFSourceModule '{0}': Start!", _this->name);
+        spdlog::info("AirspyHFSourceModule '{0}': Start with gain {1} !", _this->name, digiGain);
     }
     
     static void stop(void* ctx) {
@@ -236,15 +247,25 @@ private:
                 config.conf["devices"][_this->devRef]["sampleRateId"] = _this->srId;
                 config.release(true);
             }
+            if (_this->running) { style::endDisabled(); }
+
             ImGui::Text("Sample bit depth");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             if (ImGui::Combo("##spyserver_source_type", &_this->iqType, streamFormatStr)) {
+                int digiGain = 0;
+                int srvBits = streamFormatsBitCount[_this->iqType];
+                if (srvBits < _this->client->devInfo.Resolution) {
+                    digiGain = std::ceil(((double)_this->client->devInfo.Resolution - (double)srvBits)*6.02);
+                    spdlog::info("Switched the digital gain to {0}dB", digiGain);
+                }
+                _this->client->setSetting(SPYSERVER_SETTING_IQ_FORMAT, streamFormats[_this->iqType]);
+                _this->client->setSetting(SPYSERVER_SETTING_IQ_DIGITAL_GAIN, digiGain);
+                
                 config.acquire();
                 config.conf["devices"][_this->devRef]["sampleBitDepthId"] = _this->iqType;
                 config.release(true);
             }
-            if (_this->running) { style::endDisabled(); }
 
             if (_this->client->devInfo.MaximumGainIndex) {
                 ImGui::SetNextItemWidth(menuWidth);

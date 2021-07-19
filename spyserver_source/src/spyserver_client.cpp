@@ -92,15 +92,22 @@ namespace spyserver {
     void SpyServerClientClass::dataHandler(int count, uint8_t* buf, void* ctx) {
         SpyServerClientClass* _this = (SpyServerClientClass*)ctx;
 
-        int size = _this->readSize(_this->receivedHeader.BodySize, _this->readBuf);
-        if (size <= 0) {
-            printf("ERROR: Didn't receive enough bytes\n");
+        if (count < sizeof(SpyServerMessageHeader)) {
+            printf("ERROR: Incomplete message header\n");
             return;
         }
 
-        //printf("MSG %08X %d %d %08X %d\n", _this->receivedHeader.ProtocolID, _this->receivedHeader.MessageType, _this->receivedHeader.StreamType, _this->receivedHeader.SequenceNumber, _this->receivedHeader.BodySize);
+        int size = _this->readSize(_this->receivedHeader.BodySize, _this->readBuf);
+        if (size <= 0) {
+            printf("ERROR: Disconnected\n");
+            return;
+        }
 
-        if (_this->receivedHeader.MessageType == SPYSERVER_MSG_TYPE_DEVICE_INFO) {
+        //printf("MSG Proto: 0x%08X, MsgType: 0x%08X, StreamType: 0x%08X, Seq: 0x%08X, Size: %d\n", _this->receivedHeader.ProtocolID, _this->receivedHeader.MessageType, _this->receivedHeader.StreamType, _this->receivedHeader.SequenceNumber, _this->receivedHeader.BodySize);
+
+        int mtype = _this->receivedHeader.MessageType & 0xFFFF;
+
+        if (mtype == SPYSERVER_MSG_TYPE_DEVICE_INFO) {
             {
                 std::lock_guard lck(_this->deviceInfoMtx);
                 SpyServerDeviceInfo* _devInfo = (SpyServerDeviceInfo*)_this->readBuf;
@@ -109,7 +116,7 @@ namespace spyserver {
             }
             _this->deviceInfoCnd.notify_all();
         }
-        else if (_this->receivedHeader.MessageType == SPYSERVER_MSG_TYPE_UINT8_IQ) {
+        else if (mtype == SPYSERVER_MSG_TYPE_UINT8_IQ) {
             int sampCount = _this->receivedHeader.BodySize / (sizeof(uint8_t)*2);
             for (int i = 0; i < sampCount; i++) {
                 _this->output->writeBuf[i].re = ((float)_this->readBuf[(2*i)] / 128.0f)-1.0f;
@@ -117,16 +124,16 @@ namespace spyserver {
             }
             _this->output->swap(sampCount);
         }
-        else if (_this->receivedHeader.MessageType == SPYSERVER_MSG_TYPE_INT16_IQ) {
+        else if (mtype == SPYSERVER_MSG_TYPE_INT16_IQ) {
             int sampCount = _this->receivedHeader.BodySize / (sizeof(int16_t)*2);
             volk_16i_s32f_convert_32f((float*)_this->output->writeBuf, (int16_t*)_this->readBuf, 32768.0, sampCount*2);
             _this->output->swap(sampCount);
         }
-        else if (_this->receivedHeader.MessageType == SPYSERVER_MSG_TYPE_INT24_IQ) {
+        else if (mtype == SPYSERVER_MSG_TYPE_INT24_IQ) {
             printf("ERROR: IQ format not supported\n");
             return;
         }
-        else if (_this->receivedHeader.MessageType == SPYSERVER_MSG_TYPE_FLOAT_IQ) {
+        else if (mtype == SPYSERVER_MSG_TYPE_FLOAT_IQ) {
             int sampCount = _this->receivedHeader.BodySize / sizeof(dsp::complex_t);
             memcpy(_this->output->writeBuf, _this->readBuf, _this->receivedHeader.BodySize);
             _this->output->swap(sampCount);
