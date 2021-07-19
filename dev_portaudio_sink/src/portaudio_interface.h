@@ -10,6 +10,7 @@ class PortaudioInterface {
 public:
     PortaudioInterface();
     ~PortaudioInterface();
+    static int getDefaultDeviceId();
     static std::vector<AudioDevice_t> getDeviceList();
 
 private:

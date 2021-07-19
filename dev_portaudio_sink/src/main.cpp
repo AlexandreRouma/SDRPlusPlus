@@ -45,6 +45,7 @@ public:
         config.release(created);
 
         deviceList = PortaudioInterface::getDeviceList();
+        selectByName(device);
     }
 
     ~PortaudioSink() override = default;
@@ -69,38 +70,60 @@ public:
         selectById(0);
     }
 
+    void selectDefault() {
+        int defaultDeviceId = PortaudioInterface::getDefaultDeviceId();
+        selectByDeviceId(defaultDeviceId);
+    }
+
     void selectByName(const std::string &name) {
         const auto device = std::find_if(
                 deviceList.cbegin(),
                 deviceList.cend(),
                 [&name](const auto &device) { return device.name == name; }
         );
-        if (device != deviceList.cend()) selectDevice(*device);
-        else selectFirst();
+        spdlog::info("Searhcing for {0}", name);
+        if (device != deviceList.cend())
+            selectDevice(std::distance(deviceList.cbegin(), device), *device);
+        else selectDefault();
     }
 
     void selectById(int id) {
         if (deviceList.size() <= id) return;
         const auto &device = deviceList[id];
-        selectDevice(device);
+        selectDevice(id, device);
     }
 
-    void selectDevice(const AudioDevice_t &device) {
+    void selectByDeviceId(int deviceId) {
+        const auto device = std::find_if(
+                deviceList.cbegin(),
+                deviceList.cend(),
+                [&deviceId](const auto &device) { return device.deviceId == deviceId; });
+        if (device != deviceList.cend())
+            selectDevice(std::distance(deviceList.cbegin(), device), *device);
+        else
+            selectFirst();
+    }
+
+    void selectDevice(const int id, const AudioDevice_t &device) {
+        devId = id;
+
         bool created = false;
         config.acquire();
         if (!config.conf[_streamName]["devices"].contains(device.name)) {
             created = true;
+            config.conf[_streamName]["device"] = device.name;
             config.conf[_streamName]["devices"][device.name] = 48000;
         }
-        auto sampleRate = config.conf[_streamName]["devices"][device.name];
         config.release(created);
 
         const auto &sampleRates = device.sampleRates;
-        sampleRate = sampleRates[device.sampleRateId];
+        auto sampleRate = config.conf[_streamName]["devices"][device.name];
         _stream->setSampleRate((float)sampleRate);
 
-        if (running) { doStop(); }
-        if (running) { doStart(); }
+        if (running) {
+            doStop();
+            doStart();
+        }
     }
 
 
@@ -149,7 +172,7 @@ private:
             stereoPacker.setSampleCount(bufferFrames);
             if (!audioStream.open<dsp::stream<dsp::stereo_t>, dsp::stereo_t>(device, &stereoPacker.out, sampleRate)){
                 spdlog::info("Audio device error.");
-                running = false;
+                doStop();
                 return;
             }
             stereoPacker.start();
@@ -158,7 +181,7 @@ private:
             monoPacker.setSampleCount(bufferFrames);
             if (!audioStream.open<dsp::stream<dsp::mono_t>, dsp::mono_t>(device, &monoPacker.out, sampleRate)) {
                 spdlog::info("Audio device error.");
-                running = false;
+                doStop();
                 return;
             }
             monoPacker.start();
@@ -175,6 +198,7 @@ private:
         audioStream.close();
         monoPacker.out.clearReadStop();
         stereoPacker.out.clearReadStop();
+        running = false;
     }
 
     std::string formatDeviceListText() {

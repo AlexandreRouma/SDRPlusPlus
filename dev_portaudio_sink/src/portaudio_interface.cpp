@@ -32,10 +32,15 @@ PortaudioInterface::~PortaudioInterface() {
     }
 }
 
+int PortaudioInterface::getDefaultDeviceId() {
+    return Pa_GetDefaultOutputDevice();
+}
+
 std::vector<AudioDevice_t> PortaudioInterface::getDeviceList() {
     std::vector<AudioDevice_t> devices;
 
     auto numDevices = Pa_GetDeviceCount();
+
     for(int deviceId = 0; deviceId < numDevices ; deviceId++) {
         const PaDeviceInfo *deviceInfo = Pa_GetDeviceInfo(deviceId);
         if (deviceInfo->maxOutputChannels < 1) {
@@ -110,6 +115,7 @@ int PortaudioStream::call_back(const void *inputBuffer, void *outputBuffer, unsi
 
     memcpy(outputBuffer, buffer->readBuf, framesPerBuffer * sizeof(AudioObjectT));
     buffer->flush();
+
     if (statusFlags & paOutputUnderflow) spdlog::warn("PortAudio underflow (read count: {0}, frames: {1})", count, framesPerBuffer);
     if (statusFlags & paOutputOverflow) spdlog::warn("PortAudio overflow");
     if (statusFlags & paPrimingOutput) spdlog::warn("PortAudio priming");
@@ -129,6 +135,7 @@ bool PortaudioStream::open(const AudioDevice_t &device, BufferT *buffer, float s
     outputParams.device = device.deviceId;
     outputParams.suggestedLatency = deviceInfo->defaultLowOutputLatency;
     int bufferFrames = (int)sampleRate / 60;
+
     auto err = Pa_OpenStream(
             &stream,
             nullptr,
