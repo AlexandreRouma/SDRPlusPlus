@@ -279,7 +279,7 @@ Modules in beta are still included in releases for the most part but not enabled
 | rtl_tcp_source   | Working    | -                 | OPT_BUILD_RTL_TCP_SOURCE   | ✅              | ✅                     | ✅                         |
 | sdrplay_source   | Working    | SDRplay API       | OPT_BUILD_SDRPLAY_SOURCE   | ⛔              | ✅                     | ✅                         |
 | soapy_source     | Working    | soapysdr          | OPT_BUILD_SOAPY_SOURCE     | ✅              | ✅                     | ✅                         |
-| spyserver_source | Unfinished | -                 | OPT_BUILD_SPYSERVER_SOURCE | ⛔              | ⛔                     | ⛔                         |
+| spyserver_source | Beta       | -                 | OPT_BUILD_SPYSERVER_SOURCE | ✅              | ✅                     | ✅                         |
 | plutosdr_source  | Working    | libiio, libad9361 | OPT_BUILD_PLUTOSDR_SOURCE  | ✅              | ✅                     | ✅                         |
 
 ## Sinks

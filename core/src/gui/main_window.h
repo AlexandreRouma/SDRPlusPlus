@@ -32,6 +32,7 @@ public:
     bool isPlaying();
 
     bool lockWaterfallControls = false;
+    bool playButtonLocked = false;
 
     Event<bool> onPlayStateChange;
     Event<bool> onInitComplete;

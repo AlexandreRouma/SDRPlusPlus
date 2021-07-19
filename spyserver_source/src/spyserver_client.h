@@ -1,69 +1,52 @@
 #pragma once
+#include <utils/networking.h>
 #include <spyserver_protocol.h>
 #include <dsp/stream.h>
 #include <dsp/types.h>
-#include <thread>
-#include <string>
 
-#ifdef _WIN32
-#include <WinSock2.h>
-#include <WS2tcpip.h>
-#else
-#include <unistd.h>
-#include <strings.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h> 
-#endif
+namespace spyserver {
+    class SpyServerClientClass {
+    public:
+        SpyServerClientClass(net::Conn conn, dsp::stream<dsp::complex_t>* out);
+        ~SpyServerClientClass();
 
-#ifdef _WIN32
-#define __attribute__(x)
-#pragma pack(push, 1)
-#endif
-struct command_t{
-	unsigned char cmd;
-	unsigned int param;
-}__attribute__((packed));
-#ifdef _WIN32
-#pragma pack(pop)
-#endif
+        bool waitForDevInfo(int timeoutMS);
 
-class SpyServerClient {
-public:
-    SpyServerClient();
+        void startStream();
+        void stopStream();
 
-    bool connectToSpyserver(char* host, int port);
-    bool disconnect();
+        void setSetting(uint32_t setting, uint32_t arg);
 
-    void start();
-    void stop();
+        void close();
+        bool isOpen();
 
-    void setSampleRate(uint32_t setSampleRate);
+        SpyServerDeviceInfo devInfo;
 
-    void tune(uint32_t freq);
+    private:
+        void sendCommand(uint32_t command, void* data, int len);
+        void sendHandshake(std::string appName);
 
-    dsp::stream<dsp::complex_t> iqStream;
+        int readSize(int count, uint8_t* buffer);
 
-private:
-    int receive(char* buf, int count);
-    int receiveSync(char* buf, int count);
-    int checkError(int err, int expected);
-    void worker();
+        static void dataHandler(int count, uint8_t* buf, void* ctx);
 
-    void sendCommand(uint32_t cmd, void* body, size_t bodySize);
-    void setSetting(uint32_t setting, uint32_t value);
+        net::Conn client;
 
-    void hello();
+        uint8_t* readBuf;
+        uint8_t* writeBuf;
 
-#ifdef _WIN32
-    SOCKET sock;
-#else
-    int sockfd;
-#endif
-    bool connected = false;
-    bool waiting = false;
+        bool deviceInfoAvailable = false;
+        std::mutex deviceInfoMtx;
+        std::condition_variable deviceInfoCnd;
 
-    std::thread workerThread;
+        SpyServerMessageHeader receivedHeader;
 
-};
+        dsp::stream<dsp::complex_t>* output;
+
+    };
+    
+    typedef std::unique_ptr<SpyServerClientClass> SpyServerClient;
+
+    SpyServerClient connect(std::string host, uint16_t port, dsp::stream<dsp::complex_t>* out);
+    
+}

@@ -1,254 +1,139 @@
 #include <spyserver_client.h>
-#include <spdlog/spdlog.h>
+#include <volk/volk.h>
 
-SpyServerClient::SpyServerClient() {
+using namespace std::chrono_literals;
 
-}
+namespace spyserver {
+    SpyServerClientClass::SpyServerClientClass(net::Conn conn, dsp::stream<dsp::complex_t>* out) {
+        readBuf = new uint8_t[SPYSERVER_MAX_MESSAGE_BODY_SIZE];
+        writeBuf = new uint8_t[SPYSERVER_MAX_MESSAGE_BODY_SIZE];
+        client = std::move(conn);
+        output = out;
 
-bool SpyServerClient::connectToSpyserver(char* host, int port) {
-    if (connected) {
-        return true;
+        sendHandshake("SDR++");
+
+        client->readAsync(sizeof(SpyServerMessageHeader), (uint8_t*)&receivedHeader, dataHandler, this);
     }
 
-#ifdef _WIN32
-    struct addrinfo *result = NULL;
-    struct addrinfo *ptr = NULL;
-    struct addrinfo hints;
-
-    ZeroMemory( &hints, sizeof(hints) );
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = IPPROTO_TCP;
-
-    char buf[128];
-    sprintf(buf, "%hu", port);
-
-    int iResult = getaddrinfo(host, buf, &hints, &result);
-    if (iResult != 0) {
-        // TODO: log error
-        printf("A");
-        WSACleanup();
-        return false;
-    }
-    ptr = result;
-
-    sock = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
-
-    if (sock == INVALID_SOCKET) {
-        // TODO: log error
-        printf("B");
-        freeaddrinfo(result);
-        WSACleanup();
-        return false;
+    SpyServerClientClass::~SpyServerClientClass() {
+        close();
+        delete[] readBuf;
+        delete[] writeBuf;
     }
 
-    iResult = connect(sock, ptr->ai_addr, (int)ptr->ai_addrlen);
-    if (iResult == SOCKET_ERROR) {
-        printf("C");
-        closesocket(sock);
-        freeaddrinfo(result);
-        WSACleanup();
-        return false;
+    void SpyServerClientClass::startStream() {
+        setSetting(SPYSERVER_SETTING_STREAMING_ENABLED, true);
     }
-    freeaddrinfo(result);
-#else
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) {
-        // TODO: Log error
-        return false;
+
+    void SpyServerClientClass::stopStream() {
+        setSetting(SPYSERVER_SETTING_STREAMING_ENABLED, false);
     }
-    struct hostent *server = gethostbyname(host);
-    struct sockaddr_in serv_addr;
-    bzero(&serv_addr, sizeof(struct sockaddr_in));
-    serv_addr.sin_family = AF_INET;
-    bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
-    serv_addr.sin_port = htons(port);
-    if (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0) {
-        // TODO: log error
-        return false;
+
+    void SpyServerClientClass::close() {
+        client->close();
     }
-#endif
 
-    // Switch to non-blocking mode
-#ifdef _WIN32
-    unsigned long mode = 1;
-    ioctlsocket(sock, FIONBIO, &mode);
-#else
-    fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL, 0) | O_NONBLOCK);
-#endif
+    bool SpyServerClientClass::isOpen() {
+        return client->isOpen();
+    }
 
-    connected = true;
-    waiting = true;
+    bool SpyServerClientClass::waitForDevInfo(int timeoutMS) {
+        std::unique_lock lck(deviceInfoMtx);
+        auto now = std::chrono::system_clock::now();
+        deviceInfoCnd.wait_until(lck, now + (timeoutMS*1ms), [this](){ return deviceInfoAvailable; });
+        return deviceInfoAvailable;
+    }
 
-    workerThread = std::thread(&SpyServerClient::worker, this);
+    void SpyServerClientClass::sendCommand(uint32_t command, void* data, int len) {
+        SpyServerCommandHeader* hdr = (SpyServerCommandHeader*)writeBuf;
+        hdr->CommandType = command;
+        hdr->BodySize = len;
+        memcpy(&writeBuf[sizeof(SpyServerCommandHeader)], data, len);
+        client->write(sizeof(SpyServerCommandHeader) + len, writeBuf);
+    }
 
-    printf("Connected");
+    void SpyServerClientClass::sendHandshake(std::string appName) {
+        int totSize = sizeof(SpyServerClientHandshake) + appName.size();
+        uint8_t* buf = new uint8_t[totSize];
 
-    return true;
-}
+        SpyServerClientHandshake* cmdHandshake = (SpyServerClientHandshake*)buf;
+        cmdHandshake->ProtocolVersion = SPYSERVER_PROTOCOL_VERSION;
 
-bool SpyServerClient::disconnect() {
-        if (!connected) {
-            return false;
+        memcpy(&buf[sizeof(SpyServerClientHandshake)], appName.c_str(), appName.size());
+        sendCommand(SPYSERVER_CMD_HELLO, buf, totSize);
+
+        delete[] buf;
+    }
+
+    void SpyServerClientClass::setSetting(uint32_t setting, uint32_t arg) {
+        SpyServerSettingTarget target;
+        target.Setting = setting;
+        target.Value = arg;
+        sendCommand(SPYSERVER_CMD_SET_SETTING, &target, sizeof(SpyServerSettingTarget));
+    }
+
+    int SpyServerClientClass::readSize(int count, uint8_t* buffer) {
+        int read = 0;
+        int len = 0;
+        while (read < count) {
+            len = client->read(count - read, &buffer[read]);
+            if (len <= 0) { return len; }
+            read += len;
         }
-        waiting = false;
-        if (workerThread.joinable()) {
-            workerThread.join();
-        }
-#ifdef _WIN32
-        closesocket(sock);
-        WSACleanup();
-#else
-        close(sockfd);
-#endif
-        connected = false;
-        return true;
-}
-
-void SpyServerClient::setSampleRate(uint32_t setSampleRate) {
-
-}
-
-void SpyServerClient::tune(uint32_t freq) {
-
-}
-
-int SpyServerClient::receive(char* buf, int count) {
-#ifdef _WIN32
-    return checkError(recv(sock, (char*)buf, count, 0), count);
-#else
-    return checkError(read(sockfd, buf, count), count);
-#endif
-}
-
-int SpyServerClient::checkError(int len, int expected) {
-#ifdef _WIN32
-    if (len != SOCKET_ERROR) { return len; }
-    int code = WSAGetLastError();
-    if (code == WSAEWOULDBLOCK) { return 0; }
-    spdlog::error("{0}", code);
-    return -1;
-#else
-    if (len <= expected) {
-        return len;
+        return read;
     }
-    if (len == EAGAIN || len == EWOULDBLOCK) { return 0; }
-    return -1;
-#endif  
-}
 
-int SpyServerClient::receiveSync(char* buf, int count) {
-    int len = receive(buf, count);
-    while (len == 0 && waiting) {
-        len = receive(buf, count);
-    }
-    if (!waiting) {
-        return 0;
-    }
-    return len;
-}
+    void SpyServerClientClass::dataHandler(int count, uint8_t* buf, void* ctx) {
+        SpyServerClientClass* _this = (SpyServerClientClass*)ctx;
 
-void SpyServerClient::worker() {
-    // Allocate dummy buffer
-    char* dummyBuf = (char*)malloc(1000000);
-
-    // Send hello
-    hello();
-
-    //   SETTING_STREAMING_MODE        = 0,
-    //   SETTING_STREAMING_ENABLED     = 1,
-    //   SETTING_GAIN                  = 2,
-
-    //   SETTING_IQ_FORMAT             = 100,    // 0x64
-    //   SETTING_IQ_FREQUENCY          = 101,    // 0x65
-    //   SETTING_IQ_DECIMATION         = 102,    // 0x66
-    //   SETTING_IQ_DIGITAL_GAIN       = 103,    // 0x67
-
-    // Set settings
-    setSetting(SETTING_STREAMING_MODE, STREAM_MODE_IQ_ONLY);
-    setSetting(SETTING_GAIN, 5);
-    setSetting(SETTING_IQ_FORMAT, STREAM_FORMAT_FLOAT);
-    setSetting(SETTING_IQ_FREQUENCY, 2000000);
-    setSetting(SETTING_IQ_DECIMATION, 1);
-    setSetting(SETTING_IQ_DIGITAL_GAIN, 1);
-
-    // Enable stream
-    setSetting(SETTING_STREAMING_ENABLED, 1);
-
-    // Main message receive loop
-    while (true) {
-        MessageHeader msgHeader;
-        int len = receiveSync((char*)&msgHeader, sizeof(MessageHeader));
-        if (len < 0) {
-            spdlog::error("Socket error");
+        int size = _this->readSize(_this->receivedHeader.BodySize, _this->readBuf);
+        if (size <= 0) {
+            printf("ERROR: Didn't receive enough bytes\n");
             return;
         }
-        if (len == 0) { return; }
 
-        int type = (msgHeader.MessageType & 0xFFFF);
+        //printf("MSG %08X %d %d %08X %d\n", _this->receivedHeader.ProtocolID, _this->receivedHeader.MessageType, _this->receivedHeader.StreamType, _this->receivedHeader.SequenceNumber, _this->receivedHeader.BodySize);
 
-        if (type == MSG_TYPE_DEVICE_INFO) {
-            DeviceInfo devInfo;
-            len = receiveSync((char*)&devInfo, sizeof(DeviceInfo));
-            if (len < 0) {
-                spdlog::error("A Socket error");
-                return;
+        if (_this->receivedHeader.MessageType == SPYSERVER_MSG_TYPE_DEVICE_INFO) {
+            {
+                std::lock_guard lck(_this->deviceInfoMtx);
+                SpyServerDeviceInfo* _devInfo = (SpyServerDeviceInfo*)_this->readBuf;
+                _this->devInfo = *_devInfo;
+                _this->deviceInfoAvailable = true;
             }
-            if (len == 0) { return; }
-
-            spdlog::warn("Dev type: {0}", devInfo.DeviceType);
+            _this->deviceInfoCnd.notify_all();
         }
-        // else if (type == MSG_TYPE_FLOAT_IQ) {
-        //     //if (iqStream.acquire() < 0) { return; }
-        //     len = receiveSync(dummyBuf, msgHeader.BodySize);
-        //     //iqStream.write(msgHeader.BodySize);
-        //     if (len < 0) {
-        //         spdlog::error("T Socket error");
-        //         return;
-        //     }
-        //     if (len == 0) { return; }
-        // }   
-        else if (msgHeader.BodySize > 0) {
-            len = receiveSync(dummyBuf, msgHeader.BodySize);
-            if (len < 0) {
-                spdlog::error("B Socket error {0}", msgHeader.ProtocolID);
-                return;
+        else if (_this->receivedHeader.MessageType == SPYSERVER_MSG_TYPE_UINT8_IQ) {
+            int sampCount = _this->receivedHeader.BodySize / (sizeof(uint8_t)*2);
+            for (int i = 0; i < sampCount; i++) {
+                _this->output->writeBuf[i].re = ((float)_this->readBuf[(2*i)] / 128.0f)-1.0f;
+                _this->output->writeBuf[i].im = ((float)_this->readBuf[(2*i)+1] / 128.0f)-1.0f;
             }
-            if (len == 0) { return; }
+            _this->output->swap(sampCount);
         }
+        else if (_this->receivedHeader.MessageType == SPYSERVER_MSG_TYPE_INT16_IQ) {
+            int sampCount = _this->receivedHeader.BodySize / (sizeof(int16_t)*2);
+            volk_16i_s32f_convert_32f((float*)_this->output->writeBuf, (int16_t*)_this->readBuf, 32768.0, sampCount*2);
+            _this->output->swap(sampCount);
+        }
+        else if (_this->receivedHeader.MessageType == SPYSERVER_MSG_TYPE_INT24_IQ) {
+            printf("ERROR: IQ format not supported\n");
+            return;
+        }
+        else if (_this->receivedHeader.MessageType == SPYSERVER_MSG_TYPE_FLOAT_IQ) {
+            int sampCount = _this->receivedHeader.BodySize / sizeof(dsp::complex_t);
+            memcpy(_this->output->writeBuf, _this->readBuf, _this->receivedHeader.BodySize);
+            _this->output->swap(sampCount);
+        }
+
+        _this->client->readAsync(sizeof(SpyServerMessageHeader), (uint8_t*)&_this->receivedHeader, dataHandler, _this);
     }
 
-    free(dummyBuf);
-}
-
-void SpyServerClient::sendCommand(uint32_t cmd, void* body, size_t bodySize) {
-    int size = sizeof(CommandHeader) + bodySize;
-    char* buf = new char[size];
-    CommandHeader* cmdHdr = (CommandHeader*)buf;
-    memcpy(&buf[sizeof(CommandHeader)], body, bodySize);
-    cmdHdr->CommandType = cmd;
-    cmdHdr->BodySize = bodySize;
-#ifdef _WIN32
-    send(sock, buf, size, 0);
-#else
-    write(sockfd, buf, size);
-#endif
-    delete[] buf;
-}
-
-void SpyServerClient::setSetting(uint32_t setting, uint32_t value) {
-    char buf[sizeof(SettingTarget) + sizeof(uint32_t)];
-    SettingTarget* tgt = (SettingTarget*)buf;
-    uint32_t* val = (uint32_t*)&buf[sizeof(SettingTarget)];
-    tgt->SettingType = setting;
-    *val = value;
-    sendCommand(CMD_SET_SETTING, buf, sizeof(SettingTarget) + sizeof(uint32_t));
-}
-
-void SpyServerClient::hello() {
-    char buf[1024];
-    ClientHandshake* handshake = (ClientHandshake*)buf;
-    handshake->ProtocolVersion = SPYSERVER_PROTOCOL_VERSION;
-    strcpy(&buf[sizeof(ClientHandshake)], "sdr++");
-    sendCommand(CMD_HELLO, buf, sizeof(ClientHandshake) + 5);
+    SpyServerClient connect(std::string host, uint16_t port, dsp::stream<dsp::complex_t>* out) {
+        net::Conn conn = net::connect(net::PROTO_TCP, host, port);
+        if (!conn) {
+            return NULL;
+        }
+        return SpyServerClient(new SpyServerClientClass(std::move(conn), out));
+    }
 }

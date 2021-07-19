@@ -343,6 +343,8 @@ void MainWindow::draw() {
 
     ImGui::SameLine();
 
+    bool tmpPlaySate = playing;
+    if (playButtonLocked && !tmpPlaySate) { style::beginDisabled(); }
     if (playing) {
         ImGui::PushID(ImGui::GetID("sdrpp_stop_btn"));
         if (ImGui::ImageButton(icons::STOP, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5) || ImGui::IsKeyPressed(GLFW_KEY_END, false)) {
@@ -364,6 +366,7 @@ void MainWindow::draw() {
         }
         ImGui::PopID();
     }
+    if (playButtonLocked && !tmpPlaySate) { style::endDisabled(); }
 
     ImGui::SameLine();
 
