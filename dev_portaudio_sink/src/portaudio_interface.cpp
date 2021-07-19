@@ -41,7 +41,29 @@ std::vector<AudioDevice_t> PortaudioInterface::getDeviceList() {
         if (deviceInfo->maxOutputChannels < 1) {
             continue;
         }
+        spdlog::info("*******\ndeviceId\t{10}\nstructVersion\t{0}\nname\t{1}\nhostApi\t{2}\nmaxInputChannels\t{3}\n"
+                     "maxOutputChannels\t{4}\ndefaultLowInputLatency\t{5}\ndefaultLowOutputLatency\t{6}\n"
+                     "defaultHighInputLatency\t{7}\ndefaultHighOutputLatency\t{8}\ndefaultSampleRate\t{9}",
+                     deviceInfo->structVersion,
+                     deviceInfo->name,
+                     deviceInfo->hostApi,
+                     deviceInfo->maxInputChannels,
+                     deviceInfo->maxOutputChannels,
+                     deviceInfo->defaultLowInputLatency,
+                     deviceInfo->defaultLowOutputLatency,
+                     deviceInfo->defaultHighInputLatency,
+                     deviceInfo->defaultHighOutputLatency,
+                     deviceInfo->defaultSampleRate,
+                     deviceId);
         const PaHostApiInfo *hostApiInfo = Pa_GetHostApiInfo(deviceInfo->hostApi);
+        spdlog::info("structVersion\t{0}\ntype\t{1}\nname\t{2}\ndeviceCount\t{3}\n"
+                     "defaultInputDevice\t{4}\ndefaultOutputDevice\t{5}",
+                     hostApiInfo->structVersion,
+                     hostApiInfo->type,
+                     hostApiInfo->name,
+                     hostApiInfo->deviceCount,
+                     hostApiInfo->defaultInputDevice,
+                     hostApiInfo->defaultOutputDevice);
         AudioDevice_t dev{
                 std::string(hostApiInfo->name).append(" - ").append(deviceInfo->name),
                 deviceId,
@@ -118,7 +140,7 @@ bool PortaudioStream::open(const AudioDevice_t &device, BufferT *buffer, float s
             buffer);
 
     if (err != PaErrorCode::paNoError) {
-        spdlog::error("Failed to open PortAudio stream. Error code {0}: {1}", err, Pa_GetErrorText(err));
+        spdlog::error("Failed to open PortAudio stream. Device: {0}. Error code {1}: {2}", device.deviceId, err, Pa_GetErrorText(err));
         return false;
     }
 
