@@ -1,5 +1,6 @@
 #include <spyserver_client.h>
 #include <volk/volk.h>
+#include <cstring>
 
 using namespace std::chrono_literals;
 
