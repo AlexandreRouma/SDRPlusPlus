@@ -8,7 +8,6 @@
 #include <gui/style.h>
 #include <config.h>
 #include <options.h>
-#include <libairspyhf/airspyhf.h>
 #include <gui/widgets/stepped_slider.h>
 
 
