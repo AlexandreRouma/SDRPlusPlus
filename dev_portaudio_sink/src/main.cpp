@@ -235,10 +235,9 @@ private:
 
 class PortaudioSinkModule : public ModuleManager::Instance {
 public:
-    explicit PortaudioSinkModule(std::string name) :
-        provider{create_sink, this}
+    explicit PortaudioSinkModule(const std::string &name)
     {
-        sigpath::sinkManager.registerSinkProvider("Portaudio", provider);
+        sigpath::sinkManager.registerSinkProvider("Portaudio", SinkManager::SinkProvider{create_sink, this});
     }
 
     ~PortaudioSinkModule() = default;
@@ -261,7 +260,6 @@ private:
     }
 
     bool enabled = true;
-    SinkManager::SinkProvider provider;
     PortaudioInterface audioInterface {};
 };
 
@@ -273,8 +271,7 @@ MOD_EXPORT void _INIT_() {
 }
 
 MOD_EXPORT void* _CREATE_INSTANCE_(std::string name) {
-    auto instance = new PortaudioSinkModule(std::move(name));
-    return instance;
+    return new PortaudioSinkModule(name);
 }
 
 MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
