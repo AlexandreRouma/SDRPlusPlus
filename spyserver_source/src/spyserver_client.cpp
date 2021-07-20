@@ -43,6 +43,22 @@ namespace spyserver {
         return client->isOpen();
     }
 
+    int SpyServerClientClass::computeDigitalGain(int serverBits, int deviceGain, int decimationId) {
+        if (devInfo.DeviceType == SPYSERVER_DEVICE_AIRSPY_ONE) {
+            return (devInfo.MaximumGainIndex - deviceGain) + (decimationId * 3.01f);
+        }
+        else if (devInfo.DeviceType == SPYSERVER_DEVICE_AIRSPY_HF) {
+            return decimationId * 3.01f;
+        }
+        else if (devInfo.DeviceType == SPYSERVER_DEVICE_RTLSDR) {
+            return decimationId * 3.01f;
+        }
+        else {
+            // Error, unknown device
+            return -1;
+        }
+    }
+
     bool SpyServerClientClass::waitForDevInfo(int timeoutMS) {
         std::unique_lock lck(deviceInfoMtx);
         auto now = std::chrono::system_clock::now();
@@ -102,7 +118,7 @@ namespace spyserver {
             return;
         }
 
-        printf("MSG Proto: 0x%08X, MsgType: 0x%08X, StreamType: 0x%08X, Seq: 0x%08X, Size: %d\n", _this->receivedHeader.ProtocolID, _this->receivedHeader.MessageType, _this->receivedHeader.StreamType, _this->receivedHeader.SequenceNumber, _this->receivedHeader.BodySize);
+        //printf("MSG Proto: 0x%08X, MsgType: 0x%08X, StreamType: 0x%08X, Seq: 0x%08X, Size: %d\n", _this->receivedHeader.ProtocolID, _this->receivedHeader.MessageType, _this->receivedHeader.StreamType, _this->receivedHeader.SequenceNumber, _this->receivedHeader.BodySize);
 
         int mtype = _this->receivedHeader.MessageType & 0xFFFF;
         int mflags = (_this->receivedHeader.MessageType & 0xFFFF0000) >> 16;

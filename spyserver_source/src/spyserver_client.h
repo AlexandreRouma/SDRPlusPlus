@@ -20,6 +20,8 @@ namespace spyserver {
         void close();
         bool isOpen();
 
+        int computeDigitalGain(int serverBits, int deviceGain, int decimationId);
+
         SpyServerDeviceInfo devInfo;
 
     private:

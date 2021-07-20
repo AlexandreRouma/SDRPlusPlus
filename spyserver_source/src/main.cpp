@@ -120,22 +120,17 @@ private:
             return;
         }
 
-        _this->digiGain = 0;
         int srvBits = streamFormatsBitCount[_this->iqType];
-        if (srvBits < _this->client->devInfo.Resolution) {
-            _this->digiGain = std::ceil(((double)_this->client->devInfo.Resolution - (double)srvBits)*6.02);
-        }
-        
         _this->client->setSetting(SPYSERVER_SETTING_IQ_FORMAT, streamFormats[_this->iqType]);
-        _this->client->setSetting(SPYSERVER_SETTING_IQ_DECIMATION, _this->srId);
+        _this->client->setSetting(SPYSERVER_SETTING_IQ_DECIMATION, _this->srId + _this->client->devInfo.MinimumIQDecimation);
         _this->client->setSetting(SPYSERVER_SETTING_IQ_FREQUENCY, _this->freq);
         _this->client->setSetting(SPYSERVER_SETTING_STREAMING_MODE, SPYSERVER_STREAM_MODE_IQ_ONLY);
         _this->client->setSetting(SPYSERVER_SETTING_GAIN, _this->gain);
-        _this->client->setSetting(SPYSERVER_SETTING_IQ_DIGITAL_GAIN, _this->digiGain);
+        _this->client->setSetting(SPYSERVER_SETTING_IQ_DIGITAL_GAIN, _this->client->computeDigitalGain(srvBits, _this->gain, _this->srId + _this->client->devInfo.MinimumIQDecimation));
         _this->client->startStream();
 
         _this->running = true;
-        spdlog::info("AirspyHFSourceModule '{0}': Start with gain {1} !", _this->name, _this->digiGain);
+        spdlog::info("AirspyHFSourceModule '{0}': Start!", _this->name);
     }
     
     static void stop(void* ctx) {
@@ -253,14 +248,9 @@ private:
             ImGui::SameLine();
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             if (ImGui::Combo("##spyserver_source_type", &_this->iqType, streamFormatStr)) {
-                _this->digiGain = 0;
                 int srvBits = streamFormatsBitCount[_this->iqType];
-                if (srvBits < _this->client->devInfo.Resolution) {
-                    _this->digiGain = std::ceil(((double)_this->client->devInfo.Resolution - (double)srvBits)*6.02);
-                    spdlog::info("Switched the digital gain to {0}dB", _this->digiGain);
-                }
                 _this->client->setSetting(SPYSERVER_SETTING_IQ_FORMAT, streamFormats[_this->iqType]);
-                _this->client->setSetting(SPYSERVER_SETTING_IQ_DIGITAL_GAIN, _this->digiGain);
+                _this->client->setSetting(SPYSERVER_SETTING_IQ_DIGITAL_GAIN, _this->client->computeDigitalGain(srvBits, _this->gain, _this->srId + _this->client->devInfo.MinimumIQDecimation));
                 
                 config.acquire();
                 config.conf["devices"][_this->devRef]["sampleBitDepthId"] = _this->iqType;
@@ -270,19 +260,14 @@ private:
             if (_this->client->devInfo.MaximumGainIndex) {
                 ImGui::SetNextItemWidth(menuWidth);
                 if (ImGui::SliderInt("##spyserver_source_gain", (int*)&_this->gain, 0, _this->client->devInfo.MaximumGainIndex)) {
+                    int srvBits = streamFormatsBitCount[_this->iqType];
                     _this->client->setSetting(SPYSERVER_SETTING_GAIN, _this->gain);
+                    _this->client->setSetting(SPYSERVER_SETTING_IQ_DIGITAL_GAIN, _this->client->computeDigitalGain(srvBits, _this->gain, _this->srId + _this->client->devInfo.MinimumIQDecimation));
                     config.acquire();
                     config.conf["devices"][_this->devRef]["gainId"] = _this->gain;
                     config.release(true);
                 }
             }
-
-            ImGui::Text("Digital Gain");
-            ImGui::SameLine();
-            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::InputInt("##spyserver_source_dgain", (int*)&_this->digiGain, 1, 10)) {
-                _this->client->setSetting(SPYSERVER_SETTING_IQ_DIGITAL_GAIN, _this->digiGain);
-            }         
 
             ImGui::Text("Status:");
             ImGui::SameLine();
@@ -310,7 +295,6 @@ private:
     std::string sampleRatesTxt;
 
     uint32_t gain = 0;
-    uint32_t digiGain = 0;
 
     std::string devRef = "";
 
