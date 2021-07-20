@@ -25,20 +25,20 @@ public:
 
         _config->acquire();
         if(_config->conf.contains(prefix)) {
-            if(!_config->conf[prefix].contains("USB")) {
-                _config->conf[prefix]["USB"]["bandwidth"] = bw;
-                _config->conf[prefix]["USB"]["snapInterval"] = snapInterval;
-                _config->conf[prefix]["USB"]["squelchLevel"] = squelchLevel;
+            if(!_config->conf[prefix].contains("CW")) {
+                _config->conf[prefix]["CW"]["bandwidth"] = bw;
+                _config->conf[prefix]["CW"]["snapInterval"] = snapInterval;
+                _config->conf[prefix]["CW"]["squelchLevel"] = squelchLevel;
             }
-            json conf = _config->conf[prefix]["USB"];
+            json conf = _config->conf[prefix]["CW"];
             if (conf.contains("bandwidth")) { bw = conf["bandwidth"]; }
             if (conf.contains("snapInterval")) { snapInterval = conf["snapInterval"]; }
             if (conf.contains("squelchLevel")) { squelchLevel = conf["squelchLevel"]; }
         }
         else {
-            _config->conf[prefix]["USB"]["bandwidth"] = bw;
-            _config->conf[prefix]["USB"]["snapInterval"] = snapInterval;
-            _config->conf[prefix]["USB"]["squelchLevel"] = squelchLevel;
+            _config->conf[prefix]["CW"]["bandwidth"] = bw;
+            _config->conf[prefix]["CW"]["snapInterval"] = snapInterval;
+            _config->conf[prefix]["CW"]["squelchLevel"] = squelchLevel;
         }
         _config->release(true);
 
@@ -127,18 +127,18 @@ public:
         float menuWidth = ImGui::GetContentRegionAvailWidth();
 
         ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::InputFloat(("##_radio_usb_bw_" + uiPrefix).c_str(), &bw, 1, 100, "%.0f", 0)) {
+        if (ImGui::InputFloat(("##_radio_cw_bw_" + uiPrefix).c_str(), &bw, 1, 100, "%.0f", 0)) {
             bw = std::clamp<float>(bw, bwMin, bwMax);
             setBandwidth(bw);
             _config->acquire();
-            _config->conf[uiPrefix]["USB"]["bandwidth"] = bw;
+            _config->conf[uiPrefix]["CW"]["bandwidth"] = bw;
             _config->release(true);
         }if (running) {
             if (_vfo->getBandwidthChanged()) {
                 bw = _vfo->getBandwidth();
                 setBandwidth(bw, false);
                 _config->acquire();
-                _config->conf[uiPrefix]["USB"]["bandwidth"] = bw;
+                _config->conf[uiPrefix]["CW"]["bandwidth"] = bw;
                 _config->release(true);
             }
         }
@@ -146,21 +146,21 @@ public:
         ImGui::Text("Snap Interval");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::InputFloat(("##_radio_usb_snap_" + uiPrefix).c_str(), &snapInterval, 1, 100, "%.0f", 0)) {
+        if (ImGui::InputFloat(("##_radio_cw_snap_" + uiPrefix).c_str(), &snapInterval, 1, 100, "%.0f", 0)) {
             if (snapInterval < 1) { snapInterval = 1; }
             setSnapInterval(snapInterval);
             _config->acquire();
-            _config->conf[uiPrefix]["USB"]["snapInterval"] = snapInterval;
+            _config->conf[uiPrefix]["CW"]["snapInterval"] = snapInterval;
             _config->release(true);
         }
 
         ImGui::Text("Squelch");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::SliderFloat(("##_radio_usb_squelch_" + uiPrefix).c_str(), &squelchLevel, -100.0f, 0.0f, "%.3fdB")) {
+        if (ImGui::SliderFloat(("##_radio_cw_squelch_" + uiPrefix).c_str(), &squelchLevel, -100.0f, 0.0f, "%.3fdB")) {
             squelch.setLevel(squelchLevel);
             _config->acquire();
-            _config->conf[uiPrefix]["USB"]["squelchLevel"] = squelchLevel;
+            _config->conf[uiPrefix]["CW"]["squelchLevel"] = squelchLevel;
             _config->release(true);
         }
     } 
