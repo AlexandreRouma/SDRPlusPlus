@@ -137,11 +137,17 @@ public:
     }
 
     void receiveData(uint8_t* buf, size_t count) {
+        int received = 0;
+        int ret = 0;
+        while (received < count) {
 #ifdef _WIN32
-        recv(sock, (char*)buf, count, 0);
+            ret = recv(sock, (char*)&buf[received], count - received, 0);
 #else
-        (void)read(sockfd, buf, count);
+            ret = read(sockfd, &buf[received], count - received);
 #endif
+            if (ret <= 0) { return; }
+            received += ret;
+        }
     }
 
     void setFrequency(double freq) {
@@ -166,6 +172,10 @@ public:
 
     void setDirectSampling(int mode) {
         sendCommand(9, mode);
+    }
+
+    void setOffsetTuning(bool enabled) {
+        sendCommand(10, enabled);
     }
 
     void setGainIndex(int index) {
