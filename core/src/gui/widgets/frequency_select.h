@@ -14,6 +14,10 @@ public:
     bool frequencyChanged = false;
     bool digitHovered = false;
 
+    bool limitFreq;
+    uint64_t minFreq;
+    uint64_t maxFreq;
+
 private:
     void onPosChange();
     void onResize();

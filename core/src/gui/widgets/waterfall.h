@@ -141,6 +141,8 @@ namespace ImGui {
 
         float selectedVFOSNR = NAN;
 
+        bool centerFrequencyLocked = false;
+
         std::map<std::string, WaterfallVFO*> vfos;
         std::string selectedVFO = "";
         bool selectedVFOChanged = false;

@@ -7,6 +7,9 @@
 #include <core.h>
 #include <options.h>
 #include <gui/widgets/file_select.h>
+#include <filesystem>
+#include <regex>
+#include <gui/tuner.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -63,13 +66,19 @@ private:
     static void menuSelected(void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
         core::setInputSampleRate(_this->sampleRate);
+        tuner::tune(tuner::TUNER_MODE_IQ_ONLY, "", _this->centerFreq);
         sigpath::signalPath.setBuffering(false);
+        gui::waterfall.centerFrequencyLocked = true;
+        gui::freqSelect.minFreq = _this->centerFreq - (_this->sampleRate/2);
+        gui::freqSelect.maxFreq = _this->centerFreq + (_this->sampleRate/2);
+        gui::freqSelect.limitFreq = true;
         spdlog::info("FileSourceModule '{0}': Menu Select!", _this->name);
     }
 
     static void menuDeselected(void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
         sigpath::signalPath.setBuffering(true);
+        gui::waterfall.centerFrequencyLocked = false;
         spdlog::info("FileSourceModule '{0}': Menu Deselect!", _this->name);
     }
     
@@ -112,8 +121,16 @@ private:
                     _this->reader = new WavReader(_this->fileSelect.path);
                     _this->sampleRate = _this->reader->getSampleRate();
                     core::setInputSampleRate(_this->sampleRate);
+                    std::string filename = std::filesystem::path(_this->fileSelect.path).filename().string();
+                    _this->centerFreq = _this->getFrequency(filename);
+                    tuner::tune(tuner::TUNER_MODE_IQ_ONLY, "", _this->centerFreq);
+                    gui::freqSelect.minFreq = _this->centerFreq - (_this->sampleRate/2);
+                    gui::freqSelect.maxFreq = _this->centerFreq + (_this->sampleRate/2);
+                    gui::freqSelect.limitFreq = true;
                 }
-                catch (std::exception e) {}
+                catch (std::exception e) {
+                    spdlog::error("Error: {0}", e.what());
+                }
                 config.acquire();
                 config.conf["path"] = _this->fileSelect.path;
                 config.release(true);
@@ -152,6 +169,16 @@ private:
         delete[] inBuf;
     }
 
+    double getFrequency(std::string filename) {
+        std::regex expr("[0-9]+Hz");
+        std::smatch matches;
+        std::regex_search(filename, matches, expr);
+        spdlog::warn("{0} {1}", filename, matches.size());
+        if (matches.empty()) { return 0; }
+        std::string freqStr = matches[0].str();
+        return std::atof(freqStr.substr(0, freqStr.size() - 2).c_str());
+    }
+
     FileSelect fileSelect;
     std::string name;
     dsp::stream<dsp::complex_t> stream;
@@ -161,6 +188,8 @@ private:
     bool enabled = true;
     float sampleRate = 48000;
     std::thread workerThread;
+
+    double centerFreq = 0;
 
     bool float32Mode = false;
 };

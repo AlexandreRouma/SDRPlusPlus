@@ -4,6 +4,7 @@
 #include <string>
 
 namespace tuner {
+
     void centerTuning(std::string vfoName, double freq) {
         if (vfoName != "") {
             if (gui::waterfall.vfos.find(vfoName) == gui::waterfall.vfos.end()) { return; }
@@ -110,6 +111,12 @@ namespace tuner {
         }
     }
 
+    void iqTuning(double freq) {
+        gui::waterfall.setCenterFrequency(freq);
+        gui::waterfall.centerFreqMoved = true;
+        sigpath::sourceManager.tune(freq);
+    }
+
     void tune(int mode, std::string vfoName, double freq) {
         switch (mode) {
             case TUNER_MODE_CENTER:
@@ -123,6 +130,9 @@ namespace tuner {
                 break;
             case TUNER_MODE_UPPER_HALF:
                 normalTuning(vfoName, freq);
+                break;
+            case TUNER_MODE_IQ_ONLY:
+                iqTuning(freq);
                 break;
         }
     }

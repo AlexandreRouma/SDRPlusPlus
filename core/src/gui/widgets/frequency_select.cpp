@@ -173,6 +173,7 @@ void FrequencySelect::draw() {
                     for (int j = i; j < 12; j++) {
                         digits[j] = 0;
                     }
+
                     frequencyChanged = true;
                 }
                 if (ImGui::IsKeyPressed(GLFW_KEY_UP)) {
@@ -214,7 +215,15 @@ void FrequencySelect::draw() {
     for (int i = 0; i < 12; i++) {
         freq += digits[i] * pow(10, 11 - i);
     }
-    frequency = freq;
+
+    uint64_t orig = freq;
+    freq = std::clamp<uint64_t>(freq, minFreq, maxFreq);
+    if (freq != orig && limitFreq) {
+        setFrequency(freq);
+    }
+    else {
+        frequency = orig;
+    }
 
     ImGui::PopFont();
 

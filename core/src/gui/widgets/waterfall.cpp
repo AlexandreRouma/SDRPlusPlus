@@ -336,14 +336,18 @@ namespace ImGui {
             if (viewOffset + (viewBandwidth / 2.0) > wholeBandwidth / 2.0) {
                 double freqOffset = (viewOffset + (viewBandwidth / 2.0)) - (wholeBandwidth / 2.0);
                 viewOffset = (wholeBandwidth / 2.0) - (viewBandwidth / 2.0);
-                centerFreq += freqOffset;
-                centerFreqMoved = true;
+                if (!centerFrequencyLocked) {
+                    centerFreq += freqOffset;
+                    centerFreqMoved = true;
+                }
             }
             if (viewOffset - (viewBandwidth / 2.0) < -(wholeBandwidth / 2.0)) {
                 double freqOffset = (viewOffset - (viewBandwidth / 2.0)) + (wholeBandwidth / 2.0);
                 viewOffset = (viewBandwidth / 2.0) - (wholeBandwidth / 2.0);
-                centerFreq += freqOffset;
-                centerFreqMoved = true;
+                if (!centerFrequencyLocked) {
+                    centerFreq += freqOffset;
+                    centerFreqMoved = true;
+                }
             }
 
             lowerFreq = (centerFreq + viewOffset) - (viewBandwidth / 2.0);
