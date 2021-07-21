@@ -172,6 +172,10 @@ public:
         sendCommand(13, index);
     }
 
+    void setBiasTee(bool enabled) {
+        sendCommand(14, index);
+    }
+
 private:
 #ifdef _WIN32
     SOCKET sock;

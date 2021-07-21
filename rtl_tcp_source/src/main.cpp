@@ -69,6 +69,7 @@ public:
         rtlAGC = config.conf["rtlAGC"];
         tunerAGC = config.conf["tunerAGC"];
         gain = config.conf["gainIndex"];
+        biasTee = config.conf["biasTee"];
         hostStr = hostStr.substr(0, 1023);
         strcpy(ip, hostStr.c_str());
         config.release();
@@ -128,6 +129,7 @@ private:
         _this->client.setDirectSampling(_this->directSamplingMode);
         _this->client.setAGCMode(_this->rtlAGC);
         _this->client.setGainIndex(_this->gain);
+        _this->client.setBiasTee(_this->biasTee);
         _this->running = true;
         _this->workerThread = std::thread(worker, _this);
         spdlog::info("RTLTCPSourceModule '{0}': Start!", _this->name);
@@ -218,6 +220,12 @@ private:
             }
         }
         if (_this->tunerAGC) { style::endDisabled(); }
+
+        if (ImGui::Checkbox(CONCAT("##_biast_select_", _this->name), &_this->biasTee)) {
+            if (_this->running) {
+                _this->client.setBiasTee(_this->biasTee);
+            }
+        }
     }
 
     static void worker(void* ctx) {
@@ -254,6 +262,7 @@ private:
     bool tunerAGC = false;
     int directSamplingMode = 0;
     int srId = 0;
+    bool biasTee = false;
 
     std::string srTxt = "";
 };
@@ -267,8 +276,15 @@ MOD_EXPORT void _INIT_() {
    defConf["rtlAGC"] = false;
    defConf["tunerAGC"] = false;
    defConf["gainIndex"] = 0;
+   defConf["biasTee"] = false;
    config.load(defConf);
    config.enableAutoSave();
+
+    config.acquire();
+    if (!config.conf.contains("biasTee")) {
+        config.conf["biasTee"] = false;
+    }
+    config.release(true);
 }
 
 MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
