@@ -370,7 +370,7 @@ I will soon publish a contributing.md listing the code style to use.
 * [Maxime Biette](https://github.com/mbiette)
 * [Paulo Matias](https://github.com/thotypous)
 * [Raov](https://twitter.com/raov_birbtog)
-* [Starman0620](https://github.com/Starman0620)
+* [Cam K.](https://github.com/Starman0620)
 * [Syne Ardwin (WI9SYN)](https://esaille.me/)
 * [Szymon Zakrent](https://github.com/zakrent)
 * [Tobias Mädel](https://github.com/Manawyrm)
