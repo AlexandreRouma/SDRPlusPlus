@@ -173,7 +173,7 @@ public:
     }
 
     void setBiasTee(bool enabled) {
-        sendCommand(14, index);
+        sendCommand(14, enabled);
     }
 
 private:
