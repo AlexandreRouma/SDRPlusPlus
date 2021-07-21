@@ -221,7 +221,7 @@ private:
         }
         if (_this->tunerAGC) { style::endDisabled(); }
 
-        if (ImGui::Checkbox(CONCAT("##_biast_select_", _this->name), &_this->biasTee)) {
+        if (ImGui::Checkbox(CONCAT("Bias-T##_biast_select_", _this->name), &_this->biasTee)) {
             if (_this->running) {
                 _this->client.setBiasTee(_this->biasTee);
             }
