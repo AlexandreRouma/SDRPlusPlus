@@ -69,16 +69,16 @@ private:
         tuner::tune(tuner::TUNER_MODE_IQ_ONLY, "", _this->centerFreq);
         sigpath::signalPath.setBuffering(false);
         gui::waterfall.centerFrequencyLocked = true;
-        gui::freqSelect.minFreq = _this->centerFreq - (_this->sampleRate/2);
-        gui::freqSelect.maxFreq = _this->centerFreq + (_this->sampleRate/2);
-        gui::freqSelect.limitFreq = true;
+        //gui::freqSelect.minFreq = _this->centerFreq - (_this->sampleRate/2);
+        //gui::freqSelect.maxFreq = _this->centerFreq + (_this->sampleRate/2);
+        //gui::freqSelect.limitFreq = true;
         spdlog::info("FileSourceModule '{0}': Menu Select!", _this->name);
     }
 
     static void menuDeselected(void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
         sigpath::signalPath.setBuffering(true);
-        gui::waterfall.centerFrequencyLocked = false;
+        //gui::waterfall.centerFrequencyLocked = false;
         spdlog::info("FileSourceModule '{0}': Menu Deselect!", _this->name);
     }
     
@@ -124,9 +124,9 @@ private:
                     std::string filename = std::filesystem::path(_this->fileSelect.path).filename().string();
                     _this->centerFreq = _this->getFrequency(filename);
                     tuner::tune(tuner::TUNER_MODE_IQ_ONLY, "", _this->centerFreq);
-                    gui::freqSelect.minFreq = _this->centerFreq - (_this->sampleRate/2);
-                    gui::freqSelect.maxFreq = _this->centerFreq + (_this->sampleRate/2);
-                    gui::freqSelect.limitFreq = true;
+                    //gui::freqSelect.minFreq = _this->centerFreq - (_this->sampleRate/2);
+                    //gui::freqSelect.maxFreq = _this->centerFreq + (_this->sampleRate/2);
+                    //gui::freqSelect.limitFreq = true;
                 }
                 catch (std::exception e) {
                     spdlog::error("Error: {0}", e.what());
@@ -186,10 +186,10 @@ private:
     WavReader* reader = NULL;
     bool running = false;
     bool enabled = true;
-    float sampleRate = 48000;
+    float sampleRate = 1000000;
     std::thread workerThread;
 
-    double centerFreq = 0;
+    double centerFreq = 100000000;
 
     bool float32Mode = false;
 };

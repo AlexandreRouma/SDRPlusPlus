@@ -98,6 +98,91 @@ namespace dsp {
 
     };
 
+    class ComplexFIR : public generic_block<ComplexFIR> {
+    public:
+        ComplexFIR() {}
+
+        ComplexFIR(stream<complex_t>* in, dsp::filter_window::generic_complex_window* window) { init(in, window); }
+
+        ~ComplexFIR() {
+            if (!generic_block<ComplexFIR>::_block_init) { return; }
+            generic_block<ComplexFIR>::stop();
+            volk_free(buffer);
+            volk_free(taps);
+            generic_block<ComplexFIR>::_block_init = false;
+        }
+
+        void init(stream<complex_t>* in, dsp::filter_window::generic_complex_window* window) {
+            _in = in;
+
+            tapCount = window->getTapCount();
+            taps = (complex_t*)volk_malloc(tapCount * sizeof(complex_t), volk_get_alignment());
+            window->createTaps(taps, tapCount);
+
+            buffer = (complex_t*)volk_malloc(STREAM_BUFFER_SIZE * sizeof(complex_t) * 2, volk_get_alignment());
+            bufStart = &buffer[tapCount];
+            generic_block<ComplexFIR>::registerInput(_in);
+            generic_block<ComplexFIR>::registerOutput(&out);
+            generic_block<ComplexFIR>::_block_init = true;
+        }
+
+        void setInput(stream<complex_t>* in) {
+            assert(generic_block<ComplexFIR>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<ComplexFIR>::ctrlMtx);
+            generic_block<ComplexFIR>::tempStop();
+            generic_block<ComplexFIR>::unregisterInput(_in);
+            _in = in;
+            generic_block<ComplexFIR>::registerInput(_in);
+            generic_block<ComplexFIR>::tempStart();
+        }
+
+        void updateWindow(dsp::filter_window::generic_complex_window* window) {
+            assert(generic_block<ComplexFIR>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<ComplexFIR>::ctrlMtx);
+            _window = window;
+            volk_free(taps);
+            tapCount = window->getTapCount();
+            taps = (complex_t*)volk_malloc(tapCount * sizeof(complex_t), volk_get_alignment());
+            bufStart = &buffer[tapCount];
+            window->createTaps(taps, tapCount);
+        }
+
+        int run() {
+            int count = _in->read();
+            if (count < 0) { return -1; }
+
+            generic_block<ComplexFIR>::ctrlMtx.lock();
+
+            memcpy(bufStart, _in->readBuf, count * sizeof(complex_t));
+            _in->flush();
+
+            for (int i = 0; i < count; i++) {
+                volk_32fc_x2_dot_prod_32fc((lv_32fc_t*)&out.writeBuf[i], (lv_32fc_t*)&buffer[i+1], (lv_32fc_t*)taps, tapCount);
+            }
+
+            if (!out.swap(count)) { return -1; }
+
+            memmove(buffer, &buffer[count], tapCount * sizeof(complex_t));
+
+            generic_block<ComplexFIR>::ctrlMtx.unlock();
+
+            return count;
+        }
+
+        stream<complex_t> out;
+
+    private:
+        stream<complex_t>* _in;
+
+        dsp::filter_window::generic_complex_window* _window;
+
+        complex_t* bufStart;
+        complex_t* buffer;
+        int tapCount;
+        complex_t* taps;
+
+    };
+
     class BFMDeemp : public generic_block<BFMDeemp> {
     public:
         BFMDeemp() {}

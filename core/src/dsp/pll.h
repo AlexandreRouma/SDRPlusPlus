@@ -323,7 +323,7 @@ namespace dsp {
 
         float _alpha; // Integral coefficient
         float _beta; // Proportional coefficient
-        float vcoFrequency = 0.0f;
+        float vcoFrequency = ((19000.0f / 250000.0f) * 2.0f * FL_M_PI);
         float vcoPhase = 0.0f;
         complex_t lastVCO;
 

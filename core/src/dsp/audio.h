@@ -52,6 +52,8 @@ namespace dsp {
         void init(stream<float>* in_left, stream<float>* in_right) {
             _in_left = in_left;
             _in_right = in_right;
+            nullbuf = new float[STREAM_BUFFER_SIZE];
+            for (int i = 0; i < STREAM_BUFFER_SIZE; i++) { nullbuf[i] = 0; }
             generic_block<ChannelsToStereo>::registerInput(_in_left);
             generic_block<ChannelsToStereo>::registerInput(_in_right);
             generic_block<ChannelsToStereo>::registerOutput(&out);
@@ -94,6 +96,8 @@ namespace dsp {
     private:
         stream<float>* _in_left;
         stream<float>* _in_right;
+
+        float* nullbuf;
 
     };
 

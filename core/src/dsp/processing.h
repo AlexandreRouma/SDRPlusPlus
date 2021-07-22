@@ -559,4 +559,57 @@ namespace dsp {
         stream<float>* _in;
 
     };
+
+    class BFMPilotToStereo : public generic_block<BFMPilotToStereo> {
+    public:
+        BFMPilotToStereo() {}
+
+        BFMPilotToStereo(stream<complex_t>* in) { init(in); }
+
+        ~BFMPilotToStereo() {
+            generic_block<BFMPilotToStereo>::stop();
+            delete[] buffer;
+        }
+
+        void init(stream<complex_t>* in) {
+            _in = in;
+
+            buffer = new complex_t[STREAM_BUFFER_SIZE];
+
+            generic_block<BFMPilotToStereo>::registerInput(_in);
+            generic_block<BFMPilotToStereo>::registerOutput(&out);
+            generic_block<BFMPilotToStereo>::_block_init = true;
+        }
+
+        void setInputs(stream<complex_t>* in) {
+            assert(generic_block<BFMPilotToStereo>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<BFMPilotToStereo>::ctrlMtx);
+            generic_block<BFMPilotToStereo>::tempStop();
+            generic_block<BFMPilotToStereo>::unregisterInput(_in);
+            _in = in;
+            generic_block<BFMPilotToStereo>::registerInput(_in);
+            generic_block<BFMPilotToStereo>::tempStart();
+        }
+
+        int run() {
+            int count = _in->read();
+            if (count < 0) { return -1; }
+
+            volk_32fc_x2_multiply_32fc((lv_32fc_t*)buffer, (lv_32fc_t*)_in->readBuf, (lv_32fc_t*)_in->readBuf, count);
+            _in->flush();
+
+            volk_32fc_conjugate_32fc((lv_32fc_t*)out.writeBuf, (lv_32fc_t*)buffer, count);
+
+            if (!out.swap(count)) { return -1; }
+            return count;
+        }
+
+        stream<complex_t> out;
+
+    private:
+        stream<complex_t>* _in;
+
+        complex_t* buffer;
+
+    };
 }

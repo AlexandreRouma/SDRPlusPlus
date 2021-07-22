@@ -175,10 +175,10 @@ namespace dsp {
         void init(stream<T>* a, stream<T>* b) {
             _a = a;
             _b = b;
-            generic_block<Multiply>::registerInput(a);
-            generic_block<Multiply>::registerInput(b);
-            generic_block<Multiply>::registerOutput(&out);
-            generic_block<Multiply>::_block_init = true;
+            generic_block<Multiply<T>>::registerInput(a);
+            generic_block<Multiply<T>>::registerInput(b);
+            generic_block<Multiply<T>>::registerOutput(&out);
+            generic_block<Multiply<T>>::_block_init = true;
         }
 
         void setInputs(stream<T>* a, stream<T>* b) {
