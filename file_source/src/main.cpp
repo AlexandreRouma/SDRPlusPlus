@@ -78,7 +78,8 @@ private:
     static void menuDeselected(void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
         sigpath::signalPath.setBuffering(true);
-        //gui::waterfall.centerFrequencyLocked = false;
+        //gui::freqSelect.limitFreq = false;
+        gui::waterfall.centerFrequencyLocked = false;
         spdlog::info("FileSourceModule '{0}': Menu Deselect!", _this->name);
     }
     
