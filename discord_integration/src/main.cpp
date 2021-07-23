@@ -11,7 +11,7 @@
 SDRPP_MOD_INFO {
     /* Name:            */ "discord_integration",
     /* Description:     */ "Discord Rich Presence module for SDR++",
-    /* Author:          */ "Starman0620;Ryzerth",
+    /* Author:          */ "Cam K.;Ryzerth",
     /* Version:         */ 0, 0, 2,
     /* Max instances    */ 1
 };

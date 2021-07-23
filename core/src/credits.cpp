@@ -16,7 +16,7 @@ namespace sdrpp_credits {
         "Maxime Biette",
         "Paulo Matias",
         "Raov",
-        "Starman0620",
+        "Cam K.",
         "Szymon Zakrent",
         "Tobias Mädel",
         "Zimm"
