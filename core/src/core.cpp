@@ -20,6 +20,7 @@
 #include <duktape/duk_console.h>
 #include <filesystem>
 #include <gui/menus/theme.h>
+#include <server.h>
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb_image_resize.h>
@@ -257,6 +258,8 @@ int sdrpp_main(int argc, char *argv[]) {
     }
 
     core::configManager.release(true);
+
+    if (options::opts.serverMode) { return server_main(); }
 
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);

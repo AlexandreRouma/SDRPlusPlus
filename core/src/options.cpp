@@ -25,6 +25,9 @@ namespace options {
             else if (!strcmp(arg, "-s") || !strcmp(arg, "--show-console")) {
                 opts.showConsole = true;
             }
+            else if (!strcmp(arg, "--server")) {
+                opts.serverMode = true;
+            }
             else {
                 spdlog::error("Invalid command line option: {0}", arg);
                 return false;

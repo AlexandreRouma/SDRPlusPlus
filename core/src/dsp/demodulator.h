@@ -10,6 +10,7 @@
 #include <dsp/math.h>
 #include <dsp/convertion.h>
 #include <dsp/audio.h>
+#include <dsp/stereo_fm.h>
 
 #define FAST_ATAN2_COEF1    FL_M_PI / 4.0f
 #define FAST_ATAN2_COEF2    3.0f * FAST_ATAN2_COEF1
@@ -670,67 +671,32 @@ namespace dsp {
     public:
         StereoFMDemod() {}
 
-        StereoFMDemod(stream<float>* input, float sampleRate, float baudRate, float agcRate = 0.02e-3f, float pllLoopBandwidth = (0.06f*0.06f) / 4.0f, int rrcTapCount = 31, float rrcAlpha = 0.6f, float omegaGain = (0.01*0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
-            init(input, sampleRate);
+        StereoFMDemod(stream<complex_t>* input, float sampleRate, float deviation) {
+            init(input, sampleRate, deviation);
         }
 
-        void init(stream<float>* input, float sampleRate) {
+        void init(stream<complex_t>* input, float sampleRate, float deviation) {
             _sampleRate = sampleRate;
 
-            r2c.init(input);
-            split.init(&r2c.out);
+            PilotFirWin.init(18750, 19250, 3000, _sampleRate);
 
-            split.bindStream(&APlusBIn);
-            split.bindStream(&AMinusBIn);
-            split.bindStream(&PilotIn);
+            demod.init(input, _sampleRate, deviation);
 
-            APlusBWin.init(0, 17000, 2500, _sampleRate);
-            AMinusBWin.init(38000, 38000 + 17000, 2500, _sampleRate);
-            PilotWin.init(18500, 19500, 1500, _sampleRate);
+            r2c.init(&demod.out);
 
-            APlusBFir.init(&APlusBIn, &APlusBWin);
-            AMinusBFir.init(&AMinusBIn, &AMinusBWin);
-            PilotFir.init(&PilotIn, &PilotWin);
+            pilotFilter.init(&r2c.out, &PilotFirWin);
 
-            pll.init(&PilotFir.out, 0.1f);
+            demux.init(&pilotFilter.dataOut, &pilotFilter.pilotOut, 1.0f);
 
-            p2s.init(&pll.out);
+            recon.init(&demux.AplusBOut, &demux.AminusBOut);
 
-            mixer.init(&AMinusBFir.out, &p2s.out);
-
-            c2rAPlusB.init(&APlusBFir.out);
-            c2rAMinusB.init(&mixer.out);
-
-            APlusBSplit.init(&c2rAPlusB.out);
-            AMinusBSplit.init(&c2rAMinusB.out);
-
-            APlusBSplit.bindStream(&AdderAPlusB);
-            APlusBSplit.bindStream(&SubtractorAPlusB);
-            AMinusBSplit.bindStream(&AdderAMinusB);
-            AMinusBSplit.bindStream(&SubtractorAMinusB);
-
-            Adder.init(&AdderAPlusB, &AdderAMinusB);
-            Subtractor.init(&SubtractorAPlusB, &SubtractorAMinusB);
-
-            c2s.init(&Adder.out, &Subtractor.out);
-
-            out = &c2s.out;
-
+            out = &recon.out;
+            
+            generic_hier_block<StereoFMDemod>::registerBlock(&demod);
             generic_hier_block<StereoFMDemod>::registerBlock(&r2c);
-            generic_hier_block<StereoFMDemod>::registerBlock(&split);
-            generic_hier_block<StereoFMDemod>::registerBlock(&APlusBFir);
-            generic_hier_block<StereoFMDemod>::registerBlock(&AMinusBFir);
-            generic_hier_block<StereoFMDemod>::registerBlock(&PilotFir);
-            generic_hier_block<StereoFMDemod>::registerBlock(&pll);
-            generic_hier_block<StereoFMDemod>::registerBlock(&p2s);
-            generic_hier_block<StereoFMDemod>::registerBlock(&mixer);
-            generic_hier_block<StereoFMDemod>::registerBlock(&c2rAPlusB);
-            generic_hier_block<StereoFMDemod>::registerBlock(&c2rAMinusB);
-            generic_hier_block<StereoFMDemod>::registerBlock(&APlusBSplit);
-            generic_hier_block<StereoFMDemod>::registerBlock(&AMinusBSplit);
-            generic_hier_block<StereoFMDemod>::registerBlock(&Adder);
-            generic_hier_block<StereoFMDemod>::registerBlock(&Subtractor);
-            generic_hier_block<StereoFMDemod>::registerBlock(&c2s);
+            generic_hier_block<StereoFMDemod>::registerBlock(&pilotFilter);
+            generic_hier_block<StereoFMDemod>::registerBlock(&demux);
+            generic_hier_block<StereoFMDemod>::registerBlock(&recon);
             generic_hier_block<StereoFMDemod>::_block_init = true;
         }
 
@@ -739,44 +705,24 @@ namespace dsp {
             r2c.setInput(input);
         }
 
+        void setDeviation(float deviation) {
+            demod.setDeviation(deviation);
+        }
+
         stream<stereo_t>* out = NULL;
 
     private:
-        filter_window::BandPassBlackmanWindow APlusBWin;
-        filter_window::BandPassBlackmanWindow AMinusBWin;
-        filter_window::BandPassBlackmanWindow PilotWin;
+        filter_window::BandPassBlackmanWindow PilotFirWin;
+
+        FloatFMDemod demod;
 
         RealToComplex r2c;
-        Splitter<complex_t> split;
 
-        stream<complex_t> APlusBIn;
-        stream<complex_t> AMinusBIn;
-        stream<complex_t> PilotIn;
-        ComplexFIR APlusBFir;
-        ComplexFIR AMinusBFir;
-        ComplexFIR PilotFir;
+        FMStereoDemuxPilotFilter pilotFilter;
 
-        PLL pll;
+        FMStereoDemux demux;
 
-        BFMPilotToStereo p2s;
-
-        Multiply<complex_t> mixer;
-
-        ComplexToReal c2rAPlusB;
-        ComplexToReal c2rAMinusB;
-
-        Splitter<float> APlusBSplit;
-        Splitter<float> AMinusBSplit;
-
-        stream<float> AdderAPlusB;
-        stream<float> AdderAMinusB;
-        stream<float> SubtractorAPlusB;
-        stream<float> SubtractorAMinusB;
-
-        Add<float> Adder;
-        Add<float> Subtractor;
-
-        ChannelsToStereo c2s;
+        FMStereoReconstruct recon;
 
         float _sampleRate;
     };

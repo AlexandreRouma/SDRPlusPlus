@@ -48,6 +48,7 @@ public:
         squelch.init(_vfo->output, squelchLevel);
         
         demod.init(&squelch.out, bbSampRate, bw / 2.0f);
+        demodStereo.init(&squelch.out, bbSampRate, bw / 2.0f);
 
         float audioBW = std::min<float>(audioSampleRate / 2.0f, 16000.0f);
         win.init(audioBW, audioBW, bbSampRate);
@@ -63,7 +64,12 @@ public:
 
     void start() {
         squelch.start();
-        demod.start();
+        if (stereo) {
+            demodStereo.start();
+        }
+        else {
+            demod.start();
+        }
         resamp.start();
         deemp.start();
         running = true;
@@ -71,7 +77,12 @@ public:
 
     void stop() {
         squelch.stop();
-        demod.stop();
+        if (stereo) {
+            demodStereo.stop();
+        }
+        else {
+            demod.stop();
+        }
         resamp.stop();
         deemp.stop();
         running = false;
@@ -176,6 +187,10 @@ public:
             _config->conf[uiPrefix]["WFM"]["squelchLevel"] = squelchLevel;
             _config->release(true);
         }
+
+        if (ImGui::Checkbox("Stereo##radio_wfm_demod", &stereo)) {
+            setStereo(stereo);
+        }
     }
 
     void setDeempIndex(int id) {
@@ -197,6 +212,23 @@ public:
         bw = bandWidth;
         _vfo->setBandwidth(bw, updateWaterfall);
         demod.setDeviation(bw / 2.0f);
+        demodStereo.setDeviation(bw / 2.0f);
+    }
+
+    void setStereo(bool enabled) {
+        if (running) {
+            demod.stop();
+            demodStereo.stop();
+        }
+
+        if (enabled) {
+            resamp.setInput(demodStereo.out);
+            if (running) { demodStereo.start(); }
+        }
+        else {
+            resamp.setInput(&demod.out);
+            if (running) { demod.start(); }
+        }
     }
 
 private:
@@ -212,13 +244,17 @@ private:
     float audioSampRate = 48000;
     float squelchLevel = -100.0f;
     float bw = 200000;
+    bool stereo = false;
     int deempId = 0;
     float tau = 50e-6;
     bool running = false;
 
     VFOManager::VFO* _vfo;
     dsp::Squelch squelch;
+
     dsp::FMDemod demod;
+    dsp::StereoFMDemod demodStereo;
+
     dsp::filter_window::BlackmanWindow win;
     dsp::PolyphaseResampler<dsp::stereo_t> resamp;
     dsp::BFMDeemp deemp;

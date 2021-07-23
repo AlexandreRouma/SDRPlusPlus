@@ -279,11 +279,6 @@ namespace dsp {
             float error;
 
             for (int i = 0; i < count; i++) {
-
-                // Mix the VFO with the input to create the output value
-                outVal.re = (lastVCO.re*_in->readBuf[i].re) - ((-lastVCO.im)*_in->readBuf[i].im);
-                outVal.im = ((-lastVCO.im)*_in->readBuf[i].re) + (lastVCO.re*_in->readBuf[i].im);
-
                 out.writeBuf[i] = lastVCO;
 
                 // Calculate the phase error estimation
@@ -291,9 +286,6 @@ namespace dsp {
                 error = _in->readBuf[i].phase() - vcoPhase;
                 if (error > 3.1415926535f)        { error -= 2.0f * 3.1415926535f; }
                 else if (error <= -3.1415926535f) { error += 2.0f * 3.1415926535f; }
-                
-                // if (error > 1.0f) { error = 1.0f; }
-                // else if (error < -1.0f) { error = -1.0f; }
                 
                 // Integrate frequency and clamp it
                 vcoFrequency += _beta * error;

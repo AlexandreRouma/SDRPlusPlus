@@ -155,6 +155,7 @@ if (OPT_BUILD_RIGCTL_SERVER)
 add_subdirectory("rigctl_server")
 endif (OPT_BUILD_RIGCTL_SERVER)
 
+
 add_executable(sdrpp "src/main.cpp" "win32/resources.rc")
 target_link_libraries(sdrpp PRIVATE sdrpp_core)
 
