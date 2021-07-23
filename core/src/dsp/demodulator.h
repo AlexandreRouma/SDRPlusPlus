@@ -686,7 +686,7 @@ namespace dsp {
 
             pilotFilter.init(&r2c.out, &PilotFirWin);
 
-            demux.init(&pilotFilter.dataOut, &pilotFilter.pilotOut, 1.0f);
+            demux.init(&pilotFilter.dataOut, &pilotFilter.pilotOut, 0.1f);
 
             recon.init(&demux.AplusBOut, &demux.AminusBOut);
 

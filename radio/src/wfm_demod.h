@@ -26,22 +26,29 @@ public:
         _config->acquire();
         if(_config->conf.contains(prefix)) {
             if(!_config->conf[prefix].contains("WFM")) {
-                if (!_config->conf[prefix]["WFM"].contains("bandwidth")) { _config->conf[prefix]["WFM"]["bandwidth"] = bw; }
-                if (!_config->conf[prefix]["WFM"].contains("snapInterval")) { _config->conf[prefix]["WFM"]["snapInterval"] = snapInterval; }
-                if (!_config->conf[prefix]["WFM"].contains("deempMode")) { _config->conf[prefix]["WFM"]["deempMode"] = deempId; }
-                if (!_config->conf[prefix]["WFM"].contains("squelchLevel")) { _config->conf[prefix]["WFM"]["squelchLevel"] = squelchLevel; }
+                _config->conf[prefix]["WFM"]["bandwidth"] = bw;
+                _config->conf[prefix]["WFM"]["snapInterval"] = snapInterval;
+                _config->conf[prefix]["WFM"]["deempMode"] = deempId;
+                _config->conf[prefix]["WFM"]["squelchLevel"] = squelchLevel;
+                _config->conf[prefix]["WFM"]["stereo"] = false;
             }
+
+            // Correct for new settings
+            if (!config->conf[prefix]["WFM"].contains("stereo")) { _config->conf[prefix]["WFM"]["stereo"] = false;}
+
             json conf = _config->conf[prefix]["WFM"];
             bw = conf["bandwidth"];
             snapInterval = conf["snapInterval"];
             deempId = conf["deempMode"];
             squelchLevel = conf["squelchLevel"];
+            stereo = conf["stereo"];
         }
         else {
             _config->conf[prefix]["WFM"]["bandwidth"] = bw;
             _config->conf[prefix]["WFM"]["snapInterval"] = snapInterval;
             _config->conf[prefix]["WFM"]["deempMode"] = deempId; 
             _config->conf[prefix]["WFM"]["squelchLevel"] = squelchLevel;
+            _config->conf[prefix]["WFM"]["stereo"] = false;
         }
         _config->release(true);
         
@@ -52,7 +59,12 @@ public:
 
         float audioBW = std::min<float>(audioSampleRate / 2.0f, 16000.0f);
         win.init(audioBW, audioBW, bbSampRate);
-        resamp.init(&demod.out, &win, bbSampRate, audioSampRate);
+        if (stereo) {
+            resamp.init(demodStereo.out, &win, bbSampRate, audioSampRate);
+        }
+        else {
+            resamp.init(&demod.out, &win, bbSampRate, audioSampRate);
+        }
         win.setSampleRate(bbSampRate * resamp.getInterpolation());
         resamp.updateWindow(&win);
 
@@ -190,6 +202,9 @@ public:
 
         if (ImGui::Checkbox("Stereo##radio_wfm_demod", &stereo)) {
             setStereo(stereo);
+            _config->acquire();
+            _config->conf[uiPrefix]["WFM"]["stereo"] = stereo;
+            _config->release(true);
         }
     }
 

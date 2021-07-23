@@ -157,8 +157,9 @@ namespace dsp {
 
             for (int i = 0; i < count; i++) {
                 // Double the VCO, then mix it with the input data.
+                // IMPORTANT: THERE SHOULDN'T BE A NEED FOR A GAIN HERE
                 doubledVCO = lastVCO*lastVCO;
-                AminusBOut.writeBuf[i] = (_data->readBuf[i].re * doubledVCO.re) + (_data->readBuf[i].im * doubledVCO.im);
+                AminusBOut.writeBuf[i] = (_data->readBuf[i].re * doubledVCO.re) * 2.0f;
 
                 // Calculate the phase error estimation
                 error = _pilot->readBuf[i].phase() - vcoPhase;
@@ -190,6 +191,8 @@ namespace dsp {
 
         stream<float> AplusBOut;
         stream<float> AminusBOut;
+
+        float gain = 2.0f;
 
     private:
         float _loopBandwidth = 0.01f;
@@ -257,8 +260,8 @@ namespace dsp {
                 return 0;
             }
 
-            volk_32f_x2_add_32f(leftBuf, _aplusb->readBuf, _aminusb->readBuf, a_count);
-            volk_32f_x2_subtract_32f(rightBuf, _aplusb->readBuf, _aminusb->readBuf, a_count);
+            volk_32f_x2_add_32f(rightBuf, _aplusb->readBuf, _aminusb->readBuf, a_count);
+            volk_32f_x2_subtract_32f(leftBuf, _aplusb->readBuf, _aminusb->readBuf, a_count);
             _aplusb->flush();
             _aminusb->flush();
 
