@@ -167,10 +167,9 @@ private:
         opts.flags = RTAUDIO_MINIMIZE_LATENCY;
         opts.streamName = _streamName;
 
-        stereoPacker.setSampleCount(bufferFrames);
-
         try {
             audio.openStream(&parameters, NULL, RTAUDIO_FLOAT32, sampleRate, &bufferFrames, &callback, this, &opts);
+            stereoPacker.setSampleCount(bufferFrames);
             audio.startStream();
             stereoPacker.start();
         }
