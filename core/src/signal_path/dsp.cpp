@@ -135,11 +135,14 @@ void SignalPath::setBuffering(bool enabled) {
 
 void SignalPath::setDecimation(int dec) {
     decimation = dec;
+    if (running) { split.stop(); }
 
     // Stop existing decimators
     if (!decimators.empty()) {
         for (auto& decimator : decimators) {
             decimator->stop();
+        }
+        for (auto& decimator : decimators) {
             delete decimator;
         }
     }
@@ -148,12 +151,12 @@ void SignalPath::setDecimation(int dec) {
     // If no decimation, reconnect
     if (!dec) {
         split.setInput(&inputBuffer.out);
+        if (running) { split.start(); }
         core::setInputSampleRate(sourceSampleRate);
         return;
     }
     
     // Create new decimators
-    if (running) { split.stop(); }
     for (int i = 0; i < dec; i++) {
         dsp::HalfDecimator<dsp::complex_t>* decimator = new dsp::HalfDecimator<dsp::complex_t>((i == 0) ? &inputBuffer.out : &decimators[i-1]->out, &halfBandWindow);
         if (running) { decimator->start(); }
