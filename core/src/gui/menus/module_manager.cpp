@@ -16,11 +16,6 @@ namespace module_manager_menu {
         modTypes.clear();
         modTypesTxt = "";
         for (auto& [name, mod] : core::moduleManager.modules) {
-            // TEMPORARY EXCLUSION FOR SOURCES AND SINKS
-            if (name.find("source") != std::string::npos) { continue; }
-            if (name.find("sink") != std::string::npos) { continue; }
-            if (name.find("recorder") != std::string::npos) { continue; }
-            if (name.find("discord") != std::string::npos) { continue; }
             modTypes.push_back(name);
             modTypesTxt += name;
             modTypesTxt += '\0';
@@ -38,13 +33,6 @@ namespace module_manager_menu {
         float height = ImGui::CalcTextSize("-").y;
 
         for (auto& [name, inst] : core::moduleManager.instances) {
-            // TEMPORARY EXCLUSION FOR SOURCES AND SINKS
-            std::string type = inst.module.info->name;
-            if (type.find("source") != std::string::npos) { continue; }
-            if (type.find("sink") != std::string::npos) { continue; }
-            if (type.find("recorder") != std::string::npos) { continue; }
-            if (type.find("discord") != std::string::npos) { continue; }
-
             ImGui::TableNextRow();
 
             ImGui::TableSetColumnIndex(0);
@@ -83,6 +71,7 @@ namespace module_manager_menu {
         if (strlen(modName) == 0) { style::beginDisabled(); }
         if (ImGui::Button("+##module_mgr_add_btn", ImVec2(16,0))) {
             core::moduleManager.createInstance(modName, modTypes[modTypeId]);
+            core::moduleManager.postInit(modName);
         }
         if (strlen(modName) == 0) { style::endDisabled(); }
         ImGui::EndTable();

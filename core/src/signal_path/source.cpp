@@ -12,7 +12,27 @@ void SourceManager::registerSource(std::string name, SourceHandler* handler) {
         return;
     }
     sources[name] = handler;
-    sourceNames.push_back(name);
+    onSourceRegistered.emit(name);
+}
+
+void SourceManager::unregisterSource(std::string name) {
+    if (sources.find(name) == sources.end()) {
+        spdlog::error("Tried to unregister non existant source: {0}", name);
+        return;
+    }
+    onSourceUnregister.emit(name);
+    if (name == selectedName) {
+        sigpath::signalPath.setInput(&nullSource);
+        selectedHandler = NULL;
+    }
+    sources.erase(name);
+    onSourceUnregistered.emit(name);
+}
+
+std::vector<std::string> SourceManager::getSourceNames() {
+    std::vector<std::string> names;
+    for (auto const&  [name, src] : sources) { names.push_back(name); }
+    return names;
 }
 
 void SourceManager::selectSource(std::string  name) {
@@ -20,7 +40,7 @@ void SourceManager::selectSource(std::string  name) {
         spdlog::error("Tried to select non existant source: {0}", name);
         return;
     }
-    if (selectedName != "") {
+    if (selectedHandler != NULL) {
         sources[selectedName]->deselectHandler(sources[selectedName]->ctx);
     }
     selectedHandler = sources[name];

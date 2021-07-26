@@ -46,14 +46,16 @@ public:
         std::string devSerial = config.conf["device"];
         config.release();
         selectByString(devSerial);
-        core::setInputSampleRate(sampleRate);
 
         sigpath::sourceManager.registerSource("Airspy HF+", &handler);
     }
 
     ~AirspyHFSourceModule() {
-        
+        stop(this);
+        sigpath::sourceManager.unregisterSource("Airspy HF+");
     }
+
+    void postInit() {}
 
     enum AGCMode {
         AGC_MODE_OFF,

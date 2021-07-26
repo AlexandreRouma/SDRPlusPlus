@@ -140,6 +140,14 @@ bool ModuleManager::instanceEnabled(std::string name) {
     return instances[name].instance->isEnabled();
 }
 
+void ModuleManager::postInit(std::string name) {
+    if (instances.find(name) == instances.end()) {
+        spdlog::error("Cannot post-init '{0}', instance doesn't exist", name);
+        return;
+    }
+    instances[name].instance->postInit();
+}
+
 std::string ModuleManager::getInstanceModuleName(std::string name) {
     if (instances.find(name) == instances.end()) {
         spdlog::error("Cannot get module name of'{0}', instance doesn't exist", name);
@@ -159,4 +167,11 @@ int ModuleManager::countModuleInstances(std::string module) {
         if (instance.module == mod) { count++; }
     }
     return count;
+}
+
+void ModuleManager::doPostInitAll() {
+    for (auto& [name, inst] : instances) {
+        spdlog::info("Running post-init for {0}", name);
+        inst.instance->postInit();
+    }
 }

@@ -104,9 +104,12 @@ public:
     }
 
     ~HackRFSourceModule() {
+        stop(this);
         hackrf_exit();
+        sigpath::sourceManager.unregisterSource("HackRF");
     }
 
+    void postInit() {}
 
     void enable() {
         enabled = true;

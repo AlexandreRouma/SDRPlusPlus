@@ -398,6 +398,8 @@ public:
         Pa_Terminate();
     }
 
+    void postInit() {}
+
     void enable() {
         enabled = true;
     }

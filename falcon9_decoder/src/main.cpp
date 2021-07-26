@@ -5,7 +5,7 @@
 #include <signal_path/signal_path.h>
 #include <module.h>
 #include <options.h>
-
+#include <gui/gui.h>
 #include <dsp/pll.h>
 #include <dsp/stream.h>
 #include <dsp/demodulator.h>
@@ -87,6 +87,8 @@ public:
         
     }
 
+    void postInit() {}
+
     void enable() {
         vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 4000000, INPUT_SAMPLE_RATE, 4000000, 4000000, true);
 
@@ -155,7 +157,7 @@ private:
             if (ImGui::Button("Clear logs##GPSClear")) { _this->gpsLogs.clear(); }
             ImGui::BeginChild(ImGuiID("GPSChild"));
             ImGui::TextUnformatted(_this->gpsLogs.c_str());
-            ImGui::SetScrollHere(1.0f);
+            ImGui::SetScrollHereY(1.0f);
             ImGui::EndChild();
             ImGui::EndTabItem();
 

@@ -47,6 +47,7 @@ namespace dsp {
         void updateWindow(dsp::filter_window::generic_complex_window* window) {
             assert(generic_block<FMStereoDemuxPilotFilter>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<FMStereoDemuxPilotFilter>::ctrlMtx);
+            std::lock_guard<std::mutex> lck2(bufMtx);
             _window = window;
             volk_free(taps);
             tapCount = window->getTapCount();
@@ -59,7 +60,7 @@ namespace dsp {
             int count = _in->read();
             if (count < 0) { return -1; }
 
-            generic_block<FMStereoDemuxPilotFilter>::ctrlMtx.lock();
+            bufMtx.lock();
 
             memcpy(bufStart, _in->readBuf, count * sizeof(complex_t));
             _in->flush();
@@ -70,12 +71,14 @@ namespace dsp {
 
             memcpy(dataOut.writeBuf, &buffer[tapCount - ((tapCount-1)/2)], count * sizeof(complex_t));
 
-            if (!dataOut.swap(count)) { return -1; }
-            if (!pilotOut.swap(count)) { return -1; }
+            if (!pilotOut.swap(count) || !dataOut.swap(count)) {
+                bufMtx.unlock();
+                return -1;
+            }
 
             memmove(buffer, &buffer[count], tapCount * sizeof(complex_t));
 
-            generic_block<FMStereoDemuxPilotFilter>::ctrlMtx.unlock();
+            bufMtx.unlock();
 
             return count;
         }
@@ -88,6 +91,8 @@ namespace dsp {
         stream<complex_t>* _in;
 
         dsp::filter_window::generic_complex_window* _window;
+
+        std::mutex bufMtx;
 
         complex_t* bufStart;
         complex_t* buffer;

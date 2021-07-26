@@ -35,7 +35,6 @@ public:
     bool playButtonLocked = false;
 
     Event<bool> onPlayStateChange;
-    Event<bool> onInitComplete;
 
 private:
     void generateFFTWindow(int win, int size);

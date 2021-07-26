@@ -87,6 +87,8 @@ public:
         gui::waterfall.onInputProcess.unbindHandler(&inputHandler);
     }
 
+    void postInit() {}
+
     void enable() {
         enabled = true;
     }

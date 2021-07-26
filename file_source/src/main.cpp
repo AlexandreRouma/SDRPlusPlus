@@ -41,14 +41,14 @@ public:
         handler.tuneHandler = tune;
         handler.stream = &stream;
         sigpath::sourceManager.registerSource("File", &handler);
-
-        spdlog::info("FileSourceModule '{0}': Instance created!", name);
     }
 
     ~FileSourceModule() {
-        
-        spdlog::info("FileSourceModule '{0}': Instance deleted!", name);
+        stop(this);
+        sigpath::sourceManager.unregisterSource("File");
     }
+
+    void postInit() {}
 
     void enable() {
         enabled = true;

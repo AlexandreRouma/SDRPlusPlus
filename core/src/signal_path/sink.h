@@ -110,8 +110,9 @@ public:
 
     std::vector<std::string> getStreamNames();
 
-    Event<std::string> streamRegisteredEvnt;
-    Event<std::string> streamUnregisteredEvnt;
+    Event<std::string> onStreamRegistered;
+    Event<std::string> onStreamUnregister;
+    Event<std::string> onStreamUnregistered;
 
 private:
     void loadStreamConfig(std::string name);

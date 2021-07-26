@@ -251,6 +251,8 @@ public:
         
     }
 
+    void postInit() {}
+
     void enable() {
         enabled = true;
     }

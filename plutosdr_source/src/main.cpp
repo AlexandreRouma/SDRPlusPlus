@@ -50,13 +50,14 @@ public:
         handler.tuneHandler = tune;
         handler.stream = &stream;
         sigpath::sourceManager.registerSource("PlutoSDR", &handler);
-
-        spdlog::info("PlutoSDRSourceModule '{0}': Instance created!", name);
     }
 
     ~PlutoSDRSourceModule() {
-        spdlog::info("PlutoSDRSourceModule '{0}': Instance deleted!", name);
+        stop(this);
+        sigpath::sourceManager.unregisterSource("PlutoSDR");
     }
+
+    void postInit() {}
 
     void enable() {
         enabled = true;

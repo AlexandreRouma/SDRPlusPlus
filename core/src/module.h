@@ -42,6 +42,7 @@ public:
 
     class Instance {
     public:
+        virtual void postInit() = 0;
         virtual void enable() = 0;
         virtual void disable() = 0;
         virtual bool isEnabled() = 0;
@@ -84,9 +85,12 @@ public:
     void enableInstance(std::string name);
     void disableInstance(std::string name);
     bool instanceEnabled(std::string name);
+    void postInit(std::string name);
     std::string getInstanceModuleName(std::string name);
 
     int countModuleInstances(std::string module);
+
+    void doPostInitAll();
 
     Event<std::string> onInstanceCreated;
     Event<std::string> onInstanceDelete;

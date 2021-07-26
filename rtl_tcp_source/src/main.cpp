@@ -87,8 +87,11 @@ public:
     }
 
     ~RTLTCPSourceModule() {
-        
+        stop(this);
+        sigpath::sourceManager.unregisterSource("RTL-TCP");
     }
+
+    void postInit() {}
 
     void enable() {
         enabled = true;

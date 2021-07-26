@@ -77,6 +77,7 @@ namespace dsp {
         // NOTE: For some reason, the base class destrcutor doesn't get called.... this is a temporary fix I guess
         // I also don't check for _block_init for the exact sample reason, something's weird
         ~Reshaper() {
+            if (!generic_block<Reshaper<T>>::_block_init) { return; }
             generic_block<Reshaper<T>>::stop();
         }
 

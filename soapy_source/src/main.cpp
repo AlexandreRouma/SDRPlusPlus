@@ -50,13 +50,14 @@ public:
         handler.tuneHandler = tune;
         handler.stream = &stream;
         sigpath::sourceManager.registerSource("SoapySDR", &handler);
-
-        spdlog::info("SoapyModule '{0}': Instance created!", name);
     }
 
     ~SoapyModule() {
-        spdlog::info("SoapyModule '{0}': Instance deleted!", name);
+        stop(this);
+        sigpath::sourceManager.unregisterSource("SoapySDR");
     }
+
+    void postInit() {}
 
     void enable() {
         enabled = true;

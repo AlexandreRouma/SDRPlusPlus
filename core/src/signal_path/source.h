@@ -4,6 +4,7 @@
 #include <map>
 #include <dsp/stream.h>
 #include <dsp/types.h>
+#include <utils/event.h>
 
 class SourceManager {
 public:
@@ -21,6 +22,7 @@ public:
     };
 
     void registerSource(std::string name, SourceHandler* handler);
+    void unregisterSource(std::string name);
     void selectSource(std::string  name);
     void showSelectedMenu();
     void start();
@@ -28,7 +30,11 @@ public:
     void tune(double freq);
     void setTuningOffset(double offset);
 
-    std::vector<std::string> sourceNames;
+    std::vector<std::string> getSourceNames();
+
+    Event<std::string> onSourceRegistered;
+    Event<std::string> onSourceUnregister;
+    Event<std::string> onSourceUnregistered;
 
 private:
     std::map<std::string, SourceHandler*> sources;
@@ -36,5 +42,6 @@ private:
     SourceHandler* selectedHandler = NULL;
     double tuneOffset;
     double currentFreq;
+    dsp::stream<dsp::complex_t> nullSource;
 
 };

@@ -53,16 +53,41 @@ public:
         selectedRecorder = config.conf[name]["recorder"];
         config.release(true);
 
-        initHandler.handler = _initHandler;
-        initHandler.ctx = this;
-        gui::mainWindow.onInitComplete.bindHandler(&initHandler);
-
         gui::menu.registerEntry(name, menuHandler, this, NULL);
     }
 
     ~SigctlServerModule() {
         gui::menu.removeEntry(name);
-        // TODO: Use several handler instead of one for the recorders and remove event bindings
+        sigpath::vfoManager.onVfoCreated.unbindHandler(&vfoCreatedHandler);
+        sigpath::vfoManager.onVfoDeleted.unbindHandler(&vfoDeletedHandler);
+        core::moduleManager.onInstanceCreated.unbindHandler(&modChangedHandler);
+        core::moduleManager.onInstanceDeleted.unbindHandler(&modChangedHandler);
+        if (client) { client->close(); }
+        if (listener) { listener->close(); }
+    }
+
+    void postInit() {
+        // Refresh modules
+        refreshModules();
+
+        // Select VFO and recorder from config
+        selectVfoByName(selectedVfo);
+        selectRecorderByName(selectedRecorder);
+
+        // Bind handlers
+        vfoCreatedHandler.handler = _vfoCreatedHandler;
+        vfoCreatedHandler.ctx = this;
+        vfoDeletedHandler.handler = _vfoDeletedHandler;
+        vfoDeletedHandler.ctx = this;
+        modChangedHandler.handler = _modChangeHandler;
+        modChangedHandler.ctx = this;
+        sigpath::vfoManager.onVfoCreated.bindHandler(&vfoCreatedHandler);
+        sigpath::vfoManager.onVfoDeleted.bindHandler(&vfoDeletedHandler);
+        core::moduleManager.onInstanceCreated.bindHandler(&modChangedHandler);
+        core::moduleManager.onInstanceDeleted.bindHandler(&modChangedHandler);
+
+        // If autostart is enabled, start the server
+        if (autoStart) { startServer(); }
     }
 
     void enable() {
@@ -262,32 +287,6 @@ private:
         }
     }
 
-    static void _initHandler(bool dummy, void* ctx) {
-        SigctlServerModule* _this = (SigctlServerModule*)ctx;
-
-        // Refresh modules
-        _this->refreshModules();
-
-        // Select VFO and recorder from config
-        _this->selectVfoByName(_this->selectedVfo);
-        _this->selectRecorderByName(_this->selectedRecorder);
-
-        // Bind handlers
-        _this->vfoCreatedHandler.handler = _vfoCreatedHandler;
-        _this->vfoCreatedHandler.ctx = _this;
-        _this->vfoDeletedHandler.handler = _vfoDeletedHandler;
-        _this->vfoDeletedHandler.ctx = _this;
-        _this->modChangedHandler.handler = _modChangeHandler;
-        _this->modChangedHandler.ctx = _this;
-        sigpath::vfoManager.onVfoCreated.bindHandler(&_this->vfoCreatedHandler);
-        sigpath::vfoManager.onVfoDeleted.bindHandler(&_this->vfoDeletedHandler);
-        core::moduleManager.onInstanceCreated.bindHandler(&_this->modChangedHandler);
-        core::moduleManager.onInstanceDeleted.bindHandler(&_this->modChangedHandler);
-
-        // If autostart is enabled, start the server
-        if (_this->autoStart) { _this->startServer(); }
-    }
-
     static void _vfoCreatedHandler(VFOManager::VFO* vfo, void* ctx) {
         SigctlServerModule* _this = (SigctlServerModule*)ctx;
         _this->refreshModules();
@@ -465,7 +464,6 @@ private:
 
     std::string command = "";
 
-    EventHandler<bool> initHandler;
     EventHandler<std::string> modChangedHandler;
     EventHandler<VFOManager::VFO*> vfoCreatedHandler;
     EventHandler<std::string> vfoDeletedHandler;

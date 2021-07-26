@@ -94,6 +94,8 @@ public:
         gui::menu.removeEntry(name);
     }
 
+    void postInit() {}
+
     void enable() {
         double bw = gui::waterfall.getBandwidth();
         vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, std::clamp<double>(0, -bw/2.0, bw/2.0), 150000, INPUT_SAMPLE_RATE, 150000, 150000, true);

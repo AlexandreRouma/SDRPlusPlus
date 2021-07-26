@@ -50,14 +50,17 @@ public:
         std::string devSerial = config.conf["device"];
         config.release();
         selectByString(devSerial);
-        core::setInputSampleRate(sampleRate);
 
         sigpath::sourceManager.registerSource("Airspy", &handler);
     }
 
     ~AirspySourceModule() {
+        stop(this);
+        sigpath::sourceManager.unregisterSource("Airspy");
         airspy_exit();
     }
+
+    void postInit() {}
 
     void enable() {
         enabled = true;

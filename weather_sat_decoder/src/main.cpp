@@ -67,6 +67,8 @@ public:
         decoder->stop();
     }
 
+    void postInit() {}
+
     void enable() {
         vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 1000000, 1000000, 1000000, 1000000, true);
         for (auto const& [name, dec] : decoders) { dec->setVFO(vfo); }

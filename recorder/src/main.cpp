@@ -84,38 +84,49 @@ public:
 
         wavSampleBuf = new int16_t[2 * STREAM_BUFFER_SIZE];
 
-        refreshStreams();
-
         gui::menu.registerEntry(name, menuHandler, this);
         core::modComManager.registerInterface("recorder", name, moduleInterfaceHandler, this);
+
+        streamRegisteredHandler.handler = onStreamRegistered;
+        streamRegisteredHandler.ctx = this;
+        streamUnregisterHandler.handler = onStreamUnregister;
+        streamUnregisterHandler.ctx = this;
+        streamUnregisteredHandler.handler = onStreamUnregistered;
+        streamUnregisteredHandler.ctx = this;
+        sigpath::sinkManager.onStreamRegistered.bindHandler(&streamRegisteredHandler);
+        sigpath::sinkManager.onStreamUnregister.bindHandler(&streamUnregisterHandler);
+        sigpath::sinkManager.onStreamUnregistered.bindHandler(&streamUnregisteredHandler);
     }
 
     ~RecorderModule() {
+        std::lock_guard lck(recMtx);
+        gui::menu.removeEntry(name);
         core::modComManager.unregisterInterface(name);
         
         // Stop recording
-        if (recording) {
-            if (recMode == RECORDER_MODE_AUDIO) {
-                audioSplit.unbindStream(&audioHandlerStream);
-                audioHandler.stop();
-                audioWriter->close();
-                delete audioWriter;
-            }
-            else {
-                sigpath::signalPath.unbindIQStream(&basebandStream);
-                basebandHandler.stop();
-                basebandWriter->close();
-                delete basebandWriter;
-            }
-        }
+        if (recording) { stopRecording(); }
+
+        if (audioInput != NULL) { sigpath::sinkManager.unbindStream(selectedStreamName, audioInput); }
+
+        sigpath::sinkManager.onStreamRegistered.unbindHandler(&streamRegisteredHandler);
+        sigpath::sinkManager.onStreamUnregister.unbindHandler(&streamUnregisterHandler);
+        sigpath::sinkManager.onStreamUnregistered.unbindHandler(&streamUnregisteredHandler);
 
         vol.stop();
         audioSplit.stop();
         meter.stop();
 
-        gui::menu.removeEntry(name);
-
         delete[] wavSampleBuf;
+    }
+
+    void postInit() {
+        refreshStreams();
+        if (selectedStreamName == "") {
+            selectStream(streamNames[0]);
+        }
+        else {
+            selectStream(selectedStreamName);
+        }
     }
 
     void enable() {
@@ -134,35 +145,39 @@ private:
     void refreshStreams() {
         std::vector<std::string> names = sigpath::sinkManager.getStreamNames();
 
-        // If there are no stream, cancel
-        if (names.size() == 0) { return; }
-
-        // List streams
         streamNames.clear();
         streamNamesTxt = "";
+
+        // If there are no stream, cancel
+        if (names.size() == 0) {return; }
+
+        // List streams
         for (auto const& name : names) {
             streamNames.push_back(name);
             streamNamesTxt += name;
             streamNamesTxt += '\0';
         }
-
-        if (selectedStreamName == "") {
-            selectStream(streamNames[0]);
-        }
-        else {
-            selectStream(selectedStreamName);
-        }
     }
 
     void selectStream(std::string name) {
+        if (streamNames.empty()) {
+            selectedStreamName = "";
+            return;
+        }
         auto it = std::find(streamNames.begin(), streamNames.end(), name);
-        if (it == streamNames.end()) { return; }
+        if (it == streamNames.end()) {
+            selectStream(streamNames[0]);
+            return;
+        }
         streamId = std::distance(streamNames.begin(), it);
 
         vol.stop();
         if (audioInput != NULL) { sigpath::sinkManager.unbindStream(selectedStreamName, audioInput); }
         audioInput = sigpath::sinkManager.bindStream(name);
-        if (audioInput == NULL) { return; }
+        if (audioInput == NULL) {
+            selectedStreamName = "";
+            return;
+        }
         selectedStreamName = name;
         vol.setInput(audioInput);
         vol.start();
@@ -237,8 +252,6 @@ private:
         ImGui::PushItemWidth(menuColumnWidth);
 
         if (streamNames.size() == 0) {
-            refreshStreams();
-            ImGui::PopItemWidth();
             return;
         }
 
@@ -339,6 +352,9 @@ private:
             }
         }
         else if (recMode == RECORDER_MODE_AUDIO) {
+            if (selectedStreamName.empty()) {
+                spdlog::error("Cannot record with no selected stream");
+            } 
             samplesWritten = 0;
             std::string expandedPath = expandString(folderSelect.path + genFileName("/audio_", true, selectedStreamName));
             sampleRate = sigpath::sinkManager.getStreamSampleRate(selectedStreamName);
@@ -369,6 +385,69 @@ private:
             audioHandler.stop();
             audioWriter->close();
             delete audioWriter;
+        }
+    }
+
+    static void onStreamRegistered(std::string name, void* ctx){
+        RecorderModule* _this = (RecorderModule*)ctx;
+        _this->refreshStreams();
+
+        if (_this->streamNames.empty()) {
+            _this->selectedStreamName = "";
+            return;
+        }
+
+        if (_this->selectedStreamName.empty()) {
+            _this->streamId = 0;
+            _this->selectedStreamName = _this->streamNames[0];
+            return;
+        }
+
+        // Reselect stream in UI to make sure the ID is correct
+        int id = 0;
+        for (auto& str : _this->streamNames) {
+            if (str == _this->selectedStreamName) {
+                _this->streamId = id;
+                break;
+            }
+            id++;
+        }
+    }
+
+    static void onStreamUnregister(std::string name, void* ctx){
+        RecorderModule* _this = (RecorderModule*)ctx;
+        if (name != _this->selectedStreamName) { return; }
+        if (_this->recording) { _this->stopRecording(); }
+        if (_this->audioInput != NULL) {
+            sigpath::sinkManager.unbindStream(_this->selectedStreamName, _this->audioInput);
+            _this->audioInput = NULL;
+        }
+    }
+
+    static void onStreamUnregistered(std::string name, void* ctx){
+        RecorderModule* _this = (RecorderModule*)ctx;
+        _this->refreshStreams();
+
+        if (_this->streamNames.empty()) {
+            _this->selectedStreamName = "";
+            return;
+        }
+
+        // If current stream was deleted, reselect steam completely
+        if (name == _this->selectedStreamName) {
+            _this->streamId = std::clamp<int>(_this->streamId, 0, _this->streamNames.size() - 1);
+            _this->selectStream(_this->streamNames[_this->streamId]);
+            return;
+        }
+
+        // Reselect stream in UI to make sure the ID is correct
+        int id = 0;
+        for (auto& str : _this->streamNames) {
+            if (str == _this->selectedStreamName) {
+                _this->streamId = id;
+                break;
+            }
+            id++;
         }
     }
 
@@ -414,6 +493,10 @@ private:
 
     uint64_t samplesWritten;
     int16_t* wavSampleBuf;
+
+    EventHandler<std::string> streamRegisteredHandler;
+    EventHandler<std::string> streamUnregisterHandler;
+    EventHandler<std::string> streamUnregisteredHandler;
 
 };
 

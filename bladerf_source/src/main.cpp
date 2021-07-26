@@ -50,14 +50,16 @@ public:
         std::string serial = config.conf["device"];
         config.release();
         selectBySerial(serial);
-        core::setInputSampleRate(sampleRate);
 
         sigpath::sourceManager.registerSource("BladeRF", &handler);
     }
 
     ~BladeRFSourceModule() {
-        
+        stop(this);
+        sigpath::sourceManager.unregisterSource("BladeRF");
     }
+
+    void postInit() {}
 
     void enable() {
         enabled = true;

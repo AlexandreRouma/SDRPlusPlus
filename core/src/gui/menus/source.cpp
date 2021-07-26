@@ -12,6 +12,14 @@ namespace sourecmenu {
     double customOffset = 0.0;
     double effectiveOffset = 0.0;
 
+    EventHandler<std::string> sourceRegisteredHandler;
+    EventHandler<std::string> sourceUnregisterHandler;
+    EventHandler<std::string> sourceUnregisteredHandler;
+
+    std::vector<std::string> sourceNames;
+    std::string sourceNamesTxt;
+    std::string selectedSource;
+
     enum {
         OFFSET_MODE_NONE,
         OFFSET_MODE_CUSTOM,
@@ -42,41 +50,94 @@ namespace sourecmenu {
         sigpath::sourceManager.setTuningOffset(effectiveOffset);
     }
 
+    void refreshSources() {
+        sourceNames = sigpath::sourceManager.getSourceNames();
+        sourceNamesTxt.clear();
+        for (auto name : sourceNames) {
+            sourceNamesTxt += name;
+            sourceNamesTxt += '\0';
+        }
+    }
+
+    void selectSource(std::string name) {
+        if (sourceNames.empty()) {
+            selectedSource.clear();
+            return;
+        }
+        auto it = std::find(sourceNames.begin(), sourceNames.end(), name);
+        if (it == sourceNames.end()) {
+            selectSource(sourceNames[0]);
+        }
+        sourceId = std::distance(sourceNames.begin(), it);
+        selectedSource = sourceNames[sourceId];
+        sigpath::sourceManager.selectSource(sourceNames[sourceId]);
+    }
+
+    void onSourceRegistered(std::string name, void* ctx) {
+        refreshSources();
+        
+        if (selectedSource.empty()) {
+            sourceId = 0;
+            selectSource(sourceNames[0]);
+            return;
+        }
+
+        sourceId = std::distance(sourceNames.begin(), std::find(sourceNames.begin(), sourceNames.end(), selectedSource));
+    }
+
+    void onSourceUnregister(std::string name, void* ctx) {
+        if (name != selectedSource) { return; }
+
+        // TODO: Stop everything
+    }
+
+    void onSourceUnregistered(std::string name, void* ctx) {
+        refreshSources();
+
+        if (sourceNames.empty()) {
+            selectedSource = "";
+            return;
+        }
+
+        if (name == selectedSource) {
+            sourceId = std::clamp<int>(sourceId, 0, sourceNames.size() - 1);
+            selectSource(sourceNames[sourceId]);
+            return;
+        }
+
+        sourceId = std::distance(sourceNames.begin(), std::find(sourceNames.begin(), sourceNames.end(), selectedSource));
+    }
+
     void init() {
         core::configManager.acquire();
-        std::string name = core::configManager.conf["source"];
-        auto it = std::find(sigpath::sourceManager.sourceNames.begin(), sigpath::sourceManager.sourceNames.end(), name);
-        if (it != sigpath::sourceManager.sourceNames.end()) {
-            sigpath::sourceManager.selectSource(name);
-            sourceId = std::distance(sigpath::sourceManager.sourceNames.begin(), it);
-        }
-        else if (sigpath::sourceManager.sourceNames.size() > 0) {
-            sigpath::sourceManager.selectSource(sigpath::sourceManager.sourceNames[0]);
-        }
-        else {
-            spdlog::warn("No source available...");
-        }
+        std::string selected = core::configManager.conf["source"];
         customOffset = core::configManager.conf["offset"];
         offsetMode = core::configManager.conf["offsetMode"];
         updateOffset();
+
+        refreshSources();
+        selectSource(selected);
+
+        sourceRegisteredHandler.handler = onSourceRegistered;
+        sourceUnregisterHandler.handler = onSourceUnregister;
+        sourceUnregisteredHandler.handler = onSourceUnregistered;
+        sigpath::sourceManager.onSourceRegistered.bindHandler(&sourceRegisteredHandler);
+        sigpath::sourceManager.onSourceUnregister.bindHandler(&sourceUnregisterHandler);
+        sigpath::sourceManager.onSourceUnregistered.bindHandler(&sourceUnregisteredHandler);
+
         core::configManager.release();
     }
 
     void draw(void* ctx) {
-        std::string items = "";
-        for (std::string name : sigpath::sourceManager.sourceNames) {
-            items += name;
-            items += '\0';
-        }
         float itemWidth = ImGui::GetContentRegionAvailWidth();
 
         if (gui::mainWindow.sdrIsRunning()) { style::beginDisabled(); }
 
         ImGui::SetNextItemWidth(itemWidth);
-        if (ImGui::Combo("##source", &sourceId, items.c_str())) {
-            sigpath::sourceManager.selectSource(sigpath::sourceManager.sourceNames[sourceId]);
+        if (ImGui::Combo("##source", &sourceId, sourceNamesTxt.c_str())) {
+            selectSource(sourceNames[sourceId]);
             core::configManager.acquire();
-            core::configManager.conf["source"] = sigpath::sourceManager.sourceNames[sourceId];
+            core::configManager.conf["source"] = sourceNames[sourceId];
             core::configManager.release(true);
         }
 
@@ -110,6 +171,5 @@ namespace sourecmenu {
             ImGui::InputDouble("##freq_offset", &effectiveOffset, 1.0, 100.0);
             style::endDisabled();
         }
-
     }
 }

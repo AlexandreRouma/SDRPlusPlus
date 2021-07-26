@@ -21,6 +21,8 @@ public:
         gui::menu.removeEntry(name);
     }
 
+    void postInit() {}
+
     void enable() {
         enabled = true;
     }

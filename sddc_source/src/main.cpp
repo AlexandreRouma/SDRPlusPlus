@@ -44,14 +44,15 @@ public:
 
         selectFirst();
 
-        core::setInputSampleRate(sampleRate);
-
         sigpath::sourceManager.registerSource("SDDC", &handler);
     }
 
     ~AirspyHFSourceModule() {
-        
+        stop(this);
+        sigpath::sourceManager.unregisterSource("SDDC");
     }
+
+    void postInit() {}
 
     void enable() {
         enabled = true;

@@ -88,14 +88,15 @@ public:
         config.release(true);
         selectByName(selectedDevName);
 
-        core::setInputSampleRate(sampleRate);
-
         sigpath::sourceManager.registerSource("RTL-SDR", &handler);
     }
 
     ~RTLSDRSourceModule() {
-        
+        stop(this);
+        sigpath::sourceManager.unregisterSource("RTL-SDR");
     }
+
+    void postInit() {}
 
     void enable() {
         enabled = true;

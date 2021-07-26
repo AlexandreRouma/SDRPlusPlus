@@ -44,14 +44,16 @@ public:
 
         // Select device from config
         selectFirst();
-        core::setInputSampleRate(sampleRate);
 
         sigpath::sourceManager.registerSource("LimeSDR", &handler);
     }
 
     ~LimeSDRSourceModule() {
-        // Exit limesuite if needed
+        stop(this);
+        sigpath::sourceManager.unregisterSource("LimeSDR");
     }
+
+    void postInit() {}
 
     void enable() {
         enabled = true;

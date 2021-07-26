@@ -71,8 +71,11 @@ public:
     }
 
     ~AirspyHFSourceModule() {
-        
+        stop(this);
+        sigpath::sourceManager.unregisterSource("SpyServer");
     }
+
+    void postInit() {}
 
     void enable() {
         enabled = true;

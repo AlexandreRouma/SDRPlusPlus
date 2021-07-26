@@ -155,8 +155,12 @@ public:
     }
 
     ~SDRPlaySourceModule() {
+        stop(this);
         sdrplay_api_Close();
+        sigpath::sourceManager.unregisterSource("SDRplay");
     }
+
+    void postInit() {}
 
     void enable() {
         enabled = true;

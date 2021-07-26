@@ -34,7 +34,11 @@ public:
         // Change to timer stop later on
         workerRunning = false;
         if (workerThread.joinable()) { workerThread.join(); }
+        Discord_ClearPresence();
+        Discord_Shutdown();
     }
+
+    void postInit() {}
 
     void enable() {
         // Change to timer start later on

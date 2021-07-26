@@ -212,7 +212,7 @@ void MainWindow::init() {
 
     initComplete = true;
 
-    onInitComplete.emit(true);
+    core::moduleManager.doPostInitAll();
 }
 
 void MainWindow::fftHandler(dsp::complex_t* samples, int count, void* ctx) {
