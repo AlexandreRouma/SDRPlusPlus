@@ -85,9 +85,7 @@ private:
     
     static void start(void* ctx) {
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
-        if (_this->running) {
-            return;
-        }
+        if (_this->running) { return; }
         
         // TODO: INIT CONTEXT HERE
         _this->ctx = iio_create_context_from_uri(_this->ip);
@@ -126,9 +124,7 @@ private:
     
     static void stop(void* ctx) {
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
-        if (!_this->running) {
-            return;
-        }
+        if (!_this->running) { return; }
         _this->running = false;
         _this->stream.stopWriter();
         _this->workerThread.join();

@@ -241,9 +241,7 @@ private:
     
     static void start(void* ctx) {
         RTLSDRSourceModule* _this = (RTLSDRSourceModule*)ctx;
-        if (_this->running) {
-            return;
-        }
+        if (_this->running) { return; }
         if (_this->selectedDevName == "") {
             spdlog::error("No device selected");
             return;
@@ -282,9 +280,7 @@ private:
     
     static void stop(void* ctx) {
         RTLSDRSourceModule* _this = (RTLSDRSourceModule*)ctx;
-        if (!_this->running) {
-            return;
-        }
+        if (!_this->running) { return; }
         _this->running = false;
         _this->stream.stopWriter();
         rtlsdr_cancel_async(_this->openDev);

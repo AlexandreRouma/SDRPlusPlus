@@ -119,9 +119,7 @@ private:
     
     static void start(void* ctx) {
         RTLTCPSourceModule* _this = (RTLTCPSourceModule*)ctx;
-        if (_this->running) {
-            return;
-        }
+        if (_this->running) { return; }
         if (!_this->client.connectToRTL(_this->ip, _this->port)) {
             spdlog::error("Could not connect to {0}:{1}", _this->ip, _this->port);
             return;
@@ -142,9 +140,7 @@ private:
     
     static void stop(void* ctx) {
         RTLTCPSourceModule* _this = (RTLTCPSourceModule*)ctx;
-        if (!_this->running) {
-            return;
-        }
+        if (!_this->running) { return; }
         _this->running = false;
         _this->stream.stopWriter();
         _this->workerThread.join();

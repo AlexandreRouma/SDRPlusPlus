@@ -313,9 +313,7 @@ private:
     
     static void start(void* ctx) {
         BladeRFSourceModule* _this = (BladeRFSourceModule*)ctx;
-        if (_this->running) {
-            return;
-        }
+        if (_this->running) { return; }
         if (_this->devCount == 0) { return; }
 
         // Open device
@@ -360,9 +358,7 @@ private:
     
     static void stop(void* ctx) {
         BladeRFSourceModule* _this = (BladeRFSourceModule*)ctx;
-        if (!_this->running) {
-            return;
-        }
+        if (!_this->running) { return; }
         _this->running = false;
         _this->stream.stopWriter();
 

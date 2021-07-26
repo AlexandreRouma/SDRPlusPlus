@@ -119,9 +119,7 @@ private:
     
     static void start(void* ctx) {
         AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
-        if (_this->running) {
-            return;
-        }
+        if (_this->running) { return; }
 
         int srvBits = streamFormatsBitCount[_this->iqType];
         _this->client->setSetting(SPYSERVER_SETTING_IQ_FORMAT, streamFormats[_this->iqType]);
@@ -138,9 +136,7 @@ private:
     
     static void stop(void* ctx) {
         AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
-        if (!_this->running) {
-            return;
-        }
+        if (!_this->running) { return; }
         
         _this->client->stopStream();
 

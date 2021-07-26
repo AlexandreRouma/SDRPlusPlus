@@ -156,9 +156,7 @@ private:
     
     static void stop(void* ctx) {
         AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
-        if (!_this->running) {
-            return;
-        }
+        if (!_this->running) { return; }
         _this->running = false;
         _this->stream.stopWriter();
         

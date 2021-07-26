@@ -239,9 +239,7 @@ private:
     
     static void start(void* ctx) {
         AirspySourceModule* _this = (AirspySourceModule*)ctx;
-        if (_this->running) {
-            return;
-        }
+        if (_this->running) { return; }
         if (_this->selectedSerial == 0) {
             spdlog::error("Tried to start Airspy source with null serial");
             return;
@@ -296,9 +294,7 @@ private:
     
     static void stop(void* ctx) {
         AirspySourceModule* _this = (AirspySourceModule*)ctx;
-        if (!_this->running) {
-            return;
-        }
+        if (!_this->running) { return; }
         _this->running = false;
         _this->stream.stopWriter();
         airspy_close(_this->openDev);

@@ -223,9 +223,7 @@ private:
     
     static void start(void* ctx) {
         HackRFSourceModule* _this = (HackRFSourceModule*)ctx;
-        if (_this->running) {
-            return;
-        }
+        if (_this->running) { return; }
         if (_this->selectedSerial == "") {
             spdlog::error("Tried to start HackRF source with empty serial");
             return;
@@ -254,9 +252,7 @@ private:
     
     static void stop(void* ctx) {
         HackRFSourceModule* _this = (HackRFSourceModule*)ctx;
-        if (!_this->running) {
-            return;
-        }
+        if (!_this->running) { return; }
         _this->running = false;
         _this->stream.stopWriter();
         // TODO: Stream stop

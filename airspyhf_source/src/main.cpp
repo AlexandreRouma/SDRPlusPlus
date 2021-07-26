@@ -215,9 +215,7 @@ private:
     
     static void start(void* ctx) {
         AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
-        if (_this->running) {
-            return;
-        }
+        if (_this->running) { return; }
         if (_this->selectedSerial == 0) {
             spdlog::error("Tried to start AirspyHF+ source with null serial");
             return;
@@ -248,9 +246,7 @@ private:
     
     static void stop(void* ctx) {
         AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
-        if (!_this->running) {
-            return;
-        }
+        if (!_this->running) { return; }
         _this->running = false;
         _this->stream.stopWriter();
         airspyhf_close(_this->openDev);

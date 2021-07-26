@@ -24,33 +24,35 @@ namespace module_manager_menu {
     }
 
     void draw(void* ctx) {
-        ImGui::BeginTable("Module Manager Table", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
-        ImGui::TableSetupColumn("Name");
-        ImGui::TableSetupColumn("Type");
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 10);
-        ImGui::TableHeadersRow();
+        if (ImGui::BeginTable("Module Manager Table", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, 200))) {
+            ImGui::TableSetupColumn("Name");
+            ImGui::TableSetupColumn("Type");
+            ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 10);
+            ImGui::TableHeadersRow();
 
-        float height = ImGui::CalcTextSize("-").y;
+            float height = ImGui::CalcTextSize("-").y;
 
-        for (auto& [name, inst] : core::moduleManager.instances) {
-            ImGui::TableNextRow();
+            for (auto& [name, inst] : core::moduleManager.instances) {
+                ImGui::TableNextRow();
 
-            ImGui::TableSetColumnIndex(0);
-            ImGui::Text(name.c_str());
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text(name.c_str());
 
-            ImGui::TableSetColumnIndex(1);
-            ImGui::Text(inst.module.info->name);
+                ImGui::TableSetColumnIndex(1);
+                ImGui::Text(inst.module.info->name);
 
-            ImGui::TableSetColumnIndex(2);
-            ImVec2 origPos = ImGui::GetCursorPos();
-            ImGui::SetCursorPos(ImVec2(origPos.x - 3, origPos.y));
-            if (ImGui::Button(("##module_mgr_"+name).c_str(), ImVec2(height,height))) {
-                core::moduleManager.deleteInstance(name);
+                ImGui::TableSetColumnIndex(2);
+                ImVec2 origPos = ImGui::GetCursorPos();
+                ImGui::SetCursorPos(ImVec2(origPos.x - 3, origPos.y));
+                if (ImGui::Button(("##module_mgr_"+name).c_str(), ImVec2(height,height))) {
+                    core::moduleManager.deleteInstance(name);
+                }
+                ImGui::SetCursorPos(ImVec2(origPos.x + 2, origPos.y - 5));
+                ImGui::Text("_");
             }
-            ImGui::SetCursorPos(ImVec2(origPos.x + 2, origPos.y - 5));
-            ImGui::Text("_");
+            ImGui::EndTable();
         }
-        ImGui::EndTable();
+       
 
         // Add module row with slightly different settings
         ImGui::BeginTable("Module Manager Add Table", 3);

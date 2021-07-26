@@ -315,9 +315,7 @@ private:
     
     static void start(void* ctx) {
         LimeSDRSourceModule* _this = (LimeSDRSourceModule*)ctx;
-        if (_this->running) {
-            return;
-        }
+        if (_this->running) { return; }
         
         // Open device
         _this->openDev = NULL;
@@ -355,9 +353,7 @@ private:
     
     static void stop(void* ctx) {
         LimeSDRSourceModule* _this = (LimeSDRSourceModule*)ctx;
-        if (!_this->running) {
-            return;
-        }
+        if (!_this->running) { return; }
         _this->running = false;
 
         _this->streamRunning = false;
