@@ -68,6 +68,7 @@ namespace module_manager_menu {
         ImGui::TableSetupColumn("Name");
         ImGui::TableSetupColumn("Type");
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 16);
+        ImGui::TableSetupScrollFreeze(3, 1);
         ImGui::TableNextRow();
 
         ImGui::TableSetColumnIndex(0);
