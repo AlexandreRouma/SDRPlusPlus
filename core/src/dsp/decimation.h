@@ -47,6 +47,7 @@ namespace dsp {
         void updateWindow(dsp::filter_window::generic_window* window) {
             assert(generic_block<HalfDecimator<T>>::_block_init);
             std::lock_guard<std::mutex> lck(generic_block<HalfDecimator<T>>::ctrlMtx);
+            std::lock_guard<std::mutex> lck2(bufMtx);
             _window = window;
             volk_free(taps);
             tapCount = window->getTapCount();
@@ -59,7 +60,7 @@ namespace dsp {
             int count = _in->read();
             if (count < 0) { return -1; }
 
-            generic_block<HalfDecimator<T>>::ctrlMtx.lock();
+            bufMtx.lock();
 
             memcpy(bufStart, _in->readBuf, count * sizeof(T));
             _in->flush();
@@ -82,11 +83,13 @@ namespace dsp {
             }
             _inIndex = inIndex - count;
 
-            if (!out.swap(outIndex)) { return -1; }
+            if (!out.swap(outIndex)) {
+                bufMtx.unlock();
+                return -1;
+            }
 
             memmove(buffer, &buffer[count], tapCount * sizeof(T));
-
-            generic_block<HalfDecimator<T>>::ctrlMtx.unlock();
+            
 
             return count;
         }
@@ -97,6 +100,7 @@ namespace dsp {
         stream<T>* _in;
 
         dsp::filter_window::generic_window* _window;
+        std::mutex bufMtx;
 
         T* bufStart;
         T* buffer;
