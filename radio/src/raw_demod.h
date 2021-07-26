@@ -40,19 +40,15 @@ public:
         _config->release(true);
 
         squelch.init(_vfo->output, squelchLevel);
-        
-        c2s.init(&squelch.out);
     }
 
     void start() {
         squelch.start();
-        c2s.start();
         running = true;
     }
 
     void stop() {
         squelch.stop();
-        c2s.stop();
         running = false;
     }
     
@@ -88,7 +84,7 @@ public:
     }
 
     dsp::stream<dsp::stereo_t>* getOutput() {
-        return &c2s.out;
+        return (dsp::stream<dsp::stereo_t>*)&squelch.out;
     }
     
     void showMenu() {
@@ -137,7 +133,6 @@ private:
 
     VFOManager::VFO* _vfo;
     dsp::Squelch squelch;
-    dsp::ComplexToStereo c2s;
 
     ConfigManager* _config;
 

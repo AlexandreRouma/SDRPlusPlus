@@ -119,6 +119,15 @@ void SignalPath::setFFTSize(int size) {
     reshape.start();
 }
 
+void SignalPath::setFFTRate(double rate) {
+    fftRate = rate;
+    int skip = (sampleRate / fftRate) - fftSize;
+    reshape.stop();
+    reshape.setSkip(skip);
+    reshape.setKeep(fftSize);
+    reshape.start();
+}
+
 void SignalPath::startFFT() {
     reshape.start();
     fftHandlerSink.start();
@@ -160,7 +169,6 @@ void SignalPath::setDecimation(int dec) {
     for (int i = 0; i < dec; i++) {
         dsp::HalfDecimator<dsp::complex_t>* decimator = new dsp::HalfDecimator<dsp::complex_t>((i == 0) ? &inputBuffer.out : &decimators[i-1]->out, &halfBandWindow);
         if (running) { decimator->start(); }
-        // TODO: ONLY start if running
         decimators.push_back(decimator);
     }
     split.setInput(&decimators[decimators.size()-1]->out);

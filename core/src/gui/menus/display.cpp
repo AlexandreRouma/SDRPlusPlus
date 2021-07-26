@@ -5,6 +5,7 @@
 #include <gui/colormaps.h>
 #include <gui/gui.h>
 #include <gui/main_window.h>
+#include <signal_path/signal_path.h>
 
 namespace displaymenu {
     bool showWaterfall;
@@ -15,6 +16,7 @@ namespace displaymenu {
     std::string colorMapNamesTxt = "";
     std::string colorMapAuthor = "";
     int selectedWindow = 0;
+    int fftRate = 20;
 
     const int FFTSizes[] = {
         65536,
@@ -71,6 +73,9 @@ namespace displaymenu {
         }
         gui::mainWindow.setFFTSize(FFTSizes[fftSizeId]);
 
+        fftRate = core::configManager.conf["fftRate"];
+        sigpath::signalPath.setFFTRate(fftRate);
+
         selectedWindow = std::clamp<int>((int)core::configManager.conf["fftWindow"], 0, _FFT_WINDOW_COUNT-1);
         gui::mainWindow.setFFTWindow(selectedWindow);
     }
@@ -96,6 +101,17 @@ namespace displaymenu {
             gui::waterfall.setFullWaterfallUpdate(fullWaterfallUpdate);
             core::configManager.acquire();
             core::configManager.conf["fullWaterfallUpdate"] = fullWaterfallUpdate;
+            core::configManager.release(true);
+        }
+
+        ImGui::Text("FFT Framerate");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::InputInt("##sdrpp_fft_rate", &fftRate, 1, 10)) {
+            std::clamp<int>(fftRate, 1, 200);
+            sigpath::signalPath.setFFTRate(fftRate);
+            core::configManager.acquire();
+            core::configManager.conf["fftRate"] = fftRate;
             core::configManager.release(true);
         }
 

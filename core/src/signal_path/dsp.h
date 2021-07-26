@@ -19,6 +19,7 @@ public:
     void bindIQStream(dsp::stream<dsp::complex_t>* stream);
     void unbindIQStream(dsp::stream<dsp::complex_t>* stream);
     void setFFTSize(int size);
+    void setFFTRate(double rate);
     void startFFT();
     void stopFFT();
     void setBuffering(bool enabled);

@@ -120,6 +120,7 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["colorMap"] = "Classic";
     defConfig["fastFFT"] = false;
     defConfig["fftHeight"] = 300;
+    defConfig["fftRate"] = 20;
     defConfig["fftSize"] = 65536;
     defConfig["fftWindow"] = 1;
     defConfig["frequency"] = 100000000.0;
