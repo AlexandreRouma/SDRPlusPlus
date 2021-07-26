@@ -25,6 +25,7 @@ namespace module_manager_menu {
     }
 
     void draw(void* ctx) {
+        bool modified = false;
         if (ImGui::BeginTable("Module Manager Table", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, 200))) {
             ImGui::TableSetupColumn("Name");
             ImGui::TableSetupColumn("Type");
@@ -49,6 +50,7 @@ namespace module_manager_menu {
                 ImGui::SetCursorPos(ImVec2(origPos.x - 3, origPos.y));
                 if (ImGui::Button(("##module_mgr_"+name).c_str(), ImVec2(height,height))) {
                     toBeRemoved.push_back(name);
+                    modified = true;
                 }
                 ImGui::SetCursorPos(ImVec2(origPos.x + 2, origPos.y - 5));
                 ImGui::Text("_");
@@ -81,8 +83,21 @@ namespace module_manager_menu {
         if (ImGui::Button("+##module_mgr_add_btn", ImVec2(16,0))) {
             core::moduleManager.createInstance(modName, modTypes[modTypeId]);
             core::moduleManager.postInit(modName);
+            modified = true;
         }
         if (strlen(modName) == 0) { style::endDisabled(); }
         ImGui::EndTable();
+
+        if (modified) {
+            // Update enabled and disabled modules
+            core::configManager.acquire();
+            json instances;
+            for (auto [_name, inst] : core::moduleManager.instances) {
+                instances[_name]["module"] = inst.module.info->name;
+                instances[_name]["enabled"] = inst.instance->isEnabled();
+            }
+            core::configManager.conf["moduleInstances"] = instances;
+            core::configManager.release(true);
+        }
     }
 }
