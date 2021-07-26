@@ -106,6 +106,7 @@ public:
         // Stop recording
         if (recording) { stopRecording(); }
 
+        vol.setInput(&dummyStream);
         if (audioInput != NULL) { sigpath::sinkManager.unbindStream(selectedStreamName, audioInput); }
 
         sigpath::sinkManager.onStreamRegistered.unbindHandler(&streamRegisteredHandler);
@@ -418,8 +419,8 @@ private:
         if (name != _this->selectedStreamName) { return; }
         if (_this->recording) { _this->stopRecording(); }
         if (_this->audioInput != NULL) {
-            sigpath::sinkManager.unbindStream(_this->selectedStreamName, _this->audioInput);
             _this->vol.setInput(&_this->dummyStream);
+            sigpath::sinkManager.unbindStream(_this->selectedStreamName, _this->audioInput);
             _this->audioInput = NULL;
         }
     }
