@@ -60,8 +60,6 @@ namespace dsp {
             int count = _in->read();
             if (count < 0) { return -1; }
 
-            bufMtx.lock();
-
             memcpy(bufStart, _in->readBuf, count * sizeof(T));
             _in->flush();
 
@@ -83,10 +81,7 @@ namespace dsp {
             }
             _inIndex = inIndex - count;
 
-            if (!out.swap(outIndex)) {
-                bufMtx.unlock();
-                return -1;
-            }
+            if (!out.swap(outIndex)) { return -1; }
 
             memmove(buffer, &buffer[count], tapCount * sizeof(T));
             
