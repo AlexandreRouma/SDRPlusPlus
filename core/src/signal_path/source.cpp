@@ -22,6 +22,9 @@ void SourceManager::unregisterSource(std::string name) {
     }
     onSourceUnregister.emit(name);
     if (name == selectedName) {
+        if (selectedHandler != NULL) {
+            sources[selectedName]->deselectHandler(sources[selectedName]->ctx);
+        }
         sigpath::signalPath.setInput(&nullSource);
         selectedHandler = NULL;
     }
