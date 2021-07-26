@@ -7,6 +7,7 @@
 namespace module_manager_menu {
     char modName[1024];
     std::vector<std::string> modTypes;
+    std::vector<std::string> toBeRemoved;
     std::string modTypesTxt;
     int modTypeId;
 
@@ -32,6 +33,8 @@ namespace module_manager_menu {
 
             float height = ImGui::CalcTextSize("-").y;
 
+            toBeRemoved.clear();
+
             for (auto& [name, inst] : core::moduleManager.instances) {
                 ImGui::TableNextRow();
 
@@ -45,12 +48,16 @@ namespace module_manager_menu {
                 ImVec2 origPos = ImGui::GetCursorPos();
                 ImGui::SetCursorPos(ImVec2(origPos.x - 3, origPos.y));
                 if (ImGui::Button(("##module_mgr_"+name).c_str(), ImVec2(height,height))) {
-                    core::moduleManager.deleteInstance(name);
+                    toBeRemoved.push_back(name);
                 }
                 ImGui::SetCursorPos(ImVec2(origPos.x + 2, origPos.y - 5));
                 ImGui::Text("_");
             }
             ImGui::EndTable();
+
+            for (auto& rem : toBeRemoved) {
+                core::moduleManager.deleteInstance(rem);
+            }
         }
        
 
