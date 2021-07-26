@@ -11,6 +11,7 @@ namespace sourecmenu {
     int sourceId = 0;
     double customOffset = 0.0;
     double effectiveOffset = 0.0;
+    int decimationPower = 0;
 
     EventHandler<std::string> sourceRegisteredHandler;
     EventHandler<std::string> sourceUnregisterHandler;
@@ -38,6 +39,14 @@ namespace sourecmenu {
                                 "DK5AV X-Band\0"
                                 "Ku LNB (9750MHz)\0"
                                 "Ku LNB (10700MHz)\0";
+
+    const char* decimationStages = "None\0"
+                                "2\0"
+                                "4\0"
+                                "8\0"
+                                "16\0"
+                                "32\0"
+                                "64\0";
 
     void updateOffset() {
         if (offsetMode == OFFSET_MODE_CUSTOM) {         effectiveOffset = customOffset; }
@@ -113,10 +122,12 @@ namespace sourecmenu {
         std::string selected = core::configManager.conf["source"];
         customOffset = core::configManager.conf["offset"];
         offsetMode = core::configManager.conf["offsetMode"];
+        decimationPower = core::configManager.conf["decimationPower"];
         updateOffset();
 
         refreshSources();
         selectSource(selected);
+        sigpath::signalPath.setDecimation(decimationPower);
 
         sourceRegisteredHandler.handler = onSourceRegistered;
         sourceUnregisterHandler.handler = onSourceUnregister;
@@ -130,8 +141,9 @@ namespace sourecmenu {
 
     void draw(void* ctx) {
         float itemWidth = ImGui::GetContentRegionAvailWidth();
+        bool running = gui::mainWindow.sdrIsRunning();
 
-        if (gui::mainWindow.sdrIsRunning()) { style::beginDisabled(); }
+        if (running) { style::beginDisabled(); }
 
         ImGui::SetNextItemWidth(itemWidth);
         if (ImGui::Combo("##source", &sourceId, sourceNamesTxt.c_str())) {
@@ -141,7 +153,7 @@ namespace sourecmenu {
             core::configManager.release(true);
         }
 
-        if (gui::mainWindow.sdrIsRunning()) { style::endDisabled(); }
+        if (running) { style::endDisabled(); }
 
         sigpath::sourceManager.showSelectedMenu();
 
@@ -171,5 +183,17 @@ namespace sourecmenu {
             ImGui::InputDouble("##freq_offset", &effectiveOffset, 1.0, 100.0);
             style::endDisabled();
         }
+
+        if (running) { style::beginDisabled(); }
+        ImGui::Text("Decimation");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(itemWidth - ImGui::GetCursorPosX());
+        if (ImGui::Combo("##source_decim", &decimationPower, decimationStages)) {
+            sigpath::signalPath.setDecimation(decimationPower);
+            core::configManager.acquire();
+            core::configManager.conf["decimationPower"] = decimationPower;
+            core::configManager.release(true);
+        }
+        if (running) { style::endDisabled(); }
     }
 }

@@ -1,4 +1,5 @@
 #include <signal_path/dsp.h>
+#include <core.h>
 
 SignalPath::SignalPath() {
     
@@ -6,9 +7,12 @@ SignalPath::SignalPath() {
 
 void SignalPath::init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream<dsp::complex_t>* input, dsp::complex_t* fftBuffer, void fftHandler(dsp::complex_t*,int,void*), void* fftHandlerCtx) {
     this->sampleRate = sampleRate;
+    this->sourceSampleRate = sampleRate;
     this->fftRate = fftRate;
     this->fftSize = fftSize;
     inputBlockSize = sampleRate / 200.0f;
+
+    halfBandWindow.init(1000000, 200000, 4000000);
 
     // split.init(input);
     inputBuffer.init(input);
@@ -47,17 +51,25 @@ double SignalPath::getSampleRate() {
 }
 
 void SignalPath::start() {
+    for (auto& decimator : decimators) {
+        decimator->start();
+    }
     inputBuffer.start();
     split.start();
     reshape.start();
     fftHandlerSink.start();
+    running = true;
 }
 
 void SignalPath::stop() {
+    for (auto& decimator : decimators) {
+        decimator->stop();
+    }
     inputBuffer.stop();
     split.stop();
     reshape.stop();
     fftHandlerSink.stop();
+    running = false;
 }
 
 dsp::VFO* SignalPath::addVFO(std::string name, double outSampleRate, double bandwidth, double offset) {
@@ -87,7 +99,6 @@ void SignalPath::removeVFO(std::string name) {
 }
 
 void SignalPath::setInput(dsp::stream<dsp::complex_t>* input) {
-    // split.setInput(input);
     inputBuffer.setInput(input);
 }
 
@@ -120,4 +131,38 @@ void SignalPath::stopFFT() {
 
 void SignalPath::setBuffering(bool enabled) {
     inputBuffer.bypass = !enabled;
+}
+
+void SignalPath::setDecimation(int dec) {
+    decimation = dec;
+
+    // Stop existing decimators
+    if (!decimators.empty()) {
+        for (auto& decimator : decimators) {
+            decimator->stop();
+            delete decimator;
+        }
+    }
+    decimators.clear();
+
+    // If no decimation, reconnect
+    if (!dec) {
+        split.setInput(&inputBuffer.out);
+        core::setInputSampleRate(sourceSampleRate);
+        return;
+    }
+    
+    // Create new decimators
+    if (running) { split.stop(); }
+    for (int i = 0; i < dec; i++) {
+        dsp::HalfDecimator<dsp::complex_t>* decimator = new dsp::HalfDecimator<dsp::complex_t>((i == 0) ? &inputBuffer.out : &decimators[i-1]->out, &halfBandWindow);
+        if (running) { decimator->start(); }
+        // TODO: ONLY start if running
+        decimators.push_back(decimator);
+    }
+    split.setInput(&decimators[decimators.size()-1]->out);
+    if (running) { split.start(); }
+
+    // Update the DSP sample rate
+    core::setInputSampleRate(sourceSampleRate);
 }

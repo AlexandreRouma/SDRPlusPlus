@@ -3,6 +3,7 @@
 #include <dsp/vfo.h>
 #include <map>
 #include <dsp/sink.h>
+#include <dsp/decimation.h>
 
 class SignalPath {
 public:
@@ -21,8 +22,11 @@ public:
     void startFFT();
     void stopFFT();
     void setBuffering(bool enabled);
+    void setDecimation(int dec);
 
     dsp::SampleFrameBuffer<dsp::complex_t> inputBuffer;
+    double sourceSampleRate = 0;
+    int decimation = 0;
 
 private:
     struct VFO_t {
@@ -39,10 +43,13 @@ private:
 
     // VFO
     std::map<std::string, VFO_t> vfos;
+    std::vector<dsp::HalfDecimator<dsp::complex_t>*> decimators;
+    dsp::filter_window::BlackmanWindow halfBandWindow;
 
     double sampleRate;
     double fftRate;
     int fftSize;
     int inputBlockSize;
     bool bufferingEnabled = false;
+    bool running = false;
 };

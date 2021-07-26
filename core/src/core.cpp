@@ -47,13 +47,15 @@ namespace core {
     GLFWwindow* window;
 
     void setInputSampleRate(double samplerate) {
+        sigpath::signalPath.sourceSampleRate = samplerate;
+        double effectiveSr = samplerate / ((double)(1 << sigpath::signalPath.decimation));
         // NOTE: Zoom controls won't work
-        spdlog::info("New DSP samplerate: {0}", samplerate);
-        gui::waterfall.setBandwidth(samplerate);
+        spdlog::info("New DSP samplerate: {0} (source samplerate is {1})", effectiveSr, samplerate);
+        gui::waterfall.setBandwidth(effectiveSr);
         gui::waterfall.setViewOffset(0);
-        gui::waterfall.setViewBandwidth(samplerate);
-        sigpath::signalPath.setSampleRate(samplerate);
-        gui::mainWindow.setViewBandwidthSlider(samplerate);
+        gui::waterfall.setViewBandwidth(effectiveSr);
+        sigpath::signalPath.setSampleRate(effectiveSr);
+        gui::mainWindow.setViewBandwidthSlider(effectiveSr);
     }
 };
 
@@ -202,6 +204,7 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["showMenu"] = true;
     defConfig["showWaterfall"] = true;
     defConfig["source"] = "";
+    defConfig["decimationPower"] = 0;
 
     defConfig["streams"]["Radio"]["muted"] = false;
     defConfig["streams"]["Radio"]["sink"] = "Audio";
