@@ -200,7 +200,7 @@ public:
             _config->release(true);
         }
 
-        if (ImGui::Checkbox("Stereo##radio_wfm_demod", &stereo)) {
+        if (ImGui::Checkbox(("Stereo##_radio_wfm_stereo_" + uiPrefix).c_str(), &stereo)) {
             setStereo(stereo);
             _config->acquire();
             _config->conf[uiPrefix]["WFM"]["stereo"] = stereo;
