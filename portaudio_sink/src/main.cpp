@@ -293,6 +293,7 @@ public:
     }
 
     ~AudioSinkModule() {
+        sigpath::sinkManager.unregisterSinkProvider("Audio");
         Pa_Terminate();
     }
 

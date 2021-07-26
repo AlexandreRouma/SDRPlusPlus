@@ -87,11 +87,52 @@ void SinkManager::Stream::setSampleRate(float sampleRate) {
 
 void SinkManager::registerSinkProvider(std::string name, SinkProvider provider) {
     if (providers.find(name) != providers.end()) {
-        spdlog::error("Cannot create sink provider '{0}', this name is already taken", name);
+        spdlog::error("Cannot register sink provider '{0}', this name is already taken", name);
         return;
     }
+
+    // Add the provider to the lists
     providers[name] = provider;
     providerNames.push_back(name);
+
+    // Recreatd the text list for the menu
+    refreshProviders();
+
+    // Update the IDs of every stream
+    for (auto& [streamName, stream] : streams) {
+        stream->providerId = std::distance(providerNames.begin(), std::find(providerNames.begin(), providerNames.end(), stream->providerName));
+    }
+
+    onSinkProviderRegistered.emit(name);
+}
+
+void SinkManager::unregisterSinkProvider(std::string name) {
+    if (providers.find(name) == providers.end()) {
+        spdlog::error("Cannot unregister sink provider '{0}', no such provider exists.", name);
+        return;
+    }
+
+    onSinkProviderUnregister.emit(name);
+    
+    // Switch all sinks using it to a null sink
+    for (auto& [streamName, stream] : streams) {
+        if (providerNames[stream->providerId] != name) { continue; }
+        setStreamSink(streamName, "None");
+    }
+
+    // Erase the provider from the lists
+    providers.erase(name);
+    providerNames.erase(std::find(providerNames.begin(), providerNames.end(), name));
+
+    // Recreatd the text list for the menu
+    refreshProviders();
+
+    // Update the IDs of every stream
+    for (auto& [streamName, stream] : streams) {
+        stream->providerId = std::distance(providerNames.begin(), std::find(providerNames.begin(), providerNames.end(), stream->providerName));
+    }
+
+    onSinkProviderUnregistered.emit(name);
 }
 
 void SinkManager::registerStream(std::string name, SinkManager::Stream* stream) {
@@ -105,6 +146,8 @@ void SinkManager::registerStream(std::string name, SinkManager::Stream* stream) 
     provider = providers["None"];
 
     stream->sink = provider.create(stream, name, provider.ctx);
+    stream->providerId = std::distance(providerNames.begin(), std::find(providerNames.begin(), providerNames.end(), "None"));
+    stream->providerName = "None";
 
     streams[name] = stream;
     streamNames.push_back(name);
@@ -173,7 +216,27 @@ void SinkManager::unbindStream(std::string name, dsp::stream<dsp::stereo_t>* str
 }
 
 void SinkManager::setStreamSink(std::string name, std::string providerName) {
-    spdlog::warn("setStreamSink is NOT implemented!!!");
+    if (streams.find(name) == streams.end()) {
+        spdlog::error("Cannot set sink for stream '{0}'. Stream doesn't exist", name);
+        return;
+    }
+    Stream* stream = streams[name];
+    if (providers.find(providerName) == providers.end()) {
+        spdlog::error("Unknown sink provider '{0}'", providerName);
+        return;
+    }
+
+    if (stream->running) {
+        stream->sink->stop();
+    }
+    delete stream->sink;
+    stream->providerId = std::distance(providerNames.begin(), std::find(providerNames.begin(), providerNames.end(), providerName));
+    stream->providerName = providerName;
+    SinkManager::SinkProvider prov = providers[providerName];
+    stream->sink = prov.create(stream, name, prov.ctx);
+    if (stream->running) {
+        stream->sink->start();
+    }
 }
 
 void SinkManager::showVolumeSlider(std::string name, std::string prefix, float width, float btnHeight, int btwBorder, bool sameLine) {
@@ -251,6 +314,7 @@ void SinkManager::loadStreamConfig(std::string name) {
     delete stream->sink;
     SinkManager::SinkProvider prov = providers[provName];
     stream->providerId = std::distance(providerNames.begin(), std::find(providerNames.begin(), providerNames.end(), provName));
+    stream->providerName = provName;
     stream->sink = prov.create(stream, name, prov.ctx);
     if (stream->running) {
         stream->sink->start();
@@ -293,15 +357,7 @@ void SinkManager::showMenu() {
 
         ImGui::SetNextItemWidth(menuWidth);
         if (ImGui::Combo(CONCAT("##_sdrpp_sink_select_", name), &stream->providerId, provStr.c_str())) {
-            if (stream->running) {
-                stream->sink->stop();
-            }
-            delete stream->sink;
-            SinkManager::SinkProvider prov = providers[providerNames[stream->providerId]];
-            stream->sink = prov.create(stream, name, prov.ctx);
-            if (stream->running) {
-                stream->sink->start();
-            }
+            setStreamSink(name, providerNames[stream->providerId]);
             core::configManager.acquire();
             saveStreamConfig(name);
             core::configManager.release(true);
@@ -322,4 +378,12 @@ void SinkManager::showMenu() {
 
 std::vector<std::string> SinkManager::getStreamNames() {
     return streamNames;
+}
+
+void SinkManager::refreshProviders() {
+    providerNamesTxt.clear();
+    for (auto& provName : providerNames) {
+        providerNamesTxt += provName;
+        providerNamesTxt += '\0';
+    }
 }

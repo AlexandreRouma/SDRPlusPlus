@@ -59,6 +59,7 @@ public:
         std::mutex ctrlMtx;
         float _sampleRate;
         int providerId = 0;
+        std::string providerName = "";
         bool running = false;
 
         float guiVolume = 1.0f;
@@ -89,6 +90,7 @@ public:
     };
 
     void registerSinkProvider(std::string name, SinkProvider provider);
+    void unregisterSinkProvider(std::string name);
 
     void registerStream(std::string name, Stream* stream);
     void unregisterStream(std::string name);
@@ -110,6 +112,10 @@ public:
 
     std::vector<std::string> getStreamNames();
 
+    Event<std::string> onSinkProviderRegistered;
+    Event<std::string> onSinkProviderUnregister;
+    Event<std::string> onSinkProviderUnregistered;
+
     Event<std::string> onStreamRegistered;
     Event<std::string> onStreamUnregister;
     Event<std::string> onStreamUnregistered;
@@ -117,10 +123,12 @@ public:
 private:
     void loadStreamConfig(std::string name);
     void saveStreamConfig(std::string name);
+    void refreshProviders();
 
     std::map<std::string, SinkProvider> providers;
     std::map<std::string, Stream*> streams;
     std::vector<std::string> providerNames;
+    std::string providerNamesTxt;
     std::vector<std::string> streamNames;
 
 };

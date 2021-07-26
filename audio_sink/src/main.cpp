@@ -248,7 +248,8 @@ public:
     }
 
     ~AudioSinkModule() {
-        
+        // Unregister sink, this will automatically stop and delete all instances of the audio sink
+        sigpath::sinkManager.unregisterSinkProvider("Audio");
     }
 
     void postInit() {}

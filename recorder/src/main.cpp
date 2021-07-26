@@ -398,8 +398,7 @@ private:
         }
 
         if (_this->selectedStreamName.empty()) {
-            _this->streamId = 0;
-            _this->selectedStreamName = _this->streamNames[0];
+            _this->selectStream(_this->streamNames[0]);
             return;
         }
 
@@ -420,6 +419,7 @@ private:
         if (_this->recording) { _this->stopRecording(); }
         if (_this->audioInput != NULL) {
             sigpath::sinkManager.unbindStream(_this->selectedStreamName, _this->audioInput);
+            _this->vol.setInput(&_this->dummyStream);
             _this->audioInput = NULL;
         }
     }
