@@ -361,8 +361,47 @@ private:
 
         // Execute commands
         if (parts.size() == 0) { return; }
-        else if (parts[0].at(0) == '\\') {
-            parts[0].replace(0,1,"");
+        else if (parts[0].at(0) == '\\') {      // Check to see if command is longform
+            parts[0].replace(0,1,"");       // Remove leading backslash
+            if (parts[0] == "set_freq") {
+                std::lock_guard lck(vfoMtx);
+
+                // if number of arguments isn't correct, return error
+                if (parts.size() != 2) {
+                    resp = "RPRT 1\n";
+                    client->write(resp.size(), (uint8_t*)resp.c_str());
+                    return;
+                }
+
+                // If not controlling the VFO, return
+                if (!tuningEnabled) {
+                    resp = "RPRT 0\n";
+                    client->write(resp.size(), (uint8_t*)resp.c_str());
+                    return;
+                }
+
+                // Parse frequency and assign it to the VFO
+                long long freq = std::stoll(parts[1]);
+                tuner::tune(tuner::TUNER_MODE_NORMAL, selectedVfo, freq);
+                resp = "RPRT 0\n";
+                client->write(resp.size(), (uint8_t*)resp.c_str());
+            }
+            else if (parts[0] == "get_freq") {
+                std::lock_guard lck(vfoMtx);
+
+                // Get center frequency of the SDR
+                double freq = gui::waterfall.getCenterFrequency();
+
+                // Add the offset of the VFO if it exists
+                if (sigpath::vfoManager.vfoExists(selectedVfo)) {
+                    freq += sigpath::vfoManager.getOffset(selectedVfo);
+                }
+
+                // Respond with the frequency
+                char buf[128];
+                sprintf(buf, "%" PRIu64 "\n", (uint64_t)freq);
+                client->write(strlen(buf), (uint8_t*)buf);
+            }
             else if (parts[0] == "recorder_start") {
                 std::lock_guard lck(recorderMtx);
                 // If not controlling the recorder, return
@@ -416,22 +455,23 @@ private:
             }
         }
         else {
-            for(int i = 0; i < parts[0].length(); i++){
+            for(int i = 0; i < parts[0].length(); i++){     // Loop adds support for compound commands
                 if (parts[0].at(i) == 'F') {
                     std::lock_guard lck(vfoMtx);
 
                     // if number of arguments isn't correct, return error
                     if (parts.size() != 2) {
+                        spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
                         resp = "RPRT 1\n";
                         client->write(resp.size(), (uint8_t*)resp.c_str());
-                        return;
+                        continue;
                     }
 
                     // If not controlling the VFO, return
                     if (!tuningEnabled) {
                         resp = "RPRT 0\n";
                         client->write(resp.size(), (uint8_t*)resp.c_str());
-                        return;
+                        continue;
                     }
 
                     // Parse frequency and assign it to the VFO
@@ -463,10 +503,12 @@ private:
                     spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
                     resp = "RPRT 1\n";
                     client->write(resp.size(), (uint8_t*)resp.c_str());
-                    return;
+                    break;
                 }
             }
         }
+        
+        return;
     }
 
     std::string name;
