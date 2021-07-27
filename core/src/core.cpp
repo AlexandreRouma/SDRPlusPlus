@@ -206,6 +206,7 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["showWaterfall"] = true;
     defConfig["source"] = "";
     defConfig["decimationPower"] = 0;
+    defConfig["iqCorrection"] = false;
 
     defConfig["streams"]["Radio"]["muted"] = false;
     defConfig["streams"]["Radio"]["sink"] = "Audio";

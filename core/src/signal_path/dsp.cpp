@@ -16,7 +16,8 @@ void SignalPath::init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream
 
     // split.init(input);
     inputBuffer.init(input);
-    split.init(&inputBuffer.out);
+    corrector.init(&inputBuffer.out, 100.0f / sampleRate);
+    split.init(&corrector.out);
 
     reshape.init(&fftStream, fftSize, (sampleRate / fftRate) - fftSize);
     split.bindStream(&fftStream);
@@ -43,6 +44,8 @@ void SignalPath::setSampleRate(double sampleRate) {
         vfo.vfo->start();
     }
 
+    corrector.setCorrectionRate(100.0f / sampleRate);
+
     split.start();
 }
 
@@ -55,6 +58,7 @@ void SignalPath::start() {
         decimator->start();
     }
     inputBuffer.start();
+    corrector.start();
     split.start();
     reshape.start();
     fftHandlerSink.start();
@@ -66,6 +70,7 @@ void SignalPath::stop() {
         decimator->stop();
     }
     inputBuffer.stop();
+    corrector.stop();
     split.stop();
     reshape.stop();
     fftHandlerSink.stop();
@@ -159,7 +164,7 @@ void SignalPath::setDecimation(int dec) {
 
     // If no decimation, reconnect
     if (!dec) {
-        split.setInput(&inputBuffer.out);
+        split.setInput(&corrector.out);
         if (running) { split.start(); }
         core::setInputSampleRate(sourceSampleRate);
         return;
@@ -167,7 +172,7 @@ void SignalPath::setDecimation(int dec) {
     
     // Create new decimators
     for (int i = 0; i < dec; i++) {
-        dsp::HalfDecimator<dsp::complex_t>* decimator = new dsp::HalfDecimator<dsp::complex_t>((i == 0) ? &inputBuffer.out : &decimators[i-1]->out, &halfBandWindow);
+        dsp::HalfDecimator<dsp::complex_t>* decimator = new dsp::HalfDecimator<dsp::complex_t>((i == 0) ? &corrector.out : &decimators[i-1]->out, &halfBandWindow);
         if (running) { decimator->start(); }
         decimators.push_back(decimator);
     }
@@ -176,4 +181,12 @@ void SignalPath::setDecimation(int dec) {
 
     // Update the DSP sample rate
     core::setInputSampleRate(sourceSampleRate);
+}
+
+void SignalPath::setIQCorrection(bool enabled) {
+    corrector.bypass = !enabled;
+    if (!enabled) {
+        corrector.offset.re = 0;
+        corrector.offset.im = 0;
+    }
 }
