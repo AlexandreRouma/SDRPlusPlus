@@ -361,95 +361,109 @@ private:
 
         // Execute commands
         if (parts.size() == 0) { return; }
-        else if (parts[0] == "F") {
-            std::lock_guard lck(vfoMtx);
+        else if (parts[0].at(0) == '\\') {
+            parts[0].replace(0,1,"");
+            else if (parts[0] == "recorder_start") {
+                std::lock_guard lck(recorderMtx);
+                // If not controlling the recorder, return
+                if (!recordingEnabled) {
+                    resp = "RPRT 0\n";
+                    client->write(resp.size(), (uint8_t*)resp.c_str());
+                    return;
+                }
 
-            // if number of arguments isn't correct, return error
-            if (parts.size() != 2) {
+                // Send the command to the selected recorder
+                if (recorderType == RECORDER_TYPE_METEOR_DEMODULATOR) {
+                    core::modComManager.callInterface(selectedRecorder, METEOR_DEMODULATOR_IFACE_CMD_START, NULL, NULL);
+                }
+                else {
+                    core::modComManager.callInterface(selectedRecorder, RECORDER_IFACE_CMD_START, NULL, NULL);
+                }
+
+                // Respond with a sucess
+                resp = "RPRT 0\n";
+                client->write(resp.size(), (uint8_t*)resp.c_str());
+            }
+            else if (parts[0] == "recorder_stop") {
+                std::lock_guard lck(recorderMtx);
+                // If not controlling the recorder, return
+                if (!recordingEnabled) {
+                    resp = "RPRT 0\n";
+                    client->write(resp.size(), (uint8_t*)resp.c_str());
+                    return;
+                }
+
+                // Send the command to the selected recorder
+                if (recorderType == RECORDER_TYPE_METEOR_DEMODULATOR) {
+                    core::modComManager.callInterface(selectedRecorder, METEOR_DEMODULATOR_IFACE_CMD_STOP, NULL, NULL);
+                }
+                else {
+                    core::modComManager.callInterface(selectedRecorder, RECORDER_IFACE_CMD_STOP, NULL, NULL);
+                }
+
+                // Respond with a sucess
+                resp = "RPRT 0\n";
+                client->write(resp.size(), (uint8_t*)resp.c_str());
+            }
+            else if (parts[0] == "quit") {
+                // Will close automatically
+            }
+            else {
+                spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
                 resp = "RPRT 1\n";
                 client->write(resp.size(), (uint8_t*)resp.c_str());
                 return;
             }
-
-            // If not controlling the VFO, return
-            if (!tuningEnabled) {
-                resp = "RPRT 0\n";
-                client->write(resp.size(), (uint8_t*)resp.c_str());
-                return;
-            }
-
-            // Parse frequency and assign it to the VFO
-            long long freq = std::stoll(parts[1]);
-            tuner::tune(tuner::TUNER_MODE_NORMAL, selectedVfo, freq);
-            resp = "RPRT 0\n";
-            client->write(resp.size(), (uint8_t*)resp.c_str());
-        }
-        else if (parts[0] == "f") {
-            std::lock_guard lck(vfoMtx);
-
-            // Get center frequency of the SDR
-            double freq = gui::waterfall.getCenterFrequency();
-
-            // Add the offset of the VFO if it exists
-            if (sigpath::vfoManager.vfoExists(selectedVfo)) {
-                freq += sigpath::vfoManager.getOffset(selectedVfo);
-            }
-
-            // Respond with the frequency
-            char buf[128];
-            sprintf(buf, "%" PRIu64 "\n", (uint64_t)freq);
-            client->write(strlen(buf), (uint8_t*)buf);
-        }
-        else if (parts[0] == "AOS") {
-            std::lock_guard lck(recorderMtx);
-            // If not controlling the recorder, return
-            if (!recordingEnabled) {
-                resp = "RPRT 0\n";
-                client->write(resp.size(), (uint8_t*)resp.c_str());
-                return;
-            }
-
-            // Send the command to the selected recorder
-            if (recorderType == RECORDER_TYPE_METEOR_DEMODULATOR) {
-                core::modComManager.callInterface(selectedRecorder, METEOR_DEMODULATOR_IFACE_CMD_START, NULL, NULL);
-            }
-            else {
-                core::modComManager.callInterface(selectedRecorder, RECORDER_IFACE_CMD_START, NULL, NULL);
-            }
-
-            // Respond with a sucess
-            resp = "RPRT 0\n";
-            client->write(resp.size(), (uint8_t*)resp.c_str());
-        }
-        else if (parts[0] == "LOS") {
-            std::lock_guard lck(recorderMtx);
-            // If not controlling the recorder, return
-            if (!recordingEnabled) {
-                resp = "RPRT 0\n";
-                client->write(resp.size(), (uint8_t*)resp.c_str());
-                return;
-            }
-
-            // Send the command to the selected recorder
-            if (recorderType == RECORDER_TYPE_METEOR_DEMODULATOR) {
-                core::modComManager.callInterface(selectedRecorder, METEOR_DEMODULATOR_IFACE_CMD_STOP, NULL, NULL);
-            }
-            else {
-                core::modComManager.callInterface(selectedRecorder, RECORDER_IFACE_CMD_STOP, NULL, NULL);
-            }
-
-            // Respond with a sucess
-            resp = "RPRT 0\n";
-            client->write(resp.size(), (uint8_t*)resp.c_str());
-        }
-        else if (parts[0] == "q") {
-            // Will close automatically
         }
         else {
-            spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
-            resp = "RPRT 1\n";
-            client->write(resp.size(), (uint8_t*)resp.c_str());
-            return;
+            if (parts[0] == "F") {
+                std::lock_guard lck(vfoMtx);
+
+                // if number of arguments isn't correct, return error
+                if (parts.size() != 2) {
+                    resp = "RPRT 1\n";
+                    client->write(resp.size(), (uint8_t*)resp.c_str());
+                    return;
+                }
+
+                // If not controlling the VFO, return
+                if (!tuningEnabled) {
+                    resp = "RPRT 0\n";
+                    client->write(resp.size(), (uint8_t*)resp.c_str());
+                    return;
+                }
+
+                // Parse frequency and assign it to the VFO
+                long long freq = std::stoll(parts[1]);
+                tuner::tune(tuner::TUNER_MODE_NORMAL, selectedVfo, freq);
+                resp = "RPRT 0\n";
+                client->write(resp.size(), (uint8_t*)resp.c_str());
+            }
+            else if (parts[0] == "f") {
+                std::lock_guard lck(vfoMtx);
+
+                // Get center frequency of the SDR
+                double freq = gui::waterfall.getCenterFrequency();
+
+                // Add the offset of the VFO if it exists
+                if (sigpath::vfoManager.vfoExists(selectedVfo)) {
+                    freq += sigpath::vfoManager.getOffset(selectedVfo);
+                }
+
+                // Respond with the frequency
+                char buf[128];
+                sprintf(buf, "%" PRIu64 "\n", (uint64_t)freq);
+                client->write(strlen(buf), (uint8_t*)buf);
+            }
+            else if (parts[0] == "q") {
+                // Will close automatically
+            }
+            else {
+                spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
+                resp = "RPRT 1\n";
+                client->write(resp.size(), (uint8_t*)resp.c_str());
+                return;
+            }
         }
     }
 
