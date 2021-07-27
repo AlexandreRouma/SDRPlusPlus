@@ -116,7 +116,11 @@ public:
         cbFuncs.StreamACbFn = streamCB;
         cbFuncs.StreamBCbFn = streamCB;
 
-        sdrplay_api_Open();
+        sdrplay_api_ErrT err = sdrplay_api_Open();
+        if (err != sdrplay_api_Success) {
+            spdlog::error("Could not intiatialized the SDRplay API. Make sure that the service is running.");
+            return;
+        }
 
         sampleRate = 2000000.0;
         srId = 0;
