@@ -131,11 +131,14 @@ namespace dsp {
 
             level = pow(10, ((10.0f * log10f(level)) - (_CorrectedFallRate * count)) / 10.0f);
 
+            if (level < 10e-14) { level = 10e-14; }
+
             float absVal;
             for (int i = 0; i < count; i++) {
                 absVal = fabsf(_in->readBuf[i]);
                 if (absVal > level) { level = absVal; }
             }
+
 
             volk_32f_s32f_multiply_32f(out.writeBuf, _in->readBuf, 1.0f / level, count);
 
