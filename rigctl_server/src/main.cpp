@@ -636,28 +636,28 @@ private:
 
                     // Parse mode and bandwidth
                     int mode;
-                    switch(parts[1]) {
-                        case "FM" : mode = RADIO_IFACE_MODE_NFM;
-                            break;
-                        case "WFM" : mode = RADIO_IFACE_MODE_WFM;
-                            break;
-                        case "AM" : mode = RADIO_IFACE_MODE_AM;
-                            break;
-                        case "DSB" : mode = RADIO_IFACE_MODE_DSB;
-                            break;
-                        case "USB" : mode = RADIO_IFACE_MODE_USB;
-                            break;
-                        case "CW" : mode = RADIO_IFACE_MODE_CW;
-                            break;
-                        case "LSB" : mode = RADIO_IFACE_MODE_LSB;
-                            break;
-                        case "RAW" : mode = RADIO_IFACE_MODE_RAW;
-                            break;
-                        default:        // If mode is not supported, return error
-                            spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
-                            resp = "RPRT 1\n";
-                            client->write(resp.size(), (uint8_t*)resp.c_str());
-                            return;
+                    if(parts[1] == "FM"){
+                        mode = RADIO_IFACE_MODE_NFM;
+                    }else if(parts[1] == "WFM"){
+                        mode = RADIO_IFACE_MODE_WFM;
+                    }else if(parts[1] == "AM"){
+                        mode = RADIO_IFACE_MODE_AM;
+                    }else if(parts[1] == "DSB"){
+                        mode = RADIO_IFACE_MODE_DSB;
+                    }else if(parts[1] == "USB"){
+                        mode = RADIO_IFACE_MODE_USB;
+                    }else if(parts[1] == "CW"){
+                        mode = RADIO_IFACE_MODE_CW;
+                    }else if(parts[1] == "LSB"){
+                        mode = RADIO_IFACE_MODE_LSB;
+                    }else if(parts[1] == "RAW"){
+                        mode = RADIO_IFACE_MODE_RAW;
+                    }else{
+                        // If mode is not supported, return error
+                        spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
+                        resp = "RPRT 1\n";
+                        client->write(resp.size(), (uint8_t*)resp.c_str());
+                        return;
                     }
                     int bandwidth = std::stoi(parts[2]);
 
