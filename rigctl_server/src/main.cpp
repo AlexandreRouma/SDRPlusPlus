@@ -405,11 +405,31 @@ private:
                 client->write(strlen(buf), (uint8_t*)buf);
             }
             else if (parts[0] == "set_mode") {
+                std::lock_guard lck(vfoMtx);
+
+                // if number of arguments isn't correct, return error
+                if (parts.size() != 3) {
+                    spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
+                    resp = "RPRT 1\n";
+                    client->write(resp.size(), (uint8_t*)resp.c_str());
+                    return;
+                }
+
+                // If not controlling the VFO, return
+                if (!tuningEnabled) {
+                    resp = "RPRT 0\n";
+                    client->write(resp.size(), (uint8_t*)resp.c_str());
+                    return;
+                }
+                
+                // If client is querying, respond accordingly
                 if(parts[1] == "?") {
                     resp = "FM WFM AM DSB USB CW LSB RAW";
                     client->write(resp.size(), (uint8_t*)resp.c_str());
                     return;
                 }
+                
+                // Parse mode and bandwidth
                 int mode;
                 switch(parts[1]) {
                     case "FM" : mode = RADIO_IFACE_MODE_NFM;
@@ -428,7 +448,7 @@ private:
                         break;
                     case "RAW" : mode = RADIO_IFACE_MODE_RAW;
                         break;
-                    default:
+                    default:        // If mode is not supported, return error
                         spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
                         resp = "RPRT 1\n";
                         client->write(resp.size(), (uint8_t*)resp.c_str());
@@ -436,14 +456,19 @@ private:
                 }
                 int bandwidth = std::stoi(parts[2]);
                 
+                // Set mode and bandwidth and respond
                 core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_SET_MODE, &mode, 0);
                 sigpath::vfoManager.setBandwidth(selectedVfo, bandwidth, true);
-                
                 resp = "RPRT 0\n";
                 client->write(resp.size(), (uint8_t*)resp.c_str());
             }
             else if (parts[0] == "get_mode") {
+                std::lock_guard lck(vfoMtx);
+                
+                // Initialize output stream
                 std::stringstream buf;
+                
+                // Get mode enum and parse to the output stream
                 int mode;
                 core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_GET_MODE, 0, &mode);
                 switch(mode) {
@@ -464,20 +489,32 @@ private:
                     case RADIO_IFACE_MODE_RAW : buf << "RAW\n";
                         break;
                 }
+                // Send bandwidth to output stream and respond
                 buf << sigpath::vfoManager.getBandwidth(selectedVfo) << "\n";
                 resp = buf.str();
                 client->write(resp.size(), (uint8_t*)resp.c_str());
             }
             else if (parts[0] == "set_vfo") {
+                // if number of arguments isn't correct, return error
+                if (parts.size() != 2) {
+                    spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
+                    resp = "RPRT 1\n";
+                    client->write(resp.size(), (uint8_t*)resp.c_str());
+                    return;
+                }
+                
+                // Respond
                 resp = "RPRT 0\n";
                 client->write(resp.size(), (uint8_t*)resp.c_str());
             }
             else if (parts[0] == "get_vfo") {
+                // Respond with VFO
                 resp = "VFO\n";
                 client->write(resp.size(), (uint8_t*)resp.c_str());
             }
             else if (parts[0] == "recorder_start") {
                 std::lock_guard lck(recorderMtx);
+                
                 // If not controlling the recorder, return
                 if (!recordingEnabled) {
                     resp = "RPRT 0\n";
@@ -499,6 +536,7 @@ private:
             }
             else if (parts[0] == "recorder_stop") {
                 std::lock_guard lck(recorderMtx);
+                
                 // If not controlling the recorder, return
                 if (!recordingEnabled) {
                     resp = "RPRT 0\n";
@@ -522,6 +560,7 @@ private:
                 // Will close automatically
             }
             else {
+                // If command is not recognized, return error
                 spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
                 resp = "RPRT 1\n";
                 client->write(resp.size(), (uint8_t*)resp.c_str());
@@ -571,11 +610,31 @@ private:
                     client->write(strlen(buf), (uint8_t*)buf);
                 }
                 else if (parts[0].at(i) == 'M') {
+                    std::lock_guard lck(vfoMtx);
+
+                    // if number of arguments isn't correct, return error
+                    if (parts.size() != 3) {
+                        spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
+                        resp = "RPRT 1\n";
+                        client->write(resp.size(), (uint8_t*)resp.c_str());
+                        return;
+                    }
+
+                    // If not controlling the VFO, return
+                    if (!tuningEnabled) {
+                        resp = "RPRT 0\n";
+                        client->write(resp.size(), (uint8_t*)resp.c_str());
+                        return;
+                    }
+
+                    // If client is querying, respond accordingly
                     if(parts[1] == "?") {
                         resp = "FM WFM AM DSB USB CW LSB RAW";
                         client->write(resp.size(), (uint8_t*)resp.c_str());
                         return;
                     }
+
+                    // Parse mode and bandwidth
                     int mode;
                     switch(parts[1]) {
                         case "FM" : mode = RADIO_IFACE_MODE_NFM;
@@ -594,7 +653,7 @@ private:
                             break;
                         case "RAW" : mode = RADIO_IFACE_MODE_RAW;
                             break;
-                        default:
+                        default:        // If mode is not supported, return error
                             spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
                             resp = "RPRT 1\n";
                             client->write(resp.size(), (uint8_t*)resp.c_str());
@@ -602,14 +661,19 @@ private:
                     }
                     int bandwidth = std::stoi(parts[2]);
 
+                    // Set mode and bandwidth and respond
                     core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_SET_MODE, &mode, 0);
                     sigpath::vfoManager.setBandwidth(selectedVfo, bandwidth, true);
-
                     resp = "RPRT 0\n";
                     client->write(resp.size(), (uint8_t*)resp.c_str());
                 }
                 else if (parts[0].at(i) == 'm') {
+                    std::lock_guard lck(vfoMtx);
+
+                    // Initialize output stream
                     std::stringstream buf;
+
+                    // Get mode enum and parse to the output stream
                     int mode;
                     core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_GET_MODE, 0, &mode);
                     switch(mode) {
@@ -630,15 +694,26 @@ private:
                         case RADIO_IFACE_MODE_RAW : buf << "RAW\n";
                             break;
                     }
+                    // Send bandwidth to output stream and respond
                     buf << sigpath::vfoManager.getBandwidth(selectedVfo) << "\n";
                     resp = buf.str();
                     client->write(resp.size(), (uint8_t*)resp.c_str());
                 }
                 else if (parts[0].at(i) == 'V') {
+                    // if number of arguments isn't correct, return error
+                    if (parts.size() != 3) {
+                        spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
+                        resp = "RPRT 1\n";
+                        client->write(resp.size(), (uint8_t*)resp.c_str());
+                        return;
+                    }
+
+                    // Respond
                     resp = "RPRT 0\n";
                     client->write(resp.size(), (uint8_t*)resp.c_str());
                 }
                 else if (parts[0].at(i) == 'v') {
+                    // Respond with VFO
                     resp = "VFO\n";
                     client->write(resp.size(), (uint8_t*)resp.c_str());
                 }
@@ -646,6 +721,7 @@ private:
                     // Will close automatically
                 }
                 else {
+                // If command is not recognized, return error
                     spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
                     resp = "RPRT 1\n";
                     client->write(resp.size(), (uint8_t*)resp.c_str());
