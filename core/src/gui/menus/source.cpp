@@ -76,6 +76,7 @@ namespace sourecmenu {
         auto it = std::find(sourceNames.begin(), sourceNames.end(), name);
         if (it == sourceNames.end()) {
             selectSource(sourceNames[0]);
+            return;
         }
         sourceId = std::distance(sourceNames.begin(), it);
         selectedSource = sourceNames[sourceId];
