@@ -520,7 +520,7 @@ namespace ImGui {
         float pixel;
         float dataRange = waterfallMax - waterfallMin;
         int count = std::min<float>(waterfallHeight, fftLines);
-        if (rawFFTs != NULL) {
+        if (rawFFTs != NULL && fftLines >= 0) {
             for (int i = 0; i < count; i++) {
                 drawDataSize = (viewBandwidth / wholeBandwidth) * rawFFTSize;
                 drawDataStart = (((double)rawFFTSize / 2.0) * (offsetRatio + 1)) - (drawDataSize / 2);
@@ -528,6 +528,12 @@ namespace ImGui {
                 for (int j = 0; j < dataWidth; j++) {
                     pixel = (std::clamp<float>(tempData[j], waterfallMin, waterfallMax) - waterfallMin) / dataRange;
                     waterfallFb[(i * dataWidth) + j] = waterfallPallet[(int)(pixel * (WATERFALL_RESOLUTION - 1))];
+                }
+            }
+
+            for (int i = count; i < waterfallHeight; i++) {
+                for (int j = 0; j < dataWidth; j++) {
+                    waterfallFb[(i * dataWidth) + j] = (uint32_t)255 << 24;
                 }
             }
         }
@@ -1028,15 +1034,16 @@ namespace ImGui {
     void WaterFall::setRawFFTSize(int size, bool lock) {
         std::lock_guard<std::mutex> lck(buf_mtx);
         rawFFTSize = size;
+        int wfSize = std::max<int>(1, waterfallHeight);
         if (rawFFTs != NULL) {
-            int wfSize = std::max<int>(1, waterfallHeight);
             rawFFTs = (float*)realloc(rawFFTs, rawFFTSize * wfSize * sizeof(float));
         }
         else {
-            int wfSize = std::max<int>(1, waterfallHeight);
             rawFFTs = (float*)malloc(rawFFTSize * wfSize * sizeof(float));
         }
+        fftLines = 0;
         memset(rawFFTs, 0, rawFFTSize * waterfallHeight * sizeof(float));
+        updateWaterfallFb();
     }
 
     void WaterFall::setBandPlanPos(int pos) {
