@@ -9,6 +9,8 @@
 #include <meteor_demodulator_interface.h>
 #include <config.h>
 #include <options.h>
+#include <cctype>
+#include <radio_interface.h>
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
 #define MAX_COMMAND_LENGTH      8192
@@ -359,9 +361,23 @@ private:
 
         // NOTE: THIS STUFF ISN'T THREADSAFE AND WILL LIKELY BREAK.
 
-        // Execute commands
+        // If the command is empty, do nothing
         if (parts.size() == 0) { return; }
-        else if (parts[0] == "F") {
+
+        // If the command is a compound command, execute each one separately
+        if (parts[0].size() > 1 && parts[0][0] != '\\') {
+            std::string arguments;
+            if (parts.size() > 1) { arguments = cmd.substr(parts[0].size()); }
+            for (char c : parts[0]) {
+                commandHandler(c + arguments);
+            }
+            return;
+        }
+
+        spdlog::info("Rigctl command: '{0}'", cmd);
+
+        // Otherwise, execute the command
+        if (parts[0] == "F" || parts[0] == "\\set_freq") {
             std::lock_guard lck(vfoMtx);
 
             // if number of arguments isn't correct, return error
@@ -384,7 +400,7 @@ private:
             resp = "RPRT 0\n";
             client->write(resp.size(), (uint8_t*)resp.c_str());
         }
-        else if (parts[0] == "f") {
+        else if (parts[0] == "f" || parts[0] == "\\get_freq") {
             std::lock_guard lck(vfoMtx);
 
             // Get center frequency of the SDR
@@ -399,6 +415,133 @@ private:
             char buf[128];
             sprintf(buf, "%" PRIu64 "\n", (uint64_t)freq);
             client->write(strlen(buf), (uint8_t*)buf);
+        }
+        else if (parts[0] == "M" || parts[0] == "\\set_mode") {
+            std::lock_guard lck(vfoMtx);
+            resp = "RPRT 0\n";
+
+            if (parts.size() >= 2 && parts[1] == "?") {
+                resp = "FM WFM AM DSB USB CW LSB RAW\n";
+                client->write(resp.size(), (uint8_t*)resp.c_str());
+                return;
+            }
+
+            // if number of arguments isn't correct or the VFO is not "VFO", return error
+            if (parts.size() != 3) {
+                resp = "RPRT 1\n";
+                client->write(resp.size(), (uint8_t*)resp.c_str());
+                return;
+            }
+
+            // Check that the bandwidth is an integer
+            for (char c : parts[2]) {
+                if (!std::isdigit(c)) {
+                    resp = "RPRT 1\n";
+                    client->write(resp.size(), (uint8_t*)resp.c_str());
+                    return;
+                }
+            }
+
+            float newBandwidth = std::atoi(parts[2].c_str());
+
+            int newMode;
+            if (parts[1] == "FM") {
+                newMode = RADIO_IFACE_MODE_NFM;
+            }
+            else if (parts[1] == "WFM") {
+                newMode = RADIO_IFACE_MODE_WFM;
+            }
+            else if (parts[1] == "AM") {
+                newMode = RADIO_IFACE_MODE_AM;
+            }
+            else if (parts[1] == "DSB") {
+                newMode = RADIO_IFACE_MODE_DSB;
+            }
+            else if (parts[1] == "USB") {
+                newMode = RADIO_IFACE_MODE_USB;
+            }
+            else if (parts[1] == "CW") {
+                newMode = RADIO_IFACE_MODE_CW;
+            }
+            else if (parts[1] == "LSB") {
+                newMode = RADIO_IFACE_MODE_LSB;
+            }
+            else if (parts[1] == "RAW") {
+                newMode = RADIO_IFACE_MODE_RAW;
+            }
+            else {
+                resp = "RPRT 1\n";
+                client->write(resp.size(), (uint8_t*)resp.c_str());
+                return;
+            }
+
+            // If tuning is enabled, set the mode and optionally the bandwidth
+            if (!selectedVfo.empty() && core::modComManager.getModuleName(selectedVfo) == "radio" && tuningEnabled) {
+                core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_SET_MODE, &newMode, NULL);
+                if (newBandwidth) {
+                    core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_SET_BANDWIDTH, &newBandwidth, NULL);
+                }
+            }
+            
+            client->write(resp.size(), (uint8_t*)resp.c_str());
+        }
+        else if (parts[0] == "m" || parts[0] == "\\get_mode") {
+            std::lock_guard lck(vfoMtx);
+            resp = "RAW\n";
+
+            if (!selectedVfo.empty() && core::modComManager.getModuleName(selectedVfo) == "radio") {
+                int mode;
+                core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_GET_MODE, NULL, &mode);
+                
+                if (mode == RADIO_IFACE_MODE_NFM) {
+                    resp = "FM\n";
+                }
+                else if (mode == RADIO_IFACE_MODE_WFM) {
+                    resp = "WFM\n";
+                }
+                else if (mode == RADIO_IFACE_MODE_AM) {
+                    resp = "AM\n";
+                }
+                else if (mode == RADIO_IFACE_MODE_DSB) {
+                    resp = "DSB\n";
+                }
+                else if (mode == RADIO_IFACE_MODE_USB) {
+                    resp = "USB\n";
+                }
+                else if (mode == RADIO_IFACE_MODE_CW) {
+                    resp = "CW\n";
+                }
+                else if (mode == RADIO_IFACE_MODE_LSB) {
+                    resp = "LSB\n";
+                }
+            }
+
+            client->write(resp.size(), (uint8_t*)resp.c_str());
+        }
+        else if (parts[0] == "V" || parts[0] == "\\set_vfo") {
+            std::lock_guard lck(vfoMtx);
+            resp = "RPRT 0\n";
+
+            // if number of arguments isn't correct or the VFO is not "VFO", return error
+            if (parts.size() != 2) {
+                resp = "RPRT 1\n";
+                client->write(resp.size(), (uint8_t*)resp.c_str());
+                return;
+            }
+
+            if (parts[1] == "?") {
+                resp = "VFO\n";
+            }
+            else if (parts[1] != "VFO") {
+                resp = "RPRT 1\n";
+            }
+
+            client->write(resp.size(), (uint8_t*)resp.c_str());
+        }
+        else if (parts[0] == "v" || parts[0] == "\\get_vfo") {
+            std::lock_guard lck(vfoMtx);
+            resp = "VFO\n";
+            client->write(resp.size(), (uint8_t*)resp.c_str());
         }
         else if (parts[0] == "AOS") {
             std::lock_guard lck(recorderMtx);
