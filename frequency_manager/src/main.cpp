@@ -198,19 +198,20 @@ private:
 
             ImGui::EndTable();
 
-            if (strlen(nameBuf) == 0) { style::beginDisabled(); }
+            bool applyDisabled = (strlen(nameBuf) == 0) || (bookmarks.find(editedBookmarkName) != bookmarks.end() && editedBookmarkName != firstEditedBookmarkName);
+            if (applyDisabled) { style::beginDisabled(); }
             if (ImGui::Button("Apply")) {
                 open = false;
                 
                 // If editing, delete the original one
                 if (editOpen) {
-                    bookmarks.erase(firstEeditedBookmarkName);
+                    bookmarks.erase(firstEditedBookmarkName);
                 }
-                bookmarks[nameBuf] = editedBookmark;
+                bookmarks[editedBookmarkName] = editedBookmark;
 
                 saveByName(selectedListName);
             }
-            if (strlen(nameBuf) == 0) { style::endDisabled(); }
+            if (applyDisabled) { style::endDisabled(); }
             ImGui::SameLine();
             if (ImGui::Button("Cancel")) {
                 open = false;
@@ -463,7 +464,7 @@ private:
 
             _this->editedBookmark.selected = false;
 
-            _this->editOpen = true;
+            _this->createOpen = true;
 
             // Find new unique default name
             if (_this->bookmarks.find("New Bookmark") == _this->bookmarks.end()) {
@@ -492,7 +493,7 @@ private:
             _this->editOpen = true;
             _this->editedBookmark = _this->bookmarks[selectedNames[0]];
             _this->editedBookmarkName = selectedNames[0];
-            _this->firstEeditedBookmarkName = selectedNames[0];
+            _this->firstEditedBookmarkName = selectedNames[0];
         }
         if (selectedNames.size() != 1 && _this->selectedListName != "") { style::endDisabled(); }
         
@@ -808,7 +809,7 @@ private:
     std::map<std::string, FrequencyBookmark> bookmarks;
 
     std::string editedBookmarkName = "";
-    std::string firstEeditedBookmarkName = "";
+    std::string firstEditedBookmarkName = "";
     FrequencyBookmark editedBookmark;
 
     std::vector<std::string> listNames;
