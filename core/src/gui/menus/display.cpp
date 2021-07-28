@@ -108,7 +108,7 @@ namespace displaymenu {
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::InputInt("##sdrpp_fft_rate", &fftRate, 1, 10)) {
-            std::clamp<int>(fftRate, 1, 200);
+            fftRate = std::max<int>(1, fftRate);
             sigpath::signalPath.setFFTRate(fftRate);
             core::configManager.acquire();
             core::configManager.conf["fftRate"] = fftRate;

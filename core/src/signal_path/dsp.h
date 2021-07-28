@@ -56,4 +56,5 @@ private:
     int inputBlockSize;
     bool bufferingEnabled = false;
     bool running = false;
+    bool iqCorrection = false;
 };

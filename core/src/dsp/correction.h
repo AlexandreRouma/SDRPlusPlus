@@ -64,7 +64,7 @@ namespace dsp {
         stream<complex_t> out;
 
         // TEMPORARY FOR DEBUG PURPOSES
-        bool bypass = true;
+        bool bypass = false;
         complex_t offset;
 
     private:
