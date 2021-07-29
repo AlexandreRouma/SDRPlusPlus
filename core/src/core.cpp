@@ -463,6 +463,11 @@ int sdrpp_main(int argc, char *argv[]) {
         glfwSwapBuffers(core::window);
     }
 
+    // Shut down all modules
+    for (auto& [name, mod] : core::moduleManager.modules) {
+        mod.end();
+    }
+
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -472,6 +477,9 @@ int sdrpp_main(int argc, char *argv[]) {
     glfwTerminate();
 
     sigpath::signalPath.stop();
+
+    core::configManager.disableAutoSave();
+    core::configManager.save();
 
     return 0;
 }

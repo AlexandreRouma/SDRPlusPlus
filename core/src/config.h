@@ -4,6 +4,7 @@
 #include <string>
 #include <mutex>
 #include <condition_variable>
+#include <atomic>
 
 using nlohmann::json;
 
@@ -17,21 +18,21 @@ public:
     void enableAutoSave();
     void disableAutoSave();
     void acquire();
-    void release(bool changed = false);
+    void release(bool modified = false);
 
     json conf;
     
 private:
-    static void autoSaveWorker(ConfigManager* _this);
+    void autoSaveWorker();
 
     std::string path = "";
-    bool changed = false;
-    bool autoSaveEnabled = false;
+    volatile bool changed = false;
+    volatile bool autoSaveEnabled = false;
     std::thread autoSaveThread;
     std::mutex mtx;
 
     std::mutex termMtx;
     std::condition_variable termCond;
-    bool termFlag = false;
+    volatile bool termFlag = false;
 
 };
