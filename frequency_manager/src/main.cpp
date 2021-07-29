@@ -680,7 +680,9 @@ private:
         std::string hoveredBookmarkName;
 
         if (_this->bookmarkDisplayMode == BOOKMARK_DISP_MODE_TOP) {
-            for (auto const bm : _this->waterfallBookmarks) {
+            int count = _this->waterfallBookmarks.size();
+            for (int i = count-1; i >= 0; i--) {
+                auto& bm = _this->waterfallBookmarks[i];
                 double centerXpos = args.fftRectMin.x + std::round((bm.bookmark.frequency - args.lowFreq) * args.freqToPixelRatio);
                 ImVec2 nameSize = ImGui::CalcTextSize(bm.bookmarkName.c_str());
                 ImVec2 rectMin = ImVec2(centerXpos-(nameSize.x/2)-5, args.fftRectMin.y);
@@ -697,7 +699,9 @@ private:
             }
         }
         else if (_this->bookmarkDisplayMode == BOOKMARK_DISP_MODE_BOTTOM) {
-            for (auto const bm : _this->waterfallBookmarks) {
+            int count = _this->waterfallBookmarks.size();
+            for (int i = count-1; i >= 0; i--) {
+                auto& bm = _this->waterfallBookmarks[i];
                 double centerXpos = args.fftRectMin.x + std::round((bm.bookmark.frequency - args.lowFreq) * args.freqToPixelRatio);
                 ImVec2 nameSize = ImGui::CalcTextSize(bm.bookmarkName.c_str());
                 ImVec2 rectMin = ImVec2(centerXpos-(nameSize.x/2)-5, args.fftRectMax.y-nameSize.y);

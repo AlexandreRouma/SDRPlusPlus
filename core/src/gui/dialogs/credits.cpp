@@ -15,6 +15,10 @@ namespace credits {
 
     void show() {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f, 20.0f));
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0,0,0,0));
+        ImVec2 dispSize = ImGui::GetIO().DisplaySize;
+        ImVec2 center = ImVec2(dispSize.x/2.0f, dispSize.y/2.0f);
+        ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
         ImGui::OpenPopup("Credits");
         ImGui::BeginPopupModal("Credits", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
 
@@ -55,11 +59,8 @@ namespace credits {
         ImGui::Spacing();
         ImGui::Text("SDR++ v" VERSION_STR " (Built at " __TIME__ ", " __DATE__ ")");
 
-        ImVec2 dispSize = ImGui::GetIO().DisplaySize;
-        ImVec2 winSize = ImGui::GetWindowSize();
-        ImGui::SetWindowPos(ImVec2(std::round((dispSize.x/2) - (winSize.x/2)), std::round((dispSize.y/2) - (winSize.y/2))));
-
         ImGui::EndPopup();
-        ImGui::PopStyleVar(1);
+        ImGui::PopStyleColor();
+        ImGui::PopStyleVar();
     }
 }
