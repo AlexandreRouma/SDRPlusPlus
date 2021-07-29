@@ -5,7 +5,6 @@
 #include <gui/style.h>
 #include <signal_path/signal_path.h>
 #include <core.h>
-#include <radio_interface.h>
 #include <recorder_interface.h>
 #include <meteor_demodulator_interface.h>
 #include <config.h>
@@ -392,6 +391,7 @@ private:
             if (!tuningEnabled) {
                 resp = "RPRT 0\n";
                 client->write(resp.size(), (uint8_t*)resp.c_str());
+                return;
             }
 
             // Parse frequency and assign it to the VFO
@@ -551,7 +551,7 @@ private:
             resp = "VFO\n";
             client->write(resp.size(), (uint8_t*)resp.c_str());
         }
-        else if (parts[0] == "\\recorder_start") {
+        else if (parts[0] == "AOS" || parts[0] == "\\recorder_start") {
             std::lock_guard lck(recorderMtx);
 
             // If not controlling the recorder, return
@@ -573,7 +573,7 @@ private:
             resp = "RPRT 0\n";
             client->write(resp.size(), (uint8_t*)resp.c_str());
         }
-        else if (parts[0] == "\\recorder_stop") {
+        else if (parts[0] == "LOS" || parts[0] == "\\recorder_stop") {
             std::lock_guard lck(recorderMtx);
 
             // If not controlling the recorder, return
@@ -595,7 +595,7 @@ private:
             resp = "RPRT 0\n";
             client->write(resp.size(), (uint8_t*)resp.c_str());
         }
-        else if (parts[0] == "quit") {
+        else if (parts[0] == "q" || parts[0] == "\\quit") {
             // Will close automatically
         }
         else {
