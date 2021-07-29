@@ -8,7 +8,7 @@ public:
     FrequencySelect();
     void init();
     void draw();
-    void setFrequency(uint64_t freq);
+    void setFrequency(int64_t freq);
 
     uint64_t frequency;
     bool frequencyChanged = false;

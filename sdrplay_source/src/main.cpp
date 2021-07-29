@@ -156,11 +156,13 @@ public:
         // core::setInputSampleRate(sampleRate);
 
         sigpath::sourceManager.registerSource("SDRplay", &handler);
+
+        initOk = true;
     }
 
     ~SDRPlaySourceModule() {
         stop(this);
-        sdrplay_api_Close();
+        if (initOk) { sdrplay_api_Close(); }
         sigpath::sourceManager.unregisterSource("SDRplay");
     }
 
@@ -943,6 +945,7 @@ private:
     SourceManager::SourceHandler handler;
     bool running = false;
     double freq;
+    bool initOk = false;
 
     sdrplay_api_CallbackFnsT cbFuncs;
 
