@@ -420,6 +420,7 @@ private:
             std::lock_guard lck(vfoMtx);
             resp = "RPRT 0\n";
 
+            // If client is querying, respond accordingly
             if (parts.size() >= 2 && parts[1] == "?") {
                 resp = "FM WFM AM DSB USB CW LSB RAW\n";
                 client->write(resp.size(), (uint8_t*)resp.c_str());
@@ -550,8 +551,9 @@ private:
             resp = "VFO\n";
             client->write(resp.size(), (uint8_t*)resp.c_str());
         }
-        else if (parts[0] == "AOS") {
+        else if (parts[0] == "AOS" || parts[0] == "\\recorder_start") {
             std::lock_guard lck(recorderMtx);
+
             // If not controlling the recorder, return
             if (!recordingEnabled) {
                 resp = "RPRT 0\n";
@@ -571,8 +573,9 @@ private:
             resp = "RPRT 0\n";
             client->write(resp.size(), (uint8_t*)resp.c_str());
         }
-        else if (parts[0] == "LOS") {
+        else if (parts[0] == "LOS" || parts[0] == "\\recorder_stop") {
             std::lock_guard lck(recorderMtx);
+
             // If not controlling the recorder, return
             if (!recordingEnabled) {
                 resp = "RPRT 0\n";
@@ -592,10 +595,11 @@ private:
             resp = "RPRT 0\n";
             client->write(resp.size(), (uint8_t*)resp.c_str());
         }
-        else if (parts[0] == "q") {
+        else if (parts[0] == "q" || parts[0] == "\\quit") {
             // Will close automatically
         }
         else {
+            // If command is not recognized, return error
             spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
             resp = "RPRT 1\n";
             client->write(resp.size(), (uint8_t*)resp.c_str());
