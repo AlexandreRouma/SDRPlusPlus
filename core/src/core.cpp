@@ -16,8 +16,6 @@
 #include <core.h>
 #include <glfw_window.h>
 #include <options.h>
-#include <duktape/duktape.h>
-#include <duktape/duk_console.h>
 #include <filesystem>
 #include <gui/menus/theme.h>
 #include <server.h>
@@ -41,7 +39,6 @@
 
 namespace core {
     ConfigManager configManager;
-    ScriptManager scriptManager;
     ModuleManager moduleManager;
     ModuleComManager modComManager;
     GLFWwindow* window;
@@ -73,11 +70,6 @@ static void maximized_callback(GLFWwindow* window, int n) {
     else {
         maximized = false;
     }
-}
-
-duk_ret_t test_func(duk_context *ctx) {
-    printf("Hello from C++\n");
-    return 1;
 }
 
 // main

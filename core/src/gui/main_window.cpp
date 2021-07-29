@@ -21,7 +21,6 @@
 #include <gui/menus/display.h>
 #include <gui/menus/bandplan.h>
 #include <gui/menus/sink.h>
-#include <gui/menus/scripting.h>
 #include <gui/menus/vfo_color.h>
 #include <gui/menus/module_manager.h>
 #include <gui/menus/theme.h>
@@ -65,7 +64,6 @@ void MainWindow::init() {
 
     gui::menu.registerEntry("Source", sourecmenu::draw, NULL);
     gui::menu.registerEntry("Sinks", sinkmenu::draw, NULL);
-    gui::menu.registerEntry("Scripting", scriptingmenu::draw, NULL);
     gui::menu.registerEntry("Band Plan", bandplanmenu::draw, NULL);
     gui::menu.registerEntry("Display", displaymenu::draw, NULL);
     gui::menu.registerEntry("Theme", thememenu::draw, NULL);
@@ -154,7 +152,6 @@ void MainWindow::init() {
 
     sourecmenu::init();
     sinkmenu::init();
-    scriptingmenu::init();
     bandplanmenu::init();
     displaymenu::init();
     vfo_color_menu::init();
