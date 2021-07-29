@@ -12,6 +12,7 @@ namespace sourecmenu {
     double customOffset = 0.0;
     double effectiveOffset = 0.0;
     int decimationPower = 0;
+    bool iqCorrection = false;
 
     EventHandler<std::string> sourceRegisteredHandler;
     EventHandler<std::string> sourceUnregisterHandler;
@@ -124,6 +125,8 @@ namespace sourecmenu {
         customOffset = core::configManager.conf["offset"];
         offsetMode = core::configManager.conf["offsetMode"];
         decimationPower = core::configManager.conf["decimationPower"];
+        iqCorrection = core::configManager.conf["iqCorrection"];
+        sigpath::signalPath.setIQCorrection(iqCorrection);
         updateOffset();
 
         refreshSources();
@@ -157,6 +160,13 @@ namespace sourecmenu {
         if (running) { style::endDisabled(); }
 
         sigpath::sourceManager.showSelectedMenu();
+
+        if (ImGui::Checkbox("IQ Correction##_sdrpp_iq_corr", &iqCorrection)) {
+            sigpath::signalPath.setIQCorrection(iqCorrection);
+            core::configManager.acquire();
+            core::configManager.conf["iqCorrection"] = iqCorrection;
+            core::configManager.release(true);
+        }
 
         ImGui::Text("Offset mode");
         ImGui::SameLine();

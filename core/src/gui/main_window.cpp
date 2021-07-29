@@ -404,9 +404,11 @@ void MainWindow::draw() {
 
     ImGui::SameLine();
 
-    ImGui::SetCursorPosX(ImGui::GetWindowSize().x - 387);
+    int snrWidth = std::min<int>(300, ImGui::GetWindowSize().x - ImGui::GetCursorPosX() - 87);
+
+    ImGui::SetCursorPosX(ImGui::GetWindowSize().x - (snrWidth+87));
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
-    ImGui::SetNextItemWidth(300);
+    ImGui::SetNextItemWidth(snrWidth);
     ImGui::SNRMeter((vfo != NULL) ? gui::waterfall.selectedVFOSNR : 0);
 
     ImGui::SameLine();

@@ -10,6 +10,8 @@
 #include <meteor_demodulator_interface.h>
 #include <config.h>
 #include <options.h>
+#include <cctype>
+#include <radio_interface.h>
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
 #define MAX_COMMAND_LENGTH      8192
@@ -360,374 +362,248 @@ private:
 
         // NOTE: THIS STUFF ISN'T THREADSAFE AND WILL LIKELY BREAK.
 
-        // Execute commands
+        // If the command is empty, do nothing
         if (parts.size() == 0) { return; }
-        else if (parts[0].at(0) == '\\') {      // Check to see if command is longform
-            parts[0].replace(0,1,"");       // Remove leading backslash
-            if (parts[0] == "set_freq") {
-                std::lock_guard lck(vfoMtx);
 
-                // if number of arguments isn't correct, return error
-                if (parts.size() != 2) {
-                    spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
-                    resp = "RPRT 1\n";
-                    client->write(resp.size(), (uint8_t*)resp.c_str());
-                    return;
-                }
-
-                // If not controlling the VFO, return
-                if (!tuningEnabled) {
-                    resp = "RPRT 0\n";
-                    client->write(resp.size(), (uint8_t*)resp.c_str());
-                    return;
-                }
-
-                // Parse frequency and assign it to the VFO
-                long long freq = std::stoll(parts[1]);
-                tuner::tune(tuner::TUNER_MODE_NORMAL, selectedVfo, freq);
-                resp = "RPRT 0\n";
-                client->write(resp.size(), (uint8_t*)resp.c_str());
+        // If the command is a compound command, execute each one separately
+        if (parts[0].size() > 1 && parts[0][0] != '\\') {
+            std::string arguments;
+            if (parts.size() > 1) { arguments = cmd.substr(parts[0].size()); }
+            for (char c : parts[0]) {
+                commandHandler(c + arguments);
             }
-            else if (parts[0] == "get_freq") {
-                std::lock_guard lck(vfoMtx);
+            return;
+        }
 
-                // Get center frequency of the SDR
-                double freq = gui::waterfall.getCenterFrequency();
+        spdlog::info("Rigctl command: '{0}'", cmd);
 
-                // Add the offset of the VFO if it exists
-                if (sigpath::vfoManager.vfoExists(selectedVfo)) {
-                    freq += sigpath::vfoManager.getOffset(selectedVfo);
-                }
+        // Otherwise, execute the command
+        if (parts[0] == "F" || parts[0] == "\\set_freq") {
+            std::lock_guard lck(vfoMtx);
 
-                // Respond with the frequency
-                char buf[128];
-                sprintf(buf, "%" PRIu64 "\n", (uint64_t)freq);
-                client->write(strlen(buf), (uint8_t*)buf);
-            }
-            else if (parts[0] == "set_mode") {
-                std::lock_guard lck(vfoMtx);
-
-                // if number of arguments isn't correct, return error
-                if (parts.size() != 3) {
-                    spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
-                    resp = "RPRT 1\n";
-                    client->write(resp.size(), (uint8_t*)resp.c_str());
-                    return;
-                }
-
-                // If not controlling the VFO, return
-                if (!tuningEnabled) {
-                    resp = "RPRT 0\n";
-                    client->write(resp.size(), (uint8_t*)resp.c_str());
-                    return;
-                }
-                
-                // If client is querying, respond accordingly
-                if(parts[1] == "?") {
-                    resp = "FM WFM AM DSB USB CW LSB RAW";
-                    client->write(resp.size(), (uint8_t*)resp.c_str());
-                    return;
-                }
-                
-                // Parse mode and bandwidth
-                int mode;
-                if(parts[1] == "FM"){
-                    mode = RADIO_IFACE_MODE_NFM;
-                }else if(parts[1] == "WFM"){
-                    mode = RADIO_IFACE_MODE_WFM;
-                }else if(parts[1] == "AM"){
-                    mode = RADIO_IFACE_MODE_AM;
-                }else if(parts[1] == "DSB"){
-                    mode = RADIO_IFACE_MODE_DSB;
-                }else if(parts[1] == "USB"){
-                    mode = RADIO_IFACE_MODE_USB;
-                }else if(parts[1] == "CW"){
-                    mode = RADIO_IFACE_MODE_CW;
-                }else if(parts[1] == "LSB"){
-                    mode = RADIO_IFACE_MODE_LSB;
-                }else if(parts[1] == "RAW"){
-                    mode = RADIO_IFACE_MODE_RAW;
-                }else{
-                    // If mode is not supported, return error
-                    spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
-                    resp = "RPRT 1\n";
-                    client->write(resp.size(), (uint8_t*)resp.c_str());
-                    return;
-                }
-                int bandwidth = std::stoi(parts[2]);
-                
-                // Set mode and bandwidth and respond
-                core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_SET_MODE, &mode, 0);
-                sigpath::vfoManager.setBandwidth(selectedVfo, bandwidth, true);
-                resp = "RPRT 0\n";
-                client->write(resp.size(), (uint8_t*)resp.c_str());
-            }
-            else if (parts[0] == "get_mode") {
-                std::lock_guard lck(vfoMtx);
-                
-                // Initialize output stream
-                std::stringstream buf;
-                
-                // Get mode enum and parse to the output stream
-                int mode;
-                core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_GET_MODE, 0, &mode);
-                switch(mode) {
-                    case RADIO_IFACE_MODE_NFM : buf << "FM\n";
-                        break;
-                    case RADIO_IFACE_MODE_WFM : buf << "WFM\n";
-                        break;
-                    case RADIO_IFACE_MODE_AM : buf << "AM\n";
-                        break;
-                    case RADIO_IFACE_MODE_DSB : buf << "DSB\n";
-                        break;
-                    case RADIO_IFACE_MODE_USB : buf << "USB\n";
-                        break;
-                    case RADIO_IFACE_MODE_CW : buf << "CW\n";
-                        break;
-                    case RADIO_IFACE_MODE_LSB : buf << "LSB\n";
-                        break;
-                    case RADIO_IFACE_MODE_RAW : buf << "RAW\n";
-                        break;
-                }
-                // Send bandwidth to output stream and respond
-                buf << sigpath::vfoManager.getBandwidth(selectedVfo) << "\n";
-                resp = buf.str();
-                client->write(resp.size(), (uint8_t*)resp.c_str());
-            }
-            else if (parts[0] == "set_vfo") {
-                // if number of arguments isn't correct, return error
-                if (parts.size() != 2) {
-                    spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
-                    resp = "RPRT 1\n";
-                    client->write(resp.size(), (uint8_t*)resp.c_str());
-                    return;
-                }
-                
-                // Respond
-                resp = "RPRT 0\n";
-                client->write(resp.size(), (uint8_t*)resp.c_str());
-            }
-            else if (parts[0] == "get_vfo") {
-                // Respond with VFO
-                resp = "VFO\n";
-                client->write(resp.size(), (uint8_t*)resp.c_str());
-            }
-            else if (parts[0] == "recorder_start") {
-                std::lock_guard lck(recorderMtx);
-                
-                // If not controlling the recorder, return
-                if (!recordingEnabled) {
-                    resp = "RPRT 0\n";
-                    client->write(resp.size(), (uint8_t*)resp.c_str());
-                    return;
-                }
-
-                // Send the command to the selected recorder
-                if (recorderType == RECORDER_TYPE_METEOR_DEMODULATOR) {
-                    core::modComManager.callInterface(selectedRecorder, METEOR_DEMODULATOR_IFACE_CMD_START, NULL, NULL);
-                }
-                else {
-                    core::modComManager.callInterface(selectedRecorder, RECORDER_IFACE_CMD_START, NULL, NULL);
-                }
-
-                // Respond with a sucess
-                resp = "RPRT 0\n";
-                client->write(resp.size(), (uint8_t*)resp.c_str());
-            }
-            else if (parts[0] == "recorder_stop") {
-                std::lock_guard lck(recorderMtx);
-                
-                // If not controlling the recorder, return
-                if (!recordingEnabled) {
-                    resp = "RPRT 0\n";
-                    client->write(resp.size(), (uint8_t*)resp.c_str());
-                    return;
-                }
-
-                // Send the command to the selected recorder
-                if (recorderType == RECORDER_TYPE_METEOR_DEMODULATOR) {
-                    core::modComManager.callInterface(selectedRecorder, METEOR_DEMODULATOR_IFACE_CMD_STOP, NULL, NULL);
-                }
-                else {
-                    core::modComManager.callInterface(selectedRecorder, RECORDER_IFACE_CMD_STOP, NULL, NULL);
-                }
-
-                // Respond with a sucess
-                resp = "RPRT 0\n";
-                client->write(resp.size(), (uint8_t*)resp.c_str());
-            }
-            else if (parts[0] == "quit") {
-                // Will close automatically
-            }
-            else {
-                // If command is not recognized, return error
-                spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
+            // if number of arguments isn't correct, return error
+            if (parts.size() != 2) {
                 resp = "RPRT 1\n";
                 client->write(resp.size(), (uint8_t*)resp.c_str());
                 return;
             }
+
+            // If not controlling the VFO, return
+            if (!tuningEnabled) {
+                resp = "RPRT 0\n";
+                client->write(resp.size(), (uint8_t*)resp.c_str());
+            }
+
+            // Parse frequency and assign it to the VFO
+            long long freq = std::stoll(parts[1]);
+            tuner::tune(tuner::TUNER_MODE_NORMAL, selectedVfo, freq);
+            resp = "RPRT 0\n";
+            client->write(resp.size(), (uint8_t*)resp.c_str());
         }
-        else {
-            for(int i = 0; i < parts[0].length(); i++){     // Loop adds support for compound commands
-                if (parts[0].at(i) == 'F') {
-                    std::lock_guard lck(vfoMtx);
+        else if (parts[0] == "f" || parts[0] == "\\get_freq") {
+            std::lock_guard lck(vfoMtx);
 
-                    // if number of arguments isn't correct, return error
-                    if (parts.size() != 2) {
-                        spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
-                        resp = "RPRT 1\n";
-                        client->write(resp.size(), (uint8_t*)resp.c_str());
-                        return;
-                    }
+            // Get center frequency of the SDR
+            double freq = gui::waterfall.getCenterFrequency();
 
-                    // If not controlling the VFO, return
-                    if (!tuningEnabled) {
-                        resp = "RPRT 0\n";
-                        client->write(resp.size(), (uint8_t*)resp.c_str());
-                        return;
-                    }
+            // Add the offset of the VFO if it exists
+            if (sigpath::vfoManager.vfoExists(selectedVfo)) {
+                freq += sigpath::vfoManager.getOffset(selectedVfo);
+            }
 
-                    // Parse frequency and assign it to the VFO
-                    long long freq = std::stoll(parts[1]);
-                    tuner::tune(tuner::TUNER_MODE_NORMAL, selectedVfo, freq);
-                    resp = "RPRT 0\n";
-                    client->write(resp.size(), (uint8_t*)resp.c_str());
-                }
-                else if (parts[0].at(i) == 'f') {
-                    std::lock_guard lck(vfoMtx);
+            // Respond with the frequency
+            char buf[128];
+            sprintf(buf, "%" PRIu64 "\n", (uint64_t)freq);
+            client->write(strlen(buf), (uint8_t*)buf);
+        }
+        else if (parts[0] == "M" || parts[0] == "\\set_mode") {
+            std::lock_guard lck(vfoMtx);
+            resp = "RPRT 0\n";
 
-                    // Get center frequency of the SDR
-                    double freq = gui::waterfall.getCenterFrequency();
+            // If client is querying, respond accordingly
+            if (parts.size() >= 2 && parts[1] == "?") {
+                resp = "FM WFM AM DSB USB CW LSB RAW\n";
+                client->write(resp.size(), (uint8_t*)resp.c_str());
+                return;
+            }
 
-                    // Add the offset of the VFO if it exists
-                    if (sigpath::vfoManager.vfoExists(selectedVfo)) {
-                        freq += sigpath::vfoManager.getOffset(selectedVfo);
-                    }
+            // if number of arguments isn't correct or the VFO is not "VFO", return error
+            if (parts.size() != 3) {
+                resp = "RPRT 1\n";
+                client->write(resp.size(), (uint8_t*)resp.c_str());
+                return;
+            }
 
-                    // Respond with the frequency
-                    char buf[128];
-                    sprintf(buf, "%" PRIu64 "\n", (uint64_t)freq);
-                    client->write(strlen(buf), (uint8_t*)buf);
-                }
-                else if (parts[0].at(i) == 'M') {
-                    std::lock_guard lck(vfoMtx);
-
-                    // if number of arguments isn't correct, return error
-                    if (parts.size() != 3) {
-                        spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
-                        resp = "RPRT 1\n";
-                        client->write(resp.size(), (uint8_t*)resp.c_str());
-                        return;
-                    }
-
-                    // If not controlling the VFO, return
-                    if (!tuningEnabled) {
-                        resp = "RPRT 0\n";
-                        client->write(resp.size(), (uint8_t*)resp.c_str());
-                        return;
-                    }
-
-                    // If client is querying, respond accordingly
-                    if(parts[1] == "?") {
-                        resp = "FM WFM AM DSB USB CW LSB RAW";
-                        client->write(resp.size(), (uint8_t*)resp.c_str());
-                        return;
-                    }
-
-                    // Parse mode and bandwidth
-                    int mode;
-                    if(parts[1] == "FM"){
-                        mode = RADIO_IFACE_MODE_NFM;
-                    }else if(parts[1] == "WFM"){
-                        mode = RADIO_IFACE_MODE_WFM;
-                    }else if(parts[1] == "AM"){
-                        mode = RADIO_IFACE_MODE_AM;
-                    }else if(parts[1] == "DSB"){
-                        mode = RADIO_IFACE_MODE_DSB;
-                    }else if(parts[1] == "USB"){
-                        mode = RADIO_IFACE_MODE_USB;
-                    }else if(parts[1] == "CW"){
-                        mode = RADIO_IFACE_MODE_CW;
-                    }else if(parts[1] == "LSB"){
-                        mode = RADIO_IFACE_MODE_LSB;
-                    }else if(parts[1] == "RAW"){
-                        mode = RADIO_IFACE_MODE_RAW;
-                    }else{
-                        // If mode is not supported, return error
-                        spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
-                        resp = "RPRT 1\n";
-                        client->write(resp.size(), (uint8_t*)resp.c_str());
-                        return;
-                    }
-                    int bandwidth = std::stoi(parts[2]);
-
-                    // Set mode and bandwidth and respond
-                    core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_SET_MODE, &mode, 0);
-                    sigpath::vfoManager.setBandwidth(selectedVfo, bandwidth, true);
-                    resp = "RPRT 0\n";
-                    client->write(resp.size(), (uint8_t*)resp.c_str());
-                }
-                else if (parts[0].at(i) == 'm') {
-                    std::lock_guard lck(vfoMtx);
-
-                    // Initialize output stream
-                    std::stringstream buf;
-
-                    // Get mode enum and parse to the output stream
-                    int mode;
-                    core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_GET_MODE, 0, &mode);
-                    switch(mode) {
-                        case RADIO_IFACE_MODE_NFM : buf << "FM\n";
-                            break;
-                        case RADIO_IFACE_MODE_WFM : buf << "WFM\n";
-                            break;
-                        case RADIO_IFACE_MODE_AM : buf << "AM\n";
-                            break;
-                        case RADIO_IFACE_MODE_DSB : buf << "DSB\n";
-                            break;
-                        case RADIO_IFACE_MODE_USB : buf << "USB\n";
-                            break;
-                        case RADIO_IFACE_MODE_CW : buf << "CW\n";
-                            break;
-                        case RADIO_IFACE_MODE_LSB : buf << "LSB\n";
-                            break;
-                        case RADIO_IFACE_MODE_RAW : buf << "RAW\n";
-                            break;
-                    }
-                    // Send bandwidth to output stream and respond
-                    buf << sigpath::vfoManager.getBandwidth(selectedVfo) << "\n";
-                    resp = buf.str();
-                    client->write(resp.size(), (uint8_t*)resp.c_str());
-                }
-                else if (parts[0].at(i) == 'V') {
-                    // if number of arguments isn't correct, return error
-                    if (parts.size() != 3) {
-                        spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
-                        resp = "RPRT 1\n";
-                        client->write(resp.size(), (uint8_t*)resp.c_str());
-                        return;
-                    }
-
-                    // Respond
-                    resp = "RPRT 0\n";
-                    client->write(resp.size(), (uint8_t*)resp.c_str());
-                }
-                else if (parts[0].at(i) == 'v') {
-                    // Respond with VFO
-                    resp = "VFO\n";
-                    client->write(resp.size(), (uint8_t*)resp.c_str());
-                }
-                else if (parts[0].at(i) == 'q') {
-                    // Will close automatically
-                }
-                else {
-                // If command is not recognized, return error
-                    spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
+            // Check that the bandwidth is an integer
+            for (char c : parts[2]) {
+                if (!std::isdigit(c)) {
                     resp = "RPRT 1\n";
                     client->write(resp.size(), (uint8_t*)resp.c_str());
                     return;
                 }
             }
+
+            float newBandwidth = std::atoi(parts[2].c_str());
+
+            int newMode;
+            if (parts[1] == "FM") {
+                newMode = RADIO_IFACE_MODE_NFM;
+            }
+            else if (parts[1] == "WFM") {
+                newMode = RADIO_IFACE_MODE_WFM;
+            }
+            else if (parts[1] == "AM") {
+                newMode = RADIO_IFACE_MODE_AM;
+            }
+            else if (parts[1] == "DSB") {
+                newMode = RADIO_IFACE_MODE_DSB;
+            }
+            else if (parts[1] == "USB") {
+                newMode = RADIO_IFACE_MODE_USB;
+            }
+            else if (parts[1] == "CW") {
+                newMode = RADIO_IFACE_MODE_CW;
+            }
+            else if (parts[1] == "LSB") {
+                newMode = RADIO_IFACE_MODE_LSB;
+            }
+            else if (parts[1] == "RAW") {
+                newMode = RADIO_IFACE_MODE_RAW;
+            }
+            else {
+                resp = "RPRT 1\n";
+                client->write(resp.size(), (uint8_t*)resp.c_str());
+                return;
+            }
+
+            // If tuning is enabled, set the mode and optionally the bandwidth
+            if (!selectedVfo.empty() && core::modComManager.getModuleName(selectedVfo) == "radio" && tuningEnabled) {
+                core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_SET_MODE, &newMode, NULL);
+                if (newBandwidth) {
+                    core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_SET_BANDWIDTH, &newBandwidth, NULL);
+                }
+            }
+            
+            client->write(resp.size(), (uint8_t*)resp.c_str());
+        }
+        else if (parts[0] == "m" || parts[0] == "\\get_mode") {
+            std::lock_guard lck(vfoMtx);
+            resp = "RAW ";
+
+            if (!selectedVfo.empty() && core::modComManager.getModuleName(selectedVfo) == "radio") {
+                int mode;
+                core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_GET_MODE, NULL, &mode);
+                
+                if (mode == RADIO_IFACE_MODE_NFM) {
+                    resp = "FM ";
+                }
+                else if (mode == RADIO_IFACE_MODE_WFM) {
+                    resp = "WFM ";
+                }
+                else if (mode == RADIO_IFACE_MODE_AM) {
+                    resp = "AM ";
+                }
+                else if (mode == RADIO_IFACE_MODE_DSB) {
+                    resp = "DSB ";
+                }
+                else if (mode == RADIO_IFACE_MODE_USB) {
+                    resp = "USB ";
+                }
+                else if (mode == RADIO_IFACE_MODE_CW) {
+                    resp = "CW ";
+                }
+                else if (mode == RADIO_IFACE_MODE_LSB) {
+                    resp = "LSB ";
+                }
+            }
+
+            if (!selectedVfo.empty()) {
+                resp += std::to_string((int)sigpath::vfoManager.getBandwidth(selectedVfo)) + "\n";
+            }
+            else {
+                resp += "0\n";
+            }
+
+            client->write(resp.size(), (uint8_t*)resp.c_str());
+        }
+        else if (parts[0] == "V" || parts[0] == "\\set_vfo") {
+            std::lock_guard lck(vfoMtx);
+            resp = "RPRT 0\n";
+
+            // if number of arguments isn't correct or the VFO is not "VFO", return error
+            if (parts.size() != 2) {
+                resp = "RPRT 1\n";
+                client->write(resp.size(), (uint8_t*)resp.c_str());
+                return;
+            }
+
+            if (parts[1] == "?") {
+                resp = "VFO\n";
+            }
+            else if (parts[1] != "VFO") {
+                resp = "RPRT 1\n";
+            }
+
+            client->write(resp.size(), (uint8_t*)resp.c_str());
+        }
+        else if (parts[0] == "v" || parts[0] == "\\get_vfo") {
+            std::lock_guard lck(vfoMtx);
+            resp = "VFO\n";
+            client->write(resp.size(), (uint8_t*)resp.c_str());
+        }
+        else if (parts[0] == "\\recorder_start") {
+            std::lock_guard lck(recorderMtx);
+
+            // If not controlling the recorder, return
+            if (!recordingEnabled) {
+                resp = "RPRT 0\n";
+                client->write(resp.size(), (uint8_t*)resp.c_str());
+                return;
+            }
+
+            // Send the command to the selected recorder
+            if (recorderType == RECORDER_TYPE_METEOR_DEMODULATOR) {
+                core::modComManager.callInterface(selectedRecorder, METEOR_DEMODULATOR_IFACE_CMD_START, NULL, NULL);
+            }
+            else {
+                core::modComManager.callInterface(selectedRecorder, RECORDER_IFACE_CMD_START, NULL, NULL);
+            }
+
+            // Respond with a sucess
+            resp = "RPRT 0\n";
+            client->write(resp.size(), (uint8_t*)resp.c_str());
+        }
+        else if (parts[0] == "\\recorder_stop") {
+            std::lock_guard lck(recorderMtx);
+
+            // If not controlling the recorder, return
+            if (!recordingEnabled) {
+                resp = "RPRT 0\n";
+                client->write(resp.size(), (uint8_t*)resp.c_str());
+                return;
+            }
+
+            // Send the command to the selected recorder
+            if (recorderType == RECORDER_TYPE_METEOR_DEMODULATOR) {
+                core::modComManager.callInterface(selectedRecorder, METEOR_DEMODULATOR_IFACE_CMD_STOP, NULL, NULL);
+            }
+            else {
+                core::modComManager.callInterface(selectedRecorder, RECORDER_IFACE_CMD_STOP, NULL, NULL);
+            }
+
+            // Respond with a sucess
+            resp = "RPRT 0\n";
+            client->write(resp.size(), (uint8_t*)resp.c_str());
+        }
+        else if (parts[0] == "quit") {
+            // Will close automatically
+        }
+        else {
+            // If command is not recognized, return error
+            spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
+            resp = "RPRT 1\n";
+            client->write(resp.size(), (uint8_t*)resp.c_str());
+            return;
         }
     }
 

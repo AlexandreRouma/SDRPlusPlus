@@ -4,6 +4,7 @@
 #include <map>
 #include <dsp/sink.h>
 #include <dsp/decimation.h>
+#include <dsp/correction.h>
 
 class SignalPath {
 public:
@@ -24,6 +25,7 @@ public:
     void stopFFT();
     void setBuffering(bool enabled);
     void setDecimation(int dec);
+    void setIQCorrection(bool enabled);
 
     dsp::SampleFrameBuffer<dsp::complex_t> inputBuffer;
     double sourceSampleRate = 0;
@@ -36,6 +38,7 @@ private:
     };
 
     dsp::Splitter<dsp::complex_t> split;
+    dsp::IQCorrector corrector;
 
     // FFT
     dsp::stream<dsp::complex_t> fftStream;
@@ -53,4 +56,5 @@ private:
     int inputBlockSize;
     bool bufferingEnabled = false;
     bool running = false;
+    bool iqCorrection = false;
 };

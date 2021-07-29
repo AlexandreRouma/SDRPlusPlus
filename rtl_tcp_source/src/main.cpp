@@ -68,7 +68,7 @@ public:
         directSamplingMode = config.conf["directSamplingMode"];
         rtlAGC = config.conf["rtlAGC"];
         tunerAGC = config.conf["tunerAGC"];
-        gain = config.conf["gainIndex"];
+        gain = std::clamp<int>(config.conf["gainIndex"], 0, 28);
         biasTee = config.conf["biasTee"];
         offsetTuning = config.conf["offsetTuning"];
         hostStr = hostStr.substr(0, 1023);
@@ -127,12 +127,20 @@ private:
         spdlog::warn("Setting sample rate to {0}", _this->sampleRate);
         _this->client.setFrequency(_this->freq);
         _this->client.setSampleRate(_this->sampleRate);
-        _this->client.setGainMode(!_this->tunerAGC);
         _this->client.setDirectSampling(_this->directSamplingMode);
         _this->client.setAGCMode(_this->rtlAGC);
-        _this->client.setGainIndex(_this->gain);
         _this->client.setBiasTee(_this->biasTee);
         _this->client.setOffsetTuning(_this->offsetTuning);
+        if (_this->tunerAGC) {
+            _this->client.setGainMode(0);
+        }
+        else {
+            _this->client.setGainMode(1);
+
+            // Setting it twice because for some reason it refuses to do it on the first time
+            _this->client.setGainIndex(_this->gain);
+        }
+        
         _this->running = true;
         _this->workerThread = std::thread(worker, _this);
         spdlog::info("RTLTCPSourceModule '{0}': Start!", _this->name);
@@ -229,7 +237,7 @@ private:
 
         if (_this->tunerAGC) { style::beginDisabled(); }
         ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::SliderInt(CONCAT("##_gain_select_", _this->name), &_this->gain, 0, 29, "")) {
+        if (ImGui::SliderInt(CONCAT("##_gain_select_", _this->name), &_this->gain, 0, 28, "")) {
             if (_this->running) {
                 _this->client.setGainIndex(_this->gain);
             }

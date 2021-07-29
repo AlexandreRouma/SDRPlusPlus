@@ -47,51 +47,49 @@ void ConfigManager::save(bool lock) {
 }
 
 void ConfigManager::enableAutoSave() {
-    if (!autoSaveEnabled) {
-        autoSaveEnabled = true;
-        termFlag = false;
-        autoSaveThread = std::thread(autoSaveWorker, this);
-    }
+    if (autoSaveEnabled) { return; }
+    autoSaveEnabled = true;
+    termFlag = false;
+    autoSaveThread = std::thread(&ConfigManager::autoSaveWorker, this);
 }
 
 void ConfigManager::disableAutoSave() {
-    if (autoSaveEnabled) {
-        {
-            std::lock_guard<std::mutex> lock(termMtx);
-            autoSaveEnabled = false;
-            termFlag = true;
-        }
-        termCond.notify_one();
-        if (autoSaveThread.joinable()) { autoSaveThread.join(); }
+    if (!autoSaveEnabled) { return; }
+    {
+        std::lock_guard<std::mutex> lock(termMtx);
+        autoSaveEnabled = false;
+        termFlag = true;
     }
+    termCond.notify_one();
+    if (autoSaveThread.joinable()) { autoSaveThread.join(); }
 }
 
 void ConfigManager::acquire() {
     mtx.lock();
 }
 
-void ConfigManager::release(bool changed) {
-    this->changed |= changed;
+void ConfigManager::release(bool modified) {
+    changed |= modified;
     mtx.unlock();
 }
 
-void ConfigManager::autoSaveWorker(ConfigManager* _this) {
-    while (_this->autoSaveEnabled) {
-        if (!_this->mtx.try_lock()) {
+void ConfigManager::autoSaveWorker() {
+    while (autoSaveEnabled) {
+        if (!mtx.try_lock()) {
             spdlog::warn("ConfigManager locked, waiting...");
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
             continue;
         }
-        if (_this->changed) {
-            _this->changed = false;
-            _this->save(false);
+        if (changed) {
+            changed = false;
+            save(false);
         }
-        _this->mtx.unlock();
+        mtx.unlock();
 
         // Sleep but listen for wakeup call
         {
-            std::unique_lock<std::mutex> lock(_this->termMtx);
-            _this->termCond.wait_for(lock, std::chrono::milliseconds(1000), [_this]() { return _this->termFlag; } );
+            std::unique_lock<std::mutex> lock(termMtx);
+            termCond.wait_for(lock, std::chrono::milliseconds(1000), [this]() { return termFlag; } );
         }
     }
 }
