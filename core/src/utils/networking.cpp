@@ -68,7 +68,7 @@ namespace net {
         int ret;
 
         if (_udp) {
-            int fromLen = sizeof(remoteAddr);
+            socklen_t fromLen = sizeof(remoteAddr);
             ret = recvfrom(_sock, (char*)buf, count, 0, (struct sockaddr*)&remoteAddr, &fromLen);
         }
         else {
@@ -212,7 +212,11 @@ namespace net {
 
         // Accept socket
         _sock = ::accept(sock, NULL, NULL);
+#ifdef _WIN32
         if (_sock < 0 || _sock == SOCKET_ERROR) {
+#else
+        if (_sock < 0) {
+#endif
             listening = false;
             throw std::runtime_error("Could not bind socket");
             return NULL;
@@ -451,7 +455,6 @@ namespace net {
             }
         }
         
-
         return Conn(new ConnClass(sock, raddr, true));
     }
 }
