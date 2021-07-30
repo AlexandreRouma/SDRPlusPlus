@@ -7,8 +7,10 @@ namespace net {
     extern bool winsock_init = false;
 #endif
 
-    ConnClass::ConnClass(Socket sock) {
+    ConnClass::ConnClass(Socket sock, struct sockaddr_in raddr, bool udp) {
         _sock = sock;
+        _udp = udp;
+        remoteAddr = raddr;
         connectionOpen = true;
         readWorkerThread = std::thread(&ConnClass::readWorker, this);
         writeWorkerThread = std::thread(&ConnClass::writeWorker, this);
@@ -63,11 +65,16 @@ namespace net {
     int ConnClass::read(int count, uint8_t* buf) {
         if (!connectionOpen) { return -1; }
         std::lock_guard lck(readMtx);
-#ifdef _WIN32
-        int ret = recv(_sock, (char*)buf, count, 0);
-#else
-        int ret = ::read(_sock, buf, count);
-#endif
+        int ret;
+
+        if (_udp) {
+            int fromLen = sizeof(remoteAddr);
+            ret = recvfrom(_sock, (char*)buf, count, 0, (struct sockaddr*)&remoteAddr, &fromLen);
+        }
+        else {
+            ret = recv(_sock, (char*)buf, count, 0);
+        }
+
         if (ret <= 0) {
             {
                 std::lock_guard lck(connectionOpenMtx);
@@ -81,11 +88,16 @@ namespace net {
     bool ConnClass::write(int count, uint8_t* buf) {
         if (!connectionOpen) { return false; }
         std::lock_guard lck(writeMtx);
-#ifdef _WIN32
-        int ret = send(_sock, (char*)buf, count, 0);
-#else
-        int ret = ::write(_sock, buf, count);
-#endif
+        int ret;
+
+        if (_udp) {
+            int fromLen = sizeof(remoteAddr);
+            ret = sendto(_sock, (char*)buf, count, 0, (struct sockaddr*)&remoteAddr, sizeof(remoteAddr));
+        }
+        else {
+            ret = send(_sock, (char*)buf, count, 0);
+        }
+
         if (ret <= 0) {
             {
                 std::lock_guard lck(connectionOpenMtx);
@@ -200,7 +212,7 @@ namespace net {
 
         // Accept socket
         _sock = ::accept(sock, NULL, NULL);
-        if (_sock < 0) {
+        if (_sock < 0 || _sock == SOCKET_ERROR) {
             listening = false;
             throw std::runtime_error("Could not bind socket");
             return NULL;
@@ -282,8 +294,8 @@ namespace net {
     }
 
 
-    Conn connect(Protocol proto, std::string host, uint16_t port) {
-        Socket sock;
+    Conn connect(std::string host, uint16_t port) {
+    Socket sock;
 
 #ifdef _WIN32
         // Initilize WinSock2
@@ -299,7 +311,7 @@ namespace net {
 #endif
 
         // Create a socket
-        sock = socket(AF_INET, SOCK_STREAM, (proto == PROTO_TCP) ? IPPROTO_TCP : IPPROTO_UDP);
+        sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         if (sock < 0) {
             throw std::runtime_error("Could not create socket");
             return NULL;
@@ -328,7 +340,7 @@ namespace net {
         return Conn(new ConnClass(sock));
     }
 
-    Listener listen(Protocol proto, std::string host, uint16_t port) {
+    Listener listen(std::string host, uint16_t port) {
         Socket listenSock;
 
 #ifdef _WIN32
@@ -345,7 +357,7 @@ namespace net {
 #endif
 
         // Create a socket
-        listenSock = socket(AF_INET, SOCK_STREAM, (proto == PROTO_TCP) ? IPPROTO_TCP : IPPROTO_UDP);
+        listenSock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         if (listenSock < 0) {
             throw std::runtime_error("Could not create socket");
             return NULL;
@@ -378,5 +390,68 @@ namespace net {
         }
 
         return Listener(new ListenerClass(listenSock));
+    }
+
+    Conn openUDP(std::string host, uint16_t port, std::string remoteHost, uint16_t remotePort, bool bindSocket) {
+        Socket sock;
+
+#ifdef _WIN32
+        // Initilize WinSock2
+        if (!winsock_init) {
+            WSADATA wsa;
+            if (WSAStartup(MAKEWORD(2,2),&wsa)) {
+                throw std::runtime_error("Could not initialize WinSock2");
+                return NULL;
+            }
+            winsock_init = true;
+        }
+        assert(winsock_init);
+#endif
+
+        // Create a socket
+        sock = socket(AF_INET, SOCK_DGRAM, 0);
+        if (sock < 0) {
+            throw std::runtime_error("Could not create socket");
+            return NULL;
+        }
+
+        // Get address from local hostname/ip
+        hostent* _host = gethostbyname(host.c_str());
+        if (_host == NULL || _host->h_addr_list[0] == NULL) {
+            throw std::runtime_error("Could get address from host");
+            return NULL;
+        }
+        uint32_t* naddr = (uint32_t*)_host->h_addr_list[0];
+
+        // Get address from remote hostname/ip
+        hostent* _remoteHost = gethostbyname(remoteHost.c_str());
+        if (_remoteHost == NULL || _remoteHost->h_addr_list[0] == NULL) {
+            throw std::runtime_error("Could get address from host");
+            return NULL;
+        }
+        uint32_t* rnaddr = (uint32_t*)_remoteHost->h_addr_list[0];
+
+        // Create host address
+        struct sockaddr_in addr;
+        addr.sin_addr.s_addr = *naddr;
+        addr.sin_family = AF_INET;
+	    addr.sin_port = htons(port);
+
+        // Create remote host address
+        struct sockaddr_in raddr;
+        raddr.sin_addr.s_addr = *rnaddr;
+        raddr.sin_family = AF_INET;
+	    raddr.sin_port = htons(remotePort);
+
+        // Bind socket
+        if (bindSocket) {
+            if (bind(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+                throw std::runtime_error("Could not bind socket");
+                return NULL;
+            }
+        }
+        
+
+        return Conn(new ConnClass(sock, raddr, true));
     }
 }

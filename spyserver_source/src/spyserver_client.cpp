@@ -163,7 +163,7 @@ namespace spyserver {
     }
 
     SpyServerClient connect(std::string host, uint16_t port, dsp::stream<dsp::complex_t>* out) {
-        net::Conn conn = net::connect(net::PROTO_TCP, host, port);
+        net::Conn conn = net::connect(host, port);
         if (!conn) {
             return NULL;
         }

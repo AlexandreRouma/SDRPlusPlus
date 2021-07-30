@@ -200,7 +200,7 @@ private:
 
     void startServer() {
         try {
-            listener = net::listen(net::PROTO_TCP, hostname, port);
+            listener = net::listen(hostname, port);
             listener->acceptAsync(clientHandler, this);
         }
         catch (std::exception e) {

@@ -287,6 +287,7 @@ Modules in beta are still included in releases for the most part but not enabled
 | Name               | Stage      | Dependencies | Option                       | Built by default| Built in Release | Enabled in SDR++ by default |
 |--------------------|------------|--------------|------------------------------|:---------------:|:----------------:|:---------------------------:|
 | audio_sink         | Working    | rtaudio      | OPT_BUILD_AUDIO_SINK         | ✅              | ✅              | ✅                         |
+| network_sink       | Beta       | -            | OPT_BUILD_NETWORK_SINK       | ✅              | ✅              | ✅                         |
 | new_portaudio_sink | Beta       | portaudio    | OPT_BUILD_NEW_PORTAUDIO_SINK | ⛔              | ✅              | ⛔                         |
 
 ## Decoders

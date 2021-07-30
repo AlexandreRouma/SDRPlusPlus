@@ -25,6 +25,7 @@ option(OPT_BUILD_PLUTOSDR_SOURCE "Build PlutoSDR Source Module (Depedencies: lib
 # Sinks
 option(OPT_BUILD_AUDIO_SINK "Build Audio Sink Module (Depedencies: rtaudio)" ON)
 option(OPT_BUILD_PORTAUDIO_SINK "Build PortAudio Sink Module (Depedencies: portaudio)" OFF)
+option(OPT_BUILD_NETWORK_SINK "Build Audio Sink Module (no dependencies required)" ON)
 option(OPT_BUILD_NEW_PORTAUDIO_SINK "Build the new PortAudio Sink Module (Depedencies: portaudio)" OFF)
 
 # Decoders
@@ -114,6 +115,10 @@ endif (OPT_BUILD_AUDIO_SINK)
 if (OPT_BUILD_PORTAUDIO_SINK)
 add_subdirectory("portaudio_sink")
 endif (OPT_BUILD_PORTAUDIO_SINK)
+
+if (OPT_BUILD_NETWORK_SINK)
+add_subdirectory("network_sink")
+endif (OPT_BUILD_NETWORK_SINK)
 
 if (OPT_BUILD_NEW_PORTAUDIO_SINK)
 add_subdirectory("new_portaudio_sink")

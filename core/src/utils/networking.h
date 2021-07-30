@@ -27,11 +27,6 @@ namespace net {
     typedef int Socket;
 #endif
 
-    enum Protocol {
-        PROTO_TCP,
-        PROTO_UDP
-    };
-
     struct ConnReadEntry {
         int count;
         uint8_t* buf;
@@ -46,7 +41,7 @@ namespace net {
 
     class ConnClass {
     public:
-        ConnClass(Socket sock);
+        ConnClass(Socket sock, struct sockaddr_in raddr = {}, bool udp = false);
         ~ConnClass();
 
         void close();
@@ -80,6 +75,8 @@ namespace net {
         std::thread writeWorkerThread;
 
         Socket _sock;
+        bool _udp;
+        struct sockaddr_in remoteAddr;
 
     };
 
@@ -119,8 +116,9 @@ namespace net {
 
     typedef std::unique_ptr<ListenerClass> Listener;
 
-    Conn connect(Protocol proto, std::string host, uint16_t port);
-    Listener listen(Protocol proto, std::string host, uint16_t port);
+    Conn connect(std::string host, uint16_t port);
+    Listener listen(std::string host, uint16_t port);
+    Conn openUDP(std::string host, uint16_t port, std::string remoteHost, uint16_t remotePort, bool bindSocket = true);
 
 #ifdef _WIN32
     extern bool winsock_init;
