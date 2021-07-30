@@ -312,6 +312,8 @@ namespace net {
             winsock_init = true;
         }
         assert(winsock_init);
+#else
+        signal(SIGPIPE, SIG_IGN);
 #endif
 
         // Create a socket
@@ -358,6 +360,8 @@ namespace net {
             winsock_init = true;
         }
         assert(winsock_init);
+#else
+        signal(SIGPIPE, SIG_IGN);
 #endif
 
         // Create a socket
@@ -410,6 +414,8 @@ namespace net {
             winsock_init = true;
         }
         assert(winsock_init);
+#else
+        signal(SIGPIPE, SIG_IGN);
 #endif
 
         // Create a socket
