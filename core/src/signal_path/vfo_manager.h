@@ -22,6 +22,7 @@ public:
         void setBandwidthLimits(double minBandwidth, double maxBandwidth, bool bandwidthLocked);
         bool getBandwidthChanged(bool erase = true);
         double getBandwidth();
+        int getReference();
         void setColor(ImU32 color);
         std::string getName();
 
@@ -50,6 +51,7 @@ public:
     double getBandwidth(std::string name);
     void setColor(std::string name, ImU32 color);
     std::string getName();
+    int getReference(std::string name);
     bool vfoExists(std::string name);
 
     void updateFromWaterfall(ImGui::WaterFall* wtf);

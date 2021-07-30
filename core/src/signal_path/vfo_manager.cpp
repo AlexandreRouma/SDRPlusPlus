@@ -74,6 +74,10 @@ double VFOManager::VFO::getBandwidth() {
     return wtfVFO->bandwidth;
 }
 
+int VFOManager::VFO::getReference() {
+    return wtfVFO->reference;
+}
+
 void VFOManager::VFO::setColor(ImU32 color) {
     wtfVFO->color = color;
 }
@@ -174,6 +178,13 @@ double VFOManager::getBandwidth(std::string name) {
         return NAN;
     }
     return vfos[name]->getBandwidth();
+}
+
+int VFOManager::getReference(std::string name) {
+    if (vfos.find(name) == vfos.end()) {
+        return -1;
+    }
+    return vfos[name]->getReference();
 }
 
 void  VFOManager::setColor(std::string name, ImU32 color) {

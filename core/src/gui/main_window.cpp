@@ -248,7 +248,17 @@ void MainWindow::vfoAddedHandler(VFOManager::VFO* vfo, void* ctx) {
     double offset = core::configManager.conf["vfoOffsets"][name];
     core::configManager.release();
 
-    sigpath::vfoManager.setOffset(name, _this->initComplete ? std::clamp<double>(offset, -_this->bw/2.0, _this->bw/2.0) : offset);
+    double viewBW = gui::waterfall.getViewBandwidth();
+    double viewOffset = gui::waterfall.getViewOffset();
+
+    double viewLower = viewOffset - (viewBW/2.0);
+    double viewUpper = viewOffset + (viewBW/2.0);
+
+    double newOffset = std::clamp<double>(offset, viewLower, viewUpper);
+
+    sigpath::vfoManager.setCenterOffset(name, _this->initComplete ? newOffset : offset);
+
+    
 }
 
 void MainWindow::draw() {
