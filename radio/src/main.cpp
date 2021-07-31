@@ -179,6 +179,7 @@ private:
         else if (code == RADIO_IFACE_CMD_SET_BANDWIDTH) {
             float* _in = (float*)in;
             _this->currentDemod->setBandwidth(*_in, true);
+            _this->currentDemod->saveParameters();
         }
     }
 

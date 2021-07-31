@@ -15,4 +15,5 @@ public:
     virtual void setBandwidth(float bandWidth, bool updateWaterfall = true) = 0;
     virtual dsp::stream<dsp::stereo_t>* getOutput() = 0;
     virtual void showMenu() = 0;
+    virtual void saveParameters(bool lock = true) = 0;
 };

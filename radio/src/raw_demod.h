@@ -118,6 +118,13 @@ public:
         // Do nothing
     } 
 
+    void saveParameters(bool lock = true) {
+        if (lock) { _config->acquire(); }
+        _config->conf[uiPrefix]["WFM"]["snapInterval"] = snapInterval;
+        _config->conf[uiPrefix]["WFM"]["squelchLevel"] = squelchLevel;
+        if (lock) { _config->release(true); }
+    }
+
 private:
     void setSnapInterval(float snapInt) {
         snapInterval = snapInt;

@@ -246,6 +246,16 @@ public:
         }
     }
 
+    void saveParameters(bool lock = true) {
+        if (lock) { _config->acquire(); }
+        _config->conf[uiPrefix]["WFM"]["bandwidth"] = bw;
+        _config->conf[uiPrefix]["WFM"]["snapInterval"] = snapInterval;
+        _config->conf[uiPrefix]["WFM"]["deempMode"] = deempId; 
+        _config->conf[uiPrefix]["WFM"]["squelchLevel"] = squelchLevel;
+        _config->conf[uiPrefix]["WFM"]["stereo"] = stereo;
+        if (lock) { _config->release(true); }
+    }
+
 private:
 
     const float bwMax = 250000;

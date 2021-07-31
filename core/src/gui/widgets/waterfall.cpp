@@ -389,8 +389,9 @@ namespace ImGui {
         }
 
         // If the left and right keys are pressed while hovering the freq scale, move it too
-        if ((ImGui::IsKeyPressed(GLFW_KEY_LEFT) || ImGui::IsKeyPressed(GLFW_KEY_RIGHT)) && mouseInFreq) {
-            viewOffset +=  ImGui::IsKeyPressed(GLFW_KEY_LEFT) ? (viewBandwidth / 20.0) : (-viewBandwidth / 20.0);
+        bool leftKeyPressed = ImGui::IsKeyPressed(GLFW_KEY_LEFT);
+        if ((leftKeyPressed || ImGui::IsKeyPressed(GLFW_KEY_RIGHT)) && mouseInFreq) {
+            viewOffset +=  leftKeyPressed ? (viewBandwidth / 20.0) : (-viewBandwidth / 20.0);
 
             if (viewOffset + (viewBandwidth / 2.0) > wholeBandwidth / 2.0) {
                 double freqOffset = (viewOffset + (viewBandwidth / 2.0)) - (wholeBandwidth / 2.0);
