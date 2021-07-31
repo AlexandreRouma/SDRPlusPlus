@@ -11,12 +11,6 @@
 
 #define WINDOW_FLAGS    ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground
 
-enum {
-    FFT_WINDOW_RECTANGULAR,
-    FFT_WINDOW_BLACKMAN,
-    _FFT_WINDOW_COUNT
-};
-
 class MainWindow {
 public:
     void init();
@@ -37,7 +31,6 @@ public:
     Event<bool> onPlayStateChange;
 
 private:
-    void generateFFTWindow(int win, int size);
     static void fftHandler(dsp::complex_t* samples, int count, void* ctx);
     static void vfoAddedHandler(VFOManager::VFO* vfo, void* ctx);
 
@@ -46,7 +39,6 @@ private:
     std::mutex fft_mtx;
     fftwf_complex *fft_in, *fft_out;
     fftwf_plan fftwPlan;
-    float* appliedWindow;
     
     // GUI Variables
     bool firstMenuRender = true;

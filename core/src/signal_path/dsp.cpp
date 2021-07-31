@@ -14,12 +14,22 @@ void SignalPath::init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream
 
     halfBandWindow.init(1000000, 200000, 4000000);
 
-    // split.init(input);
     inputBuffer.init(input);
     corrector.init(&inputBuffer.out, 50.0f / sampleRate);
     split.init(&inputBuffer.out);
 
-    reshape.init(&fftStream, fftSize, (sampleRate / fftRate) - fftSize);
+    // Allocate the fft taps
+    fftTaps = new float[fftSize];
+
+    // Calculate the parameters for the reshaper
+    int fftInterval = sampleRate / fftRate;
+    fftOutputSampleCount = std::min<int>(fftInterval, fftSize);
+    int fftSkip = fftInterval - fftOutputSampleCount;
+
+    // Generate FFT Windows
+    generateFFTWindow(fftWindow, fftTaps, fftOutputSampleCount);
+
+    reshape.init(&fftStream, fftSize, fftSkip);
     split.bindStream(&fftStream);
     fftHandlerSink.init(&reshape.out, fftHandler, fftHandlerCtx);
 }
@@ -27,26 +37,29 @@ void SignalPath::init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream
 void SignalPath::setSampleRate(double sampleRate) {
     this->sampleRate = sampleRate;
 
+    // Stop the splitter
     split.stop();
+    reshape.stop();
 
+    // Stop all VFOs
     for (auto const& [name, vfo] : vfos) {
         vfo.vfo->stop();
     }
 
-    // Claculate skip to maintain a constant fft rate
-    int skip = (sampleRate / fftRate) - fftSize;
-    reshape.setSkip(skip);
+    updateFFTDSP();
 
-    // TODO: Tell modules that the block size has changed (maybe?)
-
+    // Update the sample rate for all VFOs and start them up
     for (auto const& [name, vfo] : vfos) {
         vfo.vfo->setInSampleRate(sampleRate);
         vfo.vfo->start();
     }
 
+    // Update correction rate on the IQ corrector
     corrector.setCorrectionRate(50.0f / sampleRate);
 
+    // Start the splitter
     split.start();
+    reshape.start();
 }
 
 double SignalPath::getSampleRate() {
@@ -117,19 +130,15 @@ void SignalPath::unbindIQStream(dsp::stream<dsp::complex_t>* stream) {
 
 void SignalPath::setFFTSize(int size) {
     fftSize = size;
-    int skip = (sampleRate / fftRate) - fftSize;
     reshape.stop();
-    reshape.setSkip(skip);
-    reshape.setKeep(fftSize);
+    updateFFTDSP();
     reshape.start();
 }
 
 void SignalPath::setFFTRate(double rate) {
     fftRate = rate;
-    int skip = (sampleRate / fftRate) - fftSize;
     reshape.stop();
-    reshape.setSkip(skip);
-    reshape.setKeep(fftSize);
+    updateFFTDSP();
     reshape.start();
 }
 
@@ -226,4 +235,45 @@ void SignalPath::setIQCorrection(bool enabled) {
         corrector.offset.re = 0;
         corrector.offset.im = 0;
     }
+}
+
+void SignalPath::setFFTWindow(int win) {
+    fftWindow = win;
+    reshape.stop();
+    updateFFTDSP();
+    reshape.start();
+}
+
+void SignalPath::generateFFTWindow(int win, float* taps, int size) {
+    if (win == FFT_WINDOW_RECTANGULAR) {
+        for (int i = 0; i < size; i++) {
+            taps[i] = (i%2) ? 1 : -1;
+        }
+    }
+    else if (win == FFT_WINDOW_BLACKMAN) {
+        for (int i = 0; i < size; i++) {
+            taps[i] = ((i%2) ? dsp::window_function::blackman(i, size) : -dsp::window_function::blackman(i, size))*2;
+        }
+    }
+}
+
+void SignalPath::updateFFTDSP() {
+
+    // Allocate the fft taps
+    if (fftTaps != NULL) { delete[] fftTaps; }
+    fftTaps = new float[fftSize];
+
+    // Calculate the parameters for the reshaper
+    int fftInterval = sampleRate / fftRate;
+    fftOutputSampleCount = std::min<int>(fftInterval, fftSize);
+    int fftSkip = fftInterval - fftOutputSampleCount;
+
+    // Generate FFT Windows
+    generateFFTWindow(fftWindow, fftTaps, fftOutputSampleCount);
+
+    // Update parameters of the reshaper
+    reshape.setKeep(fftOutputSampleCount);
+    reshape.setSkip(fftSkip);
+
+    spdlog::info("Updating FFT DSP settings: Keep: {0}, Skip: {1}", fftOutputSampleCount, fftSkip);
 }

@@ -6,6 +6,12 @@
 #include <dsp/decimation.h>
 #include <dsp/correction.h>
 
+enum {
+    FFT_WINDOW_RECTANGULAR,
+    FFT_WINDOW_BLACKMAN,
+    _FFT_WINDOW_COUNT
+};
+
 class SignalPath {
 public:
     SignalPath();
@@ -26,12 +32,18 @@ public:
     void setBuffering(bool enabled);
     void setDecimation(int dec);
     void setIQCorrection(bool enabled);
+    void setFFTWindow(int win);
 
     dsp::SampleFrameBuffer<dsp::complex_t> inputBuffer;
     double sourceSampleRate = 0;
     int decimation = 0;
 
+    float* fftTaps = NULL;
+
 private:
+    void generateFFTWindow(int win, float* taps, int size);
+    void updateFFTDSP();
+
     struct VFO_t {
         dsp::stream<dsp::complex_t>* inputStream;
         dsp::VFO* vfo;
@@ -50,10 +62,12 @@ private:
     std::vector<dsp::HalfDecimator<dsp::complex_t>*> decimators;
     dsp::filter_window::BlackmanWindow halfBandWindow;
 
+    int fftOutputSampleCount = 0;
     double sampleRate;
     double fftRate;
     int fftSize;
     int inputBlockSize;
+    int fftWindow = FFT_WINDOW_RECTANGULAR;
     bool bufferingEnabled = false;
     bool running = false;
     bool iqCorrection = false;
