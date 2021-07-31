@@ -53,7 +53,7 @@ public:
     RTLTCPSourceModule(std::string name) {
         this->name = name;
 
-        sampleRate = 2560000.0;
+        sampleRate = 2400000.0;
 
         int srCount = sizeof(sampleRatesTxt) / sizeof(char*);
         for (int i = 0; i < srCount; i++) {

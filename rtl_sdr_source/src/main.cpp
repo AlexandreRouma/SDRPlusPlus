@@ -160,7 +160,7 @@ public:
         config.acquire();
         if (!config.conf["devices"].contains(selectedDevName)) {
             created = true;
-            config.conf["devices"][selectedDevName]["sampleRate"] = sampleRate;
+            config.conf["devices"][selectedDevName]["sampleRate"] = 2400000.0;
             config.conf["devices"][selectedDevName]["directSampling"] = directSamplingMode;
             config.conf["devices"][selectedDevName]["biasT"] = biasT;
             config.conf["devices"][selectedDevName]["offsetTuning"] = offsetTuning;
