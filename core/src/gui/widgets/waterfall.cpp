@@ -280,6 +280,7 @@ namespace ImGui {
             // First, check if a VFO border was selected
             for (auto const& [name, _vfo] : vfos) {
                 if (_vfo->bandwidthLocked) { continue; }
+                if (_vfo->rectMax.x - _vfo->rectMin.x < 10) { continue; }
                 bool resizing = false;
                 if (_vfo->reference != REF_LOWER) {
                     if (IS_IN_AREA(mousePos, _vfo->lbwSelMin, _vfo->lbwSelMax)) { resizing = true; }
@@ -458,7 +459,53 @@ namespace ImGui {
                     break;
                 }
             }
-        }      
+        }
+
+        // Handle Page Up to cycle through VFOs
+        if (ImGui::IsKeyPressed(GLFW_KEY_PAGE_UP) && selVfo != NULL) {
+            std::string next = (--vfos.end())->first;
+            std::string lowest = "";
+            double lowestOffset = INFINITY;
+            double firstVfoOffset = selVfo->generalOffset;
+            double smallestDistance = INFINITY;
+            bool found = false;
+            for (auto& [_name, _vfo] : vfos) {
+                if (_vfo->generalOffset > firstVfoOffset && (_vfo->generalOffset - firstVfoOffset) < smallestDistance) {
+                    next = _name;
+                    smallestDistance = (_vfo->generalOffset - firstVfoOffset);
+                    found = true;
+                }
+                if (_vfo->generalOffset < lowestOffset) {
+                    lowestOffset = _vfo->generalOffset;
+                    lowest = _name;
+                }
+            }
+            selectedVFO = found ? next : lowest;
+            selectedVFOChanged = true;
+        }
+
+        // Handle Page Down to cycle through VFOs
+        if (ImGui::IsKeyPressed(GLFW_KEY_PAGE_DOWN) && selVfo != NULL) {
+            std::string next = (--vfos.end())->first;
+            std::string highest = "";
+            double highestOffset = -INFINITY;
+            double firstVfoOffset = selVfo->generalOffset;
+            double smallestDistance = INFINITY;
+            bool found = false;
+            for (auto& [_name, _vfo] : vfos) {
+                if (_vfo->generalOffset < firstVfoOffset && (firstVfoOffset - _vfo->generalOffset) < smallestDistance) {
+                    next = _name;
+                    smallestDistance = (firstVfoOffset - _vfo->generalOffset);
+                    found = true;
+                }
+                if (_vfo->generalOffset > highestOffset) {
+                    highestOffset = _vfo->generalOffset;
+                    highest = _name;
+                }
+            }
+            selectedVFO = found ? next : highest;
+            selectedVFOChanged = true;
+        }
     }
 
     bool WaterFall::calculateVFOSignalInfo(float* fftLine, WaterfallVFO* _vfo, float& strength, float& snr) {
@@ -1182,6 +1229,7 @@ namespace ImGui {
 
         if (!gui::mainWindow.lockWaterfallControls && !gui::waterfall.inputHandled) {
             ImVec2 mousePos = ImGui::GetMousePos();
+            if (rectMax.x - rectMin.x < 10) { return; }
             if (reference != REF_LOWER && !bandwidthLocked && !leftClamped) {
                 if (IS_IN_AREA(mousePos, lbwSelMin, lbwSelMax)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW); }
                 else if (IS_IN_AREA(mousePos, wfLbwSelMin, wfLbwSelMax)) { ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW); }
