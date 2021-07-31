@@ -39,7 +39,27 @@ public:
         sampleRate = config.conf["sampleRate"];
         gainMode = config.conf["gainMode"];
         gain = config.conf["gain"];   
-        config.release();     
+        config.release();
+
+        // Generate the samplerate list and find srId
+        bool found = false;
+        int id = 0;
+        for (double sr = 1000000; sr <= 20000000; sr += 500000) {
+            sampleRates.push_back(sr);
+            sampleRatesTxt += getBandwdithScaled(sr);
+            sampleRatesTxt += '\0';
+
+            if (sr == sampleRate) {
+                found = true;
+                srId = id;
+            }
+
+            id++;
+        }
+        if (!found) {
+            srId = 0;
+            sampleRate = sampleRates[0];
+        }
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
@@ -72,6 +92,20 @@ public:
     }
 
 private:
+    std::string getBandwdithScaled(double bw) {
+        char buf[1024];
+        if (bw >= 1000000.0) {
+            sprintf(buf, "%.1lfMHz", bw / 1000000.0);
+        }
+        else if (bw >= 1000.0) {
+            sprintf(buf, "%.1lfKHz", bw / 1000.0);
+        }
+        else {
+            sprintf(buf, "%.1lfHz", bw);
+        }
+        return std::string(buf);
+    }
+
     static void menuSelected(void* ctx) {
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
         core::setInputSampleRate(_this->sampleRate);
@@ -153,6 +187,7 @@ private:
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
         float menuWidth = ImGui::GetContentRegionAvailWidth();
 
+        if (_this->running) { style::beginDisabled(); }
         ImGui::Text("IP");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
@@ -165,9 +200,9 @@ private:
         ImGui::Text("Samplerate");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (_this->running) { style::beginDisabled(); }
-        if (ImGui::InputFloat(CONCAT("##_samplerate_select_", _this->name), &_this->sampleRate, 1, 1000, 0)) {
-            _this->sampleRate = std::clamp<float>(_this->sampleRate, 500000, 61000000);
+        
+        if (ImGui::Combo(CONCAT("##_pluto_sr_", _this->name), &_this->srId, _this->sampleRatesTxt.c_str())) {
+            _this->sampleRate = _this->sampleRates[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
             config.acquire();
             config.conf["sampleRate"] = _this->sampleRate;
@@ -256,6 +291,10 @@ private:
     char ip[1024] = "ip:192.168.2.1";
     int gainMode = 0;
     float gain = 0;
+    int srId = 0;
+
+    std::vector<double> sampleRates;
+    std::string sampleRatesTxt;
 };
 
 MOD_EXPORT void _INIT_() {
