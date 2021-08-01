@@ -7,6 +7,7 @@
 #include <dsp/sink.h>
 #include <gui/widgets/symbol_diagram.h>
 #include <gui/widgets/line_push_image.h>
+#include <gui/gui.h>
 
 #define NOAA_HRPT_VFO_SR    3000000.0f
 #define NOAA_HRPT_VFO_BW    2000000.0f
@@ -212,72 +213,77 @@ public:
         ImGui::SetNextItemWidth(menuWidth);
         symDiag.draw();
 
-        ImGui::Begin("NOAA HRPT Decoder");
-        ImGui::BeginTabBar("NOAAHRPTTabs");
+        if (showWindow) {
+            gui::mainWindow.lockWaterfallControls = true;
+            ImGui::Begin("NOAA HRPT Decoder");
+            ImGui::BeginTabBar("NOAAHRPTTabs");
 
-        if (ImGui::BeginTabItem("AVHRR RGB(221)")) {
-            ImGui::BeginChild("AVHRRRGBChild");
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
-            avhrrRGBImage.draw();
-            ImGui::SetScrollHereY(1.0f);
-            ImGui::EndChild();
-            ImGui::EndTabItem();
+            if (ImGui::BeginTabItem("AVHRR RGB(221)")) {
+                ImGui::BeginChild("AVHRRRGBChild");
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
+                avhrrRGBImage.draw();
+                ImGui::SetScrollHereY(1.0f);
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("AVHRR 1")) {
+                ImGui::BeginChild("AVHRR1Child");
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
+                avhrr1Image.draw();
+                ImGui::SetScrollHereY(1.0f);
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("AVHRR 2")) {
+                ImGui::BeginChild("AVHRR2Child");
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
+                avhrr2Image.draw();
+                ImGui::SetScrollHereY(1.0f);
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("AVHRR 3")) {
+                ImGui::BeginChild("AVHRR3Child");
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
+                avhrr3Image.draw();
+                ImGui::SetScrollHereY(1.0f);
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("AVHRR 4")) {
+                ImGui::BeginChild("AVHRR4Child");
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
+                avhrr4Image.draw();
+                ImGui::SetScrollHereY(1.0f);
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("AVHRR 5")) {
+                ImGui::BeginChild("AVHRR5Child");
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
+                avhrr5Image.draw();
+                ImGui::SetScrollHereY(1.0f);
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("HIRS")) {
+                ImGui::BeginChild("HIRSChild");
+
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+
+            ImGui::EndTabBar();
+            ImGui::End();
         }
 
-        if (ImGui::BeginTabItem("AVHRR 1")) {
-            ImGui::BeginChild("AVHRR1Child");
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
-            avhrr1Image.draw();
-            ImGui::SetScrollHereY(1.0f);
-            ImGui::EndChild();
-            ImGui::EndTabItem();
-        }
-
-        if (ImGui::BeginTabItem("AVHRR 2")) {
-            ImGui::BeginChild("AVHRR2Child");
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
-            avhrr2Image.draw();
-            ImGui::SetScrollHereY(1.0f);
-            ImGui::EndChild();
-            ImGui::EndTabItem();
-        }
-
-        if (ImGui::BeginTabItem("AVHRR 3")) {
-            ImGui::BeginChild("AVHRR3Child");
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
-            avhrr3Image.draw();
-            ImGui::SetScrollHereY(1.0f);
-            ImGui::EndChild();
-            ImGui::EndTabItem();
-        }
-
-        if (ImGui::BeginTabItem("AVHRR 4")) {
-            ImGui::BeginChild("AVHRR4Child");
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
-            avhrr4Image.draw();
-            ImGui::SetScrollHereY(1.0f);
-            ImGui::EndChild();
-            ImGui::EndTabItem();
-        }
-
-        if (ImGui::BeginTabItem("AVHRR 5")) {
-            ImGui::BeginChild("AVHRR5Child");
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
-            avhrr5Image.draw();
-            ImGui::SetScrollHereY(1.0f);
-            ImGui::EndChild();
-            ImGui::EndTabItem();
-        }
-
-        if (ImGui::BeginTabItem("HIRS")) {
-            ImGui::BeginChild("HIRSChild");
-
-            ImGui::EndChild();
-            ImGui::EndTabItem();
-        }
-
-        ImGui::EndTabBar();
-        ImGui::End();
+        ImGui::Checkbox("Show Image", &showWindow);
     };
     
 private:
@@ -560,5 +566,7 @@ private:
     dsp::stream<uint16_t> compositeIn1;
     dsp::stream<uint16_t> compositeIn2;
     std::thread compositeThread;
+
+    bool showWindow = false;
 
 };
