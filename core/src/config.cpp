@@ -32,9 +32,16 @@ void ConfigManager::load(json def, bool lock) {
         return;
     }
     
-    std::ifstream file(path.c_str());
-    file >> conf;
-    file.close();
+    try {
+        std::ifstream file(path.c_str());
+        file >> conf;
+        file.close();
+    }
+    catch (std::exception e) {
+        spdlog::error("Config file '{0}' is corrupted, resetting it", path);
+        conf = def;
+        save(false);
+    }
     if (lock) { mtx.unlock(); }
 }
 

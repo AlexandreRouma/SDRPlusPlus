@@ -682,6 +682,7 @@ namespace ImGui {
 
         if (waterfallVisible) {
             FFTAreaHeight = std::min<int>(FFTAreaHeight, widgetSize.y - 50);
+            newFFTAreaHeight = FFTAreaHeight;
             fftHeight = FFTAreaHeight - 50;
             waterfallHeight = widgetSize.y - fftHeight - 52;
         }

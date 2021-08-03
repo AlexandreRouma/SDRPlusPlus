@@ -53,7 +53,7 @@ namespace dsp {
             }
             
             _in->flush();
-            if (!out.swap(outCount)) { return -1; }
+            if (outCount > 0 && !out.swap(outCount)) { return -1; }
             return count;
         }
 
@@ -217,7 +217,7 @@ namespace dsp {
             memcpy(delay, &_in->readBuf[count - 7], 7 * sizeof(T));
             
             _in->flush();
-            if (!out.swap(outCount)) { return -1; }
+            if (outCount > 0 && !out.swap(outCount)) { return -1; }
             return count;
         }
 

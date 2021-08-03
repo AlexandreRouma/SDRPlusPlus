@@ -396,6 +396,11 @@ namespace dsp {
             generic_hier_block<MSKDemod>::_block_init = true;
         }
 
+        void setInput(stream<complex_t>* input) {
+            assert((generic_hier_block<MSKDemod>::_block_init));
+            demod.setInput(input);
+        }
+
         void setSampleRate(float sampleRate) {
             assert(generic_hier_block<MSKDemod>::_block_init);
             generic_hier_block<MSKDemod>::tempStop();

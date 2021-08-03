@@ -64,7 +64,7 @@ namespace dsp {
                     if (bitsRead >= _frameLen) {
                         if (!out.swap((bitsRead / 8) + ((bitsRead % 8) > 0))) { return -1; }
                         bitsRead = -1;
-                        nextBitIsStartOfFrame = true;
+                        if (allowSequential) { nextBitIsStartOfFrame = true; }
                     }
 
                     continue;
@@ -100,11 +100,13 @@ namespace dsp {
             memcpy(buffer, &_in->readBuf[count - _syncLen], _syncLen);
             
             //printf("Block processed\n");
-            callcount++;
+            callcount++;   
 
             _in->flush();
             return count;
         }
+
+        bool allowSequential = true;
 
         stream<uint8_t> out;
 
