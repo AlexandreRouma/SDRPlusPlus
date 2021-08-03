@@ -270,16 +270,16 @@ Modules in beta are still included in releases for the most part but not enabled
 |------------------|------------|-------------------|----------------------------|:---------------:|:-----------------------:|:---------------------------:|
 | airspy_source    | Working    | libairspy         | OPT_BUILD_AIRSPY_SOURCE    | ✅              | ✅                     | ✅                         |
 | airspyhf_source  | Working    | libairspyhf       | OPT_BUILD_AIRSPYHF_SOURCE  | ✅              | ✅                     | ✅                         |
-| bladerf_source   | Beta       | libbladeRF        | OPT_BUILD_BLADERF_SOURCE   | ⛔              | ⚠️ (not Debian Buster) | ✅                         |
+| bladerf_source   | Working    | libbladeRF        | OPT_BUILD_BLADERF_SOURCE   | ⛔              | ⚠️ (not Debian Buster) | ✅                         |
 | file_source      | Working    | -                 | OPT_BUILD_FILE_SOURCE      | ✅              | ✅                     | ✅                         |
 | hackrf_source    | Working    | libhackrf         | OPT_BUILD_HACKRF_SOURCE    | ✅              | ✅                     | ✅                         |
-| limesdr_source   | Beta       | liblimesuite      | OPT_BUILD_LIMESDR_SOURCE   | ⛔              | ✅                     | ✅                         |
+| limesdr_source   | Working    | liblimesuite      | OPT_BUILD_LIMESDR_SOURCE   | ⛔              | ✅                     | ✅                         |
 | sddc_source      | Unfinished | -                 | OPT_BUILD_SDDC_SOURCE      | ⛔              | ⛔                     | ⛔                         |
 | rtl_sdr_source   | Working    | librtlsdr         | OPT_BUILD_RTL_SDR_SOURCE   | ✅              | ✅                     | ✅                         |
 | rtl_tcp_source   | Working    | -                 | OPT_BUILD_RTL_TCP_SOURCE   | ✅              | ✅                     | ✅                         |
 | sdrplay_source   | Working    | SDRplay API       | OPT_BUILD_SDRPLAY_SOURCE   | ⛔              | ✅                     | ✅                         |
 | soapy_source     | Working    | soapysdr          | OPT_BUILD_SOAPY_SOURCE     | ✅              | ✅                     | ✅                         |
-| spyserver_source | Beta       | -                 | OPT_BUILD_SPYSERVER_SOURCE | ✅              | ✅                     | ✅                         |
+| spyserver_source | Working    | -                 | OPT_BUILD_SPYSERVER_SOURCE | ✅              | ✅                     | ✅                         |
 | plutosdr_source  | Working    | libiio, libad9361 | OPT_BUILD_PLUTOSDR_SOURCE  | ✅              | ✅                     | ✅                         |
 
 ## Sinks
@@ -287,14 +287,14 @@ Modules in beta are still included in releases for the most part but not enabled
 | Name               | Stage      | Dependencies | Option                       | Built by default| Built in Release | Enabled in SDR++ by default |
 |--------------------|------------|--------------|------------------------------|:---------------:|:----------------:|:---------------------------:|
 | audio_sink         | Working    | rtaudio      | OPT_BUILD_AUDIO_SINK         | ✅              | ✅              | ✅                         |
-| network_sink       | Beta       | -            | OPT_BUILD_NETWORK_SINK       | ✅              | ✅              | ✅                         |
+| network_sink       | Working    | -            | OPT_BUILD_NETWORK_SINK       | ✅              | ✅              | ✅                         |
 | new_portaudio_sink | Beta       | portaudio    | OPT_BUILD_NEW_PORTAUDIO_SINK | ⛔              | ✅              | ⛔                         |
 
 ## Decoders
 
 | Name                | Stage      | Dependencies | Option                        | Built by default| Built in Release | Enabled in SDR++ by default |
 |---------------------|------------|--------------|-------------------------------|:---------------:|:----------------:|:---------------------------:|
-| falcon9_decoder     | Beta       | ffplay       | OPT_BUILD_FALCON9_DECODER     | ⛔              | ⛔              | ⛔                         |
+| falcon9_decoder     | Unfinished | ffplay       | OPT_BUILD_FALCON9_DECODER     | ⛔              | ⛔              | ⛔                         |
 | meteor_demodulator  | Working    | -            | OPT_BUILD_METEOR_DEMODULATOR  | ✅              | ✅              | ⛔                         |
 | radio               | Working    | -            | OPT_BUILD_RADIO               | ✅              | ✅              | ✅                         |
 | weather_sat_decoder | Unfinished | -            | OPT_BUILD_WEATHER_SAT_DECODER | ⛔              | ⛔              | ⛔                         |
@@ -304,9 +304,9 @@ Modules in beta are still included in releases for the most part but not enabled
 | Name                | Stage      | Dependencies | Option                      | Built by default | Built in Release | Enabled in SDR++ by default |
 |---------------------|------------|--------------|-----------------------------|:----------------:|:----------------:|:---------------------------:|
 | discord_integration | Working    | -            | OPT_BUILD_DISCORD_PRESENCE  | ✅              | ✅               | ⛔                         |
-| frequency_manager   | Beta       | -            | OPT_BUILD_FREQUENCY_MANAGER | ✅              | ✅               | ✅                         |
+| frequency_manager   | Working    | -            | OPT_BUILD_FREQUENCY_MANAGER | ✅              | ✅               | ✅                         |
 | recorder            | Working    | -            | OPT_BUILD_RECORDER          | ✅              | ✅               | ✅                         |
-| rigctl_server       | Unfinished | -            | OPT_BUILD_RIGCTL_SERVER     | ✅              | ✅               | ⛔                         |
+| rigctl_server       | Working    | -            | OPT_BUILD_RIGCTL_SERVER     | ✅              | ✅               | ⛔                         |
 
 # Troubleshooting
 
