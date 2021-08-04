@@ -312,6 +312,14 @@ Modules in beta are still included in releases for the most part but not enabled
 
 First, please make sure you're running the latest automated build. If your issue is linked to a bug it is likely that is has already been fixed in later releases
 
+## SDR++ crashes then it won't start again no matter what
+
+This is a bug in 1.0.0 that was fixed in 1.0.1
+
+In some cases, if a crash happened while the config was being saved, the config file woul be corrupted and SDR++ would refuse to start because of it.
+
+This has now been fixed. If a config file is corrupted it'll just reset it to its default state.
+
 ## "hash collision" error when starting
 
 You likely installed the `soapysdr-module-all` package on Ubuntu/Debian. If not it's still a SoapySDR bug caused by multiple soapy modules coming in conflict. Uninstall anything related to SoapySDR then install soapysdr itself and only the soapy modules you actually need.
