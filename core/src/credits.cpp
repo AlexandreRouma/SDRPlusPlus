@@ -35,6 +35,7 @@ namespace sdrpp_credits {
     const char* patrons[] = {
         "Croccydile",
         "Daniele D'Agnelli",
+        "EB3FRN",
         "Eric Johnson",
         "W4IPA",
         "Lee Donaghy",
