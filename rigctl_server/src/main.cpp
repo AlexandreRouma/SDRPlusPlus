@@ -365,7 +365,7 @@ private:
         if (parts.size() == 0) { return; }
 
         // If the command is a compound command, execute each one separately
-        if (parts[0].size() > 1 && parts[0][0] != '\\') {
+        if (parts[0].size() > 1 && parts[0][0] != '\\' && parts[0] != "AOS" && parts[0] != "LOS") {
             std::string arguments;
             if (parts.size() > 1) { arguments = cmd.substr(parts[0].size()); }
             for (char c : parts[0]) {
