@@ -48,6 +48,8 @@ const char* sampleRatesTxt[] = {
     "3.2MHz"
 };
 
+#define SAMPLE_RATE_COUNT   (sizeof(sampleRates) / sizeof(double))
+
 class RTLTCPSourceModule : public ModuleManager::Instance {
 public:
     RTLTCPSourceModule(std::string name) {
@@ -55,8 +57,9 @@ public:
 
         sampleRate = 2400000.0;
 
-        int srCount = sizeof(sampleRatesTxt) / sizeof(char*);
-        for (int i = 0; i < srCount; i++) {
+        int _24id = 0;
+        for (int i = 0; i < SAMPLE_RATE_COUNT; i++) {
+            if (sampleRates[i] == 2400000) { _24id = i; }
             srTxt += sampleRatesTxt[i];
             srTxt += '\0';
         }
@@ -65,7 +68,9 @@ public:
         config.acquire();
         std::string hostStr = config.conf["host"];
         port = config.conf["port"];
+        double wantedSr = config.conf["sampleRate"];
         directSamplingMode = config.conf["directSamplingMode"];
+        ppm = config.conf["ppm"];
         rtlAGC = config.conf["rtlAGC"];
         tunerAGC = config.conf["tunerAGC"];
         gain = std::clamp<int>(config.conf["gainIndex"], 0, 28);
@@ -74,6 +79,20 @@ public:
         hostStr = hostStr.substr(0, 1023);
         strcpy(ip, hostStr.c_str());
         config.release();
+
+        bool found = false;
+        for (int i = 0; i < SAMPLE_RATE_COUNT; i++) {
+            if (sampleRates[i] == wantedSr) {
+                found = true;
+                srId = i;
+                sampleRate = sampleRates[i];
+                break;
+            }
+        }
+        if (!found) {
+            srId = _24id;
+            sampleRate = sampleRates[_24id];
+        }
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
@@ -127,6 +146,7 @@ private:
         spdlog::warn("Setting sample rate to {0}", _this->sampleRate);
         _this->client.setFrequency(_this->freq);
         _this->client.setSampleRate(_this->sampleRate);
+        _this->client.setPPM(_this->ppm);
         _this->client.setDirectSampling(_this->directSamplingMode);
         _this->client.setAGCMode(_this->rtlAGC);
         _this->client.setBiasTee(_this->biasTee);
@@ -191,6 +211,9 @@ private:
         if (ImGui::Combo(CONCAT("##_rtltcp_sr_", _this->name), &_this->srId, _this->srTxt.c_str())) {
             _this->sampleRate = sampleRates[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
+            config.acquire();
+            config.conf["sampleRate"] = _this->sampleRate;
+            config.release(true);
         }
 
         if (_this->running) { style::endDisabled(); }
@@ -203,18 +226,39 @@ private:
                 _this->client.setDirectSampling(_this->directSamplingMode);
                 _this->client.setGainIndex(_this->gain);
             }
+            config.acquire();
+            config.conf["directSamplingMode"] = _this->directSamplingMode;
+            config.release(true);
+        }
+
+        ImGui::Text("PPM Correction");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::InputInt(CONCAT("##_rtltcp_ppm_", _this->name), &_this->ppm, 1, 10)) {
+            if (_this->running) {
+                _this->client.setPPM(_this->ppm);
+            }
+            config.acquire();
+            config.conf["ppm"] = _this->ppm;
+            config.release(true);
         }
 
         if (ImGui::Checkbox(CONCAT("Bias-T##_biast_select_", _this->name), &_this->biasTee)) {
             if (_this->running) {
                 _this->client.setBiasTee(_this->biasTee);
             }
+            config.acquire();
+            config.conf["biasTee"] = _this->biasTee;
+            config.release(true);
         }
 
         if (ImGui::Checkbox(CONCAT("Offset Tuning##_biast_select_", _this->name), &_this->offsetTuning)) {
             if (_this->running) {
                 _this->client.setOffsetTuning(_this->offsetTuning);
             }
+            config.acquire();
+            config.conf["offsetTuning"] = _this->offsetTuning;
+            config.release(true);
         }
 
         if (ImGui::Checkbox("RTL AGC", &_this->rtlAGC)) {
@@ -224,6 +268,9 @@ private:
                     _this->client.setGainIndex(_this->gain);
                 }
             }
+            config.acquire();
+            config.conf["rtlAGC"] = _this->rtlAGC;
+            config.release(true);
         }
 
         if (ImGui::Checkbox("Tuner AGC", &_this->tunerAGC)) {
@@ -233,6 +280,9 @@ private:
                     _this->client.setGainIndex(_this->gain);
                 }
             }
+            config.acquire();
+            config.conf["tunerAGC"] = _this->tunerAGC;
+            config.release(true);
         }
 
         if (_this->tunerAGC) { style::beginDisabled(); }
@@ -241,6 +291,9 @@ private:
             if (_this->running) {
                 _this->client.setGainIndex(_this->gain);
             }
+            config.acquire();
+            config.conf["gainIndex"] = _this->gain;
+            config.release(true);
         }
         if (_this->tunerAGC) { style::endDisabled(); }
     }
@@ -275,6 +328,7 @@ private:
     char ip[1024] = "localhost";
     int port = 1234;
     int gain = 0;
+    int ppm = 0;
     bool rtlAGC = false;
     bool tunerAGC = false;
     int directSamplingMode = 0;
@@ -290,7 +344,9 @@ MOD_EXPORT void _INIT_() {
    json defConf;
    defConf["host"] = "localhost";
    defConf["port"] = 1234;
+   defConf["sampleRate"] = 2400000.0;
    defConf["directSamplingMode"] = 0;
+   defConf["ppm"] = 0;
    defConf["rtlAGC"] = false;
    defConf["tunerAGC"] = false;
    defConf["gainIndex"] = 0;
@@ -305,6 +361,12 @@ MOD_EXPORT void _INIT_() {
     }
     if (!config.conf.contains("offsetTuning")) {
         config.conf["offsetTuning"] = false;
+    }
+    if (!config.conf.contains("ppm")) {
+        config.conf["ppm"] = 0;
+    }
+    if (!config.conf.contains("sampleRate")) {
+        config.conf["sampleRate"] = 2400000.0;
     }
     config.release(true);
 }

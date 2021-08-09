@@ -335,7 +335,7 @@ private:
         // Setup and start stream
         int sampCount = _this->sampleRate / 200;
         _this->devStream.isTx = false;
-        _this->devStream.channel = 0;
+        _this->devStream.channel = _this->chanId;
         _this->devStream.fifoSize = sampCount; // TODO: Check what it's actually supposed to be
         _this->devStream.throughputVsLatency = 0.5f;
         _this->devStream.dataFmt = _this->devStream.LMS_FMT_F32;

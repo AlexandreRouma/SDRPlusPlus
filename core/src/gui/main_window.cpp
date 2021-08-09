@@ -213,6 +213,11 @@ void MainWindow::fftHandler(dsp::complex_t* samples, int count, void* ctx) {
     MainWindow* _this = (MainWindow*)ctx;
     std::lock_guard<std::mutex> lck(_this->fft_mtx);
 
+    // Check if the count is valid
+    if (count > _this->fftSize) {
+        return;
+    }
+
     // Apply window
     volk_32fc_32f_multiply_32fc((lv_32fc_t*)_this->fft_in, (lv_32fc_t*)samples, sigpath::signalPath.fftTaps, count);
 
@@ -657,9 +662,9 @@ void MainWindow::setFFTSize(int size) {
     gui::waterfall.setRawFFTSize(fftSize);
     sigpath::signalPath.setFFTSize(fftSize);
 
+    fftwf_destroy_plan(fftwPlan);
     fftwf_free(fft_in);
     fftwf_free(fft_out);
-    fftwf_destroy_plan(fftwPlan);
     
     fft_in = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * fftSize);
     fft_out = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * fftSize);

@@ -166,6 +166,10 @@ public:
         sendCommand(4, gain);
     }
 
+    void setPPM(int ppm) {
+        sendCommand(5, (uint32_t)ppm);
+    }
+
     void setAGCMode(int mode) {
         sendCommand(8, mode);
     }

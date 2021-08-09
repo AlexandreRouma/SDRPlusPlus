@@ -162,6 +162,7 @@ public:
             created = true;
             config.conf["devices"][selectedDevName]["sampleRate"] = 2400000.0;
             config.conf["devices"][selectedDevName]["directSampling"] = directSamplingMode;
+            config.conf["devices"][selectedDevName]["ppm"] = 0;
             config.conf["devices"][selectedDevName]["biasT"] = biasT;
             config.conf["devices"][selectedDevName]["offsetTuning"] = offsetTuning;
             config.conf["devices"][selectedDevName]["rtlAgc"] = rtlAgc;
@@ -185,6 +186,10 @@ public:
 
         if (config.conf["devices"][selectedDevName].contains("directSampling")) {
             directSamplingMode = config.conf["devices"][selectedDevName]["directSampling"];
+        }
+
+        if (config.conf["devices"][selectedDevName].contains("ppm")) {
+            ppm = config.conf["devices"][selectedDevName]["ppm"];
         }
 
         if (config.conf["devices"][selectedDevName].contains("biasT")) {
@@ -256,6 +261,7 @@ private:
 
         rtlsdr_set_sample_rate(_this->openDev, _this->sampleRate);
         rtlsdr_set_center_freq(_this->openDev, _this->freq);
+        rtlsdr_set_freq_correction(_this->openDev, _this->ppm);
         rtlsdr_set_tuner_bandwidth(_this->openDev, 0);
         rtlsdr_set_direct_sampling(_this->openDev, _this->directSamplingMode);
         rtlsdr_set_bias_tee(_this->openDev, _this->biasT);
@@ -372,6 +378,21 @@ private:
             }
         }
 
+        ImGui::Text("PPM Correction");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::InputInt(CONCAT("##_rtlsdr_ppm_", _this->name), &_this->ppm, 1, 10)) {
+            _this->ppm = std::clamp<int>(_this->ppm, -1000000, 1000000);
+            if (_this->running) {
+                rtlsdr_set_freq_correction(_this->openDev, _this->ppm);
+            }
+            if (_this->selectedDevName != "") {
+                config.acquire();
+                config.conf["devices"][_this->selectedDevName]["ppm"] = _this->ppm;
+                config.release(true);
+            }
+        }
+
         if (ImGui::Checkbox(CONCAT("Bias T##_rtlsdr_rtl_biast_", _this->name), &_this->biasT)) {
             if (_this->running) {
                 rtlsdr_set_bias_tee(_this->openDev, _this->biasT);
@@ -470,6 +491,8 @@ private:
     int srId = 0;
     int devCount = 0;
     std::thread workerThread;
+
+    int ppm = 0;
 
     bool biasT = false;
 
