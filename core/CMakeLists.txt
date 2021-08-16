@@ -25,6 +25,9 @@ target_compile_definitions(sdrpp_core PUBLIC INSTALL_PREFIX="${CMAKE_INSTALL_PRE
 target_include_directories(sdrpp_core PUBLIC "src/")
 target_include_directories(sdrpp_core PUBLIC "src/imgui")
 
+if (OPT_OVERRIDE_STD_FILESYSTEM)
+target_include_directories(sdrpp_core PUBLIC "std_replacement")
+endif (OPT_OVERRIDE_STD_FILESYSTEM)
 
 if (MSVC)
     # Lib path

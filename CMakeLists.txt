@@ -7,6 +7,9 @@ else()
     set(CMAKE_INSTALL_PREFIX "/usr")
 endif()
 
+# Compatibility Options
+option(OPT_OVERRIDE_STD_FILESYSTEM "Use a local version of std::filesystem on systems that don't have it yet" OFF)
+
 # Sources
 option(OPT_BUILD_AIRSPY_SOURCE "Build Airspy Source Module (Depedencies: libairspy)" ON)
 option(OPT_BUILD_AIRSPYHF_SOURCE "Build Airspy HF+ Source Module (Depedencies: libairspyhf)" ON)
