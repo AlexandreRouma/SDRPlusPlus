@@ -320,7 +320,9 @@ private:
 
         if (_this->running) { style::beginDisabled(); }
 
-        ImGui::SetNextItemWidth(menuWidth);
+        ImGui::Text("Device");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##_rtlsdr_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
             _this->selectById(_this->devId);
             core::setInputSampleRate(_this->sampleRate);
@@ -331,6 +333,9 @@ private:
             }
         }
 
+        ImGui::Text("Sample Rate");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##_rtlsdr_sr_sel_", _this->name), &_this->srId, _this->sampleRateListTxt.c_str())) {
             _this->sampleRate = sampleRates[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
@@ -341,7 +346,6 @@ private:
             }
         }
 
-        ImGui::SameLine();
         float refreshBtnWdith = menuWidth - ImGui::GetCursorPosX();
         if (ImGui::Button(CONCAT("Refresh##_rtlsdr_refr_", _this->name), ImVec2(refreshBtnWdith, 0))) {
             _this->refresh();
@@ -444,7 +448,9 @@ private:
         }
 
         if (_this->tunerAgc || _this->gainList.size() == 0) { style::beginDisabled(); }
-        ImGui::SetNextItemWidth(menuWidth);
+        ImGui::Text("Gain");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::SliderInt(CONCAT("##_rtlsdr_gain_", _this->name), &_this->gainId, 0, _this->gainList.size() - 1, _this->dbTxt)) {
             _this->updateGainTxt();
             if (_this->running) {

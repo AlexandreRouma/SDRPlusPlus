@@ -279,7 +279,9 @@ private:
 
         if (_this->running) { style::beginDisabled(); }
 
-        ImGui::SetNextItemWidth(menuWidth);
+        ImGui::Text("Device");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##_hackrf_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
             _this->selectedSerial = _this->devList[_this->devId];
             config.acquire();
@@ -287,6 +289,9 @@ private:
             config.release(true);
         }
 
+        ImGui::Text("Sample Rate");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##_hackrf_sr_sel_", _this->name), &_this->srId, sampleRatesTxt)) {
             _this->sampleRate = sampleRates[_this->srId];
             core::setInputSampleRate(_this->sampleRate);

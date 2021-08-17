@@ -207,7 +207,9 @@ private:
             config.release(true);
         }
 
-        ImGui::SetNextItemWidth(menuWidth);
+        ImGui::Text("Sample Rate");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##_rtltcp_sr_", _this->name), &_this->srId, _this->srTxt.c_str())) {
             _this->sampleRate = sampleRates[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
@@ -286,7 +288,9 @@ private:
         }
 
         if (_this->tunerAGC) { style::beginDisabled(); }
-        ImGui::SetNextItemWidth(menuWidth);
+        ImGui::Text("Gain");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::SliderInt(CONCAT("##_gain_select_", _this->name), &_this->gain, 0, 28, "")) {
             if (_this->running) {
                 _this->client.setGainIndex(_this->gain);

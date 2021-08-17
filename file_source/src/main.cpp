@@ -111,7 +111,11 @@ private:
     
     static void menuHandler(void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
+        float menuWidth = ImGui::GetContentRegionAvailWidth();
 
+        ImGui::Text("Source");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (_this->fileSelect.render("##file_source_" + _this->name)) {
             if (_this->fileSelect.pathIsValid()) {
                 if (_this->reader != NULL) {

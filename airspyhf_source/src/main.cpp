@@ -269,7 +269,9 @@ private:
 
         if (_this->running) { style::beginDisabled(); }
 
-        ImGui::SetNextItemWidth(menuWidth);
+        ImGui::Text("Device");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##_airspyhf_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
             _this->selectBySerial(_this->devList[_this->devId]);
             core::setInputSampleRate(_this->sampleRate);
@@ -280,6 +282,9 @@ private:
             }
         }
 
+        ImGui::Text("Sample Rate");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##_airspyhf_sr_sel_", _this->name), &_this->srId, _this->sampleRateListTxt.c_str())) {
             _this->sampleRate = _this->sampleRateList[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
@@ -290,7 +295,6 @@ private:
             }
         }
 
-        ImGui::SameLine();
         float refreshBtnWdith = menuWidth - ImGui::GetCursorPosX();
         if (ImGui::Button(CONCAT("Refresh##_airspyhf_refr_", _this->name), ImVec2(refreshBtnWdith, 0))) {
             _this->refresh();
