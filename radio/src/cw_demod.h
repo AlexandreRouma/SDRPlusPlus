@@ -126,7 +126,9 @@ public:
     void showMenu() {
         float menuWidth = ImGui::GetContentRegionAvailWidth();
 
-        ImGui::SetNextItemWidth(menuWidth);
+        ImGui::Text("Bandwidth");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::InputFloat(("##_radio_cw_bw_" + uiPrefix).c_str(), &bw, 1, 100, "%.0f", 0)) {
             bw = std::clamp<float>(bw, bwMin, bwMax);
             setBandwidth(bw);
