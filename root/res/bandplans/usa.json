@@ -270,6 +270,18 @@
             "end": 446200000
         },
         {
+            "name": "FRS",
+            "type": "amateur",
+            "start": 462550000,
+            "end": 462725000
+        },
+        {
+            "name": "FRS - GMRS",
+            "type": "amateur",
+            "start": 467550000,
+            "end": 467725000
+        },
+        {
             "name": "TV Channels 14-20",
             "type": "broadcast",
             "start": 470000000,
