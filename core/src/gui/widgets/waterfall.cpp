@@ -322,6 +322,7 @@ namespace ImGui {
             }
             hzDist = std::clamp<double>(hzDist, relatedVfo->minBandwidth, relatedVfo->maxBandwidth);
             relatedVfo->setBandwidth(hzDist);
+            relatedVfo->onUserChangedBandwidth.emit(hzDist);
             return;
         }
 

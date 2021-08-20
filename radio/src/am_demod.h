@@ -55,6 +55,11 @@ public:
         resamp.updateWindow(&win);
 
         m2s.init(&resamp.out);
+
+        onUserChangedBandwidthHandler.handler = vfoUserChangedBandwidthHandler;
+        onUserChangedBandwidthHandler.ctx = this;
+
+        _vfo->wtfVFO->onUserChangedBandwidth.bindHandler(&onUserChangedBandwidthHandler);
     }
 
     void start() {
@@ -89,6 +94,7 @@ public:
     void setVFO(VFOManager::VFO* vfo) {
         _vfo = vfo;
         squelch.setInput(_vfo->output);
+        _vfo->wtfVFO->onUserChangedBandwidth.bindHandler(&onUserChangedBandwidthHandler);
     }
 
     VFOManager::VFO* getVFO() {
@@ -130,15 +136,6 @@ public:
             _config->conf[uiPrefix]["AM"]["bandwidth"] = bw;
             _config->release(true);
         }
-        if (running) {
-            if (_vfo->getBandwidthChanged()) {
-                bw = _vfo->getBandwidth();
-                setBandwidth(bw, false);
-                _config->acquire();
-                _config->conf[uiPrefix]["AM"]["bandwidth"] = bw;
-                _config->release(true);
-            }
-        }
 
         ImGui::Text("Snap Interval");
         ImGui::SameLine();
@@ -160,7 +157,18 @@ public:
             _config->conf[uiPrefix]["AM"]["squelchLevel"] = squelchLevel;
             _config->release(true);
         }
-    } 
+    }
+
+    static void vfoUserChangedBandwidthHandler(double newBw, void* ctx) {
+        AMDemodulator* _this = (AMDemodulator*)ctx;
+        if (_this->running) {
+            _this->bw = newBw;
+            _this->setBandwidth(_this->bw, false);
+            _this->_config->acquire();
+            _this->_config->conf[_this->uiPrefix]["AM"]["bandwidth"] = _this->bw;
+            _this->_config->release(true);
+        }
+    }
 
     void setBandwidth(float bandWidth, bool updateWaterfall = true) {
         bandWidth = std::clamp<float>(bandWidth, bwMin, bwMax);
@@ -175,9 +183,9 @@ public:
 
     void saveParameters(bool lock = true) {
         if (lock) { _config->acquire(); }
-        _config->conf[uiPrefix]["WFM"]["bandwidth"] = bw;
-        _config->conf[uiPrefix]["WFM"]["snapInterval"] = snapInterval;
-        _config->conf[uiPrefix]["WFM"]["squelchLevel"] = squelchLevel;
+        _config->conf[uiPrefix]["AM"]["bandwidth"] = bw;
+        _config->conf[uiPrefix]["AM"]["snapInterval"] = snapInterval;
+        _config->conf[uiPrefix]["AM"]["squelchLevel"] = squelchLevel;
         if (lock) { _config->release(true); }
     }
 
@@ -207,5 +215,7 @@ private:
     dsp::MonoToStereo m2s;
 
     ConfigManager* _config;
+
+    EventHandler<double> onUserChangedBandwidthHandler;
 
 };

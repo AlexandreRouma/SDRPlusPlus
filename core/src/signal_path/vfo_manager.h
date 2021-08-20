@@ -30,10 +30,11 @@ public:
 
         friend class VFOManager;
 
-    private:
-        std::string name;
         dsp::VFO* dspVFO;
         ImGui::WaterfallVFO* wtfVFO;
+
+    private:
+        std::string name;
         
     };
 

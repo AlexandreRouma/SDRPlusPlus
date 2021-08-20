@@ -67,6 +67,8 @@ namespace ImGui {
         bool bandwidthLocked;
 
         ImU32 color = IM_COL32(255, 255, 255, 50);
+
+        Event<double> onUserChangedBandwidth;
     };
 
     class WaterFall {
