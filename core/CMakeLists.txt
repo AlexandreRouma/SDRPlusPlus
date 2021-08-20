@@ -36,6 +36,7 @@ target_link_libraries(sdrpp_core PUBLIC
   imgui
   stb
   spdlog
+  nlohmann_json
 )
 
 if (MSVC)

@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <map>
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 #include <utils/event.h>
 
 #ifdef _WIN32

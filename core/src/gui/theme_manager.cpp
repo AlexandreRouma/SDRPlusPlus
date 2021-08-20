@@ -1,4 +1,4 @@
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 #include <gui/theme_manager.h>
 #include <imgui_internal.h>
 #include <spdlog/spdlog.h>
