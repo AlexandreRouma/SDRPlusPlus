@@ -490,32 +490,32 @@ private:
         }
         else if (parts[0] == "m" || parts[0] == "\\get_mode") {
             std::lock_guard lck(vfoMtx);
-            resp = "RAW\n";
+            resp = "RAW ";
 
             if (!selectedVfo.empty() && core::modComManager.getModuleName(selectedVfo) == "radio") {
                 int mode;
                 core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_GET_MODE, NULL, &mode);
                 
                 if (mode == RADIO_IFACE_MODE_NFM) {
-                    resp = "FM\n";
+                    resp = "FM ";
                 }
                 else if (mode == RADIO_IFACE_MODE_WFM) {
-                    resp = "WFM\n";
+                    resp = "WFM ";
                 }
                 else if (mode == RADIO_IFACE_MODE_AM) {
-                    resp = "AM\n";
+                    resp = "AM ";
                 }
                 else if (mode == RADIO_IFACE_MODE_DSB) {
-                    resp = "DSB\n";
+                    resp = "DSB ";
                 }
                 else if (mode == RADIO_IFACE_MODE_USB) {
-                    resp = "USB\n";
+                    resp = "USB ";
                 }
                 else if (mode == RADIO_IFACE_MODE_CW) {
-                    resp = "CW\n";
+                    resp = "CW ";
                 }
                 else if (mode == RADIO_IFACE_MODE_LSB) {
-                    resp = "LSB\n";
+                    resp = "LSB ";
                 }
             }
 
