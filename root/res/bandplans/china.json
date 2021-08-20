@@ -1,0 +1,165 @@
+{
+    "name": "Mainland China",
+    "country_name": "People's Republic of China",
+    "country_code": "CN",
+    "author_name": "Shuyuan Liu",
+    "author_url": "https://github.com/shuyuan-liu",
+    "bands": [
+        {
+            "name": "Frequency and Time Standards",
+            "type": "broadcast",
+            "start": 19950,
+            "end": 20050
+        },
+        {
+            "name": "2200m Ham Band",
+            "type": "amateur",
+            "start": 148500,
+            "end": 519000
+        },
+        {
+            "name": "Medium Wave Broadcast",
+            "type": "broadcast",
+            "start": 526500,
+            "end": 1606500
+        },
+        {
+            "name": "160m Ham Band",
+            "type": "amateur",
+            "start": 1800000,
+            "end": 2000000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 2300000,
+            "end": 2495000
+        },
+        {
+            "name": "Frequency and Time Standards",
+            "type": "broadcast",
+            "start": 2495000,
+            "end": 2505000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 3200000,
+            "end": 3400000
+        },
+        {
+            "name": "80m Ham Band",
+            "type": "amateur",
+            "start": 3500000,
+            "end": 3900000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 3900000,
+            "end": 4000000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 4750000,
+            "end": 4995000
+        },
+        {
+            "name": "Frequency and Time Standards",
+            "type": "broadcast",
+            "start": 4995000,
+            "end": 5005000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 5005000,
+            "end": 5060000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 5900000,
+            "end": 6200000
+        },
+        {
+            "name": "40m Ham Band",
+            "type": "amateur",
+            "start": 7000000,
+            "end": 7200000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 7200000,
+            "end": 7350000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 9400000,
+            "end": 9900000
+        },
+        {
+            "name": "Frequency and Time Standards",
+            "type": "broadcast",
+            "start": 9995000,
+            "end": 10005000
+        },
+        {
+            "name": "30m Ham Band",
+            "type": "amateur",
+            "start": 10100000,
+            "end": 10150000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 11600000,
+            "end": 12100000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 13570000,
+            "end": 13870000
+        },
+        {
+            "name": "20m Ham Band",
+            "type": "amateur",
+            "start": 14000000,
+            "end": 14350000
+        },
+        {
+            "name": "Frequency and Time Standards",
+            "type": "broadcast",
+            "start": 14990000,
+            "end": 15010000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 15100000,
+            "end": 15800000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 17480000,
+            "end": 17900000
+        },
+        {
+            "name": "17m Ham Band",
+            "type": "amateur",
+            "start": 18068000,
+            "end": 18168000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 18900000,
+            "end": 19020000
+        },
+    ]
+}
