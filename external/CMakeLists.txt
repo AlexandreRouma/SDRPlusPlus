@@ -1,5 +1,12 @@
 include(FetchContent)
 
+FetchContent_Declare(spdlog
+  GIT_REPOSITORY https://github.com/gabime/spdlog
+  GIT_TAG        v1.x
+)
+
+FetchContent_MakeAvailable(spdlog)
+
 FetchContent_Declare(imgui
   GIT_REPOSITORY https://github.com/ocornut/imgui
   GIT_TAG v1.83

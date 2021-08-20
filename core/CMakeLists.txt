@@ -35,6 +35,7 @@ target_link_libraries(sdrpp_core PUBLIC
   PkgConfig::FFTW3
   imgui
   stb
+  spdlog
 )
 
 if (MSVC)
