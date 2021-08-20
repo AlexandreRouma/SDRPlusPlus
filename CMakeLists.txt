@@ -19,7 +19,8 @@ else ()
     set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
 endif ()
 
-# Core of SDR++
+add_subdirectory(external)
+
 add_subdirectory(core)
 
 add_subdirectory(modules)

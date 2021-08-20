@@ -2,8 +2,8 @@
 #include <vector>
 #include <mutex>
 #include <gui/widgets/bandplan.h>
-#include <imgui/imgui.h>
-#include <imgui/imgui_internal.h>
+#include <imgui.h>
+#include <imgui_internal.h>
 #include <GL/glew.h>
 #include <utils/event.h>
 

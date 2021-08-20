@@ -4,7 +4,7 @@
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
-#include <imgui/imgui_internal.h>
+#include <imgui_internal.h>
 
 namespace ImGui {
     void SNRMeter(float val, const ImVec2& size_arg = ImVec2(0, 0)) {

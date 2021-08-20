@@ -1,8 +1,8 @@
 #include <gui/main_window.h>
 #include <gui/gui.h>
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
 #include <stdio.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -66,13 +66,13 @@ void MainWindow::init() {
     gui::menu.registerEntry("Theme", thememenu::draw, NULL);
     gui::menu.registerEntry("VFO Color", vfo_color_menu::draw, NULL);
     gui::menu.registerEntry("Module Manager", module_manager_menu::draw, NULL);
-    
+
     gui::freqSelect.init();
 
     // Set default values for waterfall in case no source init's it
     gui::waterfall.setBandwidth(8000000);
     gui::waterfall.setViewBandwidth(8000000);
-    
+
     fft_in = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * fftSize);
     fft_out = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * fftSize);
     fftwPlan = fftwf_plan_dft_1d(fftSize, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
@@ -224,7 +224,7 @@ void MainWindow::fftHandler(dsp::complex_t* samples, int count, void* ctx) {
     // Zero out the rest of the samples
     if (count < _this->fftSize) {
         memset(&_this->fft_in[count], 0, (_this->fftSize-count) * sizeof(dsp::complex_t));
-    } 
+    }
 
     // Execute FFT
     fftwf_execute(_this->fftwPlan);
@@ -264,7 +264,7 @@ void MainWindow::vfoAddedHandler(VFOManager::VFO* vfo, void* ctx) {
 
     sigpath::vfoManager.setCenterOffset(name, _this->initComplete ? newOffset : offset);
 
-    
+
 }
 
 void MainWindow::draw() {
@@ -288,7 +288,7 @@ void MainWindow::draw() {
             core::configManager.release(true);
         }
     }
-    
+
     sigpath::vfoManager.updateFromWaterfall(&gui::waterfall);
 
     // Handle selection of another VFO
@@ -498,7 +498,7 @@ void MainWindow::draw() {
             core::configManager.release(true);
         }
         if (startedWithMenuClosed) {
-            startedWithMenuClosed = false;  
+            startedWithMenuClosed = false;
         }
         else {
             firstMenuRender = false;
@@ -515,7 +515,7 @@ void MainWindow::draw() {
             ImGui::Checkbox("Bypass buffering", &sigpath::signalPath.inputBuffer.bypass);
 
             ImGui::Text("Buffering: %d", (sigpath::signalPath.inputBuffer.writeCur - sigpath::signalPath.inputBuffer.readCur + 32) % 32);
-            
+
             if (ImGui::Button("Test Bug")) {
                 spdlog::error("Will this make the software crash?");
             }
@@ -545,7 +545,7 @@ void MainWindow::draw() {
 
     ImGui::BeginChild("Waterfall");
 
-    gui::waterfall.draw();    
+    gui::waterfall.draw();
 
     ImGui::EndChild();
 
@@ -591,7 +591,7 @@ void MainWindow::draw() {
             core::configManager.release(true);
         }
     }
-    
+
     ImGui::NextColumn();
     ImGui::BeginChild("WaterfallControls");
 
@@ -665,7 +665,7 @@ void MainWindow::setFFTSize(int size) {
     fftwf_destroy_plan(fftwPlan);
     fftwf_free(fft_in);
     fftwf_free(fft_out);
-    
+
     fft_in = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * fftSize);
     fft_out = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * fftSize);
     fftwPlan = fftwf_plan_dft_1d(fftSize, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);

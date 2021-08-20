@@ -8,7 +8,7 @@
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
-#include <imgui/imgui_internal.h>
+#include <imgui_internal.h>
 
 bool isInArea(ImVec2 val, ImVec2 min, ImVec2 max) {
     return val.x >= min.x && val.x < max.x && val.y >= min.y && val.y < max.y;

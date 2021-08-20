@@ -1,6 +1,6 @@
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
 #include <stdio.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -32,7 +32,7 @@
 #ifndef INSTALL_PREFIX
     #ifdef __APPLE__
         #define INSTALL_PREFIX "/usr/local"
-    #else 
+    #else
         #define INSTALL_PREFIX "/usr"
     #endif
 #endif
@@ -186,7 +186,7 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["moduleInstances"]["Frequency Manager"] = "frequency_manager";
     defConfig["moduleInstances"]["Recorder"] = "recorder";
     defConfig["moduleInstances"]["Rigctl Server"] = "rigctl_server";
-    
+
 
     // Themes
     defConfig["theme"] = "Dark";

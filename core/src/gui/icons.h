@@ -1,5 +1,5 @@
 #pragma once
-#include <imgui/imgui.h>
+#include <imgui.h>
 #include <GL/glew.h>
 #include <string>
 

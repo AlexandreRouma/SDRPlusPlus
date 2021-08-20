@@ -1,6 +1,6 @@
 #include <signal_path/sink.h>
 #include <spdlog/spdlog.h>
-#include <imgui/imgui.h>
+#include <imgui.h>
 #include <gui/style.h>
 #include <gui/icons.h>
 

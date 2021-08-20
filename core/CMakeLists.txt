@@ -33,6 +33,8 @@ target_link_libraries(sdrpp_core PUBLIC
   GLEW::glew
   glfw
   PkgConfig::FFTW3
+  imgui
+  stb
 )
 
 if (MSVC)
@@ -45,9 +47,6 @@ if (MSVC)
     # WinSock2
     target_link_libraries(sdrpp_core PUBLIC wsock32 ws2_32)
 else()
-    find_package(OpenGL REQUIRED)
-    target_link_libraries(sdrpp_core PUBLIC OpenGL::GL)
-
     if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         target_link_libraries(sdrpp_core PUBLIC stdc++fs)
     endif ()

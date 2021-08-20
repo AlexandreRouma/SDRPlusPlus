@@ -1,5 +1,5 @@
 #pragma once
-#include <imgui/imgui.h>
+#include <imgui.h>
 #include <fftw3.h>
 #include <dsp/types.h>
 #include <dsp/stream.h>

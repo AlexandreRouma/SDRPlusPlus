@@ -2,8 +2,8 @@
 #include <gui/dialogs/loading_screen.h>
 #include <gui/main_window.h>
 #include <imgui.h>
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
 #include <gui/icons.h>
 #include <gui/style.h>
 #include <credits.h>

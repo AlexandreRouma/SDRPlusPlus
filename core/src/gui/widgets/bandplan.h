@@ -1,6 +1,6 @@
 #pragma once
 #include <json.hpp>
-#include <imgui/imgui.h>
+#include <imgui.h>
 #include <stdint.h>
 
 using nlohmann::json;
