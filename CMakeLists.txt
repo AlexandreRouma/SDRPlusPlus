@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.14)
 project(sdrpp)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -20,9 +20,7 @@ else ()
 endif ()
 
 add_subdirectory(external)
-
 add_subdirectory(core)
-
 add_subdirectory(modules)
 
 add_executable(sdrpp "src/main.cpp" "win32/resources.rc")

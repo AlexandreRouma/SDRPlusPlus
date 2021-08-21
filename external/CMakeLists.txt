@@ -2,59 +2,7 @@ include(FetchContent)
 
 set(FETCHCONTENT_QUIET FALSE)
 
-FetchContent_Declare(
-  nlohmann_json
-  GIT_REPOSITORY https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
-  GIT_PROGRESS TRUE
-)
-
-FetchContent_MakeAvailable(nlohmann_json)
-
-FetchContent_Declare(spdlog
-  GIT_REPOSITORY https://github.com/gabime/spdlog
-  GIT_TAG        v1.x
-  GIT_PROGRESS TRUE
-)
-
-FetchContent_MakeAvailable(spdlog)
-
-FetchContent_Declare(imgui
-  GIT_REPOSITORY https://github.com/ocornut/imgui
-  GIT_TAG v1.83
-  GIT_PROGRESS TRUE
-)
-
-FetchContent_GetProperties(imgui)
-if (NOT imgui_POPULATED)
-  FetchContent_Populate(imgui)
-
-  add_library(imgui
-    ${imgui_SOURCE_DIR}/imgui.cpp
-    ${imgui_SOURCE_DIR}/imgui_demo.cpp
-    ${imgui_SOURCE_DIR}/imgui_draw.cpp
-    ${imgui_SOURCE_DIR}/imgui_tables.cpp
-    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
-    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
-    ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp)
-
-  target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR})
-
-  find_package(glfw3 REQUIRED)
-  find_package(OpenGL REQUIRED)
-  target_link_libraries(imgui
-    PUBLIC
-    glfw
-    OpenGL::GL)
-endif()
-
-FetchContent_Declare(stb
-  GIT_REPOSITORY https://github.com/nothings/stb
-  GIT_PROGRESS TRUE)
-
-FetchContent_GetProperties(stb)
-if (NOT stb_POPULATED)
-  FetchContent_Populate(stb)
-
-  add_library(stb INTERFACE)
-  target_include_directories(stb INTERFACE ${stb_SOURCE_DIR})
-endif()
+include(nlohmann_json.cmake)
+include(spdlog.cmake)
+include(imgui.cmake)
+include(stb.cmake)
