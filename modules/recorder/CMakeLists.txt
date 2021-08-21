@@ -11,9 +11,8 @@ endif ()
 
 file(GLOB SRC "src/*.cpp")
 
-include_directories("src/")
-
 add_library(recorder SHARED ${SRC})
+target_include_directories(recorder PRIVATE src)
 target_link_libraries(recorder PRIVATE sdrpp_core)
 set_target_properties(recorder PROPERTIES PREFIX "")
 

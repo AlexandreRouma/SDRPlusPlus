@@ -9,11 +9,10 @@ else ()
     set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
 endif ()
 
-include_directories("src/")
-
 file(GLOB SRC "src/*.cpp")
 
 add_library(airspy_source SHARED ${SRC})
+target_include_directories(airspy_source PRIVATE src)
 target_link_libraries(airspy_source PRIVATE sdrpp_core)
 set_target_properties(airspy_source PROPERTIES PREFIX "")
 

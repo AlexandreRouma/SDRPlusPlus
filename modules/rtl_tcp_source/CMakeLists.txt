@@ -9,11 +9,10 @@ else ()
     set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
 endif ()
 
-include_directories("src/")
-
 file(GLOB SRC "src/*.cpp")
 
 add_library(rtl_tcp_source SHARED ${SRC})
+target_include_directories(rtl_tcp_source PRIVATE src)
 target_link_libraries(rtl_tcp_source PRIVATE sdrpp_core)
 set_target_properties(rtl_tcp_source PROPERTIES PREFIX "")
 

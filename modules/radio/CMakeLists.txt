@@ -11,9 +11,8 @@ endif ()
 
 file(GLOB SRC "src/*.cpp")
 
-include_directories("src/")
-
 add_library(radio SHARED ${SRC})
+target_include_directories(radio PRIVATE src)
 target_link_libraries(radio PRIVATE sdrpp_core)
 set_target_properties(radio PROPERTIES PREFIX "")
 

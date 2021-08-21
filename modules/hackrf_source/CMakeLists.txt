@@ -9,11 +9,10 @@ else ()
     set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
 endif ()
 
-include_directories("src/")
-
 file(GLOB SRC "src/*.cpp")
 
 add_library(hackrf_source SHARED ${SRC})
+target_include_directories(hackrf_source PRIVATE src)
 target_link_libraries(hackrf_source PRIVATE sdrpp_core)
 set_target_properties(hackrf_source PROPERTIES PREFIX "")
 

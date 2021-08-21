@@ -11,12 +11,10 @@ endif ()
 
 file(GLOB_RECURSE SRC "src/*.cpp" "src/*.c")
 
-include_directories("src/")
-include_directories("src/libcorrect/")
-
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native")
 
 add_library(weather_sat_decoder SHARED ${SRC})
+target_include_directories(weather_sat_decoder PRIVATE src)
 target_link_libraries(weather_sat_decoder PRIVATE sdrpp_core)
 set_target_properties(weather_sat_decoder PROPERTIES PREFIX "")
 

@@ -9,9 +9,8 @@ endif (MSVC)
 
 file(GLOB SRC "src/*.cpp")
 
-include_directories("src/")
-
 add_library(new_portaudio_sink SHARED ${SRC})
+target_include_directories(new_portaudio_sink PRIVATE src)
 target_link_libraries(new_portaudio_sink PRIVATE sdrpp_core)
 set_target_properties(new_portaudio_sink PROPERTIES PREFIX "")
 
