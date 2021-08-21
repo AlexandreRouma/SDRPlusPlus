@@ -323,9 +323,7 @@ int sdrpp_main(int argc, char *argv[]) {
     GLFWmonitor* monitor = NULL;
     for (int i = 0; i < OPENGL_VERSION_COUNT; i++) {
         glsl_version = OPENGL_VERSIONS_GLSL[i];
-        if (OPENGL_VERSIONS_IS_ES[i]) {
-            glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
-        }
+        glfwWindowHint(GLFW_CLIENT_API, OPENGL_VERSIONS_IS_ES[i] ? GLFW_OPENGL_ES_API : GLFW_OPENGL_API);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_VERSIONS_MAJOR[i]);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_VERSIONS_MINOR[i]);
 
