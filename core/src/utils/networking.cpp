@@ -371,6 +371,18 @@ namespace net {
             return NULL;
         }
 
+#ifndef _WIN32
+        // Allow port reusing if the app was killed or crashed 
+        // and the socket is stuck in TIME_WAIT state.
+        // This option has a different meaning on Windows, 
+        // so we use it only for non-Windows systems
+        int enable = 1;
+        if (setsockopt(listenSock, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof (int)) < 0) {
+            throw std::runtime_error("Could not configure socket");
+            return NULL;            
+        }
+#endif
+
         // Get address from hostname/ip
         hostent* remoteHost = gethostbyname(host.c_str());
         if (remoteHost == NULL || remoteHost->h_addr_list[0] == NULL) {
