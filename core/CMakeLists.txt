@@ -16,10 +16,6 @@ target_compile_definitions(sdrpp_core PUBLIC
   INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
 target_include_directories(sdrpp_core PUBLIC src)
 
-if (OPT_OVERRIDE_STD_FILESYSTEM)
-  target_include_directories(sdrpp_core PUBLIC "std_replacement")
-endif (OPT_OVERRIDE_STD_FILESYSTEM)
-
 find_package(Volk REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(glfw3 REQUIRED)
@@ -28,15 +24,17 @@ find_package(glfw3 REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_search_module(FFTW3 REQUIRED fftw3f IMPORTED_TARGET)
 
-target_link_libraries(sdrpp_core PUBLIC
-  Volk::volk
-  GLEW::glew
-  glfw
-  PkgConfig::FFTW3
-  imgui
-  stb
-  spdlog
-  nlohmann_json
+target_link_libraries(sdrpp_core
+  PUBLIC
+    Volk::volk
+    GLEW::glew
+    glfw
+    PkgConfig::FFTW3
+    imgui
+    stb
+    spdlog
+    nlohmann_json
+    $<$<BOOL:OPT_OVERRIDE_STD_FILESYSTEM>:ghc_filesystem>
 )
 
 if (MSVC)

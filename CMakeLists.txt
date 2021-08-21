@@ -14,6 +14,9 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "-Wno-unused-command-line-argument -undefined dynamic_lookup")
 endif ()
 
+# Compatibility Options
+option(OPT_OVERRIDE_STD_FILESYSTEM "Use a local version of std::filesystem on systems that don't have it yet" OFF)
+
 add_subdirectory(external)
 add_subdirectory(core)
 add_subdirectory(modules)
