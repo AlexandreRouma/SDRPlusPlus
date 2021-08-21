@@ -4,8 +4,7 @@ set(FETCHCONTENT_QUIET FALSE)
 
 FetchContent_Declare(
   nlohmann_json
-  GIT_REPOSITORY https://github.com/nlohmann/json
-  GIT_TAG v3.10.0
+  GIT_REPOSITORY https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
   GIT_PROGRESS TRUE
 )
 
