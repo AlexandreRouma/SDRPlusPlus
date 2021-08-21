@@ -37,6 +37,32 @@
     #endif
 #endif
 
+const char* OPENGL_VERSIONS_GLSL[] = {
+    "#version 120",
+    "#version 300 es",
+    "#version 120"
+};
+
+const int OPENGL_VERSIONS_MAJOR[] = {
+    3,
+    3,
+    2
+};
+
+const int OPENGL_VERSIONS_MINOR[] = {
+    0,
+    1,
+    1
+};
+
+const bool OPENGL_VERSIONS_IS_ES[] = {
+    false,
+    true,
+    false
+};
+
+#define OPENGL_VERSION_COUNT (sizeof(OPENGL_VERSIONS_GLSL) / sizeof(char*))
+
 namespace core {
     ConfigManager configManager;
     ModuleManager moduleManager;
@@ -258,26 +284,6 @@ int sdrpp_main(int argc, char *argv[]) {
 
     if (options::opts.serverMode) { return server_main(); }
 
-    // Setup window
-    glfwSetErrorCallback(glfw_error_callback);
-    if (!glfwInit()) {
-        return 1;
-    }
-
-#ifdef __APPLE__
-    // GL 3.2 + GLSL 150
-    const char* glsl_version = "#version 150";
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
-#else
-    // GL 3.0 + GLSL 120
-    const char* glsl_version = "#version 120";
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-#endif
-
     core::configManager.acquire();
     int winWidth = core::configManager.conf["windowSize"]["w"];
     int winHeight = core::configManager.conf["windowSize"]["h"];
@@ -291,13 +297,53 @@ int sdrpp_main(int argc, char *argv[]) {
         return 1;
     }
 
+
+    // Setup window
+    glfwSetErrorCallback(glfw_error_callback);
+    if (!glfwInit()) {
+        return 1;
+    }
+
+#ifdef __APPLE__
+    // GL 3.2 + GLSL 150
+    const char* glsl_version = "#version 150";
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
+
     // Create window with graphics context
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     core::window = glfwCreateWindow(winWidth, winHeight, "SDR++ v" VERSION_STR " (Built at " __TIME__ ", " __DATE__ ")", NULL, NULL);
     if (core::window == NULL)
         return 1;
     glfwMakeContextCurrent(core::window);
+#else
+    const char* glsl_version = "#version 120";
+    GLFWmonitor* monitor = NULL;
+    for (int i = 0; i < OPENGL_VERSION_COUNT; i++) {
+        glsl_version = OPENGL_VERSIONS_GLSL[i];
+        if (OPENGL_VERSIONS_IS_ES[i]) {
+            glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+        }
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_VERSIONS_MAJOR[i]);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_VERSIONS_MINOR[i]);
 
+        // Create window with graphics context
+        monitor = glfwGetPrimaryMonitor();
+        core::window = glfwCreateWindow(winWidth, winHeight, "SDR++ v" VERSION_STR " (Built at " __TIME__ ", " __DATE__ ")", NULL, NULL);
+        if (core::window == NULL) {
+            spdlog::info("OpenGL {0}.{1} {2}was not supported", OPENGL_VERSIONS_MAJOR[i], OPENGL_VERSIONS_MINOR[i], OPENGL_VERSIONS_IS_ES[i] ? "ES ": "");
+            continue;
+        }
+        spdlog::info("Using OpenGL {0}.{1}{2}", OPENGL_VERSIONS_MAJOR[i], OPENGL_VERSIONS_MINOR[i], OPENGL_VERSIONS_IS_ES[i] ? " ES": "");
+        glfwMakeContextCurrent(core::window);
+        break;
+    }
+    
+#endif
+
+    // Add callback for max/min if GLFW supports it
 #if (GLFW_VERSION_MAJOR == 3) && (GLFW_VERSION_MINOR >= 3)
     if (maximized) {
         glfwMaximizeWindow(core::window);
