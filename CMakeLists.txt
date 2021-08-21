@@ -20,10 +20,11 @@ option(OPT_BUILD_LIMESDR_SOURCE "Build LimeSDR Source Module (Depedencies: libli
 option(OPT_BUILD_SDDC_SOURCE "Build SDDC Source Module (Depedencies: libusb-1.0)" OFF)
 option(OPT_BUILD_RTL_SDR_SOURCE "Build RTL-SDR Source Module (Depedencies: librtlsdr)" ON)
 option(OPT_BUILD_RTL_TCP_SOURCE "Build RTL-TCP Source Module (no dependencies required)" ON)
-option(OPT_BUILD_SDRPLAY_SOURCE "Build SDRplay Source Module (Depedencies: libsdrplay)" OFF)
+option(OPT_BUILD_SDRPLAY_SOURCE "Build SDRplay Source Module (Depedencies: libsdrplay)" ON)
 option(OPT_BUILD_SOAPY_SOURCE "Build SoapySDR Source Module (Depedencies: soapysdr)" ON)
 option(OPT_BUILD_SPYSERVER_SOURCE "Build SpyServer Source Module (no dependencies required)" ON)
 option(OPT_BUILD_PLUTOSDR_SOURCE "Build PlutoSDR Source Module (Depedencies: libiio, libad9361)" ON)
+option(OPT_BUILD_RFSPACE_SOURCE "Build RFSpace Source Module (no dependencies required)" ON)
 
 # Sinks
 option(OPT_BUILD_AUDIO_SINK "Build Audio Sink Module (Depedencies: rtaudio)" ON)
@@ -109,6 +110,9 @@ if (OPT_BUILD_PLUTOSDR_SOURCE)
 add_subdirectory("plutosdr_source")
 endif (OPT_BUILD_PLUTOSDR_SOURCE)
 
+if (OPT_BUILD_RFSPACE_SOURCE)
+add_subdirectory("rfspace_source")
+endif (OPT_BUILD_RFSPACE_SOURCE)
 
 # Sink modules
 if (OPT_BUILD_AUDIO_SINK)
