@@ -7,16 +7,11 @@ else()
     set(CMAKE_INSTALL_PREFIX "/usr")
 endif()
 
-# Compatibility Options
-option(OPT_OVERRIDE_STD_FILESYSTEM "Use a local version of std::filesystem on systems that don't have it yet" OFF)
-
-# Compiler arguments for each platform
+set(CMAKE_CXX_STANDARD 17)
 if (MSVC)
-    set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")
+    set(CMAKE_CXX_FLAGS "/EHsc")
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup")
-else ()
-    set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
+    set(CMAKE_CXX_FLAGS "-Wno-unused-command-line-argument -undefined dynamic_lookup")
 endif ()
 
 add_subdirectory(external)
