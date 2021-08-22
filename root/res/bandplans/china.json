@@ -1,5 +1,5 @@
 {
-    "name": "Mainland China",
+    "name": "China (Mainland)",
     "country_name": "People's Republic of China",
     "country_code": "CN",
     "author_name": "Shuyuan Liu",
@@ -8,8 +8,8 @@
         {
             "name": "2200m Ham Band",
             "type": "amateur",
-            "start": 148500,
-            "end": 519000
+            "start": 135700,
+            "end": 137800
         },
         {
             "name": "Medium Wave Broadcast",
