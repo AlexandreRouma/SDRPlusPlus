@@ -17,6 +17,8 @@ namespace sdrpp_credits {
         "Paulo Matias",
         "Raov",
         "Cam K.",
+        "Shuyuan Liu",
+        "Syne Ardwin (WI9SYN)",
         "Szymon Zakrent",
         "Tobias Mädel",
         "Zimm"

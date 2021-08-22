@@ -363,6 +363,7 @@ I will soon publish a contributing.md listing the code style to use.
 * [Passion-Radio.com](https://passion-radio.com/)
 * [Scanner School](https://scannerschool.com/)
 * [SignalsEverywhere](https://signalseverywhere.com/)
+* [Syne Ardwin (WI9SYN)](https://example.com/)
 
 ## Contributors
 
@@ -381,6 +382,7 @@ I will soon publish a contributing.md listing the code style to use.
 * [Paulo Matias](https://github.com/thotypous)
 * [Raov](https://twitter.com/raov_birbtog)
 * [Cam K.](https://github.com/Starman0620)
+* [Shuyuan Liu](https://github.com/shuyuan-liu)
 * [Syne Ardwin (WI9SYN)](https://esaille.me/)
 * [Szymon Zakrent](https://github.com/zakrent)
 * [Tobias Mädel](https://github.com/Manawyrm)
