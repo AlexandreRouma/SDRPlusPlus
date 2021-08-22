@@ -427,20 +427,22 @@ private:
                 return;
             }
 
-            // if number of arguments isn't correct or the VFO is not "VFO", return error
+            // if number of arguments isn't correct, return error
             if (parts.size() != 3) {
                 resp = "RPRT 1\n";
                 client->write(resp.size(), (uint8_t*)resp.c_str());
                 return;
             }
 
-            // Check that the bandwidth is an integer
+            // Check that the bandwidth is an integer (0 or -1 for default bandwidth)
+            int pos = 0;
             for (char c : parts[2]) {
-                if (!std::isdigit(c)) {
+                if (!std::isdigit(c) && !(c == '-' && !pos)) {
                     resp = "RPRT 1\n";
                     client->write(resp.size(), (uint8_t*)resp.c_str());
                     return;
                 }
+                pos++;
             }
 
             float newBandwidth = std::atoi(parts[2].c_str());
@@ -479,7 +481,7 @@ private:
             // If tuning is enabled, set the mode and optionally the bandwidth
             if (!selectedVfo.empty() && core::modComManager.getModuleName(selectedVfo) == "radio" && tuningEnabled) {
                 core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_SET_MODE, &newMode, NULL);
-                if (newBandwidth) {
+                if (newBandwidth > 0) {
                     core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_SET_BANDWIDTH, &newBandwidth, NULL);
                 }
             }
@@ -488,32 +490,32 @@ private:
         }
         else if (parts[0] == "m" || parts[0] == "\\get_mode") {
             std::lock_guard lck(vfoMtx);
-            resp = "RAW ";
+            resp = "RAW\n";
 
             if (!selectedVfo.empty() && core::modComManager.getModuleName(selectedVfo) == "radio") {
                 int mode;
                 core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_GET_MODE, NULL, &mode);
                 
                 if (mode == RADIO_IFACE_MODE_NFM) {
-                    resp = "FM ";
+                    resp = "FM\n";
                 }
                 else if (mode == RADIO_IFACE_MODE_WFM) {
-                    resp = "WFM ";
+                    resp = "WFM\n";
                 }
                 else if (mode == RADIO_IFACE_MODE_AM) {
-                    resp = "AM ";
+                    resp = "AM\n";
                 }
                 else if (mode == RADIO_IFACE_MODE_DSB) {
-                    resp = "DSB ";
+                    resp = "DSB\n";
                 }
                 else if (mode == RADIO_IFACE_MODE_USB) {
-                    resp = "USB ";
+                    resp = "USB\n";
                 }
                 else if (mode == RADIO_IFACE_MODE_CW) {
-                    resp = "CW ";
+                    resp = "CW\n";
                 }
                 else if (mode == RADIO_IFACE_MODE_LSB) {
-                    resp = "LSB ";
+                    resp = "LSB\n";
                 }
             }
 
@@ -549,6 +551,21 @@ private:
         else if (parts[0] == "v" || parts[0] == "\\get_vfo") {
             std::lock_guard lck(vfoMtx);
             resp = "VFO\n";
+            client->write(resp.size(), (uint8_t*)resp.c_str());
+        }
+        else if (parts[0] == "\\chk_vfo") {
+            std::lock_guard lck(vfoMtx);
+            resp = "CHKVFO 0\n";
+            client->write(resp.size(), (uint8_t*)resp.c_str());
+        }
+        else if (parts[0] == "s") {
+            std::lock_guard lck(vfoMtx);
+            resp = "0\nVFOA\n";
+            client->write(resp.size(), (uint8_t*)resp.c_str());
+        }
+        else if (parts[0] == "S") {
+            std::lock_guard lck(vfoMtx);
+            resp = "RPRT 0\n";
             client->write(resp.size(), (uint8_t*)resp.c_str());
         }
         else if (parts[0] == "AOS" || parts[0] == "\\recorder_start") {
@@ -591,12 +608,84 @@ private:
                 core::modComManager.callInterface(selectedRecorder, RECORDER_IFACE_CMD_STOP, NULL, NULL);
             }
 
-            // Respond with a sucess
+            // Respond with a success
             resp = "RPRT 0\n";
             client->write(resp.size(), (uint8_t*)resp.c_str());
         }
         else if (parts[0] == "q" || parts[0] == "\\quit") {
             // Will close automatically
+        }
+        else if (parts[0] == "\\dump_state") {
+            std::lock_guard lck(vfoMtx);
+            resp =
+                /* rigctl protocol version */
+                "0\n"
+                /* rigctl model */
+                "2\n"
+                /* ITU region */
+                "1\n"
+                /* RX/TX frequency ranges
+                * start, end, modes, low_power, high_power, vfo, ant
+                *  start/end - Start/End frequency [Hz]
+                *  modes - Bit field of RIG_MODE's (AM|AMS|CW|CWR|USB|LSB|FM|WFM)
+                *  low_power/high_power - Lower/Higher RF power in mW,
+                *                         -1 for no power (ie. rx list)
+                *  vfo - VFO list equipped with this range (RIG_VFO_A)
+                *  ant - Antenna list equipped with this range, 0 means all
+                *  FIXME: get limits from receiver
+                */
+                "0.000000 10000000000.000000 0x2ef -1 -1 0x1 0x0\n"
+                /* End of RX frequency ranges. */
+                "0 0 0 0 0 0 0\n"
+                /* End of TX frequency ranges. The SDR++ is reciver only. */
+                "0 0 0 0 0 0 0\n"
+                /* Tuning steps: modes, tuning_step */
+                "0xef 1\n"
+                "0xef 0\n"
+                /* End of tuning steps */
+                "0 0\n"
+                /* Filter sizes: modes, width
+                * FIXME: get filter sizes from presets
+                */
+                "0x82 500\n"    /* CW | CWR normal */
+                "0x82 200\n"    /* CW | CWR narrow */
+                "0x82 2000\n"   /* CW | CWR wide */
+                "0x221 10000\n" /* AM | AMS | FM normal */
+                "0x221 5000\n"  /* AM | AMS | FM narrow */
+                "0x221 20000\n" /* AM | AMS | FM wide */
+                "0x0c 2700\n"   /* SSB normal */
+                "0x0c 1400\n"   /* SSB narrow */
+                "0x0c 3900\n"   /* SSB wide */
+                "0x40 160000\n" /* WFM normal */
+                "0x40 120000\n" /* WFM narrow */
+                "0x40 200000\n" /* WFM wide */
+                /* End of filter sizes  */
+                "0 0\n"
+                /* max_rit  */
+                "0\n"
+                /* max_xit */
+                "0\n"
+                /* max_ifshift */
+                "0\n"
+                /* Announces (bit field list) */
+                "0\n" /* RIG_ANN_NONE */
+                /* Preamp list in dB, 0 terminated */
+                "0\n"
+                /* Attenuator list in dB, 0 terminated */
+                "0\n"
+                /* Bit field list of get functions */
+                "0\n" /* RIG_FUNC_NONE */
+                /* Bit field list of set functions */
+                "0\n" /* RIG_FUNC_NONE */
+                /* Bit field list of get level */
+                "0x40000020\n" /* RIG_LEVEL_SQL | RIG_LEVEL_STRENGTH */
+                /* Bit field list of set level */
+                "0x20\n"       /* RIG_LEVEL_SQL */
+                /* Bit field list of get parm */
+                "0\n" /* RIG_PARM_NONE */
+                /* Bit field list of set parm */
+                "0\n" /* RIG_PARM_NONE */;
+            client->write(resp.size(), (uint8_t*)resp.c_str());
         }
         else {
             // If command is not recognized, return error

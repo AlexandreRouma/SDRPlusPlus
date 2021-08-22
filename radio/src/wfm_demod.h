@@ -72,6 +72,10 @@ public:
 
         if (deempId == 2) { deemp.bypass = true; }
 
+        onUserChangedBandwidthHandler.handler = vfoUserChangedBandwidthHandler;
+        onUserChangedBandwidthHandler.ctx = this;
+
+        _vfo->wtfVFO->onUserChangedBandwidth.bindHandler(&onUserChangedBandwidthHandler);
     }
 
     void start() {
@@ -114,6 +118,7 @@ public:
     void setVFO(VFOManager::VFO* vfo) {
         _vfo = vfo;
         squelch.setInput(_vfo->output);
+        _vfo->wtfVFO->onUserChangedBandwidth.bindHandler(&onUserChangedBandwidthHandler);
     }
 
     VFOManager::VFO* getVFO() {
@@ -158,15 +163,6 @@ public:
             _config->conf[uiPrefix]["WFM"]["bandwidth"] = bw;
             _config->release(true);
         }
-        if (running) {
-            if (_vfo->getBandwidthChanged()) {
-                bw = _vfo->getBandwidth();
-                setBandwidth(bw, false);
-                _config->acquire();
-                _config->conf[uiPrefix]["WFM"]["bandwidth"] = bw;
-                _config->release(true);
-            }
-        }
 
         ImGui::Text("Snap Interval");
         ImGui::SameLine();
@@ -205,6 +201,17 @@ public:
             _config->acquire();
             _config->conf[uiPrefix]["WFM"]["stereo"] = stereo;
             _config->release(true);
+        }
+    }
+
+    static void vfoUserChangedBandwidthHandler(double newBw, void* ctx) {
+        WFMDemodulator* _this = (WFMDemodulator*)ctx;
+        if (_this->running) {
+            _this->bw = newBw;
+            _this->setBandwidth(_this->bw, false);
+            _this->_config->acquire();
+            _this->_config->conf[_this->uiPrefix]["WFM"]["bandwidth"] = _this->bw;
+            _this->_config->release(true);
         }
     }
 
@@ -285,5 +292,7 @@ private:
     dsp::BFMDeemp deemp;
 
     ConfigManager* _config;
+
+    EventHandler<double> onUserChangedBandwidthHandler;
 
 };
