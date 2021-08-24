@@ -64,7 +64,8 @@ namespace dsp {
             }
 
             if constexpr (std::is_same_v<T, complex_t> || std::is_same_v<T, stereo_t>) {
-                volk_32fc_x2_add_32fc((lv_32fc_t*)out.writeBuf, (lv_32fc_t*)_a->readBuf, (lv_32fc_t*)_b->readBuf, a_count);
+                // TODO: Switch this out for volk_32fc_x2_add_32fc with a check for old volk versions that don't have it (eg. Ubuntu 18.04 that has volk 1.3)
+                volk_32f_x2_add_32f((float*)out.writeBuf, (float*)_a->readBuf, (float*)_b->readBuf, a_count * 2);
             }
             else {
                 volk_32f_x2_add_32f(out.writeBuf, _a->readBuf, _b->readBuf, a_count);
