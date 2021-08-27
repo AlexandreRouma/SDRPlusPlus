@@ -67,6 +67,9 @@ jobs:
         
         - name: Create Build Environment
           run: cmake -E make_directory ${{runner.workspace}}/build
+          
+        - name: Update brew repositories
+          run: brew update
 
         - name: Install dependencies
           run: brew install fftw glew glfw volk airspy airspyhf portaudio hackrf rtl-sdr libbladerf
