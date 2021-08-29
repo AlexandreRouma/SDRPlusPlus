@@ -102,6 +102,32 @@ const sdrplay_api_AgcControlT agcModes[] = {
     sdrplay_api_AGC_100HZ
 };
 
+struct ifMode_t {
+    sdrplay_api_If_kHzT ifValue;
+    sdrplay_api_Bw_MHzT bw;
+    unsigned int deviceSamplerate;
+    unsigned int effectiveSamplerate;
+};
+
+ifMode_t ifModes[] = {
+    { sdrplay_api_IF_Zero,  sdrplay_api_BW_1_536, 2000000, 2000000},
+    { sdrplay_api_IF_2_048, sdrplay_api_BW_1_536, 8000000, 2000000},
+    { sdrplay_api_IF_2_048, sdrplay_api_BW_5_000, 8000000, 4000000},
+    { sdrplay_api_IF_1_620, sdrplay_api_BW_1_536, 6000000, 2000000},
+    { sdrplay_api_IF_0_450, sdrplay_api_BW_0_600, 2000000, 1000000},
+    { sdrplay_api_IF_0_450, sdrplay_api_BW_0_300, 2000000, 500000},
+    { sdrplay_api_IF_0_450, sdrplay_api_BW_0_200, 2000000, 500000},
+};
+
+const char* ifModeTxt =
+    "ZeroIF\0"
+    "IF 2048KHz, IFBW 1536KHz\0"
+    "IF 2048KHz, IFBW 5000KHz\0"
+    "IF 1620KHz, IFBW 1536KHz\0"
+    "IF 450KHz, IFBW 600KHz\0"
+    "IF 450KHz, IFBW 300KHz\0"
+    "IF 450KHz, IFBW 200KHz\0";
+
 const char* rspduo_antennaPortsTxt = "Tuner 1 (50Ohm)\0Tuner 1 (Hi-Z)\0Tuner 2 (50Ohm)\0";
 
 const char* agcModesTxt = "Off\0005Hz\00050Hz\000100Hz";
@@ -303,6 +329,8 @@ public:
             config.conf["devices"][selectedName]["ifGain"] = 59;
             config.conf["devices"][selectedName]["agc"] = 0; // Disabled
 
+            config.conf["devices"][selectedName]["ifModeId"] = 0;
+
             if (openDev.hwVer == SDRPLAY_RSP1_ID) {
                 // No config to load
             }
@@ -346,6 +374,14 @@ public:
                 srId = 0;
             }
         }
+
+        if(config.conf["devices"][selectedName].contains("ifModeId")) {
+            ifModeId=config.conf["devices"][selectedName]["ifModeId"];
+            if(ifModeId != 0){
+                sampleRate = ifModes[ifModeId].effectiveSamplerate;
+            }
+        }
+
         if (config.conf["devices"][selectedName].contains("bwMode")) {
             bandwidthId = config.conf["devices"][selectedName]["bwMode"];
         }
@@ -567,16 +603,21 @@ private:
         }
 
         // General options
-        _this->bandwidth = (_this->bandwidthId == 8) ? preferedBandwidth[_this->srId] : bandwidths[_this->bandwidthId];
-        _this->openDevParams->devParams->fsFreq.fsHz = _this->sampleRate;
-        _this->channelParams->tunerParams.bwType = _this->bandwidth;
+        if(_this->ifModeId == 0){
+            _this->bandwidth = (_this->bandwidthId == 8) ? preferedBandwidth[_this->srId] : bandwidths[_this->bandwidthId];
+            _this->openDevParams->devParams->fsFreq.fsHz = _this->sampleRate;
+            _this->channelParams->tunerParams.bwType = _this->bandwidth;
+        } else {
+            _this->openDevParams->devParams->fsFreq.fsHz = ifModes[_this->ifModeId].deviceSamplerate;
+            _this->channelParams->tunerParams.bwType = ifModes[_this->ifModeId].bw;
+        }
         _this->channelParams->tunerParams.rfFreq.rfHz = _this->freq;
         _this->channelParams->tunerParams.gain.gRdB = _this->gain;
         _this->channelParams->tunerParams.gain.LNAstate = _this->lnaGain;
         _this->channelParams->ctrlParams.decimation.enable = false;
         _this->channelParams->ctrlParams.dcOffset.DCenable = true;
         _this->channelParams->ctrlParams.dcOffset.IQenable = true;
-        _this->channelParams->tunerParams.ifType = sdrplay_api_IF_Zero;
+        _this->channelParams->tunerParams.ifType = ifModes[_this->ifModeId].ifValue;
         _this->channelParams->tunerParams.loMode = sdrplay_api_LO_Auto;
 
         // Hard coded AGC parameters
@@ -641,38 +682,60 @@ private:
             config.release(true);
         }
 
+        ImGui::PushItemWidth(menuWidth - ImGui::CalcTextSize("IF Mode").x - 10);
+        ImGui::Text("IF Mode");
+        ImGui::SameLine();
 
-        if (ImGui::Combo(CONCAT("##sdrplay_sr", _this->name), &_this->srId, sampleRatesTxt)) {
-            _this->sampleRate = sampleRates[_this->srId];
-            if (_this->bandwidthId == 8) {
-                _this->bandwidth = preferedBandwidth[_this->srId];
-            }
+        if (ImGui::Combo(CONCAT("##sdrplay_ifmode", _this->name), &_this->ifModeId, ifModeTxt)) {
+            if(_this->ifModeId != 0){
+                _this->bandwidth = ifModes[_this->ifModeId].bw;
+                _this->sampleRate = ifModes[_this->ifModeId].effectiveSamplerate;
+            } else {
+                config.acquire();
+                _this->sampleRate = config.conf["devices"][_this->selectedName]["sampleRate"];
+                _this->bandwidthId = config.conf["devices"][_this->selectedName]["bwMode"];
+                config.release(false);
+                _this->bandwidth = (_this->bandwidthId == 8) ? preferedBandwidth[_this->srId] : bandwidths[_this->bandwidthId];
+            }            
             core::setInputSampleRate(_this->sampleRate);
             config.acquire();
-            config.conf["devices"][_this->selectedName]["sampleRate"] = _this->sampleRate;
+            config.conf["devices"][_this->selectedName]["ifModeId"] = _this->ifModeId;
             config.release(true);
         }
 
-        ImGui::SameLine();
-        float refreshBtnWdith = menuWidth - ImGui::GetCursorPosX();
-        if (ImGui::Button(CONCAT("Refresh##sdrplay_refresh", _this->name), ImVec2(refreshBtnWdith, 0))) {
-            _this->refresh();
-            _this->selectByName(_this->selectedName);
+        if (_this->ifModeId == 0) {
+            if (ImGui::Combo(CONCAT("##sdrplay_sr", _this->name), &_this->srId, sampleRatesTxt)) {
+                _this->sampleRate = sampleRates[_this->srId];
+                if (_this->bandwidthId == 8) {
+                    _this->bandwidth = preferedBandwidth[_this->srId];
+                }
+                core::setInputSampleRate(_this->sampleRate);
+                config.acquire();
+                config.conf["devices"][_this->selectedName]["sampleRate"] = _this->sampleRate;
+                config.release(true);
+            }
+
+            ImGui::SameLine();
+            float refreshBtnWdith = menuWidth - ImGui::GetCursorPosX();
+            if (ImGui::Button(CONCAT("Refresh##sdrplay_refresh", _this->name), ImVec2(refreshBtnWdith, 0))) {
+                _this->refresh();
+                _this->selectByName(_this->selectedName);
+            }
+
+            ImGui::SetNextItemWidth(menuWidth);
+            if (ImGui::Combo(CONCAT("##sdrplay_bw", _this->name), &_this->bandwidthId, bandwidthsTxt)) {
+                _this->bandwidth = (_this->bandwidthId == 8) ? preferedBandwidth[_this->srId] : bandwidths[_this->bandwidthId];
+                if (_this->running) {
+                    _this->channelParams->tunerParams.bwType = _this->bandwidth;
+                    sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_BwType, sdrplay_api_Update_Ext1_None);
+                }
+                config.acquire();
+                config.conf["devices"][_this->selectedName]["bwMode"] = _this->bandwidthId;
+                config.release(true);
+            }
         }
 
         if (_this->running) { style::endDisabled(); } 
-
-        ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::Combo(CONCAT("##sdrplay_bw", _this->name), &_this->bandwidthId, bandwidthsTxt)) {
-            _this->bandwidth = (_this->bandwidthId == 8) ? preferedBandwidth[_this->srId] : bandwidths[_this->bandwidthId];
-            if (_this->running) {
-                _this->channelParams->tunerParams.bwType = _this->bandwidth;
-                sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_BwType, sdrplay_api_Update_Ext1_None);
-            }
-            config.acquire();
-            config.conf["devices"][_this->selectedName]["bwMode"] = _this->bandwidthId;
-            config.release(true);
-        }
 
         if (_this->selectedName != "") {
             ImGui::PushItemWidth(menuWidth - ImGui::CalcTextSize("LNA Gain").x - 10);
@@ -966,6 +1029,8 @@ private:
 
     int bufferSize = 0;
     int bufferIndex = 0;
+
+    int ifModeId = 0;
 
     // RSP1A Options
     bool rsp1a_fmNotch = false;
