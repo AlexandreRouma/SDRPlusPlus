@@ -296,6 +296,14 @@ private:
     static void start(void* ctx) {
         SoapyModule* _this = (SoapyModule*)ctx;
         if (_this->running) { return; }
+        if (_this->devId < 0) {
+            _this->refresh();
+            _this->selectDevice(config.conf["device"]);
+            if (_this->devId < 0) {
+                return;
+            }
+        }
+
         _this->dev = SoapySDR::Device::make(_this->devArgs);
 
         _this->dev->setSampleRate(SOAPY_SDR_RX, _this->channelId, _this->sampleRate);
