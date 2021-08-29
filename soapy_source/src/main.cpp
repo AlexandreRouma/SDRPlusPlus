@@ -353,13 +353,18 @@ private:
     
     static void menuHandler(void* ctx) {
         SoapyModule* _this = (SoapyModule*)ctx;
-        
-        // If no device is available, do not attempt to display menu
-        if (_this->devId < 0) {
-            return;
-        }
 
         float menuWidth = ImGui::GetContentRegionAvailWidth();
+        
+        // If no device is selected, draw just the refresh button
+        if (_this->devId < 0) {
+            if (ImGui::Button(CONCAT("Refresh##_dev_select_", _this->name), ImVec2(menuWidth, 0))) {
+                _this->refresh();
+                _this->selectDevice(config.conf["device"]);
+            }
+
+            return;
+        }
 
         if (_this->running) { style::beginDisabled(); }
 
