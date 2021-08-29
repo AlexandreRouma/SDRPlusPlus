@@ -356,13 +356,12 @@ private:
 
         float menuWidth = ImGui::GetContentRegionAvailWidth();
         
-        // If no device is selected, draw just the refresh button
+        // If no device is selected, draw only the refresh button
         if (_this->devId < 0) {
             if (ImGui::Button(CONCAT("Refresh##_dev_select_", _this->name), ImVec2(menuWidth, 0))) {
                 _this->refresh();
                 _this->selectDevice(config.conf["device"]);
             }
-
             return;
         }
 
