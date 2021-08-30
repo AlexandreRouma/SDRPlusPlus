@@ -297,11 +297,7 @@ private:
         SoapyModule* _this = (SoapyModule*)ctx;
         if (_this->running) { return; }
         if (_this->devId < 0) {
-            _this->refresh();
-            _this->selectDevice(config.conf["device"]);
-            if (_this->devId < 0) {
-                return;
-            }
+            return;
         }
 
         _this->dev = SoapySDR::Device::make(_this->devArgs);
