@@ -297,6 +297,7 @@ private:
         SoapyModule* _this = (SoapyModule*)ctx;
         if (_this->running) { return; }
         if (_this->devId < 0) {
+            spdlog::error("No device available");
             return;
         }
 
