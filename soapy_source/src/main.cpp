@@ -296,6 +296,11 @@ private:
     static void start(void* ctx) {
         SoapyModule* _this = (SoapyModule*)ctx;
         if (_this->running) { return; }
+        if (_this->devId < 0) {
+            spdlog::error("No device available");
+            return;
+        }
+
         _this->dev = SoapySDR::Device::make(_this->devArgs);
 
         _this->dev->setSampleRate(SOAPY_SDR_RX, _this->channelId, _this->sampleRate);
@@ -353,13 +358,17 @@ private:
     
     static void menuHandler(void* ctx) {
         SoapyModule* _this = (SoapyModule*)ctx;
-        
-        // If no device is available, do not attempt to display menu
-        if (_this->devId < 0) {
-            return;
-        }
 
         float menuWidth = ImGui::GetContentRegionAvailWidth();
+        
+        // If no device is selected, draw only the refresh button
+        if (_this->devId < 0) {
+            if (ImGui::Button(CONCAT("Refresh##_dev_select_", _this->name), ImVec2(menuWidth, 0))) {
+                _this->refresh();
+                _this->selectDevice(config.conf["device"]);
+            }
+            return;
+        }
 
         if (_this->running) { style::beginDisabled(); }
 

@@ -598,8 +598,14 @@ void MainWindow::draw() {
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Zoom").x / 2.0));
     ImGui::Text("Zoom");
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10);
-    if (ImGui::VSliderFloat("##_7_", ImVec2(20.0, 150.0), &bw, gui::waterfall.getBandwidth(), 1000.0, "")) {
-        gui::waterfall.setViewBandwidth(bw);
+    float minSliderBw = 1000.0;
+    float maxSliderBw = gui::waterfall.getBandwidth();
+    if (ImGui::VSliderFloat("##_7_", ImVec2(20.0, 150.0), &bw, maxSliderBw, minSliderBw, "")) {
+        float normBw = bw / (maxSliderBw - minSliderBw);
+        float factor = normBw * normBw;
+        float finalBw = minSliderBw + bw * factor;
+
+        gui::waterfall.setViewBandwidth(finalBw);
         if (vfo != NULL) {
             gui::waterfall.setViewOffset(vfo->centerOffset); // center vfo on screen
         }
