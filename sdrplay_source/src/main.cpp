@@ -713,6 +713,12 @@ private:
                 config.release(true);
             }
         }
+        else {
+            if (ImGui::Button(CONCAT("Refresh##sdrplay_refresh", _this->name), ImVec2(menuWidth, 0))) {
+                _this->refresh();
+                _this->selectByName(_this->selectedName);
+            }
+        }
         
         ImGui::Text("IF Mode");
         ImGui::SameLine();
