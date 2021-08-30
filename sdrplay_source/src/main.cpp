@@ -681,11 +681,10 @@ private:
             config.conf["device"] = _this->devNameList[_this->devId];
             config.release(true);
         }
-
-        ImGui::PushItemWidth(menuWidth - ImGui::CalcTextSize("IF Mode").x - 10);
+        
         ImGui::Text("IF Mode");
         ImGui::SameLine();
-
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##sdrplay_ifmode", _this->name), &_this->ifModeId, ifModeTxt)) {
             if(_this->ifModeId != 0){
                 _this->bandwidth = ifModes[_this->ifModeId].bw;
