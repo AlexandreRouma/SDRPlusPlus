@@ -605,8 +605,6 @@ void MainWindow::draw() {
         double delta = gui::waterfall.getBandwidth() - 1000.0;
         double finalBw = 1000.0 + (factor * delta);
 
-        spdlog::warn("{0} {1} {2}", bw, factor, finalBw);
-
         gui::waterfall.setViewBandwidth(finalBw);
         if (vfo != NULL) {
             gui::waterfall.setViewOffset(vfo->centerOffset); // center vfo on screen
