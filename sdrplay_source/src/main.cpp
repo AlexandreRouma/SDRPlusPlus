@@ -681,26 +681,6 @@ private:
             config.conf["device"] = _this->devNameList[_this->devId];
             config.release(true);
         }
-        
-        ImGui::Text("IF Mode");
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::Combo(CONCAT("##sdrplay_ifmode", _this->name), &_this->ifModeId, ifModeTxt)) {
-            if(_this->ifModeId != 0){
-                _this->bandwidth = ifModes[_this->ifModeId].bw;
-                _this->sampleRate = ifModes[_this->ifModeId].effectiveSamplerate;
-            } else {
-                config.acquire();
-                _this->sampleRate = config.conf["devices"][_this->selectedName]["sampleRate"];
-                _this->bandwidthId = config.conf["devices"][_this->selectedName]["bwMode"];
-                config.release(false);
-                _this->bandwidth = (_this->bandwidthId == 8) ? preferedBandwidth[_this->srId] : bandwidths[_this->bandwidthId];
-            }            
-            core::setInputSampleRate(_this->sampleRate);
-            config.acquire();
-            config.conf["devices"][_this->selectedName]["ifModeId"] = _this->ifModeId;
-            config.release(true);
-        }
 
         if (_this->ifModeId == 0) {
             if (ImGui::Combo(CONCAT("##sdrplay_sr", _this->name), &_this->srId, sampleRatesTxt)) {
@@ -732,6 +712,26 @@ private:
                 config.conf["devices"][_this->selectedName]["bwMode"] = _this->bandwidthId;
                 config.release(true);
             }
+        }
+        
+        ImGui::Text("IF Mode");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::Combo(CONCAT("##sdrplay_ifmode", _this->name), &_this->ifModeId, ifModeTxt)) {
+            if(_this->ifModeId != 0){
+                _this->bandwidth = ifModes[_this->ifModeId].bw;
+                _this->sampleRate = ifModes[_this->ifModeId].effectiveSamplerate;
+            } else {
+                config.acquire();
+                _this->sampleRate = config.conf["devices"][_this->selectedName]["sampleRate"];
+                _this->bandwidthId = config.conf["devices"][_this->selectedName]["bwMode"];
+                config.release(false);
+                _this->bandwidth = (_this->bandwidthId == 8) ? preferedBandwidth[_this->srId] : bandwidths[_this->bandwidthId];
+            }            
+            core::setInputSampleRate(_this->sampleRate);
+            config.acquire();
+            config.conf["devices"][_this->selectedName]["ifModeId"] = _this->ifModeId;
+            config.release(true);
         }
 
         if (_this->running) { style::endDisabled(); } 
