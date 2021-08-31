@@ -2,6 +2,7 @@
 #include <gui/widgets/bandplan.h>
 #include <gui/gui.h>
 #include <core.h>
+#include <gui/style.h>
 
 namespace bandplanmenu {
     int bandplanId;
@@ -44,8 +45,7 @@ namespace bandplanmenu {
         }
         ImGui::PopItemWidth();
 
-        ImGui::Text("Position");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Position");
         ImGui::SetNextItemWidth(menuColumnWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo("##_bandplan_pos_", &bandPlanPos, bandPlanPosTxt)) {
             gui::waterfall.setBandPlanPos(bandPlanPos);

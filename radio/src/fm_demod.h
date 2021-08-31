@@ -129,8 +129,7 @@ public:
             _config->release(true);
         }
         
-        ImGui::Text("Snap Interval");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Snap Interval");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::InputFloat(("##_radio_fm_snap_" + uiPrefix).c_str(), &snapInterval, 1, 100, "%.0f", 0)) {
             if (snapInterval < 1) { snapInterval = 1; }
@@ -140,8 +139,7 @@ public:
             _config->release(true);
         }
 
-        ImGui::Text("Squelch");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Squelch");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::SliderFloat(("##_radio_fm_squelch_" + uiPrefix).c_str(), &squelchLevel, -100.0f, 0.0f, "%.3fdB")) {
             squelch.setLevel(squelchLevel);

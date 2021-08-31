@@ -397,8 +397,7 @@ private:
         if (_this->running) { style::endDisabled(); }
 
         if (_this->antennaList.size() > 1) {
-            ImGui::Text("Antenna");
-            ImGui::SameLine();
+            ImGui::LeftLabel("Antenna");
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             if (ImGui::Combo(CONCAT("##_antenna_select_", _this->name), &_this->uiAntennaId, _this->txtAntennaList.c_str())) {
                 if (_this->running)
@@ -433,9 +432,10 @@ private:
         }
 
         int i = 0;
+        char buf[128];
         for (auto gain : _this->gainList) {
-            ImGui::Text("%s gain", gain.c_str());
-            ImGui::SameLine();
+            sprintf(buf, "%s gain", gain.c_str());
+            ImGui::LeftLabel(buf);
             ImGui::SetCursorPosX(gainNameLen);
             ImGui::SetNextItemWidth(menuWidth - gainNameLen);
             float step = _this->gainRanges[i].step();
@@ -454,12 +454,8 @@ private:
             i++;
         }
         if(_this->bandwidthList.size() > 2) {
-            float bwLen = ImGui::CalcTextSize("Bandwidth").x + 5.0f;
-            ImGui::Text("Bandwidth");
-            ImGui::SameLine();
-            ImGui::SetCursorPosX(bwLen);
-            ImGui::SetNextItemWidth(menuWidth - bwLen);
-        
+            ImGui::LeftLabel("Bandwidth");
+            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             if (ImGui::Combo(CONCAT("##_bw_select_", _this->name), &_this->uiBandwidthId, _this->txtBwList.c_str())) {
                 if(_this->running) {
                     if(_this->bandwidthList[_this->uiBandwidthId] == -1)

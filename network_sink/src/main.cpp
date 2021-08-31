@@ -134,8 +134,7 @@ public:
             config.release(true);
         }
 
-        ImGui::Text("Protocol");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Protocol");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##_network_sink_mode_", _streamName), &modeId, sinkModesTxt)) {
             config.acquire();
@@ -145,8 +144,7 @@ public:
 
         if (listening) { style::endDisabled(); }
 
-        ImGui::Text("Samplerate");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Samplerate");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##_network_sink_sr_", _streamName), &srId, sampleRatesTxt.c_str())) {
             sampleRate = sampleRates[srId];

@@ -305,8 +305,7 @@ private:
 
         if (_this->running) { style::endDisabled(); }
 
-        ImGui::Text("Bandwidth");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Bandwidth");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##_hackrf_bw_sel_", _this->name), &_this->bwId, bandwidthsTxt)) {
             if (_this->running) {
@@ -316,6 +315,28 @@ private:
             config.conf["devices"][_this->selectedSerial]["bandwidth"] = _this->bwId;
             config.release(true);
         }
+
+        ImGui::LeftLabel("LNA Gain");
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::SliderFloatWithSteps(CONCAT("##_hackrf_lna_", _this->name), &_this->lna, 0, 40, 8, "%.0fdB")) {
+            if (_this->running) {
+                hackrf_set_lna_gain(_this->openDev, _this->lna);
+            }
+            config.acquire();
+            config.conf["devices"][_this->selectedSerial]["lnaGain"] = (int)_this->lna;
+            config.release(true);
+        }
+
+        ImGui::LeftLabel("VGA Gain");
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::SliderFloatWithSteps(CONCAT("##_hackrf_vga_", _this->name), &_this->vga, 0, 62, 2, "%.0fdB")) {
+            if (_this->running) {
+                hackrf_set_vga_gain(_this->openDev, _this->vga);
+            }
+            config.acquire();
+            config.conf["devices"][_this->selectedSerial]["vgaGain"] = (int)_this->vga;
+            config.release(true);
+        }  
 
         if (ImGui::Checkbox(CONCAT("Bias-T##_hackrf_bt_", _this->name), &_this->biasT)) {
             if (_this->running) {
@@ -333,31 +354,7 @@ private:
             config.acquire();
             config.conf["devices"][_this->selectedSerial]["amp"] = _this->amp;
             config.release(true);
-        }
-
-        ImGui::Text("LNA Gain");
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::SliderFloatWithSteps(CONCAT("##_hackrf_lna_", _this->name), &_this->lna, 0, 40, 8, "%.0fdB")) {
-            if (_this->running) {
-                hackrf_set_lna_gain(_this->openDev, _this->lna);
-            }
-            config.acquire();
-            config.conf["devices"][_this->selectedSerial]["lnaGain"] = (int)_this->lna;
-            config.release(true);
-        }
-
-        ImGui::Text("VGA Gain");
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::SliderFloatWithSteps(CONCAT("##_hackrf_vga_", _this->name), &_this->vga, 0, 62, 2, "%.0fdB")) {
-            if (_this->running) {
-                hackrf_set_vga_gain(_this->openDev, _this->vga);
-            }
-            config.acquire();
-            config.conf["devices"][_this->selectedSerial]["vgaGain"] = (int)_this->vga;
-            config.release(true);
-        }   
+        } 
     }
 
     static int callback(hackrf_transfer* transfer) {

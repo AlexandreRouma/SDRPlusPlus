@@ -188,8 +188,7 @@ private:
         float menuWidth = ImGui::GetContentRegionAvailWidth();
 
         if (_this->running) { style::beginDisabled(); }
-        ImGui::Text("IP");
-        ImGui::SameLine();
+        ImGui::LeftLabel("IP");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::InputText(CONCAT("##_pluto_ip_", _this->name), &_this->ip[3], 16)) {
             config.acquire();
@@ -197,8 +196,7 @@ private:
             config.release(true);
         }
         
-        ImGui::Text("Samplerate");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Samplerate");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         
         if (ImGui::Combo(CONCAT("##_pluto_sr_", _this->name), &_this->srId, _this->sampleRatesTxt.c_str())) {
@@ -210,8 +208,7 @@ private:
         }
         if (_this->running) { style::endDisabled(); }
 
-        ImGui::Text("Gain Mode");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Gain Mode");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##_gainmode_select_", _this->name), &_this->gainMode, gainModesTxt)) {
             if (_this->running) {
@@ -222,8 +219,7 @@ private:
             config.release(true);
         }
 
-        ImGui::Text("PGA Gain");
-        ImGui::SameLine();
+        ImGui::LeftLabel("PGA Gain");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (_this->gainMode) { style::beginDisabled(); }
         if (ImGui::SliderFloat(CONCAT("##_gain_select_", _this->name), &_this->gain, 0, 76)) {

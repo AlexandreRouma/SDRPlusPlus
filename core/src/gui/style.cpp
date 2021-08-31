@@ -44,3 +44,13 @@ namespace style {
         ImGui::PopStyleColor(3);
     }
 }
+
+namespace ImGui {
+    void LeftLabel(char* text) {
+        float vpos = ImGui::GetCursorPosY();
+        ImGui::SetCursorPosY(vpos + GImGui->Style.FramePadding.y);
+        ImGui::Text(text);
+        ImGui::SameLine();
+        ImGui::SetCursorPosY(vpos);
+    }
+}

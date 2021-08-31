@@ -602,8 +602,9 @@ void MainWindow::draw() {
         double factor = (double)bw * (double)bw;
         
         // Map 0.0 -> 1.0 to 1000.0 -> bandwidth
-        double delta = gui::waterfall.getBandwidth() - 1000.0;
-        double finalBw = 1000.0 + (factor * delta);
+        double wfBw = gui::waterfall.getBandwidth();
+        double delta = wfBw - 1000.0;
+        double finalBw = std::min<double>(1000.0 + (factor * delta), wfBw);
 
         gui::waterfall.setViewBandwidth(finalBw);
         if (vfo != NULL) {

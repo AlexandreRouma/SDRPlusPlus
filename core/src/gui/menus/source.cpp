@@ -168,8 +168,7 @@ namespace sourecmenu {
             core::configManager.release(true);
         }
 
-        ImGui::Text("Offset mode");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Offset mode");
         ImGui::SetNextItemWidth(itemWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo("##_sdrpp_offset_mode", &offsetMode, offsetModesTxt)) {
             updateOffset();
@@ -178,8 +177,7 @@ namespace sourecmenu {
             core::configManager.release(true);
         }
 
-        ImGui::Text("Offset");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Offset");
         ImGui::SetNextItemWidth(itemWidth - ImGui::GetCursorPosX());
         if (offsetMode == OFFSET_MODE_CUSTOM) {
             if (ImGui::InputDouble("##freq_offset", &customOffset, 1.0, 100.0)) {
@@ -196,8 +194,7 @@ namespace sourecmenu {
         }
 
         if (running) { style::beginDisabled(); }
-        ImGui::Text("Decimation");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Decimation");
         ImGui::SetNextItemWidth(itemWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo("##source_decim", &decimationPower, decimationStages)) {
             sigpath::signalPath.setDecimation(decimationPower);

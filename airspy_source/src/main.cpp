@@ -412,8 +412,7 @@ private:
         // Gain menus
 
         if (_this->gainMode == 0) {
-            ImGui::Text("Gain");
-            ImGui::SameLine();
+            ImGui::LeftLabel("Gain");
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             if (ImGui::SliderInt(CONCAT("##_airspy_sens_gain_", _this->name), &_this->sensitiveGain, 0, 21)) {
                 if (_this->running) {
@@ -427,8 +426,7 @@ private:
             }
         }
         else if (_this->gainMode == 1) {
-            ImGui::Text("Gain");
-            ImGui::SameLine();
+            ImGui::LeftLabel("Gain");
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             if (ImGui::SliderInt(CONCAT("##_airspy_lin_gain_", _this->name), &_this->linearGain, 0, 21)) {
                 if (_this->running) {
@@ -446,8 +444,7 @@ private:
             float pos = ImGui::CalcTextSize("Mixer Gain").x + 10;
 
             if (_this->lnaAgc) { style::beginDisabled(); }
-            ImGui::Text("LNA Gain");
-            ImGui::SameLine();
+            ImGui::LeftLabel("LNA Gain");
             ImGui::SetCursorPosX(pos);
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             if (ImGui::SliderInt(CONCAT("##_airspy_lna_gain_", _this->name), &_this->lnaGain, 0, 15)) {
@@ -463,8 +460,7 @@ private:
             if (_this->lnaAgc) { style::endDisabled(); }
 
             if (_this->mixerAgc) { style::beginDisabled(); }
-            ImGui::Text("Mixer Gain");
-            ImGui::SameLine();
+            ImGui::LeftLabel("Mixer Gain");
             ImGui::SetCursorPosX(pos);
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             if (ImGui::SliderInt(CONCAT("##_airspy_mix_gain_", _this->name), &_this->mixerGain, 0, 15)) {
@@ -479,8 +475,7 @@ private:
             }
             if (_this->mixerAgc) { style::endDisabled(); }
 
-            ImGui::Text("VGA Gain");
-            ImGui::SameLine();
+            ImGui::LeftLabel("VGA Gain");
             ImGui::SetCursorPosX(pos);
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             if (ImGui::SliderInt(CONCAT("##_airspy_vga_gain_", _this->name), &_this->vgaGain, 0, 15)) {

@@ -676,8 +676,7 @@ private:
 
         if (_this->selectedName != "") {
             ImGui::PushItemWidth(menuWidth - ImGui::CalcTextSize("LNA Gain").x - 10);
-            ImGui::Text("LNA Gain");
-            ImGui::SameLine();
+            ImGui::LeftLabel("LNA Gain");
             float pos = ImGui::GetCursorPosX();
             if (ImGui::SliderInt(CONCAT("##sdrplay_lna_gain", _this->name), &_this->lnaGain, _this->lnaSteps - 1, 0, "")) {
                 if (_this->running) {
@@ -690,8 +689,7 @@ private:
             }
 
             if (_this->agc > 0) { style::beginDisabled(); }
-            ImGui::Text("IF Gain");
-            ImGui::SameLine();
+            ImGui::LeftLabel("IF Gain");
             ImGui::SetCursorPosX(pos);
             if (ImGui::SliderInt(CONCAT("##sdrplay_gain", _this->name), &_this->gain, 59, 20, "")) {
                 if (_this->running) {
@@ -705,8 +703,7 @@ private:
             ImGui::PopItemWidth();
             if (_this->agc > 0) { style::endDisabled(); }
 
-            ImGui::Text("AGC");
-            ImGui::SameLine();
+            ImGui::LeftLabel("AGC");
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             if (ImGui::Combo(CONCAT("##sdrplay_agc", _this->name), &_this->agc, agcModesTxt)) {
                 if (_this->running) {
@@ -784,8 +781,7 @@ private:
     }
 
     void RSP2Menu(float menuWidth) {
-        ImGui::Text("Antenna");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Antenna");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##sdrplay_rsp2_ant", name), &rsp2_antennaPort, rsp2_antennaPortsTxt)) {
             if (running) {
@@ -819,8 +815,7 @@ private:
     }
 
     void RSPduoMenu(float menuWidth) {
-        ImGui::Text("Antenna");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Antenna");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
 
         if (ImGui::Combo(CONCAT("##sdrplay_rspduo_ant", name), &rspduo_antennaPort, rspduo_antennaPortsTxt)) {
@@ -870,8 +865,7 @@ private:
     }
 
     void RSPdxMenu(float menuWidth) {
-        ImGui::Text("Antenna");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Antenna");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##sdrplay_rspdx_ant", name), &rspdx_antennaPort, rspdx_antennaPortsTxt)) {
             if (running) {

@@ -353,17 +353,18 @@ I will soon publish a contributing.md listing the code style to use.
 
 ## Patrons
 
-* [Croccydile](https://example.com/)
+* Croccydile
 * [Daniele D'Agnelli](https://linkedin.com/in/dagnelli)
 * [EB3FRN](https://www.eb3frn.net/)
-* [Eric Johnson](https://example.com/)
+* Eric Johnson
+* Flinger Films
 * [W4IPA](https://twitter.com/W4IPAstroke5)
-* [Lee Donaghy](https://github.com/github)
-* [ON4MU](https://github.com/)
+* Lee Donaghy
+* ON4MU
 * [Passion-Radio.com](https://passion-radio.com/)
 * [Scanner School](https://scannerschool.com/)
 * [SignalsEverywhere](https://signalseverywhere.com/)
-* [Syne Ardwin (WI9SYN)](https://example.com/)
+* Syne Ardwin (WI9SYN)
 
 ## Contributors
 

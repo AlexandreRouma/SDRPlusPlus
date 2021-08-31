@@ -6,6 +6,7 @@
 #include <gui/gui.h>
 #include <gui/main_window.h>
 #include <signal_path/signal_path.h>
+#include <gui/style.h>
 
 namespace displaymenu {
     bool showWaterfall;
@@ -105,8 +106,7 @@ namespace displaymenu {
             core::configManager.release(true);
         }
 
-        ImGui::Text("FFT Framerate");
-        ImGui::SameLine();
+        ImGui::LeftLabel("FFT Framerate");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::InputInt("##sdrpp_fft_rate", &fftRate, 1, 10)) {
             fftRate = std::max<int>(1, fftRate);
@@ -116,8 +116,7 @@ namespace displaymenu {
             core::configManager.release(true);
         }
 
-        ImGui::Text("FFT Size");
-        ImGui::SameLine();
+        ImGui::LeftLabel("FFT Size");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo("##sdrpp_fft_size", &fftSizeId, FFTSizesStr)) {
             gui::mainWindow.setFFTSize(FFTSizes[fftSizeId]);
@@ -126,8 +125,7 @@ namespace displaymenu {
             core::configManager.release(true);
         }
 
-        ImGui::Text("FFT Window");
-        ImGui::SameLine();
+        ImGui::LeftLabel("FFT Window");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo("##sdrpp_fft_window", &selectedWindow, "Rectangular\0Blackman\0")) {
             gui::mainWindow.setFFTWindow(selectedWindow);
@@ -137,8 +135,7 @@ namespace displaymenu {
         }
 
         if (colorMapNames.size() > 0) {
-            ImGui::Text("Color Map");
-            ImGui::SameLine();
+            ImGui::LeftLabel("Color Map");
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             if (ImGui::Combo("##_sdrpp_color_map_sel", &colorMapId, colorMapNamesTxt.c_str())) {
                 colormaps::Map map = colormaps::maps[colorMapNames[colorMapId]];
