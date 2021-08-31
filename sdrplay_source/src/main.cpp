@@ -112,7 +112,7 @@ struct ifMode_t {
 ifMode_t ifModes[] = {
     { sdrplay_api_IF_Zero,  sdrplay_api_BW_1_536, 2000000, 2000000},
     { sdrplay_api_IF_2_048, sdrplay_api_BW_1_536, 8000000, 2000000},
-    { sdrplay_api_IF_2_048, sdrplay_api_BW_5_000, 8000000, 4000000},
+    { sdrplay_api_IF_2_048, sdrplay_api_BW_5_000, 8000000, 2000000},
     { sdrplay_api_IF_1_620, sdrplay_api_BW_1_536, 6000000, 2000000},
     { sdrplay_api_IF_0_450, sdrplay_api_BW_0_600, 2000000, 1000000},
     { sdrplay_api_IF_0_450, sdrplay_api_BW_0_300, 2000000, 500000},
