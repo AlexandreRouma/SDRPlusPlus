@@ -424,8 +424,7 @@ private:
 
         // Channel selection (only show if more than one channel)
         if (_this->channelCount > 1) {
-            ImGui::Text("RX Channel");
-            ImGui::SameLine();
+            ImGui::LeftLabel("RX Channel");
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             ImGui::Combo(CONCAT("##_balderf_ch_sel_", _this->name), &_this->chanId, _this->channelNamesTxt.c_str());
             if (_this->selectedSerial != "") {
@@ -437,8 +436,7 @@ private:
 
         if (_this->running) { style::endDisabled(); }
 
-        ImGui::Text("Bandwidth");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Bandwidth");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##_balderf_bw_sel_", _this->name), &_this->bwId, _this->bandwidthsTxt.c_str())) {
             if (_this->running) {
@@ -453,8 +451,7 @@ private:
         }
 
         // General config BS
-        ImGui::Text("Gain control mode");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Gain control mode");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##_balderf_gm_sel_", _this->name), &_this->gainMode, _this->gainModesTxt.c_str()) && _this->selectedSerial != "") {
             if (_this->running) {
@@ -472,8 +469,7 @@ private:
         }
 
         if (_this->selectedSerial != "") { if (_this->gainModes[_this->gainMode].mode != BLADERF_GAIN_MANUAL) { style::beginDisabled(); } }
-        ImGui::Text("Gain");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Gain");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::SliderInt("##_balderf_oag_sel_", &_this->overallGain, (_this->gainRange != NULL) ? _this->gainRange->min : 0, (_this->gainRange != NULL) ? _this->gainRange->max : 60)) {
             if (_this->running) {

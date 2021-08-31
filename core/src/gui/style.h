@@ -13,3 +13,7 @@ namespace style {
     void endDisabled();
     void testtt();
 }
+
+namespace ImGui {
+    void LeftLabel(char* text);
+}

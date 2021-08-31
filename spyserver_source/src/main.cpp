@@ -231,8 +231,7 @@ private:
 
         if (connected) {
             if (_this->running) { style::beginDisabled(); }
-            ImGui::Text("Samplerate");
-            ImGui::SameLine();
+            ImGui::LeftLabel("Samplerate");
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             if (ImGui::Combo("##spyserver_source_sr", &_this->srId, _this->sampleRatesTxt.c_str())) {
                 _this->sampleRate = _this->sampleRates[_this->srId];
@@ -243,8 +242,7 @@ private:
             }
             if (_this->running) { style::endDisabled(); }
 
-            ImGui::Text("Sample bit depth");
-            ImGui::SameLine();
+            ImGui::LeftLabel("Sample bit depth");
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             if (ImGui::Combo("##spyserver_source_type", &_this->iqType, streamFormatStr)) {
                 int srvBits = streamFormatsBitCount[_this->iqType];

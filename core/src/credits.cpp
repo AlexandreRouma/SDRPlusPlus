@@ -39,6 +39,7 @@ namespace sdrpp_credits {
         "Daniele D'Agnelli",
         "EB3FRN",
         "Eric Johnson",
+        "Flinger Films",
         "W4IPA",
         "Lee Donaghy",
         "ON4MU",

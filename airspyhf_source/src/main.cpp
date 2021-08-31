@@ -303,8 +303,7 @@ private:
 
         if (_this->running) { style::endDisabled(); }
 
-        ImGui::Text("AGC Mode");
-        ImGui::SameLine();
+        ImGui::LeftLabel("AGC Mode");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##_airspyhf_agc_", _this->name), &_this->agcMode, AGG_MODES_STR)) {
             if (_this->running) {
@@ -320,21 +319,7 @@ private:
             }
         }
 
-        ImGui::Text("HF LNA");
-        ImGui::SameLine();
-        if (ImGui::Checkbox(CONCAT("##_airspyhf_lna_", _this->name), &_this->hfLNA)) {
-            if (_this->running) {
-                airspyhf_set_hf_lna(_this->openDev, _this->hfLNA);
-            }      
-            if (_this->selectedSerStr != "") {
-                config.acquire();
-                config.conf["devices"][_this->selectedSerStr]["lna"] = _this->hfLNA;
-                config.release(true);
-            }
-        }
-
-        ImGui::Text("Attenuation");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Attenuation");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::SliderFloatWithSteps(CONCAT("##_airspyhf_attn_", _this->name), &_this->atten, 0, 48, 6, "%.0f dB")) {
             if (_this->running) {
@@ -345,7 +330,18 @@ private:
                 config.conf["devices"][_this->selectedSerStr]["attenuation"] = _this->atten;
                 config.release(true);
             }
-        }        
+        }   
+
+        if (ImGui::Checkbox(CONCAT("HF LNA##_airspyhf_lna_", _this->name), &_this->hfLNA)) {
+            if (_this->running) {
+                airspyhf_set_hf_lna(_this->openDev, _this->hfLNA);
+            }      
+            if (_this->selectedSerStr != "") {
+                config.acquire();
+                config.conf["devices"][_this->selectedSerStr]["lna"] = _this->hfLNA;
+                config.release(true);
+            }
+        }     
     }
 
     static int callback(airspyhf_transfer_t* transfer) {

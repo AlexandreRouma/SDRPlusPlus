@@ -176,7 +176,7 @@ void MainWindow::init() {
     gui::freqSelect.frequencyChanged = false;
     sigpath::sourceManager.tune(frequency);
     gui::waterfall.setCenterFrequency(frequency);
-    bw = gui::waterfall.getBandwidth();
+    bw = 1.0;
     gui::waterfall.vfoFreqChanged = false;
     gui::waterfall.centerFreqMoved = false;
     gui::waterfall.selectFirstVFO();
@@ -598,12 +598,13 @@ void MainWindow::draw() {
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Zoom").x / 2.0));
     ImGui::Text("Zoom");
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10);
-    float minSliderBw = 1000.0;
-    float maxSliderBw = gui::waterfall.getBandwidth();
-    if (ImGui::VSliderFloat("##_7_", ImVec2(20.0, 150.0), &bw, maxSliderBw, minSliderBw, "")) {
-        float normBw = bw / (maxSliderBw - minSliderBw);
-        float factor = normBw * normBw;
-        float finalBw = minSliderBw + bw * factor;
+    if (ImGui::VSliderFloat("##_7_", ImVec2(20.0, 150.0), &bw, 1.0, 0.0, "")) {
+        double factor = (double)bw * (double)bw;
+        
+        // Map 0.0 -> 1.0 to 1000.0 -> bandwidth
+        double wfBw = gui::waterfall.getBandwidth();
+        double delta = wfBw - 1000.0;
+        double finalBw = std::min<double>(1000.0 + (factor * delta), wfBw);
 
         gui::waterfall.setViewBandwidth(finalBw);
         if (vfo != NULL) {

@@ -218,8 +218,7 @@ private:
 
         if (_this->running) { style::endDisabled(); }
 
-        ImGui::Text("Direct Sampling");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Direct Sampling");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(CONCAT("##_rtltcp_ds_", _this->name), &_this->directSamplingMode, "Disabled\0I branch\0Q branch\0")) {
             if (_this->running) {
@@ -231,8 +230,7 @@ private:
             config.release(true);
         }
 
-        ImGui::Text("PPM Correction");
-        ImGui::SameLine();
+        ImGui::LeftLabel("PPM Correction");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::InputInt(CONCAT("##_rtltcp_ppm_", _this->name), &_this->ppm, 1, 10)) {
             if (_this->running) {
@@ -242,6 +240,18 @@ private:
             config.conf["ppm"] = _this->ppm;
             config.release(true);
         }
+
+        if (_this->tunerAGC) { style::beginDisabled(); }
+        ImGui::SetNextItemWidth(menuWidth);
+        if (ImGui::SliderInt(CONCAT("##_gain_select_", _this->name), &_this->gain, 0, 28, "")) {
+            if (_this->running) {
+                _this->client.setGainIndex(_this->gain);
+            }
+            config.acquire();
+            config.conf["gainIndex"] = _this->gain;
+            config.release(true);
+        }
+        if (_this->tunerAGC) { style::endDisabled(); }
 
         if (ImGui::Checkbox(CONCAT("Bias-T##_biast_select_", _this->name), &_this->biasTee)) {
             if (_this->running) {
@@ -284,18 +294,6 @@ private:
             config.conf["tunerAGC"] = _this->tunerAGC;
             config.release(true);
         }
-
-        if (_this->tunerAGC) { style::beginDisabled(); }
-        ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::SliderInt(CONCAT("##_gain_select_", _this->name), &_this->gain, 0, 28, "")) {
-            if (_this->running) {
-                _this->client.setGainIndex(_this->gain);
-            }
-            config.acquire();
-            config.conf["gainIndex"] = _this->gain;
-            config.release(true);
-        }
-        if (_this->tunerAGC) { style::endDisabled(); }
     }
 
     static void worker(void* ctx) {

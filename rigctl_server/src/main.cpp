@@ -126,8 +126,7 @@ private:
         }
         if (listening) { style::endDisabled(); }
 
-        ImGui::Text("Controlled VFO");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Controlled VFO");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         {
             std::lock_guard lck(_this->vfoMtx);
@@ -141,8 +140,7 @@ private:
             }
         }
         
-        ImGui::Text("Controlled Recorder");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Controlled Recorder");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         {
             std::lock_guard lck(_this->vfoMtx);

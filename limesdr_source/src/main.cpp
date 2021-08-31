@@ -411,8 +411,7 @@ private:
         }
 
         if (_this->channelCount > 1) {
-            ImGui::Text("RX Channel");
-            ImGui::SameLine();
+            ImGui::LeftLabel("RX Channel");
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             if (ImGui::Combo("##limesdr_ch_sel", &_this->chanId, _this->channelNamesTxt.c_str()) && _this->selectedDevName != "") {
                 config.acquire();
@@ -423,8 +422,7 @@ private:
 
         if (_this->running) { style::endDisabled(); }
 
-        ImGui::Text("Antenna");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Antenna");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo("##limesdr_ant_sel", &_this->antennaId, _this->antennaListTxt.c_str())) {
             if (_this->running) {
@@ -437,8 +435,7 @@ private:
             }
         }
 
-        ImGui::Text("Bandwidth");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Bandwidth");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo("##limesdr_bw_sel", &_this->bwId, _this->bandwidthsTxt.c_str())) {
             if (_this->running) {
@@ -451,8 +448,7 @@ private:
             }
         }
 
-        ImGui::Text("Gain");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Gain");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::SliderInt("##limesdr_gain_sel", &_this->gain, 0, 73, "%ddB")) {
             if (_this->running) {

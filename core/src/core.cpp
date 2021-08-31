@@ -78,7 +78,7 @@ namespace core {
         gui::waterfall.setViewOffset(0);
         gui::waterfall.setViewBandwidth(effectiveSr);
         sigpath::signalPath.setSampleRate(effectiveSr);
-        gui::mainWindow.setViewBandwidthSlider(effectiveSr);
+        gui::mainWindow.setViewBandwidthSlider(1.0);
     }
 };
 

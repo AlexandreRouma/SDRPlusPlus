@@ -167,7 +167,7 @@ private:
             
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
-            ImGui::Text("Name");
+            ImGui::LeftLabel("Name");
             ImGui::TableSetColumnIndex(1);
             ImGui::SetNextItemWidth(200);
             if (ImGui::InputText(("##freq_manager_edit_name"+name).c_str(), nameBuf, 1023)) {
@@ -176,21 +176,21 @@ private:
 
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
-            ImGui::Text("Frequency");
+            ImGui::LeftLabel("Frequency");
             ImGui::TableSetColumnIndex(1);
             ImGui::SetNextItemWidth(200);
             ImGui::InputDouble(("##freq_manager_edit_freq"+name).c_str(), &editedBookmark.frequency);        
 
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
-            ImGui::Text("Bandwidth");
+            ImGui::LeftLabel("Bandwidth");
             ImGui::TableSetColumnIndex(1);
             ImGui::SetNextItemWidth(200);
             ImGui::InputDouble(("##freq_manager_edit_bw"+name).c_str(), &editedBookmark.bandwidth);         
 
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
-            ImGui::Text("Mode");
+            ImGui::LeftLabel("Mode");
             ImGui::TableSetColumnIndex(1);
             ImGui::SetNextItemWidth(200);
 
@@ -234,7 +234,7 @@ private:
         strcpy(nameBuf, editedListName.c_str());
 
         if (ImGui::BeginPopup(id.c_str(), ImGuiWindowFlags_NoResize)) {
-            ImGui::Text("Name");
+            ImGui::LeftLabel("Name");
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             if (ImGui::InputText(("##freq_manager_edit_name"+name).c_str(), nameBuf, 1023)) {
                 editedListName = nameBuf;
@@ -569,8 +569,7 @@ private:
             _this->selectListsOpen = true;
         }
 
-        ImGui::Text("Bookmark display mode");
-        ImGui::SameLine();
+        ImGui::LeftLabel("Bookmark display mode");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo(("##_freq_mgr_dms_" + _this->name).c_str(), &_this->bookmarkDisplayMode, bookmarkDisplayModesTxt)) {
             config.acquire();
