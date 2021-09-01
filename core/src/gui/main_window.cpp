@@ -504,7 +504,7 @@ void MainWindow::draw() {
 
 
     // Left Column
-    lockWaterfallControls = false;
+    lockWaterfallControls = gui::waterfall.getLockFrquency();
     if (showMenu) {
         ImGui::Columns(3, "WindowColumns", false);
         ImGui::SetColumnWidth(0, menuWidth);

@@ -87,6 +87,7 @@ namespace ImGui {
         void setCenterFrequency(double freq);
         double getCenterFrequency();
         void lockFrequency(bool _lock);
+        bool getLockFrquency();
 
 
         void setBandwidth(double bandWidth);
