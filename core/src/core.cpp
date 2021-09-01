@@ -243,6 +243,8 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["windowSize"]["w"] = 1280;
     defConfig["windowPosition"]["top"] = 0;
     defConfig["windowPosition"]["left"] = 0;
+    defConfig["windowTitle"] = "SDRPlusPlus";
+    defConfig["windowLogoLock"] = true;
 
     defConfig["vfoOffsets"] = json::object();
 
@@ -342,7 +344,10 @@ int sdrpp_main(int argc, char *argv[]) {
 
         // Create window with graphics context
         monitor = glfwGetPrimaryMonitor();
-        core::window = glfwCreateWindow(winWidth, winHeight, "SDR++ v" VERSION_STR " (Built at " __TIME__ ", " __DATE__ ")", NULL, NULL);
+        std::string title = "";
+        title = core::configManager.conf["windowTitle"];
+        title += " - V" VERSION_STR;
+        core::window = glfwCreateWindow(winWidth, winHeight, title.c_str(), NULL, NULL);
         if (core::window == NULL) {
             spdlog::info("OpenGL {0}.{1} {2}was not supported", OPENGL_VERSIONS_MAJOR[i], OPENGL_VERSIONS_MINOR[i], OPENGL_VERSIONS_IS_ES[i] ? "ES ": "");
             continue;

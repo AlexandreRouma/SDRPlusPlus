@@ -9,6 +9,8 @@ public:
     void init(int _hiddenDigits);
     void draw();
     void setFrequency(int64_t freq);
+    void lockFrequency(bool lock);
+    bool getLockFrequency();
 
     uint64_t frequency;
     bool frequencyChanged = false;
@@ -42,4 +44,5 @@ private:
 
     char buf[100];
     int hiddenDigits;
+    bool lock;
 };

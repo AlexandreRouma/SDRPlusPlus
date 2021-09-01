@@ -58,6 +58,7 @@ private:
     bool showMenuDebug = false;
     bool showSnrMeter = true;
     bool showTunerMode = true;
+    bool windowLogoLock = true;
 
     int tuningMode = tuner::TUNER_MODE_NORMAL;
     dsp::stream<dsp::complex_t> dummyStream;

@@ -152,64 +152,66 @@ void FrequencySelect::draw() {
         bool onDigit = false;
         bool hovered = false;
 
-        for (int i = hiddenDigits; i < 12; i++) {
-            onDigit = false;
-            if (isInArea(mousePos, digitTopMins[i], digitTopMaxs[i])) {
-                window->DrawList->AddRectFilled(digitTopMins[i], digitTopMaxs[i], IM_COL32(255, 0, 0, 75));
-                if (leftClick) {
-                    incrementDigit(i);
-                }
-                onDigit = true;
-            }
-            if (isInArea(mousePos, digitBottomMins[i], digitBottomMaxs[i])) {
-                window->DrawList->AddRectFilled(digitBottomMins[i], digitBottomMaxs[i], IM_COL32(0, 0, 255, 75));
-                if (leftClick) {
-                    decrementDigit(i);
-                }
-                onDigit = true;
-            }
-            if (onDigit) {
-                hovered = true;
-                if (rightClick || (ImGui::IsKeyPressed(GLFW_KEY_DELETE) || ImGui::IsKeyPressed(GLFW_KEY_ENTER) || ImGui::IsKeyPressed(GLFW_KEY_KP_ENTER))) {
-                    for (int j = i; j < 12; j++) {
-                        digits[j] = 0;
+        if (!lock) {
+            for (int i = hiddenDigits; i < 12; i++) {
+                onDigit = false;
+                if (isInArea(mousePos, digitTopMins[i], digitTopMaxs[i])) {
+                    window->DrawList->AddRectFilled(digitTopMins[i], digitTopMaxs[i], IM_COL32(255, 0, 0, 75));
+                    if (leftClick) {
+                        incrementDigit(i);
                     }
+                    onDigit = true;
+                }
+                if (isInArea(mousePos, digitBottomMins[i], digitBottomMaxs[i])) {
+                    window->DrawList->AddRectFilled(digitBottomMins[i], digitBottomMaxs[i], IM_COL32(0, 0, 255, 75));
+                    if (leftClick) {
+                        decrementDigit(i);
+                    }
+                    onDigit = true;
+                }
+                if (onDigit) {
+                    hovered = true;
+                    if (rightClick || (ImGui::IsKeyPressed(GLFW_KEY_DELETE) || ImGui::IsKeyPressed(GLFW_KEY_ENTER) || ImGui::IsKeyPressed(GLFW_KEY_KP_ENTER))) {
+                        for (int j = i; j < 12; j++) {
+                            digits[j] = 0;
+                        }
 
-                    frequencyChanged = true;
-                }
-                if (ImGui::IsKeyPressed(GLFW_KEY_UP)) {
-                    incrementDigit(i);
-                }
-                if (ImGui::IsKeyPressed(GLFW_KEY_DOWN)) {
-                    decrementDigit(i);
-                }
-                if ((ImGui::IsKeyPressed(GLFW_KEY_LEFT) || ImGui::IsKeyPressed(GLFW_KEY_BACKSPACE)) && i > 0) {
-                    moveCursorToDigit(i - 1);              
-                }
-                if (ImGui::IsKeyPressed(GLFW_KEY_RIGHT) && i < 11) {
-                    moveCursorToDigit(i + 1);
-                }
-
-                auto chars = ImGui::GetIO().InputQueueCharacters;
-
-                // For each keyboard characters, type it
-                for (int j = 0; j < chars.Size; j++) {
-                    if (chars[j] >= '0' && chars[j] <= '9') {
-                        digits[i + j] = chars[j] - '0';
-                        if ((i + j) < 11) { moveCursorToDigit(i + j + 1); }
                         frequencyChanged = true;
                     }
-                }
+                    if (ImGui::IsKeyPressed(GLFW_KEY_UP)) {
+                        incrementDigit(i);
+                    }
+                    if (ImGui::IsKeyPressed(GLFW_KEY_DOWN)) {
+                        decrementDigit(i);
+                    }
+                    if ((ImGui::IsKeyPressed(GLFW_KEY_LEFT) || ImGui::IsKeyPressed(GLFW_KEY_BACKSPACE)) && i > 0) {
+                        moveCursorToDigit(i - 1);
+                    }
+                    if (ImGui::IsKeyPressed(GLFW_KEY_RIGHT) && i < 11) {
+                        moveCursorToDigit(i + 1);
+                    }
 
-                if (mw != 0) {
-                    int count = abs(mw);
-                    for (int j = 0; j < count; j++) {
-                        mw > 0 ? incrementDigit(i) : decrementDigit(i);
+                    auto chars = ImGui::GetIO().InputQueueCharacters;
+
+                    // For each keyboard characters, type it
+                    for (int j = 0; j < chars.Size; j++) {
+                        if (chars[j] >= '0' && chars[j] <= '9') {
+                            digits[i + j] = chars[j] - '0';
+                            if ((i + j) < 11) { moveCursorToDigit(i + j + 1); }
+                            frequencyChanged = true;
+                        }
+                    }
+
+                    if (mw != 0) {
+                        int count = abs(mw);
+                        for (int j = 0; j < count; j++) {
+                            mw > 0 ? incrementDigit(i) : decrementDigit(i);
+                        }
                     }
                 }
             }
+            digitHovered = hovered;
         }
-        digitHovered = hovered;
     }
 
     uint64_t freq = 0;
@@ -242,4 +244,12 @@ void FrequencySelect::setFrequency(int64_t freq) {
         f /= 10;
     }
     frequency = freq;
+}
+
+void FrequencySelect::lockFrequency(bool _lock) {
+    lock = _lock;
+}
+
+bool FrequencySelect::getLockFrequency() {
+    return lock;
 }

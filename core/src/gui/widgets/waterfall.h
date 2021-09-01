@@ -86,6 +86,8 @@ namespace ImGui {
 
         void setCenterFrequency(double freq);
         double getCenterFrequency();
+        void lockFrequency(bool _lock);
+
 
         void setBandwidth(double bandWidth);
         double getBandwidth();
@@ -242,6 +244,7 @@ namespace ImGui {
         double lowerFreq;
         double upperFreq;
         double range;
+        bool lockFreq;
 
         float lastDrag;
 

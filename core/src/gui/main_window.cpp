@@ -173,6 +173,7 @@ void MainWindow::init() {
     showMenuDebug = core::configManager.conf["showMenuDebug"];
     showSnrMeter = core::configManager.conf["showSnrMeter"];
     showTunerMode = core::configManager.conf["showTunerMode"];
+    windowLogoLock = core::configManager.conf["windowLogoLock"];
     startedWithMenuClosed = !showMenu;
 
     gui::freqSelect.setFrequency(frequency);
@@ -183,6 +184,8 @@ void MainWindow::init() {
     gui::waterfall.vfoFreqChanged = false;
     gui::waterfall.centerFreqMoved = false;
     gui::waterfall.selectFirstVFO();
+    gui::freqSelect.lockFrequency(false);
+    gui::waterfall.lockFrequency(false);
 
     menuWidth = core::configManager.conf["menuWidth"];
     newWidth = menuWidth;
@@ -393,9 +396,29 @@ void MainWindow::draw() {
 
     gui::freqSelect.draw();
 
+    ImGui::SameLine();
+    ImGui::SetCursorPosX(450);
+    ImGui::PushID(ImGui::GetID("sdrpp_lockfreq_btn"));
+    if (gui::freqSelect.getLockFrequency()) {
+        if (ImGui::ImageButton(icons::LOCK, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
+            gui::freqSelect.lockFrequency(false);
+            gui::waterfall.lockFrequency(false);
+        }
+        ImGui::PopID();
+    }
+    else {
+
+        if (ImGui::ImageButton(icons::UNLOCK, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
+            gui::freqSelect.lockFrequency(true);
+            gui::waterfall.lockFrequency(true);
+        }
+        ImGui::PopID();
+    }
+    ImGui::SameLine();
+
     if (showTunerMode) {
         ImGui::SameLine();
-        ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 9);
+        //ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 9);
         if (tuningMode == tuner::TUNER_MODE_CENTER) {
             ImGui::PushID(ImGui::GetID("sdrpp_ena_st_btn"));
             if (ImGui::ImageButton(icons::CENTER_TUNING, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
@@ -432,7 +455,12 @@ void MainWindow::draw() {
     
     ImGui::SameLine();
     // Logo button
-    ImGui::SetCursorPosX(ImGui::GetWindowSize().x - 48);
+    if (windowLogoLock) {
+        ImGui::SetCursorPosX(ImGui::GetWindowSize().x - 48);
+    }
+    else {
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 50);
+    }
     ImGui::SetCursorPosY(10);
     if (ImGui::ImageButton(icons::LOGO, ImVec2(32, 32), ImVec2(0, 0), ImVec2(1, 1), 0)) {
         showCredits = true;
