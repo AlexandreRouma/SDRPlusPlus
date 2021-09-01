@@ -19,6 +19,7 @@
 #include <filesystem>
 #include <gui/menus/theme.h>
 #include <server.h>
+#include <spdlog/sinks/rotating_file_sink.h>
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb_image_resize.h>
@@ -100,6 +101,8 @@ static void maximized_callback(GLFWwindow* window, int n) {
 
 // main
 int sdrpp_main(int argc, char *argv[]) {
+    auto myspdlog = spdlog::rotating_logger_mt("file_logger", "logs/sdrPlusPlus.txt", 1048576 * 5, 3, true);
+    spdlog::set_default_logger(myspdlog);
     spdlog::info("SDR++ v" VERSION_STR);
 
     // Load default options and parse command line
@@ -142,6 +145,7 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["fftSize"] = 65536;
     defConfig["fftWindow"] = 1;
     defConfig["frequency"] = 100000000.0;
+    defConfig["frequencyHiddenDigits"] = 2;
     defConfig["fullWaterfallUpdate"] = false;
     defConfig["max"] = 0.0;
     defConfig["maximized"] = false;
@@ -221,7 +225,12 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["offsetMode"] = (int)0; // Off
     defConfig["offset"] = 0.0;
     defConfig["showMenu"] = true;
+    defConfig["showMenuDebug"] = false;
     defConfig["showWaterfall"] = true;
+    defConfig["showTunerMode"] = true;
+    defConfig["showSnrMeter"] = true;
+    defConfig["showVolume"] = true;
+    defConfig["volumeWidth"] = 100;
     defConfig["source"] = "";
     defConfig["decimationPower"] = 0;
     defConfig["iqCorrection"] = false;
@@ -232,6 +241,8 @@ int sdrpp_main(int argc, char *argv[]) {
 
     defConfig["windowSize"]["h"] = 720;
     defConfig["windowSize"]["w"] = 1280;
+    defConfig["windowPosition"]["top"] = 0;
+    defConfig["windowPosition"]["left"] = 0;
 
     defConfig["vfoOffsets"] = json::object();
 
@@ -287,6 +298,8 @@ int sdrpp_main(int argc, char *argv[]) {
     core::configManager.acquire();
     int winWidth = core::configManager.conf["windowSize"]["w"];
     int winHeight = core::configManager.conf["windowSize"]["h"];
+    int winTop = core::configManager.conf["windowPosition"]["top"];
+    int winLeft = core::configManager.conf["windowPosition"]["left"];
     maximized = core::configManager.conf["maximized"];
     std::string resDir = core::configManager.conf["resourcesDirectory"];
     json bandColors = core::configManager.conf["bandColors"];
@@ -335,6 +348,7 @@ int sdrpp_main(int argc, char *argv[]) {
             continue;
         }
         spdlog::info("Using OpenGL {0}.{1}{2}", OPENGL_VERSIONS_MAJOR[i], OPENGL_VERSIONS_MINOR[i], OPENGL_VERSIONS_IS_ES[i] ? " ES": "");
+        glfwSetWindowPos(core::window, winLeft, winTop);
         glfwMakeContextCurrent(core::window);
         break;
     }
@@ -451,8 +465,9 @@ int sdrpp_main(int argc, char *argv[]) {
             core::configManager.release(true);
         }
 
-        int _winWidth, _winHeight;
+        int _winWidth, _winHeight, _left, _top;
         glfwGetWindowSize(core::window, &_winWidth, &_winHeight);
+        glfwGetWindowPos(core::window, &_left, &_top);
 
         if (ImGui::IsKeyPressed(GLFW_KEY_F11)) {
             fullScreen = !fullScreen;
@@ -470,12 +485,17 @@ int sdrpp_main(int argc, char *argv[]) {
             }
         }
 
-        if ((_winWidth != winWidth || _winHeight != winHeight) && !maximized && _winWidth > 0 && _winHeight > 0) {
+        if ((_winWidth != winWidth || _winHeight != winHeight || _top != winTop || _left != winLeft) && !maximized && _winWidth > 0 && _winHeight > 0) {
             winWidth = _winWidth;
             winHeight = _winHeight;
+            winLeft = _left;
+            winTop = _top;
+
             core::configManager.acquire();
             core::configManager.conf["windowSize"]["w"] = winWidth;
             core::configManager.conf["windowSize"]["h"] = winHeight;
+            core::configManager.conf["windowPosition"]["top"] = winTop;
+            core::configManager.conf["windowPosition"]["left"] = winLeft;
             core::configManager.release(true);
         }
 

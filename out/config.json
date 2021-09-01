@@ -1,0 +1,174 @@
+{
+    "bandColors": {
+        "amateur": "#FF0000FF",
+        "aviation": "#00FF00FF",
+        "broadcast": "#0000FFFF",
+        "marine": "#00FFFFFF",
+        "military": "#FFFF00FF"
+    },
+    "bandPlan": "General",
+    "bandPlanEnabled": true,
+    "bandPlanPos": 0,
+    "centerTuning": false,
+    "colorMap": "Classic",
+    "decimationPower": 0,
+    "fastFFT": false,
+    "fftHeight": 300,
+    "fftRate": 20,
+    "fftSize": 65536,
+    "fftWindow": 1,
+    "frequency": 100000000.0,
+    "fullWaterfallUpdate": false,
+    "iqCorrection": false,
+    "max": 0.0,
+    "maximized": false,
+    "menuDebug": false,
+    "menuElements": [
+        {
+            "name": "Source",
+            "open": true
+        },
+        {
+            "name": "Radio",
+            "open": false
+        },
+        {
+            "name": "Recorder",
+            "open": false
+        },
+        {
+            "name": "Frequency Manager",
+            "open": false
+        },
+        {
+            "name": "VFO Color",
+            "open": false
+        },
+        {
+            "name": "Scripting",
+            "open": false
+        },
+        {
+            "name": "Band Plan",
+            "open": false
+        },
+        {
+            "name": "Display",
+            "open": false
+        },
+        {
+            "name": "Sinks",
+            "open": false
+        },
+        {
+            "name": "Theme",
+            "open": false
+        },
+        {
+            "name": "Module Manager",
+            "open": false
+        }
+    ],
+    "menuWidth": 300,
+    "min": -120.0,
+    "moduleInstances": {
+        "Airspy Source": {
+            "enabled": true,
+            "module": "airspy_source"
+        },
+        "AirspyHF+ Source": {
+            "enabled": true,
+            "module": "airspyhf_source"
+        },
+        "Audio Sink": {
+            "enabled": true,
+            "module": "audio_sink"
+        },
+        "BladeRF Source": {
+            "enabled": true,
+            "module": "bladerf_source"
+        },
+        "File Source": {
+            "enabled": true,
+            "module": "file_source"
+        },
+        "Frequency Manager": {
+            "enabled": true,
+            "module": "frequency_manager"
+        },
+        "HackRF Source": {
+            "enabled": true,
+            "module": "hackrf_source"
+        },
+        "LimeSDR Source": {
+            "enabled": true,
+            "module": "limesdr_source"
+        },
+        "PlutoSDR Source": {
+            "enabled": true,
+            "module": "plutosdr_source"
+        },
+        "RTL-SDR Source": {
+            "enabled": true,
+            "module": "rtl_sdr_source"
+        },
+        "RTL-TCP Source": {
+            "enabled": true,
+            "module": "rtl_tcp_source"
+        },
+        "Radio": {
+            "enabled": true,
+            "module": "radio"
+        },
+        "Recorder": {
+            "enabled": true,
+            "module": "recorder"
+        },
+        "Rigctl Server": {
+            "enabled": true,
+            "module": "rigctl_server"
+        },
+        "SDRplay Source": {
+            "enabled": true,
+            "module": "sdrplay_source"
+        },
+        "SoapySDR Source": {
+            "enabled": true,
+            "module": "soapy_source"
+        },
+        "SpyServer Source": {
+            "enabled": true,
+            "module": "spyserver_source"
+        }
+    },
+    "modules": [],
+    "modulesDirectory": "./modules",
+    "offset": 0.0,
+    "offsetMode": 0,
+    "resourcesDirectory": "./res",
+    "showMenu": true,
+    "showWaterfall": true,
+    "source": "File",
+    "streams": {
+        "Radio": {
+            "muted": false,
+            "sink": "Audio",
+            "volume": 0.19897958636283875
+        }
+    },
+    "theme": "Dark",
+    "vfoColors": {
+        "Radio": "#FFFFFF"
+    },
+    "vfoOffsets": {
+        "Radio": 0.0
+    },
+    "windowPosition": {
+        "left": 0,
+        "top": 0
+    },
+    "windowSize": {
+        "h": 806,
+        "w": 1381
+    }
+}

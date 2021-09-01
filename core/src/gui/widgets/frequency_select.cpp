@@ -18,8 +18,9 @@ FrequencySelect::FrequencySelect() {
     
 }
 
-void FrequencySelect::init() {
-    for (int i = 0; i < 12; i++) {
+void FrequencySelect::init(int _hiddenDigits) {
+    hiddenDigits = _hiddenDigits;
+    for (int i = hiddenDigits; i < 12; i++) {
         digits[i] = 0;
         
     }
@@ -31,12 +32,12 @@ void FrequencySelect::onPosChange() {
     int digitHeight = digitSz.y;
     int digitWidth = digitSz.x;
     int commaOffset = 0;
-    for (int i = 0; i < 12; i++) {
-        digitTopMins[i] = ImVec2(widgetPos.x + (i * digitWidth) + commaOffset, widgetPos.y);
-        digitBottomMins[i] = ImVec2(widgetPos.x + (i * digitWidth) + commaOffset, widgetPos.y + (digitHeight / 2));
+    for (int i = hiddenDigits; i < 12; i++) {
+        digitTopMins[i] = ImVec2(widgetPos.x + ((i-hiddenDigits) * digitWidth) + commaOffset, widgetPos.y);
+        digitBottomMins[i] = ImVec2(widgetPos.x + ((i - hiddenDigits) * digitWidth) + commaOffset, widgetPos.y + (digitHeight / 2));
 
-        digitTopMaxs[i] = ImVec2(widgetPos.x + (i * digitWidth) + commaOffset + digitWidth, widgetPos.y + (digitHeight / 2));
-        digitBottomMaxs[i] = ImVec2(widgetPos.x + (i * digitWidth) + commaOffset + digitWidth, widgetPos.y + digitHeight);
+        digitTopMaxs[i] = ImVec2(widgetPos.x + ((i - hiddenDigits) * digitWidth) + commaOffset + digitWidth, widgetPos.y + (digitHeight / 2));
+        digitBottomMaxs[i] = ImVec2(widgetPos.x + ((i - hiddenDigits) * digitWidth) + commaOffset + digitWidth, widgetPos.y + digitHeight);
 
         if ((i + 1) % 3 == 0 && i < 11) {
             commaOffset += commaSz.x;
@@ -129,16 +130,16 @@ void FrequencySelect::draw() {
     
     ImGui::ItemSize(ImRect(digitTopMins[0], ImVec2(digitBottomMaxs[11].x + 15, digitBottomMaxs[11].y)));
 
-    for (int i = 0; i < 12; i++) {
+    for (int i = hiddenDigits; i < 12; i++) {
         if (digits[i] != 0) {
             zeros = false;
         }
         sprintf(buf, "%d", digits[i]);
-        window->DrawList->AddText(ImVec2(widgetPos.x + (i * digitWidth) + commaOffset, widgetPos.y), 
+        window->DrawList->AddText(ImVec2(widgetPos.x + ((i - hiddenDigits) * digitWidth) + commaOffset, widgetPos.y),
                                 zeros ? disabledColor : textColor, buf);
         if ((i + 1) % 3 == 0 && i < 11) {
             commaOffset += commaSz.x;
-            window->DrawList->AddText(ImVec2(widgetPos.x + (i * digitWidth) + commaOffset + 11, widgetPos.y), 
+            window->DrawList->AddText(ImVec2(widgetPos.x + ((i - hiddenDigits) * digitWidth) + commaOffset + 11, widgetPos.y),
                                     zeros ? disabledColor : textColor, ".");
         }
     }
@@ -151,7 +152,7 @@ void FrequencySelect::draw() {
         bool onDigit = false;
         bool hovered = false;
 
-        for (int i = 0; i < 12; i++) {
+        for (int i = hiddenDigits; i < 12; i++) {
             onDigit = false;
             if (isInArea(mousePos, digitTopMins[i], digitTopMaxs[i])) {
                 window->DrawList->AddRectFilled(digitTopMins[i], digitTopMaxs[i], IM_COL32(255, 0, 0, 75));
@@ -212,7 +213,7 @@ void FrequencySelect::draw() {
     }
 
     uint64_t freq = 0;
-    for (int i = 0; i < 12; i++) {
+    for (int i = hiddenDigits; i < 12; i++) {
         freq += digits[i] * pow(10, 11 - i);
     }
 

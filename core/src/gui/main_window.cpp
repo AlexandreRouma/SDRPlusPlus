@@ -67,7 +67,7 @@ void MainWindow::init() {
     gui::menu.registerEntry("VFO Color", vfo_color_menu::draw, NULL);
     gui::menu.registerEntry("Module Manager", module_manager_menu::draw, NULL);
     
-    gui::freqSelect.init();
+    gui::freqSelect.init(core::configManager.conf["frequencyHiddenDigits"]);
 
     // Set default values for waterfall in case no source init's it
     gui::waterfall.setBandwidth(8000000);
@@ -170,6 +170,9 @@ void MainWindow::init() {
     double frequency = core::configManager.conf["frequency"];
 
     showMenu = core::configManager.conf["showMenu"];
+    showMenuDebug = core::configManager.conf["showMenuDebug"];
+    showSnrMeter = core::configManager.conf["showSnrMeter"];
+    showTunerMode = core::configManager.conf["showTunerMode"];
     startedWithMenuClosed = !showMenu;
 
     gui::freqSelect.setFrequency(frequency);
@@ -390,42 +393,44 @@ void MainWindow::draw() {
 
     gui::freqSelect.draw();
 
-    ImGui::SameLine();
-
-    ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 9);
-    if (tuningMode == tuner::TUNER_MODE_CENTER) {
-        ImGui::PushID(ImGui::GetID("sdrpp_ena_st_btn"));
-        if (ImGui::ImageButton(icons::CENTER_TUNING, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
-            tuningMode = tuner::TUNER_MODE_NORMAL;
-            core::configManager.acquire();
-            core::configManager.conf["centerTuning"] = false;
-            core::configManager.release(true);
+    if (showTunerMode) {
+        ImGui::SameLine();
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 9);
+        if (tuningMode == tuner::TUNER_MODE_CENTER) {
+            ImGui::PushID(ImGui::GetID("sdrpp_ena_st_btn"));
+            if (ImGui::ImageButton(icons::CENTER_TUNING, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
+                tuningMode = tuner::TUNER_MODE_NORMAL;
+                core::configManager.acquire();
+                core::configManager.conf["centerTuning"] = false;
+                core::configManager.release(true);
+            }
+            ImGui::PopID();
         }
-        ImGui::PopID();
-    }
-    else { // TODO: Might need to check if there even is a device
-        ImGui::PushID(ImGui::GetID("sdrpp_dis_st_btn"));
-        if (ImGui::ImageButton(icons::NORMAL_TUNING, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
-            tuningMode = tuner::TUNER_MODE_CENTER;
-            tuner::tune(tuner::TUNER_MODE_CENTER, gui::waterfall.selectedVFO, gui::freqSelect.frequency);
-            core::configManager.acquire();
-            core::configManager.conf["centerTuning"] = true;
-            core::configManager.release(true);
+        else { // TODO: Might need to check if there even is a device
+            ImGui::PushID(ImGui::GetID("sdrpp_dis_st_btn"));
+            if (ImGui::ImageButton(icons::NORMAL_TUNING, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
+                tuningMode = tuner::TUNER_MODE_CENTER;
+                tuner::tune(tuner::TUNER_MODE_CENTER, gui::waterfall.selectedVFO, gui::freqSelect.frequency);
+                core::configManager.acquire();
+                core::configManager.conf["centerTuning"] = true;
+                core::configManager.release(true);
+            }
+            ImGui::PopID();
         }
-        ImGui::PopID();
     }
 
+    if (showSnrMeter) {
+        ImGui::SameLine();
+
+        int snrWidth = std::min<int>(300, ImGui::GetWindowSize().x - ImGui::GetCursorPosX() - 87);
+
+        ImGui::SetCursorPosX(ImGui::GetWindowSize().x - (snrWidth + 87));
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
+        ImGui::SetNextItemWidth(snrWidth);
+        ImGui::SNRMeter((vfo != NULL) ? gui::waterfall.selectedVFOSNR : 0);
+    }
+    
     ImGui::SameLine();
-
-    int snrWidth = std::min<int>(300, ImGui::GetWindowSize().x - ImGui::GetCursorPosX() - 87);
-
-    ImGui::SetCursorPosX(ImGui::GetWindowSize().x - (snrWidth+87));
-    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
-    ImGui::SetNextItemWidth(snrWidth);
-    ImGui::SNRMeter((vfo != NULL) ? gui::waterfall.selectedVFOSNR : 0);
-
-    ImGui::SameLine();
-
     // Logo button
     ImGui::SetCursorPosX(ImGui::GetWindowSize().x - 48);
     ImGui::SetCursorPosY(10);
@@ -504,30 +509,31 @@ void MainWindow::draw() {
             firstMenuRender = false;
         }
 
-        if(ImGui::CollapsingHeader("Debug")) {
-            ImGui::Text("Frame time: %.3f ms/frame", 1000.0 / ImGui::GetIO().Framerate);
-            ImGui::Text("Framerate: %.1f FPS", ImGui::GetIO().Framerate);
-            ImGui::Text("Center Frequency: %.0f Hz", gui::waterfall.getCenterFrequency());
-            ImGui::Text("Source name: %s", sourceName.c_str());
-            ImGui::Checkbox("Show demo window", &demoWindow);
-            ImGui::Text("ImGui version: %s", ImGui::GetVersion());
+        if (showMenuDebug) {
+            if (ImGui::CollapsingHeader("Debug")) {
+                ImGui::Text("Frame time: %.3f ms/frame", 1000.0 / ImGui::GetIO().Framerate);
+                ImGui::Text("Framerate: %.1f FPS", ImGui::GetIO().Framerate);
+                ImGui::Text("Center Frequency: %.0f Hz", gui::waterfall.getCenterFrequency());
+                ImGui::Text("Source name: %s", sourceName.c_str());
+                ImGui::Checkbox("Show demo window", &demoWindow);
+                ImGui::Text("ImGui version: %s", ImGui::GetVersion());
 
-            ImGui::Checkbox("Bypass buffering", &sigpath::signalPath.inputBuffer.bypass);
+                ImGui::Checkbox("Bypass buffering", &sigpath::signalPath.inputBuffer.bypass);
 
-            ImGui::Text("Buffering: %d", (sigpath::signalPath.inputBuffer.writeCur - sigpath::signalPath.inputBuffer.readCur + 32) % 32);
-            
-            if (ImGui::Button("Test Bug")) {
-                spdlog::error("Will this make the software crash?");
+                ImGui::Text("Buffering: %d", (sigpath::signalPath.inputBuffer.writeCur - sigpath::signalPath.inputBuffer.readCur + 32) % 32);
+
+                if (ImGui::Button("Test Bug")) {
+                    spdlog::error("Will this make the software crash?");
+                }
+
+                if (ImGui::Button("Testing something")) {
+                    gui::menu.order[0].open = true;
+                    firstMenuRender = true;
+                }
+
+                ImGui::Spacing();
             }
-
-            if (ImGui::Button("Testing something")) {
-                gui::menu.order[0].open = true;
-                firstMenuRender = true;
-            }
-
-            ImGui::Spacing();
         }
-
         ImGui::EndChild();
     }
     else {

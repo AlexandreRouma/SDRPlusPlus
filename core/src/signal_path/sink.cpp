@@ -287,15 +287,17 @@ void SinkManager::showVolumeSlider(std::string name, std::string prefix, float w
         ImGui::PopID();
     }
 
-    ImGui::SameLine();
+    if (core::configManager.conf["showVolume"]) {
+        ImGui::SameLine();
 
-    ImGui::SetNextItemWidth(width - height - 8);
-    ImGui::SetCursorPosY(ypos + ((height - sliderHeight) / 2.0f) + btwBorder);
-    if (ImGui::SliderFloat((prefix + name).c_str(), &stream->guiVolume, 0.0f, 1.0f, "")) {
-        stream->setVolume(stream->guiVolume);
-        core::configManager.acquire();
-        saveStreamConfig(name);
-        core::configManager.release(true);
+        ImGui::SetNextItemWidth(core::configManager.conf["volumeWidth"] - height - 8);
+        ImGui::SetCursorPosY(ypos + ((height - sliderHeight) / 2.0f) + btwBorder);
+        if (ImGui::SliderFloat((prefix + name).c_str(), &stream->guiVolume, 0.0f, 1.0f, "")) {
+            stream->setVolume(stream->guiVolume);
+            core::configManager.acquire();
+            saveStreamConfig(name);
+            core::configManager.release(true);
+        }
     }
     if (sameLine) { ImGui::SetCursorPosY(ypos); }
     //ImGui::SetCursorPosY(ypos);

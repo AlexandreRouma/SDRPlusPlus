@@ -46,6 +46,7 @@ public:
         RtAudio::DeviceInfo info;
         for (int i = 0; i < count; i++) {
             info = audio.getDeviceInfo(i);
+            spdlog::info("AudioSink device: {0}", info.name);
             if (!info.probed) { continue; }
             if (info.outputChannels == 0) { continue; }
             if (info.isDefaultOutput) { defaultDevId = devList.size(); }

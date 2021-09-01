@@ -6,7 +6,7 @@
 class FrequencySelect {
 public:
     FrequencySelect();
-    void init();
+    void init(int _hiddenDigits);
     void draw();
     void setFrequency(int64_t freq);
 
@@ -41,4 +41,5 @@ private:
     ImVec2 digitTopMaxs[12];
 
     char buf[100];
+    int hiddenDigits;
 };
