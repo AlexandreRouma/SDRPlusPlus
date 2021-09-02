@@ -10,6 +10,8 @@ namespace icons {
     extern ImTextureID MENU;
     extern ImTextureID MUTED;
     extern ImTextureID UNMUTED;
+    extern ImTextureID LEFTMUTED;
+    extern ImTextureID LEFTUNMUTED;
     extern ImTextureID NORMAL_TUNING;
     extern ImTextureID CENTER_TUNING;
     extern ImTextureID LOCK;

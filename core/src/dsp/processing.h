@@ -324,24 +324,53 @@ namespace dsp {
             return _muted;
         }
 
+        void setLeftMuted(bool muted) {
+            assert(generic_block<Volume<T>>::_block_init);
+            _leftMuted = muted;
+        }
+
+        bool getLeftMuted() {
+            assert(generic_block<Volume<T>>::_block_init);
+            return _leftMuted;
+        }
+
         int run() {
             int count = _in->read();
             if (count < 0) { return -1; }
-
-            if (_muted) {
+            if (_muted && _leftMuted) {
                 if constexpr (std::is_same_v<T, stereo_t>) {
                     memset(out.writeBuf, 0, sizeof(stereo_t) * count);
                 }
                 else {
                     memset(out.writeBuf, 0, sizeof(float) * count);
                 }
-            }
-            else {
+            }else{
                 if constexpr (std::is_same_v<T, stereo_t>) {
                     volk_32f_s32f_multiply_32f((float*)out.writeBuf, (float*)_in->readBuf, level, count * 2);
+                    int i;
+                    if (_muted || _leftMuted) {
+                        unsigned int alignment = volk_get_alignment();
+                        float* _left = (float*)volk_malloc(sizeof(float) * count, alignment);
+                        float* _right = (float*)volk_malloc(sizeof(float) * count, alignment);
+                        volk_32fc_deinterleave_32f_x2(_left, _right, (lv_32fc_t *)out.writeBuf, count);
+                        if (_muted) {
+                            memset(_right, 0, sizeof(float) * count);
+                            volk_32f_x2_interleave_32fc((lv_32fc_t*)out.writeBuf, _left, _right, count);
+
+                        }
+                        if (_leftMuted) {
+                            memset(_left, 0, sizeof(float) * count);
+                            volk_32f_x2_interleave_32fc((lv_32fc_t*)out.writeBuf, _left, _right, count);
+                        }
+                        volk_free(_left);
+                        volk_free(_right);
+                    }
                 }
                 else {
                     volk_32f_s32f_multiply_32f((float*)out.writeBuf, (float*)_in->readBuf, level, count);
+                    if (_muted || _leftMuted) {
+                        memset(out.writeBuf, 0, sizeof(float) * count);
+                    }
                 }
             }
 
@@ -356,6 +385,7 @@ namespace dsp {
         float level = 1.0f;
         float _volume = 1.0f;
         bool _muted = false;
+        bool _leftMuted = false;
         stream<T>* _in;
 
     };

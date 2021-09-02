@@ -239,7 +239,7 @@ void SinkManager::setStreamSink(std::string name, std::string providerName) {
     }
 }
 
-void SinkManager::showVolumeSlider(std::string name, std::string prefix, float width, float btnHeight, int btwBorder, bool sameLine) {
+void SinkManager::showVolumeSlider(std::string name, std::string prefix, float width, float btnHeight, int btwBorder, bool sameLine, bool showSlider) {
     // TODO: Replace map with some hashmap for it to be faster
     float height = ImGui::GetTextLineHeightWithSpacing() + 2;
     float sliderHeight = height;
@@ -265,7 +265,27 @@ void SinkManager::showVolumeSlider(std::string name, std::string prefix, float w
     }
 
     SinkManager::Stream* stream = streams[name];
-
+    if (stream->volumeAjust.getLeftMuted()) {
+        ImGui::PushID(ImGui::GetID(("sdrpp_leftunmute_btn_" + name).c_str()));
+        if (ImGui::ImageButton(icons::LEFTMUTED, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), btwBorder)) {
+            stream->volumeAjust.setLeftMuted(false);
+            core::configManager.acquire();
+            saveStreamConfig(name);
+            core::configManager.release(true);
+        }
+        ImGui::PopID();
+    }
+    else {
+        ImGui::PushID(ImGui::GetID(("sdrpp_leftmute_btn_" + name).c_str()));
+        if (ImGui::ImageButton(icons::LEFTUNMUTED, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), btwBorder)) {
+            stream->volumeAjust.setLeftMuted(true);
+            core::configManager.acquire();
+            saveStreamConfig(name);
+            core::configManager.release(true);
+        }
+        ImGui::PopID();
+    }
+    ImGui::SameLine();
     if (stream->volumeAjust.getMuted()) {
         ImGui::PushID(ImGui::GetID(("sdrpp_unmute_btn_" + name).c_str()));
         if (ImGui::ImageButton(icons::MUTED, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), btwBorder)) {
@@ -287,10 +307,10 @@ void SinkManager::showVolumeSlider(std::string name, std::string prefix, float w
         ImGui::PopID();
     }
 
-    if (core::configManager.conf["showVolume"]) {
+    if (showSlider) {
         ImGui::SameLine();
 
-        ImGui::SetNextItemWidth(core::configManager.conf["volumeWidth"] - height - 8);
+        ImGui::SetNextItemWidth(width - 2*height - 2*8);
         ImGui::SetCursorPosY(ypos + ((height - sliderHeight) / 2.0f) + btwBorder);
         if (ImGui::SliderFloat((prefix + name).c_str(), &stream->guiVolume, 0.0f, 1.0f, "")) {
             stream->setVolume(stream->guiVolume);

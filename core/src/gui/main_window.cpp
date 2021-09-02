@@ -174,7 +174,12 @@ void MainWindow::init() {
     showSnrMeter = core::configManager.conf["showSnrMeter"];
     showTunerMode = core::configManager.conf["showTunerMode"];
     windowLogoLock = core::configManager.conf["windowLogoLock"];
+    showVolumeTaskBar = core::configManager.conf["showVolume"];
+    volumeTaskBarWidth = core::configManager.conf["volumeWidth"];
+    showFrequencyLock = core::configManager.conf["showFrequencyLock"];
+
     startedWithMenuClosed = !showMenu;
+
 
     gui::freqSelect.setFrequency(frequency);
     gui::freqSelect.frequencyChanged = false;
@@ -390,31 +395,34 @@ void MainWindow::draw() {
     ImGui::SameLine();
 
     //ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
-    sigpath::sinkManager.showVolumeSlider(gui::waterfall.selectedVFO, "##_sdrpp_main_volume_", 248, 30, 5, true);
+    sigpath::sinkManager.showVolumeSlider(gui::waterfall.selectedVFO, "##_sdrpp_main_volume_", volumeTaskBarWidth, 30, 5, true, showVolumeTaskBar);
+
+    if (showFrequencyLock) {
+        ImGui::SameLine();
+        //ImGui::SetCursorPosY(10);
+        ImGui::PushID(ImGui::GetID("sdrpp_lockfreq_btn"));
+        if (gui::freqSelect.getLockFrequency()) {
+            if (ImGui::ImageButton(icons::LOCK, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
+                gui::freqSelect.lockFrequency(false);
+                gui::waterfall.lockFrequency(false);
+            }
+            ImGui::PopID();
+        }
+        else {
+
+            if (ImGui::ImageButton(icons::UNLOCK, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
+                gui::freqSelect.lockFrequency(true);
+                gui::waterfall.lockFrequency(true);
+            }
+            ImGui::PopID();
+        }
+    }
 
     ImGui::SameLine();
 
     gui::freqSelect.draw();
 
-    ImGui::SameLine();
-    ImGui::SetCursorPosX(450);
-    ImGui::PushID(ImGui::GetID("sdrpp_lockfreq_btn"));
-    if (gui::freqSelect.getLockFrequency()) {
-        if (ImGui::ImageButton(icons::LOCK, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
-            gui::freqSelect.lockFrequency(false);
-            gui::waterfall.lockFrequency(false);
-        }
-        ImGui::PopID();
-    }
-    else {
 
-        if (ImGui::ImageButton(icons::UNLOCK, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
-            gui::freqSelect.lockFrequency(true);
-            gui::waterfall.lockFrequency(true);
-        }
-        ImGui::PopID();
-    }
-    ImGui::SameLine();
 
     if (showTunerMode) {
         ImGui::SameLine();

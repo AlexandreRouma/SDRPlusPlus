@@ -58,6 +58,9 @@ private:
     bool showMenuDebug = false;
     bool showSnrMeter = true;
     bool showTunerMode = true;
+    bool showVolumeTaskBar = true;
+    float volumeTaskBarWidth = 200;
+    bool showFrequencyLock = true;
     bool windowLogoLock = true;
 
     int tuningMode = tuner::TUNER_MODE_NORMAL;

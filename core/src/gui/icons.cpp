@@ -16,6 +16,8 @@ namespace icons {
     ImTextureID MENU;
     ImTextureID MUTED;
     ImTextureID UNMUTED;
+    ImTextureID LEFTMUTED;
+    ImTextureID LEFTUNMUTED;
     ImTextureID NORMAL_TUNING;
     ImTextureID CENTER_TUNING;
     ImTextureID LOCK;
@@ -47,6 +49,8 @@ namespace icons {
         MENU = (ImTextureID)(uintptr_t)loadTexture(resDir + "/icons/menu.png");
         MUTED = (ImTextureID)(uintptr_t)loadTexture(resDir + "/icons/muted.png");
         UNMUTED = (ImTextureID)(uintptr_t)loadTexture(resDir + "/icons/unmuted.png");
+        LEFTMUTED = (ImTextureID)(uintptr_t)loadTexture(resDir + "/icons/leftmuted.png");
+        LEFTUNMUTED = (ImTextureID)(uintptr_t)loadTexture(resDir + "/icons/leftunmuted.png");
         NORMAL_TUNING = (ImTextureID)(uintptr_t)loadTexture(resDir + "/icons/normal_tuning.png");
         CENTER_TUNING = (ImTextureID)(uintptr_t)loadTexture(resDir + "/icons/center_tuning.png");
         LOCK = (ImTextureID)(uintptr_t)loadTexture(resDir + "/icons/Lock.png");

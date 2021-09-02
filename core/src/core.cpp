@@ -230,7 +230,8 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["showTunerMode"] = true;
     defConfig["showSnrMeter"] = true;
     defConfig["showVolume"] = true;
-    defConfig["volumeWidth"] = 100;
+    defConfig["volumeWidth"] = 200;
+    defConfig["showFrequencyLock"] = true;
     defConfig["source"] = "";
     defConfig["decimationPower"] = 0;
     defConfig["iqCorrection"] = false;
