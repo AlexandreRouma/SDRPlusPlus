@@ -121,12 +121,12 @@ ifMode_t ifModes[] = {
 
 const char* ifModeTxt =
     "ZeroIF\0"
-    "IF 2048KHz, IFBW 1536KHz\0"
-    "IF 2048KHz, IFBW 5000KHz\0"
-    "IF 1620KHz, IFBW 1536KHz\0"
-    "IF 450KHz, IFBW 600KHz\0"
-    "IF 450KHz, IFBW 300KHz\0"
-    "IF 450KHz, IFBW 200KHz\0";
+    "LowIF 2048KHz, IFBW 1536KHz\0"
+    "LowIF 2048KHz, IFBW 5000KHz\0"
+    "LowIF 1620KHz, IFBW 1536KHz\0"
+    "LowIF 450KHz, IFBW 600KHz\0"
+    "LowIF 450KHz, IFBW 300KHz\0"
+    "LowIF 450KHz, IFBW 200KHz\0";
 
 const char* rspduo_antennaPortsTxt = "Tuner 1 (50Ohm)\0Tuner 1 (Hi-Z)\0Tuner 2 (50Ohm)\0";
 
