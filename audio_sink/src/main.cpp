@@ -156,6 +156,7 @@ public:
             config.conf[_streamName]["devices"][devList[devId].name] = sampleRate;
             config.release(true);
         }
+
     }
 
 private:

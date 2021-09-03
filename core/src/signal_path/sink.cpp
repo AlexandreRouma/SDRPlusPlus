@@ -239,9 +239,10 @@ void SinkManager::setStreamSink(std::string name, std::string providerName) {
     }
 }
 
-void SinkManager::showVolumeSlider(std::string name, std::string prefix, float width, float btnHeight, int btwBorder, bool sameLine, bool showSlider) {
+void SinkManager::showVolumeSlider(std::string name, std::string prefix, float width, float btnHeight, int btwBorder, bool sameLine, bool showSlider, bool showLockMute) {
     // TODO: Replace map with some hashmap for it to be faster
     float height = ImGui::GetTextLineHeightWithSpacing() + 2;
+    float mute_height = 0;
     float sliderHeight = height;
     if (btnHeight > 0) {
         height = btnHeight;
@@ -265,6 +266,11 @@ void SinkManager::showVolumeSlider(std::string name, std::string prefix, float w
     }
 
     SinkManager::Stream* stream = streams[name];
+    if (showLockMute) {
+        ImGui::Checkbox("Lock/UnLock Mute", &stream->volumeAjust.lockMuted);
+        ImGui::SetCursorPosY(ypos + height + 0 * btwBorder);
+        mute_height = height + 0 * btwBorder;
+    }
     if (stream->volumeAjust.getLeftMuted()) {
         ImGui::PushID(ImGui::GetID(("sdrpp_leftunmute_btn_" + name).c_str()));
         if (ImGui::ImageButton(icons::LEFTMUTED, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), btwBorder)) {
@@ -311,7 +317,7 @@ void SinkManager::showVolumeSlider(std::string name, std::string prefix, float w
         ImGui::SameLine();
 
         ImGui::SetNextItemWidth(width - 2*height - 2*8);
-        ImGui::SetCursorPosY(ypos + ((height - sliderHeight) / 2.0f) + btwBorder);
+        ImGui::SetCursorPosY(ypos + ((height - sliderHeight) / 2.0f) + mute_height + btwBorder);
         if (ImGui::SliderFloat((prefix + name).c_str(), &stream->guiVolume, 0.0f, 1.0f, "")) {
             stream->setVolume(stream->guiVolume);
             core::configManager.acquire();

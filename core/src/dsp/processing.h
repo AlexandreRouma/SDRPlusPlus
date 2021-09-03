@@ -317,6 +317,9 @@ namespace dsp {
         void setMuted(bool muted) {
             assert(generic_block<Volume<T>>::_block_init);
             _muted = muted;
+            if (lockMuted) {
+                _leftMuted = muted;
+            }
         }
 
         bool getMuted() {
@@ -327,6 +330,9 @@ namespace dsp {
         void setLeftMuted(bool muted) {
             assert(generic_block<Volume<T>>::_block_init);
             _leftMuted = muted;
+            if (lockMuted) {
+                _muted = muted;
+            }
         }
 
         bool getLeftMuted() {
@@ -379,6 +385,7 @@ namespace dsp {
             return count;
         }
 
+        bool lockMuted = true;
         stream<T> out;
 
     private:

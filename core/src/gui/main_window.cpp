@@ -395,7 +395,7 @@ void MainWindow::draw() {
     ImGui::SameLine();
 
     //ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8);
-    sigpath::sinkManager.showVolumeSlider(gui::waterfall.selectedVFO, "##_sdrpp_main_volume_", volumeTaskBarWidth, 30, 5, true, showVolumeTaskBar);
+    sigpath::sinkManager.showVolumeSlider(gui::waterfall.selectedVFO, "##_sdrpp_main_volume_", volumeTaskBarWidth, 30, 5, true, showVolumeTaskBar, false);
 
     if (showFrequencyLock) {
         ImGui::SameLine();
