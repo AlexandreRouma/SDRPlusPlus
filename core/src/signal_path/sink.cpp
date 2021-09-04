@@ -267,10 +267,15 @@ void SinkManager::showVolumeSlider(std::string name, std::string prefix, float w
 
     SinkManager::Stream* stream = streams[name];
     if (showLockMute) {
+        ypos = ImGui::GetCursorPosY();
         ImGui::Checkbox("Lock/UnLock Mute", &stream->volumeAjust.lockMuted);
-        ImGui::SetCursorPosY(ypos + height + 0 * btwBorder);
-        mute_height = height + 0 * btwBorder;
+        core::configManager.acquire(); 
+        core::configManager.conf["lockMute"] = stream->volumeAjust.lockMuted;
+        core::configManager.release(true);
+        ImGui::SetCursorPosY(ypos + height + 2*btwBorder);
+        ypos = ImGui::GetCursorPosY();
     }
+
     if (stream->volumeAjust.getLeftMuted()) {
         ImGui::PushID(ImGui::GetID(("sdrpp_leftunmute_btn_" + name).c_str()));
         if (ImGui::ImageButton(icons::LEFTMUTED, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), btwBorder)) {
@@ -317,7 +322,7 @@ void SinkManager::showVolumeSlider(std::string name, std::string prefix, float w
         ImGui::SameLine();
 
         ImGui::SetNextItemWidth(width - 2*height - 2*8);
-        ImGui::SetCursorPosY(ypos + ((height - sliderHeight) / 2.0f) + mute_height + btwBorder);
+        ImGui::SetCursorPosY(ypos + ((height - sliderHeight) / 2.0f) + btwBorder);
         if (ImGui::SliderFloat((prefix + name).c_str(), &stream->guiVolume, 0.0f, 1.0f, "")) {
             stream->setVolume(stream->guiVolume);
             core::configManager.acquire();
@@ -349,6 +354,8 @@ void SinkManager::loadStreamConfig(std::string name) {
     }
     stream->setVolume(conf["volume"]);
     stream->volumeAjust.setMuted(conf["muted"]);
+    stream->volumeAjust.setLeftMuted(conf["mutedLeft"]);
+    stream->volumeAjust.lockMuted = conf["mutedLock"];
 }
 
 void SinkManager::saveStreamConfig(std::string name) {
@@ -357,6 +364,8 @@ void SinkManager::saveStreamConfig(std::string name) {
     conf["sink"] = providerNames[stream->providerId];
     conf["volume"] = stream->getVolume();
     conf["muted"] = stream->volumeAjust.getMuted();
+    conf["mutedLeft"] = stream->volumeAjust.getLeftMuted();
+    conf["mutedLock"] = stream->volumeAjust.lockMuted;
     core::configManager.conf["streams"][name] = conf;
 }
 
