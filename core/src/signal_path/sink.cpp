@@ -276,27 +276,30 @@ void SinkManager::showVolumeSlider(std::string name, std::string prefix, float w
         ypos = ImGui::GetCursorPosY();
     }
 
-    if (stream->volumeAjust.getLeftMuted()) {
-        ImGui::PushID(ImGui::GetID(("sdrpp_leftunmute_btn_" + name).c_str()));
-        if (ImGui::ImageButton(icons::LEFTMUTED, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), btwBorder)) {
-            stream->volumeAjust.setLeftMuted(false);
-            core::configManager.acquire();
-            saveStreamConfig(name);
-            core::configManager.release(true);
+    if (!stream->volumeAjust.lockMuted) {
+        if (stream->volumeAjust.getLeftMuted()) {
+            ImGui::PushID(ImGui::GetID(("sdrpp_leftunmute_btn_" + name).c_str()));
+            if (ImGui::ImageButton(icons::LEFTMUTED, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), btwBorder)) {
+                stream->volumeAjust.setLeftMuted(false);
+                core::configManager.acquire();
+                saveStreamConfig(name);
+                core::configManager.release(true);
+            }
+            ImGui::PopID();
         }
-        ImGui::PopID();
-    }
-    else {
-        ImGui::PushID(ImGui::GetID(("sdrpp_leftmute_btn_" + name).c_str()));
-        if (ImGui::ImageButton(icons::LEFTUNMUTED, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), btwBorder)) {
-            stream->volumeAjust.setLeftMuted(true);
-            core::configManager.acquire();
-            saveStreamConfig(name);
-            core::configManager.release(true);
+        else {
+            ImGui::PushID(ImGui::GetID(("sdrpp_leftmute_btn_" + name).c_str()));
+            if (ImGui::ImageButton(icons::LEFTUNMUTED, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), btwBorder)) {
+                stream->volumeAjust.setLeftMuted(true);
+                core::configManager.acquire();
+                saveStreamConfig(name);
+                core::configManager.release(true);
+            }
+            ImGui::PopID();
         }
-        ImGui::PopID();
+        ImGui::SameLine();
     }
-    ImGui::SameLine();
+
     if (stream->volumeAjust.getMuted()) {
         ImGui::PushID(ImGui::GetID(("sdrpp_unmute_btn_" + name).c_str()));
         if (ImGui::ImageButton(icons::MUTED, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), btwBorder)) {
