@@ -137,8 +137,9 @@ private:
     static void applyBookmark(FrequencyBookmark bm, std::string vfoName) {
         if (vfoName == "") {
             // TODO: Replace with proper tune call
-            gui::waterfall.setCenterFrequency(bm.frequency);
+            gui::waterfall.setCenterFrequency(bm.frequency + 500000);
             gui::waterfall.centerFreqMoved = true;
+            tuner::tune(tuner::TUNER_MODE_NORMAL, gui::waterfall.selectedVFO, bm.frequency);
         }
         else {
             if (core::modComManager.interfaceExists(vfoName)) {
@@ -618,18 +619,25 @@ private:
             delete _this->exportDialog;
         }
 
-        ImGui::Checkbox("Scan Channels##_freq_mgr_scan_", &_this->scanFreqs);
+        ImGui::Checkbox("scan channels in view##_freq_mgr_scan_", &_this->scanFreqs);
     }
 
     static void fftRedraw(ImGui::WaterFall::FFTRedrawArgs args, void* ctx) {
         FrequencyManagerModule* _this = (FrequencyManagerModule*)ctx;
         if (_this->scanFreqs) {
           std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-          if (std::chrono::duration_cast<std::chrono::milliseconds> (end - _this->scanTS).count() > 100) {
+          if (std::chrono::duration_cast<std::chrono::milliseconds> (end - _this->scanTS).count() > _this->scanDwell) {
             if (gui::waterfall.selectedVFOSNR < _this->scanSNRThreshold) {
+              // We can only scan channels within the screen view:
+              double BW = gui::waterfall.getViewBandwidth();
+              double view = gui::waterfall.getCenterFrequency();
+              double bottom = view - (BW / 2.0);
+              double top = view + (BW / 2.0);
               _this->scanCh = (_this->scanCh + 1) % _this->waterfallBookmarks.size();
-              _this->scanTS = std::chrono::steady_clock::now();
-              applyBookmark(_this->waterfallBookmarks[_this->scanCh].bookmark, gui::waterfall.selectedVFO);
+              if (_this->waterfallBookmarks[_this->scanCh].bookmark.frequency > bottom && _this->waterfallBookmarks[_this->scanCh].bookmark.frequency < top) {
+                _this->scanTS = std::chrono::steady_clock::now();
+                applyBookmark(_this->waterfallBookmarks[_this->scanCh].bookmark, gui::waterfall.selectedVFO);
+              }
             }
           }
         }
@@ -829,9 +837,10 @@ private:
     bool renameListOpen = false;
     bool selectListsOpen = false;
 
-    bool scanFreqs = false;
-    int  scanCh = 0;
-    float scanSNRThreshold = 20.0;
+    bool  scanFreqs = false;
+    int   scanCh = 0;
+    float scanSNRThreshold = 20.0;  // TODO: make configurable
+    int   scanDwell = 100;          // TODO: make configurable
     std::chrono::steady_clock::time_point scanTS = std::chrono::steady_clock::now();
 
     EventHandler<ImGui::WaterFall::FFTRedrawArgs> fftRedrawHandler;
