@@ -137,9 +137,8 @@ private:
     static void applyBookmark(FrequencyBookmark bm, std::string vfoName) {
         if (vfoName == "") {
             // TODO: Replace with proper tune call
-            gui::waterfall.setCenterFrequency(bm.frequency + 500000);
+            gui::waterfall.setCenterFrequency(bm.frequency);
             gui::waterfall.centerFreqMoved = true;
-            tuner::tune(tuner::TUNER_MODE_NORMAL, gui::waterfall.selectedVFO, bm.frequency);
         }
         else {
             if (core::modComManager.interfaceExists(vfoName)) {
