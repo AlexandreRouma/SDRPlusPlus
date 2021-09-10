@@ -11,6 +11,7 @@
 #include <vector>
 #include <gui/tuner.h>
 #include <gui/file_dialogs.h>
+#include <chrono>
 
 SDRPP_MOD_INFO {
     /* Name:            */ "frequency_manager",
@@ -616,10 +617,23 @@ private:
             }
             delete _this->exportDialog;
         }
+
+        ImGui::Checkbox("Scan Channels##_freq_mgr_scan_", &_this->scanFreqs);
     }
 
     static void fftRedraw(ImGui::WaterFall::FFTRedrawArgs args, void* ctx) {
         FrequencyManagerModule* _this = (FrequencyManagerModule*)ctx;
+        if (_this->scanFreqs) {
+          std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+          if (std::chrono::duration_cast<std::chrono::milliseconds> (end - _this->scanTS).count() > 100) {
+            if (gui::waterfall.selectedVFOSNR < _this->scanSNRThreshold) {
+              _this->scanCh = (_this->scanCh + 1) % _this->waterfallBookmarks.size();
+              _this->scanTS = std::chrono::steady_clock::now();
+              applyBookmark(_this->waterfallBookmarks[_this->scanCh].bookmark, gui::waterfall.selectedVFO);
+            }
+          }
+        }
+
         if (_this->bookmarkDisplayMode == BOOKMARK_DISP_MODE_OFF) { return; }
 
         if (_this->bookmarkDisplayMode == BOOKMARK_DISP_MODE_TOP) { 
@@ -814,6 +828,11 @@ private:
     bool newListOpen = false;
     bool renameListOpen = false;
     bool selectListsOpen = false;
+
+    bool scanFreqs = false;
+    int  scanCh = 0;
+    float scanSNRThreshold = 20.0;
+    std::chrono::steady_clock::time_point scanTS = std::chrono::steady_clock::now();
 
     EventHandler<ImGui::WaterFall::FFTRedrawArgs> fftRedrawHandler;
     EventHandler<ImGui::WaterFall::InputHandlerArgs> inputHandler;
