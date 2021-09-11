@@ -16,10 +16,10 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #   define WIN32_LEAN_AND_MEAN 1
 #endif
-#include <Windows.h>
+#include <windows.h>
 #include <commdlg.h>
-#include <ShlObj.h>
-#include <ShObjIdl.h> // IFileDialog
+#include <shlobj.h>
+#include <shobjidl.h> // IFileDialog
 #include <shellapi.h>
 #include <strsafe.h>
 #include <future>     // std::async

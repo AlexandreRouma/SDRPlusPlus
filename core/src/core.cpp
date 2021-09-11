@@ -26,7 +26,7 @@
 #include <signal_path/signal_path.h>
 
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 #ifndef INSTALL_PREFIX
