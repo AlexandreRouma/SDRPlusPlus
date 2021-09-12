@@ -46,6 +46,7 @@ namespace dsp {
             if (running) { return; }
             xlator.start();
             resamp.start();
+            running = true;
         }
 
         void stop() {
@@ -53,6 +54,7 @@ namespace dsp {
             if (!running) { return; }
             xlator.stop();
             resamp.stop();
+            running = false;
         }
 
         void setInSampleRate(float inSampleRate) {

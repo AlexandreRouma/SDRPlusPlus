@@ -35,6 +35,7 @@ namespace sdrpp_credits {
     };
 
     const char* patrons[] = {
+        "Bob Logan",
         "Croccydile",
         "Daniele D'Agnelli",
         "EB3FRN",

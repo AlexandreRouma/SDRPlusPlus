@@ -353,6 +353,7 @@ I will soon publish a contributing.md listing the code style to use.
 
 ## Patrons
 
+* Bob Logan
 * Croccydile
 * [Daniele D'Agnelli](https://linkedin.com/in/dagnelli)
 * [EB3FRN](https://www.eb3frn.net/)
