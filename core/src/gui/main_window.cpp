@@ -188,6 +188,7 @@ void MainWindow::init() {
     gui::waterfall.setFFTHeight(fftHeight);
 
     tuningMode = core::configManager.conf["centerTuning"] ? tuner::TUNER_MODE_CENTER : tuner::TUNER_MODE_NORMAL;
+    gui::waterfall.VFOMoveSingleClick = (tuningMode == tuner::TUNER_MODE_CENTER);
 
     core::configManager.release();
 
@@ -397,6 +398,7 @@ void MainWindow::draw() {
         ImGui::PushID(ImGui::GetID("sdrpp_ena_st_btn"));
         if (ImGui::ImageButton(icons::CENTER_TUNING, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
             tuningMode = tuner::TUNER_MODE_NORMAL;
+            gui::waterfall.VFOMoveSingleClick = false;
             core::configManager.acquire();
             core::configManager.conf["centerTuning"] = false;
             core::configManager.release(true);
@@ -407,6 +409,7 @@ void MainWindow::draw() {
         ImGui::PushID(ImGui::GetID("sdrpp_dis_st_btn"));
         if (ImGui::ImageButton(icons::NORMAL_TUNING, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5)) {
             tuningMode = tuner::TUNER_MODE_CENTER;
+            gui::waterfall.VFOMoveSingleClick = true;
             tuner::tune(tuner::TUNER_MODE_CENTER, gui::waterfall.selectedVFO, gui::freqSelect.frequency);
             core::configManager.acquire();
             core::configManager.conf["centerTuning"] = true;
@@ -524,6 +527,8 @@ void MainWindow::draw() {
                 gui::menu.order[0].open = true;
                 firstMenuRender = true;
             }
+
+            ImGui::Checkbox("WF Single Click", &gui::waterfall.VFOMoveSingleClick);
 
             ImGui::Spacing();
         }

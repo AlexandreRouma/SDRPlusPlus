@@ -418,7 +418,7 @@ namespace ImGui {
         }
 
         // Finally, if nothing else was selected, just move the VFO
-        if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && (mouseInFFT|mouseInWaterfall) && (mouseMoved || hoveredVFOName == "")) {
+        if ((VFOMoveSingleClick ? ImGui::IsMouseClicked(ImGuiMouseButton_Left) : ImGui::IsMouseDown(ImGuiMouseButton_Left)) && (mouseInFFT|mouseInWaterfall) && (mouseMoved || hoveredVFOName == "")) {
             if (selVfo != NULL) {
                 int refCenter = mousePos.x - (widgetPos.x + 50);
                 if (refCenter >= 0 && refCenter < dataWidth) {

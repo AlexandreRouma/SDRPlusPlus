@@ -175,6 +175,7 @@ namespace ImGui {
         };
 
         bool inputHandled = false;
+        bool VFOMoveSingleClick = false;
         Event<InputHandlerArgs> onInputProcess;
 
         enum {
