@@ -137,6 +137,7 @@ namespace ImGui {
         bool bandplanEnabled = false;
         bandplan::BandPlan_t* bandplan = NULL;
 
+        bool mouseInFFTResize = false;
         bool mouseInFreq = false;
         bool mouseInFFT = false;
         bool mouseInWaterfall = false;
@@ -280,6 +281,7 @@ namespace ImGui {
         int bandPlanPos = BANDPLAN_POS_BOTTOM;
 
         // UI Select elements
+        bool fftResizeSelect = false;
         bool freqScaleSelect = false;
         bool vfoSelect = false;
         bool vfoBorderSelect = false;
