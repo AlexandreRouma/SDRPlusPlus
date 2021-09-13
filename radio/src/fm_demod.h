@@ -183,7 +183,7 @@ private:
     }
 
     const float bwMax = 50000;
-    const float bwMin = 6000;
+    const float bwMin = 1000;
     const float bbSampRate = 50000;
 
     std::string uiPrefix;
