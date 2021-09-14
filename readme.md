@@ -338,7 +338,7 @@ To solve, this, simply downgrade to libusb1.3
 
 If you also have the SoapySDR module loaded (not necessarily enabled), this is a bug in libhackrf. It's caused by libhackrf not checking if it's already initialized.
 The solution until a fixed libhackrf version is released is to completely remove the soapy_source module from SDR++. To do this, delete `modules/soapy_source.dll` on windows
-or `/usr/share/sdrpp/plugins/soapy_source.so` on linux.
+or `/usr/lib/sdrpp/plugins/soapy_source.so` on linux.
 
 ## Issue not listed here?
 
@@ -353,6 +353,7 @@ I will soon publish a contributing.md listing the code style to use.
 
 ## Patrons
 
+* Bob Logan
 * Croccydile
 * [Daniele D'Agnelli](https://linkedin.com/in/dagnelli)
 * [EB3FRN](https://www.eb3frn.net/)

@@ -246,6 +246,7 @@ namespace ImGui {
                                                 ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_PressedOnClick);
 
         bool draging = ImGui::IsMouseDragging(ImGuiMouseButton_Left) && ImGui::IsWindowFocused();
+        mouseInFFTResize = (dragOrigin.x > widgetPos.x && dragOrigin.x < widgetPos.x + widgetSize.x && dragOrigin.y >= widgetPos.y + newFFTAreaHeight - 2 && dragOrigin.y <= widgetPos.y + newFFTAreaHeight + 2);
         mouseInFreq = IS_IN_AREA(dragOrigin, freqAreaMin, freqAreaMax);
         mouseInFFT = IS_IN_AREA(dragOrigin, fftAreaMin, fftAreaMax);
         mouseInWaterfall = IS_IN_AREA(dragOrigin, wfMin, wfMax);
@@ -266,15 +267,31 @@ namespace ImGui {
 
         // Deselect everything if the mouse is released
         if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+            if (fftResizeSelect) {
+                FFTAreaHeight = newFFTAreaHeight;
+                onResize();
+            }
+
+            fftResizeSelect = false;
             freqScaleSelect = false;
             vfoSelect = false;
             vfoBorderSelect = false;
             lastDrag = 0;
         }
 
-        // If mouse was clicked, check what was clicked
-        if (mouseClicked) {
-            bool targetFound = false;
+        bool targetFound = false;
+
+        // If the mouse was clicked anywhere in the waterfall, check if the resize was clicked
+        if (mouseInFFTResize) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
+            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                fftResizeSelect = true;
+                targetFound = true;
+            }
+        }
+
+        // If mouse was clicked inside the central part, check what was clicked
+        if (mouseClicked && !targetFound) {
             mouseDownPos = mousePos;
 
             // First, check if a VFO border was selected
@@ -309,6 +326,16 @@ namespace ImGui {
             if (!targetFound && mouseInFreq) {
                 freqScaleSelect = true;
             }
+        }
+
+        // If the FFT resize bar was selected, resize FFT accordingly
+        if (fftResizeSelect) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
+            newFFTAreaHeight = mousePos.y - widgetPos.y;
+            newFFTAreaHeight = std::clamp<float>(newFFTAreaHeight, 150, widgetSize.y - 50);
+            ImGui::GetForegroundDrawList()->AddLine(ImVec2(widgetPos.x, newFFTAreaHeight + widgetPos.y), ImVec2(widgetEndPos.x, newFFTAreaHeight + widgetPos.y), 
+                                                    ImGui::GetColorU32(ImGuiCol_SeparatorActive));
+            return;
         }
 
         // If a vfo border is selected, resize VFO accordingly
@@ -418,7 +445,7 @@ namespace ImGui {
         }
 
         // Finally, if nothing else was selected, just move the VFO
-        if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && (mouseInFFT|mouseInWaterfall) && (mouseMoved || hoveredVFOName == "")) {
+        if ((VFOMoveSingleClick ? ImGui::IsMouseClicked(ImGuiMouseButton_Left) : ImGui::IsMouseDown(ImGuiMouseButton_Left)) && (mouseInFFT|mouseInWaterfall) && (mouseMoved || hoveredVFOName == "")) {
             if (selVfo != NULL) {
                 int refCenter = mousePos.x - (widgetPos.x + 50);
                 if (refCenter >= 0 && refCenter < dataWidth) {
@@ -806,33 +833,6 @@ namespace ImGui {
         if (!waterfallVisible) {
             buf_mtx.unlock();
             return;
-        }
-
-        // Handle fft resize
-        if (!gui::mainWindow.lockWaterfallControls && !inputHandled) { 
-            ImVec2 winSize = ImGui::GetWindowSize();
-            ImVec2 mousePos = ImGui::GetMousePos();
-            mousePos.x -= widgetPos.x;
-            mousePos.y -= widgetPos.y;
-            bool click = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
-            bool down = ImGui::IsMouseDown(ImGuiMouseButton_Left);
-            if (draggingFW) {
-                newFFTAreaHeight = mousePos.y;
-                newFFTAreaHeight = std::clamp<float>(newFFTAreaHeight, 150, widgetSize.y - 50);
-                ImGui::GetForegroundDrawList()->AddLine(ImVec2(widgetPos.x, newFFTAreaHeight + widgetPos.y), ImVec2(widgetEndPos.x, newFFTAreaHeight + widgetPos.y), 
-                                                        ImGui::GetColorU32(ImGuiCol_SeparatorActive));
-            }
-            if (mousePos.y >= newFFTAreaHeight - 2 && mousePos.y <= newFFTAreaHeight + 2 && mousePos.x > 0 && mousePos.x < widgetSize.x) {
-                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
-                if (click) {
-                    draggingFW = true;
-                }
-            }
-            if(!down && draggingFW) {
-                draggingFW = false;
-                FFTAreaHeight = newFFTAreaHeight;
-                onResize();
-            }
         }
 
         buf_mtx.unlock();
