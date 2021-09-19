@@ -11,7 +11,7 @@ sudo apt install -y build-essential cmake git libfftw3-dev libglfw3-dev libglew-
 echo "Preparing build"
 mkdir -p build
 cd build
-cmake .. -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON
+cmake .. -DOPT_BUILD_LIMESDR_SOURCE=ON
 
 echo "Building"
 make
