@@ -279,7 +279,7 @@ jobs:
         - uses: actions/checkout@v2
 
         - name: Install codespell
-          run: apt update -y && apt install -y codespell
+          run: sudo apt update -y && sudo apt install -y codespell
         
         - name: Running codespell
           run: cd $GITHUB_WORKSPACE && codespell -q 2 || true
