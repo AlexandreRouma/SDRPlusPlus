@@ -32,7 +32,7 @@ public:
 
     void unbindHandler(EventHandler<T>* handler) {
         if (std::find(handlers.begin(), handlers.end(), handler) == handlers.end()) {
-            spdlog::error("Tried to remove a non-existant event handler");
+            spdlog::error("Tried to remove a non-existent event handler");
             return;
         }
         handlers.erase(std::remove(handlers.begin(), handlers.end(), handler), handlers.end());

@@ -344,7 +344,7 @@ private:
         
         _this->streamingEnabled = true;
 
-        // Setup syncronous transfer
+        // Setup synchronous transfer
         bladerf_sync_config(_this->openDev, BLADERF_RX_X1, BLADERF_FORMAT_SC16_Q11, 16, _this->bufferSize, 8, 3500);
 
         // Enable streaming

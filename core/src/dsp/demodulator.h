@@ -8,7 +8,7 @@
 #include <dsp/pll.h>
 #include <dsp/clock_recovery.h>
 #include <dsp/math.h>
-#include <dsp/convertion.h>
+#include <dsp/conversion.h>
 #include <dsp/audio.h>
 #include <dsp/stereo_fm.h>
 

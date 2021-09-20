@@ -1,6 +1,6 @@
 #pragma once
 #include <radio_demod.h>
-#include <dsp/convertion.h>
+#include <dsp/conversion.h>
 #include <dsp/resampling.h>
 #include <dsp/filter.h>
 #include <dsp/audio.h>

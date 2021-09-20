@@ -173,7 +173,7 @@ namespace dsp {
 
                 int element = readBits(19, 6, _in->readBuf);
 
-                // If we've skipped or are on a non image element and there's data avilable, send it
+                // If we've skipped or are on a non image element and there's data available, send it
                 if ((element < lastElement || element > 55) && newImageData) {
                     newImageData = false;
                     for (int i = 0; i < 20; i++) {

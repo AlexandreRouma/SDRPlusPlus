@@ -584,7 +584,7 @@ private:
                 core::modComManager.callInterface(selectedRecorder, RECORDER_IFACE_CMD_START, NULL, NULL);
             }
 
-            // Respond with a sucess
+            // Respond with a success
             resp = "RPRT 0\n";
             client->write(resp.size(), (uint8_t*)resp.c_str());
         }

@@ -74,7 +74,7 @@ namespace dsp {
 
         Reshaper(stream<T>* in, int keep, int skip) { init(in, keep, skip); }
 
-        // NOTE: For some reason, the base class destrcutor doesn't get called.... this is a temporary fix I guess
+        // NOTE: For some reason, the base class destructor doesn't get called.... this is a temporary fix I guess
         // I also don't check for _block_init for the exact sample reason, something's weird
         ~Reshaper() {
             if (!generic_block<Reshaper<T>>::_block_init) { return; }

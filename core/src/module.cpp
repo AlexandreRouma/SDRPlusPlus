@@ -102,7 +102,7 @@ void ModuleManager::createInstance(std::string name, std::string module) {
 
 void ModuleManager::deleteInstance(std::string name) {
     if (instances.find(name) == instances.end()) {
-        spdlog::error("Tried to remove non-existant instance '{0}'", name);
+        spdlog::error("Tried to remove non-existent instance '{0}'", name);
         return;
     }
     onInstanceDelete.emit(name);

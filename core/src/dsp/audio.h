@@ -80,7 +80,7 @@ namespace dsp {
             if (count_r < 0) { return -1; }
 
             if (count_l != count_r) {
-                spdlog::warn("ChannelsToStereo block size missmatch");
+                spdlog::warn("ChannelsToStereo block size mismatch");
             }
 
             volk_32f_x2_interleave_32fc((lv_32fc_t*)out.writeBuf, _in_left->readBuf, _in_right->readBuf, count_l);

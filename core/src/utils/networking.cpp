@@ -302,7 +302,7 @@ namespace net {
     Socket sock;
 
 #ifdef _WIN32
-        // Initilize WinSock2
+        // Initialize WinSock2
         if (!winsock_init) {
             WSADATA wsa;
             if (WSAStartup(MAKEWORD(2,2),&wsa)) {
@@ -350,7 +350,7 @@ namespace net {
         Socket listenSock;
 
 #ifdef _WIN32
-        // Initilize WinSock2
+        // Initialize WinSock2
         if (!winsock_init) {
             WSADATA wsa;
             if (WSAStartup(MAKEWORD(2,2),&wsa)) {
@@ -416,7 +416,7 @@ namespace net {
         Socket sock;
 
 #ifdef _WIN32
-        // Initilize WinSock2
+        // Initialize WinSock2
         if (!winsock_init) {
             WSADATA wsa;
             if (WSAStartup(MAKEWORD(2,2),&wsa)) {

@@ -171,7 +171,7 @@ namespace dsp {
                     _c_2T = _c_1T;
                     _c_1T = _c_0T;
 
-                    // Perfrom interpolation the same way as for float values
+                    // Perform interpolation the same way as for float values
                     if (i < 7) {
                         volk_32fc_32f_dot_prod_32fc((lv_32fc_t*)&_p_0T, (lv_32fc_t*)&delay[i], INTERP_TAPS[(int)roundf(_mu * 128.0f)], 8);
                     }

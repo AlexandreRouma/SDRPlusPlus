@@ -13,7 +13,7 @@ namespace style {
 
     bool loadFonts(std::string resDir) {
         if (!std::filesystem::is_directory(resDir)) {
-            spdlog::error("Inavlid resource directory: {0}", resDir);
+            spdlog::error("Invalid resource directory: {0}", resDir);
             return false;
         }
 

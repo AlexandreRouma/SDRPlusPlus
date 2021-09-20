@@ -56,7 +56,7 @@ There are currently no BSD packages, refer to [Building on Linux / BSD](https://
 
 # Building on Windows
 
-The prefered IDE is [VS Code](https://code.visualstudio.com/) in order to have similar development experience across platforms and to build with CMake using the command line.
+The preferred IDE is [VS Code](https://code.visualstudio.com/) in order to have similar development experience across platforms and to build with CMake using the command line.
 
 ## Install dependencies
 
@@ -144,7 +144,7 @@ Remember that these paths will be relative to the run directory.
 If you choose to run SDR++ for development, you do not need this step.
 First, copy over the exe and DLLs from `build/Release/` to `root_dev`.
 
-Next you need to copy over all the modules that were compiled. To do so, copy the DLL file of the module (located in its build folder given below) to the `root_dev/modules` directory and other DLLs (that do not have the exact name of the modue) to the `root_dev` directory.
+Next you need to copy over all the modules that were compiled. To do so, copy the DLL file of the module (located in its build folder given below) to the `root_dev/modules` directory and other DLLs (that do not have the exact name of the module) to the `root_dev` directory.
 
 The modules built will be some of the following (Repeat the instructions above for all you wish to use):
 

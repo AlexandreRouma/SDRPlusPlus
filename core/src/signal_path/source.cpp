@@ -17,7 +17,7 @@ void SourceManager::registerSource(std::string name, SourceHandler* handler) {
 
 void SourceManager::unregisterSource(std::string name) {
     if (sources.find(name) == sources.end()) {
-        spdlog::error("Tried to unregister non existant source: {0}", name);
+        spdlog::error("Tried to unregister non existent source: {0}", name);
         return;
     }
     onSourceUnregister.emit(name);
@@ -40,7 +40,7 @@ std::vector<std::string> SourceManager::getSourceNames() {
 
 void SourceManager::selectSource(std::string  name) {
     if (sources.find(name) == sources.end()) {
-        spdlog::error("Tried to select non existant source: {0}", name);
+        spdlog::error("Tried to select non existent source: {0}", name);
         return;
     }
     if (selectedHandler != NULL) {
