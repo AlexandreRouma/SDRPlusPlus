@@ -271,3 +271,15 @@ jobs:
           with:
             name: sdrpp_all
             path: sdrpp_all/
+
+    check_spelling:
+        runs-on: ubuntu-latest
+
+        steps:
+        - uses: actions/checkout@v2
+
+        - name: Install codespell
+          run: apt update -y && apt install -y codespell
+        
+        - name: Running codespell
+          run: cd $GITHUB_WORKSPACE && codespell -q 2 || true
