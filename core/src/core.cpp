@@ -206,6 +206,7 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["moduleInstances"]["PlutoSDR Source"]["enabled"] = true;
 
     defConfig["moduleInstances"]["Audio Sink"] = "audio_sink";
+    defConfig["moduleInstances"]["Network Sink"] = "network_sink";
 
     defConfig["moduleInstances"]["Radio"] = "radio";
 
