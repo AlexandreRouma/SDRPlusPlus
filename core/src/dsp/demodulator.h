@@ -11,6 +11,7 @@
 #include <dsp/conversion.h>
 #include <dsp/audio.h>
 #include <dsp/stereo_fm.h>
+#include <dsp/correction.h>
 
 #define FAST_ATAN2_COEF1    FL_M_PI / 4.0f
 #define FAST_ATAN2_COEF2    3.0f * FAST_ATAN2_COEF1
@@ -371,11 +372,11 @@ namespace dsp {
 
     };
 
-    class MSKDemod : public generic_hier_block<MSKDemod> {
+    class FSKDemod : public generic_hier_block<FSKDemod> {
     public:
-        MSKDemod() {}
+        FSKDemod() {}
 
-        MSKDemod(stream<complex_t>* input, float sampleRate, float deviation, float baudRate, float omegaGain = (0.01*0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
+        FSKDemod(stream<complex_t>* input, float sampleRate, float deviation, float baudRate, float omegaGain = (0.01*0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
             init(input, sampleRate, deviation, baudRate, omegaGain, muGain, omegaRelLimit);
         }
 
@@ -391,47 +392,47 @@ namespace dsp {
             recov.init(&demod.out, _sampleRate / _baudRate, _omegaGain, _muGain, _omegaRelLimit);
             out = &recov.out;
 
-            generic_hier_block<MSKDemod>::registerBlock(&demod);
-            generic_hier_block<MSKDemod>::registerBlock(&recov);
-            generic_hier_block<MSKDemod>::_block_init = true;
+            generic_hier_block<FSKDemod>::registerBlock(&demod);
+            generic_hier_block<FSKDemod>::registerBlock(&recov);
+            generic_hier_block<FSKDemod>::_block_init = true;
         }
 
         void setInput(stream<complex_t>* input) {
-            assert((generic_hier_block<MSKDemod>::_block_init));
+            assert((generic_hier_block<FSKDemod>::_block_init));
             demod.setInput(input);
         }
 
         void setSampleRate(float sampleRate) {
-            assert(generic_hier_block<MSKDemod>::_block_init);
-            generic_hier_block<MSKDemod>::tempStop();
+            assert(generic_hier_block<FSKDemod>::_block_init);
+            generic_hier_block<FSKDemod>::tempStop();
             _sampleRate = sampleRate;
             demod.setSampleRate(_sampleRate);
             recov.setOmega(_sampleRate / _baudRate, _omegaRelLimit);
-            generic_hier_block<MSKDemod>::tempStart();
+            generic_hier_block<FSKDemod>::tempStart();
         }
 
         void setDeviation(float deviation) {
-            assert(generic_hier_block<MSKDemod>::_block_init);
+            assert(generic_hier_block<FSKDemod>::_block_init);
             _deviation = deviation;
             demod.setDeviation(deviation);
         }
 
         void setBaudRate(float baudRate, float omegaRelLimit) {
-            assert(generic_hier_block<MSKDemod>::_block_init);
+            assert(generic_hier_block<FSKDemod>::_block_init);
             _baudRate = baudRate;
             _omegaRelLimit = omegaRelLimit;
             recov.setOmega(_sampleRate / _baudRate, _omegaRelLimit);
         }
 
         void setMMGains(float omegaGain, float myGain) {
-            assert(generic_hier_block<MSKDemod>::_block_init);
+            assert(generic_hier_block<FSKDemod>::_block_init);
             _omegaGain = omegaGain;
             _muGain = myGain;
             recov.setGains(_omegaGain, _muGain);
         }
 
         void setOmegaRelLimit(float omegaRelLimit) {
-            assert(generic_hier_block<MSKDemod>::_block_init);
+            assert(generic_hier_block<FSKDemod>::_block_init);
             _omegaRelLimit = omegaRelLimit;
             recov.setOmegaRelLimit(_omegaRelLimit);
         }
@@ -444,6 +445,105 @@ namespace dsp {
 
         float _sampleRate;
         float _deviation;
+        float _baudRate;
+        float _omegaGain;
+        float _muGain;
+        float _omegaRelLimit;
+    };
+
+    class GFSKDemod : public generic_hier_block<GFSKDemod> {
+    public:
+        GFSKDemod() {}
+
+        GFSKDemod(stream<complex_t>* input, float sampleRate, float deviation, float rrcAlpha, float baudRate, float omegaGain = (0.01*0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
+            init(input, sampleRate, deviation, rrcAlpha, baudRate, omegaGain, muGain, omegaRelLimit);
+        }
+
+        void init(stream<complex_t>* input, float sampleRate, float deviation, float rrcAlpha, float baudRate, float omegaGain = (0.01*0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
+            _sampleRate = sampleRate;
+            _deviation = deviation;
+            _rrcAlpha = rrcAlpha;
+            _baudRate = baudRate;
+            _omegaGain = omegaGain;
+            _muGain = muGain;
+            _omegaRelLimit = omegaRelLimit;
+            
+            demod.init(input, _sampleRate, _deviation);
+            rrc.init(31, _sampleRate, _baudRate, _rrcAlpha);
+            fir.init(&demod.out, &rrc);
+            recov.init(&fir.out, _sampleRate / _baudRate, _omegaGain, _muGain, _omegaRelLimit);
+            out = &recov.out;
+
+            generic_hier_block<GFSKDemod>::registerBlock(&demod);
+            generic_hier_block<GFSKDemod>::registerBlock(&fir);
+            generic_hier_block<GFSKDemod>::registerBlock(&recov);
+            generic_hier_block<GFSKDemod>::_block_init = true;
+        }
+
+        void setInput(stream<complex_t>* input) {
+            assert((generic_hier_block<GFSKDemod>::_block_init));
+            demod.setInput(input);
+        }
+
+        void setSampleRate(float sampleRate) {
+            assert(generic_hier_block<GFSKDemod>::_block_init);
+            generic_hier_block<GFSKDemod>::tempStop();
+            _sampleRate = sampleRate;
+            demod.setSampleRate(_sampleRate);
+            recov.setOmega(_sampleRate / _baudRate, _omegaRelLimit);
+            rrc.setSampleRate(_sampleRate);
+            fir.updateWindow(&rrc);
+            generic_hier_block<GFSKDemod>::tempStart();
+        }
+
+        void setDeviation(float deviation) {
+            assert(generic_hier_block<GFSKDemod>::_block_init);
+            _deviation = deviation;
+            demod.setDeviation(deviation);
+        }
+
+        void setRRCAlpha(float rrcAlpha) {
+            assert(generic_hier_block<GFSKDemod>::_block_init);
+            _rrcAlpha = rrcAlpha;
+            rrc.setAlpha(_rrcAlpha);
+            fir.updateWindow(&rrc);
+        }
+
+        void setBaudRate(float baudRate, float omegaRelLimit) {
+            assert(generic_hier_block<GFSKDemod>::_block_init);
+            _baudRate = baudRate;
+            _omegaRelLimit = omegaRelLimit;
+            generic_hier_block<GFSKDemod>::tempStop();
+            recov.setOmega(_sampleRate / _baudRate, _omegaRelLimit);
+            rrc.setBaudRate(_baudRate);
+            fir.updateWindow(&rrc);
+            generic_hier_block<GFSKDemod>::tempStart();
+        }
+
+        void setMMGains(float omegaGain, float myGain) {
+            assert(generic_hier_block<GFSKDemod>::_block_init);
+            _omegaGain = omegaGain;
+            _muGain = myGain;
+            recov.setGains(_omegaGain, _muGain);
+        }
+
+        void setOmegaRelLimit(float omegaRelLimit) {
+            assert(generic_hier_block<GFSKDemod>::_block_init);
+            _omegaRelLimit = omegaRelLimit;
+            recov.setOmegaRelLimit(_omegaRelLimit);
+        }
+
+        stream<float>* out = NULL;
+
+    private:
+        FloatFMDemod demod;
+        RRCTaps rrc;
+        FIR<float> fir;
+        MMClockRecovery<float> recov;
+
+        float _sampleRate;
+        float _deviation;
+        float _rrcAlpha;
         float _baudRate;
         float _omegaGain;
         float _muGain;

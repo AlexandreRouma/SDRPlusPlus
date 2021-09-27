@@ -73,4 +73,74 @@ namespace dsp {
         
 
     };
+
+    class DCBlocker : public generic_block<DCBlocker> {
+    public:
+        DCBlocker() {}
+
+        DCBlocker(stream<float>* in, float rate) { init(in, rate); }
+
+        void init(stream<float>* in, float rate) {
+            _in = in;
+            correctionRate = rate;
+            offset = 0;
+            generic_block<DCBlocker>::registerInput(_in);
+            generic_block<DCBlocker>::registerOutput(&out);
+            generic_block<DCBlocker>::_block_init = true;
+        }
+
+        void setInput(stream<float>* in) {
+            assert(generic_block<DCBlocker>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<DCBlocker>::ctrlMtx);
+            generic_block<DCBlocker>::tempStop();
+            generic_block<DCBlocker>::unregisterInput(_in);
+            _in = in;
+            generic_block<DCBlocker>::registerInput(_in);
+            generic_block<DCBlocker>::tempStart();
+        }
+
+        void setCorrectionRate(float rate) {
+            correctionRate = rate;
+        }
+
+        int run() {
+            int count = _in->read();
+            if (count < 0) { return -1; }
+
+            if (bypass) {
+                memcpy(out.writeBuf, _in->readBuf, count * sizeof(complex_t));
+
+                _in->flush();
+
+                if (!out.swap(count)) { return -1; }
+
+                return count;
+            }
+
+            for (int i = 0; i < count; i++) {
+                out.writeBuf[i] = _in->readBuf[i] - offset;
+                offset = offset + (out.writeBuf[i] * correctionRate);
+            }
+
+            _in->flush();
+
+            if (!out.swap(count)) { return -1; }
+
+            return count;
+        }
+
+        stream<float> out;
+
+        // TEMPORARY FOR DEBUG PURPOSES
+        bool bypass = false;
+        float offset;
+
+    private:
+        stream<float>* _in;
+        float correctionRate = 0.00001;
+        
+
+    };
+
+    
 }

@@ -65,6 +65,54 @@ namespace dsp {
 
     };
 
+    template <class T>
+    class StreamDoubler : public generic_block<StreamDoubler<T>> {
+    public:
+        StreamDoubler() {}
+
+        StreamDoubler(stream<T>* in) { init(in); }
+
+        void init(stream<T>* in) {
+            _in = in;
+            generic_block<StreamDoubler>::registerInput(_in);
+            generic_block<StreamDoubler>::registerOutput(&outA);
+            generic_block<StreamDoubler>::registerOutput(&outB);
+            generic_block<StreamDoubler>::_block_init = true;
+        }
+
+        void setInput(stream<T>* in) {
+            assert(generic_block<StreamDoubler>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<StreamDoubler>::ctrlMtx);
+            generic_block<StreamDoubler>::tempStop();
+            generic_block<StreamDoubler>::unregisterInput(_in);
+            _in = in;
+            generic_block<StreamDoubler>::registerInput(_in);
+            generic_block<StreamDoubler>::tempStart();
+        }
+
+        stream<T> outA;
+        stream<T> outB;
+
+    private:
+        int run() {
+            int count = _in->read();
+            if (count < 0) { return -1; }
+
+            memcpy(outA.writeBuf, _in->readBuf, count * sizeof(T));
+            memcpy(outB.writeBuf, _in->readBuf, count * sizeof(T));
+
+            _in->flush();
+
+            if (!outA.swap(count)) { return -1; }
+            if (!outB.swap(count)) { return -1; }
+            
+            return count;
+        }
+
+        stream<T>* _in;
+
+    };
+
 
     // NOTE: I'm not proud of this, it's BAD and just taken from the previous DSP, but it works...
     template <class T>

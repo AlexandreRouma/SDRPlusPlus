@@ -33,6 +33,7 @@ option(OPT_BUILD_NEW_PORTAUDIO_SINK "Build the new PortAudio Sink Module (Depend
 
 # Decoders
 option(OPT_BUILD_FALCON9_DECODER "Build the falcon9 live decoder (Dependencies: ffplay)" OFF)
+option(OPT_BUILD_M17_DECODER "Build the M17 decoder module (no dependencies required)" OFF)
 option(OPT_BUILD_METEOR_DEMODULATOR "Build the meteor demodulator module (no dependencies required)" ON)
 option(OPT_BUILD_RADIO "Main audio modulation decoder (AM, FM, SSB, etc...)" ON)
 option(OPT_BUILD_WEATHER_SAT_DECODER "Build the HRPT decoder module (no dependencies required)" ON)
@@ -133,6 +134,10 @@ if (OPT_BUILD_FALCON9_DECODER)
 add_subdirectory("falcon9_decoder")
 endif (OPT_BUILD_FALCON9_DECODER)
 
+if (OPT_BUILD_M17_DECODER)
+add_subdirectory("m17_decoder")
+endif (OPT_BUILD_M17_DECODER)
+
 if (OPT_BUILD_METEOR_DEMODULATOR)
 add_subdirectory("meteor_demodulator")
 endif (OPT_BUILD_METEOR_DEMODULATOR)
@@ -191,7 +196,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_custom_target(do_always ALL cp \"$<TARGET_FILE_DIR:sdrpp_core>/libsdrpp_core.dylib\" \"$<TARGET_FILE_DIR:sdrpp>\")
 endif ()
 
-# cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/Users/Alex/vcpkg/scripts/buildsystems/vcpkg.cmake" -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON
+# cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/Users/Alex/vcpkg/scripts/buildsystems/vcpkg.cmake" -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_M17_DECODER=ON
 
 # Install directives
 install(TARGETS sdrpp DESTINATION bin)
