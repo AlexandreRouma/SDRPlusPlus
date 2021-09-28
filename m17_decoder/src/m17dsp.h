@@ -3,6 +3,8 @@
 #include <volk/volk.h>
 #include <codec2.h>
 #include <dsp/demodulator.h>
+#include <golay24.h>
+#include <lsf_decode.h>
 
 extern "C" {
     #include <correct.h>
@@ -11,12 +13,14 @@ extern "C" {
 #define M17_DEVIATION               2400.0f
 #define M17_BAUDRATE                4800.0f
 #define M17_RRC_ALPHA               0.5f
-#define M17_4FSK_HIGH_CUT           0.52f
+#define M17_4FSK_HIGH_CUT           0.5f
 
 #define M17_SYNC_SIZE               16
 #define M17_LICH_SIZE               96
 #define M17_PAYLOAD_SIZE            144
 #define M17_ENCODED_PAYLOAD_SIZE    296
+#define M17_LSF_SIZE                240
+#define M17_ENCODED_LSF_SIZE        488
 #define M17_RAW_FRAME_SIZE          384
 #define M17_CUT_FRAME_SIZE          368
 
@@ -179,14 +183,14 @@ namespace dsp {
                         if (type == 0) {
                             linkSetupOut.writeBuf[id] = delay[i++] ^ M17_SCRAMBLER[outCount - M17_SYNC_SIZE];
                         }
-                        else if (type == 1 && id < M17_LICH_SIZE) {
-                            lichOut.writeBuf[id/8] |= (delay[i++] ^ M17_SCRAMBLER[outCount - M17_SYNC_SIZE]) << (7 - (id%8));
+                        else if ((type == 1 || type == 2) && id < M17_LICH_SIZE) {
+                            lichOut.writeBuf[id] = delay[i++] ^ M17_SCRAMBLER[outCount - M17_SYNC_SIZE];
                         }
                         else if (type == 1) {
                             streamOut.writeBuf[id - M17_LICH_SIZE] = (delay[i++] ^ M17_SCRAMBLER[outCount - M17_SYNC_SIZE]);
                         }
                         else if (type == 2) {
-                            packetOut.writeBuf[id] = (delay[i++] ^ M17_SCRAMBLER[outCount - M17_SYNC_SIZE]);
+                            packetOut.writeBuf[id - M17_LICH_SIZE] = (delay[i++] ^ M17_SCRAMBLER[outCount - M17_SYNC_SIZE]);
                         }
     
                         outCount++;
@@ -198,10 +202,11 @@ namespace dsp {
                             if (!linkSetupOut.swap(M17_CUT_FRAME_SIZE)) { return -1; }
                         }
                         else if (type == 1) {
-                            if (!lichOut.swap(12)) {return -1; }
+                            if (!lichOut.swap(M17_LICH_SIZE)) {return -1; }
                             if (!streamOut.swap(M17_CUT_FRAME_SIZE)) {return -1; }
                         }
                         else if (type == 2) {
+                            if (!lichOut.swap(M17_LICH_SIZE)) {return -1; }
                             if (!packetOut.swap(M17_CUT_FRAME_SIZE)) { return -1; }
                         }
                     }
@@ -213,7 +218,7 @@ namespace dsp {
                     detect = true;
                     outCount = 0;
                     type = 0;
-                    spdlog::warn("Found sync frame");
+                    //spdlog::warn("Found sync frame");
                     continue;
                 }
 
@@ -222,8 +227,7 @@ namespace dsp {
                     detect = true;
                     outCount = 0;
                     type = 1;
-                    memset(lichOut.writeBuf, 0, 12);
-                    spdlog::warn("Found stream frame");
+                    //spdlog::warn("Found stream frame");
                     continue;
                 }
 
@@ -232,7 +236,7 @@ namespace dsp {
                     detect = true;
                     outCount = 0;
                     type = 2;
-                    spdlog::warn("Found packet frame");
+                    //spdlog::warn("Found packet frame");
                     continue;
                 }
 
@@ -260,6 +264,85 @@ namespace dsp {
         int type;
 
         int outCount = 0;
+
+    };
+
+    class M17LSFDecoder : public generic_block<M17LSFDecoder> {
+    public:
+        M17LSFDecoder() {}
+
+        M17LSFDecoder(stream<uint8_t>* in, void (*handler)(M17LSF& lsf, void* ctx), void* ctx) { init(in, handler, ctx); }
+
+        ~M17LSFDecoder() {
+            if (!generic_block<M17LSFDecoder>::_block_init) { return; }
+            generic_block<M17LSFDecoder>::stop();
+            correct_convolutional_destroy(conv);
+        }
+
+        void init(stream<uint8_t>* in, void (*handler)(M17LSF& lsf, void* ctx), void* ctx) {
+            _in = in;
+            _handler = handler;
+            _ctx = ctx;
+            
+            conv = correct_convolutional_create(2, 5, correct_conv_m17_polynomial);
+
+            generic_block<M17LSFDecoder>::registerInput(_in);
+            generic_block<M17LSFDecoder>::_block_init = true;
+        }
+
+        void setInput(stream<uint8_t>* in) {
+            assert(generic_block<M17LSFDecoder>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<M17LSFDecoder>::ctrlMtx);
+            generic_block<M17LSFDecoder>::tempStop();
+            generic_block<M17LSFDecoder>::unregisterInput(_in);
+            _in = in;
+            generic_block<M17LSFDecoder>::registerInput(_in);
+            generic_block<M17LSFDecoder>::tempStart();
+        }
+
+        int run() {
+            int count = _in->read();
+            if (count < 0) { return -1; }
+
+            // Depuncture the data
+            int inOffset = 0;
+            for (int i = 0; i < M17_ENCODED_LSF_SIZE; i++) {
+                if (!M17_PUNCTURING_P1[i % 61]) {
+                    depunctured[i] = 0;
+                    continue;
+                }
+                depunctured[i] = _in->readBuf[inOffset++];
+            }
+
+            _in->flush();
+
+            // Pack into bytes
+            memset(packed, 0, 61);
+            for (int i = 0; i < M17_ENCODED_LSF_SIZE; i++) {
+                packed[i/8] |= depunctured[i] << (7 - (i%8));
+            }
+
+            // Run through convolutional decoder
+            correct_convolutional_decode(conv, packed, M17_ENCODED_LSF_SIZE, lsf);
+
+            // Decode it and call the handler
+            M17LSF decLsf = M17DecodeLSF(lsf);
+            if (decLsf.valid) { _handler(decLsf, _ctx); }
+
+            return count;
+        }
+
+    private:
+        stream<uint8_t>* _in;
+
+        void (*_handler)(M17LSF& lsf, void* ctx);
+        void* _ctx;
+
+        uint8_t depunctured[488];
+        uint8_t packed[61];
+        uint8_t lsf[30];
+
+        correct_convolutional* conv;
 
     };
 
@@ -310,6 +393,7 @@ namespace dsp {
             }
 
             // Pack into bytes
+            memset(packed, 0, 37);
             for (int i = 0; i < M17_ENCODED_PAYLOAD_SIZE; i++) {
                 if (!(i%8)) { packed[i/8] = 0; }
                 packed[i/8] |= depunctured[i] << (7 - (i%8));
@@ -408,15 +492,116 @@ namespace dsp {
 
     };
 
+    class M17LICHDecoder : public generic_block<M17LICHDecoder> {
+    public:
+        M17LICHDecoder() {}
+
+        M17LICHDecoder(stream<uint8_t>* in, void (*handler)(M17LSF& lsf, void* ctx), void* ctx) { init(in, handler, ctx); }
+
+        void init(stream<uint8_t>* in, void (*handler)(M17LSF& lsf, void* ctx), void* ctx) {
+            _in = in;
+            _handler = handler;
+            _ctx = ctx;
+            generic_block<M17LICHDecoder>::registerInput(_in);
+            generic_block<M17LICHDecoder>::_block_init = true;
+        }
+
+        void setInput(stream<uint8_t>* in) {
+            assert(generic_block<M17LICHDecoder>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<M17LICHDecoder>::ctrlMtx);
+            generic_block<M17LICHDecoder>::tempStop();
+            generic_block<M17LICHDecoder>::unregisterInput(_in);
+            _in = in;
+            generic_block<M17LICHDecoder>::registerInput(_in);
+            generic_block<M17LICHDecoder>::tempStart();
+        }
+
+        int run() {
+            int count = _in->read();
+            if (count < 0) { return -1; }
+
+            // Zero out block
+            memset(chunk, 0, 6);
+
+            // Decode the 4 Golay(24, 12) blocks
+            uint32_t encodedBlock;
+            uint32_t decodedBlock;
+            for (int b = 0; b < 4; b++) {
+                // Pack the 24bit block into a byte
+                encodedBlock = 0;
+                decodedBlock = 0;
+                for (int i = 0; i < 24; i++) { encodedBlock |= _in->readBuf[(b * 24) + i] << (23 - i); }
+
+                // Decode
+                if (!mobilinkd::Golay24::decode(encodedBlock, decodedBlock)) {
+                    _in->flush();
+                    return count;
+                }
+
+                // Pack the decoded bits into the output
+                int id = 0;
+                uint8_t temp;
+                for (int i = 0; i < 12; i++) {
+                    id = (b * 12) + i;
+                    chunk[id / 8] |= ((decodedBlock >> (23 - i)) & 1) << (7 - (id%8));
+                }
+            }
+
+            _in->flush();
+
+            int partId = chunk[5] >> 5;
+
+            // If the ID of the chunk is zero, start a new LSF
+            if (partId == 0) {
+                newFrame = true;
+                lastId = 0;
+                memcpy(&lsf[partId*5], chunk, 5);
+                return count;
+            }
+
+            // If we're recording a LSF and a discontinuity shows up, cancel
+            if (newFrame && partId != lastId + 1) {
+                newFrame = false;
+                return count;
+            }
+
+            // If we're recording and there's no discontinuity (see above), add the data to the full frame
+            if (newFrame) {
+                lastId = partId;
+                memcpy(&lsf[partId*5], chunk, 5);
+
+                // If the lsf is complete, send it out
+                if (partId == 5) {
+                    newFrame = false;
+                    M17LSF decLsf = M17DecodeLSF(lsf);
+                    if (decLsf.valid) { _handler(decLsf, _ctx); }
+                }
+            }
+
+            return count;
+        }
+
+    private:
+        stream<uint8_t>* _in;
+        void (*_handler)(M17LSF& lsf, void* ctx);
+        void* _ctx;
+
+        uint8_t chunk[6];
+        uint8_t lsf[240];
+        bool newFrame = false;
+        int lastId = 0;
+
+    };
+
     class M17Decoder : public generic_hier_block<M17Decoder> {
     public:
         M17Decoder() {}
 
-        M17Decoder(stream<complex_t>* input, float sampleRate) {
-            init(input, sampleRate);
+        M17Decoder(stream<complex_t>* input, float sampleRate, void (*handler)(M17LSF& lsf, void* ctx), void* ctx) {
+            init(input, sampleRate, handler, ctx);
         }
 
-        void init(stream<complex_t>* input, float sampleRate) {
+        void init(stream<complex_t>* input, float sampleRate, void (*handler)(M17LSF& lsf, void* ctx), void* ctx) {
             _sampleRate = sampleRate;
 
             demod.init(input, _sampleRate, M17_DEVIATION);
@@ -426,11 +611,11 @@ namespace dsp {
             doubler.init(&recov.out);
             slice.init(&doubler.outA);
             demux.init(&slice.out);
+            lsfFEC.init(&demux.linkSetupOut, handler, ctx);
             payloadFEC.init(&demux.streamOut);
+            decodeLICH.init(&demux.lichOut, handler, ctx);
             decodeAudio.init(&payloadFEC.out);
 
-            ns0.init(&demux.linkSetupOut);
-            ns1.init(&demux.lichOut);
             ns2.init(&demux.packetOut);
 
             diagOut = &doubler.outB;
@@ -442,11 +627,11 @@ namespace dsp {
             generic_hier_block<M17Decoder>::registerBlock(&doubler);
             generic_hier_block<M17Decoder>::registerBlock(&slice);
             generic_hier_block<M17Decoder>::registerBlock(&demux);
+            generic_hier_block<M17Decoder>::registerBlock(&lsfFEC);
             generic_hier_block<M17Decoder>::registerBlock(&payloadFEC);
+            generic_hier_block<M17Decoder>::registerBlock(&decodeLICH);
             generic_hier_block<M17Decoder>::registerBlock(&decodeAudio);
 
-            generic_hier_block<M17Decoder>::registerBlock(&ns0);
-            generic_hier_block<M17Decoder>::registerBlock(&ns1);
             generic_hier_block<M17Decoder>::registerBlock(&ns2);
 
             generic_hier_block<M17Decoder>::_block_init = true;
@@ -468,11 +653,11 @@ namespace dsp {
         StreamDoubler<float> doubler;
         M17Slice4FSK slice;
         M17FrameDemux demux;
+        M17LSFDecoder lsfFEC;
         M17PayloadFEC payloadFEC;
+        M17LICHDecoder decodeLICH;
         M17Codec2Decode decodeAudio;
 
-        NullSink<uint8_t> ns0;
-        NullSink<uint8_t> ns1;
         NullSink<uint8_t> ns2;
 
 

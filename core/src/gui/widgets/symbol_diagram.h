@@ -3,6 +3,7 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <dsp/stream.h>
+#include <vector>
 #include <mutex>
 
 namespace ImGui {
@@ -16,6 +17,8 @@ namespace ImGui {
         float* acquireBuffer();
 
         void releaseBuffer();
+
+        std::vector<float> lines;
 
     private:
         std::mutex bufferMtx;

@@ -19,6 +19,7 @@
 #include <gui/widgets/symbol_diagram.h>
 #include <m17dsp.h>
 #include <fstream>
+#include <chrono>
 
 #define CONCAT(a, b)    ((std::string(a) + b).c_str())
 
@@ -36,16 +37,31 @@ ConfigManager config;
 
 class M17DecoderModule : public ModuleManager::Instance {
 public:
-    M17DecoderModule(std::string name) : diag(1.0f, 480) {
+    M17DecoderModule(std::string name) : diag(0.8, 480) {
         this->name = name;
+        lsf.valid = false;
 
         // Load config
+        config.acquire();
+        if (!config.conf.contains(name)) {
+            config.conf[name]["showLines"] = false;
+        }
+        showLines = config.conf[name]["showLines"];
+        if (showLines) {
+            diag.lines.push_back(-0.75f);
+            diag.lines.push_back(-0.25f);
+            diag.lines.push_back(0.25f);
+            diag.lines.push_back(0.75f);
+        }
+        config.release(true);
 
+
+        // Initialize VFO
         vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 9600, INPUT_SAMPLE_RATE, 9600, 9600, true);
-        vfo->setSnapInterval(500);
+        vfo->setSnapInterval(250);
 
         // Intialize DSP here
-        decoder.init(vfo->output, INPUT_SAMPLE_RATE);
+        decoder.init(vfo->output, INPUT_SAMPLE_RATE, lsfHandler, this);
 
         resampWin.init(4000, 4000, audioSampRate);
         resamp.init(decoder.out, &resampWin, 8000, audioSampRate);
@@ -90,7 +106,7 @@ public:
     void enable() {
         double bw = gui::waterfall.getBandwidth();
         vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, std::clamp<double>(0, -bw/2.0, bw/2.0), 9600, INPUT_SAMPLE_RATE, 9600, 9600, true);
-        vfo->setSnapInterval(500);
+        vfo->setSnapInterval(250);
 
         // Set Input of demod here
         decoder.setInput(vfo->output);
@@ -130,6 +146,95 @@ private:
         ImGui::SetNextItemWidth(menuWidth);
         _this->diag.draw();
 
+        {
+            std::lock_guard lck(_this->lsfMtx);
+
+            auto now = std::chrono::high_resolution_clock::now();
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(now-_this->lastUpdated).count() > 1000) {
+                _this->lsf.valid = false;
+            }
+
+            ImGui::BeginTable(CONCAT("##m17_info_tbl_", _this->name), 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders);
+            if (!_this->lsf.valid) {
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("Source");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::Text("--");
+
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("Destination");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::Text("--");
+
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("Data Type");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::Text("--");
+
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("Encryption");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::Text("-- (Subtype --)");
+
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("CAN");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::Text("--");
+            }
+            else {
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("Source");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::Text(_this->lsf.src.c_str());
+
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("Destination");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::Text(_this->lsf.dst.c_str());
+
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("Data Type");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::Text(M17DataTypesTxt[_this->lsf.dataType]);
+
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("Encryption");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::Text("%s (Subtype %d)", M17EncryptionTypesTxt[_this->lsf.encryptionType], _this->lsf.encryptionSubType);
+
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("CAN");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::Text("%d", _this->lsf.channelAccessNum);
+            }
+            ImGui::EndTable();
+        }
+
+        if (ImGui::Checkbox(CONCAT("Show Reference Lines##m17_showlines_", _this->name), &_this->showLines)) {
+            if (_this->showLines) {
+                _this->diag.lines.push_back(-0.75f);
+                _this->diag.lines.push_back(-0.25f);
+                _this->diag.lines.push_back(0.25f);
+                _this->diag.lines.push_back(0.75f);
+            }
+            else {
+                _this->diag.lines.clear();
+            }
+            config.acquire();
+            config.conf[_this->name]["showLines"] = _this->showLines;
+            config.release(true);
+        }
+
         if (!_this->enabled) { style::endDisabled(); }
     }
 
@@ -152,6 +257,13 @@ private:
         _this->resamp.tempStart();
     }
 
+    static void lsfHandler(M17LSF& lsf, void* ctx) {
+        M17DecoderModule* _this = (M17DecoderModule*)ctx;
+        std::lock_guard lck(_this->lsfMtx);
+        _this->lastUpdated = std::chrono::high_resolution_clock::now();
+        _this->lsf = lsf;
+    }
+
     std::string name;
     bool enabled = true;
 
@@ -172,6 +284,11 @@ private:
     EventHandler<float> srChangeHandler;
     SinkManager::Stream stream;
 
+    bool showLines = false;
+
+    M17LSF lsf;
+    std::mutex lsfMtx;
+    std::chrono::steady_clock::time_point lastUpdated;
 };
 
 MOD_EXPORT void _INIT_() {
