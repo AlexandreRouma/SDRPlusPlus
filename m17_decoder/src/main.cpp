@@ -89,16 +89,18 @@ public:
     }
 
     ~M17DecoderModule() {
-        // Stop DSP Here
-        decoder.stop();
-        resamp.stop();
-        reshape.stop();
-        diagHandler.stop();
-
-        stream.stop();
-
-        sigpath::vfoManager.deleteVFO(vfo);
         gui::menu.removeEntry(name);
+        // Stop DSP Here
+        stream.stop();
+        if (enabled) {
+            decoder.stop();
+            resamp.stop();
+            reshape.stop();
+            diagHandler.stop();
+            sigpath::vfoManager.deleteVFO(vfo);
+        }
+
+        sigpath::sinkManager.unregisterStream(name);
     }
 
     void postInit() {}
@@ -288,7 +290,7 @@ private:
 
     M17LSF lsf;
     std::mutex lsfMtx;
-    std::chrono::steady_clock::time_point lastUpdated;
+    std::chrono::system_clock::time_point lastUpdated;
 };
 
 MOD_EXPORT void _INIT_() {
