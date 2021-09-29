@@ -356,6 +356,7 @@ I will soon publish a contributing.md listing the code style to use.
 
 * Bob Logan
 * Croccydile
+* Dale L Puckett (K0HYD)
 * [Daniele D'Agnelli](https://linkedin.com/in/dagnelli)
 * [EB3FRN](https://www.eb3frn.net/)
 * Eric Johnson
