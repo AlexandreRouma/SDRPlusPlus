@@ -10,10 +10,12 @@ SDR++ is a cross-platform and open source SDR software with the aim of being blo
 
 ## Features
 
+* Multi VFO
 * Wide hardware support (both through SoapySDR and dedicated modules)
 * SIMD accelerated DSP
 * Cross-platform (Windows, Linux, OSX and BSD)
 * Full waterfall update when possible. Makes browsing signals easier and more pleasant
+* Modular design (easily write your own plugins)
 
 # Installing
 
