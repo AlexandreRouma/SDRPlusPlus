@@ -60,7 +60,7 @@ public:
         vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 9600, INPUT_SAMPLE_RATE, 9600, 9600, true);
         vfo->setSnapInterval(250);
 
-        // Intialize DSP here
+        // Initialize DSP here
         decoder.init(vfo->output, INPUT_SAMPLE_RATE, lsfHandler, this);
 
         resampWin.init(4000, 4000, audioSampRate);

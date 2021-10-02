@@ -29,15 +29,7 @@ if (MSVC)
     target_link_libraries(m17_decoder PRIVATE libcodec2)
 
 else (MSVC)
-    find_package(PkgConfig)
-
-    pkg_check_modules(LIBCODEC2 REQUIRED codec2)
-
-    target_include_directories(m17_decoder PUBLIC ${LIBCODEC2_INCLUDE_DIRS})
-    target_link_directories(m17_decoder PUBLIC ${LIBCODEC2_LIBRARY_DIRS})
-    target_link_libraries(m17_decoder PUBLIC ${LIBCODEC2_LIBRARIES})
-
-    target_link_libraries(m17_decoder PUBLIC correct)
+    target_link_libraries(m17_decoder PUBLIC codec2)
 
     # Include it because for some reason pkgconfig doesn't look here?
     if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
