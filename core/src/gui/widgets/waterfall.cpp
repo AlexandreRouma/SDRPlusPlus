@@ -1245,6 +1245,9 @@ namespace ImGui {
 
     void WaterFall::showWaterfall() {
         buf_mtx.lock();
+        if (rawFFTs ==  NULL) {
+            spdlog::error("Null rawFFT");
+        }
         waterfallVisible = true;
         onResize();
         memset(rawFFTs, 0, waterfallHeight * rawFFTSize * sizeof(float));

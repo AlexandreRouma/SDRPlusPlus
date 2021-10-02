@@ -12,6 +12,8 @@ else ()
 endif ()
 add_definitions(-DSDRPP_IS_CORE)
 
+add_subdirectory("libcorrect/")
+
 # Main code
 file(GLOB_RECURSE SRC "src/*.cpp" "src/*.c")
 
@@ -24,6 +26,10 @@ target_compile_definitions(sdrpp_core PUBLIC INSTALL_PREFIX="${CMAKE_INSTALL_PRE
 # Include core headers
 target_include_directories(sdrpp_core PUBLIC "src/")
 target_include_directories(sdrpp_core PUBLIC "src/imgui")
+
+# Link to linkcorrect
+target_include_directories(sdrpp_core PUBLIC "libcorrect/include")
+target_link_libraries(sdrpp_core PUBLIC correct_static)
 
 if (OPT_OVERRIDE_STD_FILESYSTEM)
 target_include_directories(sdrpp_core PUBLIC "std_replacement")

@@ -222,7 +222,7 @@ private:
             ImGui::EndTable();
         }
 
-        if (ImGui::Checkbox(CONCAT("Show Reference Lines##m17_showlines_", _this->name), &_this->showLines)) {
+        if (ImGui::Checkbox(CONCAT("Show Reference TEST Lines##m17_showlines_", _this->name), &_this->showLines)) {
             if (_this->showLines) {
                 _this->diag.lines.push_back(-0.75f);
                 _this->diag.lines.push_back(-0.25f);
@@ -290,7 +290,7 @@ private:
 
     M17LSF lsf;
     std::mutex lsfMtx;
-    std::chrono::system_clock::time_point lastUpdated;
+    std::chrono::time_point<std::chrono::high_resolution_clock> lastUpdated;
 };
 
 MOD_EXPORT void _INIT_() {

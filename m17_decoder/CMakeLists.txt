@@ -26,11 +26,7 @@ if (MSVC)
     target_include_directories(m17_decoder PUBLIC "C:/Users/ryzerth/Documents/Code/codec2/src")
     target_link_directories(sdrpp_core PUBLIC "C:/Users/ryzerth/Documents/Code/codec2/build/src")
 
-    target_include_directories(m17_decoder PUBLIC "C:/Program Files (x86)/Correct/include")
-    target_link_directories(sdrpp_core PUBLIC "C:/Program Files (x86)/Correct/lib")
-
     target_link_libraries(m17_decoder PRIVATE libcodec2)
-    target_link_libraries(m17_decoder PRIVATE correct)
 
 else (MSVC)
     find_package(PkgConfig)
