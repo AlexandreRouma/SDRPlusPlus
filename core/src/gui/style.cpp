@@ -46,7 +46,7 @@ namespace style {
 }
 
 namespace ImGui {
-    void LeftLabel(char* text) {
+    void LeftLabel(const char* text) {
         float vpos = ImGui::GetCursorPosY();
         ImGui::SetCursorPosY(vpos + GImGui->Style.FramePadding.y);
         ImGui::Text(text);
