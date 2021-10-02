@@ -50,7 +50,38 @@ There are currently no existing packages for other distributions, for these syst
 
 ## MacOS
 
-TODO
+You might get lucky by using the installer downloadable from [the Releases page](https://github.com/AlexandreRouma/SDRPlusPlus/releases).
+
+### Building it yourself
+
+This guide requires you to have Homebrew installed. Check out https://brew.sh/ on how to do so.
+
+Get yourself a copy of the source code. This can be done by downloading the
+source package from [the Releases
+page](https://github.com/AlexandreRouma/SDRPlusPlus/releases). Eextract it to a
+location of your choice. Alternativley you can clone
+https://github.com/AlexandreRouma/SDRPlusPlus.git using git.
+
+```sh
+brew install \
+  airspy \
+  airspyhf \
+  cmake \
+  glew \
+  glfw \
+  hackrf \
+  librtlsdr \
+  portaudio \
+  rt-audio \
+  soapyrtlsdr \
+  volk
+mkdir build
+cd build
+cmake .. -DOPT_BUILD_PLUTOSDR_SOURCE=false
+make -j$(sysctl -n hw.ncpu)
+```
+
+The above was tested on macOS Big Sur (11.5).
 
 ## BSD
 
