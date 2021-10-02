@@ -2,10 +2,13 @@ cmake_minimum_required(VERSION 3.13)
 project(audio_sink)
 
 if (MSVC)
-    set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")
-else()
-    set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -fpermissive")
+    add_compile_options(/O2 /std:c++17 /EHsc)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_compile_options(-O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
+else ()
+    add_compile_options(-O3 -std=c++17 -fpermissive)
 endif (MSVC)
+
 
 file(GLOB SRC "src/*.cpp")
 

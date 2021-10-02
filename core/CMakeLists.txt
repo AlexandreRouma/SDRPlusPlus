@@ -1,18 +1,18 @@
 cmake_minimum_required(VERSION 3.13)
 project(sdrpp_core)
 
+add_subdirectory("libcorrect/")
+
 # Set compiler options
 if (MSVC)
-    set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")
+    add_compile_options(/O2 /std:c++17 /EHsc)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup")
+    add_compile_options(-O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
 else ()
-    set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
+    add_compile_options(-O3 -std=c++17)
 endif ()
 add_definitions(-DSDRPP_IS_CORE)
-
-add_subdirectory("libcorrect/")
 
 # Main code
 file(GLOB_RECURSE SRC "src/*.cpp" "src/*.c")
@@ -96,6 +96,7 @@ else()
     endif ()
 
     if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        # TODO: Replace with add_compile_options?
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
     endif ()

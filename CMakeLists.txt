@@ -46,11 +46,11 @@ option(OPT_BUILD_RIGCTL_SERVER "Rigctl backend for controlling SDR++ with softwa
 
 # Compiler arguments for each platform
 if (MSVC)
-    set(CMAKE_CXX_FLAGS "-O2 /std:c++17 /EHsc")
+    add_compile_options(/O2 /std:c++17 /EHsc)
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "-O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup")
+    add_compile_options(-O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
 else ()
-    set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
+    add_compile_options(-O3 -std=c++17)
 endif ()
 
 # Core of SDR++
