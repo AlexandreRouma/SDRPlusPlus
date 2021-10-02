@@ -32,6 +32,17 @@ make install
 ldconfig
 cd ../../
 
+# Fix missing .pc file for codec2
+echo 'prefix=/usr/' >> /usr/share/pkgconfig/codec2.pc
+echo 'libdir=/usr/include/x86_64-linux-gnu/' >> /usr/share/pkgconfig/codec2.pc
+echo 'includedir=/usr/include/codec2' >> /usr/share/pkgconfig/codec2.pc
+echo 'Name: codec2' >> /usr/share/pkgconfig/codec2.pc
+echo 'Description: A speech codec for 2400 bit/s and below' >> /usr/share/pkgconfig/codec2.pc
+echo 'Requires:' >> /usr/share/pkgconfig/codec2.pc
+echo 'Version: 0.7' >> /usr/share/pkgconfig/codec2.pc
+echo 'Libs: -L/usr/include/x86_64-linux-gnu/ -lcodec2' >> /usr/share/pkgconfig/codec2.pc
+echo 'Cflags: -I/usr/include/codec2' >> /usr/share/pkgconfig/codec2.pc
+
 # Build SDR++ Itself
 cd SDRPlusPlus
 mkdir build
