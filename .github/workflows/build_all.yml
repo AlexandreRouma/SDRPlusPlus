@@ -35,6 +35,15 @@ jobs:
         - name: Install SDRPlay API
           run: 7z x ${{runner.workspace}}/SDRPlay.zip -o"C:/Program Files/"
 
+        - name: Download codec2
+          run: git clone https://github.com/drowe67/codec2
+
+        - name: Prepare build for codec2
+          run: cd codec2 ; mkdir build ; cd build ; C:/msys64/msys2_shell.cmd -defterm -here -no-start -mingw64 -c "cmake .. -DCMAKE_GNUtoMS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS=-static-libgcc"
+
+        - name: Build codec2
+          run: cd codec2/build ; C:/msys64/msys2_shell.cmd -defterm -here -no-start -mingw64 -c "ninja"
+
         - name: Install vcpkg dependencies
           run: vcpkg install fftw3:x64-windows glew:x64-windows glfw3:x64-windows portaudio:x64-windows
 
