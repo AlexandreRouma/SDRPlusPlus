@@ -19,7 +19,7 @@ cd SDRPlusPlus
 mkdir build
 cd build
 cmake .. -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON
-make VERBOSE=1 -j2
+make -j2
 
 cd ..
 sh make_debian_package.sh ./build 'libfftw3-dev, libglfw3-dev, libglew-dev, libvolk2-dev, librtaudio-dev'

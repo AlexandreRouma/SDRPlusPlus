@@ -15,5 +15,5 @@ namespace style {
 }
 
 namespace ImGui {
-    void LeftLabel(char* text);
+    void LeftLabel(const char* text);
 }
