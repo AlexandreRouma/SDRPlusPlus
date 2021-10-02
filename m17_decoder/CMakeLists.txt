@@ -23,8 +23,8 @@ set_target_properties(m17_decoder PROPERTIES PREFIX "")
 
 if (MSVC)
     # Lib path
-    target_include_directories(m17_decoder PUBLIC "C:/Users/ryzerth/Documents/Code/codec2/src")
-    target_link_directories(sdrpp_core PUBLIC "C:/Users/ryzerth/Documents/Code/codec2/build/src")
+    target_include_directories(m17_decoder PUBLIC "C:/Program Files/codec2/include/")
+    target_link_directories(sdrpp_core PUBLIC "C:/Program Files/codec2/lib")
 
     target_link_libraries(m17_decoder PRIVATE libcodec2)
 

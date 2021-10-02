@@ -52,6 +52,9 @@ cp $build_dir/network_sink/Release/network_sink.dll sdrpp_windows_x64/modules/
 
 
 # Copy decoder modules
+cp $build_dir/m17_decoder/Release/m17_decoder.dll sdrpp_windows_x64/modules/
+cp "C:/Program Files/codec2/lib/libcodec2.dll" sdrpp_windows_x64/
+
 cp $build_dir/meteor_demodulator/Release/meteor_demodulator.dll sdrpp_windows_x64/modules/
 cp $build_dir/radio/Release/radio.dll sdrpp_windows_x64/modules/
 
