@@ -101,7 +101,6 @@ else()
 
     if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         target_compile_options(sdrpp_core PRIVATE -static)
-        target_link_options(sdrpp_core PRIVATE -static-libgcc -static-libstdc++)
     endif ()
 
 endif ()
