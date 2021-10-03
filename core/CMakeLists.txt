@@ -100,9 +100,8 @@ else()
     endif ()
 
     if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        # TODO: Replace with add_compile_options?
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
+        target_compile_options(sdrpp_core PRIVATE -static)
+        target_link_options(sdrpp_core PRIVATE -static-libgcc -static-libstdc++)
     endif ()
 
 endif ()

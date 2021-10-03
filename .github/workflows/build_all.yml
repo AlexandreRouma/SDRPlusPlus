@@ -54,7 +54,7 @@ jobs:
           run: vcpkg install fftw3:x64-windows glew:x64-windows glfw3:x64-windows portaudio:x64-windows
 
         - name: Install rtaudio
-          run: git clone https://github.com/thestk/rtaudio ; cd rtaudio ; mkdir build ; cd build ; cmake .. ; cmake --build . --config Release ; cmake --install .
+          run: git clone https://github.com/thestk/rtaudio ; cd rtaudio ; git checkout 2f2fca4502d506abc50f6d4473b2836d24cfb1e3 ; mkdir build ; cd build ; cmake .. ; cmake --build . --config Release ; cmake --install .
 
         - name: Prepare CMake
           working-directory: ${{runner.workspace}}/build
