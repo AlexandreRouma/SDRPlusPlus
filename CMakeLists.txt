@@ -44,6 +44,9 @@ option(OPT_BUILD_FREQUENCY_MANAGER "Build the Frequency Manager module" ON)
 option(OPT_BUILD_RECORDER "Audio and baseband recorder" ON)
 option(OPT_BUILD_RIGCTL_SERVER "Rigctl backend for controlling SDR++ with software like gpredict" ON)
 
+# Core of SDR++
+add_subdirectory("core")
+
 # Compiler arguments for each platform
 if (MSVC)
     add_compile_options(/O2 /Ob2 /std:c++17 /EHsc)
@@ -52,10 +55,6 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 else ()
     add_compile_options(-O3 -std=c++17)
 endif ()
-
-# Core of SDR++
-add_subdirectory("core")
-
 
 # Source modules
 if (OPT_BUILD_AIRSPY_SOURCE)
