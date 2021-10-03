@@ -9,7 +9,7 @@ else ()
     add_compile_options(-O3 -std=c++17)
 endif ()
 
-include_directories("src/" "../radio/src")
+include_directories("src/" "../../decoder_modules/radio/src")
 
 file(GLOB SRC "src/*.cpp")
 

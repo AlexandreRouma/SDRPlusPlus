@@ -13,8 +13,8 @@ file(GLOB SRC "src/*.cpp")
 
 include_directories("src/")
 include_directories("../recorder/src")
-include_directories("../meteor_demodulator/src")
-include_directories("../radio/src")
+include_directories("../../decoder_modules/meteor_demodulator/src")
+include_directories("../../decoder_modules/radio/src")
 
 add_library(rigctl_server SHARED ${SRC})
 target_link_libraries(rigctl_server PRIVATE sdrpp_core)
