@@ -5,7 +5,7 @@ add_subdirectory("libcorrect/")
 
 # Set compiler options
 if (MSVC)
-    add_compile_options(/O2 /std:c++17 /EHsc)
+    add_compile_options(/O2 /Ob2 /std:c++17 /EHsc)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
