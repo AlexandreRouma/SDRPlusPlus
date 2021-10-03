@@ -3,22 +3,26 @@ project(sdrpp_core)
 
 add_subdirectory("libcorrect/")
 
-# Set compiler options
-if (MSVC)
-    add_compile_options(/O2 /Ob2 /std:c++17 /EHsc)
-    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    add_compile_options(-O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
-else ()
-    add_compile_options(-O3 -std=c++17)
-endif ()
-add_definitions(-DSDRPP_IS_CORE)
-
 # Main code
 file(GLOB_RECURSE SRC "src/*.cpp" "src/*.c")
 
+add_definitions(-DSDRPP_IS_CORE)
+if (MSVC)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif ()
+
 # Add code to dyn lib
 add_library(sdrpp_core SHARED ${SRC})
+
+# Set compiler options
+if (MSVC)
+    target_compile_options(sdrpp_core PRIVATE /O2 /Ob2 /std:c++17 /EHsc)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(sdrpp_core PRIVATE -O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
+else ()
+    target_compile_options(sdrpp_core PRIVATE -O3 -std=c++17)
+endif ()
+
 
 # Set the install prefix
 target_compile_definitions(sdrpp_core PUBLIC INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
@@ -105,7 +109,7 @@ endif ()
 
 set(CORE_FILES ${RUNTIME_OUTPUT_DIRECTORY} PARENT_SCOPE)
 
-# cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/Users/Alex/vcpkg/scripts/buildsystems/vcpkg.cmake" -G "Visual Studio 15 2017 Win64"
+# cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake"
 
 # Install directives
 install(TARGETS sdrpp_core DESTINATION lib)
