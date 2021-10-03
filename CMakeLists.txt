@@ -47,15 +47,6 @@ option(OPT_BUILD_RIGCTL_SERVER "Rigctl backend for controlling SDR++ with softwa
 # Core of SDR++
 add_subdirectory("core")
 
-# Compiler arguments for each platform
-if (MSVC)
-    add_compile_options(/O2 /Ob2 /std:c++17 /EHsc)
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    add_compile_options(-O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
-else ()
-    add_compile_options(-O3 -std=c++17)
-endif ()
-
 # Source modules
 if (OPT_BUILD_AIRSPY_SOURCE)
 add_subdirectory("source_modules/airspy_source")
@@ -167,6 +158,14 @@ if (OPT_BUILD_RIGCTL_SERVER)
 add_subdirectory("misc_modules/rigctl_server")
 endif (OPT_BUILD_RIGCTL_SERVER)
 
+# Compiler arguments for each platform
+if (MSVC)
+    add_compile_options(/O2 /Ob2 /std:c++17 /EHsc)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_compile_options(-O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
+else ()
+    add_compile_options(-O3 -std=c++17)
+endif ()
 
 add_executable(sdrpp "src/main.cpp" "win32/resources.rc")
 target_link_libraries(sdrpp PRIVATE sdrpp_core)

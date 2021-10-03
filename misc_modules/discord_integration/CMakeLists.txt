@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 project(discord_integration)
 
+add_subdirectory("discord-rpc")
+
 if (MSVC)
     add_compile_options(/O2 /Ob2 /std:c++17 /EHsc)
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -8,8 +10,6 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 else ()
     add_compile_options(-O3 -std=c++17 -fPIC)
 endif ()
-
-add_subdirectory("discord-rpc")
 
 file(GLOB SRC "src/*.cpp")
 include_directories("src/" "discord-rpc/include" "../../decoder_modules/radio/src/")
