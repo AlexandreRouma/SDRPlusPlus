@@ -158,17 +158,18 @@ if (OPT_BUILD_RIGCTL_SERVER)
 add_subdirectory("misc_modules/rigctl_server")
 endif (OPT_BUILD_RIGCTL_SERVER)
 
-# Compiler arguments for each platform
-if (MSVC)
-    add_compile_options(/O2 /Ob2 /std:c++17 /EHsc)
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    add_compile_options(-O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
-else ()
-    add_compile_options(-O3 -std=c++17)
-endif ()
-
 add_executable(sdrpp "src/main.cpp" "win32/resources.rc")
 target_link_libraries(sdrpp PRIVATE sdrpp_core)
+
+# Compiler arguments for each platform
+if (MSVC)
+    target_compile_options(sdrpp PRIVATE /O2 /Ob2 /std:c++17 /EHsc)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(sdrpp PRIVATE -O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
+else ()
+    target_compile_options(sdrpp PRIVATE -O3 -std=c++17)
+endif ()
+
 
 # Copy dynamic libs over
 if (MSVC)

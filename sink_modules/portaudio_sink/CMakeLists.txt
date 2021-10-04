@@ -19,17 +19,17 @@ endif ()
 
 if (MSVC)
     find_package(portaudio CONFIG REQUIRED)
-    target_link_libraries(sdrpp_core PRIVATE portaudio)
+    target_link_libraries(audio_sink PRIVATE portaudio)
 else (MSVC)
     find_package(PkgConfig)
 
     pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
 
-    target_include_directories(sdrpp_core PRIVATE ${PORTAUDIO_INCLUDE_DIRS})
+    target_include_directories(audio_sink PRIVATE ${PORTAUDIO_INCLUDE_DIRS})
 
-    target_link_directories(sdrpp_core PRIVATE ${PORTAUDIO_LIBRARY_DIRS})
+    target_link_directories(audio_sink PRIVATE ${PORTAUDIO_LIBRARY_DIRS})
 
-    target_link_libraries(sdrpp_core PRIVATE ${PORTAUDIO_LIBRARIES})
+    target_link_libraries(audio_sink PRIVATE ${PORTAUDIO_LIBRARIES})
 
 endif (MSVC)
 
