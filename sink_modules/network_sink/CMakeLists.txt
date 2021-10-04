@@ -3,14 +3,11 @@ project(network_sink)
 
 file(GLOB SRC "src/*.cpp")
 
-include_directories("src/")
-include_directories("../recorder/src")
-include_directories("../meteor_demodulator/src")
-include_directories("../radio/src")
-
 add_library(network_sink SHARED ${SRC})
 target_link_libraries(network_sink PRIVATE sdrpp_core)
 set_target_properties(network_sink PROPERTIES PREFIX "")
+
+target_include_directories(network_sink PRIVATE "src/")
 
 if (MSVC)
     target_compile_options(network_sink PRIVATE /O2 /Ob2 /std:c++17 /EHsc)

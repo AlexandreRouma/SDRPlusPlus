@@ -3,14 +3,11 @@ project(weather_sat_decoder)
 
 file(GLOB_RECURSE SRC "src/*.cpp" "src/*.c")
 
-include_directories("src/")
-include_directories("src/libcorrect/")
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native")
-
 add_library(weather_sat_decoder SHARED ${SRC})
 target_link_libraries(weather_sat_decoder PRIVATE sdrpp_core)
 set_target_properties(weather_sat_decoder PROPERTIES PREFIX "")
+
+target_include_directories(weather_sat_decoder PRIVATE "src/")
 
 if (MSVC)
     target_compile_options(weather_sat_decoder PRIVATE /O2 /Ob2 /std:c++17 /EHsc)

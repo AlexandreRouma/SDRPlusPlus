@@ -3,11 +3,11 @@ project(new_portaudio_sink)
 
 file(GLOB SRC "src/*.cpp")
 
-include_directories("src/")
-
 add_library(new_portaudio_sink SHARED ${SRC})
 target_link_libraries(new_portaudio_sink PRIVATE sdrpp_core)
 set_target_properties(new_portaudio_sink PROPERTIES PREFIX "")
+
+target_include_directories(new_portaudio_sink PRIVATE "src/")
 
 if (MSVC)
     target_compile_options(new_portaudio_sink PRIVATE /O2 /Ob2 /std:c++17 /EHsc)
@@ -19,17 +19,17 @@ endif ()
 
 if (MSVC)
     find_package(portaudio CONFIG REQUIRED)
-    target_link_libraries(new_portaudio_sink PUBLIC portaudio)
+    target_link_libraries(new_portaudio_sink PRIVATE portaudio)
 else (MSVC)
     find_package(PkgConfig)
 
     pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
 
-    target_include_directories(new_portaudio_sink PUBLIC ${PORTAUDIO_INCLUDE_DIRS})
+    target_include_directories(new_portaudio_sink PRIVATE ${PORTAUDIO_INCLUDE_DIRS})
 
-    target_link_directories(new_portaudio_sink PUBLIC ${PORTAUDIO_LIBRARY_DIRS})
+    target_link_directories(new_portaudio_sink PRIVATE ${PORTAUDIO_LIBRARY_DIRS})
 
-    target_link_libraries(new_portaudio_sink PUBLIC ${PORTAUDIO_LIBRARIES})
+    target_link_libraries(new_portaudio_sink PRIVATE ${PORTAUDIO_LIBRARIES})
 
 endif (MSVC)
 

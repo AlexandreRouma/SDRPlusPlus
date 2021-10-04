@@ -3,11 +3,11 @@ project(audio_sink)
 
 file(GLOB SRC "src/*.cpp")
 
-include_directories("src/")
-
 add_library(audio_sink SHARED ${SRC})
 target_link_libraries(audio_sink PRIVATE sdrpp_core)
 set_target_properties(audio_sink PROPERTIES PREFIX "")
+
+target_include_directories(audio_sink PRIVATE "src/")
 
 if (MSVC)
     target_compile_options(audio_sink PRIVATE /O2 /Ob2 /std:c++17 /EHsc)
@@ -19,20 +19,20 @@ endif ()
 
 if (MSVC)
     # Lib path
-    target_link_directories(audio_sink PUBLIC "C:/Program Files (x86)/RtAudio/lib")
+    target_link_directories(audio_sink PRIVATE "C:/Program Files (x86)/RtAudio/lib")
 
     # Misc headers
-    target_include_directories(audio_sink PUBLIC "C:/Program Files (x86)/RtAudio/include/rtaudio")
+    target_include_directories(audio_sink PRIVATE "C:/Program Files (x86)/RtAudio/include/rtaudio")
 
-    target_link_libraries(audio_sink PUBLIC rtaudio)
+    target_link_libraries(audio_sink PRIVATE rtaudio)
 else (MSVC)
     find_package(PkgConfig)
 
     pkg_check_modules(RTAUDIO REQUIRED rtaudio)
 
-    target_include_directories(audio_sink PUBLIC ${RTAUDIO_INCLUDE_DIRS})
-    target_link_directories(audio_sink PUBLIC ${RTAUDIO_LIBRARY_DIRS})
-    target_link_libraries(audio_sink PUBLIC ${RTAUDIO_LIBRARIES})
+    target_include_directories(audio_sink PRIVATE ${RTAUDIO_INCLUDE_DIRS})
+    target_link_directories(audio_sink PRIVATE ${RTAUDIO_LIBRARY_DIRS})
+    target_link_libraries(audio_sink PRIVATE ${RTAUDIO_LIBRARIES})
 
 endif ()
 

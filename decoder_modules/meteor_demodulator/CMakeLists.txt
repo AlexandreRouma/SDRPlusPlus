@@ -4,9 +4,6 @@ project(meteor_demodulator)
 file(GLOB_RECURSE SRC "src/*.cpp" "src/*.c")
 
 include_directories("src/")
-include_directories("src/libcorrect/")
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native")
 
 add_library(meteor_demodulator SHARED ${SRC})
 target_link_libraries(meteor_demodulator PRIVATE sdrpp_core)

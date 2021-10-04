@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.13)
 project(plutosdr_source)
 
-include_directories("src/")
-
 file(GLOB SRC "src/*.cpp")
 
 add_library(plutosdr_source SHARED ${SRC})
 target_link_libraries(plutosdr_source PRIVATE sdrpp_core)
 set_target_properties(plutosdr_source PROPERTIES PREFIX "")
+
+target_include_directories(plutosdr_source PRIVATE "src/")
 
 if (MSVC)
     target_compile_options(plutosdr_source PRIVATE /O2 /Ob2 /std:c++17 /EHsc)
@@ -19,24 +19,24 @@ endif ()
 
 if (MSVC)
     # Lib path
-    target_link_directories(plutosdr_source PUBLIC "C:/Program Files/PothosSDR/lib/")
-    target_include_directories(plutosdr_source PUBLIC "C:/Program Files/PothosSDR/include/")
+    target_link_directories(plutosdr_source PRIVATE "C:/Program Files/PothosSDR/lib/")
+    target_include_directories(plutosdr_source PRIVATE "C:/Program Files/PothosSDR/include/")
 
-    target_link_libraries(plutosdr_source PUBLIC libiio)
-    target_link_libraries(plutosdr_source PUBLIC libad9361)
+    target_link_libraries(plutosdr_source PRIVATE libiio)
+    target_link_libraries(plutosdr_source PRIVATE libad9361)
 else (MSVC)
     find_package(PkgConfig)
 
     pkg_check_modules(LIBIIO REQUIRED libiio)
     pkg_check_modules(LIBAD9361 REQUIRED libad9361)
 
-    target_include_directories(plutosdr_source PUBLIC ${LIBIIO_INCLUDE_DIRS})
-    target_link_directories(plutosdr_source PUBLIC ${LIBIIO_LIBRARY_DIRS})
-    target_link_libraries(plutosdr_source PUBLIC ${LIBIIO_LIBRARIES})
+    target_include_directories(plutosdr_source PRIVATE ${LIBIIO_INCLUDE_DIRS})
+    target_link_directories(plutosdr_source PRIVATE ${LIBIIO_LIBRARY_DIRS})
+    target_link_libraries(plutosdr_source PRIVATE ${LIBIIO_LIBRARIES})
 
-    target_include_directories(plutosdr_source PUBLIC ${LIBAD9361_INCLUDE_DIRS})
-    target_link_directories(plutosdr_source PUBLIC ${LIBAD9361_LIBRARY_DIRS})
-    target_link_libraries(plutosdr_source PUBLIC ${LIBAD9361_LIBRARIES})
+    target_include_directories(plutosdr_source PRIVATE ${LIBAD9361_INCLUDE_DIRS})
+    target_link_directories(plutosdr_source PRIVATE ${LIBAD9361_LIBRARY_DIRS})
+    target_link_libraries(plutosdr_source PRIVATE ${LIBAD9361_LIBRARIES})
 endif ()
 
 # Install directives

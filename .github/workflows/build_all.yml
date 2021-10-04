@@ -62,7 +62,7 @@ jobs:
 
         - name: Build
           working-directory: ${{runner.workspace}}/build
-          run: cmake --build . --config Release
+          run: cmake --build . --config Release --verbose
 
         - name: Create Archive
           working-directory: ${{runner.workspace}}

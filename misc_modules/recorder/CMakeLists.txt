@@ -3,11 +3,11 @@ project(recorder)
 
 file(GLOB SRC "src/*.cpp")
 
-include_directories("src/")
-
 add_library(recorder SHARED ${SRC})
 target_link_libraries(recorder PRIVATE sdrpp_core)
 set_target_properties(recorder PROPERTIES PREFIX "")
+
+target_include_directories(recorder PRIVATE "src/")
 
 if (MSVC)
     target_compile_options(recorder PRIVATE /O2 /Ob2 /std:c++17 /EHsc)

@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.13)
 project(sdrplay_source)
 
-include_directories("src/")
-
 file(GLOB SRC "src/*.cpp")
 
 add_library(sdrplay_source SHARED ${SRC})
 target_link_libraries(sdrplay_source PRIVATE sdrpp_core)
 set_target_properties(sdrplay_source PROPERTIES PREFIX "")
+
+target_include_directories(sdrplay_source PRIVATE "src/")
 
 if (MSVC)
     target_compile_options(sdrplay_source PRIVATE /O2 /Ob2 /std:c++17 /EHsc)
@@ -19,17 +19,17 @@ endif ()
 
 if (MSVC)
     # Lib path
-    target_link_directories(sdrplay_source PUBLIC "C:/Program Files/SDRplay/API/x64")
-    target_include_directories(sdrplay_source PUBLIC "C:/Program Files/SDRplay/API/inc")
+    target_link_directories(sdrplay_source PRIVATE "C:/Program Files/SDRplay/API/x64")
+    target_include_directories(sdrplay_source PRIVATE "C:/Program Files/SDRplay/API/inc")
 
-    target_link_libraries(sdrplay_source PUBLIC sdrplay_api)
+    target_link_libraries(sdrplay_source PRIVATE sdrplay_api)
 else (MSVC)
     find_package(PkgConfig)
 
     # Include it because for some reason pkgconfig doesn't look here?
     if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        target_include_directories(sdrplay_source PUBLIC "/usr/local/include")
-        target_link_directories(sdrplay_source PUBLIC "/usr/local/lib/")
+        target_include_directories(sdrplay_source PRIVATE "/usr/local/include")
+        target_link_directories(sdrplay_source PRIVATE "/usr/local/lib/")
     endif()
 
     target_link_libraries(sdrplay_source PRIVATE sdrplay_api)

@@ -10,11 +10,12 @@ endif ()
 add_subdirectory("discord-rpc")
 
 file(GLOB SRC "src/*.cpp")
-include_directories("src/" "discord-rpc/include" "../../decoder_modules/radio/src/")
 
 add_library(discord_integration SHARED ${SRC})
-target_link_libraries(discord_integration PUBLIC sdrpp_core discord-rpc)
+target_link_libraries(discord_integration PRIVATE sdrpp_core discord-rpc)
 set_target_properties(discord_integration PROPERTIES PREFIX "")
+
+target_include_directories(discord_integration PRIVATE "src/" "discord-rpc/include" "../../decoder_modules/radio/src/")
 
 if (MSVC)
     target_compile_options(discord_integration PRIVATE /O2 /Ob2 /std:c++17 /EHsc)

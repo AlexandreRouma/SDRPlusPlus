@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.13)
 project(spyserver_source)
 
-include_directories("src/")
-
 file(GLOB SRC "src/*.cpp")
 
 add_library(spyserver_source SHARED ${SRC})
 target_link_libraries(spyserver_source PRIVATE sdrpp_core)
 set_target_properties(spyserver_source PROPERTIES PREFIX "")
+
+target_include_directories(spyserver_source PRIVATE "src/")
 
 if (MSVC)
     target_compile_options(spyserver_source PRIVATE /O2 /Ob2 /std:c++17 /EHsc)
