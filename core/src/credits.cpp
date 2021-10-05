@@ -36,19 +36,22 @@ namespace sdrpp_credits {
 
     const char* patrons[] = {
         "Bob Logan",
+        "Christian Häusler",
         "Croccydile",
         "Dale L Puckett (K0HYD)",
         "Daniele D'Agnelli",
         "EB3FRN",
         "Eric Johnson",
         "Flinger Films",
-        "W4IPA",
+        "Kezza",
         "Lee Donaghy",
+        ".lozenge. (Hank Hill)",
         "ON4MU",
         "Passion-Radio.com",
         "Scanner School",
         "SignalsEverywhere",
-        "Syne Ardwin (WI9SYN)"
+        "Syne Ardwin (WI9SYN)",
+        "W4IPA"
     };
 
     const int contributorCount = sizeof(contributors) / sizeof(char*);
