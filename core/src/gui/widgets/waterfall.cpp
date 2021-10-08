@@ -584,7 +584,7 @@ namespace ImGui {
     }
 
     void WaterFall::updateWaterfallFb() {
-        if (!waterfallVisible || rawFFTs == NULL) {
+        if (!waterfallVisible || waterfallHeight == 0 || rawFFTs == NULL) {
             return;
         }
         double offsetRatio = viewOffset / (wholeBandwidth / 2.0);
@@ -840,7 +840,7 @@ namespace ImGui {
     float* WaterFall::getFFTBuffer() {
         if (rawFFTs == NULL) { return NULL; }
         buf_mtx.lock();
-        if (waterfallVisible) {
+        if (waterfallVisible && waterfallHeight > 0) {
             currentFFTLine--;
             fftLines++;
             currentFFTLine = ((currentFFTLine + waterfallHeight) % waterfallHeight);
@@ -866,7 +866,7 @@ namespace ImGui {
             }
         }
 
-        if (waterfallVisible) {
+        if (waterfallVisible && waterfallHeight > 0) {
             doZoom(drawDataStart, drawDataSize, dataWidth, &rawFFTs[currentFFTLine * rawFFTSize], latestFFT, _fastFFT);
             memmove(&waterfallFb[dataWidth], waterfallFb, dataWidth * (waterfallHeight - 1) * sizeof(uint32_t));
             float pixel;
