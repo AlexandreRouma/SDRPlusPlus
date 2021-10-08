@@ -166,7 +166,7 @@ namespace dsp {
             generic_block<Reshaper<T>>::tempStart();
         }
 
-        int run() {
+        virtual int run() override {
             int count = _in->read();
             if (count < 0) { return -1; }
             ringBuf.write(_in->readBuf, count);
@@ -177,7 +177,7 @@ namespace dsp {
         stream<T> out;
 
     private:
-        void doStart() override {
+        virtual void doStart() override {
             workThread = std::thread(&Reshaper<T>::loop, this);
             bufferWorkerThread = std::thread(&Reshaper<T>::bufferWorker, this);
         }
@@ -186,7 +186,7 @@ namespace dsp {
             while (run() >= 0);
         }
 
-        void doStop() override {
+        virtual void doStop() override {
             _in->stopReader();
             ringBuf.stopReader();
             out.stopWriter();

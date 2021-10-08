@@ -112,7 +112,7 @@ namespace dsp {
             generic_block<PolyphaseResampler<T>>::tempStart();
         }
 
-        int calcOutSize(int in) {
+        virtual int calcOutSize(int in) override {
             assert(generic_block<PolyphaseResampler<T>>::_block_init);
             return (in * _interp) / _decim;
         }
