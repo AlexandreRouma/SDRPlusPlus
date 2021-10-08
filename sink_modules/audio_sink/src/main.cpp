@@ -164,7 +164,8 @@ private:
         parameters.nChannels = 2;
         unsigned int bufferFrames = sampleRate / 60;
         RtAudio::StreamOptions opts;
-        opts.flags = RTAUDIO_MINIMIZE_LATENCY;
+        opts.flags = RTAUDIO_SCHEDULE_REALTIME;
+        opts.priority = sched_get_priority_max(SCHED_FIFO);
         opts.streamName = _streamName;
 
         try {
