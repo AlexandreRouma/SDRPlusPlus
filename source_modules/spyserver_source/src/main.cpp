@@ -46,9 +46,9 @@ const int streamFormatsBitCount[] = {
 
 ConfigManager config;
 
-class AirspyHFSourceModule : public ModuleManager::Instance {
+class SpyServerSourceModule : public ModuleManager::Instance {
 public:
-    AirspyHFSourceModule(std::string name) {
+    SpyServerSourceModule(std::string name) {
         this->name = name;
 
         config.acquire();
@@ -70,7 +70,7 @@ public:
         sigpath::sourceManager.registerSource("SpyServer", &handler);
     }
 
-    ~AirspyHFSourceModule() {
+    ~SpyServerSourceModule() {
         stop(this);
         sigpath::sourceManager.unregisterSource("SpyServer");
     }
@@ -105,20 +105,20 @@ private:
     }
 
     static void menuSelected(void* ctx) {
-        AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
+        SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
         core::setInputSampleRate(_this->sampleRate);
         gui::mainWindow.playButtonLocked = !(_this->client && _this->client->isOpen());
-        spdlog::info("AirspyHFSourceModule '{0}': Menu Select!", _this->name);
+        spdlog::info("SpyServerSourceModule '{0}': Menu Select!", _this->name);
     }
 
     static void menuDeselected(void* ctx) {
-        AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
+        SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
         gui::mainWindow.playButtonLocked = false;
-        spdlog::info("AirspyHFSourceModule '{0}': Menu Deselect!", _this->name);
+        spdlog::info("SpyServerSourceModule '{0}': Menu Deselect!", _this->name);
     }
     
     static void start(void* ctx) {
-        AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
+        SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
         if (_this->running) { return; }
 
         int srvBits = streamFormatsBitCount[_this->iqType];
@@ -131,30 +131,30 @@ private:
         _this->client->startStream();
 
         _this->running = true;
-        spdlog::info("AirspyHFSourceModule '{0}': Start!", _this->name);
+        spdlog::info("SpyServerSourceModule '{0}': Start!", _this->name);
     }
     
     static void stop(void* ctx) {
-        AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
+        SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
         if (!_this->running) { return; }
         
         _this->client->stopStream();
 
         _this->running = false;
-        spdlog::info("AirspyHFSourceModule '{0}': Stop!", _this->name);
+        spdlog::info("SpyServerSourceModule '{0}': Stop!", _this->name);
     }
     
     static void tune(double freq, void* ctx) {
-        AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
+        SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
         if (_this->running) {
             _this->client->setSetting(SPYSERVER_SETTING_IQ_FREQUENCY, freq);
         }
         _this->freq = freq;
-        spdlog::info("AirspyHFSourceModule '{0}': Tune: {1}!", _this->name, freq);
+        spdlog::info("SpyServerSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
     
     static void menuHandler(void* ctx) {
-        AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
+        SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
         float menuWidth = ImGui::GetContentRegionAvailWidth();
 
         bool connected = (_this->client && _this->client->isOpen());
@@ -321,11 +321,11 @@ MOD_EXPORT void _INIT_() {
 }
 
 MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
-    return new AirspyHFSourceModule(name);
+    return new SpyServerSourceModule(name);
 }
 
 MOD_EXPORT void _DELETE_INSTANCE_(ModuleManager::Instance* instance) {
-    delete (AirspyHFSourceModule*)instance;
+    delete (SpyServerSourceModule*)instance;
 }
 
 MOD_EXPORT void _END_() {
