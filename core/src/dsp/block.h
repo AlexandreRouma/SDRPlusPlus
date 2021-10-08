@@ -198,10 +198,12 @@ namespace dsp {
 
     private:
         void registerBlock(generic_unnamed_block* block) {
+            std::lock_guard<std::mutex> lck(ctrlMtx);
             blocks.push_back(block);
         }
 
         void unregisterBlock(generic_unnamed_block* block) {
+            std::lock_guard<std::mutex> lck(ctrlMtx);
             blocks.erase(std::remove(blocks.begin(), blocks.end(), block), blocks.end());
         }
 
