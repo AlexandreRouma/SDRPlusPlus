@@ -27,7 +27,7 @@ ModuleManager::Module_t ModuleManager::loadModule(std::string path) {
     mod.deleteInstance = (void(*)(Instance*))GetProcAddress(mod.handle, "_DELETE_INSTANCE_");
     mod.end = (void(*)())GetProcAddress(mod.handle, "_END_");
 #else
-    mod.handle = dlopen(path.c_str(), RTLD_LAZY);
+    mod.handle = dlopen(path.c_str(), RTLD_LAZY RTLD_LOCAL);
     if (mod.handle == NULL) {
         spdlog::error("Couldn't load {0}.", path);
         mod.handle = NULL;
