@@ -18,7 +18,7 @@ SDRPP_MOD_INFO {
     /* Max instances    */ 1
 };
 
-class AudioSink : SinkManager::Sink {
+class PortAudioSink : SinkManager::Sink {
 public:
     struct AudioDevice_t {
         std::string name;
@@ -29,7 +29,7 @@ public:
         std::string txtSampleRates;
     };
     
-    AudioSink(SinkManager::Stream* stream, std::string streamName) {
+    PortAudioSink(SinkManager::Stream* stream, std::string streamName) {
         _stream = stream;
         _streamName = streamName;
         s2m.init(_stream->sinkOut);
@@ -93,7 +93,7 @@ public:
         // Load config from file
     }
 
-    ~AudioSink() {
+    ~PortAudioSink() {
         for (auto const& dev : devices) {
             delete dev;
         }
@@ -208,7 +208,7 @@ private:
 
     static int _mono_cb(const void *input, void *output, unsigned long frameCount,
         const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData) {
-        AudioSink* _this = (AudioSink*)userData;
+        PortAudioSink* _this = (PortAudioSink*)userData;
         if (!gui::mainWindow.isPlaying()) { 
             memset(output, 0, frameCount*sizeof(float));
             return 0;
@@ -219,7 +219,7 @@ private:
 
     static int _stereo_cb(const void *input, void *output, unsigned long frameCount,
         const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData) {
-        AudioSink* _this = (AudioSink*)userData;
+        PortAudioSink* _this = (PortAudioSink*)userData;
         if (!gui::mainWindow.isPlaying()) { 
             memset(output, 0, frameCount*sizeof(dsp::stereo_t));
             return 0;
@@ -230,7 +230,7 @@ private:
 
     // static int _mono_cb(const void *input, void *output, unsigned long frameCount,
     //     const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData) {
-    //     AudioSink* _this = (AudioSink*)userData;
+    //     PortAudioSink* _this = (PortAudioSink*)userData;
     //     if (_this->monoPacker.out.read() < 0) { return 0; }
     //     memcpy((float*)output, _this->monoPacker.out.readBuf, frameCount * sizeof(float));
     //     _this->monoPacker.out.flush();
@@ -239,7 +239,7 @@ private:
 
     // static int _stereo_cb(const void *input, void *output, unsigned long frameCount,
     //     const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData) {
-    //     AudioSink* _this = (AudioSink*)userData;
+    //     PortAudioSink* _this = (PortAudioSink*)userData;
     //     if (_this->stereoPacker.out.read() < 0) { spdlog::warn("CB killed"); return 0; }
     //     memcpy((dsp::stereo_t*)output, _this->stereoPacker.out.readBuf, frameCount * sizeof(dsp::stereo_t));
     //     _this->stereoPacker.out.flush();
@@ -280,9 +280,9 @@ private:
 
 };
 
-class AudioSinkModule : public ModuleManager::Instance {
+class PortAudioSinkModule : public ModuleManager::Instance {
 public:
-    AudioSinkModule(std::string name) {
+    PortAudioSinkModule(std::string name) {
         this->name = name;
         provider.create = create_sink;
         provider.ctx = this;
@@ -292,7 +292,7 @@ public:
         sigpath::sinkManager.registerSinkProvider("Audio", provider);
     }
 
-    ~AudioSinkModule() {
+    ~PortAudioSinkModule() {
         sigpath::sinkManager.unregisterSinkProvider("Audio");
         Pa_Terminate();
     }
@@ -313,7 +313,7 @@ public:
 
 private:
     static SinkManager::Sink* create_sink(SinkManager::Stream* stream, std::string streamName, void* ctx) {
-        return (SinkManager::Sink*)(new AudioSink(stream, streamName));
+        return (SinkManager::Sink*)(new PortAudioSink(stream, streamName));
     }
 
     std::string name;
@@ -328,7 +328,7 @@ MOD_EXPORT void _INIT_() {
 }
 
 MOD_EXPORT void* _CREATE_INSTANCE_(std::string name) {
-    AudioSinkModule* instance = new AudioSinkModule(name);
+    PortAudioSinkModule* instance = new PortAudioSinkModule(name);
     return instance;
 }
 

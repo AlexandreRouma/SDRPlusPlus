@@ -26,7 +26,7 @@ SDRPP_MOD_INFO {
 
 ConfigManager config;
 
-class AudioSink : SinkManager::Sink {
+class NewPortAudioSink : SinkManager::Sink {
 public:
     struct AudioDevice_t {
         const PaDeviceInfo* deviceInfo;
@@ -38,7 +38,7 @@ public:
         std::string sampleRatesTxt;
     };
     
-    AudioSink(SinkManager::Stream* stream, std::string streamName) {
+    NewPortAudioSink(SinkManager::Stream* stream, std::string streamName) {
         _stream = stream;
         _streamName = streamName;
 
@@ -65,7 +65,7 @@ public:
         selectDevByName(selected);
     }
 
-    ~AudioSink() {
+    ~NewPortAudioSink() {
         stop();
         gui::mainWindow.onPlayStateChange.unbindHandler(&playStateHandler);
     }
@@ -171,7 +171,7 @@ public:
 
 private:
     static void playStateChangeHandler(bool newState, void* ctx) {
-        AudioSink* _this = (AudioSink*)ctx;
+        NewPortAudioSink* _this = (NewPortAudioSink*)ctx;
 
         // Wake up reader to send nulls instead of data in preparation for shutoff
         if (newState) {
@@ -329,7 +329,7 @@ private:
 
     static int _mono_cb(const void *input, void *output, unsigned long frameCount,
         const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData) {
-        AudioSink* _this = (AudioSink*)userData;
+        NewPortAudioSink* _this = (NewPortAudioSink*)userData;
         
         // For OSX, mute audio when not playing
         if (!gui::mainWindow.isPlaying()) { 
@@ -347,7 +347,7 @@ private:
 
     static int _stereo_cb(const void *input, void *output, unsigned long frameCount,
         const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData) {
-        AudioSink* _this = (AudioSink*)userData;
+        NewPortAudioSink* _this = (NewPortAudioSink*)userData;
         
         // For OSX, mute audio when not playing
         if (!gui::mainWindow.isPlaying()) { 
@@ -382,9 +382,9 @@ private:
     EventHandler<bool> playStateHandler;
 };
 
-class AudioSinkModule : public ModuleManager::Instance {
+class NewPortAudioSinkModule : public ModuleManager::Instance {
 public:
-    AudioSinkModule(std::string name) {
+    NewPortAudioSinkModule(std::string name) {
         this->name = name;
         provider.create = create_sink;
         provider.ctx = this;
@@ -394,7 +394,7 @@ public:
         sigpath::sinkManager.registerSinkProvider("New Audio", provider);
     }
 
-    ~AudioSinkModule() {
+    ~NewPortAudioSinkModule() {
         sigpath::sinkManager.unregisterSinkProvider("New Audio");
         Pa_Terminate();
     }
@@ -415,7 +415,7 @@ public:
 
 private:
     static SinkManager::Sink* create_sink(SinkManager::Stream* stream, std::string streamName, void* ctx) {
-        return (SinkManager::Sink*)(new AudioSink(stream, streamName));
+        return (SinkManager::Sink*)(new NewPortAudioSink(stream, streamName));
     }
 
     std::string name;
@@ -431,12 +431,12 @@ MOD_EXPORT void _INIT_() {
 }
 
 MOD_EXPORT void* _CREATE_INSTANCE_(std::string name) {
-    AudioSinkModule* instance = new AudioSinkModule(name);
+    NewPortAudioSinkModule* instance = new NewPortAudioSinkModule(name);
     return instance;
 }
 
 MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
-    delete (AudioSinkModule*)instance;
+    delete (NewPortAudioSinkModule*)instance;
 }
 
 MOD_EXPORT void _END_() {
