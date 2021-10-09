@@ -77,7 +77,10 @@ brew install \
   volk
 mkdir build
 cd build
-cmake .. -DOPT_BUILD_PLUTOSDR_SOURCE=false
+cmake .. \
+  -DOPT_BUILD_AUDIO_SINK=false \
+  -DOPT_BUILD_PLUTOSDR_SOURCE=false \
+  -DOPT_BUILD_PORTAUDIO_SINK=true
 make -j$(sysctl -n hw.ncpu)
 ```
 
