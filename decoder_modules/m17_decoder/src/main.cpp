@@ -222,7 +222,7 @@ private:
             ImGui::EndTable();
         }
 
-        if (ImGui::Checkbox(CONCAT("Show Reference TEST Lines##m17_showlines_", _this->name), &_this->showLines)) {
+        if (ImGui::Checkbox(CONCAT("Show Reference Lines##m17_showlines_", _this->name), &_this->showLines)) {
             if (_this->showLines) {
                 _this->diag.lines.push_back(-0.75f);
                 _this->diag.lines.push_back(-0.25f);
