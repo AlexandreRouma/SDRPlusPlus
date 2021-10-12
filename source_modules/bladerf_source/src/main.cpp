@@ -149,7 +149,7 @@ public:
         bladerf_get_gain_range(openDev, BLADERF_CHANNEL_RX(chanId), &gainRange);
         int gainModeCount = bladerf_get_gain_modes(openDev, BLADERF_CHANNEL_RX(chanId), &gainModes);
 
-        // Gather state of bias tee's
+        // Gather state of bias rx tee
         bladerf_get_bias_tee(openDev, BLADERF_CHANNEL_RX(chanId), &rxBiasTee);
 
         // Generate sampleRate and Bandwidth lists
@@ -286,7 +286,7 @@ public:
             overallGain = gainRange->min;
         }
 
-        // Load Bias Tee (TODO)
+        // Load Bias Tee
         if (config.conf["devices"][selectedSerial].contains("rxBiasTee")) {
             rxBiasTee = config.conf["devices"][selectedSerial]["rxBiasTee"];
         }
