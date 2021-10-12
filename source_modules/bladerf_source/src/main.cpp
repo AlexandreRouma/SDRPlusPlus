@@ -149,6 +149,9 @@ public:
         bladerf_get_gain_range(openDev, BLADERF_CHANNEL_RX(chanId), &gainRange);
         int gainModeCount = bladerf_get_gain_modes(openDev, BLADERF_CHANNEL_RX(chanId), &gainModes);
 
+        // Gather state of bias tee's
+        bladerf_get_bias_tee(openDev, BLADERF_CHANNEL_RX(chanId), &rxBiasTee);
+
         // Generate sampleRate and Bandwidth lists
         sampleRates.clear();
         sampleRatesTxt = "";
@@ -210,6 +213,7 @@ public:
             config.conf["devices"][selectedSerial]["bandwidth"] = bandwidths.size(); // Auto
             config.conf["devices"][selectedSerial]["gainMode"] = "Manual";
             config.conf["devices"][selectedSerial]["overallGain"] = gainRange->min;
+            config.conf["devices"][selectedSerial]["rxBiasTee"] = false;
         }
 
         // Load sample rate
@@ -282,6 +286,14 @@ public:
             overallGain = gainRange->min;
         }
 
+        // Load Bias Tee (TODO)
+        if (config.conf["devices"][selectedSerial].contains("rxBiasTee")) {
+            rxBiasTee = config.conf["devices"][selectedSerial]["rxBiasTee"];
+        }
+        else {
+            rxBiasTee = false;
+        }
+
         bladerf_close(openDev);
     }
 
@@ -341,7 +353,10 @@ private:
         if (_this->gainModes[_this->gainMode].mode == BLADERF_GAIN_MANUAL) {
             bladerf_set_gain(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->overallGain);
         }
-        
+
+        // Set RX bias-tee state
+        bladerf_set_bias_tee(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->rxBiasTee);
+
         _this->streamingEnabled = true;
 
         // Setup synchronous transfer
@@ -484,6 +499,15 @@ private:
         }
         if (_this->selectedSerial != "") { if (_this->gainModes[_this->gainMode].mode != BLADERF_GAIN_MANUAL) { style::endDisabled(); } }
 
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::Checkbox(CONCAT("RX Bias-tee##_bladerf_rx_bt_", _this->name), &_this->rxBiasTee)) {
+            if (_this->running) {
+                bladerf_set_bias_tee(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->rxBiasTee);
+            }
+            config.acquire();
+            config.conf["devices"][_this->selectedSerial]["rxBiasTee"] = _this->rxBiasTee;
+            config.release(true);
+        }
     }
 
     void worker() {
@@ -550,6 +574,8 @@ private:
     std::vector<std::string> gainModeNames;
     std::string gainModesTxt;
     int gainModeCount;
+
+    bool rxBiasTee = false;
 };
 
 MOD_EXPORT void _INIT_() {
