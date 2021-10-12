@@ -27,6 +27,12 @@ SDRPP_MOD_INFO {
 
 ConfigManager config;
 
+enum BladeRFType {
+    BLADERF_TYPE_UNKNOWN,
+    BLADERF_TYPE_V1,
+    BLADERF_TYPE_V2
+};
+
 class BladeRFSourceModule : public ModuleManager::Instance {
 public:
     BladeRFSourceModule(std::string name) {
@@ -124,6 +130,18 @@ public:
         selectedSerial = info->serial;
         for (int i = 0; i < devCount; i++) {
             if (selectedSerial == devInfoList[i].serial) { devId = i; }
+        }
+
+        // Get the board type
+        const char* bname = bladerf_get_board_name(openDev);
+        if (!strcmp(bname ,"bladerf1")) {
+            selectedBladeType = BLADERF_TYPE_V1;
+        }
+        else if (!strcmp(bname ,"bladerf2")) {
+            selectedBladeType = BLADERF_TYPE_V2;
+        }
+        else {
+            selectedBladeType = BLADERF_TYPE_UNKNOWN;
         }
 
         // Gather info about the BladeRF's ranges
@@ -282,6 +300,16 @@ public:
             overallGain = gainRange->min;
         }
 
+        // Load Bias-T
+        if (selectedBladeType == BLADERF_TYPE_V2) {
+            if (config.conf["devices"][selectedSerial].contains("biasT")) {
+                biasT = config.conf["devices"][selectedSerial]["biasT"];
+            }
+            else {
+                overallGain = false;
+            }
+        }
+
         bladerf_close(openDev);
     }
 
@@ -336,6 +364,10 @@ private:
         bladerf_set_bandwidth(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), (_this->bwId == _this->bandwidths.size()) ? 
                             std::clamp<uint64_t>(_this->sampleRate, _this->bwRange->min, _this->bwRange->max) : _this->bandwidths[_this->bwId], NULL);
         bladerf_set_gain_mode(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->gainModes[_this->gainMode].mode);
+
+        if (_this->selectedBladeType == BLADERF_TYPE_V2) {
+            bladerf_set_bias_tee(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->biasT);
+        }
 
         // If gain mode is manual, set the gain
         if (_this->gainModes[_this->gainMode].mode == BLADERF_GAIN_MANUAL) {
@@ -484,6 +516,17 @@ private:
         }
         if (_this->selectedSerial != "") { if (_this->gainModes[_this->gainMode].mode != BLADERF_GAIN_MANUAL) { style::endDisabled(); } }
 
+        if (_this->selectedBladeType == BLADERF_TYPE_V2) {
+            if (ImGui::Checkbox("Bias-T##_balderf_biast_", &_this->biasT)) {
+                if (_this->running) {
+                    bladerf_set_bias_tee(_this->openDev, BLADERF_CHANNEL_RX(_this->chanId), _this->biasT);
+                }
+                config.acquire();
+                config.conf["devices"][_this->selectedSerial]["biasT"] = _this->biasT;
+                config.release(true);
+            }
+        }
+
     }
 
     void worker() {
@@ -517,6 +560,7 @@ private:
     int chanId = 0;
     int gainMode = 0;
     bool streamingEnabled = false;
+    bool biasT = false;
 
     int channelCount;
 
@@ -544,7 +588,7 @@ private:
 
     std::string selectedSerial;
 
-    bool isBlade1 = false;
+    BladeRFType selectedBladeType = BLADERF_TYPE_UNKNOWN;
 
     const bladerf_gain_modes* gainModes;
     std::vector<std::string> gainModeNames;
