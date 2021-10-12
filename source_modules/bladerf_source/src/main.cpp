@@ -306,7 +306,7 @@ public:
                 biasT = config.conf["devices"][selectedSerial]["biasT"];
             }
             else {
-                overallGain = false;
+                biasT = false;
             }
         }
 
