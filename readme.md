@@ -58,7 +58,7 @@ This guide requires you to have Homebrew installed. Check out https://brew.sh/ o
 
 Get yourself a copy of the source code. This can be done by downloading the
 source package from [the Releases
-page](https://github.com/AlexandreRouma/SDRPlusPlus/releases). Eextract it to a
+page](https://github.com/AlexandreRouma/SDRPlusPlus/releases). Extract it to a
 location of your choice. Alternativley you can clone
 https://github.com/AlexandreRouma/SDRPlusPlus.git using git.
 
