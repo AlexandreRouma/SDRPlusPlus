@@ -20,6 +20,9 @@ namespace displaymenu {
     int fftRate = 20;
 
     const int FFTSizes[] = {
+        524288,
+        262144,
+        131072,
         65536,
         32768,
         16384,
@@ -29,7 +32,10 @@ namespace displaymenu {
         1024
     };
 
-    const char* FFTSizesStr = "65536\0"
+    const char* FFTSizesStr = "524288\0"
+                            "262144\0"
+                            "131072\0"
+                            "65536\0"
                             "32768\0"
                             "16384\0"
                             "8192\0"
