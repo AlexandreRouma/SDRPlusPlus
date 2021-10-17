@@ -88,7 +88,7 @@ public:
 
         devCount = bladerf_get_device_list(&devInfoList);
         if (devCount < 0) {
-            spdlog::error("Could not list devices");
+            spdlog::error("Could not list devices {0}", devCount);
             return;
         }
         for (int i = 0; i < devCount; i++) {

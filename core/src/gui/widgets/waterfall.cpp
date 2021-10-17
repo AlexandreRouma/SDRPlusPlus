@@ -30,8 +30,8 @@ inline void doZoom(int offset, int width, int outWidth, float* data, float* out,
     if (offset < 0) {
         offset = 0;
     }
-    if (width > 65535) {
-        width = 65535;
+    if (width > 524288) {
+        width = 524288;
     }
 
     float factor = (float)width / (float)outWidth;
