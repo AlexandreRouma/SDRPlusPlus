@@ -427,6 +427,7 @@ I will soon publish a contributing.md listing the code style to use.
 * [Cropinghigh](https://github.com/cropinghigh)
 * [Fred F4EED](http://f4eed.wordpress.com/)
 * [Howard0su](https://github.com/howard0su)
+* John Donkersley
 * [Joshua Kimsey](https://github.com/JoshuaKimsey)
 * [Martin Hauke](https://github.com/mnhauke)
 * [Marvin Sinister](https://github.com/marvin-sinister)

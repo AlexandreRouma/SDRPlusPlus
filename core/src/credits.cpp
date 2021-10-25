@@ -10,6 +10,7 @@ namespace sdrpp_credits {
         "Cropinghigh",
         "Fred F4EED",
         "Howard0su",
+        "John Donkersley",
         "Joshua Kimsey",
         "Martin Hauke",
         "Marvin Sinister",
