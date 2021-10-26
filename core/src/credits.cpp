@@ -41,6 +41,7 @@ namespace sdrpp_credits {
         "Croccydile",
         "Dale L Puckett (K0HYD)",
         "Daniele D'Agnelli",
+        "D. Jones",
         "EB3FRN",
         "Eric Johnson",
         "Flinger Films",
