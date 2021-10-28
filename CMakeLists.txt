@@ -44,6 +44,9 @@ option(OPT_BUILD_FREQUENCY_MANAGER "Build the Frequency Manager module" ON)
 option(OPT_BUILD_RECORDER "Audio and baseband recorder" ON)
 option(OPT_BUILD_RIGCTL_SERVER "Rigctl backend for controlling SDR++ with software like gpredict" ON)
 
+# Other options
+option(USE_INTERNAL_LIBCORRECT "Use an external version of libcorrect" ON)
+
 # Core of SDR++
 add_subdirectory("core")
 
