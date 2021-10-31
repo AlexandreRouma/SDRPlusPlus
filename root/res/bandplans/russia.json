@@ -3,7 +3,7 @@
     "country_name": "Russia",
     "country_code": "RU",
     "author_name": "Raov",
-    "author_url": "https://twitter.com/raov_birbtog",
+    "author_url": "https://twitter.com/UB8QBD",
     "bands": [
         {
             "name": "2200m",
@@ -36,15 +36,9 @@
             "end": 1840000
         },
         {
-            "name": "160m + Digi",
-            "type": "amateur",
-            "start": 1840000,
-            "end": 1843000
-        },
-        {
             "name": "160m",
             "type": "amateur",
-            "start": 1843000,
+            "start": 1840000,
             "end": 2000000
         },
         {
@@ -72,15 +66,9 @@
             "end": 3570000
         },
         {
-            "name": "80m NB, Digi 200Hz",
+            "name": "80m NB",
             "type": "amateur",
             "start": 3570000,
-            "end": 3580000
-        },
-        {
-            "name": "80m NB, Digi 500Hz",
-            "type": "amateur",
-            "start": 3580000,
             "end": 3600000
         },
         {
@@ -132,27 +120,15 @@
             "end": 7050000
         },
         {
-            "name": "40m",
+            "name": "40m Digi",
             "type": "amateur",
             "start": 7050000,
-            "end": 7060000
-        },
-        {
-            "name": "40m SSB Contest",
-            "type": "amateur",
-            "start": 7060000,
-            "end": 7100000
+            "end": 7053000
         },
         {
             "name": "40m",
             "type": "amateur",
-            "start": 7100000,
-            "end": 7130000
-        },
-        {
-            "name": "40m SSB Contest",
-            "type": "amateur",
-            "start": 7130000,
+            "start": 7053000,
             "end": 7200000
         },
         {
@@ -186,15 +162,9 @@
             "end": 13800000
         },
         {
-            "name": "20m CW Contest",
-            "type": "amateur",
-            "start": 14000000,
-            "end": 14060000
-        },
-        {
             "name": "20m CW",
             "type": "amateur",
-            "start": 14060000,
+            "start": 14000000,
             "end": 14070000
         },
         {
@@ -210,7 +180,7 @@
             "end": 14101000
         },
         {
-            "name": "20m Digital",
+            "name": "20m Digi",
             "type": "amateur",
             "start": 14101000,
             "end": 14112000
@@ -219,18 +189,6 @@
             "name": "20m",
             "type": "amateur",
             "start": 14112000,
-            "end": 14125000
-        },
-        {
-            "name": "20m Contest",
-            "type": "amateur",
-            "start": 14125000,
-            "end": 14300000
-        },
-        {
-            "name": "20m",
-            "type": "amateur",
-            "start": 14300000,
             "end": 14350000
         },
         {
@@ -264,7 +222,7 @@
             "end": 18111000
         },
         {
-            "name": "17m Digital",
+            "name": "17m Digi",
             "type": "amateur",
             "start": 18111000,
             "end": 18120000
@@ -282,7 +240,7 @@
             "end": 21070000
         },
         {
-            "name": "15m NB",
+            "name": "15m NB Digi",
             "type": "amateur",
             "start": 21070000,
             "end": 21110000
@@ -336,28 +294,22 @@
             "end": 24931000
         },
         {
-            "name": "12m Digital",
-            "type": "amateur",
-            "start": 24931000,
-            "end": 24940000
-        },
-        {
             "name": "12m",
             "type": "amateur",
-            "start": 24940000,
+            "start": 24931000,
             "end": 24990000
-        },
-        {
-            "name": "CB",
-            "type": "amateur",
-            "start": 25165000,
-            "end": 30105000
         },
         {
             "name": "SW 11m",
             "type": "broadcast",
             "start": 25650000,
             "end": 26100000
+        },
+        {
+            "name": "CB",
+            "type": "amateur",
+            "start": 26960000,
+            "end": 27410000
         },
         {
             "name": "10m CW",
@@ -378,19 +330,31 @@
             "end": 28190000
         },
         {
-            "name": "10m Beacons",
+            "name": "10m Regional Beacons",
             "type": "amateur",
             "start": 28190000,
-            "end": 28225000
+            "end": 28199000
+        },
+        {
+            "name": "10m International Beacons",
+            "type": "amateur",
+            "start": 28199000,
+            "end": 28201000
         },
         {
             "name": "10m Beacons",
+            "type": "amateur",
+            "start": 28201000,
+            "end": 28225000
+        },
+        {
+            "name": "10m Wide Beacons",
             "type": "amateur",
             "start": 28225000,
             "end": 28300000
         },
         {
-            "name": "10m Digital",
+            "name": "10m Digi",
             "type": "amateur",
             "start": 28300000,
             "end": 28320000
@@ -402,9 +366,21 @@
             "end": 29000000
         },
         {
-            "name": "10m",
+            "name": "10m Wide",
             "type": "amateur",
             "start": 29000000,
+            "end": 29100000
+        },
+        {
+            "name": "10m FM Simplex",
+            "type": "amateur",
+            "start": 29100000,
+            "end": 29200000
+        },
+        {
+            "name": "10m Wide Digi",
+            "type": "amateur",
+            "start": 29200000,
             "end": 29300000
         },
         {
@@ -414,85 +390,103 @@
             "end": 29510000
         },
         {
-            "name": "10m FM-R",
+            "name": "10m Guard Band",
+            "type": "amateur",
+            "start": 29510000,
+            "end": 29520000
+        },
+        {
+            "name": "10m FM Repeater IN",
             "type": "amateur",
             "start": 29520000,
             "end": 29590000
         },
         {
-            "name": "10m FM-R",
+            "name": "10m FM Call",
+            "type": "amateur",
+            "start": 29590000,
+            "end": 29610000
+        },
+        {
+            "name": "10m FM Simplex Repeater",
+            "type": "amateur",
+            "start": 29610000,
+            "end": 29620000
+        },
+        {
+            "name": "10m FM Repeater OUT",
             "type": "amateur",
             "start": 29620000,
             "end": 29700000
         },
         {
-            "name": "UHF Soviet",
-            "type": "broadcast",
-            "start": 65900000,
-            "end": 74000000
-        },
-        {
-            "name": "UHF(FM)",
-            "type": "broadcast",
+            "name": "Broadcast FM",
+            "type": "amateur",
             "start": 87500000,
             "end": 108000000
         },
         {
-            "name": "Airband",
-            "type": "military",
+            "name": "Air Band VOR/ILS",
+            "type": "aviation",
             "start": 108000000,
-            "end": 117950000
+            "end": 118000000
+        },
+        {
+            "name": "Air Band Voice",
+            "type": "aviation",
+            "start": 118000000,
+            "end": 137000000
+        },
+        {
+            "name": "Polar Orbiting Satellites",
+            "type": "satellite",
+            "start": 137000000,
+            "end": 138000000
         },
         {
             "name": "2m CW",
             "type": "amateur",
             "start": 144035000,
-            "end": 144100000
+            "end": 144110000
         },
         {
-            "name": "2m CW",
+            "name": "2m CW+Digi",
             "type": "amateur",
-            "start": 144100000,
-            "end": 144150000
-        },
-        {
-            "name": "2m Digital",
-            "type": "amateur",
-            "start": 144165000,
+            "start": 144110000,
             "end": 144180000
         },
         {
-            "name": "2m",
+            "name": "2m CW+SSB",
             "type": "amateur",
             "start": 144180000,
             "end": 144360000
         },
         {
-            "name": "2m Digital",
+            "name": "2m CW+SSB+Digi",
             "type": "amateur",
             "start": 144360000,
             "end": 144400000
         },
         {
-            "name": "2m Beacons",
+            "name": "2m Beacons (CW+Digi)",
             "type": "amateur",
             "start": 144400000,
             "end": 144490000
         },
         {
-            "name": "2m Digital",
+            "name": "2m Wide Digi",
             "type": "amateur",
             "start": 144500000,
             "end": 144794000
         },
         {
-            "name": "2m Digital",
+            "name": "2m Digi",
             "type": "amateur",
             "start": 144794000,
             "end": 144990000
         },
         {
-            "name": "2m FM-R",
+            "name": "2m FM Repeater IN",
             "type": "amateur",
             "start": 144990000,
             "end": 145194000
@@ -510,7 +504,7 @@
             "end": 145594000
         },
         {
-            "name": "2m FM-R",
+            "name": "2m FM Repeater OUT",
             "type": "amateur",
             "start": 145594000,
             "end": 145793500
@@ -528,6 +522,24 @@
             "end": 146000000
         },
         {
+            "name": "Marine",
+            "type": "marine",
+            "start": 156000000,
+            "end": 162025000
+        },
+        {
+            "name": "Military Air",
+            "type": "military",
+            "start": 225000000,
+            "end": 380000000
+        },
+        {
+            "name": "Military Sat",
+            "type": "military",
+            "start": 240000000,
+            "end": 270000000
+        },
+        {
             "name": "70cm",
             "type": "amateur",
             "start": 430000000,
@@ -540,7 +552,7 @@
             "end": 432100000
         },
         {
-            "name": "70cm",
+            "name": "70cm CW+SSB+Digi",
             "type": "amateur",
             "start": 432100000,
             "end": 432400000
@@ -564,9 +576,51 @@
             "end": 434775000
         },
         {
+            "name": "70cm FM Repeater IN",
+            "type": "amateur",
+            "start": 433000000,
+            "end": 433400000
+        },
+        {
+            "name": "70cm FM",
+            "type": "amateur",
+            "start": 433400000,
+            "end": 433600000
+        },
+        {
             "name": "70cm",
             "type": "amateur",
+            "start": 433600000,
+            "end": 434000000
+        },
+        {
+            "name": "70cm CW+Digi",
+            "type": "amateur",
+            "start": 434000000,
+            "end": 434100000
+        },
+        {
+            "name": "70cm",
+            "type": "amateur",
+            "start": 434100000,
+            "end": 434600000
+        },
+        {
+            "name": "70cm FM Repeater OUT",
+            "type": "amateur",
+            "start": 434600000,
+            "end": 435000000
+        },
+        {
+            "name": "70cm SAT",
+            "type": "amateur",
             "start": 435000000,
+            "end": 438000000
+        },
+        {
+            "name": "70cm",
+            "type": "amateur",
+            "start": 438000000,
             "end": 440000000
         },
         {
@@ -576,13 +630,49 @@
             "end": 446100000
         },
         {
-            "name": "23cm",
+            "name": "UHF TV",
+            "type": "broadcast",
+            "start": 470000000,
+            "end": 790000000
+        },
+        {
+            "name": "LTE-800-FDD Downlink",
+            "type": "broadcast",
+            "start": 791000000,
+            "end": 821000000
+        },
+        {
+            "name": "LTE-800-FDD Uplink",
+            "type": "broadcast",
+            "start": 832000000,
+            "end": 862000000
+        },
+        {
+            "name": "GSM-900 Uplink",
+            "type": "broadcast",
+            "start": 880000000,
+            "end": 915000000
+        },
+        {
+            "name": "GSM-900 Downlink",
+            "type": "broadcast",
+            "start": 925000000,
+            "end": 960000000
+        },
+        {
+            "name": "23cm SAT",
             "type": "amateur",
             "start": 1260000000,
+            "end": 1270000000
+        },
+        {
+            "name": "23cm",
+            "type": "amateur",
+            "start": 1270000000,
             "end": 1290994000
         },
         {
-            "name": "23cm FM-R",
+            "name": "23cm FM Repeater IN",
             "type": "amateur",
             "start": 1290994000,
             "end": 1291481000
@@ -594,7 +684,7 @@
             "end": 1296000000
         },
         {
-            "name": "23cm CW",
+            "name": "23cm CW+Digi",
             "type": "amateur",
             "start": 1296025000,
             "end": 1296150000
@@ -606,13 +696,13 @@
             "end": 1296800000
         },
         {
-            "name": "23cm Beacons",
+            "name": "23cm Beacons (CW+Digi)",
             "type": "amateur",
             "start": 1296800000,
             "end": 1296994000
         },
         {
-            "name": "23cm FM-R",
+            "name": "23cm FM Repeater OUT",
             "type": "amateur",
             "start": 1296994000,
             "end": 1297490000
@@ -628,6 +718,204 @@
             "type": "amateur",
             "start": 1298000000,
             "end": 1300000000
+        },
+        {
+            "name": "DCS-1800 Uplink",
+            "type": "broadcast",
+            "start": 1710000000,
+            "end": 1785000000
+        },
+        {
+            "name": "DCS-1800 Downlink",
+            "type": "broadcast",
+            "start": 1805000000,
+            "end": 1880000000
+        },
+        {
+            "name": "DECT Phones",
+            "type": "broadcast",
+            "start": 1880000000,
+            "end": 1900000000
+        },
+        {
+            "name": "UMTS-FDD Uplink",
+            "type": "broadcast",
+            "start": 1920000000,
+            "end": 1980000000
+        },
+        {
+            "name": "UMTS-TDD",
+            "type": "broadcast",
+            "start": 2010000000,
+            "end": 2025000000
+        },
+        {
+            "name": "UMTS-FDD Downlink",
+            "type": "broadcast",
+            "start": 2110000000,
+            "end": 2170000000
+        },
+        {
+            "name": "13cm EME",
+            "type": "amateur",
+            "start": 2320000000,
+            "end": 2320150000
+        },
+        {
+            "name": "13cm SAT",
+            "type": "amateur",
+            "start": 2400000000,
+            "end": 2450000000
+        },
+        {
+            "name": "2.4GHz WiFi",
+            "type": "amateur",
+            "start": 2400000000,
+            "end": 2483500000
+        },
+        {
+            "name": "LTE-FDD Uplink",
+            "type": "broadcast",
+            "start": 2500000000,
+            "end": 2570000000
+        },
+        {
+            "name": "LTE-TDD",
+            "type": "broadcast",
+            "start": 2570000000,
+            "end": 2620000000
+        },
+        {
+            "name": "LTE-FDD Downlink",
+            "type": "broadcast",
+            "start": 2620000000,
+            "end": 2690000000
+        },
+        {
+            "name": "5GHz WiFi",
+            "type": "amateur",
+            "start": 5150000000,
+            "end": 5350000000
+        },
+        {
+            "name": "6cm CW+Digi",
+            "type": "amateur",
+            "start": 5650000000,
+            "end": 5670000000
+        },
+        {
+            "name": "6cm Digi",
+            "type": "amateur",
+            "start": 5725000000,
+            "end": 5760000000
+        },
+        {
+            "name": "6cm Digi",
+            "type": "amateur",
+            "start": 5762000000,
+            "end": 5790000000
+        },
+        {
+            "name": "6cm CW+Digi",
+            "type": "amateur",
+            "start": 5790000000,
+            "end": 5850000000
+        },
+        {
+            "name": "5GHz WiFi",
+            "type": "amateur",
+            "start": 5650000000,
+            "end": 5850000000
+        },
+        {
+            "name": "3cm CW+Digi",
+            "type": "amateur",
+            "start": 10000000000,
+            "end": 10150000000
+        },
+        {
+            "name": "3cm",
+            "type": "amateur",
+            "start": 10150000000,
+            "end": 10250000000
+        },
+        {
+            "name": "3cm CW+Digi",
+            "type": "amateur",
+            "start": 10250000000,
+            "end": 10350000000
+        },
+        {
+            "name": "3cm",
+            "type": "amateur",
+            "start": 10350000000,
+            "end": 10368000000
+        },
+        {
+            "name": "3cm CW+Digi",
+            "type": "amateur",
+            "start": 10368000000,
+            "end": 10370000000
+        },
+        {
+            "name": "3cm",
+            "type": "amateur",
+            "start": 10370000000,
+            "end": 10450000000
+        },
+        {
+            "name": "3cm SAT",
+            "type": "amateur",
+            "start": 10450000000,
+            "end": 10500000000
+        },
+        {
+            "name": "1.2cm SAT",
+            "type": "amateur",
+            "start": 24000000000,
+            "end": 24048000000
+        },
+        {
+            "name": "1.2cm Digi",
+            "type": "amateur",
+            "start": 24048000000,
+            "end": 24050000000
+        },
+        {
+            "name": "1.2cm",
+            "type": "amateur",
+            "start": 24050000000,
+            "end": 24250000000
+        },
+        {
+            "name": "6mm",
+            "type": "amateur",
+            "start": 47002000000,
+            "end": 47200000000
+        },
+        {
+            "name": "4mm",
+            "type": "amateur",
+            "start": 76000000000,
+            "end": 78000000000
+        },
+        {
+            "name": "2.5mm",
+            "type": "amateur",
+            "start": 122251000000,
+            "end": 123000000000
+        },
+        {
+            "name": "2mm",
+            "type": "amateur",
+            "start": 134001000000,
+            "end": 141000000000
+        },
+        {
+            "name": "1mm",
+            "type": "amateur",
+            "start": 241000000000,
+            "end": 250000000000
         }
     ]
 }
