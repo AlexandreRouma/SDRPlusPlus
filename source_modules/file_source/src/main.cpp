@@ -88,7 +88,7 @@ private:
         if (_this->running) { return; }
         if (_this->reader == NULL) { return; }
         _this->running = true;
-        _this->workerThread = _this->float32Mode ? std::thread(floatWorker, _this) : std::thread(worker, _this);
+        _this->workerThread = std::thread(worker, _this);
         spdlog::info("FileSourceModule '{0}': Start!", _this->name);
     }
     
@@ -119,7 +119,22 @@ private:
                     delete _this->reader;
                 }
                 try {
+                    bool _ran = false;
+                    if (_this->running) {
+                        _ran = true;
+                        _this->stream.stopWriter();
+                        _this->workerThread.join();
+                        _this->stream.clearWriteStop();
+                        _this->running = false;
+                    }
+
                     _this->reader = new WavReader(_this->fileSelect.path);
+
+                    if (_ran) {
+                        _this->workerThread = std::thread(worker, _this);
+                        _this->running = true;
+                    }
+                    _this->float32Mode = _this->reader->getBitDepth() == 32 ? true : false;
                     _this->sampleRate = _this->reader->getSampleRate();
                     core::setInputSampleRate(_this->sampleRate);
                     std::string filename = std::filesystem::path(_this->fileSelect.path).filename().string();
@@ -128,6 +143,8 @@ private:
                     //gui::freqSelect.minFreq = _this->centerFreq - (_this->sampleRate/2);
                     //gui::freqSelect.maxFreq = _this->centerFreq + (_this->sampleRate/2);
                     //gui::freqSelect.limitFreq = true;
+
+                    spdlog::info("FileSourceModule '{0}': BitDepth: {1}", _this->name, _this->reader->getBitDepth());
                 }
                 catch (std::exception e) {
                     spdlog::error("Error: {0}", e.what());
@@ -145,29 +162,50 @@ private:
         FileSourceModule* _this = (FileSourceModule*)ctx;
         double sampleRate = _this->reader->getSampleRate();
         int blockSize = sampleRate / 200.0f;
-        int16_t* inBuf = new int16_t[blockSize * 2];
+        uint16_t bitDepth = _this->reader->getBitDepth();
 
-        while (true) {
-            _this->reader->readSamples(inBuf, blockSize * 2 * sizeof(int16_t));
-            volk_16i_s32f_convert_32f((float*)_this->stream.writeBuf, inBuf, 32768.0f, blockSize * 2);
-            if (!_this->stream.swap(blockSize)) { break; };
+        spdlog::info("FileSourceModule '{0}': BitDepth: {1}", _this->name, bitDepth);
+
+        if (bitDepth == 8) { // 8 bit unsigned
+            uint8_t* inBuf = new uint8_t[blockSize * 2];
+
+            while (true) {
+                _this->reader->readSamples(inBuf, blockSize * 2 * sizeof(uint8_t));
+
+                for (uint32_t n = 0; n < blockSize; n++) {
+                    _this->stream.writeBuf[n].re = (inBuf[2*n] - 128) / 128.0f;
+                    _this->stream.writeBuf[n].im = (inBuf[2*n+1] - 128) / 128.0f;
+                }
+
+                if (!_this->stream.swap(blockSize)) { break; };
+            }
+            delete[] inBuf;
+        }
+        else if (bitDepth == 16) { // 16 bit signed
+            int16_t* inBuf = new int16_t[blockSize * 2];
+
+            while (true) {
+                _this->reader->readSamples(inBuf, blockSize * 2 * sizeof(int16_t));
+                volk_16i_s32f_convert_32f((float*)_this->stream.writeBuf, inBuf, 32768.0f, blockSize * 2);
+                if (!_this->stream.swap(blockSize)) { break; };
+            }
+
+            delete[] inBuf;
+        }
+        else if (bitDepth == 32) { // float32
+            dsp::complex_t* inBuf = new dsp::complex_t[blockSize];
+
+            while (true) {
+                _this->reader->readSamples(_this->stream.writeBuf, blockSize * sizeof(dsp::complex_t));
+                if (!_this->stream.swap(blockSize)) { break; };
+            }
+
+            delete[] inBuf;
+        }
+        else {
+            spdlog::info("FileSourceModule '{0}': BitDepth error", _this->name);
         }
 
-        delete[] inBuf;
-    }
-
-    static void floatWorker(void* ctx) {
-        FileSourceModule* _this = (FileSourceModule*)ctx;
-        double sampleRate = _this->reader->getSampleRate();
-        int blockSize = sampleRate / 200.0f;
-        dsp::complex_t* inBuf = new dsp::complex_t[blockSize];
-
-        while (true) {
-            _this->reader->readSamples(_this->stream.writeBuf, blockSize * sizeof(dsp::complex_t));
-            if (!_this->stream.swap(blockSize)) { break; };
-        }
-
-        delete[] inBuf;
     }
 
     double getFrequency(std::string filename) {
@@ -215,3 +253,4 @@ MOD_EXPORT void _END_() {
     config.disableAutoSave();
     config.save();
 }
+
