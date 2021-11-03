@@ -124,7 +124,7 @@ namespace ImGui {
         void setFFTHeight(int height);
         int getFFTHeight();
 
-        void setRawFFTSize(int size, bool lock = true);
+        void setRawFFTSize(int size);
 
         void setFastFFT(bool fastFFT);
 
@@ -227,7 +227,7 @@ namespace ImGui {
 
         GLuint textureId;
 
-        std::mutex buf_mtx;
+        std::recursive_mutex buf_mtx;
 
         float vRange;
 

@@ -579,7 +579,7 @@ namespace ImGui {
     }
 
     void WaterFall::setFastFFT(bool fastFFT) {
-        std::lock_guard<std::mutex> lck(buf_mtx);
+        std::lock_guard<std::recursive_mutex> lck(buf_mtx);
         _fastFFT = fastFFT;
     }
 
@@ -892,7 +892,7 @@ namespace ImGui {
     }
 
     void WaterFall::updatePallette(float colors[][3], int colorCount) {
-        std::lock_guard<std::mutex> lck(buf_mtx);
+        std::lock_guard<std::recursive_mutex> lck(buf_mtx);
         for (int i = 0; i < WATERFALL_RESOLUTION; i++) {
             int lowerId = floorf(((float)i / (float)WATERFALL_RESOLUTION) * colorCount);
             int upperId = ceilf(((float)i / (float)WATERFALL_RESOLUTION) * colorCount);
@@ -908,7 +908,7 @@ namespace ImGui {
     }
 
     void WaterFall::updatePalletteFromArray(float* colors, int colorCount) {
-        std::lock_guard<std::mutex> lck(buf_mtx);
+        std::lock_guard<std::recursive_mutex> lck(buf_mtx);
         for (int i = 0; i < WATERFALL_RESOLUTION; i++) {
             int lowerId = floorf(((float)i / (float)WATERFALL_RESOLUTION) * colorCount);
             int upperId = ceilf(((float)i / (float)WATERFALL_RESOLUTION) * colorCount);
@@ -969,7 +969,7 @@ namespace ImGui {
     }
 
     void WaterFall::setViewBandwidth(double bandWidth) {
-        std::lock_guard<std::mutex> lck(buf_mtx);
+        std::lock_guard<std::recursive_mutex> lck(buf_mtx);
         if (bandWidth == viewBandwidth) {
             return;
         }
@@ -994,7 +994,7 @@ namespace ImGui {
     }
 
     void WaterFall::setViewOffset(double offset) {
-        std::lock_guard<std::mutex> lck(buf_mtx);
+        std::lock_guard<std::recursive_mutex> lck(buf_mtx);
         if (offset == viewOffset) {
             return;
         }
@@ -1034,12 +1034,12 @@ namespace ImGui {
     }
 
     void WaterFall::setFullWaterfallUpdate(bool fullUpdate) {
-        std::lock_guard<std::mutex> lck(buf_mtx);
+        std::lock_guard<std::recursive_mutex> lck(buf_mtx);
         _fullUpdate = fullUpdate;
     }
 
     void WaterFall::setWaterfallMin(float min) {
-        std::lock_guard<std::mutex> lck(buf_mtx);
+        std::lock_guard<std::recursive_mutex> lck(buf_mtx);
         if (min == waterfallMin) {
             return;
         }
@@ -1052,7 +1052,7 @@ namespace ImGui {
     }
 
     void WaterFall::setWaterfallMax(float max) {
-        std::lock_guard<std::mutex> lck(buf_mtx);
+        std::lock_guard<std::recursive_mutex> lck(buf_mtx);
         if (max == waterfallMax) {
             return;
         }
@@ -1080,8 +1080,8 @@ namespace ImGui {
         }
     }
 
-    void WaterFall::setRawFFTSize(int size, bool lock) {
-        std::lock_guard<std::mutex> lck(buf_mtx);
+    void WaterFall::setRawFFTSize(int size) {
+        std::lock_guard<std::recursive_mutex> lck(buf_mtx);
         rawFFTSize = size;
         int wfSize = std::max<int>(1, waterfallHeight);
         if (rawFFTs != NULL) {
