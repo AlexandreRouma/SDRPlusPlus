@@ -70,7 +70,7 @@ namespace displaymenu {
         fullWaterfallUpdate = core::configManager.conf["fullWaterfallUpdate"];
         gui::waterfall.setFullWaterfallUpdate(fullWaterfallUpdate);
 
-        fftSizeId = 0;
+        fftSizeId = 3;
         int fftSize = core::configManager.conf["fftSize"];
         for (int i = 0; i < 7; i++) {
             if (fftSize == FFTSizes[i]) {
