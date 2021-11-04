@@ -43,4 +43,4 @@ endif ()
 
 
 # Install directives
-install(TARGETS m17_decoder DESTINATION lib/sdrpp/plugins)
+install(TARGETS m17_decoder DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/sdrpp/plugins)

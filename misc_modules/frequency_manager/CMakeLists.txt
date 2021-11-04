@@ -18,4 +18,4 @@ else ()
 endif ()
 
 # Install directives
-install(TARGETS frequency_manager DESTINATION lib/sdrpp/plugins)
+install(TARGETS frequency_manager DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/sdrpp/plugins)

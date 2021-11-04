@@ -34,4 +34,4 @@ else (MSVC)
 endif (MSVC)
 
 # Install directives
-install(TARGETS audio_sink DESTINATION lib/sdrpp/plugins)
+install(TARGETS audio_sink DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/sdrpp/plugins)

@@ -18,4 +18,4 @@ else ()
 endif ()
 
 # Install directives
-install(TARGETS meteor_demodulator DESTINATION lib/sdrpp/plugins)
+install(TARGETS meteor_demodulator DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/sdrpp/plugins)

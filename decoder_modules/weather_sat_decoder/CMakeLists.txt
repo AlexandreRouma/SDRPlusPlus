@@ -18,4 +18,4 @@ else ()
 endif ()
 
 # Install directives
-install(TARGETS weather_sat_decoder DESTINATION lib/sdrpp/plugins)
+install(TARGETS weather_sat_decoder DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/sdrpp/plugins)

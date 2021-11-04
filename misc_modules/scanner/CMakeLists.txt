@@ -18,4 +18,4 @@ else ()
 endif ()
 
 # Install directives
-install(TARGETS scanner DESTINATION lib/sdrpp/plugins)
+install(TARGETS scanner DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/sdrpp/plugins)

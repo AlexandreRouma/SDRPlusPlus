@@ -21,4 +21,4 @@ else ()
 endif ()
 
 # Install directives
-install(TARGETS rigctl_server DESTINATION lib/sdrpp/plugins)
+install(TARGETS rigctl_server DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/sdrpp/plugins)

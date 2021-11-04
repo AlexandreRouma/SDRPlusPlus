@@ -22,4 +22,4 @@ if(WIN32)
 endif()
 
 # Install directives
-install(TARGETS rtl_tcp_source DESTINATION lib/sdrpp/plugins)
+install(TARGETS rtl_tcp_source DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/sdrpp/plugins)

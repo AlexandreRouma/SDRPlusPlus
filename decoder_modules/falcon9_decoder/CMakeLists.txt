@@ -18,4 +18,4 @@ else ()
 endif ()
 
 # Install directives
-install(TARGETS falcon9_decoder DESTINATION lib/sdrpp/plugins)
+install(TARGETS falcon9_decoder DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/sdrpp/plugins)

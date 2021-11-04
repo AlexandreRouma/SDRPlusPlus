@@ -36,4 +36,4 @@ else (MSVC)
 endif ()
 
 # Install directives
-install(TARGETS soapy_source DESTINATION lib/sdrpp/plugins)
+install(TARGETS soapy_source DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/sdrpp/plugins)

@@ -26,4 +26,4 @@ else ()
 endif ()
 
 # Install directives
-install(TARGETS discord_integration DESTINATION lib/sdrpp/plugins)
+install(TARGETS discord_integration DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/sdrpp/plugins)
