@@ -302,7 +302,7 @@ jobs:
             mv sdrpp_ubuntu_bionic_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_bionic_amd64.deb && 
             mv sdrpp_ubuntu_focal_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_focal_amd64.deb && 
             mv sdrpp_ubuntu_groovy_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_groovy_amd64.deb && 
-            mv sdrpp_ubuntu_hirsute_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_hirsute_amd64.deb
+            mv sdrpp_ubuntu_hirsute_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_hirsute_amd64.deb &&
             mv sdrpp_ubuntu_impish_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_impish_amd64.deb
 
         - uses: actions/upload-artifact@v2
