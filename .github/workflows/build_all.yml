@@ -284,7 +284,7 @@ jobs:
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
     
     create_full_archive:
-        needs: ['build_windows', 'build_macos', 'build_debian_buster', 'build_debian_bullseye', 'build_debian_sid', 'build_ubuntu_bionic', 'build_ubuntu_focal', 'build_ubuntu_groovy', 'build_ubuntu_hirsute']
+        needs: ['build_windows', 'build_macos', 'build_debian_buster', 'build_debian_bullseye', 'build_debian_sid', 'build_ubuntu_bionic', 'build_ubuntu_focal', 'build_ubuntu_groovy', 'build_ubuntu_hirsute', 'build_ubuntu_impish']
         runs-on: ubuntu-latest
 
         steps:
