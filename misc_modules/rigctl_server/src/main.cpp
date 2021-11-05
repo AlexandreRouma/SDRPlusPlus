@@ -613,6 +613,12 @@ private:
         else if (parts[0] == "q" || parts[0] == "\\quit") {
             // Will close automatically
         }
+        else if (parts[0] == "\\start") {
+            gui::mainWindow.setPlayState(true);
+        }
+        else if (parts[0] == "\\stop") {
+            gui::mainWindow.setPlayState(false);
+        }
         else if (parts[0] == "\\dump_state") {
             std::lock_guard lck(vfoMtx);
             resp =

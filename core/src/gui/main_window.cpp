@@ -362,21 +362,14 @@ void MainWindow::draw() {
     if (playing) {
         ImGui::PushID(ImGui::GetID("sdrpp_stop_btn"));
         if (ImGui::ImageButton(icons::STOP, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5) || ImGui::IsKeyPressed(GLFW_KEY_END, false)) {
-            playing = false;
-            onPlayStateChange.emit(false);
-            sigpath::sourceManager.stop();
-            sigpath::signalPath.inputBuffer.flush();
+            setPlayState(false);
         }
         ImGui::PopID();
     }
     else { // TODO: Might need to check if there even is a device
         ImGui::PushID(ImGui::GetID("sdrpp_play_btn"));
         if (ImGui::ImageButton(icons::PLAY, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5) || ImGui::IsKeyPressed(GLFW_KEY_END, false)) {
-            sigpath::signalPath.inputBuffer.flush();
-            sigpath::sourceManager.start();
-            sigpath::sourceManager.tune(gui::waterfall.getCenterFrequency());
-            playing = true;
-            onPlayStateChange.emit(true);
+            setPlayState(true);
         }
         ImGui::PopID();
     }
@@ -656,6 +649,23 @@ void MainWindow::draw() {
 
     if (demoWindow) {
         ImGui::ShowDemoWindow();
+    }
+}
+
+void MainWindow::setPlayState(bool _playing) {
+    if (_playing == playing) { return; }
+    if (_playing) {
+        sigpath::signalPath.inputBuffer.flush();
+        sigpath::sourceManager.start();
+        sigpath::sourceManager.tune(gui::waterfall.getCenterFrequency());
+        playing = true;
+        onPlayStateChange.emit(true);
+    }
+    else {
+        playing = false;
+        onPlayStateChange.emit(false);
+        sigpath::sourceManager.stop();
+        sigpath::signalPath.inputBuffer.flush();
     }
 }
 

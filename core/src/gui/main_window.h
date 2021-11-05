@@ -23,6 +23,7 @@ public:
     // TODO: Replace with it's own class 
     void setVFO(double freq);
 
+    void setPlayState(bool _playing);
     bool isPlaying();
 
     bool lockWaterfallControls = false;
