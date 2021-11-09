@@ -36,7 +36,7 @@ jobs:
           run: 7z x ${{runner.workspace}}/SDRPlay.zip -o"C:/Program Files/"
 
         - name: Download codec2
-          run: git clone https://github.com/drowe67/codec2
+          run: git clone https://github.com/AlexandreRouma/codec2
 
         - name: Prepare MinGW
           run: C:/msys64/msys2_shell.cmd -defterm -here -no-start -mingw64 -c "pacman --noconfirm -S --needed base-devel mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja"
