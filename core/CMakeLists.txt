@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
+include(ExternalProject)
+
 project(sdrpp_core)
 
 if (USE_INTERNAL_LIBCORRECT)
@@ -74,8 +76,41 @@ else()
 
     pkg_check_modules(GLEW REQUIRED glew)
     pkg_check_modules(FFTW3 REQUIRED fftw3f)
-    pkg_check_modules(VOLK REQUIRED volk)
-    pkg_check_modules(GLFW3 REQUIRED glfw3)
+
+    if (USE_INTERNAL_VOLK)
+        ExternalProject_Add(
+            glfw3
+            PREFIX ${CMAKE_CURRENT_BINARY_DIR}/glfw
+            GIT_REPOSITORY https://github.com/glfw/glfw
+            TIMEOUT 10
+            CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+            LOG_DOWNLOAD ON
+        )
+        add_dependencies(sdrpp_core glfw3)
+        ExternalProject_Get_Property(glfw3 install_dir)
+        set(GLFW3_INCLUDE_DIRS ${install_dir}/include)
+        set(GLFW3_LIBRARY_DIRS ${install_dir}/lib64)
+        set(GLFW3_LIBRARIES libglfw3.a)
+    else()
+        pkg_check_modules(GLFW3 REQUIRED glfw3)
+    endif()
+
+    if (USE_INTERNAL_GLFW3)
+        ExternalProject_Add(
+            volk
+            PREFIX ${CMAKE_CURRENT_BINARY_DIR}/volk
+            GIT_REPOSITORY https://github.com/gnuradio/volk
+            CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+            LOG_DOWNLOAD ON
+        )
+        add_dependencies(sdrpp_core volk)
+        ExternalProject_Get_Property(volk install_dir)
+        set(VOLK_INCLUDE_DIRS ${install_dir}/include)
+        set(VOLK_LIBRARY_DIRS ${install_dir}/lib64)
+        set(VOLK_LIBRARIES libvolk.so)
+    else()
+        pkg_check_modules(VOLK REQUIRED volk)
+    endif()
 
     target_include_directories(sdrpp_core PUBLIC
         ${GLEW_INCLUDE_DIRS}

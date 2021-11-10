@@ -47,6 +47,8 @@ option(OPT_BUILD_RIGCTL_SERVER "Rigctl backend for controlling SDR++ with softwa
 
 # Other options
 option(USE_INTERNAL_LIBCORRECT "Use an external version of libcorrect" ON)
+option(USE_INTERNAL_VOLK "Use an external version of volk" OFF)
+option(USE_INTERNAL_GLFW3 "Use an external version of glfw3" OFF)
 
 # Core of SDR++
 add_subdirectory("core")
