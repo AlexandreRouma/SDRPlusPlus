@@ -14,8 +14,8 @@
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
 SDRPP_MOD_INFO {
-    /* Name:            */ "spyserver_source",
-    /* Description:     */ "Airspy HF+ source module for SDR++",
+    /* Name:            */ "rfspace_source",
+    /* Description:     */ "RFspace source module for SDR++",
     /* Author:          */ "Ryzerth",
     /* Version:         */ 0, 1, 0,
     /* Max instances    */ 1
