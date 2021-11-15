@@ -66,7 +66,7 @@ private:
         // If editing, show menu
         if (!_this->editedTask.empty()) {
             gui::mainWindow.lockWaterfallControls = true;
-            std::string id = "Edit##scheduler_edit_task_" + _this->name;
+            std::string id = "Edit Task##scheduler_edit_task_" + _this->name;
             ImGui::OpenPopup(id.c_str());
             if (ImGui::BeginPopup(id.c_str(), ImGuiWindowFlags_NoResize)) {
                 bool valid = false;
@@ -97,7 +97,6 @@ private:
             for (auto& [name, bm] : _this->tasks) {
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
-                ImVec2 min = ImGui::GetCursorPos();
 
                 if (ImGui::Selectable((name + "##_freq_mgr_bkm_name_" + _this->name).c_str(), &bm.selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_SelectOnClick)) {
                     // if shift or control isn't pressed, deselect all others

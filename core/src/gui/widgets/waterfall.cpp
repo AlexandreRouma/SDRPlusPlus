@@ -43,13 +43,17 @@ inline void doZoom(int offset, int width, int outWidth, float* data, float* out,
     }
     else {
         float sFactor = ceilf(factor);
+        float uFactor;
         float id = offset;
         float val, maxVal;
+        int sId;
         uint32_t maxId;
         for (int i = 0; i < outWidth; i++) {
             maxVal = -INFINITY;
-            for (int j = 0; j < sFactor; j++) {
-                if (data[(int)id + j] > maxVal) { maxVal = data[(int)id + j]; }
+            sId = (int)id;
+            uFactor = (sId + sFactor > width) ? sFactor - ((sId + sFactor) - width) : sFactor;
+            for (int j = 0; j < uFactor; j++) {
+                if (data[sId + j] > maxVal) { maxVal = data[sId + j]; }
             }
             out[i] = maxVal;
             id += factor;

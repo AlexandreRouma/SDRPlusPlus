@@ -11,12 +11,18 @@ namespace sched_action {
 
         }
 
-        void showEditMenu() {
-            
+        void prepareEditMenu() {
+
+        }
+
+        bool showEditMenu(bool& valid) {
+            valid = false;
+            return false;
         }
 
         void loadFromConfig(json config) {
             if (config.contains("recorder")) { recorderName = config["recorder"]; }
+            name = "Start \"" + recorderName + "\"";
         }
 
         json saveToConfig() {
@@ -27,16 +33,13 @@ namespace sched_action {
 
 
         std::string getName() {
-            return "Start \"" + recorderName + "\"";
-        }
-
-        bool isValid() {
-            return valid;
+            return name;
         }
 
     private:
         std::string recorderName;
-        bool valid = false;
+
+        std::string name = "Start \"\"";
 
     };
 

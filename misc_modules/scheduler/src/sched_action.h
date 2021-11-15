@@ -8,17 +8,22 @@ using namespace nlohmann;
 namespace sched_action {
     class ActionClass {
     public:
-        virtual ~ActionClass() {
-            spdlog::warn("Base destructor");
-        };
+        virtual ~ActionClass() {};
         virtual void trigger() = 0;
         virtual void prepareEditMenu() = 0;
-        virtual void validateEditMenu() = 0;
-        virtual void showEditMenu() = 0;
+        virtual bool showEditMenu(bool& valid) = 0;
         virtual void loadFromConfig(json config) = 0;
         virtual json saveToConfig() = 0;
         virtual std::string getName() = 0;
-        virtual bool isValid() = 0;
+
+        virtual bool isValid() {
+            return valid;
+        }
+
+        bool selected = false;
+        
+    private:
+        bool valid = false;
     };
 
     typedef std::shared_ptr<ActionClass> Action; 
