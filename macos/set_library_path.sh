@@ -14,7 +14,7 @@ get_first_arg() {
 # Get current path
 CURRENT_PATH=$(get_first_arg $(otool -L $EXEC | grep $WANTED_LIB))
 
-echo Current path: $CURRENT_PATH
+echo "Current path for" $WANTED_LIB "in" $EXEC ":" $CURRENT_PATH
 
 # Change to the new path
 install_name_tool -change $CURRENT_PATH $NEW_PATH $EXEC
