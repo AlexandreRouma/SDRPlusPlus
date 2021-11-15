@@ -21,10 +21,10 @@ cp $BUILD_DIR/sdrpp $DOTAPP/MacOS/
 cp $BUILD_DIR/core/libsdrpp_core.dylib $DOTAPP/Frameworks/
 
 # Get dep paths
-LIBGLEW_PATH=$(sh macos/get_library_path.sh libGLEW)
-LIBFFTW3F_PATH=$(sh macos/get_library_path.sh libfftw3f)
-LIBGLFW_PATH=$(sh macos/get_library_path.sh libglfw)
-LIBVOLK_PATH=$(sh macos/get_library_path.sh libvolk)
+LIBGLEW_PATH=$(sh macos/get_library_path.sh libGLEW $DOTAPP/MacOS/sdrpp)
+LIBFFTW3F_PATH=$(sh macos/get_library_path.sh libfftw3f $DOTAPP/MacOS/sdrpp)
+LIBGLFW_PATH=$(sh macos/get_library_path.sh libglfw $DOTAPP/MacOS/sdrpp)
+LIBVOLK_PATH=$(sh macos/get_library_path.sh libvolk $DOTAPP/MacOS/sdrpp)
 
 # Modify path for sdrpp
 sh macos/set_library_path libglew @rpath/libglew.dylib $DOTAPP/MacOS/sdrpp
