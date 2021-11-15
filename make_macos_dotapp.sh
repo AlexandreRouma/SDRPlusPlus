@@ -15,9 +15,9 @@ mkdir $DOTAPP/Contents/MacOS
 mkdir $DOTAPP/Contents/Frameworks
 mkdir $DOTAPP/Contents/Resources
 
-# Gather all dependencies
+# ========================= CORE =========================
 
-# Copy core and its dependencies
+# Copy files
 cp $BUILD_DIR/sdrpp $DOTAPP/Contents/MacOS/
 cp $BUILD_DIR/core/libsdrpp_core.dylib $DOTAPP/Contents/Frameworks/
 
@@ -39,8 +39,22 @@ sh macos/set_library_path.sh libfftw3f @rpath/libfftw3f.dylib $DOTAPP/Contents/F
 sh macos/set_library_path.sh libglfw @rpath/libglfw.dylib $DOTAPP/Contents/Frameworks/libsdrpp_core.dylib
 sh macos/set_library_path.sh libvolk @rpath/libvolk.dylib $DOTAPP/Contents/Frameworks/libsdrpp_core.dylib
 
+# Delete old RPATH for sdrpp
+sh macos/delete_rpath.sh glew $DOTAPP/Contents/MacOS/sdrpp
+sh macos/delete_rpath.sh fftw $DOTAPP/Contents/MacOS/sdrpp
+sh macos/delete_rpath.sh glfw $DOTAPP/Contents/MacOS/sdrpp
+sh macos/delete_rpath.sh build/core $DOTAPP/Contents/MacOS/sdrpp
+
+# Delete old RPATH for libsdrpp_core
+sh macos/delete_rpath.sh glew $DOTAPP/Contents/Frameworks/libsdrpp_core.dylib
+sh macos/delete_rpath.sh fftw $DOTAPP/Contents/Frameworks/libsdrpp_core.dylib
+sh macos/delete_rpath.sh glfw $DOTAPP/Contents/Frameworks/libsdrpp_core.dylib
+
 # Copy deps
 cp $LIBGLEW_PATH $DOTAPP/Contents/Frameworks/libGLEW.dylib
 cp $LIBFFTW3F_PATH $DOTAPP/Contents/Frameworks/libfftw3f.dylib
 cp $LIBGLFW_PATH $DOTAPP/Contents/Frameworks/libglfw.dylib
 cp $LIBVOLK_PATH $DOTAPP/Contents/Frameworks/libvolk.dylib
+
+
+# ========================= CORE =========================
