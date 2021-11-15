@@ -10,36 +10,37 @@ rm -rf $DOTAPP
 
 # Create .app structure
 mkdir $DOTAPP
-mkdir $DOTAPP/MacOS
-mkdir $DOTAPP/Frameworks
-mkdir $DOTAPP/Resources
+mkdir $DOTAPP/Contents
+mkdir $DOTAPP/Contents/MacOS
+mkdir $DOTAPP/Contents/Frameworks
+mkdir $DOTAPP/Contents/Resources
 
 # Gather all dependencies
 
 # Copy core and its dependencies
-cp $BUILD_DIR/sdrpp $DOTAPP/MacOS/
-cp $BUILD_DIR/core/libsdrpp_core.dylib $DOTAPP/Frameworks/
+cp $BUILD_DIR/sdrpp $DOTAPP/Contents/MacOS/
+cp $BUILD_DIR/core/libsdrpp_core.dylib $DOTAPP/Contents/Frameworks/
 
 # Get dep paths
-LIBGLEW_PATH=$(sh macos/get_library_path.sh libGLEW $DOTAPP/MacOS/sdrpp)
-LIBFFTW3F_PATH=$(sh macos/get_library_path.sh libfftw3f $DOTAPP/MacOS/sdrpp)
-LIBGLFW_PATH=$(sh macos/get_library_path.sh libglfw $DOTAPP/MacOS/sdrpp)
-LIBVOLK_PATH=$(sh macos/get_library_path.sh libvolk $DOTAPP/MacOS/sdrpp)
+LIBGLEW_PATH=$(sh macos/get_library_path.sh libGLEW $DOTAPP/Contents/MacOS/sdrpp)
+LIBFFTW3F_PATH=$(sh macos/get_library_path.sh libfftw3f $DOTAPP/Contents/MacOS/sdrpp)
+LIBGLFW_PATH=$(sh macos/get_library_path.sh libglfw $DOTAPP/Contents/MacOS/sdrpp)
+LIBVOLK_PATH=$(sh macos/get_library_path.sh libvolk $DOTAPP/Contents/MacOS/sdrpp)
 
 # Modify path for sdrpp
-sh macos/set_library_path.sh libglew @rpath/libglew.dylib $DOTAPP/MacOS/sdrpp
-sh macos/set_library_path.sh libfftw3f @rpath/libfftw3f.dylib $DOTAPP/MacOS/sdrpp
-sh macos/set_library_path.sh libglfw @rpath/libglfw.dylib $DOTAPP/MacOS/sdrpp
-sh macos/set_library_path.sh libvolk @rpath/libvolk.dylib $DOTAPP/MacOS/sdrpp
+sh macos/set_library_path.sh libglew @rpath/libglew.dylib $DOTAPP/Contents/MacOS/sdrpp
+sh macos/set_library_path.sh libfftw3f @rpath/libfftw3f.dylib $DOTAPP/Contents/MacOS/sdrpp
+sh macos/set_library_path.sh libglfw @rpath/libglfw.dylib $DOTAPP/Contents/MacOS/sdrpp
+sh macos/set_library_path.sh libvolk @rpath/libvolk.dylib $DOTAPP/Contents/MacOS/sdrpp
 
 # Modify path for libsdrpp_core
-sh macos/set_library_path.sh libglew @rpath/libglew.dylib $DOTAPP/Frameworks/libsdrpp_core.dylib
-sh macos/set_library_path.sh libfftw3f @rpath/libfftw3f.dylib $DOTAPP/Frameworks/libsdrpp_core.dylib
-sh macos/set_library_path.sh libglfw @rpath/libglfw.dylib $DOTAPP/Frameworks/libsdrpp_core.dylib
-sh macos/set_library_path.sh libvolk @rpath/libvolk.dylib $DOTAPP/Frameworks/libsdrpp_core.dylib
+sh macos/set_library_path.sh libglew @rpath/libglew.dylib $DOTAPP/Contents/Frameworks/libsdrpp_core.dylib
+sh macos/set_library_path.sh libfftw3f @rpath/libfftw3f.dylib $DOTAPP/Contents/Frameworks/libsdrpp_core.dylib
+sh macos/set_library_path.sh libglfw @rpath/libglfw.dylib $DOTAPP/Contents/Frameworks/libsdrpp_core.dylib
+sh macos/set_library_path.sh libvolk @rpath/libvolk.dylib $DOTAPP/Contents/Frameworks/libsdrpp_core.dylib
 
 # Copy deps
-cp $LIBGLEW_PATH $DOTAPP/Frameworks/libglew.dylib
-cp $LIBFFTW3F_PATH $DOTAPP/Frameworks/libfftw3f.dylib
-cp $LIBGLFW_PATH $DOTAPP/Frameworks/libglfw.dylib
-cp $LIBVOLK_PATH $DOTAPP/Frameworks/libvolk.dylib
+cp $LIBGLEW_PATH $DOTAPP/Contents/Frameworks/libglew.dylib
+cp $LIBFFTW3F_PATH $DOTAPP/Contents/Frameworks/libfftw3f.dylib
+cp $LIBGLFW_PATH $DOTAPP/Contents/Frameworks/libglfw.dylib
+cp $LIBVOLK_PATH $DOTAPP/Contents/Frameworks/libvolk.dylib
