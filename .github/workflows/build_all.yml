@@ -87,7 +87,7 @@ jobs:
           run: brew update
 
         - name: Install dependencies
-          run: brew install fftw glew glfw airspy airspyhf portaudio hackrf rtl-sdr libbladerf codec2
+          run: brew install fftw glew glfw airspy airspyhf portaudio hackrf rtl-sdr libbladerf codec2 && pip3 install mako
 
         - name: Install volk
           run: git clone --recursive https://github.com/gnuradio/volk && cd volk && mkdir build && cd build && cmake .. && make && sudo make install && cd ../../
