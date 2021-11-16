@@ -5,6 +5,10 @@ if (USE_INTERNAL_LIBCORRECT)
     add_subdirectory("libcorrect/")
 endif (USE_INTERNAL_LIBCORRECT)
 
+if (USE_DOTAPP_DEFAULTS)
+add_definitions(-DMACOS_DOTAPP)
+endif (USE_DOTAPP_DEFAULTS)
+
 # Main code
 file(GLOB_RECURSE SRC "src/*.cpp" "src/*.c")
 
@@ -24,7 +28,6 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 else ()
     target_compile_options(sdrpp_core PRIVATE -O3 -std=c++17)
 endif ()
-
 
 # Set the install prefix
 target_compile_definitions(sdrpp_core PUBLIC INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")

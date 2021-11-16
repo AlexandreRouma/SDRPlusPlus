@@ -49,6 +49,7 @@ option(OPT_BUILD_SCHEDULER "Build the scheduler" OFF)
 
 # Other options
 option(USE_INTERNAL_LIBCORRECT "Use an external version of libcorrect" ON)
+option(USE_DOTAPP_DEFAULTS "Set the default resource and module directories to the right ones for a MacOS .app" ON)
 
 # Core of SDR++
 add_subdirectory("core")

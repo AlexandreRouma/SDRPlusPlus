@@ -91,7 +91,7 @@ jobs:
 
         - name: Prepare CMake
           working-directory: ${{runner.workspace}}/build
-          run: cmake $GITHUB_WORKSPACE -DOPT_BUILD_PLUTOSDR_SOURCE=OFF -DOPT_BUILD_SOAPY_SOURCE=OFF -DOPT_BUILD_BLADERF_SOURCE=OFF -DOPT_BUILD_AUDIO_SINK=OFF -DOPT_BUILD_PORTAUDIO_SINK=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON
+          run: cmake $GITHUB_WORKSPACE -DOPT_BUILD_PLUTOSDR_SOURCE=OFF -DOPT_BUILD_SOAPY_SOURCE=OFF -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_AUDIO_SINK=OFF -DOPT_BUILD_PORTAUDIO_SINK=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON -DUSE_DOTAPP_DEFAULTS=ON -DCMAKE_BUILD_TYPE=Release
 
         - name: Build
           working-directory: ${{runner.workspace}}/build
@@ -99,13 +99,13 @@ jobs:
 
         - name: Create Archive
           working-directory: ${{runner.workspace}}
-          run: sh $GITHUB_WORKSPACE/make_macos_package.sh ${{runner.workspace}}/build
+          run: sh $GITHUB_WORKSPACE/make_macos_dotapp.sh ${{runner.workspace}}/build ./SDR++.app && zip -r sdrpp_macos_intel.zip SDR++.app
 
         - name: Save Archive
           uses: actions/upload-artifact@v2
           with:
-              name: sdrpp_macos_amd64
-              path: ${{runner.workspace}}/sdrpp_macos_amd64.pkg
+              name: sdrpp_macos_intel
+              path: ${{runner.workspace}}/sdrpp_macos_intel.zip
   
     build_debian_buster:
         runs-on: ubuntu-latest
@@ -295,7 +295,7 @@ jobs:
           run: >
             mkdir sdrpp_all && 
             mv sdrpp_windows_x64/sdrpp_windows_x64.zip sdrpp_all/ && 
-            mv sdrpp_macos_amd64/sdrpp_macos_amd64.pkg sdrpp_all/ && 
+            mv sdrpp_macos_intel/sdrpp_macos_intel.zip sdrpp_all/ && 
             mv sdrpp_debian_buster_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_buster_amd64.deb && 
             mv sdrpp_debian_bullseye_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bullseye_amd64.deb && 
             mv sdrpp_debian_sid_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_sid_amd64.deb && 

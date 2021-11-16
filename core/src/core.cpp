@@ -102,6 +102,12 @@ static void maximized_callback(GLFWwindow* window, int n) {
 int sdrpp_main(int argc, char *argv[]) {
     spdlog::info("SDR++ v" VERSION_STR);
 
+#ifdef MACOS_DOTAPP
+    // If this is a MacOS .app, CD to the correct directory
+    auto execPath = std::filesystem::absolute(argv[0]);
+    chdir(execPath.parent_path().string().c_str());
+#endif
+
     // Load default options and parse command line
     options::loadDefaults();
     if (!options::parse(argc, argv)) { return -1; }
@@ -239,9 +245,12 @@ int sdrpp_main(int argc, char *argv[]) {
 
     defConfig["vfoColors"]["Radio"] = "#FFFFFF";
 
-#ifdef _WIN32
+#if defined(_WIN32)
     defConfig["modulesDirectory"] = "./modules";
     defConfig["resourcesDirectory"] = "./res";
+#elif defined(MACOS_DOTAPP)
+    defConfig["modulesDirectory"] = "../Plugins";
+    defConfig["resourcesDirectory"] = "../Resources";
 #else
     defConfig["modulesDirectory"] = INSTALL_PREFIX "/lib/sdrpp/plugins";
     defConfig["resourcesDirectory"] = INSTALL_PREFIX "/share/sdrpp";

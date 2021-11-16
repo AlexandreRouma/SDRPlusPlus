@@ -130,7 +130,7 @@ const char* ifModeTxt =
 
 const char* rspduo_antennaPortsTxt = "Tuner 1 (50Ohm)\0Tuner 1 (Hi-Z)\0Tuner 2 (50Ohm)\0";
 
-const char* agcModesTxt = "Off\0005Hz\00050Hz\000100Hz";
+const char* agcModesTxt = "Off\0005Hz\00050Hz\000100Hz\000";
 
 class SDRPlaySourceModule : public ModuleManager::Instance {
 public:

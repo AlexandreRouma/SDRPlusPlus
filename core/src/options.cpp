@@ -6,9 +6,12 @@ namespace options {
     CMDLineOptions opts;
 
     void loadDefaults() {
-#ifdef _WIN32
+#if defined(_WIN32)
         opts.root = ".";
         opts.showConsole = false;
+#elif defined(MACOS_DOTAPP)
+        std::string homedir = getenv("HOME");
+        opts.root = homedir + "/Library/Application Support/sdrpp";
 #else
         std::string homedir = getenv("HOME");
         opts.root = homedir + "/.config/sdrpp";

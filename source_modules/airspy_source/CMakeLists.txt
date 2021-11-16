@@ -21,6 +21,8 @@ if (MSVC)
     # Lib path
     target_link_directories(airspy_source PRIVATE "C:/Program Files/PothosSDR/bin/")
 
+    target_include_directories(airspyhf_source PUBLIC "C:/Program Files/PothosSDR/include/libairspy/")
+
     target_link_libraries(airspy_source PRIVATE airspy)
 else (MSVC)
     find_package(PkgConfig)
