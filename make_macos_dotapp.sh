@@ -161,6 +161,7 @@ cp $LIBRTLSDR_PATH $DOTAPP/Contents/Frameworks/librtlsdr.dylib
 sh macos/delete_rpath.sh librtlsdr $DOTAPP/Contents/Plugins/rtl_sdr_source.dylib
 # sh macos/delete_rpath.sh libusb $DOTAPP/Contents/Frameworks/librtlsdr.dylib # NOT NEEDED????
 sh macos/set_library_path.sh librtlsdr @rpath/librtlsdr.dylib $DOTAPP/Contents/Plugins/rtl_sdr_source.dylib
+sh macos/set_library_path.sh libusb @rpath/libusb.dylib $DOTAPP/Contents/Plugins/rtl_sdr_source.dylib # On intel needed too apparently
 sh macos/set_library_path.sh libusb @rpath/libusb.dylib $DOTAPP/Contents/Frameworks/librtlsdr.dylib
 install_name_tool -add_rpath @loader_path/../Frameworks $DOTAPP/Contents/Frameworks/librtlsdr.dylib
 codesign --remove-signature $DOTAPP/Contents/Frameworks/librtlsdr.dylib
