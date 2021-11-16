@@ -87,7 +87,10 @@ jobs:
           run: brew update
 
         - name: Install dependencies
-          run: brew install fftw glew glfw volk airspy airspyhf portaudio hackrf rtl-sdr libbladerf codec2
+          run: brew install fftw glew glfw airspy airspyhf portaudio hackrf rtl-sdr libbladerf codec2
+
+        - name: Install volk
+          run: git clone https://github.com/gnuradio/volk && cd volk && mkdir build && cd build && cmake .. && make && sudo make install && cd ../../
 
         - name: Prepare CMake
           working-directory: ${{runner.workspace}}/build
