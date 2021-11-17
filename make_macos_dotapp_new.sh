@@ -120,10 +120,6 @@ install_exec() {
     
     # Add new single rpath
     install_name_tool -add_rpath @loader_path/../Frameworks $EXEC_DEST
-
-    # Re-sign
-    codesign --remove-signature $EXEC_DEST
-    codesign -s - $EXEC_DEST
 }
 
 # ========================= Install binaries =========================
@@ -197,3 +193,7 @@ echo '        <key>CFBundleExecutable</key><string>sdrpp</string>' >> $DOTAPP/Co
 echo '        <key>CFBundleIconFile</key><string>sdrpp</string>' >> $DOTAPP/Contents/Info.plist
 echo '    </dict>' >> $DOTAPP/Contents/Info.plist
 echo '</plist>' >> $DOTAPP/Contents/Info.plist
+
+# ========================= Sign the dotapp =========================
+
+codesign --force --deep -s - $DOTAPP
