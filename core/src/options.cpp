@@ -9,7 +9,7 @@ namespace options {
 #if defined(_WIN32)
         opts.root = ".";
         opts.showConsole = false;
-#elif defined(MACOS_DOTAPP)
+#elif defined(IS_MACOS_BUNDLE)
         std::string homedir = getenv("HOME");
         opts.root = homedir + "/Library/Application Support/sdrpp";
 #else

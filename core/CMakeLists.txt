@@ -5,9 +5,9 @@ if (USE_INTERNAL_LIBCORRECT)
     add_subdirectory("libcorrect/")
 endif (USE_INTERNAL_LIBCORRECT)
 
-if (USE_DOTAPP_DEFAULTS)
-add_definitions(-DMACOS_DOTAPP)
-endif (USE_DOTAPP_DEFAULTS)
+if (USE_BUNDLE_DEFAULTS)
+add_definitions(-DIS_MACOS_BUNDLE)
+endif (USE_BUNDLE_DEFAULTS)
 
 # Main code
 file(GLOB_RECURSE SRC "src/*.cpp" "src/*.c")

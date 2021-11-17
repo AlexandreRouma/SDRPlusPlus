@@ -102,7 +102,7 @@ static void maximized_callback(GLFWwindow* window, int n) {
 int sdrpp_main(int argc, char *argv[]) {
     spdlog::info("SDR++ v" VERSION_STR);
 
-#ifdef MACOS_DOTAPP
+#ifdef IS_MACOS_BUNDLE
     // If this is a MacOS .app, CD to the correct directory
     auto execPath = std::filesystem::absolute(argv[0]);
     chdir(execPath.parent_path().string().c_str());
@@ -248,7 +248,7 @@ int sdrpp_main(int argc, char *argv[]) {
 #if defined(_WIN32)
     defConfig["modulesDirectory"] = "./modules";
     defConfig["resourcesDirectory"] = "./res";
-#elif defined(MACOS_DOTAPP)
+#elif defined(IS_MACOS_BUNDLE)
     defConfig["modulesDirectory"] = "../Plugins";
     defConfig["resourcesDirectory"] = "../Resources";
 #else
