@@ -102,7 +102,7 @@ jobs:
 
         - name: Create Archive
           working-directory: ${{runner.workspace}}
-          run: cd $GITHUB_WORKSPACE && sh make_macos_dotapp.sh ${{runner.workspace}}/build ./SDR++.app && zip -r ${{runner.workspace}}/sdrpp_macos_intel.zip SDR++.app
+          run: cd $GITHUB_WORKSPACE && sh make_macos_dotapp_new.sh ${{runner.workspace}}/build ./SDR++.app && zip -r ${{runner.workspace}}/sdrpp_macos_intel.zip SDR++.app
 
         - name: Save Archive
           uses: actions/upload-artifact@v2

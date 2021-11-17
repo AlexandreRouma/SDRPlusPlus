@@ -190,6 +190,7 @@ sh macos/set_library_path.sh libportaudio @rpath/libportaudio.dylib $DOTAPP/Cont
 # ========================= Decoder Modules =========================
 
 install_module $BUILD_DIR/decoder_modules/m17_decoder/m17_decoder.dylib
+# TODO: Add codec2
 
 install_module $BUILD_DIR/decoder_modules/meteor_demodulator/meteor_demodulator.dylib
 
