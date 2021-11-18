@@ -23,6 +23,10 @@ bundle_is_not_to_be_installed() {
     if [ "$1" = "AudioToolbox" ]; then echo 1; fi
     if [ "$1" = "AudioUnit" ]; then echo 1; fi
     if [ "$1" = "libobjc.A.dylib" ]; then echo 1; fi
+    if [ "$1" = "CFNetwork" ]; then echo 1; fi
+    if [ "$1" = "SystemConfiguration" ]; then echo 1; fi
+    if [ "$1" = "Security" ]; then echo 1; fi
+    if [ "$1" = "AppleFSCompression" ]; then echo 1; fi    
 }
 
 # ========================= FOR INTERNAL USE ONLY =========================
