@@ -57,34 +57,36 @@ bundle_get_exec_rpaths() {
     done
 }
 
-# bundle_find_full_path [dep_path] [dep_name] [exec_rpaths]
+# bundle_find_full_path [dep_path] [exec_rpaths]
 bundle_find_full_path() {
     # If path is relative to rpath, find the full path
-    local IS_RPATH_RELATIVE=$(echo $1 | grep @rpath)
+    local IS_RPATH_RELATIVE=$(echo $1 | grep @rpath/)
     if [ "$IS_RPATH_RELATIVE" = "" ]; then
         echo $1
         return
     fi
 
+    local RPATH_NEXT=$(echo $1 | cut -c 7-)
+
     # Search in the exec's RPATH
-    echo "$3" | while read -r RPATH; do
+    echo "$2" | while read -r RPATH; do
         # If not found, skip
-        if [ ! -f $RPATH/$2 ]; then
+        if [ ! -f $RPATH/$RPATH_NEXT ]; then
             continue
         fi
 
         # Correct dep path
-        echo $RPATH/$2
+        echo $RPATH/$RPATH_NEXT
         return
     done
 
     # Search other common paths
-    if [ -f /usr/local/lib/$2 ]; then
-        echo /usr/local/lib/$2 
+    if [ -f /usr/local/lib/$RPATH_NEXT ]; then
+        echo /usr/local/lib/$RPATH_NEXT 
         return
     fi
-    if [ -f /Library/Frameworks/$2 ]; then
-        echo /Library/Frameworks/$2 
+    if [ -f /Library/Frameworks/$RPATH_NEXT ]; then
+        echo /Library/Frameworks/$RPATH_NEXT 
         return
     fi
 
@@ -147,7 +149,7 @@ bundle_install_binary() {
             continue
         fi
 
-        DEP=$(bundle_find_full_path $DEP $DEP_NAME $RPATHS)
+        DEP=$(bundle_find_full_path $DEP $RPATHS)
 
         # If the dependency is not installed, install it
         if [ ! -f $1/Contents/Frameworks/$DEP_NAME ]; then
