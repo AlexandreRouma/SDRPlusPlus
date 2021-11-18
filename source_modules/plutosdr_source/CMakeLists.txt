@@ -25,18 +25,28 @@ if (MSVC)
     target_link_libraries(plutosdr_source PRIVATE libiio)
     target_link_libraries(plutosdr_source PRIVATE libad9361)
 else (MSVC)
-    find_package(PkgConfig)
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        target_include_directories(plutosdr_source PRIVATE "/Library/Frameworks/iio.framework/Headers")
+        target_link_libraries(plutosdr_source PRIVATE "/Library/Frameworks/iio.framework/iio")
 
-    pkg_check_modules(LIBIIO REQUIRED libiio)
-    pkg_check_modules(LIBAD9361 REQUIRED libad9361)
+        target_include_directories(plutosdr_source PRIVATE "/Library/Frameworks/ad9361.framework/Headers")
+        target_link_libraries(plutosdr_source PRIVATE "/Library/Frameworks/ad9361.framework/ad9361")
+    else()
+        find_package(PkgConfig)
 
-    target_include_directories(plutosdr_source PRIVATE ${LIBIIO_INCLUDE_DIRS})
-    target_link_directories(plutosdr_source PRIVATE ${LIBIIO_LIBRARY_DIRS})
-    target_link_libraries(plutosdr_source PRIVATE ${LIBIIO_LIBRARIES})
+        pkg_check_modules(LIBIIO REQUIRED libiio)
+        pkg_check_modules(LIBAD9361 REQUIRED libad9361)
+
+        target_include_directories(plutosdr_source PRIVATE ${LIBIIO_INCLUDE_DIRS})
+        target_link_directories(plutosdr_source PRIVATE ${LIBIIO_LIBRARY_DIRS})
+        target_link_libraries(plutosdr_source PRIVATE ${LIBIIO_LIBRARIES})
+
+        target_include_directories(plutosdr_source PRIVATE ${LIBAD9361_INCLUDE_DIRS})
+        target_link_directories(plutosdr_source PRIVATE ${LIBAD9361_LIBRARY_DIRS})
+        target_link_libraries(plutosdr_source PRIVATE ${LIBAD9361_LIBRARIES})
+    endif()
 
     target_include_directories(plutosdr_source PRIVATE ${LIBAD9361_INCLUDE_DIRS})
-    target_link_directories(plutosdr_source PRIVATE ${LIBAD9361_LIBRARY_DIRS})
-    target_link_libraries(plutosdr_source PRIVATE ${LIBAD9361_LIBRARIES})
 endif ()
 
 # Install directives
