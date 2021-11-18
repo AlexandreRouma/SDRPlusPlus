@@ -81,6 +81,7 @@ bundle_install_binary() {
 
     local EXEC_NAME=$(basename $3)
     local EXEC_DEST=$2/$EXEC_NAME
+    local RPATHS=$(bundle_get_exec_rpaths $3)
 
     # Check if file exists
     if [ ! -f $3 ]; then
@@ -109,6 +110,21 @@ bundle_install_binary() {
             continue
         fi
 
+        # If path is relative to rpath, find the full path
+        local IS_RPATH_RELATIVE=$(echo $DEP | grep @rpath)
+        if [ "$IS_RPATH_RELATIVE" != "" ]; then
+            echo "Getting full path for" $DEP
+            echo "$RPATHS" | while read -r RPATH; do
+                # If not found, skip
+                if [ ! -f $RPATH/$DEP_NAME ]; then
+                    continue
+                fi
+
+                # Correct dep path
+                DEP=$RPATH/$DEP_NAME
+            done
+        fi
+
         # If the dependency is not installed, install it
         if [ ! -f $1/Contents/Frameworks/$DEP_NAME ]; then
             bundle_install_binary $1 $1/Contents/Frameworks $DEP
@@ -119,7 +135,6 @@ bundle_install_binary() {
     done
 
     # Remove all its rpaths
-    local RPATHS=$(bundle_get_exec_rpaths $EXEC_DEST)
     if [ "$RPATHS" != "" ]; then
         echo "$RPATHS" | while read -r RPATH; do
             install_name_tool -delete_rpath $RPATH $EXEC_DEST
