@@ -153,11 +153,11 @@ bundle_install_binary() {
             continue
         fi
 
-        DEP=$(bundle_find_full_path $DEP $RPATHS)
+        local DEP_PATH=$(bundle_find_full_path $DEP $RPATHS)
 
         # If the dependency is not installed, install it
         if [ ! -f $1/Contents/Frameworks/$DEP_NAME ]; then
-            bundle_install_binary $1 $1/Contents/Frameworks $DEP
+            bundle_install_binary $1 $1/Contents/Frameworks $DEP_PATH
         fi
 
         # Fix path
