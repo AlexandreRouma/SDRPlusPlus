@@ -70,7 +70,7 @@ bundle_find_full_path() {
         return
     fi
 
-    local RPATH_NEXT=$(echo $1 | cut -c 7-)
+    local RPATH_NEXT=$(echo $1 | cut -c 8-)
 
     # Search in the exec's RPATH
     echo "$2" | while read -r RPATH; do
