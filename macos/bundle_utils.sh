@@ -84,7 +84,7 @@ bundle_install_binary() {
 
     # Check if file exists
     if [ ! -f $3 ]; then
-        echo "==NOT== Installing" $EXEC_NAME
+        echo "==NOT== Installing" $3
         return
     fi
 
