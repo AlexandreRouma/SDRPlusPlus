@@ -90,14 +90,20 @@ jobs:
           run: brew install fftw glew glfw airspy airspyhf portaudio hackrf rtl-sdr libbladerf codec2 && pip3 install mako
 
         - name: Install volk
-          run: git clone --recursive https://github.com/gnuradio/volk && cd volk && mkdir build && cd build && cmake .. && make && sudo make install && cd ../../
+          run: git clone --recursive https://github.com/gnuradio/volk && cd volk && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
 
         - name: Install SDRplay API
           run: wget https://www.sdrplay.com/software/SDRplay_RSP_API-MacOSX-3.07.3.pkg && sudo installer -pkg SDRplay_RSP_API-MacOSX-3.07.3.pkg -target /
 
+        - name: Install libiio
+          run: git clone https://github.com/analogdevicesinc/libiio && cd libiio && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
+
+        - name: Install libad9361
+          run: git clone https://github.com/analogdevicesinc/libad9361-iio && cd libad9361-iio && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
+
         - name: Prepare CMake
           working-directory: ${{runner.workspace}}/build
-          run: cmake $GITHUB_WORKSPACE -DOPT_BUILD_PLUTOSDR_SOURCE=OFF -DOPT_BUILD_SOAPY_SOURCE=OFF -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_AUDIO_SINK=OFF -DOPT_BUILD_PORTAUDIO_SINK=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON -DUSE_BUNDLE_DEFAULTS=ON -DCMAKE_BUILD_TYPE=Release
+          run: cmake $GITHUB_WORKSPACE -DOPT_BUILD_PLUTOSDR_SOURCE=ON -DOPT_BUILD_SOAPY_SOURCE=OFF -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_AUDIO_SINK=OFF -DOPT_BUILD_PORTAUDIO_SINK=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON -DUSE_BUNDLE_DEFAULTS=ON -DCMAKE_BUILD_TYPE=Release
 
         - name: Build
           working-directory: ${{runner.workspace}}/build
