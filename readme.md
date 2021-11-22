@@ -7,6 +7,7 @@ SDR++ is a cross-platform and open source SDR software with the aim of being blo
 
 * [Patreon](https://patreon.com/ryzerth)
 * [Discord Server](https://discord.gg/aFgWjyD)
+* IRC: `#sdrpp` ([libera.chat](https://libera.chat))
 
 ## Features
 
