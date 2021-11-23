@@ -288,6 +288,7 @@ namespace dsp {
         void init(stream<T>* in, float volume) {
             _in = in;
             _volume = volume;
+            level = powf(_volume, 2);
             generic_block<Volume<T>>::registerInput(_in);
             generic_block<Volume<T>>::registerOutput(&out);
             generic_block<Volume<T>>::_block_init = true;
