@@ -95,13 +95,6 @@ const sdrplay_api_RspDx_AntennaSelectT rspdx_antennaPorts[] = {
 
 const char* rspdx_antennaPortsTxt = "Port A\0Port B\0Port C\0";
 
-const sdrplay_api_AgcControlT agcModes[] = {
-    sdrplay_api_AGC_DISABLE,
-    sdrplay_api_AGC_5HZ,
-    sdrplay_api_AGC_50HZ,
-    sdrplay_api_AGC_100HZ
-};
-
 struct ifMode_t {
     sdrplay_api_If_kHzT ifValue;
     sdrplay_api_Bw_MHzT bw;
@@ -129,8 +122,6 @@ const char* ifModeTxt =
     "LowIF 450KHz, IFBW 200KHz\0";
 
 const char* rspduo_antennaPortsTxt = "Tuner 1 (50Ohm)\0Tuner 1 (Hi-Z)\0Tuner 2 (50Ohm)\0";
-
-const char* agcModesTxt = "Off\0005Hz\00050Hz\000100Hz\000";
 
 class SDRPlaySourceModule : public ModuleManager::Instance {
 public:
@@ -327,7 +318,13 @@ public:
             config.conf["devices"][selectedName]["bwMode"] = 8; // Auto
             config.conf["devices"][selectedName]["lnaGain"] = lnaSteps - 1;
             config.conf["devices"][selectedName]["ifGain"] = 59;
-            config.conf["devices"][selectedName]["agc"] = 0; // Disabled
+            config.conf["devices"][selectedName]["agc"] = false;
+
+            config.conf["devices"][selectedName]["agcAttack"] = 500;
+            config.conf["devices"][selectedName]["agcDecay"] = 500;
+            config.conf["devices"][selectedName]["agcDecayDelay"] = 200;
+            config.conf["devices"][selectedName]["agcDecayThreshold"] = 5;
+            config.conf["devices"][selectedName]["agcSetPoint"] = -30;
 
             config.conf["devices"][selectedName]["ifModeId"] = 0;
 
@@ -392,7 +389,27 @@ public:
             gain = config.conf["devices"][selectedName]["ifGain"];
         }
         if (config.conf["devices"][selectedName].contains("agc")) {
+            if (!config.conf["devices"][selectedName]["agc"].is_boolean()) {
+                int oldMode = config.conf["devices"][selectedName]["agc"];
+                config.conf["devices"][selectedName]["agc"] = (bool)(oldMode != 0);
+                created = true;
+            }
             agc = config.conf["devices"][selectedName]["agc"];
+        }
+        if (config.conf["devices"][selectedName].contains("agcAttack")) {
+            agcAttack = config.conf["devices"][selectedName]["agcAttack"];
+        }
+        if (config.conf["devices"][selectedName].contains("agcDecay")) {
+            agcDecay = config.conf["devices"][selectedName]["agcDecay"];
+        }
+        if (config.conf["devices"][selectedName].contains("agcDecayDelay")) {
+            agcDecayDelay = config.conf["devices"][selectedName]["agcDecayDelay"];
+        }
+        if (config.conf["devices"][selectedName].contains("agcDecayThreshold")) {
+            agcDecayThreshold = config.conf["devices"][selectedName]["agcDecayThreshold"];
+        }
+        if (config.conf["devices"][selectedName].contains("agcSetPoint")) {
+            agcSetPoint = config.conf["devices"][selectedName]["agcSetPoint"];
         }
 
         core::setInputSampleRate(sampleRate);
@@ -621,12 +638,12 @@ private:
         _this->channelParams->tunerParams.loMode = sdrplay_api_LO_Auto;
 
         // Hard coded AGC parameters
-        _this->channelParams->ctrlParams.agc.attack_ms = 500;
-        _this->channelParams->ctrlParams.agc.decay_ms = 500;
-        _this->channelParams->ctrlParams.agc.decay_delay_ms = 200;
-        _this->channelParams->ctrlParams.agc.decay_threshold_dB = 5;
-        _this->channelParams->ctrlParams.agc.setPoint_dBfs = -30;
-        _this->channelParams->ctrlParams.agc.enable = agcModes[_this->agc];
+        _this->channelParams->ctrlParams.agc.attack_ms = _this->agcAttack;
+        _this->channelParams->ctrlParams.agc.decay_ms = _this->agcDecay;
+        _this->channelParams->ctrlParams.agc.decay_delay_ms = _this->agcDecayDelay;
+        _this->channelParams->ctrlParams.agc.decay_threshold_dB = _this->agcDecayThreshold;
+        _this->channelParams->ctrlParams.agc.setPoint_dBfs = _this->agcSetPoint;
+        _this->channelParams->ctrlParams.agc.enable = _this->agc ? sdrplay_api_AGC_CTRL_EN : sdrplay_api_AGC_DISABLE;
 
         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Dev_Fs, sdrplay_api_Update_Ext1_None);
         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_BwType, sdrplay_api_Update_Ext1_None);
@@ -771,13 +788,49 @@ private:
             ImGui::PopItemWidth();
             if (_this->agc > 0) { style::endDisabled(); }
 
-            ImGui::LeftLabel("AGC");
-            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::Combo(CONCAT("##sdrplay_agc", _this->name), &_this->agc, agcModesTxt)) {
+
+            if (_this->agcParamEdit) {
+                bool valid = false;
+                _this->agcParamEdit = _this->agcParamMenu(valid);
+
+                // If the menu was closed and (TODO) valid, update options
+                if (!_this->agcParamEdit && valid) {
+                    _this->agcAttack = _this->_agcAttack;
+                    _this->agcDecay = _this->_agcDecay;
+                    _this->agcDecayDelay = _this->_agcDecayDelay;
+                    _this->agcDecayThreshold = _this->_agcDecayThreshold;
+                    _this->agcSetPoint = _this->_agcSetPoint;
+                    if (_this->running && _this->agc) {
+                        _this->channelParams->ctrlParams.agc.attack_ms = _this->agcAttack;
+                        _this->channelParams->ctrlParams.agc.decay_ms = _this->agcDecay;
+                        _this->channelParams->ctrlParams.agc.decay_delay_ms = _this->agcDecayDelay;
+                        _this->channelParams->ctrlParams.agc.decay_threshold_dB = _this->agcDecayThreshold;
+                        _this->channelParams->ctrlParams.agc.setPoint_dBfs = _this->agcSetPoint;
+                        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Ctrl_Agc, sdrplay_api_Update_Ext1_None);
+                    }
+                    config.acquire();
+                    config.conf["devices"][_this->selectedName]["agcAttack"] = _this->agcAttack;
+                    config.conf["devices"][_this->selectedName]["agcDecay"] = _this->agcDecay;
+                    config.conf["devices"][_this->selectedName]["agcDecayDelay"] = _this->agcDecayDelay;
+                    config.conf["devices"][_this->selectedName]["agcDecayThreshold"] = _this->agcDecayThreshold;
+                    config.conf["devices"][_this->selectedName]["agcSetPoint"] = _this->agcSetPoint;
+                    config.release(true);
+                }
+            }
+
+            if (ImGui::Checkbox(CONCAT("IF AGC##sdrplay_agc", _this->name), &_this->agc)) {
                 if (_this->running) {
-                    _this->channelParams->ctrlParams.agc.enable = agcModes[_this->agc];
-                    sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Ctrl_Agc, sdrplay_api_Update_Ext1_None);
-                    if (_this->agc == 0) {
+                    _this->channelParams->ctrlParams.agc.enable = _this->agc ? sdrplay_api_AGC_CTRL_EN : sdrplay_api_AGC_DISABLE;
+                    if (_this->agc) {
+                        _this->channelParams->ctrlParams.agc.attack_ms = _this->agcAttack;
+                        _this->channelParams->ctrlParams.agc.decay_ms = _this->agcDecay;
+                        _this->channelParams->ctrlParams.agc.decay_delay_ms = _this->agcDecayDelay;
+                        _this->channelParams->ctrlParams.agc.decay_threshold_dB = _this->agcDecayThreshold;
+                        _this->channelParams->ctrlParams.agc.setPoint_dBfs = _this->agcSetPoint;
+                        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Ctrl_Agc, sdrplay_api_Update_Ext1_None);
+                    }
+                    else {
+                        sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Ctrl_Agc, sdrplay_api_Update_Ext1_None);
                         _this->channelParams->tunerParams.gain.gRdB = _this->gain;
                         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Gr, sdrplay_api_Update_Ext1_None);
                     }
@@ -786,7 +839,15 @@ private:
                 config.conf["devices"][_this->selectedName]["agc"] = _this->agc;
                 config.release(true);
             }
-            
+            ImGui::SameLine();
+            if (ImGui::Button(CONCAT("Parameters##sdrplay_agc_edit_btn", _this->name), ImVec2(menuWidth - ImGui::GetCursorPosX(), 0))) {
+                _this->agcParamEdit = true;
+                _this->_agcAttack = _this->agcAttack;
+                _this->_agcDecay = _this->agcDecay;
+                _this->_agcDecayDelay = _this->agcDecayDelay;
+                _this->_agcDecayThreshold = _this->agcDecayThreshold;
+                _this->_agcSetPoint = _this->agcSetPoint;
+            }
 
             switch (_this->openDev.hwVer) {
                 case SDRPLAY_RSP1_ID:
@@ -812,6 +873,70 @@ private:
         else {
             ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "No device available");
         }       
+    }
+
+    bool agcParamMenu(bool& valid) {
+        bool open = true;
+        gui::mainWindow.lockWaterfallControls = true;
+        ImGui::OpenPopup("Edit##sdrplay_source_edit_agc_params_");
+        if (ImGui::BeginPopup("Edit##sdrplay_source_edit_agc_params_", ImGuiWindowFlags_NoResize)) {
+
+            ImGui::BeginTable(("sdrplay_source_agc_param_tbl"+name).c_str(), 2);
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::LeftLabel("Attack");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::SetNextItemWidth(100);
+            ImGui::InputInt("ms##sdrplay_source_agc_attack", &_agcAttack);
+            _agcAttack = std::clamp<int>(_agcAttack, 0, 65535);
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::LeftLabel("Decay");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::SetNextItemWidth(100);
+            ImGui::InputInt("ms##sdrplay_source_agc_decay", &_agcDecay);
+            _agcDecay = std::clamp<int>(_agcDecay, 0, 65535);
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::LeftLabel("Decay Delay");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::SetNextItemWidth(100);
+            ImGui::InputInt("ms##sdrplay_source_agc_decay_delay", &_agcDecayDelay);
+            _agcDecayDelay = std::clamp<int>(_agcDecayDelay, 0, 65535);
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::LeftLabel("Decay Threshold");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::SetNextItemWidth(100);
+            ImGui::InputInt("dB##sdrplay_source_agc_decay_thresh", &_agcDecayThreshold);
+            _agcDecayThreshold = std::clamp<int>(_agcDecayThreshold, 0, 100);
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::LeftLabel("Setpoint");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::SetNextItemWidth(100);
+            ImGui::InputInt("dBFS##sdrplay_source_agc_setpoint", &_agcSetPoint);
+            _agcSetPoint = std::clamp<int>(_agcSetPoint, -60, -20);
+
+            ImGui::EndTable();
+
+            if (ImGui::Button("Apply")) {
+                open = false;
+                valid = true;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel")) {
+                open = false;
+                valid = false;
+            }
+            ImGui::EndPopup();
+        }
+        return open;
     }
         
     void RSP1Menu(float menuWidth) {
@@ -1024,7 +1149,21 @@ private:
     int lnaGain = 9;
     int gain = 59;
     int lnaSteps = 9;
-    int agc = 0;
+    
+    bool agc = false;
+    bool agcParamEdit = false;
+    int agcAttack = 500;
+    int agcDecay = 500;
+    int agcDecayDelay = 200;
+    int agcDecayThreshold = 5;
+    int agcSetPoint = -30;
+
+    // Temporary values for the edit window
+    int _agcAttack = 500;
+    int _agcDecay = 500;
+    int _agcDecayDelay = 200;
+    int _agcDecayThreshold = 5;
+    int _agcSetPoint = -30;
 
     int bufferSize = 0;
     int bufferIndex = 0;

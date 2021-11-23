@@ -23,7 +23,7 @@ namespace credits {
         ImGui::BeginPopupModal("Credits", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
 
         ImGui::PushFont(style::hugeFont);
-        ImGui::Text("SDR++    ");
+        ImGui::Text("SDR++          ");
         ImGui::PopFont();
         ImGui::SameLine();
         ImGui::Image(icons::LOGO, ImVec2(128, 128));
@@ -33,7 +33,7 @@ namespace credits {
 
         ImGui::Text("This software is brought to you by Alexandre Rouma with the help of\n\n");
 
-        ImGui::Columns(3, "CreditColumns", true);
+        ImGui::Columns(4, "CreditColumns", true);
 
         ImGui::Text("Contributors");
         for (int i = 0; i < sdrpp_credits::contributorCount; i++) {
@@ -44,6 +44,12 @@ namespace credits {
         ImGui::Text("Libraries");
         for (int i = 0; i < sdrpp_credits::libraryCount; i++) {
             ImGui::BulletText("%s", sdrpp_credits::libraries[i]);
+        }
+
+        ImGui::NextColumn();
+        ImGui::Text("Hardware Donators");
+        for (int i = 0; i < sdrpp_credits::hardwareDonatorCount; i++) {
+            ImGui::BulletText("%s", sdrpp_credits::hardwareDonators[i]);
         }
 
         ImGui::NextColumn();
