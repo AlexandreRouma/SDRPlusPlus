@@ -308,7 +308,7 @@ jobs:
           run: cd $GITHUB_WORKSPACE/docker_builds/raspios_bullseye && docker build . --tag sdrpp_build
 
         - name: Run Container
-          run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
+          run: docker run --privileged --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
 
         - name: Recover Deb Archive
           working-directory: ${{runner.workspace}}
