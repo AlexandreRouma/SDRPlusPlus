@@ -13,7 +13,7 @@ wget https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_ar
 
 # Expand and mount rootfs image
 dd if=/dev/zero bs=1G count=1 >> 1.img
-e2fsck -f 1.img
+e2fsck -p -f 1.img
 resize2fs 1.img
 mount 1.img /mnt
 
