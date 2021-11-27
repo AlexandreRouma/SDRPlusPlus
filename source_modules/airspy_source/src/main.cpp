@@ -7,7 +7,7 @@
 #include <gui/style.h>
 #include <config.h>
 #include <options.h>
-#include <libairspy/airspy.h>
+#include <airspy.h>
 
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())

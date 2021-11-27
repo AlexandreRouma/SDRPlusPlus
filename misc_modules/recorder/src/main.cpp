@@ -60,16 +60,22 @@ public:
             config.conf[name]["mode"] = RECORDER_MODE_AUDIO;
             config.conf[name]["recPath"] = "%ROOT%/recordings";
             config.conf[name]["audioStream"] = "Radio";
+            config.conf[name]["audioVolume"] = 1.0;
             created = true;
+        }
+
+        if (!config.conf[name].contains("audioVolume")) {
+            config.conf[name]["audioVolume"] = 1.0;
         }
 
         recMode = config.conf[name]["mode"];
         folderSelect.setPath(config.conf[name]["recPath"]);
         selectedStreamName = config.conf[name]["audioStream"];
+        audioVolume = config.conf[name]["audioVolume"];
         config.release(created);
 
         // Init audio path
-        vol.init(&dummyStream, 1.0f);
+        vol.init(&dummyStream, audioVolume);
         audioSplit.init(&vol.out);
         audioSplit.bindStream(&meterStream);
         meter.init(&meterStream);
@@ -278,6 +284,9 @@ private:
 
         if (ImGui::SliderFloat(CONCAT("##_recorder_vol_", name), &audioVolume, 0, 1, "")) {
             vol.setVolume(audioVolume);
+            config.acquire();
+            config.conf[name]["audioVolume"] = audioVolume;
+            config.release(true);
         }
         ImGui::PopItemWidth();
 

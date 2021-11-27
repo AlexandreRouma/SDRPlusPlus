@@ -35,6 +35,17 @@ namespace sdrpp_credits {
         "Portable File Dialogs"
     };
 
+    const char* hardwareDonators[] = {
+        "Airspy",
+        "Analog Devices",
+        "Howard Su",
+        "MyriadRF",
+        "Nuand",
+        "RFspace",
+        "RTL-SDRblog",
+        "SDRplay"
+    };
+
     const char* patrons[] = {
         "Bob Logan",
         "Christian Häusler",
@@ -58,5 +69,6 @@ namespace sdrpp_credits {
 
     const int contributorCount = sizeof(contributors) / sizeof(char*);
     const int libraryCount = sizeof(libraries) / sizeof(char*);
+    const int hardwareDonatorCount = sizeof(hardwareDonators) / sizeof(char*);
     const int patronCount = sizeof(patrons) / sizeof(char*);
 }

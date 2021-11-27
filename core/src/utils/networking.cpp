@@ -431,7 +431,7 @@ namespace net {
 #endif
 
         // Create a socket
-        sock = socket(AF_INET, SOCK_DGRAM, 0);
+        sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
         if (sock < 0) {
             throw std::runtime_error("Could not create socket");
             return NULL;
@@ -455,7 +455,7 @@ namespace net {
 
         // Create host address
         struct sockaddr_in addr;
-        addr.sin_addr.s_addr = *naddr;
+        addr.sin_addr.s_addr = INADDR_ANY;//*naddr;
         addr.sin_family = AF_INET;
 	    addr.sin_port = htons(port);
 
@@ -467,7 +467,8 @@ namespace net {
 
         // Bind socket
         if (bindSocket) {
-            if (bind(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+            int err = bind(sock, (struct sockaddr*)&addr, sizeof(addr));
+            if (err < 0) {
                 throw std::runtime_error("Could not bind socket");
                 return NULL;
             }

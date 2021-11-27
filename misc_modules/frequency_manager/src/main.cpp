@@ -11,6 +11,7 @@
 #include <vector>
 #include <gui/tuner.h>
 #include <gui/file_dialogs.h>
+#include <utils/freq_formatting.h>
 
 SDRPP_MOD_INFO {
     /* Name:            */ "frequency_manager",
@@ -102,36 +103,6 @@ public:
     }
 
 private:
-    static std::string freqToStr(double freq) {
-        char str[128];
-        if (freq >= 1000000.0) {
-            sprintf(str, "%.06lf", freq / 1000000.0);
-            int len = strlen(str) - 1;
-            while ((str[len] == '0' || str[len] == '.') && len > 0) {
-                len--;
-                if (str[len] == '.') { len--; break; }
-            }
-            return std::string(str).substr(0, len + 1) + "MHz";
-        }
-        else if (freq >= 1000.0) {
-            sprintf(str, "%.06lf", freq / 1000.0);
-            int len = strlen(str) - 1;
-            while ((str[len] == '0' || str[len] == '.') && len > 0) {
-                len--;
-                if (str[len] == '.') { len--; break; }
-            }
-            return std::string(str).substr(0, len + 1) + "KHz";
-        }
-        else {
-            sprintf(str, "%.06lf", freq);
-            int len = strlen(str) - 1;
-            while ((str[len] == '0' || str[len] == '.') && len > 0) {
-                len--;
-                if (str[len] == '.') { len--; break; }
-            }
-            return std::string(str).substr(0, len + 1) + "Hz";
-        }
-    }
 
     static void applyBookmark(FrequencyBookmark bm, std::string vfoName) {
         if (vfoName == "") {
@@ -525,7 +496,7 @@ private:
                 }
 
                 ImGui::TableSetColumnIndex(1);
-                ImGui::Text("%s %s", freqToStr(bm.frequency).c_str(), demodModeList[bm.mode]);
+                ImGui::Text("%s %s", utils::formatFreq(bm.frequency).c_str(), demodModeList[bm.mode]);
                 ImVec2 max = ImGui::GetCursorPos();
             }
             ImGui::EndTable();
@@ -756,8 +727,8 @@ private:
         ImGui::Text(hoveredBookmarkName.c_str());
         ImGui::Separator();
         ImGui::Text("List: %s", hoveredBookmark.listName.c_str());
-        ImGui::Text("Frequency: %s", freqToStr(hoveredBookmark.bookmark.frequency).c_str());
-        ImGui::Text("Bandwidth: %s", freqToStr(hoveredBookmark.bookmark.bandwidth).c_str());
+        ImGui::Text("Frequency: %s", utils::formatFreq(hoveredBookmark.bookmark.frequency).c_str());
+        ImGui::Text("Bandwidth: %s", utils::formatFreq(hoveredBookmark.bookmark.bandwidth).c_str());
         ImGui::Text("Mode: %s", demodModeList[hoveredBookmark.bookmark.mode]);
         ImGui::EndTooltip();
     }

@@ -81,6 +81,42 @@ namespace ImGui {
         float* getFFTBuffer();
         void pushFFT();
 
+        inline void doZoom(int offset, int width, int outWidth, float* data, float* out, bool fast) {
+            // NOTE: REMOVE THAT SHIT, IT'S JUST A HACKY FIX
+            if (offset < 0) {
+                offset = 0;
+            }
+            if (width > 524288) {
+                width = 524288;
+            }
+
+            float factor = (float)width / (float)outWidth;
+
+            if (fast) {
+                for (int i = 0; i < outWidth; i++) {
+                    out[i] = data[(int)(offset + ((float)i * factor))];
+                }
+            }
+            else {
+                float sFactor = ceilf(factor);
+                float uFactor;
+                float id = offset;
+                float val, maxVal;
+                int sId;
+                uint32_t maxId;
+                for (int i = 0; i < outWidth; i++) {
+                    maxVal = -INFINITY;
+                    sId = (int)id;
+                    uFactor = (sId + sFactor > rawFFTSize) ? sFactor - ((sId + sFactor) - rawFFTSize) : sFactor;
+                    for (int j = 0; j < uFactor; j++) {
+                        if (data[sId + j] > maxVal) { maxVal = data[sId + j]; }
+                    }
+                    out[i] = maxVal;
+                    id += factor;
+                }
+            }
+        }
+
         void updatePallette(float colors[][3], int colorCount);
         void updatePalletteFromArray(float* colors, int colorCount);
 
@@ -124,7 +160,7 @@ namespace ImGui {
         void setFFTHeight(int height);
         int getFFTHeight();
 
-        void setRawFFTSize(int size, bool lock = true);
+        void setRawFFTSize(int size);
 
         void setFastFFT(bool fastFFT);
 
@@ -227,7 +263,7 @@ namespace ImGui {
 
         GLuint textureId;
 
-        std::mutex buf_mtx;
+        std::recursive_mutex buf_mtx;
 
         float vRange;
 

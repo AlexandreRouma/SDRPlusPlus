@@ -42,6 +42,12 @@
             "end": 2000000
         },
         {
+            "name": "Train communications",
+            "type": "aviation",
+            "start": 2130000,
+            "end": 2150000
+        },
+        {
             "name": "SW 90m",
             "type": "broadcast",
             "start": 3200000,
@@ -420,8 +426,14 @@
             "end": 29700000
         },
         {
-            "name": "Broadcast FM",
-            "type": "amateur",
+            "name": "Broadcast FM(OIRT)",
+            "type": "broadcast",
+            "start": 65900000,
+            "end": 74000000
+        },
+        {
+            "name": "Broadcast FM(CCIR)",
+            "type": "broadcast",
             "start": 87500000,
             "end": 108000000
         },
@@ -522,6 +534,12 @@
             "end": 146000000
         },
         {
+            "name": "Train communications",
+            "type": "aviation",
+            "start": 151775000,
+            "end": 151875000
+        },
+        {
             "name": "Marine",
             "type": "marine",
             "start": 156000000,
@@ -531,22 +549,34 @@
             "name": "Military Air",
             "type": "military",
             "start": 225000000,
-            "end": 380000000
+            "end": 240000000
         },
         {
-            "name": "Military Sat",
+            "name": "Military Sat / Military Air",
             "type": "military",
             "start": 240000000,
             "end": 270000000
         },
         {
+            "name": "Military Air",
+            "type": "military",
+            "start": 270000000,
+            "end": 380000000
+        },
+        {
+            "name": "Train communications",
+            "type": "aviation",
+            "start": 299999000,
+            "end": 300001000
+        },
+        {
             "name": "70cm",
             "type": "amateur",
             "start": 430000000,
-            "end": 432000000
+            "end": 432025000
         },
         {
-            "name": "70cm CW",
+            "name": "70cm CW+Digi",
             "type": "amateur",
             "start": 432025000,
             "end": 432100000
@@ -570,57 +600,51 @@
             "end": 433000000
         },
         {
-            "name": "LPD",
-            "type": "amateur",
-            "start": 433075000,
-            "end": 434775000
-        },
-        {
-            "name": "70cm FM Repeater IN",
+            "name": "70cm FM Repeaters in",
             "type": "amateur",
             "start": 433000000,
-            "end": 433400000
+            "end": 433075000
         },
         {
-            "name": "70cm FM",
+            "name": "LPD / 70cm FM Repeaters in",
             "type": "amateur",
-            "start": 433400000,
+            "start": 433075000,
             "end": 433600000
         },
         {
-            "name": "70cm",
+            "name": "LPD / 70cm",
             "type": "amateur",
             "start": 433600000,
             "end": 434000000
         },
         {
-            "name": "70cm CW+Digi",
+            "name": "LPD / 70cm CW+Digi",
             "type": "amateur",
             "start": 434000000,
             "end": 434100000
         },
         {
-            "name": "70cm",
+            "name": "LPD / 70cm",
             "type": "amateur",
             "start": 434100000,
             "end": 434600000
         },
         {
-            "name": "70cm FM Repeater OUT",
+            "name": "LPD / 70cm FM Repeaters out",
             "type": "amateur",
             "start": 434600000,
+            "end": 434775000
+        },
+        {
+            "name": "70cm FM Repeaters out",
+            "type": "amateur",
+            "start": 434775000,
             "end": 435000000
         },
         {
             "name": "70cm SAT",
             "type": "amateur",
             "start": 435000000,
-            "end": 438000000
-        },
-        {
-            "name": "70cm",
-            "type": "amateur",
-            "start": 438000000,
             "end": 440000000
         },
         {
@@ -628,6 +652,18 @@
             "type": "amateur",
             "start": 446000000,
             "end": 446100000
+        },
+        {
+            "name": "LTE-FDD-450 Uplink",
+            "type": "broadcast",
+            "start": 451000000,
+            "end": 456000000
+        },
+        {
+            "name": "LTE-FDD-450 Downlink",
+            "type": "broadcast",
+            "start": 461000000,
+            "end": 466000000
         },
         {
             "name": "UHF TV",
@@ -660,214 +696,334 @@
             "end": 960000000
         },
         {
-            "name": "23cm SAT",
+            "name": "L-Band",
+            "type": "broadcast",
+            "start": 1000000000,
+            "end": 1089998000
+        },
+        {
+            "name": "ADS-B / L-Band",
+            "type": "broadcast",
+            "start": 1089998000,
+            "end": 1090002000
+        },
+        {
+            "name": "L-Band",
+            "type": "broadcast",
+            "start": 1090002000,
+            "end": 1260000000
+        },
+        {
+            "name": "23cm SAT / L-Band",
             "type": "amateur",
             "start": 1260000000,
             "end": 1270000000
         },
         {
-            "name": "23cm",
+            "name": "23cm / L-Band",
             "type": "amateur",
             "start": 1270000000,
             "end": 1290994000
         },
         {
-            "name": "23cm FM Repeater IN",
+            "name": "23cm FM Repeater IN / L-Band",
             "type": "amateur",
             "start": 1290994000,
             "end": 1291481000
         },
         {
-            "name": "23cm",
+            "name": "23cm / L-Band",
             "type": "amateur",
             "start": 1291481000,
             "end": 1296000000
         },
         {
-            "name": "23cm CW+Digi",
+            "name": "23cm CW+Digi / L-Band",
             "type": "amateur",
             "start": 1296025000,
             "end": 1296150000
         },
         {
-            "name": "23cm",
+            "name": "23cm / L-Band",
             "type": "amateur",
             "start": 1296150000,
             "end": 1296800000
         },
         {
-            "name": "23cm Beacons (CW+Digi)",
+            "name": "23cm Beacons (CW+Digi) / L-Band",
             "type": "amateur",
             "start": 1296800000,
             "end": 1296994000
         },
         {
-            "name": "23cm FM Repeater OUT",
+            "name": "23cm FM Repeater OUT / L-Band",
             "type": "amateur",
             "start": 1296994000,
             "end": 1297490000
         },
         {
-            "name": "23cm FM",
+            "name": "23cm FM / L-Band",
             "type": "amateur",
             "start": 1297490000,
             "end": 1298000000
         },
         {
-            "name": "23cm",
+            "name": "23cm / L-Band",
             "type": "amateur",
             "start": 1298000000,
             "end": 1300000000
         },
         {
-            "name": "DCS-1800 Uplink",
+            "name": "L-Band",
+            "type": "broadcast",
+            "start": 1300000000,
+            "end": 1710000000
+        },
+        {
+            "name": "DCS-1800 Uplink / L-Band",
             "type": "broadcast",
             "start": 1710000000,
             "end": 1785000000
         },
         {
-            "name": "DCS-1800 Downlink",
+            "name": "L-Band",
+            "type": "broadcast",
+            "start": 1785000000,
+            "end": 1805000000
+        },
+        {
+            "name": "DCS-1800 Downlink / L-Band",
             "type": "broadcast",
             "start": 1805000000,
             "end": 1880000000
         },
         {
-            "name": "DECT Phones",
+            "name": "DECT Phones / L-Band",
             "type": "broadcast",
             "start": 1880000000,
             "end": 1900000000
         },
         {
-            "name": "UMTS-FDD Uplink",
+            "name": "L-Band",
+            "type": "broadcast",
+            "start": 1900000000,
+            "end": 1920000000
+        },
+        {
+            "name": "UMTS-FDD Uplink / L-Band",
             "type": "broadcast",
             "start": 1920000000,
             "end": 1980000000
         },
         {
-            "name": "UMTS-TDD",
+            "name": "L-Band",
+            "type": "broadcast",
+            "start": 1980000000,
+            "end": 2000000000
+        },
+        {
+            "name": "S-Band",
+            "type": "broadcast",
+            "start": 2000000000,
+            "end": 2010000000
+        },
+        {
+            "name": "UMTS-TDD / S-Band",
             "type": "broadcast",
             "start": 2010000000,
             "end": 2025000000
         },
         {
-            "name": "UMTS-FDD Downlink",
+            "name": "S-Band",
+            "type": "broadcast",
+            "start": 2025000000,
+            "end": 2110000000
+        },
+        {
+            "name": "UMTS-FDD Downlink / S-Band",
             "type": "broadcast",
             "start": 2110000000,
             "end": 2170000000
         },
         {
-            "name": "13cm EME",
+            "name": "S-Band",
+            "type": "broadcast",
+            "start": 2170000000,
+            "end": 2320000000
+        },
+        {
+            "name": "13cm EME / S-Band",
             "type": "amateur",
             "start": 2320000000,
             "end": 2320150000
         },
         {
-            "name": "13cm SAT",
+            "name": "S-Band",
+            "type": "broadcast",
+            "start": 2320150000,
+            "end": 2400000000
+        },
+        {
+            "name": "13cm SAT / 2.4GHz WiFi / S-Band",
             "type": "amateur",
             "start": 2400000000,
             "end": 2450000000
         },
         {
-            "name": "2.4GHz WiFi",
-            "type": "amateur",
-            "start": 2400000000,
+            "name": "2.4GHz WiFi / S-Band",
+            "type": "broadcast",
+            "start": 2450000000,
             "end": 2483500000
         },
         {
-            "name": "LTE-FDD Uplink",
+            "name": "S-Band",
+            "type": "broadcast",
+            "start": 2483500000,
+            "end": 2500000000
+        },
+        {
+            "name": "LTE-FDD Uplink / S-Band",
             "type": "broadcast",
             "start": 2500000000,
             "end": 2570000000
         },
         {
-            "name": "LTE-TDD",
+            "name": "LTE-TDD / S-Band",
             "type": "broadcast",
             "start": 2570000000,
             "end": 2620000000
         },
         {
-            "name": "LTE-FDD Downlink",
+            "name": "LTE-FDD Downlink / S-Band",
             "type": "broadcast",
             "start": 2620000000,
             "end": 2690000000
         },
         {
-            "name": "5GHz WiFi",
-            "type": "amateur",
+            "name": "S-Band",
+            "type": "broadcast",
+            "start": 2690000000,
+            "end": 4000000000
+        },
+        {
+            "name": "C-Band",
+            "type": "broadcast",
+            "start": 4000000000,
+            "end": 5150000000
+        },
+        {
+            "name": "5GHz WiFi / C-Band",
+            "type": "broadcast",
             "start": 5150000000,
             "end": 5350000000
         },
         {
-            "name": "6cm CW+Digi",
+            "name": "C-Band",
+            "type": "broadcast",
+            "start": 5350000000,
+            "end": 5650000000
+        },
+        {
+            "name": "6cm CW+Digi / 5GHz WiFi / C-Band",
             "type": "amateur",
             "start": 5650000000,
             "end": 5670000000
         },
         {
-            "name": "6cm Digi",
+            "name": "5GHz WiFi / C-Band",
+            "type": "broadcast",
+            "start": 5670000000,
+            "end": 5725000000
+        },
+        {
+            "name": "6cm Digi / 5GHz WiFi / C-Band",
             "type": "amateur",
             "start": 5725000000,
             "end": 5760000000
         },
         {
-            "name": "6cm Digi",
+            "name": "C-Band / 5GHz WiFi",
+            "type": "broadcast",
+            "start": 5760000000,
+            "end": 5762000000
+        },
+        {
+            "name": "6cm Digi / 5GHz WiFi / C-Band",
             "type": "amateur",
             "start": 5762000000,
             "end": 5790000000
         },
         {
-            "name": "6cm CW+Digi",
+            "name": "6cm CW+Digi / 5GHz WiFi / C-Band",
             "type": "amateur",
             "start": 5790000000,
             "end": 5850000000
         },
         {
-            "name": "5GHz WiFi",
-            "type": "amateur",
-            "start": 5650000000,
-            "end": 5850000000
+            "name": "C-Band",
+            "type": "broadcast",
+            "start": 5850000000,
+            "end": 5650000000
         },
         {
-            "name": "3cm CW+Digi",
+            "name": "C-Band",
+            "type": "broadcast",
+            "start": 5850000000,
+            "end": 8000000000
+        },
+        {
+            "name": "X-Band",
+            "type": "broadcast",
+            "start": 8000000000,
+            "end": 10000000000
+        },
+        {
+            "name": "3cm CW+Digi / X-Band",
             "type": "amateur",
             "start": 10000000000,
             "end": 10150000000
         },
         {
-            "name": "3cm",
+            "name": "3cm / X-Band",
             "type": "amateur",
             "start": 10150000000,
             "end": 10250000000
         },
         {
-            "name": "3cm CW+Digi",
+            "name": "3cm CW+Digi / X-Band",
             "type": "amateur",
             "start": 10250000000,
             "end": 10350000000
         },
         {
-            "name": "3cm",
+            "name": "3cm / X-Band",
             "type": "amateur",
             "start": 10350000000,
             "end": 10368000000
         },
         {
-            "name": "3cm CW+Digi",
+            "name": "3cm CW+Digi / X-Band",
             "type": "amateur",
             "start": 10368000000,
             "end": 10370000000
         },
         {
-            "name": "3cm",
+            "name": "3cm / X-Band",
             "type": "amateur",
             "start": 10370000000,
             "end": 10450000000
         },
         {
-            "name": "3cm SAT",
+            "name": "3cm SAT / X-Band",
             "type": "amateur",
             "start": 10450000000,
             "end": 10500000000
+        },
+        {
+            "name": "X-Band",
+            "type": "broadcast",
+            "start": 10500000000,
+            "end": 12000000000
         },
         {
             "name": "1.2cm SAT",

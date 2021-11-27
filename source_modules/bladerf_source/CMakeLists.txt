@@ -23,8 +23,13 @@ if (MSVC)
 
     target_link_libraries(bladerf_source PRIVATE bladeRF)
 else (MSVC)
-    # Not in pkg-config
-    target_link_libraries(bladerf_source PRIVATE bladeRF)
+    find_package(PkgConfig)
+
+    pkg_check_modules(LIBBLADERF REQUIRED libbladeRF)
+
+    target_include_directories(bladerf_source PRIVATE ${LIBBLADERF_INCLUDE_DIRS})
+    target_link_directories(bladerf_source PRIVATE ${LIBBLADERF_LIBRARY_DIRS})
+    target_link_libraries(bladerf_source PRIVATE ${LIBBLADERF_LIBRARIES})
 
     # Include it because for some reason pkgconfig doesn't look here?
     if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

@@ -25,38 +25,6 @@ float DEFAULT_COLOR_MAP[][3] = {
     {0x4A, 0x00, 0x00}
 };
 
-inline void doZoom(int offset, int width, int outWidth, float* data, float* out, bool fast) {
-    // NOTE: REMOVE THAT SHIT, IT'S JUST A HACKY FIX
-    if (offset < 0) {
-        offset = 0;
-    }
-    if (width > 524288) {
-        width = 524288;
-    }
-
-    float factor = (float)width / (float)outWidth;
-
-    if (fast) {
-        for (int i = 0; i < outWidth; i++) {
-            out[i] = data[(int)(offset + ((float)i * factor))];
-        }
-    }
-    else {
-        float sFactor = ceilf(factor);
-        float id = offset;
-        float val, maxVal;
-        uint32_t maxId;
-        for (int i = 0; i < outWidth; i++) {
-            maxVal = -INFINITY;
-            for (int j = 0; j < sFactor; j++) {
-                if (data[(int)id + j] > maxVal) { maxVal = data[(int)id + j]; }
-            }
-            out[i] = maxVal;
-            id += factor;
-        }
-    }
-}
-
 // TODO: Fix this hacky BS
 
 double freq_ranges[] = {
@@ -579,7 +547,7 @@ namespace ImGui {
     }
 
     void WaterFall::setFastFFT(bool fastFFT) {
-        std::lock_guard<std::mutex> lck(buf_mtx);
+        std::lock_guard<std::recursive_mutex> lck(buf_mtx);
         _fastFFT = fastFFT;
     }
 
@@ -892,7 +860,7 @@ namespace ImGui {
     }
 
     void WaterFall::updatePallette(float colors[][3], int colorCount) {
-        std::lock_guard<std::mutex> lck(buf_mtx);
+        std::lock_guard<std::recursive_mutex> lck(buf_mtx);
         for (int i = 0; i < WATERFALL_RESOLUTION; i++) {
             int lowerId = floorf(((float)i / (float)WATERFALL_RESOLUTION) * colorCount);
             int upperId = ceilf(((float)i / (float)WATERFALL_RESOLUTION) * colorCount);
@@ -908,7 +876,7 @@ namespace ImGui {
     }
 
     void WaterFall::updatePalletteFromArray(float* colors, int colorCount) {
-        std::lock_guard<std::mutex> lck(buf_mtx);
+        std::lock_guard<std::recursive_mutex> lck(buf_mtx);
         for (int i = 0; i < WATERFALL_RESOLUTION; i++) {
             int lowerId = floorf(((float)i / (float)WATERFALL_RESOLUTION) * colorCount);
             int upperId = ceilf(((float)i / (float)WATERFALL_RESOLUTION) * colorCount);
@@ -969,7 +937,7 @@ namespace ImGui {
     }
 
     void WaterFall::setViewBandwidth(double bandWidth) {
-        std::lock_guard<std::mutex> lck(buf_mtx);
+        std::lock_guard<std::recursive_mutex> lck(buf_mtx);
         if (bandWidth == viewBandwidth) {
             return;
         }
@@ -994,7 +962,7 @@ namespace ImGui {
     }
 
     void WaterFall::setViewOffset(double offset) {
-        std::lock_guard<std::mutex> lck(buf_mtx);
+        std::lock_guard<std::recursive_mutex> lck(buf_mtx);
         if (offset == viewOffset) {
             return;
         }
@@ -1034,12 +1002,12 @@ namespace ImGui {
     }
 
     void WaterFall::setFullWaterfallUpdate(bool fullUpdate) {
-        std::lock_guard<std::mutex> lck(buf_mtx);
+        std::lock_guard<std::recursive_mutex> lck(buf_mtx);
         _fullUpdate = fullUpdate;
     }
 
     void WaterFall::setWaterfallMin(float min) {
-        std::lock_guard<std::mutex> lck(buf_mtx);
+        std::lock_guard<std::recursive_mutex> lck(buf_mtx);
         if (min == waterfallMin) {
             return;
         }
@@ -1052,7 +1020,7 @@ namespace ImGui {
     }
 
     void WaterFall::setWaterfallMax(float max) {
-        std::lock_guard<std::mutex> lck(buf_mtx);
+        std::lock_guard<std::recursive_mutex> lck(buf_mtx);
         if (max == waterfallMax) {
             return;
         }
@@ -1080,8 +1048,8 @@ namespace ImGui {
         }
     }
 
-    void WaterFall::setRawFFTSize(int size, bool lock) {
-        std::lock_guard<std::mutex> lck(buf_mtx);
+    void WaterFall::setRawFFTSize(int size) {
+        std::lock_guard<std::recursive_mutex> lck(buf_mtx);
         rawFFTSize = size;
         int wfSize = std::max<int>(1, waterfallHeight);
         if (rawFFTs != NULL) {

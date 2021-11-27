@@ -102,6 +102,12 @@ static void maximized_callback(GLFWwindow* window, int n) {
 int sdrpp_main(int argc, char *argv[]) {
     spdlog::info("SDR++ v" VERSION_STR);
 
+#ifdef IS_MACOS_BUNDLE
+    // If this is a MacOS .app, CD to the correct directory
+    auto execPath = std::filesystem::absolute(argv[0]);
+    chdir(execPath.parent_path().string().c_str());
+#endif
+
     // Load default options and parse command line
     options::loadDefaults();
     if (!options::parse(argc, argv)) { return -1; }
@@ -145,6 +151,7 @@ int sdrpp_main(int argc, char *argv[]) {
     defConfig["fullWaterfallUpdate"] = false;
     defConfig["max"] = 0.0;
     defConfig["maximized"] = false;
+    defConfig["fullscreen"] = false;
 
     // Menu
     defConfig["menuElements"] = json::array();
@@ -238,9 +245,12 @@ int sdrpp_main(int argc, char *argv[]) {
 
     defConfig["vfoColors"]["Radio"] = "#FFFFFF";
 
-#ifdef _WIN32
+#if defined(_WIN32)
     defConfig["modulesDirectory"] = "./modules";
     defConfig["resourcesDirectory"] = "./res";
+#elif defined(IS_MACOS_BUNDLE)
+    defConfig["modulesDirectory"] = "../Plugins";
+    defConfig["resourcesDirectory"] = "../Resources";
 #else
     defConfig["modulesDirectory"] = INSTALL_PREFIX "/lib/sdrpp/plugins";
     defConfig["resourcesDirectory"] = INSTALL_PREFIX "/share/sdrpp";
@@ -281,6 +291,8 @@ int sdrpp_main(int argc, char *argv[]) {
         core::configManager.conf["moduleInstances"][_name] = newMod;
     }
 
+    fullScreen = core::configManager.conf["fullscreen"];
+
     core::configManager.release(true);
 
     if (options::opts.serverMode) { return server_main(); }
@@ -297,7 +309,6 @@ int sdrpp_main(int argc, char *argv[]) {
         spdlog::error("Resource directory doesn't exist! Please make sure that you've configured it correctly in config.json (check readme for details)");
         return 1;
     }
-
 
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);
@@ -424,12 +435,23 @@ int sdrpp_main(int argc, char *argv[]) {
     spdlog::info("Loading band plans color table");
     bandplan::loadColorTable(bandColors);
 
+    bool _maximized = maximized;
+    int fsWidth, fsHeight, fsPosX, fsPosY;
+    int _winWidth, _winHeight;
+    glfwGetWindowSize(core::window, &_winWidth, &_winHeight);
+
+    if (fullScreen) {
+        spdlog::info("Fullscreen: ON");
+        fsWidth = _winWidth;
+        fsHeight = _winHeight;
+        glfwGetWindowPos(core::window, &fsPosX, &fsPosY);
+        const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        glfwSetWindowMonitor(core::window, monitor, 0, 0, mode->width, mode->height, 0);
+    }
+
     gui::mainWindow.init();
 
     spdlog::info("Ready.");
-
-    bool _maximized = maximized;
-    int fsWidth, fsHeight, fsPosX, fsPosY;
 
     // Main loop
     while (!glfwWindowShouldClose(core::window)) {
@@ -452,7 +474,6 @@ int sdrpp_main(int argc, char *argv[]) {
             core::configManager.release(true);
         }
 
-        int _winWidth, _winHeight;
         glfwGetWindowSize(core::window, &_winWidth, &_winHeight);
 
         if (ImGui::IsKeyPressed(GLFW_KEY_F11)) {
@@ -464,10 +485,16 @@ int sdrpp_main(int argc, char *argv[]) {
                 glfwGetWindowPos(core::window, &fsPosX, &fsPosY);
                 const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
                 glfwSetWindowMonitor(core::window, monitor, 0, 0, mode->width, mode->height, 0);
+                core::configManager.acquire();
+                core::configManager.conf["fullscreen"] = true;
+                core::configManager.release();
             }
             else {
                 spdlog::info("Fullscreen: OFF");
                 glfwSetWindowMonitor(core::window, nullptr,  fsPosX, fsPosY, fsWidth, fsHeight, 0);
+                core::configManager.acquire();
+                core::configManager.conf["fullscreen"] = false;
+                core::configManager.release();
             }
         }
 
