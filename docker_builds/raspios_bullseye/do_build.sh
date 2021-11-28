@@ -28,7 +28,7 @@ echo '            libiio-dev libad9361-dev librtaudio-dev libhackrf-dev librtlsd
 echo '            libcodec2-dev' >> /mnt/root/prepare.sh
 
 # Run prepare.sh script
-chroot /mnt /bin/qemu-arm-static '/bin/bash /root/prepare.sh'
+chroot /mnt /bin/qemu-arm-static /bin/bash /root/prepare.sh
 
 # Setup environment variables
 export PKG_CONFIG_PATH=''

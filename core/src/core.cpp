@@ -119,7 +119,7 @@ int sdrpp_main(int argc, char *argv[]) {
     // Check root directory
     if (!std::filesystem::exists(options::opts.root)) {
         spdlog::warn("Root directory {0} does not exist, creating it", options::opts.root);
-        if (!std::filesystem::create_directory(options::opts.root)) {
+        if (!std::filesystem::create_directories(options::opts.root)) {
             spdlog::error("Could not create root directory {0}", options::opts.root);
             return -1;
         }
