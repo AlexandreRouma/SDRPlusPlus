@@ -1,4 +1,4 @@
-// dear imgui, v1.83
+// dear imgui, v1.85
 // (demo code)
 
 // Help:
@@ -54,7 +54,6 @@ Index of this file:
 // - sub section: ShowDemoWindowTables()
 // - sub section: ShowDemoWindowMisc()
 // [SECTION] About Window / ShowAboutWindow()
-// [SECTION] Font Viewer / ShowFontAtlas()
 // [SECTION] Style Editor / ShowStyleEditor()
 // [SECTION] Example App: Main Menu Bar / ShowExampleAppMainMenuBar()
 // [SECTION] Example App: Debug Console / ShowExampleAppConsole()
@@ -295,10 +294,12 @@ void ImGui::ShowDemoWindow(bool* p_open)
 
     // Dear ImGui Apps (accessible from the "Tools" menu)
     static bool show_app_metrics = false;
+    static bool show_app_stack_tool = false;
     static bool show_app_style_editor = false;
     static bool show_app_about = false;
 
     if (show_app_metrics)       { ImGui::ShowMetricsWindow(&show_app_metrics); }
+    if (show_app_stack_tool)    { ImGui::ShowStackToolWindow(&show_app_stack_tool); }
     if (show_app_about)         { ImGui::ShowAboutWindow(&show_app_about); }
     if (show_app_style_editor)
     {
@@ -318,6 +319,7 @@ void ImGui::ShowDemoWindow(bool* p_open)
     static bool no_nav = false;
     static bool no_background = false;
     static bool no_bring_to_front = false;
+    static bool unsaved_document = false;
 
     ImGuiWindowFlags window_flags = 0;
     if (no_titlebar)        window_flags |= ImGuiWindowFlags_NoTitleBar;
@@ -329,6 +331,7 @@ void ImGui::ShowDemoWindow(bool* p_open)
     if (no_nav)             window_flags |= ImGuiWindowFlags_NoNav;
     if (no_background)      window_flags |= ImGuiWindowFlags_NoBackground;
     if (no_bring_to_front)  window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+    if (unsaved_document)   window_flags |= ImGuiWindowFlags_UnsavedDocument;
     if (no_close)           p_open = NULL; // Don't pass our bool* to Begin
 
     // We specify a default position/size in case there's no data in the .ini file.
@@ -378,9 +381,13 @@ void ImGui::ShowDemoWindow(bool* p_open)
             ImGui::MenuItem("Documents", NULL, &show_app_documents);
             ImGui::EndMenu();
         }
+        //if (ImGui::MenuItem("MenuItem")) {} // You can also use MenuItem() inside a menu bar!
         if (ImGui::BeginMenu("Tools"))
         {
+#ifndef IMGUI_DISABLE_METRICS_WINDOW
             ImGui::MenuItem("Metrics/Debugger", NULL, &show_app_metrics);
+            ImGui::MenuItem("Stack Tool", NULL, &show_app_stack_tool);
+#endif
             ImGui::MenuItem("Style Editor", NULL, &show_app_style_editor);
             ImGui::MenuItem("About Dear ImGui", NULL, &show_app_about);
             ImGui::EndMenu();
@@ -457,7 +464,7 @@ void ImGui::ShowDemoWindow(bool* p_open)
         {
             HelpMarker(
                 "Those flags are set by the backends (imgui_impl_xxx files) to specify their capabilities.\n"
-                "Here we expose then as read-only fields to avoid breaking interactions with your backend.");
+                "Here we expose them as read-only fields to avoid breaking interactions with your backend.");
 
             // Make a local copy to avoid modifying actual backend flags.
             ImGuiBackendFlags backend_flags = io.BackendFlags;
@@ -510,6 +517,7 @@ void ImGui::ShowDemoWindow(bool* p_open)
             ImGui::TableNextColumn(); ImGui::Checkbox("No nav", &no_nav);
             ImGui::TableNextColumn(); ImGui::Checkbox("No background", &no_background);
             ImGui::TableNextColumn(); ImGui::Checkbox("No bring to front", &no_bring_to_front);
+            ImGui::TableNextColumn(); ImGui::Checkbox("Unsaved document", &unsaved_document);
             ImGui::EndTable();
         }
     }
@@ -530,6 +538,10 @@ static void ShowDemoWindowWidgets()
 {
     if (!ImGui::CollapsingHeader("Widgets"))
         return;
+
+    static bool disable_all = false; // The Checkbox for that is inside the "Disabled" section at the bottom
+    if (disable_all)
+        ImGui::BeginDisabled();
 
     if (ImGui::TreeNode("Basic"))
     {
@@ -1027,8 +1039,8 @@ static void ShowDemoWindowWidgets()
         // stored in the object itself, etc.)
         const char* items[] = { "AAAA", "BBBB", "CCCC", "DDDD", "EEEE", "FFFF", "GGGG", "HHHH", "IIII", "JJJJ", "KKKK", "LLLLLLL", "MMMM", "OOOOOOO" };
         static int item_current_idx = 0; // Here we store our selection data as an index.
-        const char* combo_label = items[item_current_idx];  // Label to preview before opening the combo (technically it could be anything)
-        if (ImGui::BeginCombo("combo 1", combo_label, flags))
+        const char* combo_preview_value = items[item_current_idx];  // Pass in the preview value visible before opening the combo (it could be anything)
+        if (ImGui::BeginCombo("combo 1", combo_preview_value, flags))
         {
             for (int n = 0; n < IM_ARRAYSIZE(items); n++)
             {
@@ -1044,10 +1056,12 @@ static void ShowDemoWindowWidgets()
         }
 
         // Simplified one-liner Combo() API, using values packed in a single constant string
+        // This is a convenience for when the selection set is small and known at compile-time.
         static int item_current_2 = 0;
         ImGui::Combo("combo 2 (one-liner)", &item_current_2, "aaaa\0bbbb\0cccc\0dddd\0eeee\0\0");
 
         // Simplified one-liner Combo() using an array of const char*
+        // This is not very useful (may obsolete): prefer using BeginCombo()/EndCombo() for full control.
         static int item_current_3 = -1; // If the selection isn't within 0..count, Combo won't display a preview
         ImGui::Combo("combo 3 (array)", &item_current_3, items, IM_ARRAYSIZE(items));
 
@@ -1114,7 +1128,7 @@ static void ShowDemoWindowWidgets()
             static bool selection[5] = { false, true, false, false, false };
             ImGui::Selectable("1. I am selectable", &selection[0]);
             ImGui::Selectable("2. I am selectable", &selection[1]);
-            ImGui::Text("3. I am not selectable");
+            ImGui::Text("(I am not selectable)");
             ImGui::Selectable("4. I am selectable", &selection[3]);
             if (ImGui::Selectable("5. I am double clickable", selection[4], ImGuiSelectableFlags_AllowDoubleClick))
                 if (ImGui::IsMouseDoubleClicked(0))
@@ -1164,7 +1178,7 @@ static void ShowDemoWindowWidgets()
         {
             static bool selected[10] = {};
 
-            if (ImGui::BeginTable("split1", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings))
+            if (ImGui::BeginTable("split1", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
             {
                 for (int i = 0; i < 10; i++)
                 {
@@ -1175,8 +1189,8 @@ static void ShowDemoWindowWidgets()
                 }
                 ImGui::EndTable();
             }
-            ImGui::Separator();
-            if (ImGui::BeginTable("split2", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings))
+            ImGui::Spacing();
+            if (ImGui::BeginTable("split2", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
             {
                 for (int i = 0; i < 10; i++)
                 {
@@ -1553,16 +1567,17 @@ static void ShowDemoWindowWidgets()
     }
 
     // Plot/Graph widgets are not very good.
-    // Consider writing your own, or using a third-party one, see:
-    // - ImPlot https://github.com/epezent/implot
-    // - others https://github.com/ocornut/imgui/wiki/Useful-Extensions
+    // Consider using a third-party library such as ImPlot: https://github.com/epezent/implot
+    // (see others https://github.com/ocornut/imgui/wiki/Useful-Extensions)
     if (ImGui::TreeNode("Plots Widgets"))
     {
         static bool animate = true;
         ImGui::Checkbox("Animate", &animate);
 
+        // Plot as lines and plot as histogram
         static float arr[] = { 0.6f, 0.1f, 1.0f, 0.5f, 0.92f, 0.1f, 0.2f };
         ImGui::PlotLines("Frame Times", arr, IM_ARRAYSIZE(arr));
+        ImGui::PlotHistogram("Histogram", arr, IM_ARRAYSIZE(arr), 0, NULL, 0.0f, 1.0f, ImVec2(0, 80.0f));
 
         // Fill an array of contiguous float values to plot
         // Tip: If your float aren't contiguous but part of a structure, you can pass a pointer to your first float
@@ -1592,7 +1607,6 @@ static void ShowDemoWindowWidgets()
             sprintf(overlay, "avg %f", average);
             ImGui::PlotLines("Lines", values, IM_ARRAYSIZE(values), values_offset, overlay, -1.0f, 1.0f, ImVec2(0, 80.0f));
         }
-        ImGui::PlotHistogram("Histogram", arr, IM_ARRAYSIZE(arr), 0, NULL, 0.0f, 1.0f, ImVec2(0, 80.0f));
 
         // Use functions to generate output
         // FIXME: This is rather awkward because current plot API only pass in indices.
@@ -2177,24 +2191,28 @@ static void ShowDemoWindowWidgets()
         ImGui::TreePop();
     }
 
-    if (ImGui::TreeNode("Querying Status (Edited/Active/Focused/Hovered etc.)"))
+    if (ImGui::TreeNode("Querying Item Status (Edited/Active/Hovered etc.)"))
     {
         // Select an item type
         const char* item_names[] =
         {
             "Text", "Button", "Button (w/ repeat)", "Checkbox", "SliderFloat", "InputText", "InputFloat",
-            "InputFloat3", "ColorEdit4", "MenuItem", "TreeNode", "TreeNode (w/ double-click)", "Combo", "ListBox"
+            "InputFloat3", "ColorEdit4", "Selectable", "MenuItem", "TreeNode", "TreeNode (w/ double-click)", "Combo", "ListBox"
         };
-        static int item_type = 1;
+        static int item_type = 4;
+        static bool item_disabled = false;
         ImGui::Combo("Item Type", &item_type, item_names, IM_ARRAYSIZE(item_names), IM_ARRAYSIZE(item_names));
         ImGui::SameLine();
         HelpMarker("Testing how various types of items are interacting with the IsItemXXX functions. Note that the bool return value of most ImGui function is generally equivalent to calling ImGui::IsItemHovered().");
+        ImGui::Checkbox("Item Disabled",  &item_disabled);
 
         // Submit selected item item so we can query their status in the code following it.
         bool ret = false;
         static bool b = false;
         static float col4f[4] = { 1.0f, 0.5, 0.0f, 1.0f };
         static char str[16] = {};
+        if (item_disabled)
+            ImGui::BeginDisabled(true);
         if (item_type == 0) { ImGui::Text("ITEM: Text"); }                                              // Testing text items with no identifier/interaction
         if (item_type == 1) { ret = ImGui::Button("ITEM: Button"); }                                    // Testing button
         if (item_type == 2) { ImGui::PushButtonRepeat(true); ret = ImGui::Button("ITEM: Button"); ImGui::PopButtonRepeat(); } // Testing button (with repeater)
@@ -2204,11 +2222,12 @@ static void ShowDemoWindowWidgets()
         if (item_type == 6) { ret = ImGui::InputFloat("ITEM: InputFloat", col4f, 1.0f); }               // Testing +/- buttons on scalar input
         if (item_type == 7) { ret = ImGui::InputFloat3("ITEM: InputFloat3", col4f); }                   // Testing multi-component items (IsItemXXX flags are reported merged)
         if (item_type == 8) { ret = ImGui::ColorEdit4("ITEM: ColorEdit4", col4f); }                     // Testing multi-component items (IsItemXXX flags are reported merged)
-        if (item_type == 9) { ret = ImGui::MenuItem("ITEM: MenuItem"); }                                // Testing menu item (they use ImGuiButtonFlags_PressedOnRelease button policy)
-        if (item_type == 10){ ret = ImGui::TreeNode("ITEM: TreeNode"); if (ret) ImGui::TreePop(); }     // Testing tree node
-        if (item_type == 11){ ret = ImGui::TreeNodeEx("ITEM: TreeNode w/ ImGuiTreeNodeFlags_OpenOnDoubleClick", ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_NoTreePushOnOpen); } // Testing tree node with ImGuiButtonFlags_PressedOnDoubleClick button policy.
-        if (item_type == 12){ const char* items[] = { "Apple", "Banana", "Cherry", "Kiwi" }; static int current = 1; ret = ImGui::Combo("ITEM: Combo", &current, items, IM_ARRAYSIZE(items)); }
-        if (item_type == 13){ const char* items[] = { "Apple", "Banana", "Cherry", "Kiwi" }; static int current = 1; ret = ImGui::ListBox("ITEM: ListBox", &current, items, IM_ARRAYSIZE(items), IM_ARRAYSIZE(items)); }
+        if (item_type == 9) { ret = ImGui::Selectable("ITEM: Selectable"); }                            // Testing selectable item
+        if (item_type == 10){ ret = ImGui::MenuItem("ITEM: MenuItem"); }                                // Testing menu item (they use ImGuiButtonFlags_PressedOnRelease button policy)
+        if (item_type == 11){ ret = ImGui::TreeNode("ITEM: TreeNode"); if (ret) ImGui::TreePop(); }     // Testing tree node
+        if (item_type == 12){ ret = ImGui::TreeNodeEx("ITEM: TreeNode w/ ImGuiTreeNodeFlags_OpenOnDoubleClick", ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_NoTreePushOnOpen); } // Testing tree node with ImGuiButtonFlags_PressedOnDoubleClick button policy.
+        if (item_type == 13){ const char* items[] = { "Apple", "Banana", "Cherry", "Kiwi" }; static int current = 1; ret = ImGui::Combo("ITEM: Combo", &current, items, IM_ARRAYSIZE(items)); }
+        if (item_type == 14){ const char* items[] = { "Apple", "Banana", "Cherry", "Kiwi" }; static int current = 1; ret = ImGui::ListBox("ITEM: ListBox", &current, items, IM_ARRAYSIZE(items), IM_ARRAYSIZE(items)); }
 
         // Display the values of IsItemHovered() and other common item state functions.
         // Note that the ImGuiHoveredFlags_XXX flags can be combined.
@@ -2221,6 +2240,7 @@ static void ShowDemoWindowWidgets()
             "IsItemHovered(_AllowWhenBlockedByPopup) = %d\n"
             "IsItemHovered(_AllowWhenBlockedByActiveItem) = %d\n"
             "IsItemHovered(_AllowWhenOverlapped) = %d\n"
+            "IsItemHovered(_AllowWhenDisabled) = %d\n"
             "IsItemHovered(_RectOnly) = %d\n"
             "IsItemActive() = %d\n"
             "IsItemEdited() = %d\n"
@@ -2239,6 +2259,7 @@ static void ShowDemoWindowWidgets()
             ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup),
             ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem),
             ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenOverlapped),
+            ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled),
             ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly),
             ImGui::IsItemActive(),
             ImGui::IsItemEdited(),
@@ -2253,43 +2274,66 @@ static void ShowDemoWindowWidgets()
             ImGui::GetItemRectSize().x, ImGui::GetItemRectSize().y
         );
 
+        if (item_disabled)
+            ImGui::EndDisabled();
+
+        char buf[1] = "";
+        ImGui::InputText("unused", buf, IM_ARRAYSIZE(buf), ImGuiInputTextFlags_ReadOnly);
+        ImGui::SameLine();
+        HelpMarker("This widget is only here to be able to tab-out of the widgets above and see e.g. Deactivated() status.");
+
+        ImGui::TreePop();
+    }
+
+    if (ImGui::TreeNode("Querying Window Status (Focused/Hovered etc.)"))
+    {
         static bool embed_all_inside_a_child_window = false;
-        ImGui::Checkbox("Embed everything inside a child window (for additional testing)", &embed_all_inside_a_child_window);
+        ImGui::Checkbox("Embed everything inside a child window for testing _RootWindow flag.", &embed_all_inside_a_child_window);
         if (embed_all_inside_a_child_window)
             ImGui::BeginChild("outer_child", ImVec2(0, ImGui::GetFontSize() * 20.0f), true);
 
         // Testing IsWindowFocused() function with its various flags.
-        // Note that the ImGuiFocusedFlags_XXX flags can be combined.
         ImGui::BulletText(
             "IsWindowFocused() = %d\n"
             "IsWindowFocused(_ChildWindows) = %d\n"
+            "IsWindowFocused(_ChildWindows|_NoPopupHierarchy) = %d\n"
             "IsWindowFocused(_ChildWindows|_RootWindow) = %d\n"
+            "IsWindowFocused(_ChildWindows|_RootWindow|_NoPopupHierarchy) = %d\n"
             "IsWindowFocused(_RootWindow) = %d\n"
+            "IsWindowFocused(_RootWindow|_NoPopupHierarchy) = %d\n"
             "IsWindowFocused(_AnyWindow) = %d\n",
             ImGui::IsWindowFocused(),
             ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows),
+            ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows | ImGuiFocusedFlags_NoPopupHierarchy),
             ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows | ImGuiFocusedFlags_RootWindow),
+            ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows | ImGuiFocusedFlags_RootWindow | ImGuiFocusedFlags_NoPopupHierarchy),
             ImGui::IsWindowFocused(ImGuiFocusedFlags_RootWindow),
+            ImGui::IsWindowFocused(ImGuiFocusedFlags_RootWindow | ImGuiFocusedFlags_NoPopupHierarchy),
             ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow));
 
         // Testing IsWindowHovered() function with its various flags.
-        // Note that the ImGuiHoveredFlags_XXX flags can be combined.
         ImGui::BulletText(
             "IsWindowHovered() = %d\n"
             "IsWindowHovered(_AllowWhenBlockedByPopup) = %d\n"
             "IsWindowHovered(_AllowWhenBlockedByActiveItem) = %d\n"
             "IsWindowHovered(_ChildWindows) = %d\n"
+            "IsWindowHovered(_ChildWindows|_NoPopupHierarchy) = %d\n"
             "IsWindowHovered(_ChildWindows|_RootWindow) = %d\n"
-            "IsWindowHovered(_ChildWindows|_AllowWhenBlockedByPopup) = %d\n"
+            "IsWindowHovered(_ChildWindows|_RootWindow|_NoPopupHierarchy) = %d\n"
             "IsWindowHovered(_RootWindow) = %d\n"
+            "IsWindowHovered(_RootWindow|_NoPopupHierarchy) = %d\n"
+            "IsWindowHovered(_ChildWindows|_AllowWhenBlockedByPopup) = %d\n"
             "IsWindowHovered(_AnyWindow) = %d\n",
             ImGui::IsWindowHovered(),
             ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup),
             ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem),
             ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows),
+            ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_NoPopupHierarchy),
             ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_RootWindow),
-            ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByPopup),
+            ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_RootWindow | ImGuiHoveredFlags_NoPopupHierarchy),
             ImGui::IsWindowHovered(ImGuiHoveredFlags_RootWindow),
+            ImGui::IsWindowHovered(ImGuiHoveredFlags_RootWindow | ImGuiHoveredFlags_NoPopupHierarchy),
+            ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByPopup),
             ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow));
 
         ImGui::BeginChild("child", ImVec2(0, 50), true);
@@ -2297,9 +2341,6 @@ static void ShowDemoWindowWidgets()
         ImGui::EndChild();
         if (embed_all_inside_a_child_window)
             ImGui::EndChild();
-
-        static char unused_str[] = "This widget is only here to be able to tab-out of the widgets above.";
-        ImGui::InputText("unused", unused_str, IM_ARRAYSIZE(unused_str), ImGuiInputTextFlags_ReadOnly);
 
         // Calling IsItemHovered() after begin returns the hovered status of the title bar.
         // This is useful in particular if you want to create a context menu associated to the title bar of a window.
@@ -2322,6 +2363,18 @@ static void ShowDemoWindowWidgets()
 
         ImGui::TreePop();
     }
+
+    // Demonstrate BeginDisabled/EndDisabled using a checkbox located at the bottom of the section (which is a bit odd:
+    // logically we'd have this checkbox at the top of the section, but we don't want this feature to steal that space)
+    if (disable_all)
+        ImGui::EndDisabled();
+
+    if (ImGui::TreeNode("Disable block"))
+    {
+        ImGui::Checkbox("Disable entire section above", &disable_all);
+        ImGui::SameLine(); HelpMarker("Demonstrate using BeginDisabled()/EndDisabled() across this section.");
+        ImGui::TreePop();
+    }
 }
 
 static void ShowDemoWindowLayout()
@@ -2342,7 +2395,7 @@ static void ShowDemoWindowLayout()
             ImGuiWindowFlags window_flags = ImGuiWindowFlags_HorizontalScrollbar;
             if (disable_mouse_wheel)
                 window_flags |= ImGuiWindowFlags_NoScrollWithMouse;
-            ImGui::BeginChild("ChildL", ImVec2(ImGui::GetWindowContentRegionWidth() * 0.5f, 260), false, window_flags);
+            ImGui::BeginChild("ChildL", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 260), false, window_flags);
             for (int i = 0; i < 100; i++)
                 ImGui::Text("%04d: scrollable region", i);
             ImGui::EndChild();
@@ -2391,7 +2444,7 @@ static void ShowDemoWindowLayout()
         //   You can also call SetNextWindowPos() to position the child window. The parent window will effectively
         //   layout from this position.
         // - Using ImGui::GetItemRectMin/Max() to query the "item" state (because the child window is an item from
-        //   the POV of the parent window). See 'Demo->Querying Status (Active/Focused/Hovered etc.)' for details.
+        //   the POV of the parent window). See 'Demo->Querying Status (Edited/Active/Hovered etc.)' for details.
         {
             static int offset_x = 0;
             ImGui::SetNextItemWidth(ImGui::GetFontSize() * 8);
@@ -3497,6 +3550,7 @@ static void EditTableSizingFlags(ImGuiTableFlags* p_flags)
 
 static void EditTableColumnsFlags(ImGuiTableColumnFlags* p_flags)
 {
+    ImGui::CheckboxFlags("_Disabled", p_flags, ImGuiTableColumnFlags_Disabled); ImGui::SameLine(); HelpMarker("Master disable flag (also hide from context menu)");
     ImGui::CheckboxFlags("_DefaultHide", p_flags, ImGuiTableColumnFlags_DefaultHide);
     ImGui::CheckboxFlags("_DefaultSort", p_flags, ImGuiTableColumnFlags_DefaultSort);
     if (ImGui::CheckboxFlags("_WidthStretch", p_flags, ImGuiTableColumnFlags_WidthStretch))
@@ -3510,6 +3564,7 @@ static void EditTableColumnsFlags(ImGuiTableColumnFlags* p_flags)
     ImGui::CheckboxFlags("_NoSort", p_flags, ImGuiTableColumnFlags_NoSort);
     ImGui::CheckboxFlags("_NoSortAscending", p_flags, ImGuiTableColumnFlags_NoSortAscending);
     ImGui::CheckboxFlags("_NoSortDescending", p_flags, ImGuiTableColumnFlags_NoSortDescending);
+    ImGui::CheckboxFlags("_NoHeaderLabel", p_flags, ImGuiTableColumnFlags_NoHeaderLabel);
     ImGui::CheckboxFlags("_NoHeaderWidth", p_flags, ImGuiTableColumnFlags_NoHeaderWidth);
     ImGui::CheckboxFlags("_PreferSortAscending", p_flags, ImGuiTableColumnFlags_PreferSortAscending);
     ImGui::CheckboxFlags("_PreferSortDescending", p_flags, ImGuiTableColumnFlags_PreferSortDescending);
@@ -5449,6 +5504,7 @@ static void ShowDemoWindowMisc()
 
         // Display ImGuiIO output flags
         ImGui::Text("WantCaptureMouse: %d", io.WantCaptureMouse);
+        ImGui::Text("WantCaptureMouseUnlessPopupClose: %d", io.WantCaptureMouseUnlessPopupClose);
         ImGui::Text("WantCaptureKeyboard: %d", io.WantCaptureKeyboard);
         ImGui::Text("WantTextInput: %d", io.WantTextInput);
         ImGui::Text("WantSetMousePos: %d", io.WantSetMousePos);
@@ -5744,15 +5800,15 @@ void ImGui::ShowAboutWindow(bool* p_open)
 }
 
 //-----------------------------------------------------------------------------
-// [SECTION] Font viewer / ShowFontAtlas()
+// [SECTION] Style Editor / ShowStyleEditor()
 //-----------------------------------------------------------------------------
 // - ShowFontSelector()
-// - ShowFont()
-// - ShowFontAtlas()
+// - ShowStyleSelector()
+// - ShowStyleEditor()
 //-----------------------------------------------------------------------------
 
-// This isn't worth putting in public API but we want Metrics to use it
-namespace ImGui { void ShowFontAtlas(ImFontAtlas* atlas); }
+// Forward declare ShowFontAtlas() which isn't worth putting in public API yet
+namespace ImGui { IMGUI_API void ShowFontAtlas(ImFontAtlas* atlas); }
 
 // Demo helper function to select among loaded fonts.
 // Here we use the regular BeginCombo()/EndCombo() api which is more the more flexible one.
@@ -5779,124 +5835,6 @@ void ImGui::ShowFontSelector(const char* label)
         "- Read FAQ and docs/FONTS.md for more details.\n"
         "- If you need to add/remove fonts at runtime (e.g. for DPI change), do it before calling NewFrame().");
 }
-
-// [Internal] Display details for a single font, called by ShowStyleEditor().
-static void ShowFont(ImFont* font)
-{
-    ImGuiIO& io = ImGui::GetIO();
-    ImGuiStyle& style = ImGui::GetStyle();
-    bool font_details_opened = ImGui::TreeNode(font, "Font: \"%s\"\n%.2f px, %d glyphs, %d file(s)",
-        font->ConfigData ? font->ConfigData[0].Name : "", font->FontSize, font->Glyphs.Size, font->ConfigDataCount);
-    ImGui::SameLine(); if (ImGui::SmallButton("Set as default")) { io.FontDefault = font; }
-    if (!font_details_opened)
-        return;
-
-    // Display preview text
-    ImGui::PushFont(font);
-    ImGui::Text("The quick brown fox jumps over the lazy dog");
-    ImGui::PopFont();
-
-    // Display details
-    ImGui::SetNextItemWidth(ImGui::GetFontSize() * 8);
-    ImGui::DragFloat("Font scale", &font->Scale, 0.005f, 0.3f, 2.0f, "%.1f");   // Scale only this font
-    ImGui::SameLine(); HelpMarker(
-        "Note than the default embedded font is NOT meant to be scaled.\n\n"
-        "Font are currently rendered into bitmaps at a given size at the time of building the atlas. "
-        "You may oversample them to get some flexibility with scaling. "
-        "You can also render at multiple sizes and select which one to use at runtime.\n\n"
-        "(Glimmer of hope: the atlas system will be rewritten in the future to make scaling more flexible.)");
-    ImGui::Text("Ascent: %f, Descent: %f, Height: %f", font->Ascent, font->Descent, font->Ascent - font->Descent);
-    ImGui::Text("Fallback character: '%c' (U+%04X)", font->FallbackChar, font->FallbackChar);
-    ImGui::Text("Ellipsis character: '%c' (U+%04X)", font->EllipsisChar, font->EllipsisChar);
-    const int surface_sqrt = (int)sqrtf((float)font->MetricsTotalSurface);
-    ImGui::Text("Texture Area: about %d px ~%dx%d px", font->MetricsTotalSurface, surface_sqrt, surface_sqrt);
-    for (int config_i = 0; config_i < font->ConfigDataCount; config_i++)
-        if (font->ConfigData)
-            if (const ImFontConfig* cfg = &font->ConfigData[config_i])
-                ImGui::BulletText("Input %d: \'%s\', Oversample: (%d,%d), PixelSnapH: %d, Offset: (%.1f,%.1f)",
-                    config_i, cfg->Name, cfg->OversampleH, cfg->OversampleV, cfg->PixelSnapH, cfg->GlyphOffset.x, cfg->GlyphOffset.y);
-
-    // Display all glyphs of the fonts in separate pages of 256 characters
-    if (ImGui::TreeNode("Glyphs", "Glyphs (%d)", font->Glyphs.Size))
-    {
-        const ImU32 glyph_col = ImGui::GetColorU32(ImGuiCol_Text);
-        for (unsigned int base = 0; base <= IM_UNICODE_CODEPOINT_MAX; base += 256)
-        {
-            // Skip ahead if a large bunch of glyphs are not present in the font (test in chunks of 4k)
-            // This is only a small optimization to reduce the number of iterations when IM_UNICODE_MAX_CODEPOINT
-            // is large // (if ImWchar==ImWchar32 we will do at least about 272 queries here)
-            if (!(base & 4095) && font->IsGlyphRangeUnused(base, base + 4095))
-            {
-                base += 4096 - 256;
-                continue;
-            }
-
-            int count = 0;
-            for (unsigned int n = 0; n < 256; n++)
-                if (font->FindGlyphNoFallback((ImWchar)(base + n)))
-                    count++;
-            if (count <= 0)
-                continue;
-            if (!ImGui::TreeNode((void*)(intptr_t)base, "U+%04X..U+%04X (%d %s)", base, base + 255, count, count > 1 ? "glyphs" : "glyph"))
-                continue;
-            float cell_size = font->FontSize * 1;
-            float cell_spacing = style.ItemSpacing.y;
-            ImVec2 base_pos = ImGui::GetCursorScreenPos();
-            ImDrawList* draw_list = ImGui::GetWindowDrawList();
-            for (unsigned int n = 0; n < 256; n++)
-            {
-                // We use ImFont::RenderChar as a shortcut because we don't have UTF-8 conversion functions
-                // available here and thus cannot easily generate a zero-terminated UTF-8 encoded string.
-                ImVec2 cell_p1(base_pos.x + (n % 16) * (cell_size + cell_spacing), base_pos.y + (n / 16) * (cell_size + cell_spacing));
-                ImVec2 cell_p2(cell_p1.x + cell_size, cell_p1.y + cell_size);
-                const ImFontGlyph* glyph = font->FindGlyphNoFallback((ImWchar)(base + n));
-                draw_list->AddRect(cell_p1, cell_p2, glyph ? IM_COL32(255, 255, 255, 100) : IM_COL32(255, 255, 255, 50));
-                if (glyph)
-                    font->RenderChar(draw_list, cell_size, cell_p1, glyph_col, (ImWchar)(base + n));
-                if (glyph && ImGui::IsMouseHoveringRect(cell_p1, cell_p2))
-                {
-                    ImGui::BeginTooltip();
-                    ImGui::Text("Codepoint: U+%04X", base + n);
-                    ImGui::Separator();
-                    ImGui::Text("Visible: %d", glyph->Visible);
-                    ImGui::Text("AdvanceX: %.1f", glyph->AdvanceX);
-                    ImGui::Text("Pos: (%.2f,%.2f)->(%.2f,%.2f)", glyph->X0, glyph->Y0, glyph->X1, glyph->Y1);
-                    ImGui::Text("UV: (%.3f,%.3f)->(%.3f,%.3f)", glyph->U0, glyph->V0, glyph->U1, glyph->V1);
-                    ImGui::EndTooltip();
-                }
-            }
-            ImGui::Dummy(ImVec2((cell_size + cell_spacing) * 16, (cell_size + cell_spacing) * 16));
-            ImGui::TreePop();
-        }
-        ImGui::TreePop();
-    }
-    ImGui::TreePop();
-}
-
-void ImGui::ShowFontAtlas(ImFontAtlas* atlas)
-{
-    for (int i = 0; i < atlas->Fonts.Size; i++)
-    {
-        ImFont* font = atlas->Fonts[i];
-        ImGui::PushID(font);
-        ShowFont(font);
-        ImGui::PopID();
-    }
-    if (ImGui::TreeNode("Atlas texture", "Atlas texture (%dx%d pixels)", atlas->TexWidth, atlas->TexHeight))
-    {
-        ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-        ImVec4 border_col = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
-        ImGui::Image(atlas->TexID, ImVec2((float)atlas->TexWidth, (float)atlas->TexHeight), ImVec2(0, 0), ImVec2(1, 1), tint_col, border_col);
-        ImGui::TreePop();
-    }
-}
-
-//-----------------------------------------------------------------------------
-// [SECTION] Style Editor / ShowStyleEditor()
-//-----------------------------------------------------------------------------
-// - ShowStyleSelector()
-// - ShowStyleEditor()
-//-----------------------------------------------------------------------------
 
 // Demo helper function to select among default colors. See ShowStyleEditor() for more advanced options.
 // Here we use the simplified Combo() api that packs items into a single literal string.
@@ -6152,6 +6090,7 @@ void ImGui::ShowStyleEditor(ImGuiStyle* ref)
             HelpMarker("When drawing circle primitives with \"num_segments == 0\" tesselation will be calculated automatically.");
 
             ImGui::DragFloat("Global Alpha", &style.Alpha, 0.005f, 0.20f, 1.0f, "%.2f"); // Not exposing zero here so user doesn't "lose" the UI (zero alpha clips all widgets). But application code could have a toggle to switch between zero and non-zero.
+            ImGui::DragFloat("Disabled Alpha", &style.DisabledAlpha, 0.005f, 0.0f, 1.0f, "%.2f"); ImGui::SameLine(); HelpMarker("Additional alpha multiplier for disabled items (multiply over current value of Alpha).");
             ImGui::PopItemWidth();
 
             ImGui::EndTabItem();
@@ -6817,6 +6756,7 @@ static void ShowExampleAppLayout(bool* p_open)
             ImGui::BeginChild("left pane", ImVec2(150, 0), true);
             for (int i = 0; i < 100; i++)
             {
+                // FIXME: Good candidate to use ImGuiSelectableFlags_SelectOnNav
                 char label[128];
                 sprintf(label, "MyObject %d", i);
                 if (ImGui::Selectable(label, selected == i))
@@ -7085,12 +7025,12 @@ static void ShowExampleAppConstrainedResize(bool* p_open)
 // + a context-menu to choose which corner of the screen to use.
 static void ShowExampleAppSimpleOverlay(bool* p_open)
 {
-    const float PAD = 10.0f;
     static int corner = 0;
     ImGuiIO& io = ImGui::GetIO();
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
     if (corner != -1)
     {
+        const float PAD = 10.0f;
         const ImGuiViewport* viewport = ImGui::GetMainViewport();
         ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
         ImVec2 work_size = viewport->WorkSize;
@@ -7589,6 +7529,16 @@ void ShowExampleAppDocuments(bool* p_open)
     }
 
     ImGui::Separator();
+
+    // About the ImGuiWindowFlags_UnsavedDocument / ImGuiTabItemFlags_UnsavedDocument flags.
+    // They have multiple effects:
+    // - Display a dot next to the title.
+    // - Tab is selected when clicking the X close button.
+    // - Closure is not assumed (will wait for user to stop submitting the tab).
+    //   Otherwise closure is assumed when pressing the X, so if you keep submitting the tab may reappear at end of tab bar.
+    //   We need to assume closure by default otherwise waiting for "lack of submission" on the next frame would leave an empty
+    //   hole for one-frame, both in the tab-bar and in tab-contents when closing a tab/window.
+    //   The rarely used SetTabItemClosed() function is a way to notify of programmatic closure to avoid the one-frame hole.
 
     // Submit Tab Bar and Tabs
     {
