@@ -342,7 +342,6 @@ jobs:
             mv sdrpp_ubuntu_groovy_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_groovy_amd64.deb && 
             mv sdrpp_ubuntu_hirsute_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_hirsute_amd64.deb &&
             mv sdrpp_ubuntu_impish_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_impish_amd64.deb
-            mv sdrpp_raspios_bullseye_arm32/sdrpp_raspios_arm32.deb sdrpp_all/sdrpp_raspios_bullseye_arm32.deb
 
         - uses: actions/upload-artifact@v2
           with:

@@ -805,9 +805,9 @@ namespace dsp {
             generic_hier_block<StereoFMDemod>::_block_init = true;
         }
 
-        void setInput(stream<float>* input) {
+        void setInput(stream<complex_t>* input) {
             assert(generic_hier_block<StereoFMDemod>::_block_init);
-            r2c.setInput(input);
+            demod.setInput(input);
         }
 
         void setDeviation(float deviation) {
