@@ -8,15 +8,15 @@ namespace demod {
     public:
         WFM() {}
     
-        WFM(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler) {
-            init(name, config, input, bandwidth, outputChangeHandler);
+        WFM(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler, double audioSR) {
+            init(name, config, input, bandwidth, outputChangeHandler, audioSR);
         }
 
         ~WFM() {
             stop();
         }
 
-        void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler) {
+        void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler, double audioSR) {
             this->name = name;
             this->outputChangeHandler = outputChangeHandler;
             _config = config;
@@ -66,6 +66,8 @@ namespace demod {
             demodStereo.setInput(input);
         }
 
+        void AFSampRateChanged(double newSR) {}
+
         // ============= INFO =============
 
         const char* getName()                   { return "WFM"; }
@@ -79,6 +81,7 @@ namespace demod {
         double getDefaultSnapInterval()         { return 100000.0; }
         int getVFOReference()                   { return ImGui::WaterfallVFO::REF_CENTER; }
         bool getDeempAllowed()                  { return true; }
+        bool getPostProcEnabled()               { return true; }
         int getDefaultDeemphasisMode()          { return DEEMP_MODE_50US; }
         double getAFBandwidth(double bandwidth) { return 16000.0; }
         bool getDynamicAFBandwidth()            { return false; }

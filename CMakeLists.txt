@@ -37,6 +37,7 @@ option(OPT_BUILD_FALCON9_DECODER "Build the falcon9 live decoder (Dependencies: 
 option(OPT_BUILD_M17_DECODER "Build the M17 decoder module (no dependencies required)" OFF)
 option(OPT_BUILD_METEOR_DEMODULATOR "Build the meteor demodulator module (no dependencies required)" ON)
 option(OPT_BUILD_RADIO "Main audio modulation decoder (AM, FM, SSB, etc...)" ON)
+option(OPT_BUILD_NEW_RADIO "Beta Main audio modulation decoder (AM, FM, SSB, etc...)" ON)
 option(OPT_BUILD_WEATHER_SAT_DECODER "Build the HRPT decoder module (no dependencies required)" OFF)
 
 # Misc
@@ -145,8 +146,11 @@ endif (OPT_BUILD_METEOR_DEMODULATOR)
 
 if (OPT_BUILD_RADIO)
 add_subdirectory("decoder_modules/radio")
-add_subdirectory("decoder_modules/new_radio")
 endif (OPT_BUILD_RADIO)
+
+if (OPT_BUILD_NEW_RADIO)
+add_subdirectory("decoder_modules/new_radio")
+endif (OPT_BUILD_NEW_RADIO)
 
 if (OPT_BUILD_WEATHER_SAT_DECODER)
 add_subdirectory("decoder_modules/weather_sat_decoder")

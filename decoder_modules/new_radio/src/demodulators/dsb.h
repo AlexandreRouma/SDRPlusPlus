@@ -8,15 +8,15 @@ namespace demod {
     public:
         DSB() {}
     
-        DSB(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler) {
-            init(name, config, input, bandwidth, outputChangeHandler);
+        DSB(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler, double audioSR) {
+            init(name, config, input, bandwidth, outputChangeHandler, audioSR);
         }
 
         ~DSB() {
             stop();
         }
 
-        void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler) {
+        void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler, double audioSR) {
             this->name = name;
             this->outputChangeHandler = outputChangeHandler;
 
@@ -50,6 +50,8 @@ namespace demod {
             demod.setInput(input);
         }
 
+        void AFSampRateChanged(double newSR) {}
+
         // ============= INFO =============
 
         const char* getName()                   { return "DSB"; }
@@ -63,6 +65,7 @@ namespace demod {
         double getDefaultSnapInterval()         { return 100.0; }
         int getVFOReference()                   { return ImGui::WaterfallVFO::REF_CENTER; }
         bool getDeempAllowed()                  { return false; }
+        bool getPostProcEnabled()               { return true; }
         int getDefaultDeemphasisMode()          { return DEEMP_MODE_NONE; }
         double getAFBandwidth(double bandwidth) { return bandwidth / 2.0; }
         bool getDynamicAFBandwidth()            { return true; }

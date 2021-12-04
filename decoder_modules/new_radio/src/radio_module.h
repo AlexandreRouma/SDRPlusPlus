@@ -42,6 +42,7 @@ public:
         demods[RADIO_DEMOD_LSB] = new demod::LSB();
         demods[RADIO_DEMOD_DSB] = new demod::DSB();
         demods[RADIO_DEMOD_CW] = new demod::CW();
+        demods[RADIO_DEMOD_RAW] = new demod::RAW();
 
         // Initialize the VFO
         vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 200000, 200000, 50000, 200000, false);
@@ -74,7 +75,7 @@ public:
             bw = std::clamp<double>(bw, demod->getMinBandwidth(), demod->getMaxBandwidth());
             
             // Initialize
-            demod->init(name, &config, &squelch.out, bw, _demodOutputChangeHandler);
+            demod->init(name, &config, &squelch.out, bw, _demodOutputChangeHandler, stream.getSampleRate());
         }
 
         // Initialize DSP
@@ -87,13 +88,10 @@ public:
         // Select the demodulator
         selectDemodByID((DemodID)selectedDemodID);
 
-        // Start DSP
-        squelch.start();
-        resamp.start();
-        deemp.start();
+        // Start stream, the rest was started when selecting the demodulator
         stream.start();
 
-        gui::menu.registerEntry(name, menuHandler, this, NULL);
+        gui::menu.registerEntry(name, menuHandler, this, this);
     }
 
     ~RadioModule() {
@@ -104,10 +102,20 @@ public:
 
     void enable() {
         enabled = true;
+        if (!vfo) {
+            vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 200000, 200000, 50000, 200000, false);
+        }
+        selectDemodByID((DemodID)selectedDemodID);
     }
 
     void disable() {
         enabled = false;
+        squelch.stop();
+        if (selectedDemod) { selectedDemod->stop(); }
+        resamp.stop();
+        deemp.stop();
+        if (vfo) { sigpath::vfoManager.deleteVFO(vfo); }
+        vfo = NULL;
     }
 
     bool isEnabled() {
@@ -239,6 +247,9 @@ private:
         if (selectedDemod) { selectedDemod->stop(); }
         selectedDemod = demod;
 
+        // Give the demodulator the most recent audio SR
+        selectedDemod->AFSampRateChanged(audioSampleRate);
+
         // Load config
         bandwidth = selectedDemod->getDefaultBandwidth();
         minBandwidth = selectedDemod->getMinBandwidth();
@@ -246,6 +257,7 @@ private:
         bandwidthLocked = selectedDemod->getBandwidthLocked();
         snapInterval = selectedDemod->getDefaultSnapInterval();
         squelchLevel = MIN_SQUELCH;
+        deempAllowed = selectedDemod->getDeempAllowed();
         deempMode = DEEMP_MODE_NONE;
         squelchEnabled = false;
         if (config.conf[name][selectedDemod->getName()].contains("snapInterval")) {
@@ -268,7 +280,7 @@ private:
 
         // Configure VFO
         if (vfo) {
-            vfo->setBandwidthLimits(minBandwidth, maxBandwidth, false);
+            vfo->setBandwidthLimits(minBandwidth, maxBandwidth, selectedDemod->getBandwidthLocked());
             vfo->setReference(selectedDemod->getVFOReference());
             vfo->setSnapInterval(snapInterval);
             vfo->setSampleRate(selectedDemod->getIFSampleRate(), bandwidth);
@@ -278,33 +290,38 @@ private:
         squelch.setLevel(squelchLevel);
         setSquelchEnabled(squelchEnabled);
 
-        // Configure resampler
-        resamp.stop();
-        resamp.setInput(selectedDemod->getOutput());
-        resamp.setInSampleRate(selectedDemod->getAFSampleRate());
-        setAudioSampleRate(audioSampleRate);
-        resamp.start();
+        // Enable or disable post processing entirely depending on the demodulator's options
+        setPostProcEnabled(selectedDemod->getPostProcEnabled());
 
-        // Configure deemphasis
-        deempAllowed = selectedDemod->getDeempAllowed();
-        if (deempAllowed) {
-            setDeemphasisMode(deempMode);
-        }
-        else {
-            setDeemphasisMode(DEEMP_MODE_NONE);
+        if (postProcEnabled) {
+            // Configure resampler
+            resamp.stop();
+            resamp.setInput(selectedDemod->getOutput());
+            resamp.setInSampleRate(selectedDemod->getAFSampleRate());
+            setAudioSampleRate(audioSampleRate);
+
+            // Configure deemphasis
+            if (deempAllowed) {
+                setDeemphasisMode(deempMode);
+            }
+            else {
+                setDeemphasisMode(DEEMP_MODE_NONE);
+            }
         }
 
         // Start new demodulator
         selectedDemod->start();
     }
 
+
     void setBandwidth(double bw) {
         bandwidth = bw;
         if (!selectedDemod) { return; }
         float audioBW = std::min<float>(selectedDemod->getMaxAFBandwidth(), selectedDemod->getAFBandwidth(bandwidth));
+        audioBW = std::min<float>(audioBW, audioSampleRate / 2.0);
         vfo->setBandwidth(bandwidth);
         selectedDemod->setBandwidth(bandwidth);
-        if (selectedDemod->getDynamicAFBandwidth()) {
+        if (selectedDemod->getDynamicAFBandwidth() && postProcEnabled) {
             win.setCutoff(audioBW);
             win.setTransWidth(audioBW);
             resamp.updateWindow(&win);
@@ -317,7 +334,17 @@ private:
     void setAudioSampleRate(double sr) {
         audioSampleRate = sr;
         if (!selectedDemod) { return; }
+        selectedDemod->AFSampRateChanged(audioSampleRate);
+        if (!postProcEnabled) {
+            minBandwidth = selectedDemod->getMinBandwidth();
+            maxBandwidth = selectedDemod->getMaxBandwidth();
+            bandwidth = selectedDemod->getIFSampleRate();
+            vfo->setBandwidthLimits(minBandwidth, maxBandwidth, selectedDemod->getBandwidthLocked());
+            vfo->setSampleRate(selectedDemod->getIFSampleRate(), bandwidth);
+            return;
+        }
         float audioBW = std::min<float>(selectedDemod->getMaxAFBandwidth(), selectedDemod->getAFBandwidth(bandwidth));
+        audioBW = std::min<float>(audioBW, audioSampleRate / 2.0);
         resamp.stop();
         deemp.stop();
         deemp.setSampleRate(audioSampleRate);
@@ -330,9 +357,23 @@ private:
         if (deempMode != DEEMP_MODE_NONE) { deemp.start(); }
     }
 
+    void setPostProcEnabled(bool enable) {
+        postProcEnabled = enable;
+        if (!selectedDemod) { return; }
+        if (postProcEnabled) {
+            setDeemphasisMode(deempMode);
+        }
+        else {
+            resamp.stop();
+            deemp.stop();
+            stream.setInput(selectedDemod->getOutput());
+        }
+    }
+
     void setDeemphasisMode(int mode) {
         deempMode = mode;
-        if (mode != DEEMP_MODE_NONE) {
+        if (!postProcEnabled) { return; }
+        if (deempMode != DEEMP_MODE_NONE) {
             // TODO: Investigate why not stopping the deemp here causes the DSP to stall
             deemp.stop();
             stream.setInput(&deemp.out);
@@ -349,6 +390,7 @@ private:
         squelchEnabled = enable;
         if (!selectedDemod) { return; }
         if (squelchEnabled) {
+            squelch.setInput(vfo->output);
             selectedDemod->setInput(&squelch.out);
             squelch.start();
         }
@@ -370,7 +412,12 @@ private:
 
     static void demodOutputChangeHandler(dsp::stream<dsp::stereo_t>* output, void* ctx) {
         RadioModule* _this = (RadioModule*)ctx;
-        _this->resamp.setInput(output);
+        if (_this->postProcEnabled) {
+            _this->resamp.setInput(output);
+        }
+        else {
+            _this->stream.setInput(output);
+        }
     }
     
     EventHandler<double> onUserChangedBandwidthHandler;
@@ -398,6 +445,7 @@ private:
     int selectedDemodID = 1;
     int deempMode = DEEMP_MODE_NONE;
     bool deempAllowed;
+    bool postProcEnabled;
 
     const double MIN_SQUELCH = -100.0;
     const double MAX_SQUELCH = 0.0;
