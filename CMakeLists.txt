@@ -145,6 +145,7 @@ endif (OPT_BUILD_METEOR_DEMODULATOR)
 
 if (OPT_BUILD_RADIO)
 add_subdirectory("decoder_modules/radio")
+add_subdirectory("decoder_modules/new_radio")
 endif (OPT_BUILD_RADIO)
 
 if (OPT_BUILD_WEATHER_SAT_DECODER)

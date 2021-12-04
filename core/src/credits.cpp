@@ -38,6 +38,7 @@ namespace sdrpp_credits {
     const char* hardwareDonators[] = {
         "Airspy",
         "Analog Devices",
+        "CaribouLabs",
         "Howard Su",
         "MyriadRF",
         "Nuand",

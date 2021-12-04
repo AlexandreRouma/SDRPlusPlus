@@ -8,28 +8,25 @@ namespace demod {
     public:
         WFM() {}
     
-        WFM(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth) {
-            init(name, config, input, bandwidth);
+        WFM(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler) {
+            init(name, config, input, bandwidth, outputChangeHandler);
         }
 
         ~WFM() {
             stop();
         }
 
-        void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth) {
+        void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler) {
             this->name = name;
+            this->outputChangeHandler = outputChangeHandler;
             _config = config;
 
             // Load config
             _config->acquire();
             bool modified =false;
             if (!config->conf[name].contains(getName())) {
-                config->conf[name][getName()]["deempMode"] = 0;
                 config->conf[name][getName()]["stereo"] = false;
                 modified = true;
-            }
-            if (config->conf[name][getName()].contains("deempMode")) {
-                deempMode = config->conf[name][getName()]["deempMode"];
             }
             if (config->conf[name][getName()].contains("stereo")) {
                 stereo = config->conf[name][getName()]["stereo"];
@@ -39,19 +36,15 @@ namespace demod {
             // Define structure
             demod.init(input, getIFSampleRate(), bandwidth / 2.0f);
             demodStereo.init(input, getIFSampleRate(), bandwidth / 2.0f);
-            //deemp.init(stereo ? demodStereo.out : &demod.out, getAFSampleRate(), 50e-6);
-            //deemp.bypass = false;
         }
 
         void start() {
             stereo ? demodStereo.start() : demod.start();
-            //deemp.start();
         }
 
         void stop() {
             demod.stop();
             demodStereo.stop();
-            //deemp.stop();
         }
 
         void showMenu() {
@@ -61,7 +54,6 @@ namespace demod {
                 _config->conf[name][getName()]["stereo"] = stereo;
                 _config->release(true);
             }
-            //ImGui::Checkbox("Deemp bypass", &deemp.bypass);
         }
 
         void setBandwidth(double bandwidth) {
@@ -82,10 +74,15 @@ namespace demod {
         double getDefaultBandwidth()            { return 150000.0; }
         double getMinBandwidth()                { return 50000.0; }
         double getMaxBandwidth()                { return getIFSampleRate(); }
+        bool getBandwidthLocked()               { return false; }
         double getMaxAFBandwidth()              { return 16000.0; }
         double getDefaultSnapInterval()         { return 100000.0; }
         int getVFOReference()                   { return ImGui::WaterfallVFO::REF_CENTER; }
-        dsp::stream<dsp::stereo_t>* getOutput() { return demodStereo.out; }
+        bool getDeempAllowed()                  { return true; }
+        int getDefaultDeemphasisMode()          { return DEEMP_MODE_50US; }
+        double getAFBandwidth(double bandwidth) { return 16000.0; }
+        bool getDynamicAFBandwidth()            { return false; }
+        dsp::stream<dsp::stereo_t>* getOutput() { return stereo ? demodStereo.out : &demod.out; }
 
         // ============= DEDICATED FUNCTIONS =============
 
@@ -93,12 +90,12 @@ namespace demod {
             stereo = _stereo;
             if (stereo) {
                 demod.stop();
-                //deemp.setInput(demodStereo.out);
+                outputChangeHandler.handler(demodStereo.out, outputChangeHandler.ctx);
                 demodStereo.start();
             }
             else {
                 demodStereo.stop();
-                //deemp.setInput(&demod.out);
+                outputChangeHandler.handler(&demod.out, outputChangeHandler.ctx);
                 demod.start();
             }
         }
@@ -106,15 +103,12 @@ namespace demod {
     private:
         dsp::FMDemod demod;
         dsp::StereoFMDemod demodStereo;
-        //dsp::BFMDeemp deemp;
         
-        RadioModule* _rad = NULL;
         ConfigManager* _config = NULL;
         
-        int deempMode;
-        bool stereo;
+        bool stereo = false;
 
         std::string name;
-
+        EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler;
     };
 }
