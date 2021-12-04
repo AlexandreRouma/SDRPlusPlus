@@ -17,21 +17,23 @@ const double DeemphasisModes[] {
 
 const char* DeemhasisModesTxt = "50µS\00075µS\000None\000";
 
-class RadioModule;
+class NewRadioModule;
 #include "demod.h"
 
-class RadioModule : public ModuleManager::Instance {
+class NewRadioModule : public ModuleManager::Instance {
 public:
-    RadioModule(std::string name) {
+    NewRadioModule(std::string name) {
         this->name = name;
 
         // Initialize the config if it doesn't exist
+        bool created = false;
         config.acquire();
         if (!config.conf.contains(name)) {
             config.conf[name]["selectedDemodId"] = 1;
+            created = true;
         }
         selectedDemodID = config.conf[name]["selectedDemodId"];
-        config.release(true);
+        config.release(created);
 
         // Create demodulator instances
         demods.fill(NULL);
@@ -94,8 +96,17 @@ public:
         gui::menu.registerEntry(name, menuHandler, this, this);
     }
 
-    ~RadioModule() {
+    ~NewRadioModule() {
         gui::menu.removeEntry(name);
+        stream.stop();
+        if (enabled) {
+            squelch.stop();
+            if (selectedDemod) { selectedDemod->stop(); }
+            resamp.stop();
+            deemp.stop();
+            if (vfo) { sigpath::vfoManager.deleteVFO(vfo); }
+        }
+        sigpath::sinkManager.unregisterStream(name);
     }
 
     void postInit() {}
@@ -138,7 +149,7 @@ public:
 
 private:
     static void menuHandler(void* ctx) {
-        RadioModule* _this = (RadioModule*)ctx;
+        NewRadioModule* _this = (NewRadioModule*)ctx;
 
         if (!_this->enabled) { style::beginDisabled(); }
 
@@ -240,6 +251,10 @@ private:
         }
         selectedDemodID = id;
         selectDemod(demod);
+        // Save config
+        config.acquire();
+        config.conf[name]["selectedDemodId"] = id;
+        config.release(true);
     }
 
     void selectDemod(demod::Demodulator* demod) {
@@ -401,17 +416,17 @@ private:
     }
 
     static void vfoUserChangedBandwidthHandler(double newBw, void* ctx) {
-        RadioModule* _this = (RadioModule*)ctx;
+        NewRadioModule* _this = (NewRadioModule*)ctx;
         _this->setBandwidth(newBw);
     }
 
     static void sampleRateChangeHandler(float sampleRate, void* ctx) {
-        RadioModule* _this = (RadioModule*)ctx;
+        NewRadioModule* _this = (NewRadioModule*)ctx;
         _this->setAudioSampleRate(sampleRate);
     }
 
     static void demodOutputChangeHandler(dsp::stream<dsp::stereo_t>* output, void* ctx) {
-        RadioModule* _this = (RadioModule*)ctx;
+        NewRadioModule* _this = (NewRadioModule*)ctx;
         if (_this->postProcEnabled) {
             _this->resamp.setInput(output);
         }

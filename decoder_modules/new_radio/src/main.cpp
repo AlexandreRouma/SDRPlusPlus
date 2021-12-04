@@ -17,11 +17,11 @@ MOD_EXPORT void _INIT_() {
 }
 
 MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
-    return new RadioModule(name);
+    return new NewRadioModule(name);
 }
 
 MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
-    delete (RadioModule*)instance;
+    delete (NewRadioModule*)instance;
 }
 
 MOD_EXPORT void _END_() {
