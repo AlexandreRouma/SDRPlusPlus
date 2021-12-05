@@ -12,6 +12,7 @@
 #include <stb_image.h>
 #include <config.h>
 #include <core.h>
+#include <glfw_window.h>
 #include <options.h>
 #include <filesystem>
 #include <gui/menus/theme.h>
