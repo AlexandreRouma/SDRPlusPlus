@@ -1,7 +1,6 @@
 #include <gui/widgets/waterfall.h>
 #include <imgui.h>
 #include <imgui_internal.h>
-#include <GL/glew.h>
 #include <imutils.h>
 #include <algorithm>
 #include <volk/volk.h>

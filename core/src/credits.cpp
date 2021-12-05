@@ -28,7 +28,6 @@ namespace sdrpp_credits {
     const char* libraries[] = {
         "Dear ImGui (ocornut)",
         "fftw3 (fftw.org)",
-        "glew (Nigel Stewart)",
         "glfw (Camilla Löwy)",
         "json (nlohmann)",
         "spdlog (gabime)",
