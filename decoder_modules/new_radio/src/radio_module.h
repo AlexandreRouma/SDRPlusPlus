@@ -115,6 +115,7 @@ public:
         enabled = true;
         if (!vfo) {
             vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 200000, 200000, 50000, 200000, false);
+            vfo->wtfVFO->onUserChangedBandwidth.bindHandler(&onUserChangedBandwidthHandler);
         }
         selectDemodByID((DemodID)selectedDemodID);
     }
@@ -436,7 +437,7 @@ private:
     }
     
     EventHandler<double> onUserChangedBandwidthHandler;
-    VFOManager::VFO* vfo;
+    VFOManager::VFO* vfo = NULL;
     dsp::Squelch squelch;
 
     dsp::filter_window::BlackmanWindow win;
