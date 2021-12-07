@@ -7,6 +7,9 @@
 #include <config.h>
 #include <dsp/chain.h>
 #include <dsp/noise_reduction.h>
+#include <core.h>
+#include "radio_interface.h"
+#include "demod.h"
 
 ConfigManager config;
 
@@ -19,12 +22,9 @@ const double DeemphasisModes[] {
 
 const char* DeemhasisModesTxt = "50µS\00075µS\000None\000";
 
-class NewRadioModule;
-#include "demod.h"
-
-class NewRadioModule : public ModuleManager::Instance {
+class RadioModule : public ModuleManager::Instance {
 public:
-    NewRadioModule(std::string name) {
+    RadioModule(std::string name) {
         this->name = name;
 
         // Initialize the config if it doesn't exist
@@ -77,7 +77,6 @@ public:
                 config.conf[name][demod->getName()]["snapInterval"] = demod->getDefaultSnapInterval();
                 config.conf[name][demod->getName()]["squelchLevel"] = MIN_SQUELCH;
                 config.conf[name][demod->getName()]["squelchEnabled"] = false;
-                config.conf[name][demod->getName()]["deempMode"] = demod->getDefaultDeemphasisMode();
             }
             bw = std::clamp<double>(bw, demod->getMinBandwidth(), demod->getMaxBandwidth());
             
@@ -116,10 +115,14 @@ public:
         // Start stream, the rest was started when selecting the demodulator
         stream.start();
 
+        // Register the menu
         gui::menu.registerEntry(name, menuHandler, this, this);
+
+        // Register the module interface
+        core::modComManager.registerInterface("radio", name, moduleInterfaceHandler, this);
     }
 
-    ~NewRadioModule() {
+    ~RadioModule() {
         gui::menu.removeEntry(name);
         stream.stop();
         if (enabled) {
@@ -136,7 +139,10 @@ public:
             vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 200000, 200000, 50000, 200000, false);
             vfo->wtfVFO->onUserChangedBandwidth.bindHandler(&onUserChangedBandwidthHandler);
         }
+        ifChain.setInput(vfo->output);
+        ifChain.start();
         selectDemodByID((DemodID)selectedDemodID);
+        afChain.start();
     }
 
     void disable() {
@@ -168,7 +174,7 @@ public:
 
 private:
     static void menuHandler(void* ctx) {
-        NewRadioModule* _this = (NewRadioModule*)ctx;
+        RadioModule* _this = (RadioModule*)ctx;
 
         if (!_this->enabled) { style::beginDisabled(); }
 
@@ -213,12 +219,10 @@ private:
             if (ImGui::InputFloat(("##_radio_bw_" + _this->name).c_str(), &_this->bandwidth, 1, 100, "%.0f")) {
                 _this->bandwidth = std::clamp<float>(_this->bandwidth, _this->minBandwidth, _this->maxBandwidth);
                 _this->setBandwidth(_this->bandwidth);
-                config.acquire();
-                config.conf[_this->name][_this->selectedDemod->getName()]["bandwidth"] = _this->bandwidth;
-                config.release(true);
             }
         }
 
+        // VFO snap interval
         ImGui::LeftLabel("Snap Interval");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::InputInt(("##_radio_snap_" + _this->name).c_str(), &_this->snapInterval, 1, 100)) {
@@ -229,34 +233,28 @@ private:
             config.release(true);
         }
 
+        // Deemphasis mode
         if (_this->deempAllowed) {
             ImGui::LeftLabel("De-emphasis");
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             if (ImGui::Combo(("##_radio_wfm_deemp_" + _this->name).c_str(), &_this->deempMode, DeemhasisModesTxt)) {
                 _this->setDeemphasisMode(_this->deempMode);
-                config.acquire();
-                config.conf[_this->name][_this->selectedDemod->getName()]["deempMode"] = _this->deempMode;
-                config.release(true);
             }
         }
 
+        // Squelch
         if (ImGui::Checkbox(("Squelch##_radio_sqelch_ena_" + _this->name).c_str(), &_this->squelchEnabled)) {
             _this->setSquelchEnabled(_this->squelchEnabled);
-            config.acquire();
-            config.conf[_this->name][_this->selectedDemod->getName()]["squelchEnabled"] = _this->squelchEnabled;
-            config.release(true);
         }
         if (!_this->squelchEnabled && _this->enabled) { style::beginDisabled(); }
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::SliderFloat(("##_radio_sqelch_lvl_" + _this->name).c_str(), &_this->squelchLevel, _this->MIN_SQUELCH, _this->MAX_SQUELCH, "%.3fdB")) {
-            _this->squelch.block.setLevel(_this->squelchLevel);
-            config.acquire();
-            config.conf[_this->name][_this->selectedDemod->getName()]["squelchLevel"] = _this->squelchLevel;
-            config.release(true);
+            _this->setSquelchLevel(_this->squelchLevel);
         }
         if (!_this->squelchEnabled && _this->enabled) { style::endDisabled(); }
 
+        // Demodulator specific menu
         _this->selectedDemod->showMenu();
 
         if (!_this->enabled) { style::endDisabled(); }
@@ -354,6 +352,7 @@ private:
 
 
     void setBandwidth(double bw) {
+        bw = std::clamp<double>(bw, minBandwidth, maxBandwidth);
         bandwidth = bw;
         if (!selectedDemod) { return; }
         float audioBW = std::min<float>(selectedDemod->getMaxAFBandwidth(), selectedDemod->getAFBandwidth(bandwidth));
@@ -405,45 +404,111 @@ private:
     }
 
     void setDeemphasisMode(int mode) {
-        deempMode = mode;
-        if (!postProcEnabled) { return; }
+        deempMode = std::clamp<int>(mode, 0, _DEEMP_MODE_COUNT-1);
+        if (!postProcEnabled || !selectedDemod) { return; }
         bool deempEnabled = (deempMode != DEEMP_MODE_NONE);
         if (deempEnabled) {
             deemp.block.setTau(DeemphasisModes[deempMode]);
         }
         afChain.setState(&deemp, deempEnabled);
+
+        // Save config
+        config.acquire();
+        config.conf[name][selectedDemod->getName()]["deempMode"] = deempMode;
+        config.release(true);
     }
 
     void setSquelchEnabled(bool enable) {
         squelchEnabled = enable;
         if (!selectedDemod) { return; }
         ifChain.setState(&squelch, squelchEnabled);
+
+        // Save config
+        config.acquire();
+        config.conf[name][selectedDemod->getName()]["squelchEnabled"] = squelchEnabled;
+        config.release(true);
+    }
+
+    void setSquelchLevel(float level) {
+        squelchLevel = std::clamp<float>(level, MIN_SQUELCH, MAX_SQUELCH);
+        squelch.block.setLevel(squelchLevel);
+
+        // Save config
+        config.acquire();
+        config.conf[name][selectedDemod->getName()]["squelchLevel"] = squelchLevel;
+        config.release(true);
     }
 
     static void vfoUserChangedBandwidthHandler(double newBw, void* ctx) {
-        NewRadioModule* _this = (NewRadioModule*)ctx;
+        RadioModule* _this = (RadioModule*)ctx;
         _this->setBandwidth(newBw);
     }
 
     static void sampleRateChangeHandler(float sampleRate, void* ctx) {
-        NewRadioModule* _this = (NewRadioModule*)ctx;
+        RadioModule* _this = (RadioModule*)ctx;
         _this->setAudioSampleRate(sampleRate);
     }
 
     static void demodOutputChangeHandler(dsp::stream<dsp::stereo_t>* output, void* ctx) {
-        NewRadioModule* _this = (NewRadioModule*)ctx;
+        RadioModule* _this = (RadioModule*)ctx;
         _this->afChain.setInput(output);
     }
 
     static void ifChainOutputChangeHandler(dsp::stream<dsp::complex_t>* output, void* ctx) {
-        NewRadioModule* _this = (NewRadioModule*)ctx;
+        RadioModule* _this = (RadioModule*)ctx;
         if (!_this->selectedDemod) { return; }
         _this->selectedDemod->setInput(output);
     }
 
     static void afChainOutputChangeHandler(dsp::stream<dsp::stereo_t>* output, void* ctx) {
-        NewRadioModule* _this = (NewRadioModule*)ctx;
+        RadioModule* _this = (RadioModule*)ctx;
         _this->stream.setInput(output);
+    }
+
+    static void moduleInterfaceHandler(int code, void* in, void* out, void* ctx) {
+        RadioModule* _this = (RadioModule*)ctx;
+        if (!_this->enabled || !_this->selectedDemod) { return; }
+
+        // Execute commands
+        if (code == RADIO_IFACE_CMD_GET_MODE && out) {
+            int* _out = (int*)out;
+            *_out = _this->selectedDemodID;
+        }
+        else if (code == RADIO_IFACE_CMD_SET_MODE && in) {
+            int* _in = (int*)in;
+            _this->selectDemodByID((DemodID)*_in);
+        }
+        else if (code == RADIO_IFACE_CMD_GET_BANDWIDTH && out) {
+            float* _out = (float*)out;
+            *_out = _this->bandwidth;
+        }
+        else if (code == RADIO_IFACE_CMD_SET_BANDWIDTH && in) {
+            float* _in = (float*)in;
+            if (_this->bandwidthLocked) { return; }
+            _this->setBandwidth(*_in);
+        }
+        else if (code == RADIO_IFACE_CMD_GET_SQUELCH_ENABLED && out) {
+            bool* _out = (bool*)out;
+            *_out = _this->squelchEnabled;
+        }
+        else if (code == RADIO_IFACE_CMD_SET_SQUELCH_ENABLED && in) {
+            bool* _in = (bool*)in;
+            _this->setSquelchEnabled(*_in);
+        }
+        else if (code == RADIO_IFACE_CMD_GET_SQUELCH_LEVEL && out) {
+            float* _out = (float*)out;
+            *_out = _this->squelchLevel;
+        }
+        else if (code == RADIO_IFACE_CMD_SET_SQUELCH_LEVEL && in) {
+            float* _in = (float*)in;
+            _this->setSquelchLevel(*_in);
+        }
+        else {
+            return;
+        }
+
+        // Success
+        return;
     }
     
     // Handlers
