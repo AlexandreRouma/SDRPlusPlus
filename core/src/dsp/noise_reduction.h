@@ -128,4 +128,126 @@ namespace dsp {
         float* fft_fout;
 
     };
+
+    class NoiseBlanker : public generic_block<NoiseBlanker> {
+    public:
+        NoiseBlanker() {}
+
+        NoiseBlanker(stream<complex_t>* in, float attack, float decay, float threshold, float level, float sampleRate) { init(in, attack, decay, threshold, level, sampleRate); }
+
+        ~NoiseBlanker() {
+            if (!generic_block<NoiseBlanker>::_block_init) { return; }
+            generic_block<NoiseBlanker>::stop();
+            volk_free(ampBuf);
+        }
+
+        void init(stream<complex_t>* in, float attack, float decay, float threshold, float level, float sampleRate) {
+            _in = in;
+            _attack = attack;
+            _decay = decay;
+            _threshold = powf(10.0f, threshold / 10.0f);
+            _level = level;
+            _sampleRate = sampleRate;
+
+            _inv_attack = 1.0f - _attack;
+            _inv_decay = 1.0f - _decay;
+
+            ampBuf = (float*)volk_malloc(STREAM_BUFFER_SIZE*sizeof(float), volk_get_alignment());
+
+            generic_block<NoiseBlanker>::registerInput(_in);
+            generic_block<NoiseBlanker>::registerOutput(&out);
+            generic_block<NoiseBlanker>::_block_init = true;
+        }
+
+        void setAttack(float attack) {
+            _attack = attack;
+            _inv_attack = 1.0f - _attack;
+        }
+
+        void setDecay(float decay) {
+            _decay = decay;
+            _inv_decay = 1.0f - _decay;
+        }
+
+        void setThreshold(float threshold) {
+            _threshold = powf(10.0f, threshold / 10.0f);
+            spdlog::warn("Threshold {0}", _threshold);
+        }
+
+        void setLevel(float level) {
+            _level = level;
+        }
+
+        void setSampleRate(float sampleRate) {
+            _sampleRate = sampleRate;
+            // TODO: Change parameters if the algo needs it
+        }
+
+        void setInput(stream<complex_t>* in) {
+            assert(generic_block<NoiseBlanker>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<NoiseBlanker>::ctrlMtx);
+            generic_block<NoiseBlanker>::tempStop();
+            generic_block<NoiseBlanker>::unregisterInput(_in);
+            _in = in;
+            generic_block<NoiseBlanker>::registerInput(_in);
+            generic_block<NoiseBlanker>::tempStart();
+        }
+
+        int run() {
+            int count = _in->read();
+            if (count < 0) { return -1; }
+
+            // Get amplitudes
+            volk_32fc_magnitude_32f(ampBuf, (lv_32fc_t*)_in->readBuf, count);
+
+            // Apply filtering and threshold
+            float val;
+            for (int i = 0; i < count; i++) {
+                // Filter using attack/threshold methode
+                val = ampBuf[i];
+                if (val > lastValue) {
+                    lastValue = (_inv_attack*lastValue) + (_attack*val);
+                }
+                else {
+                    lastValue = (_inv_decay*lastValue) + (_decay*val);
+                }
+
+                // Apply threshold and invert
+                if (lastValue > _threshold) {
+                    ampBuf[i] = _threshold / (lastValue * _level);
+                    if (ampBuf[i] == 0) {
+                        spdlog::warn("WTF???");
+                    }
+                }
+                else {
+                    ampBuf[i] = 1.0f;
+                }
+            }
+
+            // Multiply
+            volk_32fc_32f_multiply_32fc((lv_32fc_t*)out.writeBuf, (lv_32fc_t*)_in->readBuf, ampBuf, count);
+
+            _in->flush();
+            if (!out.swap(count)) { return -1; }
+            return count;
+        }
+
+        stream<complex_t> out;
+
+    private:
+        float* ampBuf;
+
+        float _attack;
+        float _decay;
+        float _inv_attack;
+        float _inv_decay;
+        float _threshold;
+        float _level;
+        float _sampleRate;
+
+        float lastValue = 0.0f;
+        
+        stream<complex_t>* _in;
+
+    };
 }
