@@ -39,6 +39,7 @@ option(OPT_BUILD_METEOR_DEMODULATOR "Build the meteor demodulator module (no dep
 option(OPT_BUILD_RADIO "Main audio modulation decoder (AM, FM, SSB, etc...)" ON)
 option(OPT_BUILD_NEW_RADIO "Beta Main audio modulation decoder (AM, FM, SSB, etc...)" ON)
 option(OPT_BUILD_WEATHER_SAT_DECODER "Build the HRPT decoder module (no dependencies required)" OFF)
+option(OPT_BUILD_GOES_DEMODULATOR "Build the GOES demodulator module (no dependencies required)" OFF)
 
 # Misc
 option(OPT_BUILD_DISCORD_PRESENCE "Build the Discord Rich Presence module" ON)
@@ -156,6 +157,9 @@ if (OPT_BUILD_WEATHER_SAT_DECODER)
 add_subdirectory("decoder_modules/weather_sat_decoder")
 endif (OPT_BUILD_WEATHER_SAT_DECODER)
 
+if (OPT_BUILD_GOES_DEMODULATOR)
+add_subdirectory("decoder_modules/goes_demodulator")
+endif(OPT_BUILD_GOES_DEMODULATOR)
 
 # Misc
 if (OPT_BUILD_DISCORD_PRESENCE)

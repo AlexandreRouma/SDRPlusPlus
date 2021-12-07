@@ -14,3 +14,4 @@ CMakeSettings.json
 poggers_decoder
 m17_decoder/libcorrect
 SDR++.app
+cmake-build-debug/

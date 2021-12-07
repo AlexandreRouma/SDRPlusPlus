@@ -346,6 +346,7 @@ Modules in beta are still included in releases for the most part but not enabled
 | meteor_demodulator  | Working    | -            | OPT_BUILD_METEOR_DEMODULATOR  | ✅              | ✅              | ⛔                         |
 | radio               | Working    | -            | OPT_BUILD_RADIO               | ✅              | ✅              | ✅                         |
 | weather_sat_decoder | Unfinished | -            | OPT_BUILD_WEATHER_SAT_DECODER | ⛔              | ⛔              | ⛔                         |
+| goes_demodulator    | Alpha      | -            | OPT_BUILD_GOES_DEMODULATOR    | ⛔              | ⛔              | ⛔                         |
 
 ## Misc
 

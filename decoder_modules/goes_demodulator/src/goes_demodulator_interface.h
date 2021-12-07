@@ -1,0 +1,6 @@
+#pragma once
+
+enum {
+    GOES_DEMODULATOR_IFACE_CMD_START,
+    GOES_DEMODULATOR_IFACE_CMD_STOP
+};
