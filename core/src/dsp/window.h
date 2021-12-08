@@ -2,6 +2,7 @@
 #include <dsp/block.h>
 #include <dsp/types.h>
 #include <dsp/utils/window_functions.h>
+#include <fftw3.h>
 
 namespace dsp {
     namespace filter_window {
@@ -187,86 +188,152 @@ namespace dsp {
     }
 
     class RRCTaps : public filter_window::generic_window {
-        public:
-            RRCTaps() {}
-            RRCTaps(int tapCount, float sampleRate, float baudRate, float alpha) { init(tapCount, sampleRate, baudRate, alpha); }
+    public:
+        RRCTaps() {}
+        RRCTaps(int tapCount, float sampleRate, float baudRate, float alpha) { init(tapCount, sampleRate, baudRate, alpha); }
 
-            void init(int tapCount, float sampleRate, float baudRate, float alpha) {
-                _tapCount = tapCount;
-                _sampleRate = sampleRate;
-                _baudRate = baudRate;
-                _alpha = alpha;
-            }
+        void init(int tapCount, float sampleRate, float baudRate, float alpha) {
+            _tapCount = tapCount;
+            _sampleRate = sampleRate;
+            _baudRate = baudRate;
+            _alpha = alpha;
+        }
 
-            int getTapCount() {
-                return _tapCount;
-            }
+        int getTapCount() {
+            return _tapCount;
+        }
 
-            void setSampleRate(float sampleRate) {
-                _sampleRate = sampleRate;
-            }
+        void setSampleRate(float sampleRate) {
+            _sampleRate = sampleRate;
+        }
 
-            void setBaudRate(float baudRate) {
-                _baudRate = baudRate;
-            }
+        void setBaudRate(float baudRate) {
+            _baudRate = baudRate;
+        }
 
-            void setTapCount(int count) {
-                _tapCount = count;
-            }
+        void setTapCount(int count) {
+            _tapCount = count;
+        }
 
-            void setAlpha(float alpha) {
-                _alpha = alpha;
-            }
+        void setAlpha(float alpha) {
+            _alpha = alpha;
+        }
 
-            void createTaps(float* taps, int tapCount, float factor = 1.0f) {
-                // ======== CREDIT: GNU Radio =========
-                tapCount |= 1; // ensure that tapCount is odd
+        void createTaps(float* taps, int tapCount, float factor = 1.0f) {
+            // ======== CREDIT: GNU Radio =========
+            tapCount |= 1; // ensure that tapCount is odd
 
-                double spb = _sampleRate / _baudRate; // samples per bit/symbol
-                double scale = 0;
-                for (int i = 0; i < tapCount; i++)
-                {
-                    double x1, x2, x3, num, den;
-                    double xindx = i - tapCount / 2;
-                    x1 = FL_M_PI * xindx / spb;
-                    x2 = 4 * _alpha * xindx / spb;
-                    x3 = x2 * x2 - 1;
+            double spb = _sampleRate / _baudRate; // samples per bit/symbol
+            double scale = 0;
+            for (int i = 0; i < tapCount; i++)
+            {
+                double x1, x2, x3, num, den;
+                double xindx = i - tapCount / 2;
+                x1 = FL_M_PI * xindx / spb;
+                x2 = 4 * _alpha * xindx / spb;
+                x3 = x2 * x2 - 1;
 
-                     // Avoid Rounding errors...
-                    if (fabs(x3) >= 0.000001) {
-                        if (i != tapCount / 2)
-                            num = cos((1 + _alpha) * x1) +
-                                sin((1 - _alpha) * x1) / (4 * _alpha * xindx / spb);
-                        else
-                            num = cos((1 + _alpha) * x1) + (1 - _alpha) * FL_M_PI / (4 * _alpha);
-                        den = x3 * FL_M_PI;
-                    }
-                    else {
-                        if (_alpha == 1)
-                        {
-                            taps[i] = -1;
-                            scale += taps[i];
-                            continue;
-                        }
-                        x3 = (1 - _alpha) * x1;
-                        x2 = (1 + _alpha) * x1;
-                        num = (sin(x2) * (1 + _alpha) * FL_M_PI -
-                            cos(x3) * ((1 - _alpha) * FL_M_PI * spb) / (4 * _alpha * xindx) +
-                            sin(x3) * spb * spb / (4 * _alpha * xindx * xindx));
-                        den = -32 * FL_M_PI * _alpha * _alpha * xindx / spb;
-                    }
-                    taps[i] = 4 * _alpha * num / den;
-                    scale += taps[i];
+                    // Avoid Rounding errors...
+                if (fabs(x3) >= 0.000001) {
+                    if (i != tapCount / 2)
+                        num = cos((1 + _alpha) * x1) +
+                            sin((1 - _alpha) * x1) / (4 * _alpha * xindx / spb);
+                    else
+                        num = cos((1 + _alpha) * x1) + (1 - _alpha) * FL_M_PI / (4 * _alpha);
+                    den = x3 * FL_M_PI;
                 }
-
-                for (int i = 0; i < tapCount; i++) {
-                    taps[i] = taps[i] / scale;
+                else {
+                    if (_alpha == 1)
+                    {
+                        taps[i] = -1;
+                        scale += taps[i];
+                        continue;
+                    }
+                    x3 = (1 - _alpha) * x1;
+                    x2 = (1 + _alpha) * x1;
+                    num = (sin(x2) * (1 + _alpha) * FL_M_PI -
+                        cos(x3) * ((1 - _alpha) * FL_M_PI * spb) / (4 * _alpha * xindx) +
+                        sin(x3) * spb * spb / (4 * _alpha * xindx * xindx));
+                    den = -32 * FL_M_PI * _alpha * _alpha * xindx / spb;
                 }
+                taps[i] = 4 * _alpha * num / den;
+                scale += taps[i];
             }
 
-        private:
-            int _tapCount;
-            float _sampleRate, _baudRate, _alpha;
+            for (int i = 0; i < tapCount; i++) {
+                taps[i] = taps[i] / scale;
+            }
+        }
 
-        };
+    private:
+        int _tapCount;
+        float _sampleRate, _baudRate, _alpha;
+
+    };
+
+    class NotchWindow : public filter_window::generic_window {
+    public:
+        NotchWindow() {}
+
+        NotchWindow(float frequency, float width, float sampleRate, int tapCount) { init(frequency, width, sampleRate, tapCount); }
+
+        ~NotchWindow() {
+            if (fft_in) { fftwf_free(fft_in); }
+            if (fft_out) { fftwf_free(fft_out); }
+            fftwf_destroy_plan(fft_plan);
+        }
+
+        void init(float frequency, float width, float sampleRate, int tapCount) {
+            _frequency = frequency;
+            _width = width;
+            _sampleRate = sampleRate;
+            _tapCount = _tapCount;
+
+            fft_in = (complex_t*)fftwf_malloc(_tapCount * sizeof(complex_t));
+            fft_out = (complex_t*)fftwf_malloc(_tapCount * sizeof(complex_t));
+
+            fft_plan = fftwf_plan_dft_1d(_tapCount, (fftwf_complex*)fft_in, (fftwf_complex*)fft_out, FFTW_BACKWARD, FFTW_ESTIMATE);
+        }
+
+        void setFrequency(float frequency) {
+            _frequency = frequency;
+        }
+
+        void setWidth(float width) {
+            _width = width;
+        }
+
+        void setSampleRate(float sampleRate) {
+            _sampleRate = sampleRate;
+        }
+
+        void setTapCount(int count) {
+            _tapCount = count;
+            if (fft_in) { fftwf_free(fft_in); }
+            if (fft_out) { fftwf_free(fft_out); }
+            fftwf_destroy_plan(fft_plan);
+
+            fft_in = (complex_t*)fftwf_malloc(_tapCount * sizeof(complex_t));
+            fft_out = (complex_t*)fftwf_malloc(_tapCount * sizeof(complex_t));
+
+            fft_plan = fftwf_plan_dft_1d(_tapCount, (fftwf_complex*)fft_in, (fftwf_complex*)fft_out, FFTW_BACKWARD, FFTW_ESTIMATE);
+        }
+
+        int getTapCount() {
+            return _tapCount;
+        }
+
+        void createTaps(float* taps, int tapCount, float factor = 1.0f) {
+            
+        }
+
+    private:
+        complex_t* fft_in = NULL;
+        complex_t* fft_out = NULL;
+        float _frequency, _width, _sampleRate;
+        int _tapCount;
+
+        fftwf_plan fft_plan;
+
+    };
 }
