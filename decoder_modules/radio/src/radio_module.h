@@ -306,7 +306,7 @@ private:
         snapInterval = selectedDemod->getDefaultSnapInterval();
         squelchLevel = MIN_SQUELCH;
         deempAllowed = selectedDemod->getDeempAllowed();
-        deempMode = DEEMP_MODE_NONE;
+        deempMode = selectedDemod->getDefaultDeemphasisMode();
         squelchEnabled = false;
         postProcEnabled = selectedDemod->getPostProcEnabled();
         FMIFNRAllowed = selectedDemod->getFMIFNRAllowed();
