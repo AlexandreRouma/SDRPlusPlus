@@ -85,6 +85,7 @@ namespace demod {
         int getDefaultDeemphasisMode()          { return DEEMP_MODE_50US; }
         double getAFBandwidth(double bandwidth) { return 16000.0; }
         bool getDynamicAFBandwidth()            { return false; }
+        bool getFMIFNRAllowed()                 { return true; }
         dsp::stream<dsp::stereo_t>* getOutput() { return stereo ? demodStereo.out : &demod.out; }
 
         // ============= DEDICATED FUNCTIONS =============

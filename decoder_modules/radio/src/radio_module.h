@@ -59,8 +59,10 @@ public:
         ifChainOutputChanged.handler = ifChainOutputChangeHandler;
         ifChain.init(vfo->output, &ifChainOutputChanged);
 
+        fmnr.block.init(NULL, 64);
         squelch.block.init(NULL, MIN_SQUELCH);
 
+        ifChain.add(&fmnr);
         ifChain.add(&squelch);
 
         // Load configuration for and enabled all demodulators
@@ -254,6 +256,13 @@ private:
         }
         if (!_this->squelchEnabled && _this->enabled) { style::endDisabled(); }
 
+        // FM IF Noise Reduction
+        if (_this->FMIFNRAllowed) {
+            if (ImGui::Checkbox("IF Noise Reduction##_radio_fmifnr_ena_", &_this->FMIFNREnabled)) {
+                _this->setFMIFNREnabled(_this->FMIFNREnabled);
+            }
+        }
+
         // Demodulator specific menu
         _this->selectedDemod->showMenu();
 
@@ -300,7 +309,9 @@ private:
         deempMode = DEEMP_MODE_NONE;
         squelchEnabled = false;
         postProcEnabled = selectedDemod->getPostProcEnabled();
-        if (config.conf[name][selectedDemod->getName()].contains("snapInterval")) {
+        FMIFNRAllowed = selectedDemod->getFMIFNRAllowed();
+        FMIFNREnabled = false;
+        if (config.conf[name][selectedDemod->getName()].contains("bandwidth")) {
             bandwidth = config.conf[name][selectedDemod->getName()]["bandwidth"];
             bandwidth = std::clamp<double>(bandwidth, minBandwidth, maxBandwidth);
         }
@@ -316,6 +327,9 @@ private:
         if (config.conf[name][selectedDemod->getName()].contains("deempMode")) {
             deempMode = config.conf[name][selectedDemod->getName()]["deempMode"];
         }
+        if (config.conf[name][selectedDemod->getName()].contains("FMIFNREnabled")) {
+            FMIFNREnabled = config.conf[name][selectedDemod->getName()]["FMIFNREnabled"];
+        }
         deempMode = std::clamp<int>(deempMode, 0, _DEEMP_MODE_COUNT-1);
 
         // Configure VFO
@@ -326,7 +340,10 @@ private:
             vfo->setSampleRate(selectedDemod->getIFSampleRate(), bandwidth);
         }
 
-        // Configure IF chain
+        // Configure FM IF Noise Reduction
+        setFMIFNREnabled(FMIFNRAllowed ? FMIFNREnabled : false);
+
+        // Configure squelch
         squelch.block.setLevel(squelchLevel);
         setSquelchEnabled(squelchEnabled);
 
@@ -439,6 +456,17 @@ private:
         config.release(true);
     }
 
+    void setFMIFNREnabled(bool enabled) {
+        FMIFNREnabled = enabled;
+        if (!selectedDemod) { return; }
+        ifChain.setState(&fmnr, FMIFNREnabled);
+
+        // Save config
+        config.acquire();
+        config.conf[name][selectedDemod->getName()]["FMIFNREnabled"] = FMIFNREnabled;
+        config.release(true);
+    }
+
     static void vfoUserChangedBandwidthHandler(double newBw, void* ctx) {
         RadioModule* _this = (RadioModule*)ctx;
         _this->setBandwidth(newBw);
@@ -521,6 +549,7 @@ private:
 
     // IF chain
     dsp::Chain<dsp::complex_t> ifChain;
+    dsp::ChainLink<dsp::FMIFNoiseReduction, dsp::complex_t> fmnr;
     dsp::ChainLink<dsp::Squelch, dsp::complex_t> squelch;
 
     // Audio chain
@@ -547,6 +576,8 @@ private:
     int deempMode = DEEMP_MODE_NONE;
     bool deempAllowed;
     bool postProcEnabled;
+    bool FMIFNRAllowed;
+    bool FMIFNREnabled = false;
 
     const double MIN_SQUELCH = -100.0;
     const double MAX_SQUELCH = 0.0;
