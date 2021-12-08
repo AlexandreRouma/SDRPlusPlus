@@ -59,7 +59,7 @@ public:
         ifChainOutputChanged.handler = ifChainOutputChangeHandler;
         ifChain.init(vfo->output, &ifChainOutputChanged);
 
-        fmnr.block.init(NULL, 64);
+        fmnr.block.init(NULL, 32);
         squelch.block.init(NULL, MIN_SQUELCH);
 
         ifChain.add(&fmnr);
