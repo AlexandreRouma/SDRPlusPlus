@@ -60,10 +60,12 @@ public:
         ifChain.init(vfo->output, &ifChainOutputChanged);
 
         fmnr.block.init(NULL, 32);
+        notch.block.init(NULL, 0.5, 0, 250000); // TODO: The rate has to depend on IF sample rate so the width is always the same
         squelch.block.init(NULL, MIN_SQUELCH);
 
-        ifChain.add(&fmnr);
+        ifChain.add(&notch);
         ifChain.add(&squelch);
+        ifChain.add(&fmnr);
 
         // Load configuration for and enabled all demodulators
         EventHandler<dsp::stream<dsp::stereo_t>*> _demodOutputChangeHandler;
@@ -256,9 +258,20 @@ private:
         }
         if (!_this->squelchEnabled && _this->enabled) { style::endDisabled(); }
 
+        // // Notch filter
+        // if (ImGui::Checkbox("Notch##_radio_notch_ena_", &_this->notchEnabled)) {
+        //     _this->ifChain.setState(&_this->notch, _this->notchEnabled);
+        // }
+        // if (ImGui::SliderFloat(("NF##_radio_notch_freq_" + _this->name).c_str(), &_this->notchPos, -7500, 7500)) {
+        //     _this->notch.block.setOffset(_this->notchPos);
+        // }
+        // if (ImGui::SliderFloat(("NW##_radio_notch_width_" + _this->name).c_str(), &_this->notchWidth, 0, 1000)) {
+        //     // TODO: Implement
+        // }
+
         // FM IF Noise Reduction
         if (_this->FMIFNRAllowed) {
-            if (ImGui::Checkbox("IF Noise Reduction##_radio_fmifnr_ena_", &_this->FMIFNREnabled)) {
+            if (ImGui::Checkbox(("IF Noise Reduction##_radio_fmifnr_ena_" + _this->name).c_str(), &_this->FMIFNREnabled)) {
                 _this->setFMIFNREnabled(_this->FMIFNREnabled);
             }
         }
@@ -342,6 +355,9 @@ private:
 
         // Configure FM IF Noise Reduction
         setFMIFNREnabled(FMIFNRAllowed ? FMIFNREnabled : false);
+
+        // Configure notch
+        notch.block.setSampleRate(selectedDemod->getIFSampleRate());
 
         // Configure squelch
         squelch.block.setLevel(squelchLevel);
@@ -550,6 +566,7 @@ private:
     // IF chain
     dsp::Chain<dsp::complex_t> ifChain;
     dsp::ChainLink<dsp::FMIFNoiseReduction, dsp::complex_t> fmnr;
+    dsp::ChainLink<dsp::NotchFilter, dsp::complex_t> notch;
     dsp::ChainLink<dsp::Squelch, dsp::complex_t> squelch;
 
     // Audio chain
@@ -578,6 +595,10 @@ private:
     bool postProcEnabled;
     bool FMIFNRAllowed;
     bool FMIFNREnabled = false;
+
+    bool notchEnabled = false;
+    float notchPos = 0;
+    float notchWidth = 500;
 
     const double MIN_SQUELCH = -100.0;
     const double MAX_SQUELCH = 0.0;

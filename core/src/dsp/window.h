@@ -271,37 +271,125 @@ namespace dsp {
 
     };
 
-    class NotchWindow : public filter_window::generic_window {
+    // class NotchWindow : public filter_window::generic_complex_window {
+    // public:
+    //     NotchWindow() {}
+
+    //     NotchWindow(float frequency, float width, float sampleRate, int tapCount) { init(frequency, width, sampleRate, tapCount); }
+
+    //     ~NotchWindow() {
+    //         if (fft_in) { fftwf_free(fft_in); }
+    //         if (fft_out) { fftwf_free(fft_out); }
+    //         fftwf_destroy_plan(fft_plan);
+    //     }
+
+    //     void init(float frequency, float width, float sampleRate, int tapCount) {
+    //         _frequency = frequency;
+    //         _width = width;
+    //         _sampleRate = sampleRate;
+    //         _tapCount = tapCount;
+
+    //         // Ensure the number of taps is even
+    //         if (_tapCount & 1) { _tapCount++; }    
+        
+    //         fft_in = (complex_t*)fftwf_malloc(_tapCount * sizeof(complex_t));
+    //         fft_out = (complex_t*)fftwf_malloc(_tapCount * sizeof(complex_t));
+
+    //         fft_plan = fftwf_plan_dft_1d(_tapCount, (fftwf_complex*)fft_in, (fftwf_complex*)fft_out, FFTW_BACKWARD, FFTW_ESTIMATE);
+    //     }
+
+    //     void setFrequency(float frequency) {
+    //         _frequency = frequency;
+    //     }
+
+    //     void setWidth(float width) {
+    //         _width = width;
+    //     }
+
+    //     void setSampleRate(float sampleRate) {
+    //         _sampleRate = sampleRate;
+    //     }
+
+    //     void setTapCount(int count) {
+    //         _tapCount = count;
+
+    //         // Ensure the number of taps is even
+
+    //         // Free buffers
+    //         if (fft_in) { fftwf_free(fft_in); }
+    //         if (fft_out) { fftwf_free(fft_out); }
+    //         fftwf_destroy_plan(fft_plan);
+
+    //         // Reallocate
+    //         fft_in = (complex_t*)fftwf_malloc(_tapCount * sizeof(complex_t));
+    //         fft_out = (complex_t*)fftwf_malloc(_tapCount * sizeof(complex_t));
+
+    //         // Create new plan
+    //         fft_plan = fftwf_plan_dft_1d(_tapCount, (fftwf_complex*)fft_in, (fftwf_complex*)fft_out, FFTW_BACKWARD, FFTW_ESTIMATE);
+    //     }
+
+    //     int getTapCount() {
+    //         return _tapCount;
+    //     }
+
+    //     void createTaps(complex_t* taps, int tapCount, float factor = 1.0f) {
+    //         float ratio = _sampleRate / (float)tapCount;
+    //         int thalf = tapCount / 2;
+    //         float start = _frequency - (_width / 2.0f);
+    //         float stop = _frequency + (_width / 2.0f);
+            
+    //         // Fill taps
+    //         float freq;
+    //         float pratio = 2.0f * FL_M_PI / (float)tapCount;
+    //         complex_t phaseDiff = {cosf(pratio), -sinf(pratio)};
+    //         complex_t phasor = {1, 0};
+    //         for (int i = 0; i < tapCount; i++) {
+    //             freq = (i < thalf) ? ((float)i * ratio) : -((float)(tapCount - i) * ratio);
+    //             if (freq >= start && freq <= stop) {
+    //                 fft_in[i] = {0, 0};
+    //             }
+    //             else {
+    //                 fft_in[i] = phasor;
+    //             }
+    //             phasor = phasor * phaseDiff;
+    //         }
+
+    //         // Run IFFT
+    //         fftwf_execute(fft_plan);
+
+    //         // Apply window and copy to output
+    //         for (int i = 0; i < tapCount; i++) {
+    //             taps[tapCount - i - 1] = fft_out[i] / (float)tapCount;
+    //         }
+    //     }
+
+    // private:
+    //     complex_t* fft_in = NULL;
+    //     complex_t* fft_out = NULL;
+    //     float _frequency, _width, _sampleRate;
+    //     int _tapCount;
+
+    //     fftwf_plan fft_plan;
+
+    // };
+
+    class NotchWindow : public filter_window::generic_complex_window {
     public:
         NotchWindow() {}
 
         NotchWindow(float frequency, float width, float sampleRate, int tapCount) { init(frequency, width, sampleRate, tapCount); }
 
-        ~NotchWindow() {
-            if (fft_in) { fftwf_free(fft_in); }
-            if (fft_out) { fftwf_free(fft_out); }
-            fftwf_destroy_plan(fft_plan);
-        }
-
         void init(float frequency, float width, float sampleRate, int tapCount) {
             _frequency = frequency;
-            _width = width;
             _sampleRate = sampleRate;
-            _tapCount = _tapCount;
-
-            fft_in = (complex_t*)fftwf_malloc(_tapCount * sizeof(complex_t));
-            fft_out = (complex_t*)fftwf_malloc(_tapCount * sizeof(complex_t));
-
-            fft_plan = fftwf_plan_dft_1d(_tapCount, (fftwf_complex*)fft_in, (fftwf_complex*)fft_out, FFTW_BACKWARD, FFTW_ESTIMATE);
+            _tapCount = tapCount;
         }
 
         void setFrequency(float frequency) {
             _frequency = frequency;
         }
 
-        void setWidth(float width) {
-            _width = width;
-        }
+        void setWidth(float width) {}
 
         void setSampleRate(float sampleRate) {
             _sampleRate = sampleRate;
@@ -309,31 +397,28 @@ namespace dsp {
 
         void setTapCount(int count) {
             _tapCount = count;
-            if (fft_in) { fftwf_free(fft_in); }
-            if (fft_out) { fftwf_free(fft_out); }
-            fftwf_destroy_plan(fft_plan);
-
-            fft_in = (complex_t*)fftwf_malloc(_tapCount * sizeof(complex_t));
-            fft_out = (complex_t*)fftwf_malloc(_tapCount * sizeof(complex_t));
-
-            fft_plan = fftwf_plan_dft_1d(_tapCount, (fftwf_complex*)fft_in, (fftwf_complex*)fft_out, FFTW_BACKWARD, FFTW_ESTIMATE);
         }
 
         int getTapCount() {
             return _tapCount;
         }
 
-        void createTaps(float* taps, int tapCount, float factor = 1.0f) {
-            
+        void createTaps(complex_t* taps, int tapCount, float factor = 1.0f) {
+            // Generate exponential decay
+            float fact = 1.0f / (float)tapCount;
+            for (int i = 0; i < tapCount; i++) {
+                taps[tapCount - i - 1] = {expf(-fact*i) * (float)window_function::blackman(i, tapCount - 1), 0};
+            }
+
+            // Frequency translate it to the right place
+            lv_32fc_t phase = lv_cmake(1.0f, 0.0f);
+            lv_32fc_t phaseDelta = lv_cmake(std::cos((-_frequency / _sampleRate) * 2.0f * FL_M_PI), std::sin((-_frequency / _sampleRate) * 2.0f * FL_M_PI));
+            volk_32fc_s32fc_x2_rotator_32fc((lv_32fc_t*)taps, (lv_32fc_t*)taps, phaseDelta, &phase, tapCount);
         }
 
     private:
-        complex_t* fft_in = NULL;
-        complex_t* fft_out = NULL;
-        float _frequency, _width, _sampleRate;
+        float _frequency, _sampleRate;
         int _tapCount;
-
-        fftwf_plan fft_plan;
 
     };
 }

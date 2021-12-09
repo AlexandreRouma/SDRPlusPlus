@@ -384,4 +384,85 @@ namespace dsp {
         stream<complex_t>* _in;
 
     };
+
+    class NotchFilter : public generic_block<NotchFilter> {
+    public:
+        NotchFilter() {}
+
+        NotchFilter(stream<complex_t>* in, float rate, float offset, float sampleRate) { init(in, rate, offset, sampleRate); }
+
+        void init(stream<complex_t>* in, float rate, float offset, float sampleRate) {
+            _in = in;
+            correctionRate = rate;
+            _offset = offset;
+            _sampleRate = sampleRate;
+
+            phaseDelta = lv_cmake(std::cos((-_offset / _sampleRate) * 2.0f * FL_M_PI), std::sin((-_offset / _sampleRate) * 2.0f * FL_M_PI));
+            phaseDeltaConj = {phaseDelta.real(), -phaseDelta.imag()};
+
+            generic_block<NotchFilter>::registerInput(_in);
+            generic_block<NotchFilter>::registerOutput(&out);
+            generic_block<NotchFilter>::_block_init = true;
+        }
+
+        void setInput(stream<complex_t>* in) {
+            assert(generic_block<NotchFilter>::_block_init);
+            std::lock_guard<std::mutex> lck(generic_block<NotchFilter>::ctrlMtx);
+            generic_block<NotchFilter>::tempStop();
+            generic_block<NotchFilter>::unregisterInput(_in);
+            _in = in;
+            generic_block<NotchFilter>::registerInput(_in);
+            generic_block<NotchFilter>::tempStart();
+        }
+
+        void setCorrectionRate(float rate) {
+            correctionRate = rate;
+        }
+
+        void setOffset(float offset) {
+            _offset = offset;
+            phaseDelta = lv_cmake(std::cos((-_offset / _sampleRate) * 2.0f * FL_M_PI), std::sin((-_offset / _sampleRate) * 2.0f * FL_M_PI));
+            phaseDeltaConj = {phaseDelta.real(), -phaseDelta.imag()};
+        }
+
+        void setSampleRate(float sampleRate) {
+            _sampleRate = sampleRate;
+            phaseDelta = lv_cmake(std::cos((-_offset / _sampleRate) * 2.0f * FL_M_PI), std::sin((-_offset / _sampleRate) * 2.0f * FL_M_PI));
+            phaseDeltaConj = {phaseDelta.real(), -phaseDelta.imag()};
+        }
+
+        int run() {
+            int count = _in->read();
+            if (count < 0) { return -1; }
+
+            volk_32fc_s32fc_x2_rotator_32fc((lv_32fc_t*)_in->readBuf, (lv_32fc_t*)_in->readBuf, phaseDelta, &inPhase, count);
+
+            for (int i = 0; i < count; i++) {
+                out.writeBuf[i] = _in->readBuf[i] - offset;
+                offset = offset + (out.writeBuf[i] * correctionRate);
+            }
+
+            volk_32fc_s32fc_x2_rotator_32fc((lv_32fc_t*)out.writeBuf, (lv_32fc_t*)out.writeBuf, phaseDeltaConj, &outPhase, count);
+
+            _in->flush();
+
+            if (!out.swap(count)) { return -1; }
+
+            return count;
+        }
+
+        stream<complex_t> out;
+
+    private:
+        stream<complex_t>* _in;
+        complex_t offset = {0, 0};
+        lv_32fc_t inPhase = {1, 0};
+        lv_32fc_t outPhase = {4, 0};
+        lv_32fc_t phaseDelta;
+        lv_32fc_t phaseDeltaConj;
+        float _offset;
+        float _sampleRate;
+        float correctionRate;
+
+    };
 }
