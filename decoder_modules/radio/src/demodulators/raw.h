@@ -63,6 +63,7 @@ namespace demod {
         double getAFBandwidth(double bandwidth) { return bandwidth; }
         bool getDynamicAFBandwidth()            { return false; }
         bool getFMIFNRAllowed()                 { return false; }
+        bool getNBAllowed()                     { return true; }
         dsp::stream<dsp::stereo_t>* getOutput() { return &c2s.out; }
 
     private:

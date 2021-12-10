@@ -62,10 +62,12 @@ public:
         fmnr.block.init(NULL, 32);
         notch.block.init(NULL, 0.5, 0, 250000); // TODO: The rate has to depend on IF sample rate so the width is always the same
         squelch.block.init(NULL, MIN_SQUELCH);
+        nb.block.init(NULL, -100.0f);
 
         ifChain.add(&notch);
         ifChain.add(&squelch);
         ifChain.add(&fmnr);
+        ifChain.add(&nb);
 
         // Load configuration for and enabled all demodulators
         EventHandler<dsp::stream<dsp::stereo_t>*> _demodOutputChangeHandler;
@@ -258,6 +260,21 @@ private:
         }
         if (!_this->squelchEnabled && _this->enabled) { style::endDisabled(); }
 
+        // Noise blanker
+        if (_this->nbAllowed) {
+            if (ImGui::Checkbox(("Noise Blanker##_radio_nb_ena_" + _this->name).c_str(), &_this->nbEnabled)) {
+                _this->setNoiseBlankerEnabled(_this->nbEnabled);
+            }
+            if (!_this->nbEnabled && _this->enabled) { style::beginDisabled(); }
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+            if (ImGui::SliderFloat(("##_radio_nb_lvl_" + _this->name).c_str(), &_this->nbLevel, 0.0f, -100.0f, "%.3fdB")) {
+                _this->setNoiseBlankerLevel(_this->nbLevel);
+            }
+            if (!_this->nbEnabled && _this->enabled) { style::endDisabled(); }
+        }
+        
+
         // // Notch filter
         // if (ImGui::Checkbox("Notch##_radio_notch_ena_", &_this->notchEnabled)) {
         //     _this->ifChain.setState(&_this->notch, _this->notchEnabled);
@@ -324,6 +341,10 @@ private:
         postProcEnabled = selectedDemod->getPostProcEnabled();
         FMIFNRAllowed = selectedDemod->getFMIFNRAllowed();
         FMIFNREnabled = false;
+        nbAllowed = selectedDemod->getNBAllowed();
+        nbEnabled = false;
+        nbLevel = 0.0f;
+        config.acquire();
         if (config.conf[name][selectedDemod->getName()].contains("bandwidth")) {
             bandwidth = config.conf[name][selectedDemod->getName()]["bandwidth"];
             bandwidth = std::clamp<double>(bandwidth, minBandwidth, maxBandwidth);
@@ -343,6 +364,16 @@ private:
         if (config.conf[name][selectedDemod->getName()].contains("FMIFNREnabled")) {
             FMIFNREnabled = config.conf[name][selectedDemod->getName()]["FMIFNREnabled"];
         }
+        if (config.conf[name][selectedDemod->getName()].contains("noiseBlankerEnabled")) {
+            nbEnabled = config.conf[name][selectedDemod->getName()]["noiseBlankerEnabled"];
+        }
+        if (config.conf[name][selectedDemod->getName()].contains("noiseBlankerEnabled")) {
+            nbEnabled = config.conf[name][selectedDemod->getName()]["noiseBlankerEnabled"];
+        }
+        if (config.conf[name][selectedDemod->getName()].contains("noiseBlankerLevel")) {
+            nbLevel = config.conf[name][selectedDemod->getName()]["noiseBlankerLevel"];
+        }
+        config.release();
         deempMode = std::clamp<int>(deempMode, 0, _DEEMP_MODE_COUNT-1);
 
         // Configure VFO
@@ -362,6 +393,10 @@ private:
         // Configure squelch
         squelch.block.setLevel(squelchLevel);
         setSquelchEnabled(squelchEnabled);
+
+        // Configure noise blanker
+        nb.block.setLevel(nbLevel);
+        setNoiseBlankerEnabled(nbEnabled);
 
         // Configure AF chain
         if (postProcEnabled) {
@@ -483,6 +518,28 @@ private:
         config.release(true);
     }
 
+    void setNoiseBlankerEnabled(bool enabled) {
+        nbEnabled = enabled;
+        if (!selectedDemod) { return; }
+        ifChain.setState(&nb, nbEnabled);
+
+        // Save config
+        config.acquire();
+        config.conf[name][selectedDemod->getName()]["noiseBlankerEnabled"] = nbEnabled;
+        config.release(true);
+    }
+
+    void setNoiseBlankerLevel(float level) {
+        nbLevel = level;
+        if (!selectedDemod) { return; }
+        nb.block.setLevel(nbLevel);
+
+        // Save config
+        config.acquire();
+        config.conf[name][selectedDemod->getName()]["noiseBlankerLevel"] = nbLevel;
+        config.release(true);
+    }
+
     static void vfoUserChangedBandwidthHandler(double newBw, void* ctx) {
         RadioModule* _this = (RadioModule*)ctx;
         _this->setBandwidth(newBw);
@@ -568,6 +625,7 @@ private:
     dsp::ChainLink<dsp::FMIFNoiseReduction, dsp::complex_t> fmnr;
     dsp::ChainLink<dsp::NotchFilter, dsp::complex_t> notch;
     dsp::ChainLink<dsp::Squelch, dsp::complex_t> squelch;
+    dsp::ChainLink<dsp::NoiseBlanker, dsp::complex_t> nb;
 
     // Audio chain
     dsp::stream<dsp::stereo_t> dummyAudioStream;
@@ -587,18 +645,25 @@ private:
     float bandwidth;
     bool bandwidthLocked;
     int snapInterval;
+    int selectedDemodID = 1;
+    bool postProcEnabled;
+
     bool squelchEnabled = false;
     float squelchLevel;
-    int selectedDemodID = 1;
+
     int deempMode = DEEMP_MODE_NONE;
     bool deempAllowed;
-    bool postProcEnabled;
+
     bool FMIFNRAllowed;
     bool FMIFNREnabled = false;
 
     bool notchEnabled = false;
     float notchPos = 0;
     float notchWidth = 500;
+
+    bool nbAllowed;
+    bool nbEnabled;
+    float nbLevel = -100.0f;
 
     const double MIN_SQUELCH = -100.0;
     const double MAX_SQUELCH = 0.0;

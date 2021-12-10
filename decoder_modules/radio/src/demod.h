@@ -38,6 +38,7 @@ namespace demod {
         virtual int getDefaultDeemphasisMode() = 0;
         virtual double getAFBandwidth(double bandwidth) = 0;
         virtual bool getFMIFNRAllowed() = 0;
+        virtual bool getNBAllowed() = 0;
         
         virtual bool getDynamicAFBandwidth() = 0;
         virtual dsp::stream<dsp::stereo_t>* getOutput() = 0;
