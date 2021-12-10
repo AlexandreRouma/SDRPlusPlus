@@ -260,8 +260,9 @@ int sdrpp_main(int argc, char *argv[]) {
     core::configManager.load(defConfig);
     core::configManager.enableAutoSave();
 
-
+    // Aquire configuration
     core::configManager.acquire();
+
     // Fix missing elements in config
     for (auto const& item : defConfig.items()) {
         if (!core::configManager.conf.contains(item.key())) {
@@ -348,7 +349,6 @@ int sdrpp_main(int argc, char *argv[]) {
         glfwMakeContextCurrent(core::window);
         break;
     }
-    
 #endif
 
     // Add callback for max/min if GLFW supports it
