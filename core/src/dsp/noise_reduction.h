@@ -22,6 +22,7 @@ namespace dsp {
             fftwf_free(fft_window);
             fftwf_free(amp_buf);
             fftwf_free(fft_cout);
+            fftwf_free(fft_cin);
             fftwf_free(fft_fcout);
         }
 
@@ -34,6 +35,7 @@ namespace dsp {
             fft_window = (float*)fftwf_malloc(sizeof(float)*_tapCount);
             amp_buf = (float*)fftwf_malloc(sizeof(float)*_tapCount);
             fft_cout = (complex_t*)fftwf_malloc(sizeof(complex_t)*_tapCount);
+            fft_cin = (complex_t*)fftwf_malloc(sizeof(complex_t)*_tapCount);
             fft_fcout = (complex_t*)fftwf_malloc(sizeof(complex_t)*_tapCount);
             delay_start = &delay[_tapCount];
 
@@ -41,6 +43,7 @@ namespace dsp {
             memset(fft_in, 0, sizeof(complex_t)*_tapCount);
             memset(amp_buf, 0, sizeof(float)*_tapCount);
             memset(fft_cout, 0, sizeof(complex_t)*_tapCount);
+            memset(fft_cin, 0, sizeof(complex_t)*_tapCount);
             memset(fft_fcout, 0, sizeof(complex_t)*_tapCount);
             
             for (int i = 0; i < _tapCount; i++) {
@@ -48,7 +51,7 @@ namespace dsp {
             }
 
             forwardPlan = fftwf_plan_dft_1d(_tapCount, (fftwf_complex*)fft_in, (fftwf_complex*)fft_cout, FFTW_FORWARD, FFTW_ESTIMATE);
-            backwardPlan = fftwf_plan_dft_1d(_tapCount, (fftwf_complex*)fft_cout, (fftwf_complex*)fft_fcout, FFTW_BACKWARD, FFTW_ESTIMATE);
+            backwardPlan = fftwf_plan_dft_1d(_tapCount, (fftwf_complex*)fft_cin, (fftwf_complex*)fft_fcout, FFTW_BACKWARD, FFTW_ESTIMATE);
 
             generic_block<FMIFNoiseReduction>::registerInput(_in);
             generic_block<FMIFNoiseReduction>::registerOutput(&out);
@@ -80,6 +83,7 @@ namespace dsp {
             fftwf_free(fft_window);
             fftwf_free(amp_buf);
             fftwf_free(fft_cout);
+            fftwf_free(fft_cin);
             fftwf_free(fft_fcout);
 
             delay = (complex_t*)fftwf_malloc(sizeof(complex_t)*STREAM_BUFFER_SIZE);
@@ -87,6 +91,7 @@ namespace dsp {
             fft_window = (float*)fftwf_malloc(sizeof(float)*_tapCount);
             amp_buf = (float*)fftwf_malloc(sizeof(float)*_tapCount);
             fft_cout = (complex_t*)fftwf_malloc(sizeof(complex_t)*_tapCount);
+            fft_cin = (complex_t*)fftwf_malloc(sizeof(complex_t)*_tapCount);
             fft_fcout = (complex_t*)fftwf_malloc(sizeof(complex_t)*_tapCount);
             delay_start = &delay[_tapCount];
 
@@ -94,6 +99,7 @@ namespace dsp {
             memset(fft_in, 0, sizeof(complex_t)*_tapCount);
             memset(amp_buf, 0, sizeof(float)*_tapCount);
             memset(fft_cout, 0, sizeof(complex_t)*_tapCount);
+            memset(fft_cin, 0, sizeof(complex_t)*_tapCount);
             memset(fft_fcout, 0, sizeof(complex_t)*_tapCount);
             
             for (int i = 0; i < _tapCount; i++) {
@@ -101,7 +107,7 @@ namespace dsp {
             }
 
             forwardPlan = fftwf_plan_dft_1d(_tapCount, (fftwf_complex*)fft_in, (fftwf_complex*)fft_cout, FFTW_FORWARD, FFTW_ESTIMATE);
-            backwardPlan = fftwf_plan_dft_1d(_tapCount, (fftwf_complex*)fft_cout, (fftwf_complex*)fft_fcout, FFTW_BACKWARD, FFTW_ESTIMATE);
+            backwardPlan = fftwf_plan_dft_1d(_tapCount, (fftwf_complex*)fft_cin, (fftwf_complex*)fft_fcout, FFTW_BACKWARD, FFTW_ESTIMATE);
 
             spdlog::info("FM IF Noise reduction set to {0} taps", _tapCount);
 
@@ -143,14 +149,15 @@ namespace dsp {
                 volk_32fc_magnitude_32f(amp_buf, (lv_32fc_t*)fft_cout, _tapCount);
                 volk_32f_index_max_32u(&idx, amp_buf, _tapCount);
 
-                for (int j = 0; j < _tapCount; j++) {
-                    if (j == idx) { continue; }
-                    fft_cout[j] = {0, 0};
-                }
+                // Keep only the bin of highest amplitude
+                fft_cin[idx] = fft_cout[idx];
 
                 // Do reverse FFT and get first element
                 fftwf_execute(backwardPlan);
                 out.writeBuf[i] = fft_fcout[_tapCount/2];
+
+                // Reset the input buffer
+                fft_cin[idx] = {0, 0};
             }
 
             volk_32f_s32f_multiply_32f((float*)out.writeBuf, (float*)out.writeBuf, 1.0f/(float)_tapCount, count * 2);
@@ -178,6 +185,7 @@ namespace dsp {
         float* amp_buf;
         complex_t* delay_start;
         complex_t* fft_cout;
+        complex_t* fft_cin;
         complex_t* fft_fcout;
 
         int _tapCount;
