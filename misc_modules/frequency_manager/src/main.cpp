@@ -12,6 +12,7 @@
 #include <gui/tuner.h>
 #include <gui/file_dialogs.h>
 #include <utils/freq_formatting.h>
+#include <gui/dialogs/dialog_box.h>
 
 SDRPP_MOD_INFO {
     /* Name:            */ "frequency_manager",
@@ -391,7 +392,14 @@ private:
         ImGui::SameLine();
         if (_this->selectedListName == "") { style::beginDisabled(); }
         if (ImGui::Button(("-##_freq_mgr_del_lst_" + _this->name).c_str(), ImVec2(lineHeight, 0))) {
-            if (_this->selectedListName == "") { style::endDisabled(); }
+            _this->deleteListOpen = true;
+        }
+        if (_this->selectedListName == "") { style::endDisabled(); }
+
+        // List delete confirmation
+        if (ImGui::GenericDialog(("freq_manager_del_list_confirm"+_this->name).c_str(), _this->deleteListOpen, GENERIC_DIALOG_BUTTONS_YES_NO, [_this](){
+            ImGui::Text("Deleting list named \"%s\". Are you sure?", _this->selectedListName.c_str());
+        }) == GENERIC_DIALOG_BUTTON_YES) {
             config.acquire();
             config.conf["lists"].erase(_this->selectedListName);
             _this->refreshWaterfallBookmarks(false);
@@ -404,9 +412,6 @@ private:
             else {
                 _this->selectedListName = "";
             }
-        }
-        else {
-            if (_this->selectedListName == "") { style::endDisabled(); }
         }
         
         if (_this->selectedListName == "") { style::beginDisabled(); }
@@ -454,8 +459,7 @@ private:
         ImGui::TableSetColumnIndex(1);
         if (selectedNames.size() == 0 && _this->selectedListName != "") { style::beginDisabled(); }
         if (ImGui::Button(("Remove##_freq_mgr_rem_" + _this->name).c_str(), ImVec2(ImGui::GetContentRegionAvailWidth(), 0))) {
-            for (auto& _name : selectedNames) { _this->bookmarks.erase(_name); }
-            _this->saveByName(_this->selectedListName);
+            _this->deleteBookmarksOpen = true;
         }
         if (selectedNames.size() == 0 && _this->selectedListName != "") { style::endDisabled(); }
         ImGui::TableSetColumnIndex(2);
@@ -469,6 +473,15 @@ private:
         if (selectedNames.size() != 1 && _this->selectedListName != "") { style::endDisabled(); }
         
         ImGui::EndTable();
+
+        // Bookmark delete confirm dialog
+        // List delete confirmation
+        if (ImGui::GenericDialog(("freq_manager_del_list_confirm"+_this->name).c_str(), _this->deleteBookmarksOpen, GENERIC_DIALOG_BUTTONS_YES_NO, [_this](){
+            ImGui::Text("Deleting selected bookmaks. Are you sure?");
+        }) == GENERIC_DIALOG_BUTTON_YES) {
+            for (auto& _name : selectedNames) { _this->bookmarks.erase(_name); }
+            _this->saveByName(_this->selectedListName);
+        }
 
         // Bookmark list
         if (ImGui::BeginTable(("freq_manager_bkm_table"+_this->name).c_str(), 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, 200))) {
@@ -785,6 +798,9 @@ private:
     bool newListOpen = false;
     bool renameListOpen = false;
     bool selectListsOpen = false;
+
+    bool deleteListOpen = false;
+    bool deleteBookmarksOpen = false;
 
     EventHandler<ImGui::WaterFall::FFTRedrawArgs> fftRedrawHandler;
     EventHandler<ImGui::WaterFall::InputHandlerArgs> inputHandler;
