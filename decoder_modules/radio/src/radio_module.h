@@ -398,7 +398,7 @@ private:
         setSquelchEnabled(squelchEnabled);
 
         // Configure noise blanker
-        fmnr.block.setTapCount((selectedDemod->getIFSampleRate() < 100000.0f) ? 8 : 32);
+        fmnr.block.setTapCount((selectedDemod->getIFSampleRate() < 100000.0f) ? 9 : 32);
         nb.block.setLevel(nbLevel);
         setNoiseBlankerEnabled(nbEnabled);
 
