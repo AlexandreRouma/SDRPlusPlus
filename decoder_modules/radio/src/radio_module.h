@@ -20,7 +20,7 @@ const double DeemphasisModes[] {
     75e-6
 };
 
-const char* DeemhasisModesTxt = "50µS\00075µS\000None\000";
+const char* DeemhasisModesTxt = "50µs\00075µs\000None\000";
 
 class RadioModule : public ModuleManager::Instance {
 public:

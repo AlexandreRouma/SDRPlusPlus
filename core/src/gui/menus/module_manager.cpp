@@ -10,8 +10,10 @@ namespace module_manager_menu {
     std::vector<std::string> modTypes;
     std::string toBeRemoved;
     std::string modTypesTxt;
+    std::string errorMessage;
     int modTypeId;
     bool confirmOpened = false;
+    bool errorOpen = false;
 
     void init() {
         modName[0] = 0;
@@ -66,6 +68,10 @@ namespace module_manager_menu {
             modified = true;
         }
 
+        ImGui::GenericDialog("module_mgr_error_", errorOpen, GENERIC_DIALOG_BUTTONS_OK, [](){
+            ImGui::Text(errorMessage.c_str());
+        });
+
         // Add module row with slightly different settings
         ImGui::BeginTable("Module Manager Add Table", 3);
         ImGui::TableSetupColumn("Name");
@@ -84,9 +90,14 @@ namespace module_manager_menu {
         ImGui::TableSetColumnIndex(2);
         if (strlen(modName) == 0) { style::beginDisabled(); }
         if (ImGui::Button("+##module_mgr_add_btn", ImVec2(16,0))) {
-            core::moduleManager.createInstance(modName, modTypes[modTypeId]);
-            core::moduleManager.postInit(modName);
-            modified = true;
+            if (!core::moduleManager.createInstance(modName, modTypes[modTypeId])) {
+                core::moduleManager.postInit(modName);
+                modified = true;
+            }
+            else {
+                errorMessage = "Could not create new instance of " + modTypes[modTypeId];
+                errorOpen = true;
+            }
         }
         if (strlen(modName) == 0) { style::endDisabled(); }
         ImGui::EndTable();

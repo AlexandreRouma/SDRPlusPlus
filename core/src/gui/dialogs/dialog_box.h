@@ -4,9 +4,12 @@
 #include <string>
 #include <gui/gui.h>
 
+#define GENERIC_DIALOG_BUTTONS_OK                "Ok\0"
 #define GENERIC_DIALOG_BUTTONS_YES_NO           "Yes\0No\0"
 #define GENERIC_DIALOG_BUTTONS_APPLY_CANCEL     "Apply\0Cancel\0"
+#define GENERIC_DIALOG_BUTTONS_OK_CANCEL     "Ok\0Cancel\0"
 
+#define GENERIC_DIALOG_BUTTON_OK        0
 #define GENERIC_DIALOG_BUTTON_YES       0
 #define GENERIC_DIALOG_BUTTON_NO        1
 #define GENERIC_DIALOG_BUTTON_APPLY     0

@@ -78,12 +78,12 @@ public:
 
     ModuleManager::Module_t loadModule(std::string path);
 
-    void createInstance(std::string name, std::string module);
-    void deleteInstance(std::string name);
-    void deleteInstance(ModuleManager::Instance* instance);
+    int createInstance(std::string name, std::string module);
+    int deleteInstance(std::string name);
+    int deleteInstance(ModuleManager::Instance* instance);
 
-    void enableInstance(std::string name);
-    void disableInstance(std::string name);
+    int enableInstance(std::string name);
+    int disableInstance(std::string name);
     bool instanceEnabled(std::string name);
     void postInit(std::string name);
     std::string getInstanceModuleName(std::string name);
