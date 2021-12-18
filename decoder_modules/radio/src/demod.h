@@ -6,6 +6,7 @@
 #include <utils/event.h>
 
 enum DeemphasisMode {
+    DEEMP_MODE_22US,
     DEEMP_MODE_50US,
     DEEMP_MODE_75US,
     DEEMP_MODE_NONE,

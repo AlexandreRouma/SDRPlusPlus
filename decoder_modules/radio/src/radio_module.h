@@ -8,6 +8,7 @@
 #include <dsp/chain.h>
 #include <dsp/noise_reduction.h>
 #include <core.h>
+#include <utils/optionlist.h>
 #include "radio_interface.h"
 #include "demod.h"
 
@@ -15,17 +16,22 @@ ConfigManager config;
 
 #define CONCAT(a, b)    ((std::string(a) + b).c_str())
 
-const double DeemphasisModes[] {
-    50e-6,
-    75e-6
+std::map<DeemphasisMode, double> deempTaus = {
+    {DEEMP_MODE_22US, 22e-6},
+    {DEEMP_MODE_50US, 50e-6},
+    {DEEMP_MODE_75US, 75e-6}
 };
-
-const char* DeemhasisModesTxt = "50µs\00075µs\000None\000";
 
 class RadioModule : public ModuleManager::Instance {
 public:
     RadioModule(std::string name) {
         this->name = name;
+
+        // Intialize option lists
+        deempModes.define("None", DEEMP_MODE_NONE);
+        deempModes.define("22us", DEEMP_MODE_22US);
+        deempModes.define("50us", DEEMP_MODE_50US);
+        deempModes.define("75us", DEEMP_MODE_75US);
 
         // Initialize the config if it doesn't exist
         bool created = false;
@@ -243,8 +249,8 @@ private:
         if (_this->deempAllowed) {
             ImGui::LeftLabel("De-emphasis");
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::Combo(("##_radio_wfm_deemp_" + _this->name).c_str(), &_this->deempMode, DeemhasisModesTxt)) {
-                _this->setDeemphasisMode(_this->deempMode);
+            if (ImGui::Combo(("##_radio_wfm_deemp_" + _this->name).c_str(), &_this->deempId, _this->deempModes.txt)) {
+                _this->setDeemphasisMode(_this->deempModes[_this->deempId]);
             }
         }
 
@@ -336,7 +342,7 @@ private:
         snapInterval = selectedDemod->getDefaultSnapInterval();
         squelchLevel = MIN_SQUELCH;
         deempAllowed = selectedDemod->getDeempAllowed();
-        deempMode = selectedDemod->getDefaultDeemphasisMode();
+        deempId = deempModes.valueId((DeemphasisMode)selectedDemod->getDefaultDeemphasisMode());
         squelchEnabled = false;
         postProcEnabled = selectedDemod->getPostProcEnabled();
         FMIFNRAllowed = selectedDemod->getFMIFNRAllowed();
@@ -359,7 +365,15 @@ private:
             squelchEnabled = config.conf[name][selectedDemod->getName()]["squelchEnabled"];
         }
         if (config.conf[name][selectedDemod->getName()].contains("deempMode")) {
-            deempMode = config.conf[name][selectedDemod->getName()]["deempMode"];
+            // Upgrade to the text key
+            if (!config.conf[name][selectedDemod->getName()]["deempMode"].is_string()) {
+                config.conf[name][selectedDemod->getName()]["deempMode"] = deempModes.key(deempId);
+            }
+
+            std::string deempOpt = config.conf[name][selectedDemod->getName()]["deempMode"];
+            if (deempModes.keyExists(deempOpt)) {
+                deempId = deempModes.keyId(deempOpt);
+            }
         }
         if (config.conf[name][selectedDemod->getName()].contains("FMIFNREnabled")) {
             FMIFNREnabled = config.conf[name][selectedDemod->getName()]["FMIFNREnabled"];
@@ -374,7 +388,6 @@ private:
             nbLevel = config.conf[name][selectedDemod->getName()]["noiseBlankerLevel"];
         }
         config.release();
-        deempMode = std::clamp<int>(deempMode, 0, _DEEMP_MODE_COUNT-1);
 
         // Configure VFO
         if (vfo) {
@@ -411,7 +424,7 @@ private:
             afChain.enable(&resamp);
 
             // Configure deemphasis
-            setDeemphasisMode(deempMode);
+            setDeemphasisMode(deempModes[deempId]);
         }
         else {
             // Disable everyting if post processing is disabled
@@ -475,18 +488,16 @@ private:
         afChain.start();
     }
 
-    void setDeemphasisMode(int mode) {
-        deempMode = std::clamp<int>(mode, 0, _DEEMP_MODE_COUNT-1);
+    void setDeemphasisMode(DeemphasisMode mode) {
+        deempId = deempModes.valueId(mode);
         if (!postProcEnabled || !selectedDemod) { return; }
-        bool deempEnabled = (deempMode != DEEMP_MODE_NONE);
-        if (deempEnabled) {
-            deemp.block.setTau(DeemphasisModes[deempMode]);
-        }
+        bool deempEnabled = (mode != DEEMP_MODE_NONE);
+        if (deempEnabled) { deemp.block.setTau(deempTaus[mode]); }
         afChain.setState(&deemp, deempEnabled);
 
         // Save config
         config.acquire();
-        config.conf[name][selectedDemod->getName()]["deempMode"] = deempMode;
+        config.conf[name][selectedDemod->getName()]["deempMode"] = deempModes.key(deempId);
         config.release(true);
     }
 
@@ -643,6 +654,8 @@ private:
     std::array<demod::Demodulator*, _RADIO_DEMOD_COUNT> demods;
     demod::Demodulator* selectedDemod = NULL;
 
+    OptionList<std::string, DeemphasisMode> deempModes;
+
     double audioSampleRate = 48000.0;
     float minBandwidth;
     float maxBandwidth;
@@ -655,7 +668,7 @@ private:
     bool squelchEnabled = false;
     float squelchLevel;
 
-    int deempMode = DEEMP_MODE_NONE;
+    int deempId = 0;
     bool deempAllowed;
 
     bool FMIFNRAllowed;
