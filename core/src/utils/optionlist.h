@@ -21,9 +21,9 @@ public:
     }
 
     void undefined(int id) {
-        keys.erase(id);
-        names.erase(id);
-        values.erase(id);
+        keys.erase(keys.begin() + id);
+        names.erase(names.begin() + id);
+        values.erase(values.begin() + id);
         updateText();
     }
 
