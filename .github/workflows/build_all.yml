@@ -367,4 +367,4 @@ jobs:
         - uses: actions/checkout@v2
         
         - name: Run check_clang_format
-          run: cd $GITHUB_WORKSPACE && ./check_clang_format.sh || true
+          run: cd $GITHUB_WORKSPACE && chmod +x ./check_clang_format.sh && ./check_clang_format.sh || true
