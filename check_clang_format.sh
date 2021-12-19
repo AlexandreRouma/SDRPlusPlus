@@ -14,6 +14,7 @@ while read -r CPP_FILE_PATH; do
     if [[ "$CPP_FILE_PATH" == "./source_modules/sddc_source/src/libsddc"* ]]; then continue; fi
     
     if [ "$CPP_FILE_PATH" = ./core/src/json.hpp ]; then continue; fi
+    if [ "$CPP_FILE_PATH" = ./core/src/gui/file_dialogs.h ]; then continue; fi
 
     echo Checking $CPP_FILE_PATH
     clang-format --style=file -i -n -Werror $CPP_FILE_PATH
