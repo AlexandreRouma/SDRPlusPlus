@@ -138,7 +138,6 @@ namespace sched_action {
         int vfoNameId = -1;
 
         std::string name;
-
     };
 
     Action TuneVFO() {

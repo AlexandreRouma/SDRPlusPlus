@@ -21,10 +21,10 @@ namespace bandplan {
 
     void to_json(json& j, const Band_t& b) {
         j = json{
-            {"name", b.name},
-            {"type", b.type},
-            {"start", b.start},
-            {"end", b.end},
+            { "name", b.name },
+            { "type", b.type },
+            { "start", b.start },
+            { "end", b.end },
         };
     }
 
@@ -37,12 +37,12 @@ namespace bandplan {
 
     void to_json(json& j, const BandPlan_t& b) {
         j = json{
-            {"name", b.name},
-            {"country_name", b.countryName},
-            {"country_code", b.countryCode},
-            {"author_name", b.authorName},
-            {"author_url", b.authorURL},
-            {"bands", b.bands}
+            { "name", b.name },
+            { "country_name", b.countryName },
+            { "country_code", b.countryCode },
+            { "author_name", b.authorName },
+            { "author_url", b.authorURL },
+            { "bands", b.bands }
         };
     }
 
@@ -58,7 +58,7 @@ namespace bandplan {
     void to_json(json& j, const BandPlanColor_t& ct) {
         spdlog::error("ImGui color to JSON not implemented!!!");
     }
-    
+
     void from_json(const json& j, BandPlanColor_t& ct) {
         std::string col = j.get<std::string>();
         if (col[0] != '#' || !std::all_of(col.begin() + 1, col.end(), ::isxdigit)) {
@@ -99,7 +99,7 @@ namespace bandplan {
             return;
         }
         bandplans.clear();
-        for (const auto & file : std::filesystem::directory_iterator(path)) {
+        for (const auto& file : std::filesystem::directory_iterator(path)) {
             std::string path = file.path().generic_string();
             if (file.path().extension().generic_string() != ".json") {
                 continue;

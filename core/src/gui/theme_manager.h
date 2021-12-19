@@ -20,7 +20,8 @@ public:
 
     std::vector<std::string> getThemeNames();
 
-    ImVec4 waterfallBg = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);;
+    ImVec4 waterfallBg = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
+    ;
     ImVec4 clearColor = ImVec4(0.0666f, 0.0666f, 0.0666f, 1.0f);
 
 private:
@@ -29,5 +30,4 @@ private:
     static std::map<std::string, int> IMGUI_COL_IDS;
 
     std::map<std::string, Theme> themes;
-
 };

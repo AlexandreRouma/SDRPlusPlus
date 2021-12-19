@@ -70,8 +70,6 @@ namespace dsp {
     private:
         stream<complex_t>* _in;
         float correctionRate = 0.00001;
-        
-
     };
 
     class DCBlocker : public generic_block<DCBlocker> {
@@ -138,9 +136,7 @@ namespace dsp {
     private:
         stream<float>* _in;
         float correctionRate = 0.00001;
-        
-
     };
 
-    
+
 }

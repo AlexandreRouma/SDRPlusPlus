@@ -20,11 +20,11 @@ namespace dsp {
     class ChainLink : public ChainLinkAny<T> {
     public:
         ~ChainLink() {}
-        
+
         void setInput(stream<T>* stream) {
             block.setInput(stream);
         }
-        
+
         stream<T>* getOutput() {
             return &block.out;
         }
@@ -60,7 +60,7 @@ namespace dsp {
                 spdlog::error("Could not add new link to the chain, link already in the chain");
                 return;
             }
-            
+
             // Assert that the link is stopped and disabled
             link->stop();
             link->enabled = false;
@@ -85,7 +85,7 @@ namespace dsp {
                 if (!(*i)->enabled) { continue; }
                 input = (*i)->getOutput();
             }
-            
+
             // Find next block
             ChainLinkAny<T>* nextLink = NULL;
             for (auto i = ++lnit; i < links.end(); i++) {
@@ -127,7 +127,7 @@ namespace dsp {
                 if (!(*i)->enabled) { continue; }
                 input = (*i)->getOutput();
             }
-            
+
             // Find next block
             ChainLinkAny<T>* nextLink = NULL;
             for (auto i = ++lnit; i < links.end(); i++) {
@@ -157,7 +157,7 @@ namespace dsp {
 
         void setInput(stream<T>* input) {
             _input = input;
-            
+
             // Set input of first enabled link
             for (auto& ln : links) {
                 if (!ln->enabled) { continue; }
@@ -203,6 +203,5 @@ namespace dsp {
         stream<T>* _input;
         std::vector<ChainLinkAny<T>*> links;
         bool running = false;
-
     };
 }

@@ -4,7 +4,7 @@
 #include <dsp/types.h>
 #include <atomic>
 
-#define RFSPACE_MAX_SIZE    8192
+#define RFSPACE_MAX_SIZE 8192
 
 namespace rfspace {
     enum {
@@ -40,7 +40,7 @@ namespace rfspace {
 
             // Wait for data
             std::unique_lock<std::mutex> lck(mtx);
-            return cnd.wait_for(lck, std::chrono::milliseconds(timeoutMS), [this](){ return triggered; });
+            return cnd.wait_for(lck, std::chrono::milliseconds(timeoutMS), [this]() { return triggered; });
 
             // Mark as not waiting
             {
@@ -75,7 +75,7 @@ namespace rfspace {
             // Wait for waiter to handle
             {
                 std::unique_lock<std::mutex> lck(mtx);
-                cnd.wait(lck, [this](){ return !triggered; });
+                cnd.wait(lck, [this]() { return !triggered; });
             }
         }
 
@@ -86,7 +86,6 @@ namespace rfspace {
 
         bool waiting;
         std::mutex waitingmtx;
-
     };
 
     class RFspaceClientClass {
@@ -122,9 +121,9 @@ namespace rfspace {
         SyncEvent SCIRRecv;
         int SCIRSize;
     };
-    
+
     typedef std::unique_ptr<RFspaceClientClass> RFspaceClient;
 
     RFspaceClient connect(std::string host, uint16_t port, dsp::stream<dsp::complex_t>* out);
-    
+
 }

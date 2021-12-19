@@ -31,7 +31,7 @@ M17LSF M17DecodeLSF(uint8_t* _lsf) {
     // Extract CRC
     lsf.rawCRC = 0;
     for (int i = 0; i < 16; i++) {
-        lsf.rawCRC |= (((uint16_t)_lsf[(i+48+48+16+112) / 8] >> (7 - (i%8))) & 1) << (15 - i);
+        lsf.rawCRC |= (((uint16_t)_lsf[(i + 48 + 48 + 16 + 112) / 8] >> (7 - (i % 8))) & 1) << (15 - i);
     }
 
     // Check CRC
@@ -50,19 +50,19 @@ M17LSF M17DecodeLSF(uint8_t* _lsf) {
     // Extract DST
     lsf.rawDst = 0;
     for (int i = 0; i < 48; i++) {
-        lsf.rawDst |= (((uint64_t)_lsf[i / 8] >> (7 - (i%8))) & 1) << (47 - i);
+        lsf.rawDst |= (((uint64_t)_lsf[i / 8] >> (7 - (i % 8))) & 1) << (47 - i);
     }
 
     // Extract SRC
     lsf.rawSrc = 0;
     for (int i = 0; i < 48; i++) {
-        lsf.rawSrc |= (((uint64_t)_lsf[(i+48) / 8] >> (7 - (i%8))) & 1) << (47 - i);
+        lsf.rawSrc |= (((uint64_t)_lsf[(i + 48) / 8] >> (7 - (i % 8))) & 1) << (47 - i);
     }
 
     // Extract TYPE
     lsf.rawType = 0;
     for (int i = 0; i < 16; i++) {
-        lsf.rawType |= (((uint16_t)_lsf[(i+48+48) / 8] >> (7 - (i%8))) & 1) << (15 - i);
+        lsf.rawType |= (((uint16_t)_lsf[(i + 48 + 48) / 8] >> (7 - (i % 8))) & 1) << (15 - i);
     }
 
     // Extract META

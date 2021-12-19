@@ -12,7 +12,7 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-SDRPP_MOD_INFO {
+SDRPP_MOD_INFO{
     /* Name:            */ "hackrf_source",
     /* Description:     */ "HackRF source module for SDR++",
     /* Author:          */ "Ryzerth",
@@ -38,21 +38,21 @@ const int sampleRates[] = {
 
 const int bandwidths[] = {
     1750000,
-	2500000,
-	3500000,
-	5000000,
-	5500000,
-	6000000,
-	7000000,
-	8000000,
-	9000000,
-	10000000,
-	12000000,
-	14000000,
-	15000000,
-	20000000,
-	24000000,
-	28000000,
+    2500000,
+    3500000,
+    5000000,
+    5500000,
+    6000000,
+    7000000,
+    8000000,
+    9000000,
+    10000000,
+    12000000,
+    14000000,
+    15000000,
+    20000000,
+    24000000,
+    28000000,
 };
 
 const char* bandwidthsTxt = "1.75MHz\0"
@@ -220,7 +220,7 @@ private:
         if (id == 16) { return hackrf_compute_baseband_filter_bw(sampleRate); }
         return bandwidths[id];
     }
-    
+
     static void start(void* ctx) {
         HackRFSourceModule* _this = (HackRFSourceModule*)ctx;
         if (_this->running) { return; }
@@ -249,7 +249,7 @@ private:
         _this->running = true;
         spdlog::info("HackRFSourceModule '{0}': Start!", _this->name);
     }
-    
+
     static void stop(void* ctx) {
         HackRFSourceModule* _this = (HackRFSourceModule*)ctx;
         if (!_this->running) { return; }
@@ -263,7 +263,7 @@ private:
         _this->stream.clearWriteStop();
         spdlog::info("HackRFSourceModule '{0}': Stop!", _this->name);
     }
-    
+
     static void tune(double freq, void* ctx) {
         HackRFSourceModule* _this = (HackRFSourceModule*)ctx;
         if (_this->running) {
@@ -272,7 +272,7 @@ private:
         _this->freq = freq;
         spdlog::info("HackRFSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
-    
+
     static void menuHandler(void* ctx) {
         HackRFSourceModule* _this = (HackRFSourceModule*)ctx;
         float menuWidth = ImGui::GetContentRegionAvailWidth();
@@ -300,7 +300,7 @@ private:
         if (ImGui::Button(CONCAT("Refresh##_hackrf_refr_", _this->name), ImVec2(refreshBtnWdith, 0))) {
             _this->refresh();
             _this->selectBySerial(_this->selectedSerial);
-	    core::setInputSampleRate(_this->sampleRate);
+            core::setInputSampleRate(_this->sampleRate);
         }
 
         if (_this->running) { style::endDisabled(); }
@@ -336,7 +336,7 @@ private:
             config.acquire();
             config.conf["devices"][_this->selectedSerial]["vgaGain"] = (int)_this->vga;
             config.release(true);
-        }  
+        }
 
         if (ImGui::Checkbox(CONCAT("Bias-T##_hackrf_bt_", _this->name), &_this->biasT)) {
             if (_this->running) {
@@ -354,14 +354,14 @@ private:
             config.acquire();
             config.conf["devices"][_this->selectedSerial]["amp"] = _this->amp;
             config.release(true);
-        } 
+        }
     }
 
     static int callback(hackrf_transfer* transfer) {
         HackRFSourceModule* _this = (HackRFSourceModule*)transfer->rx_ctx;
         int count = transfer->valid_length / 2;
         int8_t* buffer = (int8_t*)transfer->buffer;
-        volk_8i_s32f_convert_32f((float*)_this->stream.writeBuf, buffer, 128.0f, count*2);
+        volk_8i_s32f_convert_32f((float*)_this->stream.writeBuf, buffer, 128.0f, count * 2);
         if (!_this->stream.swap(count)) { return -1; }
         return 0;
     }

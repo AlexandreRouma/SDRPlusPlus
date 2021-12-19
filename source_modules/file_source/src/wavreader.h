@@ -53,25 +53,25 @@ public:
     void rewind() {
         file.seekg(sizeof(WavHeader_t));
     }
-    
+
     void close() {
         file.close();
     }
 
 private:
     struct WavHeader_t {
-        char signature[4];              // "RIFF"
-        uint32_t fileSize;              // data bytes + sizeof(WavHeader_t) - 8
-        char fileType[4];               // "WAVE"
-        char formatMarker[4];           // "fmt " 
-        uint32_t formatHeaderLength;    // Always 16
-        uint16_t sampleType;            // PCM (1)   
+        char signature[4];           // "RIFF"
+        uint32_t fileSize;           // data bytes + sizeof(WavHeader_t) - 8
+        char fileType[4];            // "WAVE"
+        char formatMarker[4];        // "fmt "
+        uint32_t formatHeaderLength; // Always 16
+        uint16_t sampleType;         // PCM (1)
         uint16_t channelCount;
         uint32_t sampleRate;
         uint32_t bytesPerSecond;
         uint16_t bytesPerSample;
         uint16_t bitDepth;
-        char dataMarker[4];             // "data"
+        char dataMarker[4]; // "data"
         uint32_t dataSize;
     };
 

@@ -2,10 +2,9 @@
 #include <core.h>
 
 SignalPath::SignalPath() {
-    
 }
 
-void SignalPath::init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream<dsp::complex_t>* input, dsp::complex_t* fftBuffer, void fftHandler(dsp::complex_t*,int,void*), void* fftHandlerCtx) {
+void SignalPath::init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream<dsp::complex_t>* input, dsp::complex_t* fftBuffer, void fftHandler(dsp::complex_t*, int, void*), void* fftHandlerCtx) {
     this->sampleRate = sampleRate;
     this->sourceSampleRate = sampleRate;
     this->fftRate = fftRate;
@@ -179,12 +178,12 @@ void SignalPath::setDecimation(int dec) {
         else {
             split.setInput(&inputBuffer.out);
         }
-        
+
         if (running) { split.start(); }
         core::setInputSampleRate(sourceSampleRate);
         return;
     }
-    
+
     // Create new decimators
     for (int i = 0; i < dec; i++) {
         dsp::HalfDecimator<dsp::complex_t>* decimator;
@@ -195,13 +194,13 @@ void SignalPath::setDecimation(int dec) {
             decimator = new dsp::HalfDecimator<dsp::complex_t>(&inputBuffer.out, &halfBandWindow);
         }
         else {
-            decimator = new dsp::HalfDecimator<dsp::complex_t>(&decimators[i-1]->out, &halfBandWindow);
+            decimator = new dsp::HalfDecimator<dsp::complex_t>(&decimators[i - 1]->out, &halfBandWindow);
         }
-        
+
         if (running) { decimator->start(); }
         decimators.push_back(decimator);
     }
-    split.setInput(&decimators[decimators.size()-1]->out);
+    split.setInput(&decimators[decimators.size() - 1]->out);
     if (running) { split.start(); }
 
     // Update the DSP sample rate
@@ -247,12 +246,12 @@ void SignalPath::setFFTWindow(int win) {
 void SignalPath::generateFFTWindow(int win, float* taps, int size) {
     if (win == FFT_WINDOW_RECTANGULAR) {
         for (int i = 0; i < size; i++) {
-            taps[i] = (i%2) ? 1 : -1;
+            taps[i] = (i % 2) ? 1 : -1;
         }
     }
     else if (win == FFT_WINDOW_BLACKMAN) {
         for (int i = 0; i < size; i++) {
-            taps[i] = ((i%2) ? dsp::window_function::blackman(i, size) : -dsp::window_function::blackman(i, size))*2;
+            taps[i] = ((i % 2) ? dsp::window_function::blackman(i, size) : -dsp::window_function::blackman(i, size)) * 2;
         }
     }
 }

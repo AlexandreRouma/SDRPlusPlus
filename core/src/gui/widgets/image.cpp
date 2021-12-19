@@ -30,7 +30,7 @@ namespace ImGui {
         float height = roundf((width / (float)_width) * (float)_height);
 
         ImVec2 size = CalcItemSize(size_arg, CalcItemWidth(), height);
-        ImRect bb(min, ImVec2(min.x+size.x, min.y+size.y));
+        ImRect bb(min, ImVec2(min.x + size.x, min.y + size.y));
         float lineHeight = size.y;
 
         ItemSize(size, style.FramePadding.y);
@@ -42,7 +42,7 @@ namespace ImGui {
             newData = false;
             updateTexture();
         }
-        
+
         window->DrawList->AddImage((void*)(intptr_t)textureId, min, ImVec2(min.x + width, min.y + height));
     }
 

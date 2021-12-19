@@ -20,7 +20,7 @@ namespace dsp {
 
         void init(stream<uint8_t>* in) {
             _in = in;
-            
+
             generic_block<FalconPacketSync>::registerInput(_in);
             generic_block<FalconPacketSync>::registerOutput(&out);
         }
@@ -56,7 +56,7 @@ namespace dsp {
             else if (header.packet == 2047) {
                 printf("Wow, all data\n");
                 _in->flush();
-                return count; 
+                return count;
             }
 
             // Finish reading the last package and send it
@@ -84,9 +84,8 @@ namespace dsp {
                     packetRead = -1;
                     break;
                 }
-                
-                uint64_t pktId =    ((uint64_t)data[i + 2] << 56) | ((uint64_t)data[i + 3] << 48) | ((uint64_t)data[i + 4] << 40) | ((uint64_t)data[i + 5] << 32)
-                                |   ((uint64_t)data[i + 6] << 24) | ((uint64_t)data[i + 7] << 16) | ((uint64_t)data[i + 8] << 8) | data[i + 9];
+
+                uint64_t pktId = ((uint64_t)data[i + 2] << 56) | ((uint64_t)data[i + 3] << 48) | ((uint64_t)data[i + 4] << 40) | ((uint64_t)data[i + 5] << 32) | ((uint64_t)data[i + 6] << 24) | ((uint64_t)data[i + 7] << 16) | ((uint64_t)data[i + 8] << 8) | data[i + 9];
 
                 // If the packet doesn't fit the frame, save and go to next frame
                 if (dataLen - i < length) {
@@ -99,7 +98,6 @@ namespace dsp {
                 memcpy(out.writeBuf, &data[i], length);
                 out.swap(length);
                 i += length;
-
             }
 
             _in->flush();
@@ -114,8 +112,7 @@ namespace dsp {
 
         int packetRead = -1;
         uint8_t packet[0x4008];
-        
-        stream<uint8_t>* _in;
 
+        stream<uint8_t>* _in;
     };
 }

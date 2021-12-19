@@ -7,7 +7,7 @@ namespace demod {
     class WFM : public Demodulator {
     public:
         WFM() {}
-    
+
         WFM(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler, double audioSR) {
             init(name, config, input, bandwidth, outputChangeHandler, audioSR);
         }
@@ -23,7 +23,7 @@ namespace demod {
 
             // Load config
             _config->acquire();
-            bool modified =false;
+            bool modified = false;
             if (!config->conf[name].contains(getName())) {
                 config->conf[name][getName()]["stereo"] = false;
                 modified = true;
@@ -70,23 +70,23 @@ namespace demod {
 
         // ============= INFO =============
 
-        const char* getName()                   { return "WFM"; }
-        double getIFSampleRate()                { return 250000.0; }
-        double getAFSampleRate()                { return getIFSampleRate(); }
-        double getDefaultBandwidth()            { return 150000.0; }
-        double getMinBandwidth()                { return 50000.0; }
-        double getMaxBandwidth()                { return getIFSampleRate(); }
-        bool getBandwidthLocked()               { return false; }
-        double getMaxAFBandwidth()              { return 16000.0; }
-        double getDefaultSnapInterval()         { return 100000.0; }
-        int getVFOReference()                   { return ImGui::WaterfallVFO::REF_CENTER; }
-        bool getDeempAllowed()                  { return true; }
-        bool getPostProcEnabled()               { return true; }
-        int getDefaultDeemphasisMode()          { return DEEMP_MODE_50US; }
+        const char* getName() { return "WFM"; }
+        double getIFSampleRate() { return 250000.0; }
+        double getAFSampleRate() { return getIFSampleRate(); }
+        double getDefaultBandwidth() { return 150000.0; }
+        double getMinBandwidth() { return 50000.0; }
+        double getMaxBandwidth() { return getIFSampleRate(); }
+        bool getBandwidthLocked() { return false; }
+        double getMaxAFBandwidth() { return 16000.0; }
+        double getDefaultSnapInterval() { return 100000.0; }
+        int getVFOReference() { return ImGui::WaterfallVFO::REF_CENTER; }
+        bool getDeempAllowed() { return true; }
+        bool getPostProcEnabled() { return true; }
+        int getDefaultDeemphasisMode() { return DEEMP_MODE_50US; }
         double getAFBandwidth(double bandwidth) { return 16000.0; }
-        bool getDynamicAFBandwidth()            { return false; }
-        bool getFMIFNRAllowed()                 { return true; }
-        bool getNBAllowed()                     { return false; }
+        bool getDynamicAFBandwidth() { return false; }
+        bool getFMIFNRAllowed() { return true; }
+        bool getNBAllowed() { return false; }
         dsp::stream<dsp::stereo_t>* getOutput() { return stereo ? demodStereo.out : &demod.out; }
 
         // ============= DEDICATED FUNCTIONS =============
@@ -108,9 +108,9 @@ namespace demod {
     private:
         dsp::FMDemod demod;
         dsp::StereoFMDemod demodStereo;
-        
+
         ConfigManager* _config = NULL;
-        
+
         bool stereo = false;
 
         std::string name;

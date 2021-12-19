@@ -47,7 +47,7 @@ namespace dsp {
                 else {
                     memcpy(&data[dataRead], &_buffer[readc], toRead * sizeof(T));
                 }
-                
+
                 dataRead += toRead;
 
                 _readable_mtx.lock();
@@ -114,7 +114,7 @@ namespace dsp {
             int _r = getReadable();
             if (_r != 0) { return _r; }
             std::unique_lock<std::mutex> lck(_readable_mtx);
-            canReadVar.wait(lck, [=](){ return ((this->getReadable(false) > 0) || this->getReadStop()); });
+            canReadVar.wait(lck, [=]() { return ((this->getReadable(false) > 0) || this->getReadStop()); });
             if (_stopReader) { return -1; }
             return getReadable(false);
         }
@@ -152,7 +152,7 @@ namespace dsp {
                 writable -= toWrite;
                 _writable_mtx.unlock();
                 writec = (writec + toWrite) % size;
-                
+
                 canReadVar.notify_one();
             }
             return len;
@@ -164,7 +164,7 @@ namespace dsp {
             int _w = getWritable();
             if (_w != 0) { return _w; }
             std::unique_lock<std::mutex> lck(_writable_mtx);
-            canWriteVar.wait(lck, [=](){ return ((this->getWritable(false) > 0) || this->getWriteStop()); });
+            canWriteVar.wait(lck, [=]() { return ((this->getWritable(false) > 0) || this->getWriteStop()); });
             if (_stopWriter) { return -1; }
             return getWritable(false);
         }
@@ -173,7 +173,10 @@ namespace dsp {
             assert(_init);
             if (lock) { _writable_mtx.lock(); };
             int _w = writable;
-            if (lock) { _writable_mtx.unlock(); _readable_mtx.lock(); };
+            if (lock) {
+                _writable_mtx.unlock();
+                _readable_mtx.lock();
+            };
             int _r = readable;
             if (lock) { _readable_mtx.unlock(); };
             return std::max<int>(std::min<int>(_w, maxLatency - _r), 0);
@@ -233,7 +236,7 @@ namespace dsp {
         std::condition_variable canWriteVar;
     };
 
-#define TEST_BUFFER_SIZE    32
+#define TEST_BUFFER_SIZE 32
 
     template <class T>
     class SampleFrameBuffer : public generic_block<SampleFrameBuffer<T>> {
@@ -303,7 +306,7 @@ namespace dsp {
             while (true) {
                 // Wait for data
                 std::unique_lock lck(bufMtx);
-                cnd.wait(lck, [this](){ return (((writeCur - readCur + TEST_BUFFER_SIZE) % TEST_BUFFER_SIZE) > 0) || stopWorker; });
+                cnd.wait(lck, [this]() { return (((writeCur - readCur + TEST_BUFFER_SIZE) % TEST_BUFFER_SIZE) > 0) || stopWorker; });
                 if (stopWorker) { break; }
 
                 // Write one to output buffer and unlock in preparation to swap buffers
@@ -315,7 +318,7 @@ namespace dsp {
 
                 // Swap
                 if (!out.swap(count)) { break; }
-            } 
+            }
         }
 
         stream<T> out;
@@ -352,8 +355,7 @@ namespace dsp {
         std::condition_variable cnd;
         T* buffers[TEST_BUFFER_SIZE];
         int sizes[TEST_BUFFER_SIZE];
-        
-        bool stopWorker = false;
 
+        bool stopWorker = false;
     };
 };

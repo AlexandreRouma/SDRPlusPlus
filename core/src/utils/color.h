@@ -11,9 +11,15 @@ namespace color {
 
         // Calculate the hue
         if (delta == 0) { h = 0; }
-        else if (r > g && r > b) { h = 60.0f * fmodf((g - b) / delta, 6.0f); }
-        else if (g > r && g > b) { h = 60.0f * (((b - r) / delta) + 2.0f); }
-        else { h = 60.0f * (((r - g) / delta) + 4.0f); }
+        else if (r > g && r > b) {
+            h = 60.0f * fmodf((g - b) / delta, 6.0f);
+        }
+        else if (g > r && g > b) {
+            h = 60.0f * (((b - r) / delta) + 2.0f);
+        }
+        else {
+            h = 60.0f * (((r - g) / delta) + 4.0f);
+        }
 
         // Calculate lightness
         l = (cmin + cmax) / 2.0f;
@@ -29,12 +35,36 @@ namespace color {
         float m = l - (c / 2.0f);
 
         // Affect coefficients to R, G or B depending on hue
-        if (h < 60) { r = c; g = x; b = 0; }
-        else if (h < 120) { r = x; g = c; b = 0; }
-        else if (h < 180) { r = 0; g = c; b = x; }
-        else if (h < 240) { r = 0; g = x; b = c; }
-        else if (h < 300) { r = x; g = 0; b = c; }
-        else { r = c; g = 0; b = x; }
+        if (h < 60) {
+            r = c;
+            g = x;
+            b = 0;
+        }
+        else if (h < 120) {
+            r = x;
+            g = c;
+            b = 0;
+        }
+        else if (h < 180) {
+            r = 0;
+            g = c;
+            b = x;
+        }
+        else if (h < 240) {
+            r = 0;
+            g = x;
+            b = c;
+        }
+        else if (h < 300) {
+            r = x;
+            g = 0;
+            b = c;
+        }
+        else {
+            r = c;
+            g = 0;
+            b = x;
+        }
 
         // Add m
         r += m;

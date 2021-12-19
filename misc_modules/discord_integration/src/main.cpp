@@ -8,7 +8,7 @@
 #include <thread>
 #include <radio_interface.h>
 
-SDRPP_MOD_INFO {
+SDRPP_MOD_INFO{
     /* Name:            */ "discord_integration",
     /* Description:     */ "Discord Rich Presence module for SDR++",
     /* Author:          */ "Cam K.;Ryzerth",
@@ -16,7 +16,7 @@ SDRPP_MOD_INFO {
     /* Max instances    */ 1
 };
 
-#define DISCORD_APP_ID      "834590435708108860"
+#define DISCORD_APP_ID "834590435708108860"
 
 class DiscordIntegrationModule : public ModuleManager::Instance {
 public:
@@ -61,14 +61,13 @@ public:
     }
 
 private:
-
     // Main thread
     void worker() {
         // TODO: Switch out for condition variable to terminate thread instantly
         // OR even better, the new timer class that I still need to add
         while (workerRunning) {
             workerCounter++;
-            if(workerCounter >= 1000) {
+            if (workerCounter >= 1000) {
                 workerCounter = 0;
                 updatePresence();
             }
@@ -87,15 +86,27 @@ private:
                 int modeNum;
                 core::modComManager.callInterface(selectedName, RADIO_IFACE_CMD_GET_MODE, NULL, &modeNum);
                 if (modeNum == RADIO_IFACE_MODE_NFM) { strcpy(mode, "NFM"); }
-                else if (modeNum == RADIO_IFACE_MODE_WFM) { strcpy(mode, "FM"); }
-                else if (modeNum == RADIO_IFACE_MODE_AM) { strcpy(mode, "AM"); }
-                else if (modeNum == RADIO_IFACE_MODE_DSB) { strcpy(mode, "DSB"); }
-                else if (modeNum == RADIO_IFACE_MODE_USB) { strcpy(mode, "USB"); }
-                else if (modeNum == RADIO_IFACE_MODE_CW) { strcpy(mode, "CW"); }
-                else if (modeNum == RADIO_IFACE_MODE_LSB) { strcpy(mode, "LSB"); }
+                else if (modeNum == RADIO_IFACE_MODE_WFM) {
+                    strcpy(mode, "FM");
+                }
+                else if (modeNum == RADIO_IFACE_MODE_AM) {
+                    strcpy(mode, "AM");
+                }
+                else if (modeNum == RADIO_IFACE_MODE_DSB) {
+                    strcpy(mode, "DSB");
+                }
+                else if (modeNum == RADIO_IFACE_MODE_USB) {
+                    strcpy(mode, "USB");
+                }
+                else if (modeNum == RADIO_IFACE_MODE_CW) {
+                    strcpy(mode, "CW");
+                }
+                else if (modeNum == RADIO_IFACE_MODE_LSB) {
+                    strcpy(mode, "LSB");
+                }
             }
         }
-        
+
         if (selectedFreq != lastFreq || mode != lastMode) {
             lastFreq = selectedFreq;
             lastMode = mode;
@@ -146,7 +157,6 @@ private:
     int workerCounter = 0;
     std::thread workerThread;
     bool workerRunning;
-
 };
 
 MOD_EXPORT void _INIT_() {

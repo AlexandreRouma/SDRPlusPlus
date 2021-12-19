@@ -20,7 +20,7 @@ namespace icons {
     ImTextureID CENTER_TUNING;
 
     GLuint loadTexture(std::string path) {
-        int w,h,n;
+        int w, h, n;
         stbi_uc* data = stbi_load(path.c_str(), &w, &h, &n, 0);
         GLuint texId;
         glGenTextures(1, &texId);

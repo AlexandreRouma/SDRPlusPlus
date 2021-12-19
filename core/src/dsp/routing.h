@@ -62,7 +62,6 @@ namespace dsp {
 
         stream<T>* _in;
         std::vector<stream<T>*> out;
-
     };
 
     template <class T>
@@ -105,12 +104,11 @@ namespace dsp {
 
             if (!outA.swap(count)) { return -1; }
             if (!outB.swap(count)) { return -1; }
-            
+
             return count;
         }
 
         stream<T>* _in;
-
     };
 
 
@@ -183,7 +181,8 @@ namespace dsp {
         }
 
         void loop() {
-            while (run() >= 0);
+            while (run() >= 0)
+                ;
         }
 
         void doStop() override {
@@ -240,6 +239,5 @@ namespace dsp {
         std::thread bufferWorkerThread;
         std::thread workThread;
         int _keep, _skip;
-
     };
 }

@@ -34,29 +34,41 @@ namespace sourecmenu {
     };
 
     const char* offsetModesTxt = "None\0"
-                                "Custom\0"
-                                "SpyVerter\0"
-                                "Ham-It-Up\0"
-                                "DK5AV X-Band\0"
-                                "Ku LNB (9750MHz)\0"
-                                "Ku LNB (10700MHz)\0";
+                                 "Custom\0"
+                                 "SpyVerter\0"
+                                 "Ham-It-Up\0"
+                                 "DK5AV X-Band\0"
+                                 "Ku LNB (9750MHz)\0"
+                                 "Ku LNB (10700MHz)\0";
 
     const char* decimationStages = "None\0"
-                                "2\0"
-                                "4\0"
-                                "8\0"
-                                "16\0"
-                                "32\0"
-                                "64\0";
+                                   "2\0"
+                                   "4\0"
+                                   "8\0"
+                                   "16\0"
+                                   "32\0"
+                                   "64\0";
 
     void updateOffset() {
-        if (offsetMode == OFFSET_MODE_CUSTOM) {         effectiveOffset = customOffset; }
-        else if (offsetMode == OFFSET_MODE_SPYVERTER) { effectiveOffset = 120000000; }          // 120MHz Up-conversion
-        else if (offsetMode == OFFSET_MODE_HAM_IT_UP) { effectiveOffset = 125000000; }          // 125MHz Up-conversion
-        else if (offsetMode == OFFSET_MODE_DK5AV_XB) {  effectiveOffset = -6800000000; }        // 6.8GHz Down-conversion
-        else if (offsetMode == OFFSET_MODE_KU_LNB_9750) { effectiveOffset = -9750000000; }      // 9.750GHz Down-conversion
-        else if (offsetMode == OFFSET_MODE_KU_LNB_10700) {  effectiveOffset = -10700000000; }   // 10.7GHz Down-conversion
-        else { effectiveOffset = 0; }
+        if (offsetMode == OFFSET_MODE_CUSTOM) { effectiveOffset = customOffset; }
+        else if (offsetMode == OFFSET_MODE_SPYVERTER) {
+            effectiveOffset = 120000000;
+        } // 120MHz Up-conversion
+        else if (offsetMode == OFFSET_MODE_HAM_IT_UP) {
+            effectiveOffset = 125000000;
+        } // 125MHz Up-conversion
+        else if (offsetMode == OFFSET_MODE_DK5AV_XB) {
+            effectiveOffset = -6800000000;
+        } // 6.8GHz Down-conversion
+        else if (offsetMode == OFFSET_MODE_KU_LNB_9750) {
+            effectiveOffset = -9750000000;
+        } // 9.750GHz Down-conversion
+        else if (offsetMode == OFFSET_MODE_KU_LNB_10700) {
+            effectiveOffset = -10700000000;
+        } // 10.7GHz Down-conversion
+        else {
+            effectiveOffset = 0;
+        }
         sigpath::sourceManager.setTuningOffset(effectiveOffset);
     }
 
@@ -86,7 +98,7 @@ namespace sourecmenu {
 
     void onSourceRegistered(std::string name, void* ctx) {
         refreshSources();
-        
+
         if (selectedSource.empty()) {
             sourceId = 0;
             selectSource(sourceNames[0]);

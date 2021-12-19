@@ -82,7 +82,6 @@ namespace dsp {
     private:
         stream<T>* _a;
         stream<T>* _b;
-
     };
 
     template <class T>
@@ -163,7 +162,6 @@ namespace dsp {
     private:
         stream<T>* _a;
         stream<T>* _b;
-
     };
 
     template <class T>
@@ -244,6 +242,5 @@ namespace dsp {
     private:
         stream<T>* _a;
         stream<T>* _b;
-
     };
 }

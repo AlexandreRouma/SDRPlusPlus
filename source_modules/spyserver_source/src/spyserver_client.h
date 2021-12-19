@@ -44,11 +44,10 @@ namespace spyserver {
         SpyServerMessageHeader receivedHeader;
 
         dsp::stream<dsp::complex_t>* output;
-
     };
-    
+
     typedef std::unique_ptr<SpyServerClientClass> SpyServerClient;
 
     SpyServerClient connect(std::string host, uint16_t port, dsp::stream<dsp::complex_t>* out);
-    
+
 }

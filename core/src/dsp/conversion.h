@@ -42,7 +42,6 @@ namespace dsp {
 
     private:
         stream<complex_t>* _in;
-
     };
 
     class ComplexToReal : public generic_block<ComplexToReal> {
@@ -83,7 +82,6 @@ namespace dsp {
 
     private:
         stream<complex_t>* _in;
-
     };
 
     class ComplexToImag : public generic_block<ComplexToImag> {
@@ -116,7 +114,7 @@ namespace dsp {
             volk_32fc_deinterleave_imag_32f(out.writeBuf, (lv_32fc_t*)_in->readBuf, count);
 
             _in->flush();
-            if(!out.swap(count)) { return -1; }
+            if (!out.swap(count)) { return -1; }
             return count;
         }
 
@@ -124,7 +122,6 @@ namespace dsp {
 
     private:
         stream<complex_t>* _in;
-
     };
 
 
@@ -176,7 +173,6 @@ namespace dsp {
     private:
         float* nullBuffer;
         stream<float>* _in;
-
     };
 
     class Int16CToComplex : public generic_block<Int16CToComplex> {
@@ -217,7 +213,6 @@ namespace dsp {
 
     private:
         stream<int16_t>* _in;
-
     };
 
     class ComplexToInt16C : public generic_block<ComplexToInt16C> {
@@ -258,7 +253,6 @@ namespace dsp {
 
     private:
         stream<complex_t>* _in;
-
     };
 
     class Int16ToFloat : public generic_block<Int16ToFloat> {
@@ -299,7 +293,6 @@ namespace dsp {
 
     private:
         stream<int16_t>* _in;
-
     };
 
     class FloatToInt16 : public generic_block<FloatToInt16> {
@@ -340,6 +333,5 @@ namespace dsp {
 
     private:
         stream<float>* _in;
-
     };
 }

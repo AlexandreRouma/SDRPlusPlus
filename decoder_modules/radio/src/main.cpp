@@ -1,7 +1,7 @@
 #include "radio_module.h"
 #include <options.h>
 
-SDRPP_MOD_INFO {
+SDRPP_MOD_INFO{
     /* Name:            */ "radio",
     /* Description:     */ "Analog radio decoder",
     /* Author:          */ "Ryzerth",

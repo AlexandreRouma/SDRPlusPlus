@@ -9,7 +9,10 @@ namespace utils {
             int len = strlen(str) - 1;
             while ((str[len] == '0' || str[len] == '.') && len > 0) {
                 len--;
-                if (str[len] == '.') { len--; break; }
+                if (str[len] == '.') {
+                    len--;
+                    break;
+                }
             }
             return std::string(str).substr(0, len + 1) + "MHz";
         }
@@ -18,7 +21,10 @@ namespace utils {
             int len = strlen(str) - 1;
             while ((str[len] == '0' || str[len] == '.') && len > 0) {
                 len--;
-                if (str[len] == '.') { len--; break; }
+                if (str[len] == '.') {
+                    len--;
+                    break;
+                }
             }
             return std::string(str).substr(0, len + 1) + "KHz";
         }
@@ -27,7 +33,10 @@ namespace utils {
             int len = strlen(str) - 1;
             while ((str[len] == '0' || str[len] == '.') && len > 0) {
                 len--;
-                if (str[len] == '.') { len--; break; }
+                if (str[len] == '.') {
+                    len--;
+                    break;
+                }
             }
             return std::string(str).substr(0, len + 1) + "Hz";
         }

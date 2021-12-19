@@ -78,7 +78,6 @@ namespace net {
         Socket _sock;
         bool _udp;
         struct sockaddr_in remoteAddr;
-
     };
 
     typedef std::unique_ptr<ConnClass> Conn;
@@ -112,7 +111,6 @@ namespace net {
         std::thread acceptWorkerThread;
 
         Socket sock;
-
     };
 
     typedef std::unique_ptr<ListenerClass> Listener;

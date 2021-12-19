@@ -2,7 +2,7 @@
 #include <module.h>
 #include <gui/gui.h>
 
-SDRPP_MOD_INFO {
+SDRPP_MOD_INFO{
     /* Name:            */ "demo",
     /* Description:     */ "My fancy new module",
     /* Author:          */ "author1;author2,author3,etc...",
@@ -43,7 +43,6 @@ private:
 
     std::string name;
     bool enabled = true;
-
 };
 
 MOD_EXPORT void _INIT_() {

@@ -56,7 +56,7 @@ public:
             ImGui::TableSetupColumn("Triggers");
             ImGui::TableSetupScrollFreeze(1, 1);
             ImGui::TableHeadersRow();
-            
+
             // Fill rows here
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
@@ -119,5 +119,4 @@ private:
     std::vector<sched_action::Action> actions;
 
     int editedAction = -1;
-
 };

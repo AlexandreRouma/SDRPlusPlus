@@ -37,7 +37,5 @@ namespace ImGui {
         GLuint textureId;
 
         bool newData = false;
-        
-
     };
 }

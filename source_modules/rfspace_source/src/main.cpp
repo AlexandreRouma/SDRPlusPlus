@@ -13,7 +13,7 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-SDRPP_MOD_INFO {
+SDRPP_MOD_INFO{
     /* Name:            */ "rfspace_source",
     /* Description:     */ "RFspace source module for SDR++",
     /* Author:          */ "Ryzerth",
@@ -88,7 +88,7 @@ private:
         gui::mainWindow.playButtonLocked = false;
         spdlog::info("SpyServerSourceModule '{0}': Menu Deselect!", _this->name);
     }
-    
+
     static void start(void* ctx) {
         SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
         if (_this->running) { return; }
@@ -98,17 +98,17 @@ private:
         _this->running = true;
         spdlog::info("SpyServerSourceModule '{0}': Start!", _this->name);
     }
-    
+
     static void stop(void* ctx) {
         SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
         if (!_this->running) { return; }
-        
+
         // TODO: Stop
 
         _this->running = false;
         spdlog::info("SpyServerSourceModule '{0}': Stop!", _this->name);
     }
-    
+
     static void tune(double freq, void* ctx) {
         SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
         if (_this->running) {
@@ -117,7 +117,7 @@ private:
         _this->freq = freq;
         spdlog::info("SpyServerSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
-    
+
     static void menuHandler(void* ctx) {
         SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
         float menuWidth = ImGui::GetContentRegionAvailWidth();
@@ -154,7 +154,6 @@ private:
         }
         if (_this->running) { style::endDisabled(); }
 
-        
 
         if (connected) {
             // TODO: Options here

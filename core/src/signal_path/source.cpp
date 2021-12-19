@@ -3,7 +3,6 @@
 #include <signal_path/signal_path.h>
 
 SourceManager::SourceManager() {
-
 }
 
 void SourceManager::registerSource(std::string name, SourceHandler* handler) {
@@ -34,11 +33,11 @@ void SourceManager::unregisterSource(std::string name) {
 
 std::vector<std::string> SourceManager::getSourceNames() {
     std::vector<std::string> names;
-    for (auto const&  [name, src] : sources) { names.push_back(name); }
+    for (auto const& [name, src] : sources) { names.push_back(name); }
     return names;
 }
 
-void SourceManager::selectSource(std::string  name) {
+void SourceManager::selectSource(std::string name) {
     if (sources.find(name) == sources.end()) {
         spdlog::error("Tried to select non existent source: {0}", name);
         return;

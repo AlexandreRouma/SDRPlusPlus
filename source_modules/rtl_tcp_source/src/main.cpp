@@ -10,7 +10,7 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-SDRPP_MOD_INFO {
+SDRPP_MOD_INFO{
     /* Name:            */ "rtl_tcp_source",
     /* Description:     */ "RTL-TCP source module for SDR++",
     /* Author:          */ "Ryzerth",
@@ -48,7 +48,7 @@ const char* sampleRatesTxt[] = {
     "3.2MHz"
 };
 
-#define SAMPLE_RATE_COUNT   (sizeof(sampleRates) / sizeof(double))
+#define SAMPLE_RATE_COUNT (sizeof(sampleRates) / sizeof(double))
 
 class RTLTCPSourceModule : public ModuleManager::Instance {
 public:
@@ -135,7 +135,7 @@ private:
         RTLTCPSourceModule* _this = (RTLTCPSourceModule*)ctx;
         spdlog::info("RTLTCPSourceModule '{0}': Menu Deselect!", _this->name);
     }
-    
+
     static void start(void* ctx) {
         RTLTCPSourceModule* _this = (RTLTCPSourceModule*)ctx;
         if (_this->running) { return; }
@@ -160,12 +160,12 @@ private:
             // Setting it twice because for some reason it refuses to do it on the first time
             _this->client.setGainIndex(_this->gain);
         }
-        
+
         _this->running = true;
         _this->workerThread = std::thread(worker, _this);
         spdlog::info("RTLTCPSourceModule '{0}': Start!", _this->name);
     }
-    
+
     static void stop(void* ctx) {
         RTLTCPSourceModule* _this = (RTLTCPSourceModule*)ctx;
         if (!_this->running) { return; }
@@ -176,7 +176,7 @@ private:
         _this->client.disconnect();
         spdlog::info("RTLTCPSourceModule '{0}': Stop!", _this->name);
     }
-    
+
     static void tune(double freq, void* ctx) {
         RTLTCPSourceModule* _this = (RTLTCPSourceModule*)ctx;
         if (_this->running) {
@@ -185,7 +185,7 @@ private:
         _this->freq = freq;
         spdlog::info("RTLTCPSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
-    
+
     static void menuHandler(void* ctx) {
         RTLTCPSourceModule* _this = (RTLTCPSourceModule*)ctx;
         float menuWidth = ImGui::GetContentRegionAvailWidth();
@@ -338,20 +338,20 @@ private:
 };
 
 MOD_EXPORT void _INIT_() {
-   config.setPath(options::opts.root + "/rtl_tcp_config.json");
-   json defConf;
-   defConf["host"] = "localhost";
-   defConf["port"] = 1234;
-   defConf["sampleRate"] = 2400000.0;
-   defConf["directSamplingMode"] = 0;
-   defConf["ppm"] = 0;
-   defConf["rtlAGC"] = false;
-   defConf["tunerAGC"] = false;
-   defConf["gainIndex"] = 0;
-   defConf["biasTee"] = false;
-   defConf["offsetTuning"] = false;
-   config.load(defConf);
-   config.enableAutoSave();
+    config.setPath(options::opts.root + "/rtl_tcp_config.json");
+    json defConf;
+    defConf["host"] = "localhost";
+    defConf["port"] = 1234;
+    defConf["sampleRate"] = 2400000.0;
+    defConf["directSamplingMode"] = 0;
+    defConf["ppm"] = 0;
+    defConf["rtlAGC"] = false;
+    defConf["tunerAGC"] = false;
+    defConf["gainIndex"] = 0;
+    defConf["biasTee"] = false;
+    defConf["offsetTuning"] = false;
+    config.load(defConf);
+    config.enableAutoSave();
 
     config.acquire();
     if (!config.conf.contains("biasTee")) {

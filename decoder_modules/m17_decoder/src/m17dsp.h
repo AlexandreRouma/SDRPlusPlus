@@ -7,50 +7,50 @@
 #include <lsf_decode.h>
 
 extern "C" {
-    #include <correct.h>
+#include <correct.h>
 }
 
-#define M17_DEVIATION               2400.0f
-#define M17_BAUDRATE                4800.0f
-#define M17_RRC_ALPHA               0.5f
-#define M17_4FSK_HIGH_CUT           0.5f
+#define M17_DEVIATION     2400.0f
+#define M17_BAUDRATE      4800.0f
+#define M17_RRC_ALPHA     0.5f
+#define M17_4FSK_HIGH_CUT 0.5f
 
-#define M17_SYNC_SIZE               16
-#define M17_LICH_SIZE               96
-#define M17_PAYLOAD_SIZE            144
-#define M17_ENCODED_PAYLOAD_SIZE    296
-#define M17_LSF_SIZE                240
-#define M17_ENCODED_LSF_SIZE        488
-#define M17_RAW_FRAME_SIZE          384
-#define M17_CUT_FRAME_SIZE          368
+#define M17_SYNC_SIZE            16
+#define M17_LICH_SIZE            96
+#define M17_PAYLOAD_SIZE         144
+#define M17_ENCODED_PAYLOAD_SIZE 296
+#define M17_LSF_SIZE             240
+#define M17_ENCODED_LSF_SIZE     488
+#define M17_RAW_FRAME_SIZE       384
+#define M17_CUT_FRAME_SIZE       368
 
-const uint8_t M17_LSF_SYNC[16] = {      0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1 };
-const uint8_t M17_STF_SYNC[16] = {      1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1 };
-const uint8_t M17_PKF_SYNC[16] = {      0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+const uint8_t M17_LSF_SYNC[16] = { 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1 };
+const uint8_t M17_STF_SYNC[16] = { 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1 };
+const uint8_t M17_PKF_SYNC[16] = { 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 
-const uint8_t M17_SCRAMBLER[368] = {    1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1,
-                                        1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0,
-                                        1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1,
-                                        1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0,
-                                        1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0,
-                                        1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0,
-                                        1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0,
-                                        1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1,
-                                        0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0,
-                                        0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1,
-                                        1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1,
-                                        1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0,
-                                        0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1,
-                                        0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0,
-                                        0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0,
-                                        1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0,
-                                        0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1,
-                                        1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-                                        1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1,
-                                        1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1,
-                                        0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0,
-                                        0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1,
-                                        0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1 };
+const uint8_t M17_SCRAMBLER[368] = { 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1,
+                                     1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0,
+                                     1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1,
+                                     1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0,
+                                     1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0,
+                                     1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0,
+                                     1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0,
+                                     1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1,
+                                     0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0,
+                                     0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1,
+                                     1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1,
+                                     1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0,
+                                     0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1,
+                                     0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0,
+                                     0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0,
+                                     1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0,
+                                     0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1,
+                                     1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+                                     1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1,
+                                     1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1,
+                                     0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0,
+                                     0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1,
+                                     0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1 };
 
 const uint16_t M17_INTERLEAVER[368] = { 0, 137, 90, 227, 180, 317, 270, 39, 360, 129, 82, 219, 172, 309, 262, 31,
                                         352, 121, 74, 211, 164, 301, 254, 23, 344, 113, 66, 203, 156, 293, 246, 15,
@@ -83,7 +83,7 @@ const uint8_t M17_PUNCTURING_P1[61] = { 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1
 
 const uint8_t M17_PUNCTURING_P2[12] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0 };
 
-static const correct_convolutional_polynomial_t correct_conv_m17_polynomial[] = {0b11001, 0b10111};
+static const correct_convolutional_polynomial_t correct_conv_m17_polynomial[] = { 0b11001, 0b10111 };
 
 namespace dsp {
     class M17Slice4FSK : public generic_block<M17Slice4FSK> {
@@ -116,8 +116,8 @@ namespace dsp {
             float val;
             for (int i = 0; i < count; i++) {
                 val = _in->readBuf[i];
-                out.writeBuf[i*2] = (val < 0.0f);
-                out.writeBuf[(i*2)+1] = (fabsf(val) > M17_4FSK_HIGH_CUT);
+                out.writeBuf[i * 2] = (val < 0.0f);
+                out.writeBuf[(i * 2) + 1] = (fabsf(val) > M17_4FSK_HIGH_CUT);
             }
 
             _in->flush();
@@ -130,7 +130,6 @@ namespace dsp {
 
     private:
         stream<float>* _in;
-
     };
 
     class M17FrameDemux : public generic_block<M17FrameDemux> {
@@ -176,7 +175,10 @@ namespace dsp {
 
             for (int i = 0; i < count;) {
                 if (detect) {
-                    if (outCount < M17_SYNC_SIZE) { outCount++; i++; }
+                    if (outCount < M17_SYNC_SIZE) {
+                        outCount++;
+                        i++;
+                    }
                     else {
                         int id = M17_INTERLEAVER[outCount - M17_SYNC_SIZE];
 
@@ -192,21 +194,21 @@ namespace dsp {
                         else if (type == 2) {
                             packetOut.writeBuf[id - M17_LICH_SIZE] = (delay[i++] ^ M17_SCRAMBLER[outCount - M17_SYNC_SIZE]);
                         }
-    
+
                         outCount++;
                     }
-                    
+
                     if (outCount >= M17_RAW_FRAME_SIZE) {
                         detect = false;
                         if (type == 0) {
                             if (!linkSetupOut.swap(M17_CUT_FRAME_SIZE)) { return -1; }
                         }
                         else if (type == 1) {
-                            if (!lichOut.swap(M17_LICH_SIZE)) {return -1; }
-                            if (!streamOut.swap(M17_CUT_FRAME_SIZE)) {return -1; }
+                            if (!lichOut.swap(M17_LICH_SIZE)) { return -1; }
+                            if (!streamOut.swap(M17_CUT_FRAME_SIZE)) { return -1; }
                         }
                         else if (type == 2) {
-                            if (!lichOut.swap(M17_LICH_SIZE)) {return -1; }
+                            if (!lichOut.swap(M17_LICH_SIZE)) { return -1; }
                             if (!packetOut.swap(M17_CUT_FRAME_SIZE)) { return -1; }
                         }
                     }
@@ -242,7 +244,7 @@ namespace dsp {
 
                 i++;
             }
-            
+
             memmove(delay, &delay[count], 16);
 
             _in->flush();
@@ -264,7 +266,6 @@ namespace dsp {
         int type;
 
         int outCount = 0;
-
     };
 
     class M17LSFDecoder : public generic_block<M17LSFDecoder> {
@@ -283,7 +284,7 @@ namespace dsp {
             _in = in;
             _handler = handler;
             _ctx = ctx;
-            
+
             conv = correct_convolutional_create(2, 5, correct_conv_m17_polynomial);
 
             generic_block<M17LSFDecoder>::registerInput(_in);
@@ -319,7 +320,7 @@ namespace dsp {
             // Pack into bytes
             memset(packed, 0, 61);
             for (int i = 0; i < M17_ENCODED_LSF_SIZE; i++) {
-                packed[i/8] |= depunctured[i] << (7 - (i%8));
+                packed[i / 8] |= depunctured[i] << (7 - (i % 8));
             }
 
             // Run through convolutional decoder
@@ -343,7 +344,6 @@ namespace dsp {
         uint8_t lsf[30];
 
         correct_convolutional* conv;
-
     };
 
     class M17PayloadFEC : public generic_block<M17PayloadFEC> {
@@ -360,7 +360,7 @@ namespace dsp {
 
         void init(stream<uint8_t>* in) {
             _in = in;
-            
+
             conv = correct_convolutional_create(2, 5, correct_conv_m17_polynomial);
 
             generic_block<M17PayloadFEC>::registerInput(_in);
@@ -395,13 +395,13 @@ namespace dsp {
             // Pack into bytes
             memset(packed, 0, 37);
             for (int i = 0; i < M17_ENCODED_PAYLOAD_SIZE; i++) {
-                if (!(i%8)) { packed[i/8] = 0; }
-                packed[i/8] |= depunctured[i] << (7 - (i%8));
+                if (!(i % 8)) { packed[i / 8] = 0; }
+                packed[i / 8] |= depunctured[i] << (7 - (i % 8));
             }
 
             // Run through convolutional decoder
             correct_convolutional_decode(conv, packed, M17_ENCODED_PAYLOAD_SIZE, out.writeBuf);
-            
+
             _in->flush();
 
             if (!out.swap(M17_PAYLOAD_SIZE / 8)) { return -1; }
@@ -417,7 +417,6 @@ namespace dsp {
         uint8_t packed[37];
 
         correct_convolutional* conv;
-
     };
 
     class M17Codec2Decode : public generic_block<M17Codec2Decode> {
@@ -464,7 +463,7 @@ namespace dsp {
 
             // Decode both parts using codec
             codec2_decode(codec, int16Audio, &_in->readBuf[2]);
-            codec2_decode(codec, &int16Audio[sampsPerC2Frame], &_in->readBuf[2+8]);
+            codec2_decode(codec, &int16Audio[sampsPerC2Frame], &_in->readBuf[2 + 8]);
 
             // Convert to float
             volk_16i_s32f_convert_32f(floatAudio, int16Audio, 32768.0f, sampsPerC2FrameDouble);
@@ -489,7 +488,6 @@ namespace dsp {
         CODEC2* codec;
         int sampsPerC2Frame = 0;
         int sampsPerC2FrameDouble = 0;
-
     };
 
     class M17LICHDecoder : public generic_block<M17LICHDecoder> {
@@ -543,7 +541,7 @@ namespace dsp {
                 uint8_t temp;
                 for (int i = 0; i < 12; i++) {
                     id = (b * 12) + i;
-                    chunk[id / 8] |= ((decodedBlock >> (23 - i)) & 1) << (7 - (id%8));
+                    chunk[id / 8] |= ((decodedBlock >> (23 - i)) & 1) << (7 - (id % 8));
                 }
             }
 
@@ -555,7 +553,7 @@ namespace dsp {
             if (partId == 0) {
                 newFrame = true;
                 lastId = 0;
-                memcpy(&lsf[partId*5], chunk, 5);
+                memcpy(&lsf[partId * 5], chunk, 5);
                 return count;
             }
 
@@ -568,7 +566,7 @@ namespace dsp {
             // If we're recording and there's no discontinuity (see above), add the data to the full frame
             if (newFrame) {
                 lastId = partId;
-                memcpy(&lsf[partId*5], chunk, 5);
+                memcpy(&lsf[partId * 5], chunk, 5);
 
                 // If the lsf is complete, send it out
                 if (partId == 5) {
@@ -590,7 +588,6 @@ namespace dsp {
         uint8_t lsf[240];
         bool newFrame = false;
         int lastId = 0;
-
     };
 
     class M17Decoder : public generic_hier_block<M17Decoder> {
@@ -620,7 +617,7 @@ namespace dsp {
 
             diagOut = &doubler.outB;
             out = &decodeAudio.out;
-            
+
             generic_hier_block<M17Decoder>::registerBlock(&demod);
             generic_hier_block<M17Decoder>::registerBlock(&fir);
             generic_hier_block<M17Decoder>::registerBlock(&recov);
@@ -661,7 +658,6 @@ namespace dsp {
         NullSink<uint8_t> ns2;
 
 
-        float _sampleRate;        
-
+        float _sampleRate;
     };
 }

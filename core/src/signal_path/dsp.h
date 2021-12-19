@@ -15,7 +15,7 @@ enum {
 class SignalPath {
 public:
     SignalPath();
-    void init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream<dsp::complex_t>* input, dsp::complex_t* fftBuffer, void fftHandler(dsp::complex_t*,int,void*), void* fftHandlerCtx);
+    void init(uint64_t sampleRate, int fftRate, int fftSize, dsp::stream<dsp::complex_t>* input, dsp::complex_t* fftBuffer, void fftHandler(dsp::complex_t*, int, void*), void* fftHandlerCtx);
     void start();
     void stop();
     void setSampleRate(double sampleRate);

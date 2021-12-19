@@ -46,14 +46,14 @@ namespace dsp {
 
             float _lvlL = 10.0f * logf(maxL);
             float _lvlR = 10.0f * logf(maxR);
-            
+
             // Update max values
             {
                 std::lock_guard<std::mutex> lck(lvlMtx);
                 if (_lvlL > lvlL) { lvlL = _lvlL; }
                 if (_lvlR > lvlR) { lvlR = _lvlR; }
             }
-            
+
 
             return count;
         }
@@ -77,6 +77,5 @@ namespace dsp {
         float lvlR = -90.0f;
         stream<stereo_t>* _in;
         std::mutex lvlMtx;
-
     };
 }

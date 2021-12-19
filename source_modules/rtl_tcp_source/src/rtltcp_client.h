@@ -12,17 +12,17 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <netdb.h> 
+#include <netdb.h>
 #endif
 
 #ifdef _WIN32
 #define __attribute__(x)
 #pragma pack(push, 1)
 #endif
-struct command_t{
-	unsigned char cmd;
-	unsigned int param;
-}__attribute__((packed));
+struct command_t {
+    unsigned char cmd;
+    unsigned int param;
+} __attribute__((packed));
 #ifdef _WIN32
 #pragma pack(pop)
 #endif
@@ -30,7 +30,6 @@ struct command_t{
 class RTLTCPClient {
 public:
     RTLTCPClient() {
-        
     }
 
     bool connectToRTL(char* host, uint16_t port) {
@@ -39,14 +38,14 @@ public:
         }
 
 #ifdef _WIN32
-        struct addrinfo *result = NULL;
-        struct addrinfo *ptr = NULL;
+        struct addrinfo* result = NULL;
+        struct addrinfo* ptr = NULL;
         struct addrinfo hints;
 
         WSADATA wsaData;
-        WSAStartup(MAKEWORD(2,2), &wsaData);
+        WSAStartup(MAKEWORD(2, 2), &wsaData);
 
-        ZeroMemory( &hints, sizeof(hints) );
+        ZeroMemory(&hints, sizeof(hints));
         hints.ai_family = AF_UNSPEC;
         hints.ai_socktype = SOCK_STREAM;
         hints.ai_protocol = IPPROTO_TCP;
@@ -88,13 +87,13 @@ public:
             // TODO: Log error
             return false;
         }
-        struct hostent *server = gethostbyname(host);
+        struct hostent* server = gethostbyname(host);
         struct sockaddr_in serv_addr;
         bzero(&serv_addr, sizeof(struct sockaddr_in));
         serv_addr.sin_family = AF_INET;
-        bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
+        bcopy((char*)server->h_addr, (char*)&serv_addr.sin_addr.s_addr, server->h_length);
         serv_addr.sin_port = htons(port);
-        if (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0) {
+        if (connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
             // TODO: log error
             return false;
         }
@@ -130,7 +129,7 @@ public:
         cmd.cmd = command;
         cmd.param = htonl(param);
 #ifdef _WIN32
-        send(sock, (char*)&cmd, sizeof(command_t), 0);  
+        send(sock, (char*)&cmd, sizeof(command_t), 0);
 #else
         (void)write(sockfd, &cmd, sizeof(command_t));
 #endif
@@ -196,7 +195,6 @@ private:
 #else
     int sockfd;
 #endif
-    
-    bool connected = false;
 
+    bool connected = false;
 };

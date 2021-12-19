@@ -87,7 +87,6 @@ std::string VFOManager::VFO::getName() {
 }
 
 VFOManager::VFOManager() {
-    
 }
 
 VFOManager::VFO* VFOManager::createVFO(std::string name, int reference, double offset, double bandwidth, double sampleRate, double minBandwidth, double maxBandwidth, bool bandwidthLocked) {
@@ -187,7 +186,7 @@ int VFOManager::getReference(std::string name) {
     return vfos[name]->getReference();
 }
 
-void  VFOManager::setColor(std::string name, ImU32 color) {
+void VFOManager::setColor(std::string name, ImU32 color) {
     if (vfos.find(name) == vfos.end()) {
         return;
     }

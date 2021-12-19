@@ -95,7 +95,7 @@ public:
         return values[id];
     }
 
-    T operator [](int& id) {
+    T operator[](int& id) {
         return value(id);
     }
 
@@ -115,5 +115,4 @@ private:
     std::vector<std::string> names;
     std::vector<T> values;
     std::string _txt;
-
 };

@@ -10,7 +10,7 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-SDRPP_MOD_INFO {
+SDRPP_MOD_INFO{
     /* Name:            */ "audio_sink",
     /* Description:     */ "Audio sink module for SDR++",
     /* Author:          */ "Ryzerth",
@@ -28,7 +28,7 @@ public:
         std::vector<double> sampleRates;
         std::string txtSampleRates;
     };
-    
+
     AudioSink(SinkManager::Stream* stream, std::string streamName) {
         _stream = stream;
         _streamName = streamName;
@@ -42,13 +42,13 @@ public:
         // Initialize PortAudio
         devCount = Pa_GetDeviceCount();
         devId = Pa_GetDefaultOutputDevice();
-        const PaDeviceInfo *deviceInfo;
+        const PaDeviceInfo* deviceInfo;
         PaStreamParameters outputParams;
         outputParams.sampleFormat = paFloat32;
         outputParams.hostApiSpecificStreamInfo = NULL;
 
         // Gather hardware info
-        for(int i = 0; i < devCount; i++) {
+        for (int i = 0; i < devCount; i++) {
             deviceInfo = Pa_GetDeviceInfo(i);
             if (deviceInfo->maxOutputChannels < 1) {
                 continue;
@@ -114,12 +114,12 @@ public:
         doStop();
         running = false;
     }
-    
+
     void menuHandler() {
         float menuWidth = ImGui::GetContentRegionAvailWidth();
 
         ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::Combo(("##_audio_sink_dev_"+_streamName).c_str(), &devListId, txtDevList.c_str())) {
+        if (ImGui::Combo(("##_audio_sink_dev_" + _streamName).c_str(), &devListId, txtDevList.c_str())) {
             // TODO: Load SR from config
             if (running) {
                 doStop();
@@ -131,7 +131,7 @@ public:
         AudioDevice_t* dev = devices[devListId];
 
         ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::Combo(("##_audio_sink_sr_"+_streamName).c_str(), &dev->srId, dev->txtSampleRates.c_str())) {
+        if (ImGui::Combo(("##_audio_sink_sr_" + _streamName).c_str(), &dev->srId, dev->txtSampleRates.c_str())) {
             _stream->setSampleRate(dev->sampleRates[dev->srId]);
             if (running) {
                 doStop();
@@ -143,7 +143,7 @@ public:
 
 private:
     void doStart() {
-        const PaDeviceInfo *deviceInfo;
+        const PaDeviceInfo* deviceInfo;
         AudioDevice_t* dev = devices[devListId];
         PaStreamParameters outputParams;
         deviceInfo = Pa_GetDeviceInfo(dev->index);
@@ -206,22 +206,22 @@ private:
         // stereoPacker.out.clearWriteStop();
     }
 
-    static int _mono_cb(const void *input, void *output, unsigned long frameCount,
-        const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData) {
+    static int _mono_cb(const void* input, void* output, unsigned long frameCount,
+                        const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData) {
         AudioSink* _this = (AudioSink*)userData;
-        if (!gui::mainWindow.isPlaying()) { 
-            memset(output, 0, frameCount*sizeof(float));
+        if (!gui::mainWindow.isPlaying()) {
+            memset(output, 0, frameCount * sizeof(float));
             return 0;
         }
         _this->monoRB.data.read((float*)output, frameCount);
         return 0;
     }
 
-    static int _stereo_cb(const void *input, void *output, unsigned long frameCount,
-        const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData) {
+    static int _stereo_cb(const void* input, void* output, unsigned long frameCount,
+                          const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData) {
         AudioSink* _this = (AudioSink*)userData;
-        if (!gui::mainWindow.isPlaying()) { 
-            memset(output, 0, frameCount*sizeof(dsp::stereo_t));
+        if (!gui::mainWindow.isPlaying()) {
+            memset(output, 0, frameCount * sizeof(dsp::stereo_t));
             return 0;
         }
         _this->stereoRB.data.read((dsp::stereo_t*)output, frameCount);
@@ -245,8 +245,8 @@ private:
     //     _this->stereoPacker.out.flush();
     //     return 0;
     // }
-    
-    
+
+
     SinkManager::Stream* _stream;
     dsp::StereoToMono s2m;
     dsp::RingBufferSink<float> monoRB;
@@ -256,7 +256,7 @@ private:
     // dsp::Packer<dsp::stereo_t> stereoPacker;
 
     std::string _streamName;
-    PaStream *stream;
+    PaStream* stream;
 
     int srId = 0;
     int devCount;
@@ -277,7 +277,6 @@ private:
     std::vector<AudioDevice_t*> devices;
     std::vector<std::string> deviceNames;
     std::string txtDevList;
-
 };
 
 class AudioSinkModule : public ModuleManager::Instance {
@@ -319,7 +318,6 @@ private:
     std::string name;
     bool enabled = true;
     SinkManager::SinkProvider provider;
-
 };
 
 MOD_EXPORT void _INIT_() {
@@ -333,9 +331,7 @@ MOD_EXPORT void* _CREATE_INSTANCE_(std::string name) {
 }
 
 MOD_EXPORT void _DELETE_INSTANCE_() {
-    
 }
 
 MOD_EXPORT void _END_() {
-    
 }

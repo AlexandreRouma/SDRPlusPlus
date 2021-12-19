@@ -24,7 +24,7 @@ namespace rfspace {
         udpClient->readAsync(sizeof(udpHeader), (uint8_t*)&udpHeader, udpHandler, this);
 
         // Start SDR
-        uint8_t args[4] = {0x70, 2, 0, 0};
+        uint8_t args[4] = { 0x70, 2, 0, 0 };
         setControlItem(0x18, args, 4);
     }
 

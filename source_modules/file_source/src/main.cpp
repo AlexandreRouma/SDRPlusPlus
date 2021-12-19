@@ -13,7 +13,7 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-SDRPP_MOD_INFO {
+SDRPP_MOD_INFO{
     /* Name:            */ "file_source",
     /* Description:     */ "Wav file source module for SDR++",
     /* Author:          */ "Ryzerth",
@@ -23,9 +23,9 @@ SDRPP_MOD_INFO {
 
 ConfigManager config;
 
-class FileSourceModule : public ModuleManager::Instance  {
+class FileSourceModule : public ModuleManager::Instance {
 public:
-    FileSourceModule(std::string name) : fileSelect("", {"Wav IQ Files (*.wav)", "*.wav", "All Files", "*"}) {
+    FileSourceModule(std::string name) : fileSelect("", { "Wav IQ Files (*.wav)", "*.wav", "All Files", "*" }) {
         this->name = name;
 
         config.acquire();
@@ -82,7 +82,7 @@ private:
         gui::waterfall.centerFrequencyLocked = false;
         spdlog::info("FileSourceModule '{0}': Menu Deselect!", _this->name);
     }
-    
+
     static void start(void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
         if (_this->running) { return; }
@@ -91,7 +91,7 @@ private:
         _this->workerThread = _this->float32Mode ? std::thread(floatWorker, _this) : std::thread(worker, _this);
         spdlog::info("FileSourceModule '{0}': Start!", _this->name);
     }
-    
+
     static void stop(void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
         if (!_this->running) { return; }
@@ -103,12 +103,12 @@ private:
         _this->reader->rewind();
         spdlog::info("FileSourceModule '{0}': Stop!", _this->name);
     }
-    
+
     static void tune(double freq, void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
         spdlog::info("FileSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
-    
+
     static void menuHandler(void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
 

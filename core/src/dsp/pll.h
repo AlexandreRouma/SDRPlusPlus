@@ -7,7 +7,7 @@
 
 namespace dsp {
     template <int ORDER>
-    class CostasLoop: public generic_block<CostasLoop<ORDER>> {
+    class CostasLoop : public generic_block<CostasLoop<ORDER>> {
     public:
         CostasLoop() {}
 
@@ -59,8 +59,8 @@ namespace dsp {
             for (int i = 0; i < count; i++) {
 
                 // Mix the VFO with the input to create the output value
-                outVal.re = (lastVCO.re*_in->readBuf[i].re) - (lastVCO.im*_in->readBuf[i].im);
-                outVal.im = (lastVCO.im*_in->readBuf[i].re) + (lastVCO.re*_in->readBuf[i].im);
+                outVal.re = (lastVCO.re * _in->readBuf[i].re) - (lastVCO.im * _in->readBuf[i].im);
+                outVal.im = (lastVCO.im * _in->readBuf[i].re) + (lastVCO.re * _in->readBuf[i].im);
                 out.writeBuf[i] = outVal;
 
                 // Calculate the phase error estimation
@@ -75,20 +75,25 @@ namespace dsp {
                     const float K = (sqrtf(2.0) - 1);
                     if (fabsf(outVal.re) >= fabsf(outVal.im)) {
                         error = ((outVal.re > 0.0f ? 1.0f : -1.0f) * outVal.im -
-                                (outVal.im > 0.0f ? 1.0f : -1.0f) * outVal.re * K);
-                    } else {
+                                 (outVal.im > 0.0f ? 1.0f : -1.0f) * outVal.re * K);
+                    }
+                    else {
                         error = ((outVal.re > 0.0f ? 1.0f : -1.0f) * outVal.im * K -
-                                (outVal.im > 0.0f ? 1.0f : -1.0f) * outVal.re);
+                                 (outVal.im > 0.0f ? 1.0f : -1.0f) * outVal.re);
                     }
                 }
-                
+
                 if (error > 1.0f) { error = 1.0f; }
-                else if (error < -1.0f) { error = -1.0f; }
-                
+                else if (error < -1.0f) {
+                    error = -1.0f;
+                }
+
                 // Integrate frequency and clamp it
                 vcoFrequency += _beta * error;
                 if (vcoFrequency > 1.0f) { vcoFrequency = 1.0f; }
-                else if (vcoFrequency < -1.0f) { vcoFrequency = -1.0f; }
+                else if (vcoFrequency < -1.0f) {
+                    vcoFrequency = -1.0f;
+                }
 
                 // Calculate new phase and wrap it
                 vcoPhase += vcoFrequency + (_alpha * error);
@@ -98,9 +103,8 @@ namespace dsp {
                 // Calculate output
                 lastVCO.re = cosf(-vcoPhase);
                 lastVCO.im = sinf(-vcoPhase);
-
             }
-            
+
             _in->flush();
             if (!out.swap(count)) { return -1; }
             return count;
@@ -112,17 +116,16 @@ namespace dsp {
         float _loopBandwidth = 1.0f;
 
         float _alpha; // Integral coefficient
-        float _beta; // Proportional coefficient
+        float _beta;  // Proportional coefficient
         float vcoFrequency = 0.0f;
         float vcoPhase = 0.0f;
         complex_t lastVCO;
 
         stream<complex_t>* _in;
-
     };
 
     template <class T>
-    class CarrierTrackingPLL: public generic_block<CarrierTrackingPLL<T>> {
+    class CarrierTrackingPLL : public generic_block<CarrierTrackingPLL<T>> {
     public:
         CarrierTrackingPLL() {}
 
@@ -174,8 +177,8 @@ namespace dsp {
             for (int i = 0; i < count; i++) {
 
                 // Mix the VFO with the input to create the output value
-                outVal.re = (lastVCO.re*_in->readBuf[i].re) - ((-lastVCO.im)*_in->readBuf[i].im);
-                outVal.im = ((-lastVCO.im)*_in->readBuf[i].re) + (lastVCO.re*_in->readBuf[i].im);
+                outVal.re = (lastVCO.re * _in->readBuf[i].re) - ((-lastVCO.im) * _in->readBuf[i].im);
+                outVal.im = ((-lastVCO.im) * _in->readBuf[i].re) + (lastVCO.re * _in->readBuf[i].im);
 
                 if constexpr (std::is_same_v<T, float>) {
                     out.writeBuf[i] = outVal.fastPhase();
@@ -187,16 +190,20 @@ namespace dsp {
                 // Calculate the phase error estimation
                 // TODO: Figure out why fastPhase doesn't work
                 error = _in->readBuf[i].phase() - vcoPhase;
-                if (error > 3.1415926535f)        { error -= 2.0f * 3.1415926535f; }
-                else if (error <= -3.1415926535f) { error += 2.0f * 3.1415926535f; }
-                
+                if (error > 3.1415926535f) { error -= 2.0f * 3.1415926535f; }
+                else if (error <= -3.1415926535f) {
+                    error += 2.0f * 3.1415926535f;
+                }
+
                 // if (error > 1.0f) { error = 1.0f; }
                 // else if (error < -1.0f) { error = -1.0f; }
-                
+
                 // Integrate frequency and clamp it
                 vcoFrequency += _beta * error;
                 if (vcoFrequency > 1.0f) { vcoFrequency = 1.0f; }
-                else if (vcoFrequency < -1.0f) { vcoFrequency = -1.0f; }
+                else if (vcoFrequency < -1.0f) {
+                    vcoFrequency = -1.0f;
+                }
 
                 // Calculate new phase and wrap it
                 vcoPhase += vcoFrequency + (_alpha * error);
@@ -206,9 +213,8 @@ namespace dsp {
                 // Calculate output
                 lastVCO.re = cosf(vcoPhase);
                 lastVCO.im = sinf(vcoPhase);
-
             }
-            
+
             _in->flush();
             if (!out.swap(count)) { return -1; }
             return count;
@@ -220,16 +226,15 @@ namespace dsp {
         float _loopBandwidth = 1.0f;
 
         float _alpha; // Integral coefficient
-        float _beta; // Proportional coefficient
+        float _beta;  // Proportional coefficient
         float vcoFrequency = 0.0f;
         float vcoPhase = 0.0f;
         complex_t lastVCO;
 
         stream<complex_t>* _in;
-
     };
 
-    class PLL: public generic_block<PLL> {
+    class PLL : public generic_block<PLL> {
     public:
         PLL() {}
 
@@ -284,13 +289,17 @@ namespace dsp {
                 // Calculate the phase error estimation
                 // TODO: Figure out why fastPhase doesn't work
                 error = _in->readBuf[i].phase() - vcoPhase;
-                if (error > 3.1415926535f)        { error -= 2.0f * 3.1415926535f; }
-                else if (error <= -3.1415926535f) { error += 2.0f * 3.1415926535f; }
-                
+                if (error > 3.1415926535f) { error -= 2.0f * 3.1415926535f; }
+                else if (error <= -3.1415926535f) {
+                    error += 2.0f * 3.1415926535f;
+                }
+
                 // Integrate frequency and clamp it
                 vcoFrequency += _beta * error;
                 if (vcoFrequency > 1.0f) { vcoFrequency = 1.0f; }
-                else if (vcoFrequency < -1.0f) { vcoFrequency = -1.0f; }
+                else if (vcoFrequency < -1.0f) {
+                    vcoFrequency = -1.0f;
+                }
 
                 // Calculate new phase and wrap it
                 vcoPhase += vcoFrequency + (_alpha * error);
@@ -300,9 +309,8 @@ namespace dsp {
                 // Calculate output
                 lastVCO.re = cosf(vcoPhase);
                 lastVCO.im = sinf(vcoPhase);
-
             }
-            
+
             _in->flush();
             if (!out.swap(count)) { return -1; }
             return count;
@@ -314,12 +322,11 @@ namespace dsp {
         float _loopBandwidth = 1.0f;
 
         float _alpha; // Integral coefficient
-        float _beta; // Proportional coefficient
+        float _beta;  // Proportional coefficient
         float vcoFrequency = ((19000.0f / 250000.0f) * 2.0f * FL_M_PI);
         float vcoPhase = 0.0f;
         complex_t lastVCO;
 
         stream<complex_t>* _in;
-
     };
 }

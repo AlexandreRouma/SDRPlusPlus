@@ -21,9 +21,9 @@
 
 #include <fstream>
 
-#define CONCAT(a, b)    ((std::string(a) + b).c_str())
+#define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-SDRPP_MOD_INFO {
+SDRPP_MOD_INFO{
     /* Name:            */ "meteor_demodulator",
     /* Description:     */ "Meteor demodulator for SDR++",
     /* Author:          */ "Ryzerth",
@@ -35,7 +35,7 @@ ConfigManager config;
 
 std::string genFileName(std::string prefix, std::string suffix) {
     time_t now = time(0);
-    tm *ltm = localtime(&now);
+    tm* ltm = localtime(&now);
     char buf[1024];
     sprintf(buf, "%s_%02d-%02d-%02d_%02d-%02d-%02d%s", prefix.c_str(), ltm->tm_hour, ltm->tm_min, ltm->tm_sec, ltm->tm_mday, ltm->tm_mon + 1, ltm->tm_year + 1900, suffix.c_str());
     return buf;
@@ -74,7 +74,7 @@ public:
         reshape.start();
         symSink.start();
         sink.start();
-        
+
         gui::menu.registerEntry(name, menuHandler, this, this);
         core::modComManager.registerInterface("meteor_demodulator", name, moduleInterfaceHandler, this);
     }
@@ -98,7 +98,7 @@ public:
 
     void enable() {
         double bw = gui::waterfall.getBandwidth();
-        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, std::clamp<double>(0, -bw/2.0, bw/2.0), 150000, INPUT_SAMPLE_RATE, 150000, 150000, true);
+        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, std::clamp<double>(0, -bw / 2.0, bw / 2.0), 150000, INPUT_SAMPLE_RATE, 150000, 150000, true);
 
         demod.setInput(vfo->output);
 
@@ -155,12 +155,12 @@ private:
         }
         else {
             if (ImGui::Button(CONCAT("Record##_recorder_rec_", _this->name), ImVec2(menuWidth, 0))) {
-                _this->startRecording();              
+                _this->startRecording();
             }
             ImGui::Text("Idle --.--MB");
         }
 
-        if (!_this->folderSelect.pathIsValid() && _this->enabled) { style::endDisabled(); }        
+        if (!_this->folderSelect.pathIsValid() && _this->enabled) { style::endDisabled(); }
 
         if (!_this->enabled) { style::endDisabled(); }
     }
@@ -196,7 +196,7 @@ private:
         }
         else {
             spdlog::error("Could not open file for recording!");
-        }  
+        }
     }
 
     void stopRecording() {
@@ -240,7 +240,6 @@ private:
     std::ofstream recFile;
 
     int8_t* writeBuffer;
-
 };
 
 MOD_EXPORT void _INIT_() {

@@ -7,7 +7,7 @@
 #include <GL/glew.h>
 #include <utils/event.h>
 
-#define WATERFALL_RESOLUTION    1000000
+#define WATERFALL_RESOLUTION 1000000
 
 namespace ImGui {
     class WaterfallVFO {
@@ -244,7 +244,7 @@ namespace ImGui {
         bool waterfallUpdate = false;
 
         uint32_t waterfallPallet[WATERFALL_RESOLUTION];
-        
+
         ImVec2 widgetPos;
         ImVec2 widgetEndPos;
         ImVec2 widgetSize;
@@ -270,9 +270,9 @@ namespace ImGui {
         int maxVSteps;
         int maxHSteps;
 
-        int dataWidth;              // Width of the FFT and waterfall
-        int fftHeight;              // Height of the fft graph
-        int waterfallHeight = 0;    // Height of the waterfall
+        int dataWidth;           // Width of the FFT and waterfall
+        int fftHeight;           // Height of the fft graph
+        int waterfallHeight = 0; // Height of the waterfall
 
         double viewBandwidth;
         double viewOffset;

@@ -4,7 +4,6 @@
 #include <gui/style.h>
 
 Menu::Menu() {
-
 }
 
 void Menu::registerEntry(std::string name, void (*drawHandler)(void* ctx), void* ctx, ModuleManager::Instance* inst) {
@@ -67,9 +66,9 @@ bool Menu::draw(bool updateStates) {
             window->DrawList->AddRect(posMin, posMax, textColor);
         }
         displayedCount++;
-        
+
         MenuItem_t& item = items[opt.name];
-        
+
 
         ImRect orginalRect = window->WorkRect;
         if (item.inst != NULL) {
@@ -79,8 +78,8 @@ bool Menu::draw(bool updateStates) {
         ImVec2 posMin = ImGui::GetCursorScreenPos();
         ImVec2 posMax = ImVec2(posMin.x + menuWidth, posMin.y + ImGui::GetFrameHeight());
 
-        headerTops[displayedCount-1] = posMin.y;
-        optionIDs[displayedCount-1] = rawId-1;
+        headerTops[displayedCount - 1] = posMin.y;
+        optionIDs[displayedCount - 1] = rawId - 1;
 
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsMouseHoveringRect(posMin, posMax)) {
             menuClicked = true;
@@ -89,7 +88,7 @@ bool Menu::draw(bool updateStates) {
 
         if (menuClicked && ImGui::IsMouseDragging(ImGuiMouseButton_Left) && draggedMenuName.empty() && clickedMenuName == opt.name) {
             draggedMenuName = opt.name;
-            draggedId = rawId-1;
+            draggedId = rawId - 1;
             draggedOpt = opt;
             continue;
         }
@@ -142,7 +141,7 @@ bool Menu::draw(bool updateStates) {
     }
 
     if (!ImGui::IsMouseDown(ImGuiMouseButton_Left) && menuClicked) {
-        
+
         if (!draggedMenuName.empty()) {
             // Move menu
             order.erase(order.begin() + draggedId);
@@ -162,7 +161,7 @@ bool Menu::draw(bool updateStates) {
             }
             changed = true;
         }
-        
+
         menuClicked = false;
         draggedMenuName = "";
         insertBeforeName = "";

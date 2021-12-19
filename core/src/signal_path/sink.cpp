@@ -32,7 +32,7 @@ void SinkManager::Stream::start() {
     if (running) {
         return;
     }
-    
+
     splitter.start();
     volumeAjust.start();
     sink->start();
@@ -113,7 +113,7 @@ void SinkManager::unregisterSinkProvider(std::string name) {
     }
 
     onSinkProviderUnregister.emit(name);
-    
+
     // Switch all sinks using it to a null sink
     for (auto& [streamName, stream] : streams) {
         if (providerNames[stream->providerId] != name) { continue; }
@@ -344,7 +344,7 @@ void SinkManager::showMenu() {
     float menuWidth = ImGui::GetContentRegionAvailWidth();
     int count = 0;
     int maxCount = streams.size();
-    
+
     std::string provStr = "";
     for (auto const& name : providerNames) {
         provStr += name;

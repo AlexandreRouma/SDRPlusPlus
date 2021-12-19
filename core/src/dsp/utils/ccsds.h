@@ -3,7 +3,7 @@
 
 namespace dsp {
     namespace ccsds {
-        const uint8_t TO_DUAL_BASIS[256] = { 
+        const uint8_t TO_DUAL_BASIS[256] = {
             0x00, 0x7b, 0xaf, 0xd4, 0x99, 0xe2, 0x36, 0x4d, 0xfa, 0x81, 0x55, 0x2e, 0x63, 0x18, 0xcc, 0xb7,
             0x86, 0xfd, 0x29, 0x52, 0x1f, 0x64, 0xb0, 0xcb, 0x7c, 0x07, 0xd3, 0xa8, 0xe5, 0x9e, 0x4a, 0x31,
             0xec, 0x97, 0x43, 0x38, 0x75, 0x0e, 0xda, 0xa1, 0x16, 0x6d, 0xb9, 0xc2, 0x8f, 0xf4, 0x20, 0x5b,
@@ -61,9 +61,9 @@ namespace dsp {
         };
 
         const uint32_t ASM_VALUE = 0x1ACFFC1D;
-        const uint8_t ASM_BYTES[4] = {0x1A, 0xCF, 0xFC, 0x1D};
-        const uint8_t ASM_SYMS[16] = {0b00, 0b01, 0b10, 0b10, 0b11, 0b00, 0b11, 0b11, 0b11, 0b11, 0b11, 0b00, 0b00, 0b01, 0b11, 0b01}; 
-        const uint8_t ASM_BITS[32] = {0,0,0,1,1,0,1,0,1,1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1,0,1}; 
+        const uint8_t ASM_BYTES[4] = { 0x1A, 0xCF, 0xFC, 0x1D };
+        const uint8_t ASM_SYMS[16] = { 0b00, 0b01, 0b10, 0b10, 0b11, 0b00, 0b11, 0b11, 0b11, 0b11, 0b11, 0b00, 0b00, 0b01, 0b11, 0b01 };
+        const uint8_t ASM_BITS[32] = { 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1 };
 
         class FrameDataDecoder {
         public:
@@ -109,11 +109,10 @@ namespace dsp {
             bool _dualBasis;
             int _rsBlockSize;
             int _rsParitySize;
-
         };
 
         inline void descramble(uint8_t* in, uint8_t* out, int count) {
-            for (int i = 0; i < count; i++){
+            for (int i = 0; i < count; i++) {
                 out[i] = in[i] ^ SCRAMBLING_SEQUENCE[i % 255];
             }
         }

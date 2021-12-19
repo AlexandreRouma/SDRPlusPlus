@@ -40,7 +40,6 @@ namespace dsp {
 
     private:
         stream<float>* _in;
-
     };
 
     class ChannelsToStereo : public generic_block<ChannelsToStereo> {
@@ -98,7 +97,6 @@ namespace dsp {
         stream<float>* _in_right;
 
         float* nullbuf;
-
     };
 
     class StereoToMono : public generic_block<StereoToMono> {
@@ -151,9 +149,8 @@ namespace dsp {
         stream<float> out;
 
     private:
-        float* l_buf, *r_buf;
+        float *l_buf, *r_buf;
         stream<stereo_t>* _in;
-
     };
 
     class StereoToChannels : public generic_block<StereoToChannels> {
@@ -197,6 +194,5 @@ namespace dsp {
 
     private:
         stream<stereo_t>* _in;
-
     };
 }

@@ -83,7 +83,7 @@ namespace dsp {
             else {
                 _in->flush();
             }
-            
+
             return count;
         }
 
@@ -92,13 +92,12 @@ namespace dsp {
     private:
         stream<complex_t>* _in;
         PCMType _pcmType;
-
     };
 
     class DynamicRangeDecompressor : public generic_block<DynamicRangeDecompressor> {
     public:
         DynamicRangeDecompressor() {}
-        
+
         DynamicRangeDecompressor(stream<uint8_t>* in) { init(in); }
 
         void init(stream<uint8_t>* in) {
@@ -147,8 +146,8 @@ namespace dsp {
                 volk_16i_s32f_convert_32f((float*)out.writeBuf, (int16_t*)dataBuf, 32768.0f / absScale, outCount * 2);
                 _in->flush();
                 if (!out.swap(outCount)) { return -1; }
-            }          
-            
+            }
+
             return count;
         }
 
@@ -156,6 +155,5 @@ namespace dsp {
 
     private:
         stream<uint8_t>* _in;
-
     };
 }

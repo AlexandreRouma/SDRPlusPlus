@@ -9,8 +9,8 @@
 #include <gui/widgets/line_push_image.h>
 #include <gui/gui.h>
 
-#define NOAA_HRPT_VFO_SR    3000000.0f
-#define NOAA_HRPT_VFO_BW    2000000.0f
+#define NOAA_HRPT_VFO_SR 3000000.0f
+#define NOAA_HRPT_VFO_BW 2000000.0f
 
 class NOAAHRPTDecoder : public SatDecoder {
 public:
@@ -19,15 +19,15 @@ public:
         _name = name;
 
         // Core DSP
-        demod.init(vfo->output, NOAA_HRPT_VFO_SR, 665400.0f * 2.0f, 0.02e-3, (0.06f*0.06f) / 2.0f, 32, 0.6f, (0.01f*0.01f) / 4.0f, 0.01f, 0.005);
-        
+        demod.init(vfo->output, NOAA_HRPT_VFO_SR, 665400.0f * 2.0f, 0.02e-3, (0.06f * 0.06f) / 2.0f, 32, 0.6f, (0.01f * 0.01f) / 4.0f, 0.01f, 0.005);
+
         split.init(demod.out);
         split.bindStream(&dataStream);
         split.bindStream(&visStream);
 
-        reshape.init(&visStream, 1024, (NOAA_HRPT_VFO_SR/30) - 1024);
+        reshape.init(&visStream, 1024, (NOAA_HRPT_VFO_SR / 30) - 1024);
         visSink.init(&reshape.out, visHandler, this);
-        
+
         deframe.init(&dataStream, 11090 * 10 * 2, (uint8_t*)dsp::noaa::HRPTSyncWord, 60);
         manDec.init(&deframe.out, false);
         packer.init(&manDec.out);
@@ -125,7 +125,7 @@ public:
 
         compositeThread = std::thread(&NOAAHRPTDecoder::avhrrCompositeWorker, this);
     };
-    
+
     void stop() {
         compositeIn1.stopReader();
         compositeIn1.stopWriter();
@@ -187,7 +187,7 @@ public:
         compositeIn2.clearReadStop();
         compositeIn2.clearWriteStop();
     };
-    
+
     void setVFO(VFOManager::VFO* vfo) {
         _vfo = vfo;
         demod.setInput(_vfo->output);
@@ -196,7 +196,7 @@ public:
     virtual bool canRecord() {
         return false;
     }
-    
+
     // bool startRecording(std::string recPath) {
 
     // };
@@ -208,7 +208,7 @@ public:
     // bool isRecording() {
 
     // };
-    
+
     void drawMenu(float menuWidth) {
         ImGui::SetNextItemWidth(menuWidth);
         symDiag.draw();
@@ -285,7 +285,7 @@ public:
 
         ImGui::Checkbox("Show Image", &showWindow);
     };
-    
+
 private:
     // AVHRR Data Handlers
     void avhrrCompositeWorker() {
@@ -294,16 +294,16 @@ private:
         while (true) {
             if (compositeIn1.read() < 0) { return; }
             if (compositeIn2.read() < 0) { return; }
-            
+
             uint8_t* buf = avhrrRGBImage.acquireNextLine();
             float rg, b;
             for (int i = 0; i < 2048; i++) {
                 b = ((float)compositeIn1.readBuf[i] * 255.0f) / 1024.0f;
                 rg = ((float)compositeIn2.readBuf[i] * 255.0f) / 1024.0f;
-                buf[(i*4)] = rg;
-                buf[(i*4) + 1] = rg;
-                buf[(i*4) + 2] = b;
-                buf[(i*4) + 3] = 255;
+                buf[(i * 4)] = rg;
+                buf[(i * 4) + 1] = rg;
+                buf[(i * 4) + 2] = b;
+                buf[(i * 4) + 3] = 255;
             }
             avhrrRGBImage.releaseNextLine();
 
@@ -318,10 +318,10 @@ private:
         float val;
         for (int i = 0; i < 2048; i++) {
             val = ((float)data[i] * 255.0f) / 1024.0f;
-            buf[(i*4)] = val;
-            buf[(i*4) + 1] = val;
-            buf[(i*4) + 2] = val;
-            buf[(i*4) + 3] = 255;
+            buf[(i * 4)] = val;
+            buf[(i * 4) + 1] = val;
+            buf[(i * 4) + 2] = val;
+            buf[(i * 4) + 3] = 255;
         }
         _this->avhrr1Image.releaseNextLine();
 
@@ -335,10 +335,10 @@ private:
         float val;
         for (int i = 0; i < 2048; i++) {
             val = ((float)data[i] * 255.0f) / 1024.0f;
-            buf[(i*4)] = val;
-            buf[(i*4) + 1] = val;
-            buf[(i*4) + 2] = val;
-            buf[(i*4) + 3] = 255;
+            buf[(i * 4)] = val;
+            buf[(i * 4) + 1] = val;
+            buf[(i * 4) + 2] = val;
+            buf[(i * 4) + 3] = 255;
         }
         _this->avhrr2Image.releaseNextLine();
 
@@ -352,10 +352,10 @@ private:
         float val;
         for (int i = 0; i < 2048; i++) {
             val = ((float)data[i] * 255.0f) / 1024.0f;
-            buf[(i*4)] = val;
-            buf[(i*4) + 1] = val;
-            buf[(i*4) + 2] = val;
-            buf[(i*4) + 3] = 255;
+            buf[(i * 4)] = val;
+            buf[(i * 4) + 1] = val;
+            buf[(i * 4) + 2] = val;
+            buf[(i * 4) + 3] = 255;
         }
         _this->avhrr3Image.releaseNextLine();
     }
@@ -366,10 +366,10 @@ private:
         float val;
         for (int i = 0; i < 2048; i++) {
             val = ((float)data[i] * 255.0f) / 1024.0f;
-            buf[(i*4)] = val;
-            buf[(i*4) + 1] = val;
-            buf[(i*4) + 2] = val;
-            buf[(i*4) + 3] = 255;
+            buf[(i * 4)] = val;
+            buf[(i * 4) + 1] = val;
+            buf[(i * 4) + 2] = val;
+            buf[(i * 4) + 3] = 255;
         }
         _this->avhrr4Image.releaseNextLine();
     }
@@ -380,10 +380,10 @@ private:
         float val;
         for (int i = 0; i < 2048; i++) {
             val = ((float)data[i] * 255.0f) / 1024.0f;
-            buf[(i*4)] = val;
-            buf[(i*4) + 1] = val;
-            buf[(i*4) + 2] = val;
-            buf[(i*4) + 3] = 255;
+            buf[(i * 4)] = val;
+            buf[(i * 4) + 1] = val;
+            buf[(i * 4) + 2] = val;
+            buf[(i * 4) + 3] = 255;
         }
         _this->avhrr5Image.releaseNextLine();
     }
@@ -391,102 +391,82 @@ private:
     // HIRS Data Handlers
     static void hirs1Handler(uint16_t* data, int count, void* ctx) {
         NOAAHRPTDecoder* _this = (NOAAHRPTDecoder*)ctx;
-
     }
 
     static void hirs2Handler(uint16_t* data, int count, void* ctx) {
         NOAAHRPTDecoder* _this = (NOAAHRPTDecoder*)ctx;
-
     }
 
     static void hirs3Handler(uint16_t* data, int count, void* ctx) {
         NOAAHRPTDecoder* _this = (NOAAHRPTDecoder*)ctx;
-
     }
 
     static void hirs4Handler(uint16_t* data, int count, void* ctx) {
         NOAAHRPTDecoder* _this = (NOAAHRPTDecoder*)ctx;
-
     }
 
     static void hirs5Handler(uint16_t* data, int count, void* ctx) {
         NOAAHRPTDecoder* _this = (NOAAHRPTDecoder*)ctx;
-
     }
 
     static void hirs6Handler(uint16_t* data, int count, void* ctx) {
         NOAAHRPTDecoder* _this = (NOAAHRPTDecoder*)ctx;
-
     }
 
     static void hirs7Handler(uint16_t* data, int count, void* ctx) {
         NOAAHRPTDecoder* _this = (NOAAHRPTDecoder*)ctx;
-
     }
 
     static void hirs8Handler(uint16_t* data, int count, void* ctx) {
         NOAAHRPTDecoder* _this = (NOAAHRPTDecoder*)ctx;
-
     }
 
     static void hirs9Handler(uint16_t* data, int count, void* ctx) {
         NOAAHRPTDecoder* _this = (NOAAHRPTDecoder*)ctx;
-
     }
 
     static void hirs10Handler(uint16_t* data, int count, void* ctx) {
         NOAAHRPTDecoder* _this = (NOAAHRPTDecoder*)ctx;
-
     }
 
     static void hirs11Handler(uint16_t* data, int count, void* ctx) {
         NOAAHRPTDecoder* _this = (NOAAHRPTDecoder*)ctx;
-
     }
 
     static void hirs12Handler(uint16_t* data, int count, void* ctx) {
         NOAAHRPTDecoder* _this = (NOAAHRPTDecoder*)ctx;
-
     }
 
     static void hirs13Handler(uint16_t* data, int count, void* ctx) {
         NOAAHRPTDecoder* _this = (NOAAHRPTDecoder*)ctx;
-
     }
 
     static void hirs14Handler(uint16_t* data, int count, void* ctx) {
         NOAAHRPTDecoder* _this = (NOAAHRPTDecoder*)ctx;
-
     }
 
     static void hirs15Handler(uint16_t* data, int count, void* ctx) {
         NOAAHRPTDecoder* _this = (NOAAHRPTDecoder*)ctx;
-
     }
 
     static void hirs16Handler(uint16_t* data, int count, void* ctx) {
         NOAAHRPTDecoder* _this = (NOAAHRPTDecoder*)ctx;
-
     }
 
     static void hirs17Handler(uint16_t* data, int count, void* ctx) {
         NOAAHRPTDecoder* _this = (NOAAHRPTDecoder*)ctx;
-
     }
 
     static void hirs18Handler(uint16_t* data, int count, void* ctx) {
         NOAAHRPTDecoder* _this = (NOAAHRPTDecoder*)ctx;
-
     }
 
     static void hirs19Handler(uint16_t* data, int count, void* ctx) {
         NOAAHRPTDecoder* _this = (NOAAHRPTDecoder*)ctx;
-
     }
 
     static void hirs20Handler(uint16_t* data, int count, void* ctx) {
         NOAAHRPTDecoder* _this = (NOAAHRPTDecoder*)ctx;
-
     }
 
     static void visHandler(float* data, int count, void* ctx) {
@@ -568,5 +548,4 @@ private:
     std::thread compositeThread;
 
     bool showWindow = false;
-
 };

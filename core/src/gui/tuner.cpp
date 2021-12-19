@@ -31,7 +31,7 @@ namespace tuner {
 
         ImGui::WaterfallVFO* vfo = gui::waterfall.vfos[vfoName];
 
-        double currentOff =  vfo->centerOffset;
+        double currentOff = vfo->centerOffset;
         double currentTune = gui::waterfall.getCenterFrequency() + vfo->generalOffset;
         double delta = freq - currentTune;
 
@@ -119,21 +119,21 @@ namespace tuner {
 
     void tune(int mode, std::string vfoName, double freq) {
         switch (mode) {
-            case TUNER_MODE_CENTER:
-                centerTuning(vfoName, freq);
-                break;
-            case TUNER_MODE_NORMAL:
-                normalTuning(vfoName, freq);
-                break;
-            case TUNER_MODE_LOWER_HALF:
-                normalTuning(vfoName, freq);
-                break;
-            case TUNER_MODE_UPPER_HALF:
-                normalTuning(vfoName, freq);
-                break;
-            case TUNER_MODE_IQ_ONLY:
-                iqTuning(freq);
-                break;
+        case TUNER_MODE_CENTER:
+            centerTuning(vfoName, freq);
+            break;
+        case TUNER_MODE_NORMAL:
+            normalTuning(vfoName, freq);
+            break;
+        case TUNER_MODE_LOWER_HALF:
+            normalTuning(vfoName, freq);
+            break;
+        case TUNER_MODE_UPPER_HALF:
+            normalTuning(vfoName, freq);
+            break;
+        case TUNER_MODE_IQ_ONLY:
+            iqTuning(freq);
+            break;
         }
     }
 }

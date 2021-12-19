@@ -20,7 +20,7 @@ public:
     void release(bool modified = false);
 
     json conf;
-    
+
 private:
     void autoSaveWorker();
 
@@ -33,5 +33,4 @@ private:
     std::mutex termMtx;
     std::condition_variable termCond;
     volatile bool termFlag = false;
-
 };

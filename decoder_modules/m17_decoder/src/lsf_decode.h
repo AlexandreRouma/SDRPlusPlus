@@ -3,17 +3,17 @@
 #include <stdint.h>
 
 enum M17DataType {
-    M17_DATATYPE_UNKNOWN    = 0b00,
-    M17_DATATYPE_DATA       = 0b01,
-    M17_DATATYPE_VOICE      = 0b10,
+    M17_DATATYPE_UNKNOWN = 0b00,
+    M17_DATATYPE_DATA = 0b01,
+    M17_DATATYPE_VOICE = 0b10,
     M17_DATATYPE_DATA_VOICE = 0b11
 };
 
 enum M17EncryptionType {
-    M17_ENCRYPTION_NONE     = 0b00,
-    M17_ENCRYPTION_AES      = 0b01,
+    M17_ENCRYPTION_NONE = 0b00,
+    M17_ENCRYPTION_AES = 0b01,
     M17_ENCRYPTION_SCRAMBLE = 0b10,
-    M17_ENCRYPTION_UNKNOWN  = 0b11
+    M17_ENCRYPTION_UNKNOWN = 0b11
 };
 
 extern const char* M17DataTypesTxt[4];

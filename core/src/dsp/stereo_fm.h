@@ -66,10 +66,10 @@ namespace dsp {
             _in->flush();
 
             for (int i = 0; i < count; i++) {
-                volk_32fc_x2_dot_prod_32fc((lv_32fc_t*)&pilotOut.writeBuf[i], (lv_32fc_t*)&buffer[i+1], (lv_32fc_t*)taps, tapCount);
+                volk_32fc_x2_dot_prod_32fc((lv_32fc_t*)&pilotOut.writeBuf[i], (lv_32fc_t*)&buffer[i + 1], (lv_32fc_t*)taps, tapCount);
             }
 
-            memcpy(dataOut.writeBuf, &buffer[tapCount - ((tapCount-1)/2)], count * sizeof(complex_t));
+            memcpy(dataOut.writeBuf, &buffer[tapCount - ((tapCount - 1) / 2)], count * sizeof(complex_t));
 
             if (!pilotOut.swap(count) || !dataOut.swap(count)) {
                 bufMtx.unlock();
@@ -85,7 +85,7 @@ namespace dsp {
 
         stream<complex_t> dataOut;
         stream<complex_t> pilotOut;
-        
+
 
     private:
         stream<complex_t>* _in;
@@ -98,10 +98,9 @@ namespace dsp {
         complex_t* buffer;
         int tapCount;
         complex_t* taps;
-
     };
 
-    class FMStereoDemux: public generic_block<FMStereoDemux> {
+    class FMStereoDemux : public generic_block<FMStereoDemux> {
     public:
         FMStereoDemux() {}
 
@@ -163,18 +162,22 @@ namespace dsp {
             for (int i = 0; i < count; i++) {
                 // Double the VCO, then mix it with the input data.
                 // IMPORTANT: THERE SHOULDN'T BE A NEED FOR A GAIN HERE
-                doubledVCO = lastVCO*lastVCO;
+                doubledVCO = lastVCO * lastVCO;
                 AminusBOut.writeBuf[i] = (_data->readBuf[i].re * doubledVCO.re) * 2.0f;
 
                 // Calculate the phase error estimation
                 error = _pilot->readBuf[i].phase() - vcoPhase;
-                if (error > 3.1415926535f)        { error -= 2.0f * 3.1415926535f; }
-                else if (error <= -3.1415926535f) { error += 2.0f * 3.1415926535f; }
-                
+                if (error > 3.1415926535f) { error -= 2.0f * 3.1415926535f; }
+                else if (error <= -3.1415926535f) {
+                    error += 2.0f * 3.1415926535f;
+                }
+
                 // Integrate frequency and clamp it
                 vcoFrequency += _beta * error;
                 if (vcoFrequency > upperLimit) { vcoFrequency = upperLimit; }
-                else if (vcoFrequency < lowerLimit) { vcoFrequency = lowerLimit; }
+                else if (vcoFrequency < lowerLimit) {
+                    vcoFrequency = lowerLimit;
+                }
 
                 // Calculate new phase and wrap it
                 vcoPhase += vcoFrequency + (_alpha * error);
@@ -185,7 +188,7 @@ namespace dsp {
                 lastVCO.re = cosf(vcoPhase);
                 lastVCO.im = sinf(vcoPhase);
             }
-            
+
             _data->flush();
             _pilot->flush();
 
@@ -207,7 +210,7 @@ namespace dsp {
         const float lowerLimit = ((18800.0f / 250000.0f) * 2.0f * FL_M_PI);
 
         float _alpha; // Integral coefficient
-        float _beta; // Proportional coefficient
+        float _beta;  // Proportional coefficient
         float vcoFrequency = expectedFreq;
         float vcoPhase = 0.0f;
         complex_t lastVCO;
@@ -284,6 +287,5 @@ namespace dsp {
 
         float* leftBuf;
         float* rightBuf;
-
     };
 }

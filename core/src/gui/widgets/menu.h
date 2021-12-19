@@ -4,7 +4,7 @@
 #include <map>
 #include <module.h>
 
-#define MAX_MENU_COUNT      1024
+#define MAX_MENU_COUNT 1024
 
 class Menu {
 public:

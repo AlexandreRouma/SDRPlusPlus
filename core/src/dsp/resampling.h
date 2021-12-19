@@ -160,39 +160,39 @@ namespace dsp {
         stream<T> out;
 
     private:
-        void buildTapPhases(){
-            if(!taps){
+        void buildTapPhases() {
+            if (!taps) {
                 return;
             }
 
-            if(!tapPhases.empty()){
+            if (!tapPhases.empty()) {
                 freeTapPhases();
             }
 
             int phases = _interp;
-            tapsPerPhase = (tapCount+phases-1)/phases; //Integer division ceiling
+            tapsPerPhase = (tapCount + phases - 1) / phases; //Integer division ceiling
 
             bufStart = &buffer[tapsPerPhase];
 
-            for(int i = 0; i < phases; i++){
+            for (int i = 0; i < phases; i++) {
                 tapPhases.push_back((float*)volk_malloc(tapsPerPhase * sizeof(float), volk_get_alignment()));
             }
 
             int currentTap = 0;
-            for(int tap = 0; tap < tapsPerPhase; tap++) {
+            for (int tap = 0; tap < tapsPerPhase; tap++) {
                 for (int phase = 0; phase < phases; phase++) {
-                    if(currentTap < tapCount) {
+                    if (currentTap < tapCount) {
                         tapPhases[(_interp - 1) - phase][tap] = taps[currentTap++];
                     }
-                    else{
+                    else {
                         tapPhases[(_interp - 1) - phase][tap] = 0;
                     }
                 }
             }
         }
 
-        void freeTapPhases(){
-            for(auto & tapPhase : tapPhases){
+        void freeTapPhases() {
+            for (auto& tapPhase : tapPhases) {
                 volk_free(tapPhase);
             }
             tapPhases.clear();
@@ -214,6 +214,5 @@ namespace dsp {
 
         int tapsPerPhase;
         std::vector<float*> tapPhases;
-
     };
 }

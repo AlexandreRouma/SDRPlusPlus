@@ -13,7 +13,7 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-SDRPP_MOD_INFO {
+SDRPP_MOD_INFO{
     /* Name:            */ "spyserver_source",
     /* Description:     */ "SpyServer source module for SDR++",
     /* Author:          */ "Ryzerth",
@@ -29,8 +29,8 @@ const char* deviceTypesStr[] = {
 };
 
 const char* streamFormatStr = "UInt8\0"
-                            "Int16\0"
-                            "Float32\0";
+                              "Int16\0"
+                              "Float32\0";
 
 const SpyServerStreamFormat streamFormats[] = {
     SPYSERVER_STREAM_FORMAT_UINT8,
@@ -116,7 +116,7 @@ private:
         gui::mainWindow.playButtonLocked = false;
         spdlog::info("SpyServerSourceModule '{0}': Menu Deselect!", _this->name);
     }
-    
+
     static void start(void* ctx) {
         SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
         if (_this->running) { return; }
@@ -133,17 +133,17 @@ private:
         _this->running = true;
         spdlog::info("SpyServerSourceModule '{0}': Start!", _this->name);
     }
-    
+
     static void stop(void* ctx) {
         SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
         if (!_this->running) { return; }
-        
+
         _this->client->stopStream();
 
         _this->running = false;
         spdlog::info("SpyServerSourceModule '{0}': Stop!", _this->name);
     }
-    
+
     static void tune(double freq, void* ctx) {
         SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
         if (_this->running) {
@@ -152,7 +152,7 @@ private:
         _this->freq = freq;
         spdlog::info("SpyServerSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
-    
+
     static void menuHandler(void* ctx) {
         SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
         float menuWidth = ImGui::GetContentRegionAvailWidth();
@@ -211,7 +211,7 @@ private:
                         _this->sampleRatesTxt += '\0';
                     }
 
-                    _this->srId = std::clamp<int>(_this->srId, 0, _this->sampleRates.size()-1);
+                    _this->srId = std::clamp<int>(_this->srId, 0, _this->sampleRates.size() - 1);
 
                     _this->sampleRate = _this->sampleRates[_this->srId];
                     core::setInputSampleRate(_this->sampleRate);
@@ -227,7 +227,6 @@ private:
         }
         if (_this->running) { style::endDisabled(); }
 
-        
 
         if (connected) {
             if (_this->running) { style::beginDisabled(); }
@@ -248,7 +247,7 @@ private:
                 int srvBits = streamFormatsBitCount[_this->iqType];
                 _this->client->setSetting(SPYSERVER_SETTING_IQ_FORMAT, streamFormats[_this->iqType]);
                 _this->client->setSetting(SPYSERVER_SETTING_IQ_DIGITAL_GAIN, _this->client->computeDigitalGain(srvBits, _this->gain, _this->srId + _this->client->devInfo.MinimumIQDecimation));
-                
+
                 config.acquire();
                 config.conf["devices"][_this->devRef]["sampleBitDepthId"] = _this->iqType;
                 config.release(true);

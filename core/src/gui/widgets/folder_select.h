@@ -15,7 +15,7 @@ public:
     std::string expandString(std::string input);
 
     std::string path = "";
-    
+
 
 private:
     void worker();

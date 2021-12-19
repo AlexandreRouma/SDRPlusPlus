@@ -12,7 +12,7 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-SDRPP_MOD_INFO {
+SDRPP_MOD_INFO{
     /* Name:            */ "plutosdr_source",
     /* Description:     */ "PlutoSDR source module for SDR++",
     /* Author:          */ "Ryzerth",
@@ -38,7 +38,7 @@ public:
         strcpy(&ip[3], _ip.c_str());
         sampleRate = config.conf["sampleRate"];
         gainMode = config.conf["gainMode"];
-        gain = config.conf["gain"];   
+        gain = config.conf["gain"];
         config.release();
 
         // Generate the samplerate list and find srId
@@ -116,18 +116,18 @@ private:
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
         spdlog::info("PlutoSDRSourceModule '{0}': Menu Deselect!", _this->name);
     }
-    
+
     static void start(void* ctx) {
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
         if (_this->running) { return; }
-        
+
         // TODO: INIT CONTEXT HERE
         _this->ctx = iio_create_context_from_uri(_this->ip);
         if (_this->ctx == NULL) {
             spdlog::error("Could not open pluto");
             return;
         }
-	    _this->phy = iio_context_find_device(_this->ctx, "ad9361-phy");
+        _this->phy = iio_context_find_device(_this->ctx, "ad9361-phy");
         if (_this->phy == NULL) {
             spdlog::error("Could not connect to pluto phy");
             iio_context_destroy(_this->ctx);
@@ -145,17 +145,17 @@ private:
         iio_channel_attr_write_bool(iio_device_find_channel(_this->phy, "altvoltage0", true), "powerdown", false);
 
         iio_channel_attr_write(iio_device_find_channel(_this->phy, "voltage0", false), "rf_port_select", "A_BALANCED");
-        iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "altvoltage0", true), "frequency", round(_this->freq)); // Freq
-	    iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "voltage0", false), "sampling_frequency", round(_this->sampleRate)); // Sample rate
-        iio_channel_attr_write(iio_device_find_channel(_this->phy, "voltage0", false), "gain_control_mode", gainModes[_this->gainMode]); // manual gain
-        iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "voltage0", false), "hardwaregain", round(_this->gain)); // gain
+        iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "altvoltage0", true), "frequency", round(_this->freq));              // Freq
+        iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "voltage0", false), "sampling_frequency", round(_this->sampleRate)); // Sample rate
+        iio_channel_attr_write(iio_device_find_channel(_this->phy, "voltage0", false), "gain_control_mode", gainModes[_this->gainMode]);         // manual gain
+        iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "voltage0", false), "hardwaregain", round(_this->gain));             // gain
         ad9361_set_bb_rate(_this->phy, round(_this->sampleRate));
-        
+
         _this->running = true;
         _this->workerThread = std::thread(worker, _this);
         spdlog::info("PlutoSDRSourceModule '{0}': Start!", _this->name);
     }
-    
+
     static void stop(void* ctx) {
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
         if (!_this->running) { return; }
@@ -172,7 +172,7 @@ private:
 
         spdlog::info("PlutoSDRSourceModule '{0}': Stop!", _this->name);
     }
-    
+
     static void tune(double freq, void* ctx) {
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
         _this->freq = freq;
@@ -182,7 +182,7 @@ private:
         }
         spdlog::info("PlutoSDRSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
-    
+
     static void menuHandler(void* ctx) {
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
         float menuWidth = ImGui::GetContentRegionAvailWidth();
@@ -195,10 +195,10 @@ private:
             config.conf["IP"] = &_this->ip[3];
             config.release(true);
         }
-        
+
         ImGui::LeftLabel("Samplerate");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        
+
         if (ImGui::Combo(CONCAT("##_pluto_sr_", _this->name), &_this->srId, _this->sampleRatesTxt.c_str())) {
             _this->sampleRate = _this->sampleRates[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
@@ -224,7 +224,7 @@ private:
         if (_this->gainMode) { style::beginDisabled(); }
         if (ImGui::SliderFloat(CONCAT("##_gain_select_", _this->name), &_this->gain, 0, 76)) {
             if (_this->running) {
-                iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "voltage0", false),"hardwaregain", round(_this->gain));
+                iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "voltage0", false), "hardwaregain", round(_this->gain));
             }
             config.acquire();
             config.conf["gain"] = _this->gain;
@@ -238,14 +238,14 @@ private:
         int blockSize = _this->sampleRate / 200.0f;
 
         struct iio_channel *rx0_i, *rx0_q;
-        struct iio_buffer *rxbuf;
-    
+        struct iio_buffer* rxbuf;
+
         rx0_i = iio_device_find_channel(_this->dev, "voltage0", 0);
         rx0_q = iio_device_find_channel(_this->dev, "voltage1", 0);
-    
+
         iio_channel_enable(rx0_i);
         iio_channel_enable(rx0_q);
-    
+
         rxbuf = iio_device_create_buffer(_this->dev, blockSize, false);
         if (!rxbuf) {
             spdlog::error("Could not create RX buffer");
@@ -264,7 +264,7 @@ private:
                 _this->stream.writeBuf[i].im = (float)buf[(i * 2) + 1] / 32768.0f;
             }
 
-            volk_16i_s32f_convert_32f((float*)_this->stream.writeBuf, buf, 32768.0f, blockSize*2);
+            volk_16i_s32f_convert_32f((float*)_this->stream.writeBuf, buf, 32768.0f, blockSize * 2);
 
             if (!_this->stream.swap(blockSize)) { break; };
         }
@@ -278,9 +278,9 @@ private:
     float sampleRate;
     SourceManager::SourceHandler handler;
     std::thread workerThread;
-    struct iio_context *ctx = NULL;
-	struct iio_device *phy = NULL;
-    struct iio_device *dev = NULL;
+    struct iio_context* ctx = NULL;
+    struct iio_device* phy = NULL;
+    struct iio_device* dev = NULL;
     bool running = false;
     bool ipMode = true;
     double freq;

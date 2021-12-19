@@ -60,7 +60,10 @@ namespace dsp {
         void setInSampleRate(float inSampleRate) {
             assert(_init);
             _inSampleRate = inSampleRate;
-            if (running) { xlator.stop(); resamp.stop(); }
+            if (running) {
+                xlator.stop();
+                resamp.stop();
+            }
             xlator.setSampleRate(_inSampleRate);
             resamp.setInSampleRate(_inSampleRate);
             float realCutoff = std::min<float>(_bandWidth, std::min<float>(_inSampleRate, _outSampleRate)) / 2.0f;
@@ -68,7 +71,10 @@ namespace dsp {
             win.setCutoff(realCutoff);
             win.setTransWidth(realCutoff);
             resamp.updateWindow(&win);
-            if (running) { xlator.start(); resamp.start(); }
+            if (running) {
+                xlator.start();
+                resamp.start();
+            }
         }
 
         void setOutSampleRate(float outSampleRate) {
@@ -123,6 +129,5 @@ namespace dsp {
         stream<complex_t>* _in;
         FrequencyXlator<complex_t> xlator;
         PolyphaseResampler<complex_t> resamp;
-
     };
 }

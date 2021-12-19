@@ -38,7 +38,7 @@ bool FolderSelect::render(std::string id) {
         if (workerThread.joinable()) { workerThread.join(); }
         workerThread = std::thread(&FolderSelect::worker, this);
     }
-    
+
     _pathChanged |= pathChanged;
     pathChanged = false;
     return _pathChanged;
@@ -62,15 +62,15 @@ bool FolderSelect::pathIsValid() {
 }
 
 void FolderSelect::worker() {
-        auto fold = pfd::select_folder("Select Folder", pathValid ? std::filesystem::path(expandString(path)).parent_path().string() : "");
-        std::string res = fold.result();
+    auto fold = pfd::select_folder("Select Folder", pathValid ? std::filesystem::path(expandString(path)).parent_path().string() : "");
+    std::string res = fold.result();
 
-        if (res != "") {
-            path = res;
-            strcpy(strPath, path.c_str());
-            pathChanged = true;
-        }
+    if (res != "") {
+        path = res;
+        strcpy(strPath, path.c_str());
+        pathChanged = true;
+    }
 
-        pathValid = std::filesystem::is_directory(expandString(path));
-        dialogOpen = false;
+    pathValid = std::filesystem::is_directory(expandString(path));
+    dialogOpen = false;
 }

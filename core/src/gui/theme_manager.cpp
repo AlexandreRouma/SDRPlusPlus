@@ -27,7 +27,7 @@ bool ThemeManager::loadThemesFromDir(std::string path) {
         return false;
     }
     themes.clear();
-    for (const auto & file : std::filesystem::directory_iterator(path)) {
+    for (const auto& file : std::filesystem::directory_iterator(path)) {
         std::string _path = file.path().generic_string();
         if (file.path().extension().generic_string() != ".json") {
             continue;
@@ -108,7 +108,7 @@ bool ThemeManager::loadTheme(std::string path) {
             return false;
         }
     }
-    
+
     thm.data = data;
     themes[name] = thm;
 
@@ -134,7 +134,7 @@ bool ThemeManager::applyTheme(std::string name) {
 
     ImVec4* colors = style.Colors;
     Theme thm = themes[name];
-    
+
     uint8_t ret[4];
     std::map<std::string, std::string> params = thm.data;
     for (auto const& [param, val] : params) {
@@ -142,20 +142,20 @@ bool ThemeManager::applyTheme(std::string name) {
 
         if (param == "WaterfallBackground") {
             decodeRGBA(val, ret);
-            waterfallBg = ImVec4((float)ret[0]/255.0f, (float)ret[1]/255.0f, (float)ret[2]/255.0f, (float)ret[3]/255.0f);
+            waterfallBg = ImVec4((float)ret[0] / 255.0f, (float)ret[1] / 255.0f, (float)ret[2] / 255.0f, (float)ret[3] / 255.0f);
             continue;
         }
 
         if (param == "ClearColor") {
             decodeRGBA(val, ret);
-            clearColor = ImVec4((float)ret[0]/255.0f, (float)ret[1]/255.0f, (float)ret[2]/255.0f, (float)ret[3]/255.0f);
+            clearColor = ImVec4((float)ret[0] / 255.0f, (float)ret[1] / 255.0f, (float)ret[2] / 255.0f, (float)ret[3] / 255.0f);
             continue;
         }
 
         // If param is a color, check that it's a valid RGBA hex value
         if (IMGUI_COL_IDS.find(param) != IMGUI_COL_IDS.end()) {
             decodeRGBA(val, ret);
-            colors[IMGUI_COL_IDS[param]] = ImVec4((float)ret[0]/255.0f, (float)ret[1]/255.0f, (float)ret[2]/255.0f, (float)ret[3]/255.0f);
+            colors[IMGUI_COL_IDS[param]] = ImVec4((float)ret[0] / 255.0f, (float)ret[1] / 255.0f, (float)ret[2] / 255.0f, (float)ret[3] / 255.0f);
             continue;
         }
     }
@@ -181,57 +181,57 @@ std::vector<std::string> ThemeManager::getThemeNames() {
 }
 
 std::map<std::string, int> ThemeManager::IMGUI_COL_IDS = {
-    {"Text",                    ImGuiCol_Text},
-    {"TextDisabled",            ImGuiCol_TextDisabled},
-    {"WindowBg",                ImGuiCol_WindowBg}, 
-    {"ChildBg",                 ImGuiCol_ChildBg},
-    {"PopupBg",                 ImGuiCol_PopupBg},
-    {"Border",                  ImGuiCol_Border},
-    {"BorderShadow",            ImGuiCol_BorderShadow},
-    {"FrameBg",                 ImGuiCol_FrameBg},
-    {"FrameBgHovered",          ImGuiCol_FrameBgHovered},
-    {"FrameBgActive",           ImGuiCol_FrameBgActive},
-    {"TitleBg",                 ImGuiCol_TitleBg},
-    {"TitleBgActive",           ImGuiCol_TitleBgActive},
-    {"TitleBgCollapsed",        ImGuiCol_TitleBgCollapsed},
-    {"MenuBarBg",               ImGuiCol_MenuBarBg},
-    {"ScrollbarBg",             ImGuiCol_ScrollbarBg},
-    {"ScrollbarGrab",           ImGuiCol_ScrollbarGrab},
-    {"ScrollbarGrabHovered",    ImGuiCol_ScrollbarGrabHovered},
-    {"ScrollbarGrabActive",     ImGuiCol_ScrollbarGrabActive},
-    {"CheckMark",               ImGuiCol_CheckMark},
-    {"SliderGrab",              ImGuiCol_SliderGrab},
-    {"SliderGrabActive",        ImGuiCol_SliderGrabActive},
-    {"Button",                  ImGuiCol_Button},
-    {"ButtonHovered",           ImGuiCol_ButtonHovered},
-    {"ButtonActive",            ImGuiCol_ButtonActive},
-    {"Header",                  ImGuiCol_Header},
-    {"HeaderHovered",           ImGuiCol_HeaderHovered},
-    {"HeaderActive",            ImGuiCol_HeaderActive},
-    {"Separator",               ImGuiCol_Separator},
-    {"SeparatorHovered",        ImGuiCol_SeparatorHovered},
-    {"SeparatorActive",         ImGuiCol_SeparatorActive},
-    {"ResizeGrip",              ImGuiCol_ResizeGrip},
-    {"ResizeGripHovered",       ImGuiCol_ResizeGripHovered},
-    {"ResizeGripActive",        ImGuiCol_ResizeGripActive},
-    {"Tab",                     ImGuiCol_Tab},
-    {"TabHovered",              ImGuiCol_TabHovered},
-    {"TabActive",               ImGuiCol_TabActive},
-    {"TabUnfocused",            ImGuiCol_TabUnfocused},
-    {"TabUnfocusedActive",      ImGuiCol_TabUnfocusedActive},
-    {"PlotLines",               ImGuiCol_PlotLines},
-    {"PlotLinesHovered",        ImGuiCol_PlotLinesHovered},
-    {"PlotHistogram",           ImGuiCol_PlotHistogram},
-    {"PlotHistogramHovered",    ImGuiCol_PlotHistogramHovered},
-    {"TableHeaderBg",           ImGuiCol_TableHeaderBg},
-    {"TableBorderStrong",       ImGuiCol_TableBorderStrong},
-    {"TableBorderLight",        ImGuiCol_TableBorderLight},
-    {"TableRowBg",              ImGuiCol_TableRowBg},
-    {"TableRowBgAlt",           ImGuiCol_TableRowBgAlt},
-    {"TextSelectedBg",          ImGuiCol_TextSelectedBg},
-    {"DragDropTarget",          ImGuiCol_DragDropTarget},
-    {"NavHighlight",            ImGuiCol_NavHighlight},
-    {"NavWindowingHighlight",   ImGuiCol_NavWindowingHighlight},
-    {"NavWindowingDimBg",       ImGuiCol_NavWindowingDimBg},
-    {"ModalWindowDimBg",        ImGuiCol_ModalWindowDimBg}
+    { "Text", ImGuiCol_Text },
+    { "TextDisabled", ImGuiCol_TextDisabled },
+    { "WindowBg", ImGuiCol_WindowBg },
+    { "ChildBg", ImGuiCol_ChildBg },
+    { "PopupBg", ImGuiCol_PopupBg },
+    { "Border", ImGuiCol_Border },
+    { "BorderShadow", ImGuiCol_BorderShadow },
+    { "FrameBg", ImGuiCol_FrameBg },
+    { "FrameBgHovered", ImGuiCol_FrameBgHovered },
+    { "FrameBgActive", ImGuiCol_FrameBgActive },
+    { "TitleBg", ImGuiCol_TitleBg },
+    { "TitleBgActive", ImGuiCol_TitleBgActive },
+    { "TitleBgCollapsed", ImGuiCol_TitleBgCollapsed },
+    { "MenuBarBg", ImGuiCol_MenuBarBg },
+    { "ScrollbarBg", ImGuiCol_ScrollbarBg },
+    { "ScrollbarGrab", ImGuiCol_ScrollbarGrab },
+    { "ScrollbarGrabHovered", ImGuiCol_ScrollbarGrabHovered },
+    { "ScrollbarGrabActive", ImGuiCol_ScrollbarGrabActive },
+    { "CheckMark", ImGuiCol_CheckMark },
+    { "SliderGrab", ImGuiCol_SliderGrab },
+    { "SliderGrabActive", ImGuiCol_SliderGrabActive },
+    { "Button", ImGuiCol_Button },
+    { "ButtonHovered", ImGuiCol_ButtonHovered },
+    { "ButtonActive", ImGuiCol_ButtonActive },
+    { "Header", ImGuiCol_Header },
+    { "HeaderHovered", ImGuiCol_HeaderHovered },
+    { "HeaderActive", ImGuiCol_HeaderActive },
+    { "Separator", ImGuiCol_Separator },
+    { "SeparatorHovered", ImGuiCol_SeparatorHovered },
+    { "SeparatorActive", ImGuiCol_SeparatorActive },
+    { "ResizeGrip", ImGuiCol_ResizeGrip },
+    { "ResizeGripHovered", ImGuiCol_ResizeGripHovered },
+    { "ResizeGripActive", ImGuiCol_ResizeGripActive },
+    { "Tab", ImGuiCol_Tab },
+    { "TabHovered", ImGuiCol_TabHovered },
+    { "TabActive", ImGuiCol_TabActive },
+    { "TabUnfocused", ImGuiCol_TabUnfocused },
+    { "TabUnfocusedActive", ImGuiCol_TabUnfocusedActive },
+    { "PlotLines", ImGuiCol_PlotLines },
+    { "PlotLinesHovered", ImGuiCol_PlotLinesHovered },
+    { "PlotHistogram", ImGuiCol_PlotHistogram },
+    { "PlotHistogramHovered", ImGuiCol_PlotHistogramHovered },
+    { "TableHeaderBg", ImGuiCol_TableHeaderBg },
+    { "TableBorderStrong", ImGuiCol_TableBorderStrong },
+    { "TableBorderLight", ImGuiCol_TableBorderLight },
+    { "TableRowBg", ImGuiCol_TableRowBg },
+    { "TableRowBgAlt", ImGuiCol_TableRowBgAlt },
+    { "TextSelectedBg", ImGuiCol_TextSelectedBg },
+    { "DragDropTarget", ImGuiCol_DragDropTarget },
+    { "NavHighlight", ImGuiCol_NavHighlight },
+    { "NavWindowingHighlight", ImGuiCol_NavWindowingHighlight },
+    { "NavWindowingDimBg", ImGuiCol_NavWindowingDimBg },
+    { "ModalWindowDimBg", ImGuiCol_ModalWindowDimBg }
 };

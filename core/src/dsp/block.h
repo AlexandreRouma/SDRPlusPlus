@@ -17,7 +17,7 @@ namespace dsp {
         virtual int calcOutSize(int inSize) { return inSize; }
         virtual int run() { return -1; }
     };
-    
+
     template <class BLOCK>
     class generic_block : public generic_unnamed_block {
     public:
@@ -71,12 +71,12 @@ namespace dsp {
         }
 
         virtual int run() = 0;
-        
+
         friend BLOCK;
 
     private:
-        void workerLoop() { 
-            while (run() >= 0);
+        void workerLoop() {
+            while (run() >= 0) {}
         }
 
         void acquire() {
@@ -139,7 +139,6 @@ namespace dsp {
         bool running = false;
         bool tempStopped = false;
         std::thread workerThread;
-
     };
 
     template <class BLOCK>
@@ -224,6 +223,5 @@ namespace dsp {
     protected:
         bool _block_init = false;
         std::mutex ctrlMtx;
-
     };
 }

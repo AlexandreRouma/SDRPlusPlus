@@ -5,7 +5,6 @@
 #include <filesystem>
 
 ConfigManager::ConfigManager() {
-
 }
 
 ConfigManager::~ConfigManager() {
@@ -31,7 +30,7 @@ void ConfigManager::load(json def, bool lock) {
         spdlog::error("Config file '{0}' isn't a file", path);
         return;
     }
-    
+
     try {
         std::ifstream file(path.c_str());
         file >> conf;
@@ -96,7 +95,7 @@ void ConfigManager::autoSaveWorker() {
         // Sleep but listen for wakeup call
         {
             std::unique_lock<std::mutex> lock(termMtx);
-            termCond.wait_for(lock, std::chrono::milliseconds(1000), [this]() { return termFlag; } );
+            termCond.wait_for(lock, std::chrono::milliseconds(1000), [this]() { return termFlag; });
         }
     }
 }

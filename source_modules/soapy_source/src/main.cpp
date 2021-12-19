@@ -14,7 +14,7 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-SDRPP_MOD_INFO {
+SDRPP_MOD_INFO{
     /* Name:            */ "soapy_source",
     /* Description:     */ "SoapySDR source module for SDR++",
     /* Author:          */ "Ryzerth",
@@ -70,7 +70,7 @@ public:
     bool isEnabled() {
         return enabled;
     }
-    
+
     template <typename T>
     std::string to_string_with_precision(const T a_value, const int n = 6) {
         std::ostringstream out;
@@ -90,15 +90,16 @@ private:
             i++;
         }
     }
-    
+
     float selectBwBySr(double samplerate) {
         float cur = bandwidthList[1];
         std::vector<float> bwListReversed = bandwidthList;
         std::reverse(bwListReversed.begin(), bwListReversed.end());
-        for(auto bw : bwListReversed) {
-            if(bw >= samplerate) {
+        for (auto bw : bwListReversed) {
+            if (bw >= samplerate) {
                 cur = bw;
-            } else {
+            }
+            else {
                 break;
             }
         }
@@ -156,7 +157,7 @@ private:
 
         antennaList = dev->listAntennas(SOAPY_SDR_RX, channelId);
         txtAntennaList = "";
-        for (const std::string & ant : antennaList) {
+        for (const std::string& ant : antennaList) {
             txtAntennaList += ant + '\0';
         }
 
@@ -164,27 +165,29 @@ private:
         delete[] uiGains;
         uiGains = new float[gainList.size()];
         gainRanges.clear();
-        
+
         for (auto gain : gainList) {
             gainRanges.push_back(dev->getGainRange(SOAPY_SDR_RX, channelId, gain));
         }
-        
+
         SoapySDR::RangeList bandwidthRange = dev->getBandwidthRange(SOAPY_SDR_RX, channelId);
-        
+
         txtBwList = "";
         bandwidthList.clear();
         bandwidthList.push_back(-1);
         txtBwList += "Auto";
         txtBwList += '\0';
-        
-        for(auto bwr : bandwidthRange) {
+
+        for (auto bwr : bandwidthRange) {
             float bw = bwr.minimum();
             bandwidthList.push_back(bw);
             if (bw > 1.0e3 && bw <= 1.0e6) {
                 txtBwList += to_string_with_precision((bw / 1.0e3), 2) + " kHz";
-            } else if (bw > 1.0e6) {
+            }
+            else if (bw > 1.0e6) {
                 txtBwList += to_string_with_precision((bw / 1.0e6), 2) + " MHz";
-            } else {
+            }
+            else {
                 txtBwList += to_string_with_precision(bw, 0);
             }
             txtBwList += '\0';
@@ -195,9 +198,11 @@ private:
         for (double sr : sampleRates) {
             if (sr > 1.0e3 && sr <= 1.0e6) {
                 txtSrList += to_string_with_precision((sr / 1.0e3), 2) + " kHz";
-            } else if (sr > 1.0e6) {
+            }
+            else if (sr > 1.0e6) {
                 txtSrList += to_string_with_precision((sr / 1.0e6), 2) + " MHz";
-            } else {
+            }
+            else {
                 txtSrList += to_string_with_precision(sr, 0);
             }
             txtSrList += '\0';
@@ -209,9 +214,10 @@ private:
 
         config.acquire();
         if (config.conf["devices"].contains(name)) {
-            if(config.conf["devices"][name].contains("antenna")) {
+            if (config.conf["devices"][name].contains("antenna")) {
                 uiAntennaId = config.conf["devices"][name]["antenna"];
-            } else {
+            }
+            else {
                 uiAntennaId = 0;
             }
             int i = 0;
@@ -224,9 +230,10 @@ private:
                 }
                 i++;
             }
-            if(config.conf["devices"][name].contains("bandwidth")) {
+            if (config.conf["devices"][name].contains("bandwidth")) {
                 uiBandwidthId = config.conf["devices"][name]["bandwidth"];
-            } else if(bandwidthList.size() > 2) {
+            }
+            else if (bandwidthList.size() > 2) {
                 uiBandwidthId = 0;
             }
             if (hasAgc && config.conf["devices"][name].contains("agc")) {
@@ -249,7 +256,7 @@ private:
                 uiGains[i] = gainRanges[i].minimum();
                 i++;
             }
-            if(bandwidthList.size() > 2)
+            if (bandwidthList.size() > 2)
                 uiBandwidthId = 0;
             if (hasAgc) {
                 agc = false;
@@ -257,7 +264,6 @@ private:
             selectSampleRate(sampleRates[0]); // Select default
         }
         config.release();
-
     }
 
     void saveCurrent() {
@@ -269,7 +275,7 @@ private:
             conf["gains"][gain] = uiGains[i];
             i++;
         }
-        if(bandwidthList.size() > 2)
+        if (bandwidthList.size() > 2)
             conf["bandwidth"] = uiBandwidthId;
         if (hasAgc) {
             conf["agc"] = agc;
@@ -292,7 +298,7 @@ private:
         SoapyModule* _this = (SoapyModule*)ctx;
         spdlog::info("SoapyModule '{0}': Menu Deselect!", _this->name);
     }
-    
+
     static void start(void* ctx) {
         SoapyModule* _this = (SoapyModule*)ctx;
         if (_this->running) { return; }
@@ -307,8 +313,8 @@ private:
 
         _this->dev->setAntenna(SOAPY_SDR_RX, _this->channelId, _this->antennaList[_this->uiAntennaId]);
 
-        if(_this->bandwidthList.size() > 2) {
-            if(_this->bandwidthList[_this->uiBandwidthId] == -1)
+        if (_this->bandwidthList.size() > 2) {
+            if (_this->bandwidthList[_this->uiBandwidthId] == -1)
                 _this->dev->setBandwidth(SOAPY_SDR_RX, _this->channelId, _this->selectBwBySr(_this->sampleRates[_this->srId]));
             else
                 _this->dev->setBandwidth(SOAPY_SDR_RX, _this->channelId, _this->bandwidthList[_this->uiBandwidthId]);
@@ -332,7 +338,7 @@ private:
         _this->workerThread = std::thread(_worker, _this);
         spdlog::info("SoapyModule '{0}': Start!", _this->name);
     }
-    
+
     static void stop(void* ctx) {
         SoapyModule* _this = (SoapyModule*)ctx;
         if (!_this->running) { return; }
@@ -343,10 +349,10 @@ private:
         _this->workerThread.join();
         _this->stream.clearWriteStop();
         SoapySDR::Device::unmake(_this->dev);
-        
+
         spdlog::info("SoapyModule '{0}': Stop!", _this->name);
     }
-    
+
     static void tune(double freq, void* ctx) {
         SoapyModule* _this = (SoapyModule*)ctx;
         _this->freq = freq;
@@ -355,12 +361,12 @@ private:
         }
         spdlog::info("SoapyModule '{0}': Tune: {1}!", _this->name, freq);
     }
-    
+
     static void menuHandler(void* ctx) {
         SoapyModule* _this = (SoapyModule*)ctx;
 
         float menuWidth = ImGui::GetContentRegionAvailWidth();
-        
+
         // If no device is selected, draw only the refresh button
         if (_this->devId < 0) {
             if (ImGui::Button(CONCAT("Refresh##_dev_select_", _this->name), ImVec2(menuWidth, 0))) {
@@ -382,7 +388,7 @@ private:
 
         if (ImGui::Combo(CONCAT("##_sr_select_", _this->name), &_this->srId, _this->txtSrList.c_str())) {
             _this->selectSampleRate(_this->sampleRates[_this->srId]);
-            if(_this->bandwidthList.size() > 2 && _this->running && _this->bandwidthList[_this->uiBandwidthId] == -1)
+            if (_this->bandwidthList.size() > 2 && _this->running && _this->bandwidthList[_this->uiBandwidthId] == -1)
                 _this->dev->setBandwidth(SOAPY_SDR_RX, _this->channelId, _this->selectBwBySr(_this->sampleRates[_this->srId]));
             _this->saveCurrent();
         }
@@ -440,12 +446,13 @@ private:
             ImGui::SetNextItemWidth(menuWidth - gainNameLen);
             float step = _this->gainRanges[i].step();
             bool res;
-            if(step == 0.0f) {
-                res = ImGui::SliderFloat((std::string("##_gain_sel_") + _this->name  + gain).c_str(), &_this->uiGains[i], _this->gainRanges[i].minimum(), _this->gainRanges[i].maximum());
-            } else {
+            if (step == 0.0f) {
+                res = ImGui::SliderFloat((std::string("##_gain_sel_") + _this->name + gain).c_str(), &_this->uiGains[i], _this->gainRanges[i].minimum(), _this->gainRanges[i].maximum());
+            }
+            else {
                 res = ImGui::SliderFloatWithSteps((std::string("##_gain_sel_") + _this->name + gain).c_str(), &_this->uiGains[i], _this->gainRanges[i].minimum(), _this->gainRanges[i].maximum(), step);
             }
-            if(res) {
+            if (res) {
                 if (_this->running) {
                     _this->dev->setGain(SOAPY_SDR_RX, _this->channelId, gain, _this->uiGains[i]);
                 }
@@ -453,12 +460,12 @@ private:
             }
             i++;
         }
-        if(_this->bandwidthList.size() > 2) {
+        if (_this->bandwidthList.size() > 2) {
             ImGui::LeftLabel("Bandwidth");
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             if (ImGui::Combo(CONCAT("##_bw_select_", _this->name), &_this->uiBandwidthId, _this->txtBwList.c_str())) {
-                if(_this->running) {
-                    if(_this->bandwidthList[_this->uiBandwidthId] == -1)
+                if (_this->running) {
+                    if (_this->bandwidthList[_this->uiBandwidthId] == -1)
                         _this->dev->setBandwidth(SOAPY_SDR_RX, _this->channelId, _this->selectBwBySr(_this->sampleRates[_this->srId]));
                     else
                         _this->dev->setBandwidth(SOAPY_SDR_RX, _this->channelId, _this->bandwidthList[_this->uiBandwidthId]);
@@ -472,7 +479,7 @@ private:
         int blockSize = _this->sampleRate / 200.0f;
         int flags = 0;
         long long timeMs = 0;
-        
+
         while (_this->running) {
             int res = _this->dev->readStream(_this->devStream, (void**)&_this->stream.writeBuf, blockSize, flags, timeMs);
             if (res < 1) {
@@ -515,12 +522,12 @@ private:
 };
 
 MOD_EXPORT void _INIT_() {
-   config.setPath(options::opts.root + "/soapy_source_config.json");
-   json defConf;
-   defConf["device"] = "";
-   defConf["devices"] = json({});
-   config.load(defConf);
-   config.enableAutoSave();
+    config.setPath(options::opts.root + "/soapy_source_config.json");
+    json defConf;
+    defConf["device"] = "";
+    defConf["devices"] = json({});
+    config.load(defConf);
+    config.enableAutoSave();
 }
 
 MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {

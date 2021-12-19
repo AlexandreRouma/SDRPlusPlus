@@ -22,10 +22,10 @@ ModuleManager::Module_t ModuleManager::loadModule(std::string path) {
         return mod;
     }
     mod.info = (ModuleInfo_t*)GetProcAddress(mod.handle, "_INFO_");
-    mod.init = (void(*)())GetProcAddress(mod.handle, "_INIT_");
-    mod.createInstance = (Instance*(*)(std::string))GetProcAddress(mod.handle, "_CREATE_INSTANCE_");
-    mod.deleteInstance = (void(*)(Instance*))GetProcAddress(mod.handle, "_DELETE_INSTANCE_");
-    mod.end = (void(*)())GetProcAddress(mod.handle, "_END_");
+    mod.init = (void (*)())GetProcAddress(mod.handle, "_INIT_");
+    mod.createInstance = (Instance * (*)(std::string)) GetProcAddress(mod.handle, "_CREATE_INSTANCE_");
+    mod.deleteInstance = (void (*)(Instance*))GetProcAddress(mod.handle, "_DELETE_INSTANCE_");
+    mod.end = (void (*)())GetProcAddress(mod.handle, "_END_");
 #else
     mod.handle = dlopen(path.c_str(), RTLD_LAZY | RTLD_LOCAL);
     if (mod.handle == NULL) {
@@ -34,10 +34,10 @@ ModuleManager::Module_t ModuleManager::loadModule(std::string path) {
         return mod;
     }
     mod.info = (ModuleInfo_t*)dlsym(mod.handle, "_INFO_");
-    mod.init = (void(*)())dlsym(mod.handle, "_INIT_");
-    mod.createInstance = (Instance*(*)(std::string))dlsym(mod.handle, "_CREATE_INSTANCE_");
-    mod.deleteInstance = (void(*)(Instance*))dlsym(mod.handle, "_DELETE_INSTANCE_");
-    mod.end = (void(*)())dlsym(mod.handle, "_END_");
+    mod.init = (void (*)())dlsym(mod.handle, "_INIT_");
+    mod.createInstance = (Instance * (*)(std::string)) dlsym(mod.handle, "_CREATE_INSTANCE_");
+    mod.deleteInstance = (void (*)(Instance*))dlsym(mod.handle, "_DELETE_INSTANCE_");
+    mod.end = (void (*)())dlsym(mod.handle, "_END_");
 #endif
     if (mod.info == NULL) {
         spdlog::error("{0} is missing _INFO_ symbol", path);
@@ -107,7 +107,7 @@ int ModuleManager::deleteInstance(std::string name) {
         return -1;
     }
     onInstanceDelete.emit(name);
-    Instance_t inst  = instances[name];
+    Instance_t inst = instances[name];
     inst.module.deleteInstance(inst.instance);
     instances.erase(name);
     onInstanceDeleted.emit(name);

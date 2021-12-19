@@ -25,6 +25,5 @@ namespace ImGui {
         float* buffer;
         float _scale;
         int sampleCount = 0;
-
     };
 }

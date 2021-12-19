@@ -12,7 +12,7 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-SDRPP_MOD_INFO {
+SDRPP_MOD_INFO{
     /* Name:            */ "limesdr_source",
     /* Description:     */ "LimeSDR source module for SDR++",
     /* Author:          */ "Ryzerth",
@@ -33,7 +33,7 @@ public:
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
-        handler.deselectHandler = menuDeselected; 
+        handler.deselectHandler = menuDeselected;
         handler.menuHandler = menuHandler;
         handler.startHandler = start;
         handler.stopHandler = stop;
@@ -124,7 +124,7 @@ public:
         channelCount = LMS_GetNumChannels(dev, false);
         char buf[32];
         for (int i = 0; i < channelCount; i++) {
-            sprintf(buf, "CH %d", i+1);
+            sprintf(buf, "CH %d", i + 1);
             channelNamesTxt += buf;
             channelNamesTxt += '\0';
         }
@@ -134,9 +134,13 @@ public:
             if (config.conf["devices"][selectedDevName].contains("channel")) {
                 chanId = config.conf["devices"][selectedDevName]["channel"];
             }
-            else { chanId = 0; }
+            else {
+                chanId = 0;
+            }
         }
-        else { chanId = 0; }
+        else {
+            chanId = 0;
+        }
         config.release();
 
         chanId = std::clamp<int>(chanId, 0, channelCount - 1);
@@ -299,7 +303,7 @@ private:
                 return bandwidths[i];
             }
         }
-        return bandwidths[bandwidths.size()-1];
+        return bandwidths[bandwidths.size() - 1];
     }
 
     static void menuSelected(void* ctx) {
@@ -312,11 +316,11 @@ private:
         LimeSDRSourceModule* _this = (LimeSDRSourceModule*)ctx;
         spdlog::info("LimeSDRSourceModule '{0}': Menu Deselect!", _this->name);
     }
-    
+
     static void start(void* ctx) {
         LimeSDRSourceModule* _this = (LimeSDRSourceModule*)ctx;
         if (_this->running) { return; }
-        
+
         // Open device
         _this->openDev = NULL;
         LMS_Open(&_this->openDev, _this->devList[_this->devId], NULL);
@@ -350,7 +354,7 @@ private:
         _this->running = true;
         spdlog::info("LimeSDRSourceModule '{0}': Start!", _this->name);
     }
-    
+
     static void stop(void* ctx) {
         LimeSDRSourceModule* _this = (LimeSDRSourceModule*)ctx;
         if (!_this->running) { return; }
@@ -366,7 +370,7 @@ private:
 
         spdlog::info("LimeSDRSourceModule '{0}': Stop!", _this->name);
     }
-    
+
     static void tune(double freq, void* ctx) {
         LimeSDRSourceModule* _this = (LimeSDRSourceModule*)ctx;
         _this->freq = freq;
@@ -375,7 +379,7 @@ private:
         }
         spdlog::info("LimeSDRSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
-    
+
     static void menuHandler(void* ctx) {
         LimeSDRSourceModule* _this = (LimeSDRSourceModule*)ctx;
         float menuWidth = ImGui::GetContentRegionAvailWidth();

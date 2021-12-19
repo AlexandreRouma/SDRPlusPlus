@@ -15,17 +15,17 @@
 #endif
 
 #ifdef _WIN32
-    #include <Windows.h>
-    #define MOD_EXPORT extern "C" __declspec(dllexport)
-    #define SDRPP_MOD_EXTENTSION    ".dll"
+#include <Windows.h>
+#define MOD_EXPORT           extern "C" __declspec(dllexport)
+#define SDRPP_MOD_EXTENTSION ".dll"
 #else
-    #include <dlfcn.h>
-    #define MOD_EXPORT extern "C"
-    #ifdef __APPLE__
-        #define SDRPP_MOD_EXTENTSION    ".dylib"
-    #else
-        #define SDRPP_MOD_EXTENTSION    ".so"
-    #endif
+#include <dlfcn.h>
+#define MOD_EXPORT extern "C"
+#ifdef __APPLE__
+#define SDRPP_MOD_EXTENTSION ".dylib"
+#else
+#define SDRPP_MOD_EXTENTSION ".so"
+#endif
 #endif
 
 class ModuleManager {
@@ -98,7 +98,6 @@ public:
 
     std::map<std::string, ModuleManager::Module_t> modules;
     std::map<std::string, ModuleManager::Instance_t> instances;
-
 };
 
-#define SDRPP_MOD_INFO    MOD_EXPORT const ModuleManager::ModuleInfo_t _INFO_
+#define SDRPP_MOD_INFO MOD_EXPORT const ModuleManager::ModuleInfo_t _INFO_

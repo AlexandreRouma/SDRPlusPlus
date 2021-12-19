@@ -39,7 +39,7 @@ namespace ImGui {
             window->DrawList->AddLine(min + ImVec2(roundf((float)i * it), 9), min + ImVec2(roundf((float)i * it), 14), text);
             sprintf(buf, "%d", i * 10);
             ImVec2 sz = ImGui::CalcTextSize(buf);
-            window->DrawList->AddText(min + ImVec2(roundf(((float)i * it) - (sz.x/2.0)) + 1, 16), text, buf);
+            window->DrawList->AddText(min + ImVec2(roundf(((float)i * it) - (sz.x / 2.0)) + 1, 16), text, buf);
         }
     }
 }

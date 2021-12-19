@@ -359,3 +359,12 @@ jobs:
         
         - name: Running codespell
           run: cd $GITHUB_WORKSPACE && codespell -q 2 || true
+
+    check_formatting:
+        runs-on: ubuntu-latest
+
+        steps:
+        - uses: actions/checkout@v2
+        
+        - name: Run check_clang_format
+          run: cd $GITHUB_WORKSPACE && ./check_clang_format.sh || true

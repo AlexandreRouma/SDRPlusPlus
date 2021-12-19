@@ -12,5 +12,5 @@ namespace options {
     SDRPP_EXPORT CMDLineOptions opts;
 
     void loadDefaults();
-    bool parse(int argc, char *argv[]);
+    bool parse(int argc, char* argv[]);
 }

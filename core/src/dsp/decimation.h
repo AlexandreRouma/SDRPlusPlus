@@ -67,14 +67,14 @@ namespace dsp {
             int outIndex = 0;
             if constexpr (std::is_same_v<T, float>) {
                 while (inIndex < count) {
-                    volk_32f_x2_dot_prod_32f((float*)&out.writeBuf[outIndex], (float*)&buffer[inIndex+1], taps, tapCount);
+                    volk_32f_x2_dot_prod_32f((float*)&out.writeBuf[outIndex], (float*)&buffer[inIndex + 1], taps, tapCount);
                     inIndex += 2;
                     outIndex++;
                 }
             }
             if constexpr (std::is_same_v<T, complex_t>) {
                 while (inIndex < count) {
-                    volk_32fc_32f_dot_prod_32fc((lv_32fc_t*)&out.writeBuf[outIndex], (lv_32fc_t*)&buffer[inIndex+1], taps, tapCount);
+                    volk_32fc_32f_dot_prod_32fc((lv_32fc_t*)&out.writeBuf[outIndex], (lv_32fc_t*)&buffer[inIndex + 1], taps, tapCount);
                     inIndex += 2;
                     outIndex++;
                 }
@@ -84,7 +84,7 @@ namespace dsp {
             if (!out.swap(outIndex)) { return -1; }
 
             memmove(buffer, &buffer[count], tapCount * sizeof(T));
-            
+
 
             return count;
         }
@@ -102,6 +102,5 @@ namespace dsp {
         int tapCount;
         float* taps;
         int _inIndex = 0;
-
     };
 }

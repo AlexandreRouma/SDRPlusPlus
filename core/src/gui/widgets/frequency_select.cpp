@@ -15,13 +15,11 @@ bool isInArea(ImVec2 val, ImVec2 min, ImVec2 max) {
 }
 
 FrequencySelect::FrequencySelect() {
-    
 }
 
 void FrequencySelect::init() {
     for (int i = 0; i < 12; i++) {
         digits[i] = 0;
-        
     }
 }
 
@@ -45,7 +43,6 @@ void FrequencySelect::onPosChange() {
 }
 
 void FrequencySelect::onResize() {
-    
 }
 
 void FrequencySelect::incrementDigit(int i) {
@@ -126,7 +123,7 @@ void FrequencySelect::draw() {
     int digitWidth = digitSz.x;
     int commaOffset = 0;
     bool zeros = true;
-    
+
     ImGui::ItemSize(ImRect(digitTopMins[0], ImVec2(digitBottomMaxs[11].x + 15, digitBottomMaxs[11].y)));
 
     for (int i = 0; i < 12; i++) {
@@ -134,12 +131,12 @@ void FrequencySelect::draw() {
             zeros = false;
         }
         sprintf(buf, "%d", digits[i]);
-        window->DrawList->AddText(ImVec2(widgetPos.x + (i * digitWidth) + commaOffset, widgetPos.y), 
-                                zeros ? disabledColor : textColor, buf);
+        window->DrawList->AddText(ImVec2(widgetPos.x + (i * digitWidth) + commaOffset, widgetPos.y),
+                                  zeros ? disabledColor : textColor, buf);
         if ((i + 1) % 3 == 0 && i < 11) {
             commaOffset += commaSz.x;
-            window->DrawList->AddText(ImVec2(widgetPos.x + (i * digitWidth) + commaOffset + 11, widgetPos.y), 
-                                    zeros ? disabledColor : textColor, ".");
+            window->DrawList->AddText(ImVec2(widgetPos.x + (i * digitWidth) + commaOffset + 11, widgetPos.y),
+                                      zeros ? disabledColor : textColor, ".");
         }
     }
 
@@ -183,7 +180,7 @@ void FrequencySelect::draw() {
                     decrementDigit(i);
                 }
                 if ((ImGui::IsKeyPressed(GLFW_KEY_LEFT) || ImGui::IsKeyPressed(GLFW_KEY_BACKSPACE)) && i > 0) {
-                    moveCursorToDigit(i - 1);              
+                    moveCursorToDigit(i - 1);
                 }
                 if (ImGui::IsKeyPressed(GLFW_KEY_RIGHT) && i < 11) {
                     moveCursorToDigit(i + 1);

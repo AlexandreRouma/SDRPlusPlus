@@ -23,7 +23,7 @@ public:
 
     void registerSource(std::string name, SourceHandler* handler);
     void unregisterSource(std::string name);
-    void selectSource(std::string  name);
+    void selectSource(std::string name);
     void showSelectedMenu();
     void start();
     void stop();
@@ -43,5 +43,4 @@ private:
     double tuneOffset;
     double currentFreq;
     dsp::stream<dsp::complex_t> nullSource;
-
 };

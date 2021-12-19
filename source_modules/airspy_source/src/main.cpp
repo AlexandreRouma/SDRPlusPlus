@@ -12,7 +12,7 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-SDRPP_MOD_INFO {
+SDRPP_MOD_INFO{
     /* Name:            */ "airspy_source",
     /* Description:     */ "Airspy source module for SDR++",
     /* Author:          */ "Ryzerth",
@@ -33,7 +33,7 @@ public:
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
-        handler.deselectHandler = menuDeselected; 
+        handler.deselectHandler = menuDeselected;
         handler.menuHandler = menuHandler;
         handler.startHandler = start;
         handler.stopHandler = stop;
@@ -236,7 +236,7 @@ private:
         AirspySourceModule* _this = (AirspySourceModule*)ctx;
         spdlog::info("AirspySourceModule '{0}': Menu Deselect!", _this->name);
     }
-    
+
     static void start(void* ctx) {
         AirspySourceModule* _this = (AirspySourceModule*)ctx;
         if (_this->running) { return; }
@@ -255,7 +255,7 @@ private:
 
         airspy_set_samplerate(_this->openDev, _this->sampleRateList[_this->srId]);
         airspy_set_freq(_this->openDev, _this->freq);
-        
+
         if (_this->gainMode == 0) {
             airspy_set_lna_agc(_this->openDev, 0);
             airspy_set_mixer_agc(_this->openDev, 0);
@@ -291,7 +291,7 @@ private:
         _this->running = true;
         spdlog::info("AirspySourceModule '{0}': Start!", _this->name);
     }
-    
+
     static void stop(void* ctx) {
         AirspySourceModule* _this = (AirspySourceModule*)ctx;
         if (!_this->running) { return; }
@@ -301,7 +301,7 @@ private:
         _this->stream.clearWriteStop();
         spdlog::info("AirspySourceModule '{0}': Stop!", _this->name);
     }
-    
+
     static void tune(double freq, void* ctx) {
         AirspySourceModule* _this = (AirspySourceModule*)ctx;
         if (_this->running) {
@@ -310,7 +310,7 @@ private:
         _this->freq = freq;
         spdlog::info("AirspySourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
-    
+
     static void menuHandler(void* ctx) {
         AirspySourceModule* _this = (AirspySourceModule*)ctx;
         float menuWidth = ImGui::GetContentRegionAvailWidth();
@@ -536,8 +536,6 @@ private:
                 config.release(true);
             }
         }
-
-        
     }
 
     static int callback(airspy_transfer_t* transfer) {

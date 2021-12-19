@@ -20,6 +20,5 @@ namespace ImGui {
     private:
         std::mutex bufferMtx;
         dsp::complex_t buffer[1024];
-
     };
 }

@@ -7,7 +7,7 @@ namespace dsp {
     class EdgeTrigClockRecovery : public generic_block<EdgeTrigClockRecovery> {
     public:
         EdgeTrigClockRecovery() {}
-        
+
         EdgeTrigClockRecovery(stream<float>* in, int omega) { init(in, omega); }
 
         void init(stream<float>* in, int omega) {
@@ -51,7 +51,7 @@ namespace dsp {
 
                 lastVal = _in->readBuf[i];
             }
-            
+
             _in->flush();
             if (outCount > 0 && !out.swap(outCount)) { return -1; }
             return count;
@@ -65,10 +65,9 @@ namespace dsp {
         int counter = 0;
         float lastVal = 0;
         stream<float>* _in;
-
     };
 
-    template<class T>
+    template <class T>
     class MMClockRecovery : public generic_block<MMClockRecovery<T>> {
     public:
         MMClockRecovery() {}
@@ -146,7 +145,7 @@ namespace dsp {
 
             int i = nextOffset;
             for (; i < count && outCount < maxOut;) {
-                
+
                 if constexpr (std::is_same_v<T, float>) {
                     // Calculate output value
                     // If we still need to use the old values, calculate using delay buf
@@ -160,7 +159,7 @@ namespace dsp {
                     out.writeBuf[outCount++] = outVal;
 
                     // Cursed phase detect approximation (don't ask me how this approximation works)
-                    phaseError = (DSP_STEP(lastOutput)*outVal) - (lastOutput*DSP_STEP(outVal));
+                    phaseError = (DSP_STEP(lastOutput) * outVal) - (lastOutput * DSP_STEP(outVal));
                     lastOutput = outVal;
                 }
                 if constexpr (std::is_same_v<T, complex_t> || std::is_same_v<T, stereo_t>) {
@@ -195,7 +194,9 @@ namespace dsp {
                 // TODO: Branchless clamp
                 _dynOmega = _dynOmega + (_gainOmega * phaseError);
                 if (_dynOmega > omegaMax) { _dynOmega = omegaMax; }
-                else if (_dynOmega < omegaMin) { _dynOmega = omegaMin; }
+                else if (_dynOmega < omegaMin) {
+                    _dynOmega = omegaMin;
+                }
 
                 // Adjust the symbol phase according to the phase error approximation
                 // It will now contain the phase delta needed to jump to the next symbol
@@ -215,7 +216,7 @@ namespace dsp {
 
             // Save the last 7 values for the next round
             memcpy(delay, &_in->readBuf[count - 7], 7 * sizeof(T));
-            
+
             _in->flush();
             if (outCount > 0 && !out.swap(outCount)) { return -1; }
             return count;
@@ -246,10 +247,9 @@ namespace dsp {
         float lastOutput = 0.0f;
 
         // Cursed complex stuff
-        complex_t _p_0T = {0,0}, _p_1T = {0,0}, _p_2T = {0,0};
-        complex_t _c_0T = {0,0}, _c_1T = {0,0}, _c_2T = {0,0};
+        complex_t _p_0T = { 0, 0 }, _p_1T = { 0, 0 }, _p_2T = { 0, 0 };
+        complex_t _c_0T = { 0, 0 }, _c_1T = { 0, 0 }, _c_2T = { 0, 0 };
 
         stream<T>* _in;
-
     };
 }

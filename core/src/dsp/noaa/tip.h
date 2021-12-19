@@ -132,7 +132,6 @@ namespace dsp {
 
         private:
             stream<uint8_t>* _in;
-
         };
 
         inline uint16_t HIRSSignedToUnsigned(uint16_t n) {
@@ -236,7 +235,6 @@ namespace dsp {
             stream<uint8_t>* _in;
             int lastElement = 0;
             bool newImageData = false;
-
         };
     }
 }

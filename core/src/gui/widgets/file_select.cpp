@@ -39,7 +39,7 @@ bool FileSelect::render(std::string id) {
         if (workerThread.joinable()) { workerThread.join(); }
         workerThread = std::thread(&FileSelect::worker, this);
     }
-    
+
     _pathChanged |= pathChanged;
     pathChanged = false;
     return _pathChanged;
@@ -63,15 +63,15 @@ bool FileSelect::pathIsValid() {
 }
 
 void FileSelect::worker() {
-        auto file = pfd::open_file("Open File", pathValid ? std::filesystem::path(expandString(path)).parent_path().string() : "", _filter);
-        std::vector<std::string> res = file.result();
+    auto file = pfd::open_file("Open File", pathValid ? std::filesystem::path(expandString(path)).parent_path().string() : "", _filter);
+    std::vector<std::string> res = file.result();
 
-        if (res.size() > 0) {
-            path = res[0];
-            strcpy(strPath, path.c_str());
-            pathChanged = true;
-        }
+    if (res.size() > 0) {
+        path = res[0];
+        strcpy(strPath, path.c_str());
+        pathChanged = true;
+    }
 
-        pathValid = std::filesystem::is_regular_file(expandString(path));
-        dialogOpen = false;
+    pathValid = std::filesystem::is_regular_file(expandString(path));
+    dialogOpen = false;
 }

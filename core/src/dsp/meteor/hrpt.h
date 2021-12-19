@@ -61,7 +61,6 @@ namespace dsp {
 
         private:
             stream<uint8_t>* _in;
-
         };
     }
 }

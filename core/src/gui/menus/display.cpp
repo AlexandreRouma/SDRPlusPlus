@@ -33,15 +33,15 @@ namespace displaymenu {
     };
 
     const char* FFTSizesStr = "524288\0"
-                            "262144\0"
-                            "131072\0"
-                            "65536\0"
-                            "32768\0"
-                            "16384\0"
-                            "8192\0"
-                            "4096\0"
-                            "2048\0"
-                            "1024\0";
+                              "262144\0"
+                              "131072\0"
+                              "65536\0"
+                              "32768\0"
+                              "16384\0"
+                              "8192\0"
+                              "4096\0"
+                              "2048\0"
+                              "1024\0";
 
     int fftSizeId = 0;
 
@@ -83,7 +83,7 @@ namespace displaymenu {
         fftRate = core::configManager.conf["fftRate"];
         sigpath::signalPath.setFFTRate(fftRate);
 
-        selectedWindow = std::clamp<int>((int)core::configManager.conf["fftWindow"], 0, _FFT_WINDOW_COUNT-1);
+        selectedWindow = std::clamp<int>((int)core::configManager.conf["fftWindow"], 0, _FFT_WINDOW_COUNT - 1);
         gui::mainWindow.setFFTWindow(selectedWindow);
     }
 
@@ -153,7 +153,5 @@ namespace displaymenu {
             }
             ImGui::Text("Color map Author: %s", colorMapAuthor.c_str());
         }
-
-        
     }
 }

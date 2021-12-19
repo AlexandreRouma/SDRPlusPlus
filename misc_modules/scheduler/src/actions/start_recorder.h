@@ -8,11 +8,9 @@ namespace sched_action {
         ~StartRecorderClass() {}
 
         void trigger() {
-
         }
 
         void prepareEditMenu() {
-
         }
 
         bool showEditMenu(bool& valid) {
@@ -40,7 +38,6 @@ namespace sched_action {
         std::string recorderName;
 
         std::string name = "Start \"\"";
-
     };
 
     Action StartRecorder() {

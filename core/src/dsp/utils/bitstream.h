@@ -3,7 +3,7 @@
 namespace dsp {
     inline uint64_t readBits(int offset, int length, uint8_t* buffer) {
         uint64_t outputValue = 0;
-        
+
         int lastBit = offset + (length - 1);
 
         int firstWord = offset / 8;

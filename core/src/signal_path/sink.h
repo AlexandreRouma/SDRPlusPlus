@@ -48,7 +48,7 @@ public:
 
         dsp::stream<dsp::stereo_t>* sinkOut;
 
-        Event<float> srChange;        
+        Event<float> srChange;
 
     private:
         dsp::stream<dsp::stereo_t>* _in;
@@ -86,7 +86,6 @@ public:
 
     private:
         dsp::NullSink<dsp::stereo_t> ns;
-
     };
 
     void registerSinkProvider(std::string name, SinkProvider provider);
@@ -130,5 +129,4 @@ private:
     std::vector<std::string> providerNames;
     std::string providerNamesTxt;
     std::vector<std::string> streamNames;
-
 };

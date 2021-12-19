@@ -66,12 +66,12 @@ namespace dsp {
 
             if constexpr (std::is_same_v<T, float>) {
                 for (int i = 0; i < count; i++) {
-                    volk_32f_x2_dot_prod_32f((float*)&out.writeBuf[i], (float*)&buffer[i+1], taps, tapCount);
+                    volk_32f_x2_dot_prod_32f((float*)&out.writeBuf[i], (float*)&buffer[i + 1], taps, tapCount);
                 }
             }
             if constexpr (std::is_same_v<T, complex_t>) {
                 for (int i = 0; i < count; i++) {
-                    volk_32fc_32f_dot_prod_32fc((lv_32fc_t*)&out.writeBuf[i], (lv_32fc_t*)&buffer[i+1], taps, tapCount);
+                    volk_32fc_32f_dot_prod_32fc((lv_32fc_t*)&out.writeBuf[i], (lv_32fc_t*)&buffer[i + 1], taps, tapCount);
                 }
             }
 
@@ -95,7 +95,6 @@ namespace dsp {
         T* buffer;
         int tapCount;
         float* taps;
-
     };
 
     class ComplexFIR : public generic_block<ComplexFIR> {
@@ -157,7 +156,7 @@ namespace dsp {
             _in->flush();
 
             for (int i = 0; i < count; i++) {
-                volk_32fc_x2_dot_prod_32fc((lv_32fc_t*)&out.writeBuf[i], (lv_32fc_t*)&buffer[i+1], (lv_32fc_t*)taps, tapCount);
+                volk_32fc_x2_dot_prod_32fc((lv_32fc_t*)&out.writeBuf[i], (lv_32fc_t*)&buffer[i + 1], (lv_32fc_t*)taps, tapCount);
             }
 
             if (!out.swap(count)) { return -1; }
@@ -180,7 +179,6 @@ namespace dsp {
         complex_t* buffer;
         int tapCount;
         complex_t* taps;
-
     };
 
     class BFMDeemp : public generic_block<BFMDeemp> {
@@ -241,8 +239,8 @@ namespace dsp {
             if (isnan(lastOutR)) {
                 lastOutR = 0.0f;
             }
-            out.writeBuf[0].l = (alpha * _in->readBuf[0].l) + ((1-alpha) * lastOutL);
-            out.writeBuf[0].r = (alpha * _in->readBuf[0].r) + ((1-alpha) * lastOutR);
+            out.writeBuf[0].l = (alpha * _in->readBuf[0].l) + ((1 - alpha) * lastOutL);
+            out.writeBuf[0].r = (alpha * _in->readBuf[0].r) + ((1 - alpha) * lastOutR);
             for (int i = 1; i < count; i++) {
                 out.writeBuf[i].l = (alpha * _in->readBuf[i].l) + ((1 - alpha) * out.writeBuf[i - 1].l);
                 out.writeBuf[i].r = (alpha * _in->readBuf[i].r) + ((1 - alpha) * out.writeBuf[i - 1].r);
@@ -267,6 +265,5 @@ namespace dsp {
         float _tau;
         float _sampleRate;
         stream<stereo_t>* _in;
-
     };
 }

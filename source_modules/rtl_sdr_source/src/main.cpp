@@ -12,7 +12,7 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-SDRPP_MOD_INFO {
+SDRPP_MOD_INFO{
     /* Name:            */ "rtl_sdr_source",
     /* Description:     */ "RTL-SDR source module for SDR++",
     /* Author:          */ "Ryzerth",
@@ -61,7 +61,7 @@ public:
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
-        handler.deselectHandler = menuDeselected; 
+        handler.deselectHandler = menuDeselected;
         handler.menuHandler = menuHandler;
         handler.startHandler = start;
         handler.stopHandler = stop;
@@ -243,7 +243,7 @@ private:
         RTLSDRSourceModule* _this = (RTLSDRSourceModule*)ctx;
         spdlog::info("RTLSDRSourceModule '{0}': Menu Deselect!", _this->name);
     }
-    
+
     static void start(void* ctx) {
         RTLSDRSourceModule* _this = (RTLSDRSourceModule*)ctx;
         if (_this->running) { return; }
@@ -256,7 +256,7 @@ private:
             spdlog::error("Could not open RTL-SDR");
             return;
         }
-        
+
         spdlog::info("RTL-SDR Sample Rate: {0}", _this->sampleRate);
 
         rtlsdr_set_sample_rate(_this->openDev, _this->sampleRate);
@@ -283,7 +283,7 @@ private:
         _this->running = true;
         spdlog::info("RTLSDRSourceModule '{0}': Start!", _this->name);
     }
-    
+
     static void stop(void* ctx) {
         RTLSDRSourceModule* _this = (RTLSDRSourceModule*)ctx;
         if (!_this->running) { return; }
@@ -295,7 +295,7 @@ private:
         rtlsdr_close(_this->openDev);
         spdlog::info("RTLSDRSourceModule '{0}': Stop!", _this->name);
     }
-    
+
     static void tune(double freq, void* ctx) {
         RTLSDRSourceModule* _this = (RTLSDRSourceModule*)ctx;
         if (_this->running) {
@@ -308,12 +308,11 @@ private:
             if (i > 1) {
                 spdlog::warn("RTL-SDR took {0} attempts to tune...", i);
             }
-            
         }
         _this->freq = freq;
         spdlog::info("RTLSDRSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
-    
+
     static void menuHandler(void* ctx) {
         RTLSDRSourceModule* _this = (RTLSDRSourceModule*)ctx;
         float menuWidth = ImGui::GetContentRegionAvailWidth();
@@ -462,7 +461,7 @@ private:
         rtlsdr_read_async(openDev, asyncHandler, this, 0, asyncCount);
     }
 
-    static void asyncHandler(unsigned char *buf, uint32_t len, void *ctx) {
+    static void asyncHandler(unsigned char* buf, uint32_t len, void* ctx) {
         RTLSDRSourceModule* _this = (RTLSDRSourceModule*)ctx;
         int sampCount = len / 2;
         for (int i = 0; i < sampCount; i++) {

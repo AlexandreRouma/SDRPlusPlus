@@ -13,9 +13,9 @@
 #include <radio_interface.h>
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-#define MAX_COMMAND_LENGTH      8192
+#define MAX_COMMAND_LENGTH 8192
 
-SDRPP_MOD_INFO {
+SDRPP_MOD_INFO{
     /* Name:            */ "rigctl_server",
     /* Description:     */ "My fancy new module",
     /* Author:          */ "Ryzerth",
@@ -139,7 +139,7 @@ private:
                 config.release(true);
             }
         }
-        
+
         ImGui::LeftLabel("Controlled Recorder");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         {
@@ -175,7 +175,7 @@ private:
             config.conf[_this->name]["autoStart"] = _this->autoStart;
             config.release(true);
         }
-        
+
         if (listening && ImGui::Button(CONCAT("Stop##_rigctl_srv_stop_", _this->name), ImVec2(menuWidth, 0))) {
             _this->stopServer();
         }
@@ -247,7 +247,7 @@ private:
             selectVfoByName(vfoNames[0]);
             return;
         }
-        
+
         // Select the VFO
         {
             if (lock) { std::lock_guard lck(vfoMtx); }
@@ -271,8 +271,8 @@ private:
         }
 
         std::string type = core::modComManager.getModuleName(_name);
-        
-        
+
+
         // Select the VFO
         {
             if (lock) { std::lock_guard lck(recorderMtx); }
@@ -483,7 +483,7 @@ private:
                     core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_SET_BANDWIDTH, &newBandwidth, NULL);
                 }
             }
-            
+
             client->write(resp.size(), (uint8_t*)resp.c_str());
         }
         else if (parts[0] == "m" || parts[0] == "\\get_mode") {
@@ -493,7 +493,7 @@ private:
             if (!selectedVfo.empty() && core::modComManager.getModuleName(selectedVfo) == "radio") {
                 int mode;
                 core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_GET_MODE, NULL, &mode);
-                
+
                 if (mode == RADIO_IFACE_MODE_NFM) {
                     resp = "FM\n";
                 }
@@ -684,7 +684,7 @@ private:
                 /* Bit field list of get level */
                 "0x40000020\n" /* RIG_LEVEL_SQL | RIG_LEVEL_STRENGTH */
                 /* Bit field list of set level */
-                "0x20\n"       /* RIG_LEVEL_SQL */
+                "0x20\n" /* RIG_LEVEL_SQL */
                 /* Bit field list of get parm */
                 "0\n" /* RIG_PARM_NONE */
                 /* Bit field list of set parm */

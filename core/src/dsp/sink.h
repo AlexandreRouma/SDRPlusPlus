@@ -50,7 +50,6 @@ namespace dsp {
         stream<T>* _in;
         void (*_handler)(T* data, int count, void* ctx);
         void* _ctx;
-
     };
 
     template <class T>
@@ -99,7 +98,6 @@ namespace dsp {
         }
 
         stream<T>* _in;
-
     };
 
     template <class T>
@@ -134,7 +132,6 @@ namespace dsp {
 
     private:
         stream<T>* _in;
-
     };
 
     template <class T>
@@ -188,6 +185,5 @@ namespace dsp {
     private:
         stream<T>* _in;
         std::ofstream file;
-
     };
 }

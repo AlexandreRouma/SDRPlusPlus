@@ -2,8 +2,8 @@
 #include <dsp/block.h>
 #include <inttypes.h>
 
-#define DSP_SIGN(n)     ((n) >= 0)
-#define DSP_STEP(n)     (((n) > 0.0f) ? 1.0f : -1.0f)
+#define DSP_SIGN(n) ((n) >= 0)
+#define DSP_STEP(n) (((n) > 0.0f) ? 1.0f : -1.0f)
 
 namespace dsp {
     class Deframer : public generic_block<Deframer> {
@@ -21,14 +21,14 @@ namespace dsp {
         void init(stream<uint8_t>* in, int frameLen, uint8_t* syncWord, int syncLen) {
             _in = in;
             _frameLen = frameLen;
-            _syncword = new  uint8_t[syncLen];
+            _syncword = new uint8_t[syncLen];
             _syncLen = syncLen;
             memcpy(_syncword, syncWord, syncLen);
 
             buffer = new uint8_t[STREAM_BUFFER_SIZE + syncLen];
             memset(buffer, 0, syncLen);
             bufferStart = buffer + syncLen;
-            
+
             generic_block<Deframer>::registerInput(_in);
             generic_block<Deframer>::registerOutput(&out);
             generic_block<Deframer>::_block_init = true;
@@ -54,7 +54,7 @@ namespace dsp {
             // Iterate through all symbols
             for (int i = 0; i < count;) {
 
-                // If already in the process of reading bits 
+                // If already in the process of reading bits
                 if (bitsRead >= 0) {
                     if ((bitsRead % 8) == 0) { out.writeBuf[bitsRead / 8] = 0; }
                     out.writeBuf[bitsRead / 8] |= (buffer[i] << (7 - (bitsRead % 8)));
@@ -80,27 +80,27 @@ namespace dsp {
                 else if (nextBitIsStartOfFrame) {
                     nextBitIsStartOfFrame = false;
 
-                    // try to save 
+                    // try to save
                     if (badFrameCount < 5) {
                         badFrameCount++;
                         //printf("Frame found!\n");
                         bitsRead = 0;
                         continue;
                     }
-
                 }
 
-                else { i++; }
+                else {
+                    i++;
+                }
 
                 nextBitIsStartOfFrame = false;
-
             }
 
             // Keep last _syncLen4 symbols
             memcpy(buffer, &_in->readBuf[count - _syncLen], _syncLen);
-            
+
             //printf("Block processed\n");
-            callcount++;   
+            callcount++;
 
             _in->flush();
             return count;
@@ -123,15 +123,14 @@ namespace dsp {
         bool nextBitIsStartOfFrame = false;
 
         int callcount = 0;
-        
-        stream<uint8_t>* _in;
 
+        stream<uint8_t>* _in;
     };
 
     inline int MachesterHammingDistance(float* data, uint8_t* syncBits, int n) {
         int dist = 0;
         for (int i = 0; i < n; i++) {
-            if ((data[(2*i) + 1] > data[2*i]) != syncBits[i]) { dist++; }
+            if ((data[(2 * i) + 1] > data[2 * i]) != syncBits[i]) { dist++; }
         }
         return dist;
     }
@@ -153,14 +152,14 @@ namespace dsp {
         void init(stream<float>* in, int frameLen, uint8_t* syncWord, int syncLen) {
             _in = in;
             _frameLen = frameLen;
-            _syncword = new  uint8_t[syncLen];
+            _syncword = new uint8_t[syncLen];
             _syncLen = syncLen;
             memcpy(_syncword, syncWord, syncLen);
 
             buffer = new float[STREAM_BUFFER_SIZE + (syncLen * 2)];
             memset(buffer, 0, syncLen * 2 * sizeof(float));
             bufferStart = &buffer[syncLen * 2];
-            
+
             generic_block<ManchesterDeframer>::registerInput(_in);
             generic_block<ManchesterDeframer>::registerOutput(&out);
             generic_block<ManchesterDeframer>::_block_init = true;
@@ -188,7 +187,7 @@ namespace dsp {
             // Iterate through all symbols
             for (int i = 0; i < count;) {
 
-                // If already in the process of reading bits 
+                // If already in the process of reading bits
                 if (bitsRead >= 0) {
                     readable = std::min<int>(count - i, _frameLen - bitsRead);
                     memcpy(&out.writeBuf[bitsRead], &buffer[i], readable * sizeof(float));
@@ -208,7 +207,6 @@ namespace dsp {
                 }
 
                 i++;
-
             }
 
             // Keep last _syncLen symbols
@@ -228,9 +226,8 @@ namespace dsp {
         int _frameLen;
         int _syncLen;
         int bitsRead = -1;
-        
-        stream<float>* _in;
 
+        stream<float>* _in;
     };
 
     class SymbolDeframer : public generic_block<SymbolDeframer> {
@@ -242,14 +239,14 @@ namespace dsp {
         void init(stream<uint8_t>* in, int frameLen, uint8_t* syncWord, int syncLen) {
             _in = in;
             _frameLen = frameLen;
-            _syncword = new  uint8_t[syncLen];
+            _syncword = new uint8_t[syncLen];
             _syncLen = syncLen;
             memcpy(_syncword, syncWord, syncLen);
 
             buffer = new uint8_t[STREAM_BUFFER_SIZE + syncLen];
             memset(buffer, 0, syncLen);
             bufferStart = &buffer[syncLen];
-            
+
             generic_block<SymbolDeframer>::registerInput(_in);
             generic_block<SymbolDeframer>::registerOutput(&out);
             generic_block<SymbolDeframer>::_block_init = true;
@@ -277,7 +274,7 @@ namespace dsp {
             // Iterate through all symbols
             for (int i = 0; i < count;) {
 
-                // If already in the process of reading bits 
+                // If already in the process of reading bits
                 if (bitsRead >= 0) {
                     readable = std::min<int>(count - i, _frameLen - bitsRead);
                     memcpy(&out.writeBuf[bitsRead], &buffer[i], readable);
@@ -297,7 +294,6 @@ namespace dsp {
                 }
 
                 i++;
-
             }
 
             // Keep last _syncLen symbols
@@ -317,9 +313,8 @@ namespace dsp {
         int _frameLen;
         int _syncLen;
         int bitsRead = -1;
-        
-        stream<uint8_t>* _in;
 
+        stream<uint8_t>* _in;
     };
 
     class ManchesterDecoder : public generic_block<ManchesterDecoder> {
@@ -352,12 +347,12 @@ namespace dsp {
 
             if (_inverted) {
                 for (int i = 0; i < count; i += 2) {
-                    out.writeBuf[i/2] = (_in->readBuf[i + 1] < _in->readBuf[i]);
+                    out.writeBuf[i / 2] = (_in->readBuf[i + 1] < _in->readBuf[i]);
                 }
             }
             else {
                 for (int i = 0; i < count; i += 2) {
-                    out.writeBuf[i/2] = (_in->readBuf[i + 1] > _in->readBuf[i]);
+                    out.writeBuf[i / 2] = (_in->readBuf[i + 1] > _in->readBuf[i]);
                 }
             }
 
@@ -371,7 +366,6 @@ namespace dsp {
     private:
         stream<float>* _in;
         bool _inverted;
-
     };
 
     class BitPacker : public generic_block<BitPacker> {
@@ -382,7 +376,7 @@ namespace dsp {
 
         void init(stream<uint8_t>* in) {
             _in = in;
-            
+
             generic_block<BitPacker>::registerInput(_in);
             generic_block<BitPacker>::registerOutput(&out);
             generic_block<BitPacker>::_block_init = true;
@@ -415,8 +409,6 @@ namespace dsp {
         stream<uint8_t> out;
 
     private:
-        
         stream<uint8_t>* _in;
-
     };
 }

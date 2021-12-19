@@ -3,7 +3,7 @@
 #include <dsp/utils/window_functions.h>
 #include <fftw3.h>
 
-#define NR_TAP_COUNT    64
+#define NR_TAP_COUNT 64
 
 namespace dsp {
     class FMIFNoiseReduction : public generic_block<FMIFNoiseReduction> {
@@ -30,22 +30,22 @@ namespace dsp {
             _in = in;
             _tapCount = tapCount;
 
-            delay = (complex_t*)fftwf_malloc(sizeof(complex_t)*STREAM_BUFFER_SIZE);
-            fft_in = (complex_t*)fftwf_malloc(sizeof(complex_t)*_tapCount);
-            fft_window = (float*)fftwf_malloc(sizeof(float)*_tapCount);
-            amp_buf = (float*)fftwf_malloc(sizeof(float)*_tapCount);
-            fft_cout = (complex_t*)fftwf_malloc(sizeof(complex_t)*_tapCount);
-            fft_cin = (complex_t*)fftwf_malloc(sizeof(complex_t)*_tapCount);
-            fft_fcout = (complex_t*)fftwf_malloc(sizeof(complex_t)*_tapCount);
+            delay = (complex_t*)fftwf_malloc(sizeof(complex_t) * STREAM_BUFFER_SIZE);
+            fft_in = (complex_t*)fftwf_malloc(sizeof(complex_t) * _tapCount);
+            fft_window = (float*)fftwf_malloc(sizeof(float) * _tapCount);
+            amp_buf = (float*)fftwf_malloc(sizeof(float) * _tapCount);
+            fft_cout = (complex_t*)fftwf_malloc(sizeof(complex_t) * _tapCount);
+            fft_cin = (complex_t*)fftwf_malloc(sizeof(complex_t) * _tapCount);
+            fft_fcout = (complex_t*)fftwf_malloc(sizeof(complex_t) * _tapCount);
             delay_start = &delay[_tapCount];
 
-            memset(delay, 0, sizeof(complex_t)*STREAM_BUFFER_SIZE);
-            memset(fft_in, 0, sizeof(complex_t)*_tapCount);
-            memset(amp_buf, 0, sizeof(float)*_tapCount);
-            memset(fft_cout, 0, sizeof(complex_t)*_tapCount);
-            memset(fft_cin, 0, sizeof(complex_t)*_tapCount);
-            memset(fft_fcout, 0, sizeof(complex_t)*_tapCount);
-            
+            memset(delay, 0, sizeof(complex_t) * STREAM_BUFFER_SIZE);
+            memset(fft_in, 0, sizeof(complex_t) * _tapCount);
+            memset(amp_buf, 0, sizeof(float) * _tapCount);
+            memset(fft_cout, 0, sizeof(complex_t) * _tapCount);
+            memset(fft_cin, 0, sizeof(complex_t) * _tapCount);
+            memset(fft_fcout, 0, sizeof(complex_t) * _tapCount);
+
             for (int i = 0; i < _tapCount; i++) {
                 fft_window[i] = window_function::blackman(i, _tapCount - 1);
             }
@@ -86,22 +86,22 @@ namespace dsp {
             fftwf_free(fft_cin);
             fftwf_free(fft_fcout);
 
-            delay = (complex_t*)fftwf_malloc(sizeof(complex_t)*STREAM_BUFFER_SIZE);
-            fft_in = (complex_t*)fftwf_malloc(sizeof(complex_t)*_tapCount);
-            fft_window = (float*)fftwf_malloc(sizeof(float)*_tapCount);
-            amp_buf = (float*)fftwf_malloc(sizeof(float)*_tapCount);
-            fft_cout = (complex_t*)fftwf_malloc(sizeof(complex_t)*_tapCount);
-            fft_cin = (complex_t*)fftwf_malloc(sizeof(complex_t)*_tapCount);
-            fft_fcout = (complex_t*)fftwf_malloc(sizeof(complex_t)*_tapCount);
+            delay = (complex_t*)fftwf_malloc(sizeof(complex_t) * STREAM_BUFFER_SIZE);
+            fft_in = (complex_t*)fftwf_malloc(sizeof(complex_t) * _tapCount);
+            fft_window = (float*)fftwf_malloc(sizeof(float) * _tapCount);
+            amp_buf = (float*)fftwf_malloc(sizeof(float) * _tapCount);
+            fft_cout = (complex_t*)fftwf_malloc(sizeof(complex_t) * _tapCount);
+            fft_cin = (complex_t*)fftwf_malloc(sizeof(complex_t) * _tapCount);
+            fft_fcout = (complex_t*)fftwf_malloc(sizeof(complex_t) * _tapCount);
             delay_start = &delay[_tapCount];
 
-            memset(delay, 0, sizeof(complex_t)*STREAM_BUFFER_SIZE);
-            memset(fft_in, 0, sizeof(complex_t)*_tapCount);
-            memset(amp_buf, 0, sizeof(float)*_tapCount);
-            memset(fft_cout, 0, sizeof(complex_t)*_tapCount);
-            memset(fft_cin, 0, sizeof(complex_t)*_tapCount);
-            memset(fft_fcout, 0, sizeof(complex_t)*_tapCount);
-            
+            memset(delay, 0, sizeof(complex_t) * STREAM_BUFFER_SIZE);
+            memset(fft_in, 0, sizeof(complex_t) * _tapCount);
+            memset(amp_buf, 0, sizeof(float) * _tapCount);
+            memset(fft_cout, 0, sizeof(complex_t) * _tapCount);
+            memset(fft_cin, 0, sizeof(complex_t) * _tapCount);
+            memset(fft_fcout, 0, sizeof(complex_t) * _tapCount);
+
             for (int i = 0; i < _tapCount; i++) {
                 fft_window[i] = window_function::blackman(i, _tapCount - 1);
             }
@@ -154,13 +154,13 @@ namespace dsp {
 
                 // Do reverse FFT and get first element
                 fftwf_execute(backwardPlan);
-                out.writeBuf[i] = fft_fcout[_tapCount/2];
+                out.writeBuf[i] = fft_fcout[_tapCount / 2];
 
                 // Reset the input buffer
-                fft_cin[idx] = {0, 0};
+                fft_cin[idx] = { 0, 0 };
             }
 
-            volk_32f_s32f_multiply_32f((float*)out.writeBuf, (float*)out.writeBuf, 1.0f/(float)_tapCount, count * 2);
+            volk_32f_s32f_multiply_32f((float*)out.writeBuf, (float*)out.writeBuf, 1.0f / (float)_tapCount, count * 2);
 
             // Copy last values to delay
             memmove(delay, &delay[count], _tapCount * sizeof(complex_t));
@@ -169,7 +169,7 @@ namespace dsp {
             if (!out.swap(count)) { return -1; }
             return count;
         }
-        
+
         bool bypass = true;
         stream<complex_t> out;
 
@@ -189,7 +189,6 @@ namespace dsp {
         complex_t* fft_fcout;
 
         int _tapCount;
-
     };
 
     class FFTNoiseReduction : public generic_block<FFTNoiseReduction> {
@@ -214,20 +213,20 @@ namespace dsp {
         void init(stream<float>* in) {
             _in = in;
 
-            delay = (float*)fftwf_malloc(sizeof(float)*STREAM_BUFFER_SIZE);
-            fft_in = (float*)fftwf_malloc(sizeof(float)*NR_TAP_COUNT);
-            fft_window = (float*)fftwf_malloc(sizeof(float)*NR_TAP_COUNT);
-            amp_buf = (float*)fftwf_malloc(sizeof(float)*NR_TAP_COUNT);
-            fft_cout = (complex_t*)fftwf_malloc(sizeof(complex_t)*NR_TAP_COUNT);
-            fft_fout = (float*)fftwf_malloc(sizeof(float)*NR_TAP_COUNT);
+            delay = (float*)fftwf_malloc(sizeof(float) * STREAM_BUFFER_SIZE);
+            fft_in = (float*)fftwf_malloc(sizeof(float) * NR_TAP_COUNT);
+            fft_window = (float*)fftwf_malloc(sizeof(float) * NR_TAP_COUNT);
+            amp_buf = (float*)fftwf_malloc(sizeof(float) * NR_TAP_COUNT);
+            fft_cout = (complex_t*)fftwf_malloc(sizeof(complex_t) * NR_TAP_COUNT);
+            fft_fout = (float*)fftwf_malloc(sizeof(float) * NR_TAP_COUNT);
             delay_start = &delay[NR_TAP_COUNT];
 
-            memset(delay, 0, sizeof(float)*STREAM_BUFFER_SIZE);
-            memset(fft_in, 0, sizeof(float)*NR_TAP_COUNT);
-            memset(amp_buf, 0, sizeof(float)*NR_TAP_COUNT);
-            memset(fft_cout, 0, sizeof(complex_t)*NR_TAP_COUNT);
-            memset(fft_fout, 0, sizeof(float)*NR_TAP_COUNT);
-            
+            memset(delay, 0, sizeof(float) * STREAM_BUFFER_SIZE);
+            memset(fft_in, 0, sizeof(float) * NR_TAP_COUNT);
+            memset(amp_buf, 0, sizeof(float) * NR_TAP_COUNT);
+            memset(fft_cout, 0, sizeof(complex_t) * NR_TAP_COUNT);
+            memset(fft_fout, 0, sizeof(float) * NR_TAP_COUNT);
+
             for (int i = 0; i < NR_TAP_COUNT; i++) {
                 fft_window[i] = window_function::blackman(i, NR_TAP_COUNT - 1);
             }
@@ -274,19 +273,19 @@ namespace dsp {
                 fftwf_execute(forwardPlan);
 
                 // Process bins here
-                volk_32fc_magnitude_32f(amp_buf, (lv_32fc_t*)fft_cout, NR_TAP_COUNT/2);
-                for (int j = 1; j < NR_TAP_COUNT/2; j++) {
+                volk_32fc_magnitude_32f(amp_buf, (lv_32fc_t*)fft_cout, NR_TAP_COUNT / 2);
+                for (int j = 1; j < NR_TAP_COUNT / 2; j++) {
                     if (log10f(amp_buf[0]) < level) {
-                        fft_cout[j] = {0, 0};
+                        fft_cout[j] = { 0, 0 };
                     }
                 }
 
                 // Do reverse FFT and get first element
                 fftwf_execute(backwardPlan);
-                out.writeBuf[i] = fft_fout[NR_TAP_COUNT/2];
+                out.writeBuf[i] = fft_fout[NR_TAP_COUNT / 2];
             }
 
-            volk_32f_s32f_multiply_32f(out.writeBuf, out.writeBuf, 1.0f/(float)NR_TAP_COUNT, count);
+            volk_32f_s32f_multiply_32f(out.writeBuf, out.writeBuf, 1.0f / (float)NR_TAP_COUNT, count);
 
             // Copy last values to delay
             memmove(delay, &delay[count], NR_TAP_COUNT * sizeof(float));
@@ -295,7 +294,7 @@ namespace dsp {
             if (!out.swap(count)) { return -1; }
             return count;
         }
-        
+
         bool bypass = true;
         stream<float> out;
 
@@ -312,7 +311,6 @@ namespace dsp {
         float* delay_start;
         complex_t* fft_cout;
         float* fft_fout;
-
     };
 
     class NoiseBlanker : public generic_block<NoiseBlanker> {
@@ -329,9 +327,10 @@ namespace dsp {
 
         void init(stream<complex_t>* in, float level) {
             _in = in;
-            _level = powf(10.0f, level / 10.0f);;
+            _level = powf(10.0f, level / 10.0f);
+            ;
 
-            ampBuf = (float*)volk_malloc(STREAM_BUFFER_SIZE*sizeof(float), volk_get_alignment());
+            ampBuf = (float*)volk_malloc(STREAM_BUFFER_SIZE * sizeof(float), volk_get_alignment());
 
             generic_block<NoiseBlanker>::registerInput(_in);
             generic_block<NoiseBlanker>::registerOutput(&out);
@@ -377,9 +376,8 @@ namespace dsp {
         float* ampBuf;
 
         float _level;
-        
-        stream<complex_t>* _in;
 
+        stream<complex_t>* _in;
     };
 
     class NotchFilter : public generic_block<NotchFilter> {
@@ -395,7 +393,7 @@ namespace dsp {
             _sampleRate = sampleRate;
 
             phaseDelta = lv_cmake(std::cos((-_offset / _sampleRate) * 2.0f * FL_M_PI), std::sin((-_offset / _sampleRate) * 2.0f * FL_M_PI));
-            phaseDeltaConj = {phaseDelta.real(), -phaseDelta.imag()};
+            phaseDeltaConj = { phaseDelta.real(), -phaseDelta.imag() };
 
             generic_block<NotchFilter>::registerInput(_in);
             generic_block<NotchFilter>::registerOutput(&out);
@@ -419,13 +417,13 @@ namespace dsp {
         void setOffset(float offset) {
             _offset = offset;
             phaseDelta = lv_cmake(std::cos((-_offset / _sampleRate) * 2.0f * FL_M_PI), std::sin((-_offset / _sampleRate) * 2.0f * FL_M_PI));
-            phaseDeltaConj = {phaseDelta.real(), -phaseDelta.imag()};
+            phaseDeltaConj = { phaseDelta.real(), -phaseDelta.imag() };
         }
 
         void setSampleRate(float sampleRate) {
             _sampleRate = sampleRate;
             phaseDelta = lv_cmake(std::cos((-_offset / _sampleRate) * 2.0f * FL_M_PI), std::sin((-_offset / _sampleRate) * 2.0f * FL_M_PI));
-            phaseDeltaConj = {phaseDelta.real(), -phaseDelta.imag()};
+            phaseDeltaConj = { phaseDelta.real(), -phaseDelta.imag() };
         }
 
         int run() {
@@ -452,14 +450,13 @@ namespace dsp {
 
     private:
         stream<complex_t>* _in;
-        complex_t offset = {0, 0};
-        lv_32fc_t inPhase = {1, 0};
-        lv_32fc_t outPhase = {4, 0};
+        complex_t offset = { 0, 0 };
+        lv_32fc_t inPhase = { 1, 0 };
+        lv_32fc_t outPhase = { 4, 0 };
         lv_32fc_t phaseDelta;
         lv_32fc_t phaseDeltaConj;
         float _offset;
         float _sampleRate;
         float correctionRate;
-
     };
 }

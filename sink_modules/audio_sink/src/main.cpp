@@ -12,7 +12,7 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-SDRPP_MOD_INFO {
+SDRPP_MOD_INFO{
     /* Name:            */ "audio_sink",
     /* Description:     */ "Audio sink module for SDR++",
     /* Author:          */ "Ryzerth",
@@ -59,7 +59,6 @@ public:
     }
 
     ~AudioSink() {
-        
     }
 
     void start() {
@@ -131,12 +130,12 @@ public:
         if (running) { doStop(); }
         if (running) { doStart(); }
     }
-    
+
     void menuHandler() {
         float menuWidth = ImGui::GetContentRegionAvailWidth();
 
         ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::Combo(("##_audio_sink_dev_"+_streamName).c_str(), &devId, txtDevList.c_str())) {
+        if (ImGui::Combo(("##_audio_sink_dev_" + _streamName).c_str(), &devId, txtDevList.c_str())) {
             selectById(devId);
             config.acquire();
             config.conf[_streamName]["device"] = devList[devId].name;
@@ -144,7 +143,7 @@ public:
         }
 
         ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::Combo(("##_audio_sink_sr_"+_streamName).c_str(), &srId, sampleRatesTxt.c_str())) {
+        if (ImGui::Combo(("##_audio_sink_sr_" + _streamName).c_str(), &srId, sampleRatesTxt.c_str())) {
             sampleRate = sampleRates[srId];
             _stream->setSampleRate(sampleRate);
             if (running) {
@@ -173,7 +172,7 @@ private:
             audio.startStream();
             stereoPacker.start();
         }
-        catch ( RtAudioError& e ) {
+        catch (RtAudioError& e) {
             spdlog::error("Could not open audio device");
             return;
         }
@@ -193,7 +192,7 @@ private:
         stereoPacker.out.clearReadStop();
     }
 
-    static int callback( void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void *userData) {
+    static int callback(void* outputBuffer, void* inputBuffer, unsigned int nBufferFrames, double streamTime, RtAudioStreamStatus status, void* userData) {
         AudioSink* _this = (AudioSink*)userData;
         int count = _this->stereoPacker.out.read();
         if (count < 0) { return 0; }
@@ -210,7 +209,7 @@ private:
         _this->stereoPacker.out.flush();
         return 0;
     }
-    
+
     SinkManager::Stream* _stream;
     dsp::StereoToMono s2m;
     dsp::Packer<float> monoPacker;
@@ -234,7 +233,6 @@ private:
     unsigned int sampleRate = 48000;
 
     RtAudio audio;
-
 };
 
 class AudioSinkModule : public ModuleManager::Instance {
@@ -274,7 +272,6 @@ private:
     std::string name;
     bool enabled = true;
     SinkManager::SinkProvider provider;
-
 };
 
 MOD_EXPORT void _INIT_() {

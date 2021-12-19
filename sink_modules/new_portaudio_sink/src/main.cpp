@@ -13,10 +13,10 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-#define BLOCK_SIZE_DIVIDER      60
-#define AUDIO_LATENCY           1.0 / 60.0
+#define BLOCK_SIZE_DIVIDER 60
+#define AUDIO_LATENCY      1.0 / 60.0
 
-SDRPP_MOD_INFO {
+SDRPP_MOD_INFO{
     /* Name:            */ "new_portaudio_sink",
     /* Description:     */ "Audio sink module for SDR++",
     /* Author:          */ "Ryzerth;Maxime Biette",
@@ -37,7 +37,7 @@ public:
         std::vector<double> sampleRates;
         std::string sampleRatesTxt;
     };
-    
+
     AudioSink(SinkManager::Stream* stream, std::string streamName) {
         _stream = stream;
         _streamName = streamName;
@@ -72,7 +72,7 @@ public:
 
     void start() {
         if (running || selectedDevName.empty()) { return; }
-        
+
         // Get device and samplerate
         AudioDevice_t& dev = devices[deviceNames[devId]];
         double sampleRate = dev.sampleRates[srId];
@@ -80,7 +80,7 @@ public:
 
         // Set the SDR++ stream sample rate
         _stream->setSampleRate(sampleRate);
-        
+
         // Update the block size on the packer
         packer.setSampleCount(blockSize);
 
@@ -126,7 +126,7 @@ public:
         // Stop DSP
         packer.stop();
         s2m.stop();
-        
+
         // Stop stream
         Pa_AbortStream(devStream);
 
@@ -135,7 +135,7 @@ public:
 
         running = false;
     }
-    
+
     void menuHandler() {
         float menuWidth = ImGui::GetContentRegionAvailWidth();
 
@@ -327,13 +327,13 @@ private:
         }
     }
 
-    static int _mono_cb(const void *input, void *output, unsigned long frameCount,
-        const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData) {
+    static int _mono_cb(const void* input, void* output, unsigned long frameCount,
+                        const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData) {
         AudioSink* _this = (AudioSink*)userData;
-        
+
         // For OSX, mute audio when not playing
-        if (!gui::mainWindow.isPlaying()) { 
-            memset(output, 0, frameCount*sizeof(float));
+        if (!gui::mainWindow.isPlaying()) {
+            memset(output, 0, frameCount * sizeof(float));
             _this->s2m.out.flush();
             return 0;
         }
@@ -345,13 +345,13 @@ private:
         return 0;
     }
 
-    static int _stereo_cb(const void *input, void *output, unsigned long frameCount,
-        const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData) {
+    static int _stereo_cb(const void* input, void* output, unsigned long frameCount,
+                          const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData) {
         AudioSink* _this = (AudioSink*)userData;
-        
+
         // For OSX, mute audio when not playing
-        if (!gui::mainWindow.isPlaying()) { 
-            memset(output, 0, frameCount*sizeof(dsp::stereo_t));
+        if (!gui::mainWindow.isPlaying()) {
+            memset(output, 0, frameCount * sizeof(dsp::stereo_t));
             _this->packer.out.flush();
             return 0;
         }
@@ -377,7 +377,7 @@ private:
     dsp::Packer<dsp::stereo_t> packer;
     dsp::StereoToMono s2m;
 
-    PaStream *devStream;
+    PaStream* devStream;
 
     EventHandler<bool> playStateHandler;
 };
@@ -421,7 +421,6 @@ private:
     std::string name;
     bool enabled = true;
     SinkManager::SinkProvider provider;
-
 };
 
 MOD_EXPORT void _INIT_() {

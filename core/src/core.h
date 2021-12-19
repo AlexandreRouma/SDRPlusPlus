@@ -12,4 +12,4 @@ namespace core {
     void setInputSampleRate(double samplerate);
 };
 
-int sdrpp_main(int argc, char *argv[]);
+int sdrpp_main(int argc, char* argv[]);

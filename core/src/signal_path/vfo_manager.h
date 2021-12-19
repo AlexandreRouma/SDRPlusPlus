@@ -35,7 +35,6 @@ public:
 
     private:
         std::string name;
-        
     };
 
     VFOManager::VFO* createVFO(std::string name, int reference, double offset, double bandwidth, double sampleRate, double minBandwidth, double maxBandwidth, bool bandwidthLocked);

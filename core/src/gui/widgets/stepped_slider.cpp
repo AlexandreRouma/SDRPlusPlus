@@ -13,8 +13,8 @@ namespace ImGui {
         ImFormatString(text_buf, IM_ARRAYSIZE(text_buf), display_format, *v);
 
         // Map from [v_min,v_max] to [0,N]
-        const int countValues = int((v_max-v_min)/v_step);
-        int v_i = int((*v - v_min)/v_step);
+        const int countValues = int((v_max - v_min) / v_step);
+        int v_i = int((*v - v_min) / v_step);
         bool value_changed = ImGui::SliderInt(label, &v_i, 0, countValues, text_buf);
 
         // Remap from [0,N] to [v_min,v_max]

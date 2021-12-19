@@ -12,7 +12,7 @@
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-SDRPP_MOD_INFO {
+SDRPP_MOD_INFO{
     /* Name:            */ "airspyhf_source",
     /* Description:     */ "Airspy HF+ source module for SDR++",
     /* Author:          */ "Ryzerth",
@@ -127,7 +127,7 @@ public:
             sprintf(buf, "%016" PRIX64, selectedSerial);
             spdlog::error("Could not open Airspy HF+ {0}", buf);
         }
-        
+
         selectedSerial = serial;
 
         uint32_t sampleRates[256];
@@ -212,7 +212,7 @@ private:
         AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
         spdlog::info("AirspyHFSourceModule '{0}': Menu Deselect!", _this->name);
     }
-    
+
     static void start(void* ctx) {
         AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
         if (_this->running) { return; }
@@ -243,7 +243,7 @@ private:
         _this->running = true;
         spdlog::info("AirspyHFSourceModule '{0}': Start!", _this->name);
     }
-    
+
     static void stop(void* ctx) {
         AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
         if (!_this->running) { return; }
@@ -253,7 +253,7 @@ private:
         _this->stream.clearWriteStop();
         spdlog::info("AirspyHFSourceModule '{0}': Stop!", _this->name);
     }
-    
+
     static void tune(double freq, void* ctx) {
         AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
         if (_this->running) {
@@ -262,7 +262,7 @@ private:
         _this->freq = freq;
         spdlog::info("AirspyHFSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
-    
+
     static void menuHandler(void* ctx) {
         AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
         float menuWidth = ImGui::GetContentRegionAvailWidth();
@@ -330,18 +330,18 @@ private:
                 config.conf["devices"][_this->selectedSerStr]["attenuation"] = _this->atten;
                 config.release(true);
             }
-        }   
+        }
 
         if (ImGui::Checkbox(CONCAT("HF LNA##_airspyhf_lna_", _this->name), &_this->hfLNA)) {
             if (_this->running) {
                 airspyhf_set_hf_lna(_this->openDev, _this->hfLNA);
-            }      
+            }
             if (_this->selectedSerStr != "") {
                 config.acquire();
                 config.conf["devices"][_this->selectedSerStr]["lna"] = _this->hfLNA;
                 config.release(true);
             }
-        }     
+        }
     }
 
     static int callback(airspyhf_transfer_t* transfer) {

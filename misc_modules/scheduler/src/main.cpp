@@ -4,7 +4,7 @@
 #include <sched_task.h>
 #include <map>
 
-SDRPP_MOD_INFO {
+SDRPP_MOD_INFO{
     /* Name:            */ "scheduler",
     /* Description:     */ "SDR++ Scheduler",
     /* Author:          */ "Ryzerth",
@@ -23,7 +23,7 @@ public:
 
         json recStartConfig;
         recStartConfig["recorder"] = "Recorder";
-        
+
         json tuneVFOConfig;
         tuneVFOConfig["vfo"] = "Radio";
         tuneVFOConfig["frequency"] = 103500000.0;
@@ -62,7 +62,7 @@ public:
 private:
     static void menuHandler(void* ctx) {
         DemoModule* _this = (DemoModule*)ctx;
-        
+
         // If editing, show menu
         if (!_this->editedTask.empty()) {
             gui::mainWindow.lockWaterfallControls = true;
@@ -89,7 +89,7 @@ private:
             }
         }
 
-        if (ImGui::BeginTable(("freq_manager_bkm_table"+_this->name).c_str(), 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, 200))) {
+        if (ImGui::BeginTable(("freq_manager_bkm_table" + _this->name).c_str(), 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, 200))) {
             ImGui::TableSetupColumn("Name");
             ImGui::TableSetupColumn("Countdown");
             ImGui::TableSetupScrollFreeze(2, 1);
@@ -127,7 +127,6 @@ private:
     char editedName[1024];
 
     std::map<std::string, Task> tasks;
-
 };
 
 MOD_EXPORT void _INIT_() {

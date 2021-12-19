@@ -36,7 +36,7 @@ namespace dsp {
             void setCutoff(float cutoff) {
                 _cutoff = cutoff;
             }
-            
+
             void setTransWidth(float transWidth) {
                 _transWidth = transWidth;
             }
@@ -67,7 +67,7 @@ namespace dsp {
                 float sum = 0.0f;
                 float tc = tapCount;
                 for (int i = 0; i < tapCount; i++) {
-                    val = math::sinc(omega, (float)i - (tc/2), FL_M_PI) * window_function::blackman(i, tc - 1);
+                    val = math::sinc(omega, (float)i - (tc / 2), FL_M_PI) * window_function::blackman(i, tc - 1);
                     taps[i] = val;
                     sum += val;
                 }
@@ -81,7 +81,6 @@ namespace dsp {
 
         private:
             float _cutoff, _transWidth, _sampleRate;
-
         };
 
         class BandPassBlackmanWindow : public filter_window::generic_complex_window {
@@ -132,7 +131,7 @@ namespace dsp {
                 _offset = (_lowCutoff + _highCutoff) / 2.0f;
                 _cutoff = fabs((_highCutoff - _lowCutoff) / 2.0f);
             }
-            
+
             void setTransWidth(float transWidth) {
                 _transWidth = transWidth;
             }
@@ -163,7 +162,7 @@ namespace dsp {
                 float sum = 0.0f;
                 float tc = tapCount;
                 for (int i = 0; i < tapCount; i++) {
-                    val = math::sinc(omega, (float)i - (tc/2), FL_M_PI) * window_function::blackman(i, tc - 1);
+                    val = math::sinc(omega, (float)i - (tc / 2), FL_M_PI) * window_function::blackman(i, tc - 1);
                     taps[i].re = val;
                     taps[i].im = 0;
                     sum += val;
@@ -225,26 +224,24 @@ namespace dsp {
 
             double spb = _sampleRate / _baudRate; // samples per bit/symbol
             double scale = 0;
-            for (int i = 0; i < tapCount; i++)
-            {
+            for (int i = 0; i < tapCount; i++) {
                 double x1, x2, x3, num, den;
                 double xindx = i - tapCount / 2;
                 x1 = FL_M_PI * xindx / spb;
                 x2 = 4 * _alpha * xindx / spb;
                 x3 = x2 * x2 - 1;
 
-                    // Avoid Rounding errors...
+                // Avoid Rounding errors...
                 if (fabs(x3) >= 0.000001) {
                     if (i != tapCount / 2)
                         num = cos((1 + _alpha) * x1) +
-                            sin((1 - _alpha) * x1) / (4 * _alpha * xindx / spb);
+                              sin((1 - _alpha) * x1) / (4 * _alpha * xindx / spb);
                     else
                         num = cos((1 + _alpha) * x1) + (1 - _alpha) * FL_M_PI / (4 * _alpha);
                     den = x3 * FL_M_PI;
                 }
                 else {
-                    if (_alpha == 1)
-                    {
+                    if (_alpha == 1) {
                         taps[i] = -1;
                         scale += taps[i];
                         continue;
@@ -252,8 +249,8 @@ namespace dsp {
                     x3 = (1 - _alpha) * x1;
                     x2 = (1 + _alpha) * x1;
                     num = (sin(x2) * (1 + _alpha) * FL_M_PI -
-                        cos(x3) * ((1 - _alpha) * FL_M_PI * spb) / (4 * _alpha * xindx) +
-                        sin(x3) * spb * spb / (4 * _alpha * xindx * xindx));
+                           cos(x3) * ((1 - _alpha) * FL_M_PI * spb) / (4 * _alpha * xindx) +
+                           sin(x3) * spb * spb / (4 * _alpha * xindx * xindx));
                     den = -32 * FL_M_PI * _alpha * _alpha * xindx / spb;
                 }
                 taps[i] = 4 * _alpha * num / den;
@@ -268,7 +265,6 @@ namespace dsp {
     private:
         int _tapCount;
         float _sampleRate, _baudRate, _alpha;
-
     };
 
     // class NotchWindow : public filter_window::generic_complex_window {
@@ -290,8 +286,8 @@ namespace dsp {
     //         _tapCount = tapCount;
 
     //         // Ensure the number of taps is even
-    //         if (_tapCount & 1) { _tapCount++; }    
-        
+    //         if (_tapCount & 1) { _tapCount++; }
+
     //         fft_in = (complex_t*)fftwf_malloc(_tapCount * sizeof(complex_t));
     //         fft_out = (complex_t*)fftwf_malloc(_tapCount * sizeof(complex_t));
 
@@ -337,7 +333,7 @@ namespace dsp {
     //         int thalf = tapCount / 2;
     //         float start = _frequency - (_width / 2.0f);
     //         float stop = _frequency + (_width / 2.0f);
-            
+
     //         // Fill taps
     //         float freq;
     //         float pratio = 2.0f * FL_M_PI / (float)tapCount;
@@ -407,7 +403,7 @@ namespace dsp {
             // Generate exponential decay
             float fact = 1.0f / (float)tapCount;
             for (int i = 0; i < tapCount; i++) {
-                taps[tapCount - i - 1] = {expf(-fact*i) * (float)window_function::blackman(i, tapCount - 1), 0};
+                taps[tapCount - i - 1] = { expf(-fact * i) * (float)window_function::blackman(i, tapCount - 1), 0 };
             }
 
             // Frequency translate it to the right place
@@ -419,6 +415,5 @@ namespace dsp {
     private:
         float _frequency, _sampleRate;
         int _tapCount;
-
     };
 }

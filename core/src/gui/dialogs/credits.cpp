@@ -10,14 +10,13 @@ namespace credits {
     ImFont* bigFont;
 
     void init() {
-                
     }
 
     void show() {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f, 20.0f));
-        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0,0,0,0));
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
         ImVec2 dispSize = ImGui::GetIO().DisplaySize;
-        ImVec2 center = ImVec2(dispSize.x/2.0f, dispSize.y/2.0f);
+        ImVec2 center = ImVec2(dispSize.x / 2.0f, dispSize.y / 2.0f);
         ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
         ImGui::OpenPopup("Credits");
         ImGui::BeginPopupModal("Credits", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);

@@ -21,7 +21,7 @@ namespace bandplanmenu {
         if (bandplan::bandplans.find(core::configManager.conf["bandPlan"]) != bandplan::bandplans.end()) {
             std::string name = core::configManager.conf["bandPlan"];
             bandplanId = std::distance(bandplan::bandplanNames.begin(), std::find(bandplan::bandplanNames.begin(),
-                                    bandplan::bandplanNames.end(), name));
+                                                                                  bandplan::bandplanNames.end(), name));
             gui::waterfall.bandplan = &bandplan::bandplans[name];
         }
         else {

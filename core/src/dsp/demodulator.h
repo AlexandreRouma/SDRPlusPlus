@@ -13,14 +13,14 @@
 #include <dsp/stereo_fm.h>
 #include <dsp/correction.h>
 
-#define FAST_ATAN2_COEF1    FL_M_PI / 4.0f
-#define FAST_ATAN2_COEF2    3.0f * FAST_ATAN2_COEF1
+#define FAST_ATAN2_COEF1 FL_M_PI / 4.0f
+#define FAST_ATAN2_COEF2 3.0f * FAST_ATAN2_COEF1
 
 inline float fast_arctan2(float y, float x) {
     float abs_y = fabsf(y);
     float r, angle;
     if (x == 0.0f && y == 0.0f) { return 0.0f; }
-    if (x>=0.0f) {
+    if (x >= 0.0f) {
         r = (x - abs_y) / (x + abs_y);
         angle = FAST_ATAN2_COEF1 - FAST_ATAN2_COEF1 * r;
     }
@@ -98,8 +98,10 @@ namespace dsp {
             for (int i = 0; i < count; i++) {
                 currentPhase = fast_arctan2(_in->readBuf[i].im, _in->readBuf[i].re);
                 diff = currentPhase - phase;
-                if (diff > 3.1415926535f)        { diff -= 2 * 3.1415926535f; }
-                else if (diff <= -3.1415926535f) { diff += 2 * 3.1415926535f; }
+                if (diff > 3.1415926535f) { diff -= 2 * 3.1415926535f; }
+                else if (diff <= -3.1415926535f) {
+                    diff += 2 * 3.1415926535f;
+                }
                 out.writeBuf[i] = diff / phasorSpeed;
                 phase = currentPhase;
             }
@@ -115,7 +117,6 @@ namespace dsp {
         float phase = 0;
         float phasorSpeed, _sampleRate, _deviation;
         stream<complex_t>* _in;
-
     };
 
     class FMDemod : public generic_block<FMDemod> {
@@ -179,8 +180,10 @@ namespace dsp {
             for (int i = 0; i < count; i++) {
                 currentPhase = fast_arctan2(_in->readBuf[i].im, _in->readBuf[i].re);
                 diff = currentPhase - phase;
-                if (diff > 3.1415926535f)        { diff -= 2 * 3.1415926535f; }
-                else if (diff <= -3.1415926535f) { diff += 2 * 3.1415926535f; }
+                if (diff > 3.1415926535f) { diff -= 2 * 3.1415926535f; }
+                else if (diff <= -3.1415926535f) {
+                    diff += 2 * 3.1415926535f;
+                }
                 out.writeBuf[i].l = diff / phasorSpeed;
                 out.writeBuf[i].r = diff / phasorSpeed;
                 phase = currentPhase;
@@ -197,7 +200,6 @@ namespace dsp {
         float phase = 0;
         float phasorSpeed, _sampleRate, _deviation;
         stream<complex_t>* _in;
-
     };
 
     class AMDemod : public generic_block<AMDemod> {
@@ -245,7 +247,6 @@ namespace dsp {
     private:
         stream<complex_t>* _in;
         float avg = 0;
-
     };
 
     class SSBDemod : public generic_block<SSBDemod> {
@@ -369,25 +370,24 @@ namespace dsp {
         lv_32fc_t* buffer;
         lv_32fc_t phase;
         lv_32fc_t phaseDelta;
-
     };
 
     class FSKDemod : public generic_hier_block<FSKDemod> {
     public:
         FSKDemod() {}
 
-        FSKDemod(stream<complex_t>* input, float sampleRate, float deviation, float baudRate, float omegaGain = (0.01*0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
+        FSKDemod(stream<complex_t>* input, float sampleRate, float deviation, float baudRate, float omegaGain = (0.01 * 0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
             init(input, sampleRate, deviation, baudRate, omegaGain, muGain, omegaRelLimit);
         }
 
-        void init(stream<complex_t>* input, float sampleRate, float deviation, float baudRate, float omegaGain = (0.01*0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
+        void init(stream<complex_t>* input, float sampleRate, float deviation, float baudRate, float omegaGain = (0.01 * 0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
             _sampleRate = sampleRate;
             _deviation = deviation;
             _baudRate = baudRate;
             _omegaGain = omegaGain;
             _muGain = muGain;
             _omegaRelLimit = omegaRelLimit;
-            
+
             demod.init(input, _sampleRate, _deviation);
             recov.init(&demod.out, _sampleRate / _baudRate, _omegaGain, _muGain, _omegaRelLimit);
             out = &recov.out;
@@ -455,11 +455,11 @@ namespace dsp {
     public:
         GFSKDemod() {}
 
-        GFSKDemod(stream<complex_t>* input, float sampleRate, float deviation, float rrcAlpha, float baudRate, float omegaGain = (0.01*0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
+        GFSKDemod(stream<complex_t>* input, float sampleRate, float deviation, float rrcAlpha, float baudRate, float omegaGain = (0.01 * 0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
             init(input, sampleRate, deviation, rrcAlpha, baudRate, omegaGain, muGain, omegaRelLimit);
         }
 
-        void init(stream<complex_t>* input, float sampleRate, float deviation, float rrcAlpha, float baudRate, float omegaGain = (0.01*0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
+        void init(stream<complex_t>* input, float sampleRate, float deviation, float rrcAlpha, float baudRate, float omegaGain = (0.01 * 0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
             _sampleRate = sampleRate;
             _deviation = deviation;
             _rrcAlpha = rrcAlpha;
@@ -467,7 +467,7 @@ namespace dsp {
             _omegaGain = omegaGain;
             _muGain = muGain;
             _omegaRelLimit = omegaRelLimit;
-            
+
             demod.init(input, _sampleRate, _deviation);
             rrc.init(31, _sampleRate, _baudRate, _rrcAlpha);
             fir.init(&demod.out, &rrc);
@@ -550,16 +550,16 @@ namespace dsp {
         float _omegaRelLimit;
     };
 
-    template<int ORDER, bool OFFSET>
+    template <int ORDER, bool OFFSET>
     class PSKDemod : public generic_hier_block<PSKDemod<ORDER, OFFSET>> {
     public:
         PSKDemod() {}
 
-        PSKDemod(stream<complex_t>* input, float sampleRate, float baudRate, int RRCTapCount = 31, float RRCAlpha = 0.32f, float agcRate = 10e-4, float costasLoopBw = 0.004f, float omegaGain = (0.01*0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
+        PSKDemod(stream<complex_t>* input, float sampleRate, float baudRate, int RRCTapCount = 31, float RRCAlpha = 0.32f, float agcRate = 10e-4, float costasLoopBw = 0.004f, float omegaGain = (0.01 * 0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
             init(input, sampleRate, baudRate, RRCTapCount, RRCAlpha, agcRate, costasLoopBw, omegaGain, muGain, omegaRelLimit);
         }
 
-        void init(stream<complex_t>* input, float sampleRate, float baudRate, int RRCTapCount = 31, float RRCAlpha = 0.32f, float agcRate = 10e-4, float costasLoopBw = 0.004f, float omegaGain = (0.01*0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
+        void init(stream<complex_t>* input, float sampleRate, float baudRate, int RRCTapCount = 31, float RRCAlpha = 0.32f, float agcRate = 10e-4, float costasLoopBw = 0.004f, float omegaGain = (0.01 * 0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
             _RRCTapCount = RRCTapCount;
             _RRCAlpha = RRCAlpha;
             _sampleRate = sampleRate;
@@ -569,7 +569,7 @@ namespace dsp {
             _omegaGain = omegaGain;
             _muGain = muGain;
             _omegaRelLimit = omegaRelLimit;
-            
+
             agc.init(input, 1.0f, 65535, _agcRate);
             taps.init(_RRCTapCount, _sampleRate, _baudRate, _RRCAlpha);
             rrc.init(&agc.out, &taps);
@@ -583,7 +583,7 @@ namespace dsp {
                 delay.init(&demod.out);
                 recov.init(&delay.out, _sampleRate / _baudRate, _omegaGain, _muGain, _omegaRelLimit);
                 generic_hier_block<PSKDemod<ORDER, OFFSET>>::registerBlock(&delay);
-            }   
+            }
             else {
                 recov.init(&demod.out, _sampleRate / _baudRate, _omegaGain, _muGain, _omegaRelLimit);
             }
@@ -683,11 +683,11 @@ namespace dsp {
     public:
         PMDemod() {}
 
-        PMDemod(stream<complex_t>* input, float sampleRate, float baudRate, float agcRate = 0.02e-3f, float pllLoopBandwidth = (0.06f*0.06f) / 4.0f, int rrcTapCount = 31, float rrcAlpha = 0.6f, float omegaGain = (0.01*0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
+        PMDemod(stream<complex_t>* input, float sampleRate, float baudRate, float agcRate = 0.02e-3f, float pllLoopBandwidth = (0.06f * 0.06f) / 4.0f, int rrcTapCount = 31, float rrcAlpha = 0.6f, float omegaGain = (0.01 * 0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
             init(input, sampleRate, baudRate, agcRate, pllLoopBandwidth, rrcTapCount, rrcAlpha, omegaGain, muGain, omegaRelLimit);
         }
 
-        void init(stream<complex_t>* input, float sampleRate, float baudRate, float agcRate = 0.02e-3f, float pllLoopBandwidth = (0.06f*0.06f) / 4.0f, int rrcTapCount = 31, float rrcAlpha = 0.6f, float omegaGain = (0.01*0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
+        void init(stream<complex_t>* input, float sampleRate, float baudRate, float agcRate = 0.02e-3f, float pllLoopBandwidth = (0.06f * 0.06f) / 4.0f, int rrcTapCount = 31, float rrcAlpha = 0.6f, float omegaGain = (0.01 * 0.01) / 4, float muGain = 0.01f, float omegaRelLimit = 0.005f) {
             _sampleRate = sampleRate;
             _baudRate = baudRate;
             _agcRate = agcRate;
@@ -697,7 +697,7 @@ namespace dsp {
             _omegaGain = omegaGain;
             _muGain = muGain;
             _omegaRelLimit = omegaRelLimit;
-            
+
             agc.init(input, 1.0f, 65535, _agcRate);
             pll.init(&agc.out, _pllLoopBandwidth);
             rrcwin.init(_rrcTapCount, _sampleRate, _baudRate, _rrcAlpha);
@@ -796,7 +796,7 @@ namespace dsp {
             recon.init(&demux.AplusBOut, &demux.AminusBOut);
 
             out = &recon.out;
-            
+
             generic_hier_block<StereoFMDemod>::registerBlock(&demod);
             generic_hier_block<StereoFMDemod>::registerBlock(&r2c);
             generic_hier_block<StereoFMDemod>::registerBlock(&pilotFilter);

@@ -23,7 +23,7 @@ namespace ImGui {
         float height = roundf((width / (float)_frameWidth) * (float)_lineCount);
 
         ImVec2 size = CalcItemSize(size_arg, CalcItemWidth(), height);
-        ImRect bb(min, ImVec2(min.x+size.x, min.y+size.y));
+        ImRect bb(min, ImVec2(min.x + size.x, min.y + size.y));
         float lineHeight = size.y;
 
         // If there are no lines, there is no point in drawing anything
@@ -38,7 +38,7 @@ namespace ImGui {
             newData = false;
             updateTexture();
         }
-        
+
         window->DrawList->AddImage((void*)(intptr_t)textureId, min, ImVec2(min.x + width, min.y + height));
     }
 

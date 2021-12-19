@@ -9,7 +9,7 @@
 #include <mutex>
 #include <gui/tuner.h>
 
-#define WINDOW_FLAGS    ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground
+#define WINDOW_FLAGS ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground
 
 class MainWindow {
 public:
@@ -20,7 +20,7 @@ public:
     void setFFTSize(int size);
     void setFFTWindow(int win);
 
-    // TODO: Replace with it's own class 
+    // TODO: Replace with it's own class
     void setVFO(double freq);
 
     void setPlayState(bool _playing);
@@ -40,7 +40,7 @@ private:
     std::mutex fft_mtx;
     fftwf_complex *fft_in, *fft_out;
     fftwf_plan fftwPlan;
-    
+
     // GUI Variables
     bool firstMenuRender = true;
     bool startedWithMenuClosed = false;
@@ -64,5 +64,4 @@ private:
     bool initComplete = false;
 
     EventHandler<VFOManager::VFO*> vfoCreatedHandler;
-
 };

@@ -60,7 +60,7 @@ namespace dsp {
 
         int run() {
             volk_32fc_s32fc_x2_rotator_32fc((lv_32fc_t*)out.writeBuf, zeroPhase, phaseDelta, &phase, _blockSize);
-            if(!out.swap(_blockSize)) { return -1; }
+            if (!out.swap(_blockSize)) { return -1; }
             return _blockSize;
         }
 
@@ -73,7 +73,6 @@ namespace dsp {
         lv_32fc_t phaseDelta;
         lv_32fc_t phase;
         lv_32fc_t* zeroPhase;
-
     };
 
     template <class T>
@@ -111,6 +110,5 @@ namespace dsp {
     private:
         int (*_handler)(T* data, void* ctx);
         void* _ctx;
-
     };
 }

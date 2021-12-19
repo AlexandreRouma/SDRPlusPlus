@@ -4,7 +4,7 @@
 #include <volk/volk.h>
 
 // 1MB buffer
-#define STREAM_BUFFER_SIZE  1000000
+#define STREAM_BUFFER_SIZE 1000000
 
 namespace dsp {
     class untyped_stream {
@@ -35,7 +35,7 @@ namespace dsp {
             {
                 // Wait to either swap or stop
                 std::unique_lock<std::mutex> lck(swapMtx);
-                swapCV.wait(lck, [this]{ return (canSwap || writerStop); });
+                swapCV.wait(lck, [this] { return (canSwap || writerStop); });
 
                 // If writer was stopped, abandon operation
                 if (writerStop) { return false; }
@@ -61,7 +61,7 @@ namespace dsp {
         int read() {
             // Wait for data to be ready or to be stopped
             std::unique_lock<std::mutex> lck(rdyMtx);
-            rdyCV.wait(lck, [this]{ return (dataReady || readerStop); });
+            rdyCV.wait(lck, [this] { return (dataReady || readerStop); });
 
             return (readerStop ? -1 : dataSize);
         }
