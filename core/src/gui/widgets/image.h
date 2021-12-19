@@ -9,7 +9,7 @@
 namespace ImGui {
     class ImageDisplay {
     public:
-        ImageDisplay(int width, int height, GLenum format);
+        ImageDisplay(int width, int height);
         ~ImageDisplay();
         void draw(const ImVec2& size_arg = ImVec2(0, 0));
         void swap();
@@ -24,7 +24,6 @@ namespace ImGui {
 
         int _width;
         int _height;
-        GLenum _format;
 
         GLuint textureId;
 

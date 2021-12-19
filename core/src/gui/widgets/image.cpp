@@ -1,10 +1,9 @@
 #include <gui/widgets/image.h>
 
 namespace ImGui {
-    ImageDisplay::ImageDisplay(int width, int height, GLenum format) {
+    ImageDisplay::ImageDisplay(int width, int height) {
         _width = width;
         _height = height;
-        _format = format;
         buffer = malloc(_width * _height * 4);
         activeBuffer = malloc(_width * _height * 4);
         memset(buffer, 0, _width * _height * 4);
@@ -61,6 +60,7 @@ namespace ImGui {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, _format, GL_UNSIGNED_BYTE, activeBuffer);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, activeBuffer);
     }
+
 }
