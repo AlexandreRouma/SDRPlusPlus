@@ -13,6 +13,13 @@ enum DeemphasisMode {
     _DEEMP_MODE_COUNT
 };
 
+enum IFNRPreset {
+    IFNR_PRESET_NOAA_APT,
+    IFNR_PRESET_VOICE,
+    IFNR_PRESET_NARROW_BAND,
+    IFNR_PRESET_BROADCAST
+};
+
 namespace demod {
     class Demodulator {
     public:

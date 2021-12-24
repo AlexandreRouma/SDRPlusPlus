@@ -16,22 +16,15 @@ struct Backoff {
     double rand01() { return randDistribution(randGenerator); }
 
     Backoff(int64_t min, int64_t max)
-      : minAmount(min)
-      , maxAmount(max)
-      , current(min)
-      , fails(0)
-      , randGenerator((uint64_t)time(0))
-    {
+        : minAmount(min), maxAmount(max), current(min), fails(0), randGenerator((uint64_t)time(0)) {
     }
 
-    void reset()
-    {
+    void reset() {
         fails = 0;
         current = minAmount;
     }
 
-    int64_t nextDelay()
-    {
+    int64_t nextDelay() {
         ++fails;
         int64_t delay = (int64_t)((double)current * 2.0 * rand01());
         current = std::min(current + delay, maxAmount);
