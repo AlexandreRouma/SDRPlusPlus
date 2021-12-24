@@ -6,19 +6,22 @@
 static const int RpcVersion = 1;
 static RpcConnection Instance;
 
-/*static*/ RpcConnection* RpcConnection::Create(const char* applicationId) {
+/*static*/ RpcConnection* RpcConnection::Create(const char* applicationId)
+{
     Instance.connection = BaseConnection::Create();
     StringCopy(Instance.appId, applicationId);
     return &Instance;
 }
 
-/*static*/ void RpcConnection::Destroy(RpcConnection*& c) {
+/*static*/ void RpcConnection::Destroy(RpcConnection*& c)
+{
     c->Close();
     BaseConnection::Destroy(c->connection);
     c = nullptr;
 }
 
-void RpcConnection::Open() {
+void RpcConnection::Open()
+{
     if (state == State::Connected) {
         return;
     }
@@ -43,7 +46,7 @@ void RpcConnection::Open() {
     else {
         sendFrame.opcode = Opcode::Handshake;
         sendFrame.length = (uint32_t)JsonWriteHandshakeObj(
-            sendFrame.message, sizeof(sendFrame.message), RpcVersion, appId);
+          sendFrame.message, sizeof(sendFrame.message), RpcVersion, appId);
 
         if (connection->Write(&sendFrame, sizeof(MessageFrameHeader) + sendFrame.length)) {
             state = State::SentHandshake;
@@ -54,7 +57,8 @@ void RpcConnection::Open() {
     }
 }
 
-void RpcConnection::Close() {
+void RpcConnection::Close()
+{
     if (onDisconnect && (state == State::Connected || state == State::SentHandshake)) {
         onDisconnect(lastErrorCode, lastErrorMessage);
     }
@@ -62,7 +66,8 @@ void RpcConnection::Close() {
     state = State::Disconnected;
 }
 
-bool RpcConnection::Write(const void* data, size_t length) {
+bool RpcConnection::Write(const void* data, size_t length)
+{
     sendFrame.opcode = Opcode::Frame;
     memcpy(sendFrame.message, data, length);
     sendFrame.length = (uint32_t)length;
@@ -73,7 +78,8 @@ bool RpcConnection::Write(const void* data, size_t length) {
     return true;
 }
 
-bool RpcConnection::Read(JsonDocument& message) {
+bool RpcConnection::Read(JsonDocument& message)
+{
     if (state != State::Connected && state != State::SentHandshake) {
         return false;
     }

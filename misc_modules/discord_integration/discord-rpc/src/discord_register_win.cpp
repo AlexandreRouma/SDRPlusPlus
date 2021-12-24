@@ -21,7 +21,8 @@
 #ifdef __MINGW32__
 #include <wchar.h>
 /// strsafe.h fixes
-static HRESULT StringCbPrintfW(LPWSTR pszDest, size_t cbDest, LPCWSTR pszFormat, ...) {
+static HRESULT StringCbPrintfW(LPWSTR pszDest, size_t cbDest, LPCWSTR pszFormat, ...)
+{
     HRESULT ret;
     va_list va;
     va_start(va, pszFormat);
@@ -50,7 +51,8 @@ static LSTATUS regset(HKEY hkey,
                       LPCWSTR name,
                       DWORD type,
                       const void* data,
-                      DWORD len) {
+                      DWORD len)
+{
     HKEY htkey = hkey, hsubkey = nullptr;
     LSTATUS ret;
     if (subkey && subkey[0]) {
@@ -65,7 +67,8 @@ static LSTATUS regset(HKEY hkey,
     return ret;
 }
 
-static void Discord_RegisterW(const wchar_t* applicationId, const wchar_t* command) {
+static void Discord_RegisterW(const wchar_t* applicationId, const wchar_t* command)
+{
     // https://msdn.microsoft.com/en-us/library/aa767914(v=vs.85).aspx
     // we want to register games so we can run them as discord-<appid>://
     // Update the HKEY_CURRENT_USER, because it doesn't seem to require special permissions.
@@ -86,14 +89,14 @@ static void Discord_RegisterW(const wchar_t* applicationId, const wchar_t* comma
     StringCbPrintfW(protocolName, sizeof(protocolName), L"discord-%s", applicationId);
     wchar_t protocolDescription[128];
     StringCbPrintfW(
-        protocolDescription, sizeof(protocolDescription), L"URL:Run game %s protocol", applicationId);
+      protocolDescription, sizeof(protocolDescription), L"URL:Run game %s protocol", applicationId);
     wchar_t urlProtocol = 0;
 
     wchar_t keyName[256];
     StringCbPrintfW(keyName, sizeof(keyName), L"Software\\Classes\\%s", protocolName);
     HKEY key;
     auto status =
-        RegCreateKeyExW(HKEY_CURRENT_USER, keyName, 0, nullptr, 0, KEY_WRITE, nullptr, &key, nullptr);
+      RegCreateKeyExW(HKEY_CURRENT_USER, keyName, 0, nullptr, 0, KEY_WRITE, nullptr, &key, nullptr);
     if (status != ERROR_SUCCESS) {
         fprintf(stderr, "Error creating key\n");
         return;
@@ -102,7 +105,7 @@ static void Discord_RegisterW(const wchar_t* applicationId, const wchar_t* comma
     LSTATUS result;
     len = (DWORD)lstrlenW(protocolDescription) + 1;
     result =
-        RegSetKeyValueW(key, nullptr, nullptr, REG_SZ, protocolDescription, len * sizeof(wchar_t));
+      RegSetKeyValueW(key, nullptr, nullptr, REG_SZ, protocolDescription, len * sizeof(wchar_t));
     if (FAILED(result)) {
         fprintf(stderr, "Error writing description\n");
     }
@@ -114,21 +117,22 @@ static void Discord_RegisterW(const wchar_t* applicationId, const wchar_t* comma
     }
 
     result = RegSetKeyValueW(
-        key, L"DefaultIcon", nullptr, REG_SZ, exeFilePath, (exeLen + 1) * sizeof(wchar_t));
+      key, L"DefaultIcon", nullptr, REG_SZ, exeFilePath, (exeLen + 1) * sizeof(wchar_t));
     if (FAILED(result)) {
         fprintf(stderr, "Error writing icon\n");
     }
 
     len = (DWORD)lstrlenW(openCommand) + 1;
     result = RegSetKeyValueW(
-        key, L"shell\\open\\command", nullptr, REG_SZ, openCommand, len * sizeof(wchar_t));
+      key, L"shell\\open\\command", nullptr, REG_SZ, openCommand, len * sizeof(wchar_t));
     if (FAILED(result)) {
         fprintf(stderr, "Error writing command\n");
     }
     RegCloseKey(key);
 }
 
-extern "C" DISCORD_EXPORT void Discord_Register(const char* applicationId, const char* command) {
+extern "C" DISCORD_EXPORT void Discord_Register(const char* applicationId, const char* command)
+{
     wchar_t appId[32];
     MultiByteToWideChar(CP_UTF8, 0, applicationId, -1, appId, 32);
 
@@ -144,7 +148,8 @@ extern "C" DISCORD_EXPORT void Discord_Register(const char* applicationId, const
 }
 
 extern "C" DISCORD_EXPORT void Discord_RegisterSteamGame(const char* applicationId,
-                                                         const char* steamId) {
+                                                         const char* steamId)
+{
     wchar_t appId[32];
     MultiByteToWideChar(CP_UTF8, 0, applicationId, -1, appId, 32);
 

@@ -1,5 +1,5 @@
 // Tencent is pleased to support the open source community by making RapidJSON available.
-//
+// 
 // Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip.
 //
 // Licensed under the MIT License (the "License"); you may not use this file except
@@ -7,9 +7,9 @@
 //
 // http://opensource.org/licenses/MIT
 //
-// Unless required by applicable law or agreed to in writing, software distributed
-// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-// CONDITIONS OF ANY KIND, either express or implied. See the License for the
+// Unless required by applicable law or agreed to in writing, software distributed 
+// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the 
 // specific language governing permissions and limitations under the License.
 
 #ifndef RAPIDJSON_ERROR_ERROR_H_
@@ -62,31 +62,31 @@ RAPIDJSON_NAMESPACE_BEGIN
     \see GenericReader::Parse, GenericReader::GetParseErrorCode
 */
 enum ParseErrorCode {
-    kParseErrorNone = 0, //!< No error.
+    kParseErrorNone = 0,                        //!< No error.
 
-    kParseErrorDocumentEmpty,           //!< The document is empty.
-    kParseErrorDocumentRootNotSingular, //!< The document root must not follow by other values.
+    kParseErrorDocumentEmpty,                   //!< The document is empty.
+    kParseErrorDocumentRootNotSingular,         //!< The document root must not follow by other values.
 
-    kParseErrorValueInvalid, //!< Invalid value.
+    kParseErrorValueInvalid,                    //!< Invalid value.
 
-    kParseErrorObjectMissName,                //!< Missing a name for object member.
-    kParseErrorObjectMissColon,               //!< Missing a colon after a name of object member.
-    kParseErrorObjectMissCommaOrCurlyBracket, //!< Missing a comma or '}' after an object member.
+    kParseErrorObjectMissName,                  //!< Missing a name for object member.
+    kParseErrorObjectMissColon,                 //!< Missing a colon after a name of object member.
+    kParseErrorObjectMissCommaOrCurlyBracket,   //!< Missing a comma or '}' after an object member.
 
-    kParseErrorArrayMissCommaOrSquareBracket, //!< Missing a comma or ']' after an array element.
+    kParseErrorArrayMissCommaOrSquareBracket,   //!< Missing a comma or ']' after an array element.
 
-    kParseErrorStringUnicodeEscapeInvalidHex, //!< Incorrect hex digit after \\u escape in string.
-    kParseErrorStringUnicodeSurrogateInvalid, //!< The surrogate pair in string is invalid.
-    kParseErrorStringEscapeInvalid,           //!< Invalid escape character in string.
-    kParseErrorStringMissQuotationMark,       //!< Missing a closing quotation mark in string.
-    kParseErrorStringInvalidEncoding,         //!< Invalid encoding in string.
+    kParseErrorStringUnicodeEscapeInvalidHex,   //!< Incorrect hex digit after \\u escape in string.
+    kParseErrorStringUnicodeSurrogateInvalid,   //!< The surrogate pair in string is invalid.
+    kParseErrorStringEscapeInvalid,             //!< Invalid escape character in string.
+    kParseErrorStringMissQuotationMark,         //!< Missing a closing quotation mark in string.
+    kParseErrorStringInvalidEncoding,           //!< Invalid encoding in string.
 
-    kParseErrorNumberTooBig,       //!< Number too big to be stored in double.
-    kParseErrorNumberMissFraction, //!< Miss fraction part in number.
-    kParseErrorNumberMissExponent, //!< Miss exponent in number.
+    kParseErrorNumberTooBig,                    //!< Number too big to be stored in double.
+    kParseErrorNumberMissFraction,              //!< Miss fraction part in number.
+    kParseErrorNumberMissExponent,              //!< Miss exponent in number.
 
-    kParseErrorTermination,          //!< Parsing was terminated.
-    kParseErrorUnspecificSyntaxError //!< Unspecific syntax error.
+    kParseErrorTermination,                     //!< Parsing was terminated.
+    kParseErrorUnspecificSyntaxError            //!< Unspecific syntax error.
 };
 
 //! Result of parsing (wraps ParseErrorCode)
@@ -106,7 +106,6 @@ enum ParseErrorCode {
 struct ParseResult {
     //!! Unspecified boolean type
     typedef bool (ParseResult::*BooleanType)() const;
-
 public:
     //! Default constructor, no error.
     ParseResult() : code_(kParseErrorNone), offset_(0) {}
@@ -125,19 +124,16 @@ public:
 
     bool operator==(const ParseResult& that) const { return code_ == that.code_; }
     bool operator==(ParseErrorCode code) const { return code_ == code; }
-    friend bool operator==(ParseErrorCode code, const ParseResult& err) { return code == err.code_; }
+    friend bool operator==(ParseErrorCode code, const ParseResult & err) { return code == err.code_; }
 
     bool operator!=(const ParseResult& that) const { return !(*this == that); }
     bool operator!=(ParseErrorCode code) const { return !(*this == code); }
-    friend bool operator!=(ParseErrorCode code, const ParseResult& err) { return err != code; }
+    friend bool operator!=(ParseErrorCode code, const ParseResult & err) { return err != code; }
 
     //! Reset error code.
     void Clear() { Set(kParseErrorNone); }
     //! Update error code and offset.
-    void Set(ParseErrorCode code, size_t offset = 0) {
-        code_ = code;
-        offset_ = offset;
-    }
+    void Set(ParseErrorCode code, size_t offset = 0) { code_ = code; offset_ = offset; }
 
 private:
     ParseErrorCode code_;
@@ -164,39 +160,39 @@ typedef const RAPIDJSON_ERROR_CHARTYPE* (*GetParseErrorFunc)(ParseErrorCode);
     \see GenericSchemaValidator
 */
 enum ValidateErrorCode {
-    kValidateErrors = -1,   //!< Top level error code when kValidateContinueOnErrorsFlag set.
-    kValidateErrorNone = 0, //!< No error.
+    kValidateErrors    = -1,                   //!< Top level error code when kValidateContinueOnErrorsFlag set.
+    kValidateErrorNone = 0,                    //!< No error.
 
-    kValidateErrorMultipleOf,       //!< Number is not a multiple of the 'multipleOf' value.
-    kValidateErrorMaximum,          //!< Number is greater than the 'maximum' value.
-    kValidateErrorExclusiveMaximum, //!< Number is greater than or equal to the 'maximum' value.
-    kValidateErrorMinimum,          //!< Number is less than the 'minimum' value.
-    kValidateErrorExclusiveMinimum, //!< Number is less than or equal to the 'minimum' value.
+    kValidateErrorMultipleOf,                  //!< Number is not a multiple of the 'multipleOf' value.
+    kValidateErrorMaximum,                     //!< Number is greater than the 'maximum' value.
+    kValidateErrorExclusiveMaximum,            //!< Number is greater than or equal to the 'maximum' value.
+    kValidateErrorMinimum,                     //!< Number is less than the 'minimum' value.
+    kValidateErrorExclusiveMinimum,            //!< Number is less than or equal to the 'minimum' value.
 
-    kValidateErrorMaxLength, //!< String is longer than the 'maxLength' value.
-    kValidateErrorMinLength, //!< String is longer than the 'maxLength' value.
-    kValidateErrorPattern,   //!< String does not match the 'pattern' regular expression.
+    kValidateErrorMaxLength,                   //!< String is longer than the 'maxLength' value.
+    kValidateErrorMinLength,                   //!< String is longer than the 'maxLength' value.
+    kValidateErrorPattern,                     //!< String does not match the 'pattern' regular expression.
 
-    kValidateErrorMaxItems,        //!< Array is longer than the 'maxItems' value.
-    kValidateErrorMinItems,        //!< Array is shorter than the 'minItems' value.
-    kValidateErrorUniqueItems,     //!< Array has duplicate items but 'uniqueItems' is true.
-    kValidateErrorAdditionalItems, //!< Array has additional items that are not allowed by the schema.
+    kValidateErrorMaxItems,                    //!< Array is longer than the 'maxItems' value.
+    kValidateErrorMinItems,                    //!< Array is shorter than the 'minItems' value.
+    kValidateErrorUniqueItems,                 //!< Array has duplicate items but 'uniqueItems' is true.
+    kValidateErrorAdditionalItems,             //!< Array has additional items that are not allowed by the schema.
 
-    kValidateErrorMaxProperties,        //!< Object has more members than 'maxProperties' value.
-    kValidateErrorMinProperties,        //!< Object has less members than 'minProperties' value.
-    kValidateErrorRequired,             //!< Object is missing one or more members required by the schema.
-    kValidateErrorAdditionalProperties, //!< Object has additional members that are not allowed by the schema.
-    kValidateErrorPatternProperties,    //!< See other errors.
-    kValidateErrorDependencies,         //!< Object has missing property or schema dependencies.
+    kValidateErrorMaxProperties,               //!< Object has more members than 'maxProperties' value.
+    kValidateErrorMinProperties,               //!< Object has less members than 'minProperties' value.
+    kValidateErrorRequired,                    //!< Object is missing one or more members required by the schema.
+    kValidateErrorAdditionalProperties,        //!< Object has additional members that are not allowed by the schema.
+    kValidateErrorPatternProperties,           //!< See other errors.
+    kValidateErrorDependencies,                //!< Object has missing property or schema dependencies.
 
-    kValidateErrorEnum, //!< Property has a value that is not one of its allowed enumerated values
-    kValidateErrorType, //!< Property has a type that is not allowed by the schema..
+    kValidateErrorEnum,                        //!< Property has a value that is not one of its allowed enumerated values
+    kValidateErrorType,                        //!< Property has a type that is not allowed by the schema..
 
-    kValidateErrorOneOf,      //!< Property did not match any of the sub-schemas specified by 'oneOf'.
-    kValidateErrorOneOfMatch, //!< Property matched more than one of the sub-schemas specified by 'oneOf'.
-    kValidateErrorAllOf,      //!< Property did not match all of the sub-schemas specified by 'allOf'.
-    kValidateErrorAnyOf,      //!< Property did not match any of the sub-schemas specified by 'anyOf'.
-    kValidateErrorNot         //!< Property matched the sub-schema specified by 'not'.
+    kValidateErrorOneOf,                       //!< Property did not match any of the sub-schemas specified by 'oneOf'.
+    kValidateErrorOneOfMatch,                  //!< Property matched more than one of the sub-schemas specified by 'oneOf'.
+    kValidateErrorAllOf,                       //!< Property did not match all of the sub-schemas specified by 'allOf'.
+    kValidateErrorAnyOf,                       //!< Property did not match any of the sub-schemas specified by 'anyOf'.
+    kValidateErrorNot                          //!< Property matched the sub-schema specified by 'not'.
 };
 
 //! Function pointer type of GetValidateError().

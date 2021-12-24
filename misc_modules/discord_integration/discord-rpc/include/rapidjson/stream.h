@@ -69,7 +69,7 @@ concept Stream {
     For custom stream, this type can be specialized for other configuration.
     See TEST(Reader, CustomStringStream) in readertest.cpp for example.
 */
-template <typename Stream>
+template<typename Stream>
 struct StreamTraits {
     //! Whether to make local copy of stream for optimization during parsing.
     /*!
@@ -80,20 +80,20 @@ struct StreamTraits {
 };
 
 //! Reserve n characters for writing to a stream.
-template <typename Stream>
+template<typename Stream>
 inline void PutReserve(Stream& stream, size_t count) {
     (void)stream;
     (void)count;
 }
 
 //! Write character to a stream, presuming buffer is reserved.
-template <typename Stream>
+template<typename Stream>
 inline void PutUnsafe(Stream& stream, typename Stream::Ch c) {
     stream.Put(c);
 }
 
 //! Put N copies of a character to a stream.
-template <typename Stream, typename Ch>
+template<typename Stream, typename Ch>
 inline void PutN(Stream& stream, Ch c, size_t n) {
     PutReserve(stream, n);
     for (size_t i = 0; i < n; i++)
@@ -111,15 +111,15 @@ inline void PutN(Stream& stream, Ch c, size_t n) {
 
 #if defined(_MSC_VER) && _MSC_VER <= 1800
 RAPIDJSON_DIAG_PUSH
-RAPIDJSON_DIAG_OFF(4702) // unreachable code
-RAPIDJSON_DIAG_OFF(4512) // assignment operator could not be generated
+RAPIDJSON_DIAG_OFF(4702)  // unreachable code
+RAPIDJSON_DIAG_OFF(4512)  // assignment operator could not be generated
 #endif
 
-template <typename InputStream, typename Encoding = UTF8<>>
+template <typename InputStream, typename Encoding = UTF8<> >
 class GenericStreamWrapper {
 public:
     typedef typename Encoding::Ch Ch;
-    GenericStreamWrapper(InputStream& is) : is_(is) {}
+    GenericStreamWrapper(InputStream& is): is_(is) {}
 
     Ch Peek() const { return is_.Peek(); }
     Ch Take() { return is_.Take(); }
@@ -154,34 +154,28 @@ template <typename Encoding>
 struct GenericStringStream {
     typedef typename Encoding::Ch Ch;
 
-    GenericStringStream(const Ch* src) : src_(src), head_(src) {}
+    GenericStringStream(const Ch *src) : src_(src), head_(src) {}
 
     Ch Peek() const { return *src_; }
     Ch Take() { return *src_++; }
     size_t Tell() const { return static_cast<size_t>(src_ - head_); }
 
-    Ch* PutBegin() {
-        RAPIDJSON_ASSERT(false);
-        return 0;
-    }
+    Ch* PutBegin() { RAPIDJSON_ASSERT(false); return 0; }
     void Put(Ch) { RAPIDJSON_ASSERT(false); }
     void Flush() { RAPIDJSON_ASSERT(false); }
-    size_t PutEnd(Ch*) {
-        RAPIDJSON_ASSERT(false);
-        return 0;
-    }
+    size_t PutEnd(Ch*) { RAPIDJSON_ASSERT(false); return 0; }
 
-    const Ch* src_;  //!< Current read position.
-    const Ch* head_; //!< Original head of the string.
+    const Ch* src_;     //!< Current read position.
+    const Ch* head_;    //!< Original head of the string.
 };
 
 template <typename Encoding>
-struct StreamTraits<GenericStringStream<Encoding>> {
+struct StreamTraits<GenericStringStream<Encoding> > {
     enum { copyOptimization = 1 };
 };
 
 //! String stream with UTF8 encoding.
-typedef GenericStringStream<UTF8<>> StringStream;
+typedef GenericStringStream<UTF8<> > StringStream;
 
 ///////////////////////////////////////////////////////////////////////////////
 // InsituStringStream
@@ -194,7 +188,7 @@ template <typename Encoding>
 struct GenericInsituStringStream {
     typedef typename Encoding::Ch Ch;
 
-    GenericInsituStringStream(Ch* src) : src_(src), dst_(0), head_(src) {}
+    GenericInsituStringStream(Ch *src) : src_(src), dst_(0), head_(src) {}
 
     // Read
     Ch Peek() { return *src_; }
@@ -202,20 +196,13 @@ struct GenericInsituStringStream {
     size_t Tell() { return static_cast<size_t>(src_ - head_); }
 
     // Write
-    void Put(Ch c) {
-        RAPIDJSON_ASSERT(dst_ != 0);
-        *dst_++ = c;
-    }
+    void Put(Ch c) { RAPIDJSON_ASSERT(dst_ != 0); *dst_++ = c; }
 
     Ch* PutBegin() { return dst_ = src_; }
     size_t PutEnd(Ch* begin) { return static_cast<size_t>(dst_ - begin); }
     void Flush() {}
 
-    Ch* Push(size_t count) {
-        Ch* begin = dst_;
-        dst_ += count;
-        return begin;
-    }
+    Ch* Push(size_t count) { Ch* begin = dst_; dst_ += count; return begin; }
     void Pop(size_t count) { dst_ -= count; }
 
     Ch* src_;
@@ -224,12 +211,12 @@ struct GenericInsituStringStream {
 };
 
 template <typename Encoding>
-struct StreamTraits<GenericInsituStringStream<Encoding>> {
+struct StreamTraits<GenericInsituStringStream<Encoding> > {
     enum { copyOptimization = 1 };
 };
 
 //! Insitu string stream with UTF8 encoding.
-typedef GenericInsituStringStream<UTF8<>> InsituStringStream;
+typedef GenericInsituStringStream<UTF8<> > InsituStringStream;
 
 RAPIDJSON_NAMESPACE_END
 

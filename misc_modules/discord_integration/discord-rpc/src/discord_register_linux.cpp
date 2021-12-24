@@ -9,7 +9,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-static bool Mkdir(const char* path) {
+static bool Mkdir(const char* path)
+{
     int result = mkdir(path, 0755);
     if (result == 0) {
         return true;
@@ -21,7 +22,8 @@ static bool Mkdir(const char* path) {
 }
 
 // we want to register games so we can run them from Discord client as discord-<appid>://
-extern "C" DISCORD_EXPORT void Discord_Register(const char* applicationId, const char* command) {
+extern "C" DISCORD_EXPORT void Discord_Register(const char* applicationId, const char* command)
+{
     // Add a desktop file and update some mime handlers so that xdg-open does the right thing.
 
     const char* home = getenv("HOME");
@@ -40,15 +42,15 @@ extern "C" DISCORD_EXPORT void Discord_Register(const char* applicationId, const
     }
 
     const char* desktopFileFormat = "[Desktop Entry]\n"
-                                    "Name=Game %s\n"
-                                    "Exec=%s %%u\n" // note: it really wants that %u in there
-                                    "Type=Application\n"
-                                    "NoDisplay=true\n"
-                                    "Categories=Discord;Games;\n"
-                                    "MimeType=x-scheme-handler/discord-%s;\n";
+                                   "Name=Game %s\n"
+                                   "Exec=%s %%u\n" // note: it really wants that %u in there
+                                   "Type=Application\n"
+                                   "NoDisplay=true\n"
+                                   "Categories=Discord;Games;\n"
+                                   "MimeType=x-scheme-handler/discord-%s;\n";
     char desktopFile[2048];
     int fileLen = snprintf(
-        desktopFile, sizeof(desktopFile), desktopFileFormat, applicationId, command, applicationId);
+      desktopFile, sizeof(desktopFile), desktopFileFormat, applicationId, command, applicationId);
     if (fileLen <= 0) {
         return;
     }
@@ -92,7 +94,8 @@ extern "C" DISCORD_EXPORT void Discord_Register(const char* applicationId, const
 }
 
 extern "C" DISCORD_EXPORT void Discord_RegisterSteamGame(const char* applicationId,
-                                                         const char* steamId) {
+                                                         const char* steamId)
+{
     char command[256];
     sprintf(command, "xdg-open steam://rungameid/%s", steamId);
     Discord_Register(applicationId, command);

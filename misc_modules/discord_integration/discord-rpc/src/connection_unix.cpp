@@ -9,12 +9,13 @@
 #include <sys/un.h>
 #include <unistd.h>
 
-int GetProcessId() {
+int GetProcessId()
+{
     return ::getpid();
 }
 
 struct BaseConnectionUnix : public BaseConnection {
-    int sock{ -1 };
+    int sock{-1};
 };
 
 static BaseConnectionUnix Connection;
@@ -25,7 +26,8 @@ static int MsgFlags = MSG_NOSIGNAL;
 static int MsgFlags = 0;
 #endif
 
-static const char* GetTempPath() {
+static const char* GetTempPath()
+{
     const char* temp = getenv("XDG_RUNTIME_DIR");
     temp = temp ? temp : getenv("TMPDIR");
     temp = temp ? temp : getenv("TMP");
@@ -34,18 +36,21 @@ static const char* GetTempPath() {
     return temp;
 }
 
-/*static*/ BaseConnection* BaseConnection::Create() {
+/*static*/ BaseConnection* BaseConnection::Create()
+{
     PipeAddr.sun_family = AF_UNIX;
     return &Connection;
 }
 
-/*static*/ void BaseConnection::Destroy(BaseConnection*& c) {
+/*static*/ void BaseConnection::Destroy(BaseConnection*& c)
+{
     auto self = reinterpret_cast<BaseConnectionUnix*>(c);
     self->Close();
     c = nullptr;
 }
 
-bool BaseConnection::Open() {
+bool BaseConnection::Open()
+{
     const char* tempPath = GetTempPath();
     auto self = reinterpret_cast<BaseConnectionUnix*>(this);
     self->sock = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -60,7 +65,7 @@ bool BaseConnection::Open() {
 
     for (int pipeNum = 0; pipeNum < 10; ++pipeNum) {
         snprintf(
-            PipeAddr.sun_path, sizeof(PipeAddr.sun_path), "%s/discord-ipc-%d", tempPath, pipeNum);
+          PipeAddr.sun_path, sizeof(PipeAddr.sun_path), "%s/discord-ipc-%d", tempPath, pipeNum);
         int err = connect(self->sock, (const sockaddr*)&PipeAddr, sizeof(PipeAddr));
         if (err == 0) {
             self->isOpen = true;
@@ -71,7 +76,8 @@ bool BaseConnection::Open() {
     return false;
 }
 
-bool BaseConnection::Close() {
+bool BaseConnection::Close()
+{
     auto self = reinterpret_cast<BaseConnectionUnix*>(this);
     if (self->sock == -1) {
         return false;
@@ -82,7 +88,8 @@ bool BaseConnection::Close() {
     return true;
 }
 
-bool BaseConnection::Write(const void* data, size_t length) {
+bool BaseConnection::Write(const void* data, size_t length)
+{
     auto self = reinterpret_cast<BaseConnectionUnix*>(this);
 
     if (self->sock == -1) {
@@ -96,7 +103,8 @@ bool BaseConnection::Write(const void* data, size_t length) {
     return sentBytes == (ssize_t)length;
 }
 
-bool BaseConnection::Read(void* data, size_t length) {
+bool BaseConnection::Read(void* data, size_t length)
+{
     auto self = reinterpret_cast<BaseConnectionUnix*>(this);
 
     if (self->sock == -1) {
