@@ -281,10 +281,13 @@ jobs:
 
         steps:
         - uses: actions/checkout@v2
+
+        - name: Create Build Environment
+          run: cmake -E make_directory ${{runner.workspace}}/build
         
         - name: Prepare CMake
           working-directory: ${{runner.workspace}}/build
-          run: echo $GITHUB_WORKSPACE && cmake $GITHUB_WORKSPACE -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON
+          run: cmake $GITHUB_WORKSPACE -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON
 
         - name: Build
           working-directory: ${{runner.workspace}}/build
