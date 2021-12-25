@@ -1144,11 +1144,22 @@ namespace ImGui {
         setOffset(generalOffset);
     }
 
+    void WaterfallVFO::setNotchOffset(double offset) {
+        notchOffset = offset;
+        redrawRequired = true;
+    }
+
+    void WaterfallVFO::setNotchVisible(bool visible) {
+        notchVisible = visible;
+        redrawRequired = true;
+    }
+
     void WaterfallVFO::updateDrawingVars(double viewBandwidth, float dataWidth, double viewOffset, ImVec2 widgetPos, int fftHeight) {
         double width = (bandwidth / viewBandwidth) * (double)dataWidth;
         int center = roundf((((centerOffset - viewOffset) / (viewBandwidth / 2.0)) + 1.0) * ((double)dataWidth / 2.0));
         int left = roundf((((lowerOffset - viewOffset) / (viewBandwidth / 2.0)) + 1.0) * ((double)dataWidth / 2.0));
         int right = roundf((((upperOffset - viewOffset) / (viewBandwidth / 2.0)) + 1.0) * ((double)dataWidth / 2.0));
+        int notch = roundf((((notchOffset + centerOffset - viewOffset) / (viewBandwidth / 2.0)) + 1.0) * ((double)dataWidth / 2.0));
 
         // Check weather the line is visible
         if (left >= 0 && left < dataWidth && reference == REF_LOWER) {
@@ -1192,12 +1203,19 @@ namespace ImGui {
         lbwSelMax = ImVec2(rectMin.x + 2, rectMax.y);
         rbwSelMin = ImVec2(rectMax.x - 2, rectMin.y);
         rbwSelMax = ImVec2(rectMax.x + 2, rectMax.y);
+
+        notchMin = ImVec2(widgetPos.x + 50 + notch - 2, widgetPos.y + 9);
+        notchMax = ImVec2(widgetPos.x + 50 + notch + 2, widgetPos.y + fftHeight + 9);
     }
 
     void WaterfallVFO::draw(ImGuiWindow* window, bool selected) {
         window->DrawList->AddRectFilled(rectMin, rectMax, color);
         if (lineVisible) {
             window->DrawList->AddLine(lineMin, lineMax, selected ? IM_COL32(255, 0, 0, 255) : IM_COL32(255, 255, 0, 255));
+        }
+
+        if (notchVisible) {
+            window->DrawList->AddRectFilled(notchMin, notchMax, IM_COL32(255, 0, 0, 127));
         }
 
         if (!gui::mainWindow.lockWaterfallControls && !gui::waterfall.inputHandled) {

@@ -17,6 +17,8 @@ namespace ImGui {
         void setBandwidth(double bw);
         void setReference(int ref);
         void setSnapInterval(double interval);
+        void setNotchOffset(double offset);
+        void setNotchVisible(bool visible);
         void updateDrawingVars(double viewBandwidth, float dataWidth, double viewOffset, ImVec2 widgetPos, int fftHeight); // NOTE: Datawidth double???
         void draw(ImGuiWindow* window, bool selected);
 
@@ -34,6 +36,9 @@ namespace ImGui {
         double bandwidth;
         double snapInterval = 5000;
         int reference = REF_CENTER;
+
+        double notchOffset = 0;
+        bool notchVisible = false;
 
         bool leftClamped;
         bool rightClamped;
@@ -54,6 +59,8 @@ namespace ImGui {
         ImVec2 wfLbwSelMax;
         ImVec2 wfRbwSelMin;
         ImVec2 wfRbwSelMax;
+        ImVec2 notchMin;
+        ImVec2 notchMax;
 
         bool centerOffsetChanged = false;
         bool lowerOffsetChanged = false;
@@ -69,6 +76,7 @@ namespace ImGui {
         ImU32 color = IM_COL32(255, 255, 255, 50);
 
         Event<double> onUserChangedBandwidth;
+        Event<double> onUserChangedNotch;
     };
 
     class WaterFall {

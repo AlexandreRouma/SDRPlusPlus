@@ -276,27 +276,21 @@ jobs:
               name: sdrpp_ubuntu_impish_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    # build_raspios_bullseye:
-    #     runs-on: ubuntu-latest
+    build_raspios_armhf:
+        runs-on: raspberrypi
+        env:
+          DEBIAN_FRONTEND: 'noninteractive'
 
-    #     steps:
-    #     - uses: actions/checkout@v2
+        steps:
+        - uses: actions/checkout@v2
         
-    #     - name: Create Docker Image
-    #       run: cd $GITHUB_WORKSPACE/docker_builds/raspios_bullseye && docker build . --tag sdrpp_build
+        - name: Prepare CMake
+          working-directory: ${{runner.workspace}}/build
+          run: cmake $GITHUB_WORKSPACE -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON
 
-    #     - name: Run Container
-    #       run: docker run --privileged --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
-
-    #     - name: Recover Deb Archive
-    #       working-directory: ${{runner.workspace}}
-    #       run: docker cp build:/root/SDRPlusPlus/sdrpp_raspios_arm32.deb ./
-
-    #     - name: Save Deb Archive
-    #       uses: actions/upload-artifact@v2
-    #       with:
-    #           name: sdrpp_raspios_bullseye_arm32
-    #           path: ${{runner.workspace}}/sdrpp_raspios_arm32.deb
+        - name: Build
+          working-directory: ${{runner.workspace}}/build
+          run: make VERBOSE=1 -j2
     
     create_full_archive:
     #   needs: ['build_windows', 'build_macos', 'build_debian_buster', 'build_debian_bullseye', 'build_debian_sid', 'build_ubuntu_bionic', 'build_ubuntu_focal', 'build_ubuntu_groovy', 'build_ubuntu_hirsute', 'build_ubuntu_impish', 'build_raspios_bullseye']
