@@ -277,7 +277,7 @@ jobs:
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
     build_raspios_armhf:
-        runs-on: raspberrypi
+        runs-on: ARM
         env:
           DEBIAN_FRONTEND: 'noninteractive'
 
