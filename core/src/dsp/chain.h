@@ -91,6 +91,7 @@ namespace dsp {
             for (auto i = ++lnit; i < links.end(); i++) {
                 if (!(*i)->enabled) { continue; }
                 nextLink = *i;
+                break;
             }
 
             if (nextLink) {
@@ -133,6 +134,7 @@ namespace dsp {
             for (auto i = ++lnit; i < links.end(); i++) {
                 if (!(*i)->enabled) { continue; }
                 nextLink = *i;
+                break;
             }
 
             if (nextLink) {
