@@ -111,7 +111,7 @@ void MainWindow::init() {
             }
             if (!file.is_regular_file()) { continue; }
             spdlog::info("Loading {0}", path);
-            LoadingScreen::show("Loading " + path);
+            LoadingScreen::show("Loading " + file.path().filename().string());
             core::moduleManager.loadModule(path);
         }
     }
@@ -129,7 +129,7 @@ void MainWindow::init() {
     for (auto const& path : modules) {
         std::string apath = std::filesystem::absolute(path).string();
         spdlog::info("Loading {0}", apath);
-        LoadingScreen::show("Loading " + apath);
+        LoadingScreen::show("Loading " + std::filesystem::path(path).filename().string());
         core::moduleManager.loadModule(apath);
     }
 
@@ -149,7 +149,7 @@ void MainWindow::init() {
     if (std::filesystem::is_directory(resourcesDir + "/colormaps")) {
         for (const auto& file : std::filesystem::directory_iterator(resourcesDir + "/colormaps")) {
             std::string path = file.path().generic_string();
-            LoadingScreen::show("Loading " + path);
+            LoadingScreen::show("Loading " + file.path().filename().string());
             spdlog::info("Loading {0}", path);
             if (file.path().extension().generic_string() != ".json") {
                 continue;
