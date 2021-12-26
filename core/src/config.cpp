@@ -12,7 +12,7 @@ ConfigManager::~ConfigManager() {
 }
 
 void ConfigManager::setPath(std::string file) {
-    path = file;
+    path = std::filesystem::absolute(file).string();
 }
 
 void ConfigManager::load(json def, bool lock) {

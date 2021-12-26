@@ -1,6 +1,7 @@
 #include <options.h>
 #include <spdlog/spdlog.h>
 #include <stdlib.h>
+#include <filesystem>
 
 namespace options {
     CMDLineOptions opts;
@@ -16,6 +17,7 @@ namespace options {
         std::string homedir = getenv("HOME");
         opts.root = homedir + "/.config/sdrpp";
 #endif
+        opts.root = std::filesystem::absolute(opts.root).string();
     }
 
     bool parse(int argc, char* argv[]) {
@@ -23,7 +25,7 @@ namespace options {
             char* arg = argv[i];
             if (!strcmp(arg, "-r") || !strcmp(arg, "--root")) {
                 if (i == argc - 1) { return false; }
-                opts.root = argv[++i];
+                opts.root = std::filesystem::absolute(argv[++i]).string();
             }
             else if (!strcmp(arg, "-s") || !strcmp(arg, "--show-console")) {
                 opts.showConsole = true;

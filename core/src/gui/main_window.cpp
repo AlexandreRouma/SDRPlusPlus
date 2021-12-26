@@ -46,6 +46,10 @@ void MainWindow::init() {
     std::string resourcesDir = core::configManager.conf["resourcesDirectory"];
     core::configManager.release();
 
+    // Assert that directories are absolute
+    modulesDir = std::filesystem::absolute(modulesDir).string();
+    resourcesDir = std::filesystem::absolute(resourcesDir).string();
+
     // Load menu elements
     gui::menu.order.clear();
     for (auto& elem : menuElements) {
@@ -123,9 +127,10 @@ void MainWindow::init() {
 
     // Load additional modules specified through config
     for (auto const& path : modules) {
-        spdlog::info("Loading {0}", path);
-        LoadingScreen::show("Loading " + path);
-        core::moduleManager.loadModule(path);
+        std::string apath = std::filesystem::absolute(path).string();
+        spdlog::info("Loading {0}", apath);
+        LoadingScreen::show("Loading " + apath);
+        core::moduleManager.loadModule(apath);
     }
 
     // Create module instances
