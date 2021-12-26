@@ -56,6 +56,7 @@ namespace sdrpp_credits {
         "D. Jones",
         "EB3FRN",
         "Eric Johnson",
+        "Ernest Murphy (NH7L)",
         "Flinger Films",
         "Kezza",
         "Lee Donaghy",

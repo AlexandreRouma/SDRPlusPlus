@@ -409,6 +409,7 @@ I will soon publish a contributing.md listing the code style to use.
 * D. Jones
 * [EB3FRN](https://www.eb3frn.net/)
 * Eric Johnson
+* Ernest Murphy (NH7L)
 * Flinger Films
 * Kezza
 * Lee Donaghy
