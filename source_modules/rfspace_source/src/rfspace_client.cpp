@@ -138,7 +138,7 @@ namespace rfspace {
     }
 
     void RFspaceClientClass::start(SampleFormat sampleFormat, SampleDepth sampleDepth) {
-        uint8_t args[4] = { sampleFormat, RFSPACE_STATE_RUN, sampleDepth, 0 };
+        uint8_t args[4] = { (uint8_t)sampleFormat, (uint8_t)RFSPACE_STATE_RUN, (uint8_t)sampleDepth, 0 };
         setControlItem(RFSPACE_CTRL_ITEM_STATE, args, sizeof(args));
     }
 
