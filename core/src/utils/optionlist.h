@@ -111,7 +111,7 @@ private:
         txt = _txt.c_str();
     }
 
-    std::vector<std::string> keys;
+    std::vector<K> keys;
     std::vector<std::string> names;
     std::vector<T> values;
     std::string _txt;

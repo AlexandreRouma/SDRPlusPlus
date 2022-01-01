@@ -9,7 +9,7 @@
 #include <config.h>
 #include <options.h>
 #include <gui/widgets/stepped_slider.h>
-
+#include <utils/optionlist.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -23,9 +23,9 @@ SDRPP_MOD_INFO{
 
 ConfigManager config;
 
-class SpyServerSourceModule : public ModuleManager::Instance {
+class RFSpaceSource : public ModuleManager::Instance {
 public:
-    SpyServerSourceModule(std::string name) {
+    RFSpaceSource(std::string name) {
         this->name = name;
 
         handler.ctx = this;
@@ -42,7 +42,7 @@ public:
         sigpath::sourceManager.registerSource("RFspace", &handler);
     }
 
-    ~SpyServerSourceModule() {
+    ~RFSpaceSource() {
         stop(this);
         sigpath::sourceManager.unregisterSource("RFspace");
     }
@@ -77,49 +77,50 @@ private:
     }
 
     static void menuSelected(void* ctx) {
-        SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
+        RFSpaceSource* _this = (RFSpaceSource*)ctx;
         core::setInputSampleRate(_this->sampleRate);
         gui::mainWindow.playButtonLocked = !(_this->client && _this->client->isOpen());
-        spdlog::info("SpyServerSourceModule '{0}': Menu Select!", _this->name);
+        spdlog::info("RFSpaceSource '{0}': Menu Select!", _this->name);
     }
 
     static void menuDeselected(void* ctx) {
-        SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
+        RFSpaceSource* _this = (RFSpaceSource*)ctx;
         gui::mainWindow.playButtonLocked = false;
-        spdlog::info("SpyServerSourceModule '{0}': Menu Deselect!", _this->name);
+        spdlog::info("RFSpaceSource '{0}': Menu Deselect!", _this->name);
     }
 
     static void start(void* ctx) {
-        SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
+        RFSpaceSource* _this = (RFSpaceSource*)ctx;
         if (_this->running) { return; }
 
-        // TODO: Start
+        // TODO: Set configuration here
+        if (_this->client) { _this->client->start(rfspace::RFSPACE_SAMP_FORMAT_COMPLEX, rfspace::RFSPACE_SAMP_FORMAT_16BIT); }
 
         _this->running = true;
-        spdlog::info("SpyServerSourceModule '{0}': Start!", _this->name);
+        spdlog::info("RFSpaceSource '{0}': Start!", _this->name);
     }
 
     static void stop(void* ctx) {
-        SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
+        RFSpaceSource* _this = (RFSpaceSource*)ctx;
         if (!_this->running) { return; }
 
-        // TODO: Stop
+        if (_this->client) { _this->client->stop(); }
 
         _this->running = false;
-        spdlog::info("SpyServerSourceModule '{0}': Stop!", _this->name);
+        spdlog::info("RFSpaceSource '{0}': Stop!", _this->name);
     }
 
     static void tune(double freq, void* ctx) {
-        SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
-        if (_this->running) {
-            // TODO: Tune
+        RFSpaceSource* _this = (RFSpaceSource*)ctx;
+        if (_this->running && _this->client) {
+            _this->client->setFrequency(freq);
         }
         _this->freq = freq;
-        spdlog::info("SpyServerSourceModule '{0}': Tune: {1}!", _this->name, freq);
+        spdlog::info("RFSpaceSource '{0}': Tune: {1}!", _this->name, freq);
     }
 
     static void menuHandler(void* ctx) {
-        SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
+        RFSpaceSource* _this = (RFSpaceSource*)ctx;
         float menuWidth = ImGui::GetContentRegionAvailWidth();
 
         bool connected = (_this->client && _this->client->isOpen());
@@ -143,7 +144,9 @@ private:
         if (_this->running) { style::beginDisabled(); }
         if (!connected && ImGui::Button("Connect##rfspace_source", ImVec2(menuWidth, 0))) {
             try {
+                if (_this->client) { _this->client.reset(); }
                 _this->client = rfspace::connect(_this->hostname, _this->port, &_this->stream);
+                _this->deviceInit();
             }
             catch (std::exception e) {
                 spdlog::error("Could not connect to SDR: {0}", e.what());
@@ -158,9 +161,36 @@ private:
         if (connected) {
             // TODO: Options here
 
+            if (_this->running) { style::beginDisabled(); }
+
+            ImGui::LeftLabel("Samplerate");
+            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+            if (ImGui::Combo("##rfspace_source_samp_rate", &_this->srId, _this->sampleRates.txt)) {
+                _this->sampleRate = _this->sampleRates[_this->srId];
+                _this->client->setSampleRate(_this->sampleRate);
+                core::setInputSampleRate(_this->sampleRate);
+                // TODO: Save config
+            }
+
+            if (_this->running) { style::endDisabled(); }
+
+            ImGui::LeftLabel("Antenna Port");
+            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+            if (ImGui::Combo("##rfspace_source_rf_port", &_this->rfPortId, _this->rfPorts.txt)) {
+                _this->client->setPort(_this->rfPorts[_this->rfPortId]);
+                // TODO: Save config
+            }
+
+            ImGui::LeftLabel("Gain");
+            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+            if (ImGui::SliderFloatWithSteps("##rfspace_source_gain", &_this->gain, -30, 0, 10, "%.0f dB")) {
+                _this->client->setGain(_this->gain);
+                // TODO: Save config (as int, in case we have to switch to an option list)
+            }
+
             ImGui::Text("Status:");
             ImGui::SameLine();
-            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Connected (DEV NAME HERE)");
+            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Connected (%s)", _this->deviceName.c_str());
         }
         else {
             ImGui::Text("Status:");
@@ -169,18 +199,53 @@ private:
         }
     }
 
+    void deviceInit() {
+        // Get device name
+        if (deviceNames.find(client->deviceId) != deviceNames.end()) {
+            deviceName = deviceNames[client->deviceId];
+        }
+        else {
+            deviceName = "Unknown";
+        }
+        
+        // Create samplerate list (TODO: Depends on model)
+        auto srs = client->getValidSampleRates();
+        sampleRates.clear();
+        for (auto& sr : srs) {
+            sampleRates.define(sr, getBandwdithScaled(sr), sr);
+        }
+        
+        // Create RF port list (TODO: Depends on model)
+        rfPorts.clear();
+        rfPorts.define("Port 1", rfspace::RFSPACE_RF_PORT_1);
+        rfPorts.define("Port 2", rfspace::RFSPACE_RF_PORT_2);
+
+        // TODO: Load config
+    }
+
     std::string name;
     bool enabled = true;
     bool running = false;
-    double sampleRate = 1000000;
+    double sampleRate = 1228800;
     double freq;
+
+    OptionList<uint32_t, uint32_t> sampleRates;
+    int srId = 0;
+
+    OptionList<std::string, rfspace::RFPort> rfPorts;
+    int rfPortId = 0;
+
+    float gain = 0;
 
     char hostname[1024];
     int port = 50000;
 
-    int srId = 0;
-    std::vector<double> sampleRates;
-    std::string sampleRatesTxt;
+    std::string deviceName = "Unknown";
+    std::map<rfspace::DeviceID, std::string> deviceNames = {
+        { rfspace::RFSPACE_DEV_ID_CLOUD_SDR, "CloudSDR" },
+        { rfspace::RFSPACE_DEV_ID_CLOUD_IQ, "CloudIQ" },
+        { rfspace::RFSPACE_DEV_ID_NET_SDR, "NetSDR" }
+    };
 
     dsp::stream<dsp::complex_t> stream;
     SourceManager::SourceHandler handler;
@@ -208,11 +273,11 @@ MOD_EXPORT void _INIT_() {
 }
 
 MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
-    return new SpyServerSourceModule(name);
+    return new RFSpaceSource(name);
 }
 
 MOD_EXPORT void _DELETE_INSTANCE_(ModuleManager::Instance* instance) {
-    delete (SpyServerSourceModule*)instance;
+    delete (RFSpaceSource*)instance;
 }
 
 MOD_EXPORT void _END_() {

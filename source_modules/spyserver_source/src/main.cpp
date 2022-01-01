@@ -178,6 +178,7 @@ private:
         if (_this->running) { style::beginDisabled(); }
         if (!connected && ImGui::Button("Connect##spyserver_source", ImVec2(menuWidth, 0))) {
             try {
+                if (_this->client) { _this->client.reset(); }
                 _this->client = spyserver::connect(_this->hostname, _this->port, &_this->stream);
 
                 if (!_this->client->waitForDevInfo(3000)) {
