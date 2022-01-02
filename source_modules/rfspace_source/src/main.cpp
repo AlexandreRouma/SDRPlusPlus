@@ -159,8 +159,6 @@ private:
 
 
         if (connected) {
-            // TODO: Options here
-
             if (_this->running) { style::beginDisabled(); }
 
             ImGui::LeftLabel("Samplerate");
@@ -169,23 +167,34 @@ private:
                 _this->sampleRate = _this->sampleRates[_this->srId];
                 _this->client->setSampleRate(_this->sampleRate);
                 core::setInputSampleRate(_this->sampleRate);
-                // TODO: Save config
+                
+                config.acquire();
+                config.conf["devices"][_this->devConfName]["sampleRate"] = _this->sampleRates.key(_this->srId);
+                config.release(true);
             }
 
             if (_this->running) { style::endDisabled(); }
 
-            ImGui::LeftLabel("Antenna Port");
-            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::Combo("##rfspace_source_rf_port", &_this->rfPortId, _this->rfPorts.txt)) {
-                _this->client->setPort(_this->rfPorts[_this->rfPortId]);
-                // TODO: Save config
+            if (_this->client->deviceId == rfspace::RFSPACE_DEV_ID_CLOUD_IQ) {
+                ImGui::LeftLabel("Antenna Port");
+                ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+                if (ImGui::Combo("##rfspace_source_rf_port", &_this->rfPortId, _this->rfPorts.txt)) {
+                    _this->client->setPort(_this->rfPorts[_this->rfPortId]);
+
+                    config.acquire();
+                    config.conf["devices"][_this->devConfName]["rfPort"] = _this->rfPorts.key(_this->rfPortId);
+                    config.release(true);
+                }
             }
 
             ImGui::LeftLabel("Gain");
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             if (ImGui::SliderFloatWithSteps("##rfspace_source_gain", &_this->gain, -30, 0, 10, "%.0f dB")) {
                 _this->client->setGain(_this->gain);
-                // TODO: Save config (as int, in case we have to switch to an option list)
+
+                config.acquire();
+                config.conf["devices"][_this->devConfName]["gain"] = _this->gain;
+                config.release(true);
             }
 
             ImGui::Text("Status:");
@@ -200,6 +209,11 @@ private:
     }
 
     void deviceInit() {
+        // Generate the config name
+        char buf[4096];
+        sprintf(buf, "%s:%05d", hostname, port);
+        devConfName = buf;
+
         // Get device name
         if (deviceNames.find(client->deviceId) != deviceNames.end()) {
             deviceName = deviceNames[client->deviceId];
@@ -208,19 +222,61 @@ private:
             deviceName = "Unknown";
         }
         
-        // Create samplerate list (TODO: Depends on model)
+        // Create samplerate list
         auto srs = client->getValidSampleRates();
         sampleRates.clear();
         for (auto& sr : srs) {
             sampleRates.define(sr, getBandwdithScaled(sr), sr);
         }
         
-        // Create RF port list (TODO: Depends on model)
+        // Create RF port list
         rfPorts.clear();
         rfPorts.define("Port 1", rfspace::RFSPACE_RF_PORT_1);
-        rfPorts.define("Port 2", rfspace::RFSPACE_RF_PORT_2);
+        if (client->deviceId == rfspace::RFSPACE_DEV_ID_CLOUD_IQ) {
+            rfPorts.define("Port 2", rfspace::RFSPACE_RF_PORT_2);
+        }
 
-        // TODO: Load config
+        // Load config
+        srId = 0;
+        rfPortId = 0;
+        bool changed = false;
+        config.acquire();
+        if (!config.conf["devices"].contains(devConfName)) {
+            config.conf["devices"][devConfName]["sampleRate"] = sampleRates.key(0);
+            config.conf["devices"][devConfName]["gain"] = 0;
+            if (client->deviceId == rfspace::RFSPACE_DEV_ID_CLOUD_IQ) {
+                config.conf["devices"][devConfName]["rfPort"] = rfPorts.key(0);
+            }
+            //changed = true;
+        }
+        if (config.conf["devices"][devConfName].contains("sampleRate")) {
+            uint32_t sr = config.conf["devices"][devConfName]["sampleRate"];
+            if (sampleRates.keyExists(sr)) {
+                srId = sampleRates.keyId(sr);
+            }
+        }
+        if (config.conf["devices"][devConfName].contains("gain")) {
+            gain = config.conf["devices"][devConfName]["gain"];
+        }
+        if (config.conf["devices"][devConfName].contains("rfPort")) {
+            std::string port = config.conf["devices"][devConfName]["rfPort"];
+            if (rfPorts.keyExists(port)) {
+                rfPortId = rfPorts.keyId(port);
+            }
+        }
+        config.release(changed);
+
+        // Set options
+        sampleRate = sampleRates[srId];
+        client->setSampleRate(sampleRate);
+        core::setInputSampleRate(sampleRate);
+        client->setFrequency(freq);
+        client->setGain(gain);
+        if (client->deviceId == rfspace::RFSPACE_DEV_ID_CLOUD_IQ) {
+            client->setPort(rfPorts[rfPortId]);
+        }
+
+        spdlog::warn("End");
     }
 
     std::string name;
@@ -239,12 +295,14 @@ private:
 
     char hostname[1024];
     int port = 50000;
+    std::string devConfName = "";
 
     std::string deviceName = "Unknown";
     std::map<rfspace::DeviceID, std::string> deviceNames = {
         { rfspace::RFSPACE_DEV_ID_CLOUD_SDR, "CloudSDR" },
         { rfspace::RFSPACE_DEV_ID_CLOUD_IQ, "CloudIQ" },
-        { rfspace::RFSPACE_DEV_ID_NET_SDR, "NetSDR" }
+        { rfspace::RFSPACE_DEV_ID_NET_SDR, "NetSDR" },
+        { rfspace::RFSPACE_DEV_ID_SDR_IP, "SDR-IP" }
     };
 
     dsp::stream<dsp::complex_t> stream;

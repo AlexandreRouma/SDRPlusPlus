@@ -56,7 +56,8 @@ namespace rfspace {
     enum DeviceID {
         RFSPACE_DEV_ID_CLOUD_SDR    = 0x44534C43,
         RFSPACE_DEV_ID_CLOUD_IQ     = 0x51494C43,
-        RFSPACE_DEV_ID_NET_SDR      = 0xDEADBEEF // TODO
+        RFSPACE_DEV_ID_NET_SDR      = 0x53445204,
+        RFSPACE_DEV_ID_SDR_IP       = 0x53445203
     };
 
     enum ControlItem {

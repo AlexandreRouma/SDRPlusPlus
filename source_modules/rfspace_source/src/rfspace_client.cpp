@@ -125,7 +125,6 @@ namespace rfspace {
 
     void RFspaceClientClass::setPort(RFPort port) {
         uint8_t value = port;
-        spdlog::warn("{0}", value);
         setControlItemWithChanID(RFSPACE_CTRL_ITEM_RF_PORT, 0, &value, sizeof(value));
     }
 
