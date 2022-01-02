@@ -37,7 +37,12 @@ public:
         handler.tuneHandler = tune;
         handler.stream = &stream;
 
-        strcpy(hostname, "192.168.0.111");
+        // Load config
+        config.acquire();
+        std::string hostStr = config.conf["hostname"];
+        strcpy(hostname, hostStr.c_str());
+        port = config.conf["port"];
+        config.release();
 
         sigpath::sourceManager.registerSource("RFspace", &handler);
     }
@@ -313,7 +318,7 @@ private:
 
 MOD_EXPORT void _INIT_() {
     json def = json({});
-    def["hostname"] = "localhost";
+    def["hostname"] = "192.168.0.111";
     def["port"] = 50000;
     def["devices"] = json::object();
     config.setPath(options::opts.root + "/rfspace_config.json");
