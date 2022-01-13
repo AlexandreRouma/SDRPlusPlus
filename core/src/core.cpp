@@ -1,10 +1,8 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-#include <stdio.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <gui/main_window.h>
 #include <gui/style.h>
 #include <gui/gui.h>
 #include <gui/icons.h>
@@ -14,7 +12,6 @@
 #include <stb_image.h>
 #include <config.h>
 #include <core.h>
-#include <glfw_window.h>
 #include <options.h>
 #include <filesystem>
 #include <gui/menus/theme.h>
@@ -213,6 +210,8 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["moduleInstances"]["SpyServer Source"]["enabled"] = true;
     defConfig["moduleInstances"]["PlutoSDR Source"]["module"] = "plutosdr_source";
     defConfig["moduleInstances"]["PlutoSDR Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["UHD Source"]["module"] = "uhd_source";
+    defConfig["moduleInstances"]["UHD Source"]["enabled"] = true;
 
     defConfig["moduleInstances"]["Audio Sink"] = "audio_sink";
     defConfig["moduleInstances"]["Network Sink"] = "network_sink";
