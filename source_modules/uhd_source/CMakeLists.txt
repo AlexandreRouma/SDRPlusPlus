@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 3.13)
 project(uhd_source)
 
 set(SRC
-    "src/main.cpp"
+        "src/device.cpp"
+        "src/devices.cpp"
+        "src/main.cpp"
+        "src/uhddevice.cpp"
     )
 
 add_library(uhd_source SHARED ${SRC})
