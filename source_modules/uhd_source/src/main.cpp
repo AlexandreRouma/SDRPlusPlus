@@ -1,6 +1,6 @@
 #include "device.h"
 #include "devices.h"
-#include "uhddevice.h"
+#include "uhd_device.h"
 
 #include "config.h"
 #include "dsp/stream.h"
@@ -14,6 +14,7 @@
 
 #include "spdlog/spdlog.h"
 
+#include <array>
 #include <string>
 #include <memory>
 
@@ -28,6 +29,8 @@ SDRPP_MOD_INFO{
 };
 
 ConfigManager g_config;
+
+std::array<int, 24> g_sampleRates = { 0 };
 
 namespace {
     //! Conditionally append find_all=1 if the key isn't there yet
@@ -64,12 +67,17 @@ private:
     static void openUHDDevice(void* ctx);
     void findUHDDevices();
     std::string getDeviceListString() const;
+    std::string getRxChannelListString() const;
+    std::string getRxAntennaListString() const;
+    std::string getRxSampleRateListString() const;
 
     bool mEnabled;
     bool mReceiving;
     int mDeviceId; // currently selected device index
-    int mBandwidth;
-    int mGain;
+    int mSampleRate;
+    int mRxGain;
+    int mRxChannel;
+    int mRxAntenna;
     std::string mName;
     std::unique_ptr<UHDDevice> mpUhdDevice;
     dsp::stream<dsp::complex_t> mStream;
@@ -79,7 +87,7 @@ private:
 };
 
 UHDSourceModule::UHDSourceModule(std::string name)
-    : mEnabled(false), mReceiving(false), mDeviceId(0), mBandwidth(0), mGain(0), mName(std::move(name)) {
+    : mEnabled(false), mReceiving(false), mDeviceId(0), mSampleRate(0), mRxGain(0), mRxChannel(0), mRxAntenna(0), mName(std::move(name)) {
     mSourceHandler.ctx = this;
     mSourceHandler.selectHandler = &UHDSourceModule::selectHandler;
     mSourceHandler.deselectHandler = &UHDSourceModule::deselectHandler;
@@ -139,7 +147,54 @@ void UHDSourceModule::menuHandler(void* ctx) {
         g_config.release(true);
     }
 
+    const bool validDeviceOpen = _this->mpUhdDevice && _this->mpUhdDevice->isOpen();
+
     if (_this->mReceiving) { style::endDisabled(); }
+    ImGui::LeftLabel("Sample rate [Sps]");
+    ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+    if (ImGui::Combo(CONCAT("##uhd_sample_rate_", deviceName), &_this->mSampleRate, _this->getRxSampleRateListString().c_str())) {
+        if (validDeviceOpen) {
+            _this->mpUhdDevice->setRxSampleRate(g_sampleRates[_this->mSampleRate]);
+            g_config.acquire();
+            g_config.conf["devices"][_this->mpUhdDevice->serial()]["sampleRate"] = g_sampleRates[_this->mSampleRate];
+            g_config.release(true);
+        }
+    }
+
+    int rxGainMin = _this->mpUhdDevice ? _this->mpUhdDevice->getRxGainMin() : 0;
+    int rxGainMax = _this->mpUhdDevice ? _this->mpUhdDevice->getRxGainMax() : 0;
+    std::string gainLabel{"Rx Gain"};
+    ImGui::PushItemWidth(menuWidth - ImGui::CalcTextSize(gainLabel.c_str()).x - 10);
+    ImGui::LeftLabel(gainLabel.c_str());
+    float pos = ImGui::GetCursorPosX();
+    if (ImGui::SliderInt(CONCAT("##uhd_rx_gain_", deviceName), &_this->mRxGain, rxGainMin, rxGainMax, "")) {
+        if (validDeviceOpen) {
+            _this->mpUhdDevice->setRxGain(_this->mRxGain);
+            g_config.acquire();
+            g_config.conf["devices"][_this->mpUhdDevice->serial()]["rxGain"] = _this->mRxGain;
+            g_config.release(true);
+        }
+    }
+    ImGui::LeftLabel("Antenna");
+    ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+    if (ImGui::Combo(CONCAT("##uhd_antenna_", deviceName), &_this->mRxAntenna, _this->getRxAntennaListString().c_str())) {
+        if (validDeviceOpen) {
+            _this->mpUhdDevice->setRxAntennaByIndex(_this->mRxAntenna);
+            g_config.acquire();
+            g_config.conf["devices"][_this->mpUhdDevice->serial()]["antenna"] = _this->mRxAntenna;
+            g_config.release(true);
+        }
+    }
+    ImGui::LeftLabel("Channel");
+    ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+    if (ImGui::Combo(CONCAT("##uhd_chan_", deviceName), &_this->mRxChannel, _this->getRxChannelListString().c_str())) {
+        if (validDeviceOpen) {
+            _this->mpUhdDevice->setChannelIndex(_this->mRxChannel);
+            g_config.acquire();
+            g_config.conf["devices"][_this->mpUhdDevice->serial()]["channel"] = _this->mRxChannel;
+            g_config.release(true);
+        }
+    }
 }
 
 void UHDSourceModule::selectHandler(void* ctx) {
@@ -184,7 +239,7 @@ void UHDSourceModule::tuneHandler(double freq, void* ctx) {
 void UHDSourceModule::openUHDDevice(void* ctx) {
     UHDSourceModule* _this = (UHDSourceModule*)ctx;
     if (_this->mDevices.empty() || (_this->mDeviceId < 1)) {
-        spdlog::info("select a device");
+        spdlog::info("select a valid device, not doing anything");
         _this->mpUhdDevice = nullptr;
         return;
     }
@@ -246,6 +301,37 @@ std::string UHDSourceModule::getDeviceListString() const {
         deviceList.write("\0", 1);
     }
     return deviceList.str();
+}
+
+std::string UHDSourceModule::getRxChannelListString() const {
+    std::stringstream channelList;
+    if (mpUhdDevice) {
+        for (size_t channelIndex = 0; channelIndex < mpUhdDevice->getRxChannelCount(); ++channelIndex) {
+            channelList << channelIndex;
+            channelList.write("\0", 1);
+        }
+    }
+    return channelList.str();
+}
+
+std::string UHDSourceModule::getRxAntennaListString() const {
+    std::stringstream antennaList;
+    if (mpUhdDevice) {
+        for (const auto& antenna : mpUhdDevice->getAntennas()) {
+            antennaList << antenna;
+            antennaList.write("\0", 1);
+        }
+    }
+    return antennaList.str();
+}
+
+std::string UHDSourceModule::getRxSampleRateListString() const {
+    std::stringstream sampleRateList;
+    for (const auto sampleRate : g_sampleRates) {
+        sampleRateList << sampleRate;
+        sampleRateList.write("\0", 1);
+    }
+    return sampleRateList.str();
 }
 
 MOD_EXPORT void _INIT_() {

@@ -1,5 +1,4 @@
-#ifndef DEVICE_H
-#define DEVICE_H
+#pragma once
 
 #include <string>
 
@@ -9,6 +8,8 @@ public:
     static const std::string PRODUCT_FIELD;
     static const std::string SERIAL_FIELD;
     static const std::string TYPE_FIELD;
+
+    bool isValid() const;
 
     std::string to_uhd_args() const;
 
@@ -28,5 +29,3 @@ private:
     std::string mSerial;
     std::string mType;
 };
-
-#endif // DEVICE_H

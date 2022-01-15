@@ -5,6 +5,10 @@ const std::string Device::PRODUCT_FIELD = "product";
 const std::string Device::SERIAL_FIELD = "serial";
 const std::string Device::TYPE_FIELD = "type";
 
+bool Device::isValid() const {
+    return !mSerial.empty();
+}
+
 std::string Device::to_uhd_args() const {
     return std::string{ "serial=" + mSerial };
 }

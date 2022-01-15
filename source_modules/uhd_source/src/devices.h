@@ -1,5 +1,4 @@
-#ifndef DEVICES_H
-#define DEVICES_H
+#pragma once
 
 #include "device.h"
 
@@ -18,6 +17,8 @@ public:
     int size() const;
     bool empty() const;
     void clear();
+
+    Device& getDeviceBySerial(const std::string& serial);
 
     void sortBySerial();
 
@@ -43,5 +44,3 @@ private:
 
     ContainerType mDevices;
 };
-
-#endif // DEVICES_H

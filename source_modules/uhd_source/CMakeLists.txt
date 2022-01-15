@@ -5,7 +5,7 @@ set(SRC
         "src/device.cpp"
         "src/devices.cpp"
         "src/main.cpp"
-        "src/uhddevice.cpp"
+        "src/uhd_device.cpp"
     )
 
 add_library(uhd_source SHARED ${SRC})

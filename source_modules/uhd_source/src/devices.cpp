@@ -32,6 +32,13 @@ void Devices::clear() {
     insert_dummy_device();
 }
 
+Device& Devices::getDeviceBySerial(const std::string& serial) {
+    auto isSerial = [&](const Device& device){ return device.serial() == serial; };
+
+    auto it = std::find_if(std::begin(mDevices), std::end(mDevices), isSerial);
+    return it != mDevices.end() ? *it : *(mDevices.begin());
+}
+
 void Devices::sortBySerial() {
     sort_devices_by_serial(mDevices);
 }
