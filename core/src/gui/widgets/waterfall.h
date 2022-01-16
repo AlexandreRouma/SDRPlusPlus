@@ -109,9 +109,8 @@ namespace ImGui {
                 float sFactor = ceilf(factor);
                 float uFactor;
                 float id = offset;
-                float val, maxVal;
+                float maxVal;
                 int sId;
-                uint32_t maxId;
                 for (int i = 0; i < outWidth; i++) {
                     maxVal = -INFINITY;
                     sId = (int)id;

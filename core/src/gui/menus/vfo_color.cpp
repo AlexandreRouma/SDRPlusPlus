@@ -104,7 +104,6 @@ namespace vfo_color_menu {
                 vfoColors[name] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
                 vfo->color = IM_COL32(255, 255, 255, 50);
                 core::configManager.acquire();
-                char buf[16];
                 core::configManager.conf["vfoColors"][name] = "#FFFFFF";
                 core::configManager.release(true);
             }

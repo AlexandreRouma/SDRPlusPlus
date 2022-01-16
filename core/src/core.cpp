@@ -337,7 +337,7 @@ int sdrpp_main(int argc, char* argv[]) {
 #else
     const char* glsl_version = "#version 120";
     GLFWmonitor* monitor = NULL;
-    for (int i = 0; i < OPENGL_VERSION_COUNT; i++) {
+    for (size_t i = 0; i < OPENGL_VERSION_COUNT; i++) {
         glsl_version = OPENGL_VERSIONS_GLSL[i];
         glfwWindowHint(GLFW_CLIENT_API, OPENGL_VERSIONS_IS_ES[i] ? GLFW_OPENGL_ES_API : GLFW_OPENGL_API);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_VERSIONS_MAJOR[i]);
@@ -450,8 +450,12 @@ int sdrpp_main(int argc, char* argv[]) {
     bandplan::loadColorTable(bandColors);
 
     bool _maximized = maximized;
-    int fsWidth, fsHeight, fsPosX, fsPosY;
-    int _winWidth, _winHeight;
+    int fsWidth = 0;
+    int fsHeight = 0;
+    int fsPosX = 0;
+    int fsPosY = 0;
+    int _winWidth = 0;
+    int _winHeight = 0;
     glfwGetWindowSize(core::window, &_winWidth, &_winHeight);
 
     if (fullScreen) {

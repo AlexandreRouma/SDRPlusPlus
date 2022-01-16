@@ -11,15 +11,11 @@ namespace ImGui {
         ImGuiWindow* window = GetCurrentWindow();
         ImGuiStyle& style = GImGui->Style;
 
-        float pad = style.FramePadding.y;
-
         ImVec2 min = window->DC.CursorPos;
         ImVec2 size = CalcItemSize(size_arg, CalcItemWidth(), 26);
         ImRect bb(min, min + size);
 
         ImU32 text = ImGui::GetColorU32(ImGuiCol_Text);
-
-        float lineHeight = size.y;
 
         ItemSize(size, style.FramePadding.y);
         if (!ItemAdd(bb, 0)) {

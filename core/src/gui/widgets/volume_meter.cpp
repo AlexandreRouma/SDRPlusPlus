@@ -14,8 +14,6 @@ namespace ImGui {
         avg = std::clamp<float>(avg, val_min, val_max);
         peak = std::clamp<float>(peak, val_min, val_max);
 
-        float pad = style.FramePadding.y;
-
         ImVec2 min = window->DC.CursorPos;
         ImVec2 size = CalcItemSize(size_arg, CalcItemWidth(), (GImGui->FontSize / 2) + style.FramePadding.y);
         ImRect bb(min, min + size);

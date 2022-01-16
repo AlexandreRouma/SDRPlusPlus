@@ -91,7 +91,6 @@ namespace net {
         int ret;
 
         if (_udp) {
-            int fromLen = sizeof(remoteAddr);
             ret = sendto(_sock, (char*)buf, count, 0, (struct sockaddr*)&remoteAddr, sizeof(remoteAddr));
         }
         else {
@@ -289,7 +288,7 @@ namespace net {
                 }
                 entry.handler(std::move(client), entry.ctx);
             }
-            catch (std::exception e) {
+            catch (const std::exception& e) {
                 listening = false;
                 return;
             }
@@ -442,7 +441,6 @@ namespace net {
             throw std::runtime_error("Could get address from host");
             return NULL;
         }
-        uint32_t* naddr = (uint32_t*)_host->h_addr_list[0];
 
         // Get address from remote hostname/ip
         hostent* _remoteHost = gethostbyname(remoteHost.c_str());
