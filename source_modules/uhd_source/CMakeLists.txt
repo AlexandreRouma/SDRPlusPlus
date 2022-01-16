@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.13)
 project(uhd_source)
 
-set(SRC
-        "src/device.cpp"
-        "src/devices.cpp"
-        "src/main.cpp"
-        "src/uhd_device.cpp"
-    )
+set(SOURCES
+        src/device.cpp
+        src/devices.cpp
+        src/main.cpp
+        src/uhd_device.cpp
+        )
 
-add_library(uhd_source SHARED ${SRC})
+add_library(uhd_source SHARED ${SOURCES})
 target_link_libraries(uhd_source PRIVATE sdrpp_core)
 set_target_properties(uhd_source PROPERTIES PREFIX "")
 

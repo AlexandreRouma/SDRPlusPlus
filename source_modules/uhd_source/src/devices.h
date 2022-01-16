@@ -19,6 +19,7 @@ public:
     void clear();
 
     Device& getDeviceBySerial(const std::string& serial);
+    int getDeviceIndexBySerial(const std::string& serial);
 
     void sortBySerial();
 

@@ -39,6 +39,16 @@ Device& Devices::getDeviceBySerial(const std::string& serial) {
     return it != mDevices.end() ? *it : *(mDevices.begin());
 }
 
+int Devices::getDeviceIndexBySerial(const std::string& serial) {
+    auto isSerial = [&](const Device& device){ return device.serial() == serial; };
+
+    auto it = std::find_if(std::begin(mDevices), std::end(mDevices), isSerial);
+    if (it != mDevices.end()) {
+        return static_cast<int>(std::distance(mDevices.begin(), it));
+    }
+    return 0;
+}
+
 void Devices::sortBySerial() {
     sort_devices_by_serial(mDevices);
 }

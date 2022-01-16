@@ -33,10 +33,12 @@ void UHDDevice::open() {
     mFrequencyRanges.clear();
     mGainRanges.clear();
     mSampleRateRanges.clear();
+    mDcOffsetRanges.clear();
     mBandwidthRanges.reserve(rxChannels);
     mFrequencyRanges.reserve(rxChannels);
     mGainRanges.reserve(rxChannels);
     mSampleRateRanges.reserve(rxChannels);
+    mDcOffsetRanges.reserve(rxChannels);
 
     for (size_t channelIndex = 0; channelIndex < rxChannels; ++channelIndex) {
         mRxChannels.insert(channelIndex);
@@ -44,11 +46,13 @@ void UHDDevice::open() {
         mFrequencyRanges.insert(mFrequencyRanges.begin() + channelIndex, mUsrp->get_rx_freq_range(channelIndex));
         mGainRanges.insert(mGainRanges.begin() + channelIndex, mUsrp->get_rx_gain_range(channelIndex));
         mSampleRateRanges.insert(mSampleRateRanges.begin() + channelIndex, mUsrp->get_rx_rates(channelIndex));
+        mDcOffsetRanges.insert(mDcOffsetRanges.begin() + channelIndex, mUsrp->get_rx_dc_offset_range(channelIndex));
         mAntennas = mUsrp->get_rx_antennas(mCurrentChannel);
         spdlog::info("bandwidth range from {0} to {1}", mBandwidthRanges[channelIndex].start(), mBandwidthRanges[channelIndex].stop());
         spdlog::info("frequency range from {0} to {1}", mFrequencyRanges[channelIndex].start(), mFrequencyRanges[channelIndex].stop());
         spdlog::info("gain range from {0} to {1}", mGainRanges[channelIndex].start(), mGainRanges[channelIndex].stop());
         spdlog::info("sample rate range from {0} to {1}", mSampleRateRanges[channelIndex].start(), mSampleRateRanges[channelIndex].stop());
+        spdlog::info("dc offset range from {0} to {1}", mDcOffsetRanges[channelIndex].start(), mDcOffsetRanges[channelIndex].stop());
         spdlog::info("available antennas {0}", mAntennas.size());
         for (const auto& antenna : mAntennas) {
             spdlog::info("    {0}", antenna);
@@ -246,6 +250,20 @@ double UHDDevice::getRxSampleRateMin() const {
 double UHDDevice::getRxSampleRateMax() const {
     if (channelDataAvailable(mSampleRateRanges)) {
         return mSampleRateRanges[mCurrentChannel].stop();
+    }
+    return 0.0;
+}
+
+double UHDDevice::getDcOffsetMin() const {
+    if (channelDataAvailable(mDcOffsetRanges)) {
+        return mDcOffsetRanges[mCurrentChannel].start();
+    }
+    return 0.0;
+}
+
+double UHDDevice::getDcOffsetMax() const {
+    if (channelDataAvailable(mDcOffsetRanges)) {
+        return mDcOffsetRanges[mCurrentChannel].stop();
     }
     return 0.0;
 }

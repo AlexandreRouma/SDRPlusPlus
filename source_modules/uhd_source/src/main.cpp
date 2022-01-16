@@ -30,7 +30,7 @@ SDRPP_MOD_INFO{
 
 ConfigManager g_config;
 
-std::array<int, 24> g_sampleRates = { 0 };
+std::array<int, 24> g_sampleRates = { 1000000 };
 
 namespace {
     //! Conditionally append find_all=1 if the key isn't there yet
@@ -97,11 +97,25 @@ UHDSourceModule::UHDSourceModule(std::string name)
     mSourceHandler.tuneHandler = &UHDSourceModule::tuneHandler;
     mSourceHandler.stream = &mStream;
 
+    findUHDDevices();
+
     g_config.acquire();
-    // access config
+    const std::string lastUsedDevice = g_config.conf["device"];
     g_config.release();
 
-    findUHDDevices();
+    const Device& device = mDevices.getDeviceBySerial(lastUsedDevice);
+    if (device.isValid()) {
+        spdlog::debug("device {0} is valid", device.serial());
+        mDeviceId = mDevices.getDeviceIndexBySerial(device.serial());
+        openUHDDevice(this);
+    }
+    else {
+        // TODO: is executed but does not write empty string which acquire/release
+        spdlog::debug("device {0} is not valid", device.serial());
+        // last used device is not connected on startup
+        g_config.conf["device"] = "";
+        g_config.save();
+    }
 
     sigpath::sourceManager.registerSource("UHD", &mSourceHandler);
 }
@@ -143,14 +157,23 @@ void UHDSourceModule::menuHandler(void* ctx) {
         spdlog::debug("selected device index is {0}", _this->mDeviceId);
         openUHDDevice(ctx);
         g_config.acquire();
-        g_config.conf["device"] = deviceName;
+        g_config.conf["device"] = _this->mDevices.at(_this->mDeviceId).serial();
         g_config.release(true);
+    }
+
+    if (ImGui::Button(CONCAT("Refresh##uhd_refresh_", deviceName), ImVec2(menuWidth, 0))) {
+        _this->findUHDDevices();
+        // if new devices are found, the order could change
+        _this->mDeviceId = _this->mDevices.getDeviceIndexBySerial(deviceName);
     }
 
     const bool validDeviceOpen = _this->mpUhdDevice && _this->mpUhdDevice->isOpen();
 
     if (_this->mReceiving) { style::endDisabled(); }
-    ImGui::LeftLabel("Sample rate [Sps]");
+
+    if (!validDeviceOpen) { style::beginDisabled(); }
+
+    ImGui::LeftLabel("Sample rate");
     ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
     if (ImGui::Combo(CONCAT("##uhd_sample_rate_", deviceName), &_this->mSampleRate, _this->getRxSampleRateListString().c_str())) {
         if (validDeviceOpen) {
@@ -166,8 +189,7 @@ void UHDSourceModule::menuHandler(void* ctx) {
     std::string gainLabel{"Rx Gain"};
     ImGui::PushItemWidth(menuWidth - ImGui::CalcTextSize(gainLabel.c_str()).x - 10);
     ImGui::LeftLabel(gainLabel.c_str());
-    float pos = ImGui::GetCursorPosX();
-    if (ImGui::SliderInt(CONCAT("##uhd_rx_gain_", deviceName), &_this->mRxGain, rxGainMin, rxGainMax, "")) {
+    if (ImGui::SliderInt(CONCAT("##uhd_rx_gain_", deviceName), &_this->mRxGain, rxGainMin, rxGainMax, "%d dB")) {
         if (validDeviceOpen) {
             _this->mpUhdDevice->setRxGain(_this->mRxGain);
             g_config.acquire();
@@ -195,6 +217,8 @@ void UHDSourceModule::menuHandler(void* ctx) {
             g_config.release(true);
         }
     }
+
+    if (!validDeviceOpen) { style::endDisabled(); }
 }
 
 void UHDSourceModule::selectHandler(void* ctx) {
@@ -252,9 +276,27 @@ void UHDSourceModule::openUHDDevice(void* ctx) {
         return;
     }
 
-    _this->mpUhdDevice->setChannelIndex(0);
-    _this->mpUhdDevice->setRxGain(50);
-    //_this->mpUhdDevice->set_rx_bandwidth();
+    // if we have settings for the device stored, load and apply them
+    g_config.acquire();
+    const std::string currentDevice = _this->mpUhdDevice->serial();
+    if (g_config.conf["devices"].contains(currentDevice)) {
+        nlohmann::json deviceConfig = g_config.conf["devices"][currentDevice];
+        if (deviceConfig.contains("antenna")) {
+            _this->mRxAntenna = deviceConfig["antenna"];
+        }
+        if (deviceConfig.contains("rxGain")) {
+            _this->mRxGain = deviceConfig["rxGain"];
+        }
+        if (deviceConfig.contains("sampleRate")) {
+            _this->mSampleRate = deviceConfig["sampleRate"];
+        }
+    }
+    g_config.release();
+
+    _this->mpUhdDevice->setChannelIndex(_this->mRxChannel);
+    _this->mpUhdDevice->setRxGain(_this->mRxGain);
+    _this->mpUhdDevice->setRxAntennaByIndex(_this->mRxAntenna);
+    _this->mpUhdDevice->setRxSampleRate(_this->mSampleRate);
     spdlog::debug("devie opened: index = {0}, serial = {1}", _this->mDeviceId, _this->mDevices.at(_this->mDeviceId).serial());
 }
 
@@ -336,8 +378,8 @@ std::string UHDSourceModule::getRxSampleRateListString() const {
 
 MOD_EXPORT void _INIT_() {
     json def = json({});
-    def["devices"] = json({});
     def["device"] = "";
+    def["devices"] = json({});
     g_config.setPath(options::opts.root + "/uhd_config.json");
     g_config.load(def);
     g_config.enableAutoSave();

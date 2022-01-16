@@ -48,6 +48,8 @@ public:
     double getRxGainMax() const;       // [dB]
     double getRxSampleRateMin() const; // [Sps]
     double getRxSampleRateMax() const; // [Sps]
+    double getDcOffsetMin() const;
+    double getDcOffsetMax() const;
 
     void worker(dsp::stream<dsp::complex_t>& stream);
 
@@ -63,7 +65,8 @@ private:
     std::vector<uhd::meta_range_t> mBandwidthRanges;  // bandwidth range per channel
     std::vector<uhd::meta_range_t> mFrequencyRanges;  // frequency range per channel
     std::vector<uhd::gain_range_t> mGainRanges;       // gain range per channel
-    std::vector<uhd::meta_range_t> mSampleRateRanges; // bandwidth range per channel
+    std::vector<uhd::meta_range_t> mSampleRateRanges; // sample rate range per channel
+    std::vector<uhd::meta_range_t> mDcOffsetRanges;   // dc offset range per channel
     std::vector<std::string> mAntennas;
     std::set<size_t> mRxChannels;
 };
