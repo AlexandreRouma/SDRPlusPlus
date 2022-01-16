@@ -317,8 +317,5 @@ void UHDDevice::worker(dsp::stream<dsp::complex_t>& stream) {
 }
 
 bool UHDDevice::channelDataAvailable(const std::vector<uhd::meta_range_t>& data) const {
-    if (mCurrentChannel < data.size()) {
-        return true;
-    }
-    return false;
+    return mCurrentChannel < data.size();
 }

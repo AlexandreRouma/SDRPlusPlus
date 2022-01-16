@@ -51,9 +51,8 @@ public:
     double getDcOffsetMin() const;
     double getDcOffsetMax() const;
 
-    void worker(dsp::stream<dsp::complex_t>& stream);
-
 private:
+    void worker(dsp::stream<dsp::complex_t>& stream);
     bool channelDataAvailable(const std::vector<uhd::meta_range_t>& data) const;
 
     size_t mCurrentChannel;
