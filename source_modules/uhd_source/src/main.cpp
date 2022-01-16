@@ -30,7 +30,7 @@ SDRPP_MOD_INFO{
 
 ConfigManager g_config;
 
-std::array<int, 24> g_sampleRates = { 1000000 };
+std::vector<double> g_sampleRates;
 
 namespace {
     //! Conditionally append find_all=1 if the key isn't there yet
@@ -70,6 +70,7 @@ private:
     std::string getRxChannelListString() const;
     std::string getRxAntennaListString() const;
     std::string getRxSampleRateListString() const;
+    void fillSampleRates(double to);
 
     bool mEnabled;
     bool mReceiving;
@@ -179,7 +180,7 @@ void UHDSourceModule::menuHandler(void* ctx) {
         if (validDeviceOpen) {
             _this->mpUhdDevice->setRxSampleRate(g_sampleRates[_this->mSampleRate]);
             g_config.acquire();
-            g_config.conf["devices"][_this->mpUhdDevice->serial()]["sampleRate"] = g_sampleRates[_this->mSampleRate];
+            g_config.conf["devices"][_this->mpUhdDevice->serial()]["sampleRate"] = _this->mSampleRate;
             g_config.release(true);
         }
     }
@@ -276,6 +277,8 @@ void UHDSourceModule::openUHDDevice(void* ctx) {
         return;
     }
 
+    _this->fillSampleRates(_this->mpUhdDevice->getRxSampleRateMax());
+
     // if we have settings for the device stored, load and apply them
     g_config.acquire();
     const std::string currentDevice = _this->mpUhdDevice->serial();
@@ -296,7 +299,7 @@ void UHDSourceModule::openUHDDevice(void* ctx) {
     _this->mpUhdDevice->setChannelIndex(_this->mRxChannel);
     _this->mpUhdDevice->setRxGain(_this->mRxGain);
     _this->mpUhdDevice->setRxAntennaByIndex(_this->mRxAntenna);
-    _this->mpUhdDevice->setRxSampleRate(_this->mSampleRate);
+    _this->mpUhdDevice->setRxSampleRate(g_sampleRates[_this->mSampleRate]);
     spdlog::debug("devie opened: index = {0}, serial = {1}", _this->mDeviceId, _this->mDevices.at(_this->mDeviceId).serial());
 }
 
@@ -370,10 +373,19 @@ std::string UHDSourceModule::getRxAntennaListString() const {
 std::string UHDSourceModule::getRxSampleRateListString() const {
     std::stringstream sampleRateList;
     for (const auto sampleRate : g_sampleRates) {
-        sampleRateList << sampleRate;
+        sampleRateList << sampleRate / 1000000 << " MHz";
         sampleRateList.write("\0", 1);
     }
     return sampleRateList.str();
+}
+
+void UHDSourceModule::fillSampleRates(double to) {
+    const double start = 1000000;
+    const double increment = 1000000;
+    g_sampleRates.clear();
+    for (double i = start; i <= to; i+=increment) {
+        g_sampleRates.push_back(i);
+    }
 }
 
 MOD_EXPORT void _INIT_() {

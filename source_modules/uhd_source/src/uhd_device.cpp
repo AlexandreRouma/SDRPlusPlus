@@ -295,24 +295,20 @@ void UHDDevice::worker(dsp::stream<dsp::complex_t>& stream) {
     std::vector<void*> buffs;
     for (size_t ch = 0; ch < mRxStream->get_num_channels(); ch++)
         buffs.push_back(&buff.front()); // same buffer for each channel
-
     double receive_timeout = 1.5;
+
     while (mReceiving) {
-        size_t num_rx_samps = mRxStream->recv(buffs, buff.size(), md, receive_timeout, false);
-        // TODO: remove
-        //spdlog::debug("{0} samples received", num_rx_samps);
+        size_t numRxSamps = mRxStream->recv(buffs, buff.size(), md, receive_timeout, false);
 
         receive_timeout = 0.1;
 
         // handle the error code
-        if (md.error_code == uhd::rx_metadata_t::ERROR_CODE_TIMEOUT)
-            break;
         if (md.error_code != uhd::rx_metadata_t::ERROR_CODE_NONE) {
             spdlog::error("error while receiving data: {0}", md.strerror());
             mReceiving = false;
         }
-        std::memcpy(stream.writeBuf, &buff.front(), maxNumberOfSamples);
-        if (!stream.swap(maxNumberOfSamples)) { break; }
+        std::memcpy(stream.writeBuf, &buff.front(), numRxSamps);
+        if (!stream.swap(numRxSamps)) { break; }
     }
 
     uhd::stream_cmd_t stream_cmd_finish(uhd::stream_cmd_t::STREAM_MODE_STOP_CONTINUOUS);
