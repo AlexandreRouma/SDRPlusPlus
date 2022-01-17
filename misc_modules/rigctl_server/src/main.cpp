@@ -379,7 +379,7 @@ private:
             std::lock_guard lck(vfoMtx);
 
             // if number of arguments isn't correct, return error
-            if (parts.size() != 2) {
+            if (parts.size() != 3) {
                 resp = "RPRT 1\n";
                 client->write(resp.size(), (uint8_t*)resp.c_str());
                 return;
@@ -393,7 +393,7 @@ private:
             }
 
             // Parse frequency and assign it to the VFO
-            long long freq = std::stoll(parts[1]);
+            long long freq = std::stoll(parts[2]);
             tuner::tune(tuner::TUNER_MODE_NORMAL, selectedVfo, freq);
             resp = "RPRT 0\n";
             client->write(resp.size(), (uint8_t*)resp.c_str());
@@ -538,9 +538,9 @@ private:
             }
 
             if (parts[1] == "?") {
-                resp = "VFO\n";
+                resp = "VFOA\n";
             }
-            else if (parts[1] != "VFO") {
+            else if (parts[1] != "VFOA") {
                 resp = "RPRT 1\n";
             }
 
@@ -548,7 +548,7 @@ private:
         }
         else if (parts[0] == "v" || parts[0] == "\\get_vfo") {
             std::lock_guard lck(vfoMtx);
-            resp = "VFO\n";
+            resp = "VFOA\n";
             client->write(resp.size(), (uint8_t*)resp.c_str());
         }
         else if (parts[0] == "\\chk_vfo") {
@@ -558,7 +558,7 @@ private:
         }
         else if (parts[0] == "s") {
             std::lock_guard lck(vfoMtx);
-            resp = "0\nVFOA\n";
+            resp = "0\nVFOB\n";
             client->write(resp.size(), (uint8_t*)resp.c_str());
         }
         else if (parts[0] == "S") {
