@@ -3,9 +3,7 @@ project(uhd_source)
 
 set(SOURCES
         src/device.cpp
-        src/devices.cpp
         src/main.cpp
-        src/uhd_device.cpp
         )
 
 add_library(uhd_source SHARED ${SOURCES})

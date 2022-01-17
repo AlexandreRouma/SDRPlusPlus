@@ -9,19 +9,45 @@ public:
     static const std::string SERIAL_FIELD;
     static const std::string TYPE_FIELD;
 
-    bool isValid() const;
+    bool isValid() const {
+        return !mSerial.empty();
+    }
 
-    std::string to_uhd_args() const;
+    std::string toUhdArgs() const {
+        return std::string{ "serial=" + mSerial };
+    }
 
-    std::string name() const;    // name: B205i
-    std::string product() const; // product: B205mini
-    std::string serial() const;  // serial: 12A345B
-    std::string type() const;    // type: b200
+    std::string getName() const { // name: B205i
+        return mName;
+    }
 
-    void name(std::string name);       // name: B205i
-    void product(std::string product); // product: B205mini
-    void serial(std::string serial);   // serial: 12A345B
-    void type(std::string type);       // type: b200
+    std::string getProduct() const { // product: B205mini
+        return mProduct;
+    }
+
+    std::string getSerial() const { // serial: 12A345B
+        return mSerial;
+    }
+
+    std::string getType() const { // type: b200
+        return mType;
+    }
+
+    void setName(std::string name) { // name: B205i
+        mName = std::move(name);
+    }
+
+    void setProduct(std::string product) { // product: B205mini
+        mProduct = std::move(product);
+    }
+
+    void setSerial(std::string serial) { // serial: 12A345B
+        mSerial = std::move(serial);
+    }
+
+    void setType(std::string type) { // type: b200
+        mType = std::move(type);
+    }
 
 private:
     std::string mName;

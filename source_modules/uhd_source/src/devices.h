@@ -9,39 +9,113 @@ class Devices {
 public:
     using ContainerType = std::vector<Device>;
 
-    Devices();
+    Devices() {
+        insertDummyDevice();
+    }
 
-    // returns the index at which it was inserted
-    int add(Device&& device);
-    Device& at(int index);
-    int size() const;
-    bool empty() const;
-    void clear();
+    // returns the index at which the device was inserted
+    int add(Device&& device) {
+        devices.emplace_back(device);
+        return size();
+    }
 
-    Device& getDeviceBySerial(const std::string& serial);
-    int getDeviceIndexBySerial(const std::string& serial);
+    Device& at(int index) {
+        if (index > 0 && index < devices.size()) {
+            return devices.at(index);
+        }
+        return devices.at(0); // empty dummy device, which is always present
+    }
 
-    void sortBySerial();
+    int size() const {
+        return devices.size() - 1;
+    }
+
+    bool empty() const {
+        return devices.size() <= 1;
+    }
+
+    void clear() {
+        devices.clear();
+        insertDummyDevice();
+    }
+
+    Device& getDeviceBySerial(const std::string& serial) {
+        auto isSerial = [&](const Device& device) { return device.getSerial() == serial; };
+
+        auto it = std::find_if(std::begin(devices), std::end(devices), isSerial);
+        return it != devices.end() ? *it : *(devices.begin());
+    }
+
+    int getDeviceIndexBySerial(const std::string& serial) {
+        auto isSerial = [&](const Device& device) { return device.getSerial() == serial; };
+
+        auto it = std::find_if(std::begin(devices), std::end(devices), isSerial);
+        if (it != devices.end()) {
+            return static_cast<int>(std::distance(devices.begin(), it));
+        }
+        return 0;
+    }
+
+    void sortBySerial() {
+        sortDevicesBySerial(devices);
+    }
 
     using iterator = ContainerType::iterator;
     using const_iterator = ContainerType::const_iterator;
     using reverse_iterator = ContainerType::reverse_iterator;
     using const_reverse_iterator = ContainerType::const_reverse_iterator;
 
-    iterator begin();
-    iterator end();
-    const_iterator begin() const;
-    const_iterator end() const;
-    const_iterator cbegin() const;
-    const_iterator cend() const;
-    reverse_iterator rbegin();
-    reverse_iterator rend();
-    const_reverse_iterator crbegin() const;
-    const_reverse_iterator crend() const;
+    iterator begin() {
+        return devices.begin();
+    }
+
+    iterator end() {
+        return devices.end();
+    }
+
+    const_iterator begin() const {
+        return cbegin();
+    }
+
+    const_iterator end() const {
+        return cend();
+    }
+
+    const_iterator cbegin() const {
+        return devices.cbegin();
+    }
+
+    const_iterator cend() const {
+        return devices.cend();
+    }
+
+    reverse_iterator rbegin() {
+        return devices.rbegin();
+    }
+
+    reverse_iterator rend() {
+        return devices.rend();
+    }
+
+    const_reverse_iterator crbegin() const {
+        return devices.crbegin();
+    }
+
+    const_reverse_iterator crend() const {
+        return devices.crend();
+    }
 
 private:
-    void insert_dummy_device();
-    static void sort_devices_by_serial(ContainerType& devices);
+    void insertDummyDevice() {
+        devices.emplace_back(Device{});
+        devices.back().setProduct("None");
+    }
 
-    ContainerType mDevices;
+    static void sortDevicesBySerial(ContainerType& devicesToSort) {
+        std::sort(devicesToSort.begin() + 1, devicesToSort.end(), [](const Device& lhs, const Device& rhs) {
+            return lhs.getSerial() > rhs.getSerial();
+        });
+    }
+
+    ContainerType devices;
 };
