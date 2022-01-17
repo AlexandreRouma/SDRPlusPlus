@@ -136,7 +136,14 @@ private:
 
         if (_this->receiving) { style::endDisabled(); }
 
-        if (!validDeviceOpen) { style::beginDisabled(); }
+        if (!validDeviceOpen) {
+            _this->sampleRateIndex = 0;
+            _this->rxGain = 0;
+            _this->rxAntennaIndex = 0;
+            _this->rxChannelIndex = 0;
+            sampleRates.clear();
+            style::beginDisabled();
+        }
 
         ImGui::LeftLabel("Sample rate");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
