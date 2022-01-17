@@ -10,48 +10,48 @@ public:
     static const std::string TYPE_FIELD;
 
     bool isValid() const {
-        return !mSerial.empty();
+        return !deviceSerial.empty();
     }
 
     std::string toUhdArgs() const {
-        return std::string{ "serial=" + mSerial };
+        return std::string{ "serial=" + deviceSerial };
     }
 
-    std::string getName() const { // name: B205i
-        return mName;
+    std::string name() const { // name: B205i
+        return deviceName;
     }
 
-    std::string getProduct() const { // product: B205mini
-        return mProduct;
+    std::string product() const { // product: B205mini
+        return productName;
     }
 
-    std::string getSerial() const { // serial: 12A345B
-        return mSerial;
+    std::string serial() const { // serial: 12A345B
+        return deviceSerial;
     }
 
-    std::string getType() const { // type: b200
-        return mType;
+    std::string type() const { // type: b200
+        return deviceType;
     }
 
-    void setName(std::string name) { // name: B205i
-        mName = std::move(name);
+    void name(std::string name) { // name: B205i
+        deviceName = std::move(name);
     }
 
-    void setProduct(std::string product) { // product: B205mini
-        mProduct = std::move(product);
+    void product(std::string product) { // product: B205mini
+        productName = std::move(product);
     }
 
-    void setSerial(std::string serial) { // serial: 12A345B
-        mSerial = std::move(serial);
+    void serial(std::string serial) { // serial: 12A345B
+        deviceSerial = std::move(serial);
     }
 
-    void setType(std::string type) { // type: b200
-        mType = std::move(type);
+    void type(std::string type) { // type: b200
+        deviceType = std::move(type);
     }
 
 private:
-    std::string mName;
-    std::string mProduct;
-    std::string mSerial;
-    std::string mType;
+    std::string deviceName;
+    std::string productName;
+    std::string deviceSerial;
+    std::string deviceType;
 };

@@ -65,13 +65,13 @@ public:
 
         const Device& device = devices.getDeviceBySerial(lastUsedDevice);
         if (device.isValid()) {
-            spdlog::debug("device {0} is valid", device.getSerial());
-            deviceIndex = devices.getDeviceIndexBySerial(device.getSerial());
+            spdlog::debug("device {0} is valid", device.serial());
+            deviceIndex = devices.getDeviceIndexBySerial(device.serial());
             openUHDDevice(this);
         }
         else {
             // TODO: is executed but does not write empty string which acquire/release
-            spdlog::debug("device {0} is not valid", device.getSerial());
+            spdlog::debug("device {0} is not valid", device.serial());
             config.conf[DEVICE_FIELD] = "";
             config.save();
         }
@@ -115,14 +115,14 @@ private:
 
         if (_this->receiving) { style::beginDisabled(); }
 
-        const std::string deviceName(_this->devices.at(_this->deviceIndex).getSerial());
+        const std::string deviceName(_this->devices.at(_this->deviceIndex).serial());
 
         ImGui::SetNextItemWidth(menuWidth);
         if (ImGui::Combo(CONCAT("##_uhd_dev_sel_", deviceName), &_this->deviceIndex, concatenatedDeviceList.c_str())) {
             spdlog::debug("selected device index is {0}", _this->deviceIndex);
             openUHDDevice(ctx);
             config.acquire();
-            config.conf[DEVICE_FIELD] = _this->devices.at(_this->deviceIndex).getSerial();
+            config.conf[DEVICE_FIELD] = _this->devices.at(_this->deviceIndex).serial();
             config.release(true);
         }
 
@@ -244,7 +244,7 @@ private:
         _this->uhdDevice = std::make_unique<UHDDevice>(_this->devices.at(_this->deviceIndex));
         _this->uhdDevice->open();
         if (!_this->uhdDevice->isOpen()) {
-            spdlog::error("could not open device with serial {0}", _this->devices.at(_this->deviceIndex).getSerial());
+            spdlog::error("could not open device with serial {0}", _this->devices.at(_this->deviceIndex).serial());
             _this->uhdDevice = nullptr;
             return;
         }
@@ -272,7 +272,7 @@ private:
         _this->uhdDevice->setRxGain(_this->rxGain);
         _this->uhdDevice->setRxAntennaByIndex(_this->rxAntennaIndex);
         _this->uhdDevice->setRxSampleRate(sampleRates[_this->sampleRateIndex]);
-        spdlog::debug("devie opened: index = {0}, serial = {1}", _this->deviceIndex, _this->devices.at(_this->deviceIndex).getSerial());
+        spdlog::debug("devie opened: index = {0}, serial = {1}", _this->deviceIndex, _this->devices.at(_this->deviceIndex).serial());
     }
 
     void findUHDDevices() {
@@ -289,15 +289,15 @@ private:
         for (const auto& device_addr : device_addrs) {
             const int index = devices.add(Device{});
             Device& device = devices.at(index);
-            device.setName(device_addr[Device::NAME_FIELD]);
-            device.setProduct(device_addr[Device::PRODUCT_FIELD]);
-            device.setSerial(device_addr[Device::SERIAL_FIELD]);
-            device.setType(device_addr[Device::TYPE_FIELD]);
+            device.name(device_addr[Device::NAME_FIELD]);
+            device.product(device_addr[Device::PRODUCT_FIELD]);
+            device.serial(device_addr[Device::SERIAL_FIELD]);
+            device.type(device_addr[Device::TYPE_FIELD]);
             spdlog::debug("Device");
-            spdlog::debug("    Serial: {0}", device.getSerial());
-            spdlog::debug("    Product: {0}", device.getProduct());
-            spdlog::debug("    Name: {0}", device.getName());
-            spdlog::debug("    Type: {0}", device.getType());
+            spdlog::debug("    Serial: {0}", device.serial());
+            spdlog::debug("    Product: {0}", device.product());
+            spdlog::debug("    Name: {0}", device.name());
+            spdlog::debug("    Type: {0}", device.type());
         }
 
         if (!devices.empty()) {
@@ -309,11 +309,11 @@ private:
     std::string getDeviceListString() const {
         std::stringstream deviceList;
         for (const auto& device : devices) {
-            if (device.getSerial().empty()) {
-                deviceList << device.getProduct();
+            if (device.serial().empty()) {
+                deviceList << device.product();
             }
             else {
-                deviceList << device.getProduct() << " (" << device.getSerial() << ")";
+                deviceList << device.product() << " (" << device.serial() << ")";
             }
             deviceList.write("\0", 1);
         }

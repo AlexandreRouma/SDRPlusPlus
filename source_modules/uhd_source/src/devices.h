@@ -40,14 +40,14 @@ public:
     }
 
     Device& getDeviceBySerial(const std::string& serial) {
-        auto isSerial = [&](const Device& device) { return device.getSerial() == serial; };
+        auto isSerial = [&](const Device& device) { return device.serial() == serial; };
 
         auto it = std::find_if(std::begin(devices), std::end(devices), isSerial);
         return it != devices.end() ? *it : *(devices.begin());
     }
 
     int getDeviceIndexBySerial(const std::string& serial) {
-        auto isSerial = [&](const Device& device) { return device.getSerial() == serial; };
+        auto isSerial = [&](const Device& device) { return device.serial() == serial; };
 
         auto it = std::find_if(std::begin(devices), std::end(devices), isSerial);
         if (it != devices.end()) {
@@ -108,12 +108,12 @@ public:
 private:
     void insertDummyDevice() {
         devices.emplace_back(Device{});
-        devices.back().setProduct("None");
+        devices.back().product("None");
     }
 
     static void sortDevicesBySerial(ContainerType& devicesToSort) {
         std::sort(devicesToSort.begin() + 1, devicesToSort.end(), [](const Device& lhs, const Device& rhs) {
-            return lhs.getSerial() > rhs.getSerial();
+            return lhs.serial() > rhs.serial();
         });
     }
 

@@ -23,14 +23,14 @@ public:
         const uhd::device_addr_t args(device.toUhdArgs());
 
         if (!device.isValid()) {
-            spdlog::warn("tried to open invalid device with getSerial {0}", device.getSerial());
+            spdlog::warn("tried to open invalid device with serial {0}", device.serial());
             return;
         }
 
         // create a usrp device
         usrp = uhd::usrp::multi_usrp::make(args);
         if (!usrp) {
-            spdlog::error("could not make UHD device with getSerial {0}", device.getSerial());
+            spdlog::error("could not make UHD device with serial {0}", device.serial());
             return;
         }
 
@@ -98,7 +98,7 @@ public:
     }
 
     std::string serial() const {
-        return device.getSerial();
+        return device.serial();
     }
 
     void setChannelIndex(const size_t channel_index) { // [0..N-1]
@@ -279,7 +279,7 @@ public:
 private:
     void worker(dsp::stream<dsp::complex_t>& stream) {
         if (!usrp) {
-            spdlog::warn("tried to create worker thread on not yet opened device with serial {0}", device.getSerial());
+            spdlog::warn("tried to create worker thread on not yet opened device with serial {0}", device.serial());
             return;
         }
         // create a receive streamer
