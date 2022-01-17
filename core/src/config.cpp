@@ -36,7 +36,7 @@ void ConfigManager::load(json def, bool lock) {
         file >> conf;
         file.close();
     }
-    catch (const std::exception& e) {
+    catch (std::exception e) {
         spdlog::error("Config file '{0}' is corrupted, resetting it", path);
         conf = def;
         save(false);

@@ -487,7 +487,7 @@ void MainWindow::draw() {
         if (gui::menu.draw(firstMenuRender)) {
             core::configManager.acquire();
             json arr = json::array();
-            for (size_t i = 0; i < gui::menu.order.size(); i++) {
+            for (int i = 0; i < gui::menu.order.size(); i++) {
                 arr[i]["name"] = gui::menu.order[i].name;
                 arr[i]["open"] = gui::menu.order[i].open;
             }
