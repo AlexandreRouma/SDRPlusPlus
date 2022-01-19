@@ -31,6 +31,7 @@ SDRPP_MOD_INFO{
 ConfigManager config;
 
 std::vector<double> sampleRates;
+std::vector<double> bandwidths;
 
 namespace {
     //! Conditionally append find_all=1 if the key isn't there yet
@@ -47,7 +48,6 @@ namespace {
 class UHDSourceModule : public ModuleManager::Instance {
 public:
     UHDSourceModule(std::string name) : name(std::move(name)) {
-
         sourceHandler.ctx = this;
         sourceHandler.selectHandler = &UHDSourceModule::selectHandler;
         sourceHandler.deselectHandler = &UHDSourceModule::deselectHandler;
@@ -138,10 +138,12 @@ private:
 
         if (!validDeviceOpen) {
             _this->sampleRateIndex = 0;
+            _this->bandwidthIndex = 0;
             _this->rxGain = 0;
             _this->rxAntennaIndex = 0;
             _this->rxChannelIndex = 0;
             sampleRates.clear();
+            bandwidths.clear();
             style::beginDisabled();
         }
 
@@ -152,6 +154,17 @@ private:
                 _this->uhdDevice->setRxSampleRate(sampleRates[_this->sampleRateIndex]);
                 config.acquire();
                 config.conf[DEVICES_FIELD][_this->uhdDevice->serial()][SAMPLE_RATE_INDEX_FIELD] = _this->sampleRateIndex;
+                config.release(true);
+            }
+        }
+
+        ImGui::LeftLabel("Bandwidth");
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::Combo(CONCAT("##uhd_bandwidth_", deviceName), &_this->bandwidthIndex, _this->getRxBandwidthListString().c_str())) {
+            if (validDeviceOpen) {
+                _this->uhdDevice->setRxBandwidth(bandwidths[_this->bandwidthIndex]);
+                config.acquire();
+                config.conf[DEVICES_FIELD][_this->uhdDevice->serial()][BANDWIDTH_INDEX_FIELD] = _this->bandwidthIndex;
                 config.release(true);
             }
         }
@@ -250,6 +263,7 @@ private:
         }
 
         _this->fillSampleRates(_this->uhdDevice->getRxSampleRateMax());
+        _this->fillBandwidths(_this->uhdDevice->getRxBandwidthMax());
 
         // if we have settings for the device stored, load and apply them
         config.acquire();
@@ -264,6 +278,9 @@ private:
             }
             if (deviceConfig.contains(SAMPLE_RATE_INDEX_FIELD)) {
                 _this->sampleRateIndex = deviceConfig[SAMPLE_RATE_INDEX_FIELD];
+            }
+            if (deviceConfig.contains(BANDWIDTH_INDEX_FIELD)) {
+                _this->bandwidthIndex = deviceConfig[BANDWIDTH_INDEX_FIELD];
             }
         }
         config.release();
@@ -351,19 +368,35 @@ private:
         return sampleRateList.str();
     }
 
-    void fillSampleRates(double to) {
-        const double start = 1000000;     // 1 MHz
-        const double increment = 1000000; // 1 MHz
-        sampleRates.clear();
-        for (double i = start; i <= to; i += increment) {
-            sampleRates.push_back(i);
+    std::string getRxBandwidthListString() const {
+        std::stringstream bandwidthList;
+        for (const auto sampleRate : bandwidths) {
+            bandwidthList << sampleRate / 1000000 << " MHz";
+            bandwidthList.write("\0", 1);
         }
+        return bandwidthList.str();
+    }
+
+    void fillValueRange(std::vector<double>& container, double from, double to, double increment) {
+        container.clear();
+        for (double i = from; i <= to; i += increment) {
+            container.push_back(i);
+        }
+    }
+
+    void fillSampleRates(double to) {
+        fillValueRange(sampleRates, 1000000, to, 1000000);
+    }
+
+    void fillBandwidths(double to) {
+        fillValueRange(bandwidths, 1000000, to, 1000000);
     }
 
     bool enabled = false;
     bool receiving = false;
     int deviceIndex = 0; // currently selected device index
     int sampleRateIndex = 0;
+    int bandwidthIndex = 0;
     int rxGain = 0;
     int rxChannelIndex = 0;
     int rxAntennaIndex = 0;
@@ -376,6 +409,7 @@ private:
     static const std::string ANTENNA_INDEX_FIELD;
     static const std::string RX_GAIN_FIELD;
     static const std::string SAMPLE_RATE_INDEX_FIELD;
+    static const std::string BANDWIDTH_INDEX_FIELD;
 };
 
 const std::string UHDSourceModule::DEVICE_FIELD = "device";
@@ -383,6 +417,7 @@ const std::string UHDSourceModule::DEVICES_FIELD = "devices";
 const std::string UHDSourceModule::ANTENNA_INDEX_FIELD = "antennaIndex";
 const std::string UHDSourceModule::RX_GAIN_FIELD = "rxGain";
 const std::string UHDSourceModule::SAMPLE_RATE_INDEX_FIELD = "sampleRateIndex";
+const std::string UHDSourceModule::BANDWIDTH_INDEX_FIELD = "bandwidthIndex";
 
 MOD_EXPORT void _INIT_() {
     json def = json({});

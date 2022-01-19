@@ -129,6 +129,7 @@ public:
             bandwidth = std::clamp(bandwidth, getRxBandwidthMin(), getRxBandwidthMax());
             spdlog::debug("set rx bandwidth to {0} Hz", bandwidth);
             usrp->set_rx_bandwidth(bandwidth, currentChannelIndex);
+            spdlog::debug("actual bandwidth is {0} Hz", usrp->get_rx_bandwidth(currentChannelIndex));
         }
     }
 
