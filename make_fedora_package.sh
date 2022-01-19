@@ -17,7 +17,7 @@ echo "URL: https://www.sdrpp.org/" >>$HOME/rpmbuild/SPECS/sdrpp.spec
 echo "Source0: https://github.com/AlexandreRouma/SDRPlusPlus/archive/refs/tags/%{version}.tar.gz"
 echo "" >>$HOME/rpmbuild/SPECS/sdrpp.spec
 echo "BuildRequires: glew-devel cmake fftw-devel volk-devel glfw-devel airspyone_host-devel hackrf-devel libusb-devel rtl-sdr-devel SoapySDR-devel rtaudio-devel" >>$HOME/rpmbuild/SPECS/sdrpp.spec
-echo "Requires: glew cmake fftw volk glfw airspyone hackrf libusb rtl-sdr SoapySDR rtaudio" >>$HOME/rpmbuild/SPECS/sdrpp.spec
+echo "Requires: glew cmake fftw volk glfw airspyone_host hackrf libusb rtl-sdr SoapySDR rtaudio" >>$HOME/rpmbuild/SPECS/sdrpp.spec
 echo "" >>$HOME/rpmbuild/SPECS/sdrpp.spec
 echo "%description" >>$HOME/rpmbuild/SPECS/sdrpp.spec
 echo "Bloat-free SDR receiver software" >>$HOME/rpmbuild/SPECS/sdrpp.spec
