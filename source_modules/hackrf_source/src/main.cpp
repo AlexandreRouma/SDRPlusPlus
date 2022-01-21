@@ -1,4 +1,3 @@
-#include <imgui.h>
 #include <spdlog/spdlog.h>
 #include <module.h>
 #include <gui/gui.h>
@@ -9,6 +8,7 @@
 #include <libhackrf/hackrf.h>
 #include <gui/widgets/stepped_slider.h>
 #include <options.h>
+#include <gui/smgui.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -275,19 +275,18 @@ private:
 
     static void menuHandler(void* ctx) {
         HackRFSourceModule* _this = (HackRFSourceModule*)ctx;
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
 
-        if (_this->running) { style::beginDisabled(); }
-
-        ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::Combo(CONCAT("##_hackrf_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
-            _this->selectedSerial = _this->devList[_this->devId];
+        if (_this->running) { SmGui::BeginDisabled(); }
+        SmGui::FillWidth();
+        SmGui::ForceSync();
+        if (SmGui::Combo(CONCAT("##_hackrf_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
+            _this->selectBySerial(_this->devList[_this->devId]);
             config.acquire();
             config.conf["device"] = _this->selectedSerial;
             config.release(true);
         }
 
-        if (ImGui::Combo(CONCAT("##_hackrf_sr_sel_", _this->name), &_this->srId, sampleRatesTxt)) {
+        if (SmGui::Combo(CONCAT("##_hackrf_sr_sel_", _this->name), &_this->srId, sampleRatesTxt)) {
             _this->sampleRate = sampleRates[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
             config.acquire();
@@ -295,19 +294,20 @@ private:
             config.release(true);
         }
 
-        ImGui::SameLine();
-        float refreshBtnWdith = menuWidth - ImGui::GetCursorPosX();
-        if (ImGui::Button(CONCAT("Refresh##_hackrf_refr_", _this->name), ImVec2(refreshBtnWdith, 0))) {
+        SmGui::SameLine();
+        SmGui::FillWidth();
+        SmGui::ForceSync();
+        if (SmGui::Button(CONCAT("Refresh##_hackrf_refr_", _this->name))) {
             _this->refresh();
             _this->selectBySerial(_this->selectedSerial);
             core::setInputSampleRate(_this->sampleRate);
         }
 
-        if (_this->running) { style::endDisabled(); }
+        if (_this->running) { SmGui::EndDisabled(); }
 
-        ImGui::LeftLabel("Bandwidth");
-        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::Combo(CONCAT("##_hackrf_bw_sel_", _this->name), &_this->bwId, bandwidthsTxt)) {
+        SmGui::LeftLabel("Bandwidth");
+        SmGui::FillWidth();
+        if (SmGui::Combo(CONCAT("##_hackrf_bw_sel_", _this->name), &_this->bwId, bandwidthsTxt)) {
             if (_this->running) {
                 hackrf_set_baseband_filter_bandwidth(_this->openDev, _this->bandwidthIdToBw(_this->bwId));
             }
@@ -316,9 +316,9 @@ private:
             config.release(true);
         }
 
-        ImGui::LeftLabel("LNA Gain");
-        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::SliderFloatWithSteps(CONCAT("##_hackrf_lna_", _this->name), &_this->lna, 0, 40, 8, "%.0fdB")) {
+        SmGui::LeftLabel("LNA Gain");
+        SmGui::FillWidth();
+        if (SmGui::SliderFloatWithSteps(CONCAT("##_hackrf_lna_", _this->name), &_this->lna, 0, 40, 8, SmGui::FMT_STR_FLOAT_DB_NO_DECIMAL)) {
             if (_this->running) {
                 hackrf_set_lna_gain(_this->openDev, _this->lna);
             }
@@ -327,9 +327,9 @@ private:
             config.release(true);
         }
 
-        ImGui::LeftLabel("VGA Gain");
-        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::SliderFloatWithSteps(CONCAT("##_hackrf_vga_", _this->name), &_this->vga, 0, 62, 2, "%.0fdB")) {
+        SmGui::LeftLabel("VGA Gain");
+        SmGui::FillWidth();
+        if (SmGui::SliderFloatWithSteps(CONCAT("##_hackrf_vga_", _this->name), &_this->vga, 0, 62, 2, SmGui::FMT_STR_FLOAT_DB_NO_DECIMAL)) {
             if (_this->running) {
                 hackrf_set_vga_gain(_this->openDev, _this->vga);
             }
@@ -338,7 +338,7 @@ private:
             config.release(true);
         }
 
-        if (ImGui::Checkbox(CONCAT("Bias-T##_hackrf_bt_", _this->name), &_this->biasT)) {
+        if (SmGui::Checkbox(CONCAT("Bias-T##_hackrf_bt_", _this->name), &_this->biasT)) {
             if (_this->running) {
                 hackrf_set_antenna_enable(_this->openDev, _this->biasT);
             }
@@ -347,7 +347,7 @@ private:
             config.release(true);
         }
 
-        if (ImGui::Checkbox(CONCAT("Amp Enabled##_hackrf_amp_", _this->name), &_this->amp)) {
+        if (SmGui::Checkbox(CONCAT("Amp Enabled##_hackrf_amp_", _this->name), &_this->amp)) {
             if (_this->running) {
                 hackrf_set_amp_enable(_this->openDev, _this->amp);
             }

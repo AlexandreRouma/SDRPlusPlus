@@ -7,6 +7,8 @@ namespace options {
         std::string root;
         bool showConsole;
         bool serverMode;
+        std::string serverHost;
+        int serverPort;
     };
 
     SDRPP_EXPORT CMDLineOptions opts;

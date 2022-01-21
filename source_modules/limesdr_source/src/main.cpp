@@ -1,4 +1,3 @@
-#include <imgui.h>
 #include <spdlog/spdlog.h>
 #include <module.h>
 #include <gui/gui.h>
@@ -7,6 +6,7 @@
 #include <gui/style.h>
 #include <config.h>
 #include <options.h>
+#include <gui/smgui.h>
 #include <lime/LimeSuite.h>
 
 
@@ -382,12 +382,12 @@ private:
 
     static void menuHandler(void* ctx) {
         LimeSDRSourceModule* _this = (LimeSDRSourceModule*)ctx;
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
 
-        if (_this->running) { style::beginDisabled(); }
+        if (_this->running) { SmGui::BeginDisabled(); }
 
-        ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::Combo("##limesdr_dev_sel", &_this->devId, _this->devListTxt.c_str())) {
+        SmGui::FillWidth();
+        SmGui::ForceSync();
+        if (SmGui::Combo("##limesdr_dev_sel", &_this->devId, _this->devListTxt.c_str())) {
             _this->selectByInfoStr(_this->devList[_this->devId]);
             core::setInputSampleRate(_this->sampleRate);
             config.acquire();
@@ -395,7 +395,7 @@ private:
             config.release(true);
         }
 
-        if (ImGui::Combo(CONCAT("##_limesdr_sr_sel_", _this->name), &_this->srId, _this->sampleRatesTxt.c_str())) {
+        if (SmGui::Combo(CONCAT("##_limesdr_sr_sel_", _this->name), &_this->srId, _this->sampleRatesTxt.c_str())) {
             _this->sampleRate = _this->sampleRates[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
             if (_this->selectedDevName != "") {
@@ -406,29 +406,30 @@ private:
         }
 
         // Refresh button
-        ImGui::SameLine();
-        float refreshBtnWdith = menuWidth - ImGui::GetCursorPosX();
-        if (ImGui::Button(CONCAT("Refresh##_limesdr_refr_", _this->name), ImVec2(refreshBtnWdith, 0))) {
+        SmGui::SameLine();
+        SmGui::FillWidth();
+        SmGui::ForceSync();
+        if (SmGui::Button(CONCAT("Refresh##_limesdr_refr_", _this->name))) {
             _this->refresh();
             _this->selectByName(_this->selectedDevName);
             core::setInputSampleRate(_this->sampleRate);
         }
 
         if (_this->channelCount > 1) {
-            ImGui::LeftLabel("RX Channel");
-            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::Combo("##limesdr_ch_sel", &_this->chanId, _this->channelNamesTxt.c_str()) && _this->selectedDevName != "") {
+            SmGui::LeftLabel("RX Channel");
+            SmGui::FillWidth();
+            if (SmGui::Combo("##limesdr_ch_sel", &_this->chanId, _this->channelNamesTxt.c_str()) && _this->selectedDevName != "") {
                 config.acquire();
                 config.conf["devices"][_this->selectedDevName]["channel"] = _this->chanId;
                 config.release(true);
             }
         }
 
-        if (_this->running) { style::endDisabled(); }
+        if (_this->running) { SmGui::EndDisabled(); }
 
-        ImGui::LeftLabel("Antenna");
-        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::Combo("##limesdr_ant_sel", &_this->antennaId, _this->antennaListTxt.c_str())) {
+        SmGui::LeftLabel("Antenna");
+        SmGui::FillWidth();
+        if (SmGui::Combo("##limesdr_ant_sel", &_this->antennaId, _this->antennaListTxt.c_str())) {
             if (_this->running) {
                 LMS_SetAntenna(_this->openDev, false, _this->chanId, _this->antennaId);
             }
@@ -439,9 +440,9 @@ private:
             }
         }
 
-        ImGui::LeftLabel("Bandwidth");
-        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::Combo("##limesdr_bw_sel", &_this->bwId, _this->bandwidthsTxt.c_str())) {
+        SmGui::LeftLabel("Bandwidth");
+        SmGui::FillWidth();
+        if (SmGui::Combo("##limesdr_bw_sel", &_this->bwId, _this->bandwidthsTxt.c_str())) {
             if (_this->running) {
                 LMS_SetLPFBW(_this->openDev, false, _this->chanId, (_this->bwId == _this->bandwidths.size()) ? _this->getBestBandwidth(_this->sampleRate) : _this->bandwidths[_this->bwId]);
             }
@@ -452,9 +453,9 @@ private:
             }
         }
 
-        ImGui::LeftLabel("Gain");
-        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::SliderInt("##limesdr_gain_sel", &_this->gain, 0, 73, "%ddB")) {
+        SmGui::LeftLabel("Gain");
+        SmGui::FillWidth();
+        if (SmGui::SliderInt("##limesdr_gain_sel", &_this->gain, 0, 73, SmGui::FMT_STR_INT_DB)) {
             if (_this->running) {
                 LMS_SetGaindB(_this->openDev, false, _this->chanId, _this->gain);
             }

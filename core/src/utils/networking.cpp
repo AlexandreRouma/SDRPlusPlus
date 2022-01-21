@@ -1,5 +1,6 @@
 #include <utils/networking.h>
 #include <assert.h>
+#include <spdlog/spdlog.h>
 
 namespace net {
 
@@ -70,19 +71,34 @@ namespace net {
         if (_udp) {
             socklen_t fromLen = sizeof(remoteAddr);
             ret = recvfrom(_sock, (char*)buf, count, 0, (struct sockaddr*)&remoteAddr, &fromLen);
-        }
-        else {
-            ret = recv(_sock, (char*)buf, count, 0);
+            if (ret <= 0) {
+                {
+                    std::lock_guard lck(connectionOpenMtx);
+                    connectionOpen = false;
+                }
+                connectionOpenCnd.notify_all();
+                return -1;
+            }
+            return count;
         }
 
-        if (ret <= 0) {
-            {
-                std::lock_guard lck(connectionOpenMtx);
-                connectionOpen = false;
+        int beenRead = 0;
+        while (beenRead < count) {
+            ret = recv(_sock, (char*)&buf[beenRead], count - beenRead, 0);
+
+            if (ret <= 0) {
+                {
+                    std::lock_guard lck(connectionOpenMtx);
+                    connectionOpen = false;
+                }
+                connectionOpenCnd.notify_all();
+                return -1;
             }
-            connectionOpenCnd.notify_all();
+
+            beenRead += ret;
         }
-        return ret;
+
+        return beenRead;
     }
 
     bool ConnClass::write(int count, uint8_t* buf) {
@@ -93,19 +109,31 @@ namespace net {
         if (_udp) {
             int fromLen = sizeof(remoteAddr);
             ret = sendto(_sock, (char*)buf, count, 0, (struct sockaddr*)&remoteAddr, sizeof(remoteAddr));
-        }
-        else {
-            ret = send(_sock, (char*)buf, count, 0);
+            if (ret <= 0) {
+                {
+                    std::lock_guard lck(connectionOpenMtx);
+                    connectionOpen = false;
+                }
+                connectionOpenCnd.notify_all();
+            }
+            return (ret > 0);
         }
 
-        if (ret <= 0) {
-            {
-                std::lock_guard lck(connectionOpenMtx);
-                connectionOpen = false;
+        int beenWritten = 0;
+        while (beenWritten < count) {
+            ret = send(_sock, (char*)buf, count, 0);
+            if (ret <= 0) {
+                {
+                    std::lock_guard lck(connectionOpenMtx);
+                    connectionOpen = false;
+                }
+                connectionOpenCnd.notify_all();
+                return false;
             }
-            connectionOpenCnd.notify_all();
+            beenWritten += ret;
         }
-        return (ret > 0);
+        
+        return true;
     }
 
     void ConnClass::readAsync(int count, uint8_t* buf, void (*handler)(int count, uint8_t* buf, void* ctx), void* ctx) {

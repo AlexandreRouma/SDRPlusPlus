@@ -1,10 +1,10 @@
-#include <imgui.h>
 #include <spdlog/spdlog.h>
 #include <module.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
 #include <core.h>
 #include <gui/style.h>
+#include <gui/smgui.h>
 #include <iio.h>
 #include <ad9361.h>
 #include <options.h>
@@ -185,32 +185,31 @@ private:
 
     static void menuHandler(void* ctx) {
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
 
-        if (_this->running) { style::beginDisabled(); }
-        ImGui::LeftLabel("IP");
-        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::InputText(CONCAT("##_pluto_ip_", _this->name), &_this->ip[3], 16)) {
+        if (_this->running) { SmGui::BeginDisabled(); }
+        SmGui::LeftLabel("IP");
+        SmGui::FillWidth();
+        if (SmGui::InputText(CONCAT("##_pluto_ip_", _this->name), &_this->ip[3], 16)) {
             config.acquire();
             config.conf["IP"] = &_this->ip[3];
             config.release(true);
         }
 
-        ImGui::LeftLabel("Samplerate");
-        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-
-        if (ImGui::Combo(CONCAT("##_pluto_sr_", _this->name), &_this->srId, _this->sampleRatesTxt.c_str())) {
+        SmGui::LeftLabel("Samplerate");
+        SmGui::FillWidth();
+        if (SmGui::Combo(CONCAT("##_pluto_sr_", _this->name), &_this->srId, _this->sampleRatesTxt.c_str())) {
             _this->sampleRate = _this->sampleRates[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
             config.acquire();
             config.conf["sampleRate"] = _this->sampleRate;
             config.release(true);
         }
-        if (_this->running) { style::endDisabled(); }
+        if (_this->running) { SmGui::EndDisabled(); }
 
-        ImGui::LeftLabel("Gain Mode");
-        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::Combo(CONCAT("##_gainmode_select_", _this->name), &_this->gainMode, gainModesTxt)) {
+        SmGui::LeftLabel("Gain Mode");
+        SmGui::FillWidth();
+        SmGui::ForceSync();
+        if (SmGui::Combo(CONCAT("##_gainmode_select_", _this->name), &_this->gainMode, gainModesTxt)) {
             if (_this->running) {
                 iio_channel_attr_write(iio_device_find_channel(_this->phy, "voltage0", false), "gain_control_mode", gainModes[_this->gainMode]);
             }
@@ -219,10 +218,10 @@ private:
             config.release(true);
         }
 
-        ImGui::LeftLabel("PGA Gain");
-        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (_this->gainMode) { style::beginDisabled(); }
-        if (ImGui::SliderFloat(CONCAT("##_gain_select_", _this->name), &_this->gain, 0, 76)) {
+        SmGui::LeftLabel("PGA Gain");
+        if (_this->gainMode) { SmGui::BeginDisabled(); }
+        SmGui::FillWidth();
+        if (SmGui::SliderFloat(CONCAT("##_gain_select_", _this->name), &_this->gain, 0, 76)) {
             if (_this->running) {
                 iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "voltage0", false), "hardwaregain", round(_this->gain));
             }
@@ -230,7 +229,7 @@ private:
             config.conf["gain"] = _this->gain;
             config.release(true);
         }
-        if (_this->gainMode) { style::endDisabled(); }
+        if (_this->gainMode) { SmGui::EndDisabled(); }
     }
 
     static void worker(void* ctx) {

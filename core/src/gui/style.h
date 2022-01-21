@@ -16,4 +16,5 @@ namespace style {
 
 namespace ImGui {
     void LeftLabel(const char* text);
+    void FillWidth();
 }

@@ -29,6 +29,8 @@ public:
     AirspyHFSourceModule(std::string name) {
         this->name = name;
 
+        if (options::opts.serverMode) { return; }
+
         sampleRate = 768000.0;
 
         handler.ctx = this;
