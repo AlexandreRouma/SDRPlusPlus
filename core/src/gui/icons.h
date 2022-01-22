@@ -2,10 +2,7 @@
 #include <imgui/imgui.h>
 #include <string>
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#include <GL/gl.h>
+#include <utils/opengl_include_code.h>
 
 namespace icons {
     extern ImTextureID LOGO;
