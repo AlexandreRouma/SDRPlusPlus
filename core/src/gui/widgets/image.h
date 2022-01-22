@@ -4,7 +4,11 @@
 #include <imgui_internal.h>
 #include <dsp/stream.h>
 #include <mutex>
-#include <GL/glew.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
+#include <GL/gl.h>
 
 namespace ImGui {
     class ImageDisplay {
