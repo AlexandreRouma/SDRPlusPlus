@@ -49,7 +49,7 @@ namespace SmGui {
         rdl = NULL;
     }
 
-    #define SET_DIFF_VOID(id)       diffId = id; syncRequired = elem.forceSync;
+    #define SET_DIFF_VOID(id)       diffId = id; diffValue.type = DRAW_LIST_ELEM_TYPE_BOOL; syncRequired = elem.forceSync;
     #define SET_DIFF_BOOL(id, bo)   diffId = id; diffValue.type = DRAW_LIST_ELEM_TYPE_BOOL; diffValue.b = bo; syncRequired = elem.forceSync;
     #define SET_DIFF_INT(id, in)    diffId = id; diffValue.type = DRAW_LIST_ELEM_TYPE_INT; diffValue.i = in; syncRequired = elem.forceSync;
     #define SET_DIFF_FLOAT(id, fl)  diffId = id; diffValue.type = DRAW_LIST_ELEM_TYPE_FLOAT; diffValue.f = fl; syncRequired = elem.forceSync;
