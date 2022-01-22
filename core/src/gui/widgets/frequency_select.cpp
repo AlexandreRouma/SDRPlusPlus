@@ -119,7 +119,6 @@ void FrequencySelect::draw() {
 
     ImVec2 digitSz = ImGui::CalcTextSize("0");
     ImVec2 commaSz = ImGui::CalcTextSize(".");
-    int digitHeight = digitSz.y;
     int digitWidth = digitSz.x;
     int commaOffset = 0;
     bool zeros = true;
