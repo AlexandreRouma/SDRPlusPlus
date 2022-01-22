@@ -1,6 +1,6 @@
 #pragma once
 
-namespace sourecmenu {
+namespace sourcemenu {
     void init();
     void draw(void* ctx);
 }

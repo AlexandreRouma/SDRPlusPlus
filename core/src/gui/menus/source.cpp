@@ -6,7 +6,7 @@
 #include <gui/style.h>
 #include <signal_path/signal_path.h>
 
-namespace sourecmenu {
+namespace sourcemenu {
     int offsetMode = 0;
     int sourceId = 0;
     double customOffset = 0.0;

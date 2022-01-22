@@ -35,11 +35,10 @@ namespace server {
         // Start readers
         client->readAsync(sizeof(PacketHeader), rbuffer, tcpHandler, this);
 
-        // Default configuration
-        stop();
-
         // Ask for a UI
-        getUI();
+        int res = getUI();
+        if (res == -1) { throw std::runtime_error("Timed out"); }
+        else if (res == -2) { throw std::runtime_error("Server busy"); }
     }
 
     ClientClass::~ClientClass() {
@@ -153,6 +152,23 @@ namespace server {
                 _this->currentSampleRate = *(double*)_this->r_cmd_data;
                 core::setInputSampleRate(_this->currentSampleRate);
             }
+            else if (_this->r_cmd_hdr->cmd == COMMAND_DISCONNECT) {
+                spdlog::error("Asked to disconnect by the server");
+                _this->serverBusy = true;
+
+                // Cancel waiters
+                std::vector<PacketWaiter*> toBeRemoved;
+                for (auto& [waiter, cmd] : _this->commandAckWaiters) {
+                    waiter->cancel();
+                    toBeRemoved.push_back(waiter);
+                }
+
+                // Remove handled waiters
+                for (auto& waiter : toBeRemoved) {
+                    _this->commandAckWaiters.erase(waiter);
+                    delete waiter;
+                }
+            }
         }
         else if (_this->r_pkt_hdr->type == PACKET_TYPE_COMMAND_ACK) {
             // Notify waiters
@@ -184,7 +200,7 @@ namespace server {
         _this->client->readAsync(sizeof(PacketHeader), _this->rbuffer, tcpHandler, _this);
     }
 
-    void ClientClass::getUI() {
+    int ClientClass::getUI() {
         auto waiter = awaitCommandAck(COMMAND_GET_UI);
         sendCommand(COMMAND_GET_UI, 0);
         if (waiter->await(PROTOCOL_TIMEOUT_MS)) {
@@ -192,9 +208,12 @@ namespace server {
             dl.load(r_cmd_data, r_pkt_hdr->size - sizeof(PacketHeader) - sizeof(CommandHeader));
         }
         else {
-            spdlog::error("Timeout out after asking for UI");
+            if (!serverBusy) { spdlog::error("Timeout out after asking for UI"); };
+            waiter->handled();
+            return serverBusy ? -2 : -1;
         }
         waiter->handled();
+        return 0;
     }
 
     void ClientClass::sendPacket(PacketType type, int len) {

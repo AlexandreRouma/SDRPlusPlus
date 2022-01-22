@@ -290,6 +290,7 @@ namespace SmGui {
         // Validate and clear if invalid
         if (!validate()) {
             spdlog::error("Drawlist validation failed");
+            //elements.clear();
             return -1;
         }
 
@@ -376,7 +377,10 @@ namespace SmGui {
         va_start(args, n);
 
         // Check if enough elements are left
-        if (elements.size() - firstId < n) { return false; }
+        if (firstId + n > elements.size()) {
+            va_end(args);
+            return false;
+        }
 
         // Check the type of each element
         for (int i = 0; i < n; i++) {
@@ -400,29 +404,46 @@ namespace SmGui {
             DrawStep step = elements[i++].step;
 
             VALIDATE_WIDGET(4, DRAW_STEP_COMBO, DRAW_LIST_ELEM_TYPE_STRING, DRAW_LIST_ELEM_TYPE_INT, DRAW_LIST_ELEM_TYPE_STRING, DRAW_LIST_ELEM_TYPE_INT)
+            
             E_VALIDATE_WIDGET(3, DRAW_STEP_BUTTON, DRAW_LIST_ELEM_TYPE_STRING, DRAW_LIST_ELEM_TYPE_FLOAT, DRAW_LIST_ELEM_TYPE_FLOAT)
+            
             E_VALIDATE_WIDGET(3, DRAW_STEP_COLUMNS, DRAW_LIST_ELEM_TYPE_INT, DRAW_LIST_ELEM_TYPE_STRING, DRAW_LIST_ELEM_TYPE_BOOL)
+            
             E_VALIDATE_WIDGET(2, DRAW_STEP_RADIO_BUTTON, DRAW_LIST_ELEM_TYPE_STRING, DRAW_LIST_ELEM_TYPE_BOOL)
+           
             E_VALIDATE_WIDGET(1, DRAW_STEP_LEFT_LABEL, DRAW_LIST_ELEM_TYPE_STRING)
+            
             E_VALIDATE_WIDGET(6, DRAW_STEP_SLIDER_INT, DRAW_LIST_ELEM_TYPE_STRING, DRAW_LIST_ELEM_TYPE_INT, DRAW_LIST_ELEM_TYPE_INT,
                                                         DRAW_LIST_ELEM_TYPE_INT, DRAW_LIST_ELEM_TYPE_INT, DRAW_LIST_ELEM_TYPE_INT)
+            
             E_VALIDATE_WIDGET(6, DRAW_STEP_SLIDER_FLOAT_WITH_STEPS, DRAW_LIST_ELEM_TYPE_STRING, DRAW_LIST_ELEM_TYPE_FLOAT, DRAW_LIST_ELEM_TYPE_FLOAT,
                                                         DRAW_LIST_ELEM_TYPE_FLOAT, DRAW_LIST_ELEM_TYPE_FLOAT, DRAW_LIST_ELEM_TYPE_INT)
+            
             E_VALIDATE_WIDGET(5, DRAW_STEP_INPUT_INT, DRAW_LIST_ELEM_TYPE_STRING, DRAW_LIST_ELEM_TYPE_INT, DRAW_LIST_ELEM_TYPE_INT,
                                                         DRAW_LIST_ELEM_TYPE_INT, DRAW_LIST_ELEM_TYPE_INT)
+            
             E_VALIDATE_WIDGET(2, DRAW_STEP_CHECKBOX, DRAW_LIST_ELEM_TYPE_STRING, DRAW_LIST_ELEM_TYPE_BOOL)
+            
             E_VALIDATE_WIDGET(6, DRAW_STEP_SLIDER_FLOAT, DRAW_LIST_ELEM_TYPE_STRING, DRAW_LIST_ELEM_TYPE_FLOAT, DRAW_LIST_ELEM_TYPE_FLOAT,
                                                         DRAW_LIST_ELEM_TYPE_FLOAT, DRAW_LIST_ELEM_TYPE_INT, DRAW_LIST_ELEM_TYPE_INT)
+            
             E_VALIDATE_WIDGET(4, DRAW_STEP_INPUT_TEXT, DRAW_LIST_ELEM_TYPE_STRING, DRAW_LIST_ELEM_TYPE_STRING, DRAW_LIST_ELEM_TYPE_INT, DRAW_LIST_ELEM_TYPE_INT)
+            
             E_VALIDATE_WIDGET(1, DRAW_STEP_TEXT, DRAW_LIST_ELEM_TYPE_STRING)
+            
             E_VALIDATE_WIDGET(5, DRAW_STEP_TEXT_COLORED, DRAW_LIST_ELEM_TYPE_FLOAT, DRAW_LIST_ELEM_TYPE_FLOAT, DRAW_LIST_ELEM_TYPE_FLOAT,
                                                 DRAW_LIST_ELEM_TYPE_FLOAT, DRAW_LIST_ELEM_TYPE_STRING)
+            
             E_VALIDATE_WIDGET(2, DRAW_STEP_OPEN_POPUP, DRAW_LIST_ELEM_TYPE_STRING, DRAW_LIST_ELEM_TYPE_INT)
+           
             E_VALIDATE_WIDGET(2, DRAW_STEP_BEGIN_POPUP, DRAW_LIST_ELEM_TYPE_STRING, DRAW_LIST_ELEM_TYPE_INT)
+            
             E_VALIDATE_WIDGET(6, DRAW_STEP_BEGIN_TABLE, DRAW_LIST_ELEM_TYPE_STRING, DRAW_LIST_ELEM_TYPE_INT, DRAW_LIST_ELEM_TYPE_INT,
                                                         DRAW_LIST_ELEM_TYPE_FLOAT, DRAW_LIST_ELEM_TYPE_FLOAT, DRAW_LIST_ELEM_TYPE_FLOAT)
             E_VALIDATE_WIDGET(2, DRAW_STEP_TABLE_NEXT_ROW, DRAW_LIST_ELEM_TYPE_INT, DRAW_LIST_ELEM_TYPE_FLOAT)
+
             E_VALIDATE_WIDGET(1, DRAW_STEP_TABLE_SET_COLUMN_INDEX, DRAW_LIST_ELEM_TYPE_INT)
+
             E_VALIDATE_WIDGET(1, DRAW_STEP_SET_NEXT_ITEM_WIDTH, DRAW_LIST_ELEM_TYPE_FLOAT)
         }
 

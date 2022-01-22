@@ -76,6 +76,7 @@ namespace server {
         std::string modulesDir = core::configManager.conf["modulesDirectory"];
         std::vector<std::string> modules = core::configManager.conf["modules"];
         auto modList = core::configManager.conf["moduleInstances"].items();
+        std::string sourceName = core::configManager.conf["source"];
         core::configManager.release();
         modulesDir = std::filesystem::absolute(modulesDir).string();
 
@@ -136,8 +137,9 @@ namespace server {
             sourceList.define(name, name);
         }
 
-        // TODO: Load sourceId from config
-
+        // Load sourceId from config
+        sourceId = 0;
+        if (sourceList.keyExists(sourceName)) { sourceId = sourceList.keyId(sourceName); }
         sigpath::sourceManager.selectSource(sourceList[sourceId]);
 
         // TODO: Use command line option
@@ -151,6 +153,29 @@ namespace server {
     }
 
     void _clientHandler(net::Conn conn, void* ctx) {
+        // Reject if someone else is already connected
+        if (client && client->isOpen()) {
+            spdlog::info("REJECTED Connection from {0}:{1}, another client is already connected.", "TODO", "TODO");
+            
+            // Issue a disconnect command to the client
+            uint8_t buf[sizeof(PacketHeader) + sizeof(CommandHeader)];
+            PacketHeader* tmp_phdr = (PacketHeader*)buf;
+            CommandHeader* tmp_chdr = (CommandHeader*)&buf[sizeof(PacketHeader)];
+            tmp_phdr->size = sizeof(PacketHeader) + sizeof(CommandHeader);
+            tmp_phdr->type = PACKET_TYPE_COMMAND;
+            tmp_chdr->cmd = COMMAND_DISCONNECT;
+            conn->write(tmp_phdr->size, buf);
+
+            // TODO: Find something cleaner
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+            conn->close();
+            
+            // Start another async accept
+            listener->acceptAsync(_clientHandler, NULL);
+            return;
+        }
+
         spdlog::info("Connection from {0}:{1}", "TODO", "TODO");
         client = std::move(conn);
         client->readAsync(sizeof(PacketHeader), rbuf, _packetHandler, NULL);
@@ -191,17 +216,6 @@ namespace server {
         // Start another async read
         client->readAsync(sizeof(PacketHeader), rbuf, _packetHandler, NULL);
     }
-
-    // void _testServerHandler(dsp::complex_t* data, int count, void* ctx) {
-    //     // Build data packet
-    //     PacketHeader* hdr = (PacketHeader*)bbuf;
-    //     hdr->type = PACKET_TYPE_BASEBAND;
-    //     hdr->size = sizeof(PacketHeader) + (count * sizeof(dsp::complex_t));
-    //     memcpy(&bbuf[sizeof(PacketHeader)], data, count * sizeof(dsp::complex_t));
-
-    //     // Write to network
-    //     if (client && client->isOpen()) { client->write(hdr->size, bbuf); }
-    // }
 
     void _testServerHandler(uint8_t* data, int count, void* ctx) {
         // Build data packet
@@ -279,7 +293,9 @@ namespace server {
         SmGui::ForceSync();
         if (SmGui::Combo("##sdrpp_server_src_sel", &sourceId, sourceList.txt)) {
             sigpath::sourceManager.selectSource(sourceList[sourceId]);
-            // TODO: Save config
+            core::configManager.acquire();
+            core::configManager.conf["source"] = sourceList.key(sourceId);
+            core::configManager.release(true);
         }
         if (running) { SmGui::EndDisabled(); }
 

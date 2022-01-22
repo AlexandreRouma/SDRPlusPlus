@@ -75,7 +75,7 @@ void MainWindow::init() {
         gui::menu.order.push_back(opt);
     }
 
-    gui::menu.registerEntry("Source", sourecmenu::draw, NULL);
+    gui::menu.registerEntry("Source", sourcemenu::draw, NULL);
     gui::menu.registerEntry("Sinks", sinkmenu::draw, NULL);
     gui::menu.registerEntry("Band Plan", bandplanmenu::draw, NULL);
     gui::menu.registerEntry("Display", displaymenu::draw, NULL);
@@ -164,7 +164,7 @@ void MainWindow::init() {
 
     gui::waterfall.updatePalletteFromArray(colormaps::maps["Turbo"].map, colormaps::maps["Turbo"].entryCount);
 
-    sourecmenu::init();
+    sourcemenu::init();
     sinkmenu::init();
     bandplanmenu::init();
     displaymenu::init();

@@ -27,7 +27,8 @@ namespace server {
         COMMAND_SET_SAMPLE_TYPE,
 
         // Server to client
-        COMMAND_SET_SAMPLERATE = 0x80
+        COMMAND_SET_SAMPLERATE = 0x80,
+        COMMAND_DISCONNECT
     };
 
     enum Error {
@@ -37,7 +38,7 @@ namespace server {
         ERROR_INVALID_ARGUMENT
     };
     
-    // TODO: Pack
+#pragma pack(push, 1)
     struct PacketHeader {
         uint32_t type;
         uint32_t size;
@@ -46,4 +47,5 @@ namespace server {
     struct CommandHeader {
         uint32_t cmd;
     };
+#pragma pack(pop)
 }

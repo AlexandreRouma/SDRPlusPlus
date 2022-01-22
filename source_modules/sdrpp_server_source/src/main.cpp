@@ -10,6 +10,7 @@
 #include <options.h>
 #include <gui/widgets/stepped_slider.h>
 #include <utils/optionlist.h>
+#include <gui/dialogs/dialog_box.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -142,6 +143,10 @@ private:
         bool connected = (_this->client && _this->client->isOpen());
         gui::mainWindow.playButtonLocked = !connected;
 
+        ImGui::GenericDialog("##sdrpp_srv_src_err_dialog", _this->serverBusy, GENERIC_DIALOG_BUTTONS_OK, [=](){
+            ImGui::Text("This server is already in use.");
+        });
+
         if (connected) { style::beginDisabled(); }
         if (ImGui::InputText(CONCAT("##sdrpp_srv_srv_host_", _this->name), _this->hostname, 1023)) {
             config.acquire();
@@ -166,6 +171,7 @@ private:
             }
             catch (std::exception e) {
                 spdlog::error("Could not connect to SDR: {0}", e.what());
+                if (!strcmp(e.what(), "Server busy")) { _this->serverBusy = true; }
             }
         }
         else if (connected && ImGui::Button("Disconnect##sdrpp_srv_source", ImVec2(menuWidth, 0))) {
@@ -238,6 +244,7 @@ private:
     bool running = false;
     
     double freq;
+    bool serverBusy = false;
 
     float datarate = 0;
     float frametimeCounter = 0;

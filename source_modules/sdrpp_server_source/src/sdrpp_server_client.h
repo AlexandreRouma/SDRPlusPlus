@@ -23,7 +23,7 @@ namespace server {
     public:
         bool await(int timeout) {
             std::unique_lock lck(readyMtx);
-            return readyCnd.wait_for(lck, std::chrono::milliseconds(timeout), [=](){ return dataReady; });
+            return readyCnd.wait_for(lck, std::chrono::milliseconds(timeout), [=](){ return dataReady || canceled; }) && !canceled;
         }
 
         void handled() {
@@ -49,16 +49,23 @@ namespace server {
             }
         }
 
+        void cancel() {
+            canceled = true;
+            notify();
+        }
+
         void reset() {
             std::lock_guard lck1(readyMtx);
             std::lock_guard lck2(handledMtx);
             dataReady = false;
             dataHandled = false;
+            canceled = false;
         }
 
     private:
         bool dataReady = false;
         bool dataHandled = false;
+        bool canceled = 0;
         
         std::condition_variable readyCnd;
         std::condition_variable handledCnd;
@@ -86,11 +93,12 @@ namespace server {
         bool isOpen();
 
         int bytes = 0;
+        bool serverBusy = false;
 
     private:
         static void tcpHandler(int count, uint8_t* buf, void* ctx);
 
-        void getUI();
+        int getUI();
 
         void sendPacket(PacketType type, int len);
         void sendCommand(Command cmd, int len);
