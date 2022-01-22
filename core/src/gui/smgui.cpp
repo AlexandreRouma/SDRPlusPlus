@@ -384,7 +384,7 @@ namespace SmGui {
 
         // Check the type of each element
         for (int i = 0; i < n; i++) {
-            if (va_arg(args, DrawListElemType) != elements[firstId + i].type) {
+            if (va_arg(args, int) != (int)elements[firstId + i].type) {
                 va_end(args);
                 return false;
             }
