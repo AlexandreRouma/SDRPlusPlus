@@ -63,7 +63,7 @@ namespace net {
         connectionOpenCnd.wait(lck, [this]() { return !connectionOpen; });
     }
 
-    int ConnClass::read(int count, uint8_t* buf) {
+    int ConnClass::read(int count, uint8_t* buf, bool enforceSize) {
         if (!connectionOpen) { return -1; }
         std::lock_guard lck(readMtx);
         int ret;
@@ -94,6 +94,8 @@ namespace net {
                 connectionOpenCnd.notify_all();
                 return -1;
             }
+
+            if (!enforceSize) { return ret; }
 
             beenRead += ret;
         }
@@ -135,7 +137,7 @@ namespace net {
         return true;
     }
 
-    void ConnClass::readAsync(int count, uint8_t* buf, void (*handler)(int count, uint8_t* buf, void* ctx), void* ctx) {
+    void ConnClass::readAsync(int count, uint8_t* buf, void (*handler)(int count, uint8_t* buf, void* ctx), void* ctx, bool enforceSize) {
         if (!connectionOpen) { return; }
         // Create entry
         ConnReadEntry entry;
@@ -143,6 +145,7 @@ namespace net {
         entry.buf = buf;
         entry.handler = handler;
         entry.ctx = ctx;
+        entry.enforceSize = enforceSize;
 
         // Add entry to queue
         {
@@ -184,7 +187,7 @@ namespace net {
             lck.unlock();
 
             // Read from socket and send data to the handler
-            int ret = read(entry.count, entry.buf);
+            int ret = read(entry.count, entry.buf, entry.enforceSize);
             if (ret <= 0) {
                 {
                     std::lock_guard lck(connectionOpenMtx);
