@@ -198,7 +198,7 @@ private:
             if (validDeviceOpen) {
                 _this->uhdDevice->setChannelIndex(_this->rxChannelIndex);
                 config.acquire();
-                config.conf[DEVICES_FIELD][_this->uhdDevice->serial()]["channel"] = _this->rxChannelIndex;
+                config.conf[DEVICES_FIELD][_this->uhdDevice->serial()][CHANNEL_INDEX_FIELD] = _this->rxChannelIndex;
                 config.release(true);
             }
         }
@@ -410,6 +410,7 @@ private:
     static const std::string RX_GAIN_FIELD;
     static const std::string SAMPLE_RATE_INDEX_FIELD;
     static const std::string BANDWIDTH_INDEX_FIELD;
+    static const std::string CHANNEL_INDEX_FIELD;
 };
 
 const std::string UHDSourceModule::DEVICE_FIELD = "device";
@@ -418,6 +419,7 @@ const std::string UHDSourceModule::ANTENNA_INDEX_FIELD = "antennaIndex";
 const std::string UHDSourceModule::RX_GAIN_FIELD = "rxGain";
 const std::string UHDSourceModule::SAMPLE_RATE_INDEX_FIELD = "sampleRateIndex";
 const std::string UHDSourceModule::BANDWIDTH_INDEX_FIELD = "bandwidthIndex";
+const std::string UHDSourceModule::CHANNEL_INDEX_FIELD = "channel";
 
 MOD_EXPORT void _INIT_() {
     json def = json({});
