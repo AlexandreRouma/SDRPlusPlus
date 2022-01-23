@@ -53,4 +53,8 @@ namespace ImGui {
         ImGui::SameLine();
         ImGui::SetCursorPosY(vpos);
     }
+
+    void FillWidth() {
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
+    }
 }

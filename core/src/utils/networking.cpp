@@ -1,5 +1,6 @@
 #include <utils/networking.h>
 #include <assert.h>
+#include <spdlog/spdlog.h>
 
 namespace net {
 
@@ -62,7 +63,7 @@ namespace net {
         connectionOpenCnd.wait(lck, [this]() { return !connectionOpen; });
     }
 
-    int ConnClass::read(int count, uint8_t* buf) {
+    int ConnClass::read(int count, uint8_t* buf, bool enforceSize) {
         if (!connectionOpen) { return -1; }
         std::lock_guard lck(readMtx);
         int ret;
@@ -70,19 +71,36 @@ namespace net {
         if (_udp) {
             socklen_t fromLen = sizeof(remoteAddr);
             ret = recvfrom(_sock, (char*)buf, count, 0, (struct sockaddr*)&remoteAddr, &fromLen);
-        }
-        else {
-            ret = recv(_sock, (char*)buf, count, 0);
+            if (ret <= 0) {
+                {
+                    std::lock_guard lck(connectionOpenMtx);
+                    connectionOpen = false;
+                }
+                connectionOpenCnd.notify_all();
+                return -1;
+            }
+            return count;
         }
 
-        if (ret <= 0) {
-            {
-                std::lock_guard lck(connectionOpenMtx);
-                connectionOpen = false;
+        int beenRead = 0;
+        while (beenRead < count) {
+            ret = recv(_sock, (char*)&buf[beenRead], count - beenRead, 0);
+
+            if (ret <= 0) {
+                {
+                    std::lock_guard lck(connectionOpenMtx);
+                    connectionOpen = false;
+                }
+                connectionOpenCnd.notify_all();
+                return -1;
             }
-            connectionOpenCnd.notify_all();
+
+            if (!enforceSize) { return ret; }
+
+            beenRead += ret;
         }
-        return ret;
+
+        return beenRead;
     }
 
     bool ConnClass::write(int count, uint8_t* buf) {
@@ -91,24 +109,35 @@ namespace net {
         int ret;
 
         if (_udp) {
-            int fromLen = sizeof(remoteAddr);
             ret = sendto(_sock, (char*)buf, count, 0, (struct sockaddr*)&remoteAddr, sizeof(remoteAddr));
-        }
-        else {
-            ret = send(_sock, (char*)buf, count, 0);
+            if (ret <= 0) {
+                {
+                    std::lock_guard lck(connectionOpenMtx);
+                    connectionOpen = false;
+                }
+                connectionOpenCnd.notify_all();
+            }
+            return (ret > 0);
         }
 
-        if (ret <= 0) {
-            {
-                std::lock_guard lck(connectionOpenMtx);
-                connectionOpen = false;
+        int beenWritten = 0;
+        while (beenWritten < count) {
+            ret = send(_sock, (char*)buf, count, 0);
+            if (ret <= 0) {
+                {
+                    std::lock_guard lck(connectionOpenMtx);
+                    connectionOpen = false;
+                }
+                connectionOpenCnd.notify_all();
+                return false;
             }
-            connectionOpenCnd.notify_all();
+            beenWritten += ret;
         }
-        return (ret > 0);
+        
+        return true;
     }
 
-    void ConnClass::readAsync(int count, uint8_t* buf, void (*handler)(int count, uint8_t* buf, void* ctx), void* ctx) {
+    void ConnClass::readAsync(int count, uint8_t* buf, void (*handler)(int count, uint8_t* buf, void* ctx), void* ctx, bool enforceSize) {
         if (!connectionOpen) { return; }
         // Create entry
         ConnReadEntry entry;
@@ -116,6 +145,7 @@ namespace net {
         entry.buf = buf;
         entry.handler = handler;
         entry.ctx = ctx;
+        entry.enforceSize = enforceSize;
 
         // Add entry to queue
         {
@@ -157,7 +187,7 @@ namespace net {
             lck.unlock();
 
             // Read from socket and send data to the handler
-            int ret = read(entry.count, entry.buf);
+            int ret = read(entry.count, entry.buf, entry.enforceSize);
             if (ret <= 0) {
                 {
                     std::lock_guard lck(connectionOpenMtx);
@@ -442,7 +472,6 @@ namespace net {
             throw std::runtime_error("Could get address from host");
             return NULL;
         }
-        uint32_t* naddr = (uint32_t*)_host->h_addr_list[0];
 
         // Get address from remote hostname/ip
         hostent* _remoteHost = gethostbyname(remoteHost.c_str());

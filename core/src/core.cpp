@@ -1,3 +1,4 @@
+#include <server.h>
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -18,7 +19,6 @@
 #include <options.h>
 #include <filesystem>
 #include <gui/menus/theme.h>
-#include <server.h>
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb_image_resize.h>
@@ -70,6 +70,9 @@ namespace core {
     GLFWwindow* window;
 
     void setInputSampleRate(double samplerate) {
+        // Forward this to the server
+        if (options::opts.serverMode) { server::setInputSampleRate(samplerate); return; }
+        
         sigpath::signalPath.sourceSampleRate = samplerate;
         double effectiveSr = samplerate / ((double)(1 << sigpath::signalPath.decimation));
         // NOTE: Zoom controls won't work
@@ -207,6 +210,8 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["moduleInstances"]["RTL-TCP Source"]["enabled"] = true;
     defConfig["moduleInstances"]["SDRplay Source"]["module"] = "sdrplay_source";
     defConfig["moduleInstances"]["SDRplay Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["SDR++ Server Source"]["module"] = "sdrpp_server_source";
+    defConfig["moduleInstances"]["SDR++ Server Source"]["enabled"] = true;
     defConfig["moduleInstances"]["SoapySDR Source"]["module"] = "soapy_source";
     defConfig["moduleInstances"]["SoapySDR Source"]["enabled"] = true;
     defConfig["moduleInstances"]["SpyServer Source"]["module"] = "spyserver_source";
@@ -297,7 +302,7 @@ int sdrpp_main(int argc, char* argv[]) {
 
     core::configManager.release(true);
 
-    if (options::opts.serverMode) { return server_main(); }
+    if (options::opts.serverMode) { return server::main(); }
 
     core::configManager.acquire();
     int winWidth = core::configManager.conf["windowSize"]["w"];

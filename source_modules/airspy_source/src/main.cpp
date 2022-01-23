@@ -7,8 +7,8 @@
 #include <gui/style.h>
 #include <config.h>
 #include <options.h>
+#include <gui/smgui.h>
 #include <airspy.h>
-
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -313,12 +313,12 @@ private:
 
     static void menuHandler(void* ctx) {
         AirspySourceModule* _this = (AirspySourceModule*)ctx;
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
 
-        if (_this->running) { style::beginDisabled(); }
+        if (_this->running) { SmGui::BeginDisabled(); }
 
-        ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::Combo(CONCAT("##_airspy_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
+        SmGui::FillWidth();
+        SmGui::ForceSync();
+        if (SmGui::Combo(CONCAT("##_airspy_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
             _this->selectBySerial(_this->devList[_this->devId]);
             core::setInputSampleRate(_this->sampleRate);
             if (_this->selectedSerStr != "") {
@@ -328,7 +328,7 @@ private:
             }
         }
 
-        if (ImGui::Combo(CONCAT("##_airspy_sr_sel_", _this->name), &_this->srId, _this->sampleRateListTxt.c_str())) {
+        if (SmGui::Combo(CONCAT("##_airspy_sr_sel_", _this->name), &_this->srId, _this->sampleRateListTxt.c_str())) {
             _this->sampleRate = _this->sampleRateList[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
             if (_this->selectedSerStr != "") {
@@ -338,9 +338,10 @@ private:
             }
         }
 
-        ImGui::SameLine();
-        float refreshBtnWdith = menuWidth - ImGui::GetCursorPosX();
-        if (ImGui::Button(CONCAT("Refresh##_airspy_refr_", _this->name), ImVec2(refreshBtnWdith, 0))) {
+        SmGui::SameLine();
+        SmGui::FillWidth();
+        SmGui::ForceSync();
+        if (SmGui::Button(CONCAT("Refresh##_airspy_refr_", _this->name))) {
             _this->refresh();
             config.acquire();
             std::string devSerial = config.conf["device"];
@@ -349,11 +350,12 @@ private:
             core::setInputSampleRate(_this->sampleRate);
         }
 
-        if (_this->running) { style::endDisabled(); }
+        if (_this->running) { SmGui::EndDisabled(); }
 
-        ImGui::BeginGroup();
-        ImGui::Columns(3, CONCAT("AirspyGainModeColumns##_", _this->name), false);
-        if (ImGui::RadioButton(CONCAT("Sensitive##_airspy_gm_", _this->name), _this->gainMode == 0)) {
+        SmGui::BeginGroup();
+        SmGui::Columns(3, CONCAT("AirspyGainModeColumns##_", _this->name), false);
+        SmGui::ForceSync();
+        if (SmGui::RadioButton(CONCAT("Sensitive##_airspy_gm_", _this->name), _this->gainMode == 0)) {
             _this->gainMode = 0;
             if (_this->running) {
                 airspy_set_lna_agc(_this->openDev, 0);
@@ -366,8 +368,9 @@ private:
                 config.release(true);
             }
         }
-        ImGui::NextColumn();
-        if (ImGui::RadioButton(CONCAT("Linear##_airspy_gm_", _this->name), _this->gainMode == 1)) {
+        SmGui::NextColumn();
+        SmGui::ForceSync();
+        if (SmGui::RadioButton(CONCAT("Linear##_airspy_gm_", _this->name), _this->gainMode == 1)) {
             _this->gainMode = 1;
             if (_this->running) {
                 airspy_set_lna_agc(_this->openDev, 0);
@@ -380,8 +383,9 @@ private:
                 config.release(true);
             }
         }
-        ImGui::NextColumn();
-        if (ImGui::RadioButton(CONCAT("Free##_airspy_gm_", _this->name), _this->gainMode == 2)) {
+        SmGui::NextColumn();
+        SmGui::ForceSync();
+        if (SmGui::RadioButton(CONCAT("Free##_airspy_gm_", _this->name), _this->gainMode == 2)) {
             _this->gainMode = 2;
             if (_this->running) {
                 if (_this->lnaAgc) {
@@ -406,15 +410,15 @@ private:
                 config.release(true);
             }
         }
-        ImGui::Columns(1, CONCAT("EndAirspyGainModeColumns##_", _this->name), false);
-        ImGui::EndGroup();
+        SmGui::Columns(1, CONCAT("EndAirspyGainModeColumns##_", _this->name), false);
+        SmGui::EndGroup();
 
         // Gain menus
 
         if (_this->gainMode == 0) {
-            ImGui::LeftLabel("Gain");
-            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::SliderInt(CONCAT("##_airspy_sens_gain_", _this->name), &_this->sensitiveGain, 0, 21)) {
+            SmGui::LeftLabel("Gain");
+            SmGui::FillWidth();
+            if (SmGui::SliderInt(CONCAT("##_airspy_sens_gain_", _this->name), &_this->sensitiveGain, 0, 21)) {
                 if (_this->running) {
                     airspy_set_sensitivity_gain(_this->openDev, _this->sensitiveGain);
                 }
@@ -426,9 +430,9 @@ private:
             }
         }
         else if (_this->gainMode == 1) {
-            ImGui::LeftLabel("Gain");
-            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::SliderInt(CONCAT("##_airspy_lin_gain_", _this->name), &_this->linearGain, 0, 21)) {
+            SmGui::LeftLabel("Gain");
+            SmGui::FillWidth();
+            if (SmGui::SliderInt(CONCAT("##_airspy_lin_gain_", _this->name), &_this->linearGain, 0, 21)) {
                 if (_this->running) {
                     airspy_set_linearity_gain(_this->openDev, _this->linearGain);
                 }
@@ -440,14 +444,11 @@ private:
             }
         }
         else if (_this->gainMode == 2) {
-            // Calculate position of sliders
-            float pos = ImGui::CalcTextSize("Mixer Gain").x + 10;
-
-            if (_this->lnaAgc) { style::beginDisabled(); }
-            ImGui::LeftLabel("LNA Gain");
-            ImGui::SetCursorPosX(pos);
-            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::SliderInt(CONCAT("##_airspy_lna_gain_", _this->name), &_this->lnaGain, 0, 15)) {
+            // TODO: Switch to a table for alignement
+            if (_this->lnaAgc) { SmGui::BeginDisabled(); }
+            SmGui::LeftLabel("LNA Gain");
+            SmGui::FillWidth();
+            if (SmGui::SliderInt(CONCAT("##_airspy_lna_gain_", _this->name), &_this->lnaGain, 0, 15)) {
                 if (_this->running) {
                     airspy_set_lna_gain(_this->openDev, _this->lnaGain);
                 }
@@ -457,13 +458,12 @@ private:
                     config.release(true);
                 }
             }
-            if (_this->lnaAgc) { style::endDisabled(); }
+            if (_this->lnaAgc) { SmGui::EndDisabled(); }
 
-            if (_this->mixerAgc) { style::beginDisabled(); }
-            ImGui::LeftLabel("Mixer Gain");
-            ImGui::SetCursorPosX(pos);
-            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::SliderInt(CONCAT("##_airspy_mix_gain_", _this->name), &_this->mixerGain, 0, 15)) {
+            if (_this->mixerAgc) { SmGui::BeginDisabled(); }
+            SmGui::LeftLabel("Mixer Gain");
+            SmGui::FillWidth();
+            if (SmGui::SliderInt(CONCAT("##_airspy_mix_gain_", _this->name), &_this->mixerGain, 0, 15)) {
                 if (_this->running) {
                     airspy_set_mixer_gain(_this->openDev, _this->mixerGain);
                 }
@@ -473,12 +473,11 @@ private:
                     config.release(true);
                 }
             }
-            if (_this->mixerAgc) { style::endDisabled(); }
+            if (_this->mixerAgc) { SmGui::EndDisabled(); }
 
-            ImGui::LeftLabel("VGA Gain");
-            ImGui::SetCursorPosX(pos);
-            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::SliderInt(CONCAT("##_airspy_vga_gain_", _this->name), &_this->vgaGain, 0, 15)) {
+            SmGui::LeftLabel("VGA Gain");
+            SmGui::FillWidth();
+            if (SmGui::SliderInt(CONCAT("##_airspy_vga_gain_", _this->name), &_this->vgaGain, 0, 15)) {
                 if (_this->running) {
                     airspy_set_vga_gain(_this->openDev, _this->vgaGain);
                 }
@@ -490,7 +489,8 @@ private:
             }
 
             // AGC Control
-            if (ImGui::Checkbox(CONCAT("LNA AGC##_airspy_", _this->name), &_this->lnaAgc)) {
+            SmGui::ForceSync();
+            if (SmGui::Checkbox(CONCAT("LNA AGC##_airspy_", _this->name), &_this->lnaAgc)) {
                 if (_this->running) {
                     if (_this->lnaAgc) {
                         airspy_set_lna_agc(_this->openDev, 1);
@@ -506,7 +506,8 @@ private:
                     config.release(true);
                 }
             }
-            if (ImGui::Checkbox(CONCAT("Mixer AGC##_airspy_", _this->name), &_this->mixerAgc)) {
+            SmGui::ForceSync();
+            if (SmGui::Checkbox(CONCAT("Mixer AGC##_airspy_", _this->name), &_this->mixerAgc)) {
                 if (_this->running) {
                     if (_this->mixerAgc) {
                         airspy_set_mixer_agc(_this->openDev, 1);
@@ -525,8 +526,7 @@ private:
         }
 
         // Bias T
-
-        if (ImGui::Checkbox(CONCAT("Bias T##_airspy_", _this->name), &_this->biasT)) {
+        if (SmGui::Checkbox(CONCAT("Bias T##_airspy_", _this->name), &_this->biasT)) {
             if (_this->running) {
                 airspy_set_rf_bias(_this->openDev, _this->biasT);
             }

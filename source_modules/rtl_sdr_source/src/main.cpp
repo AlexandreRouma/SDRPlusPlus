@@ -1,4 +1,3 @@
-#include <imgui.h>
 #include <spdlog/spdlog.h>
 #include <module.h>
 #include <gui/gui.h>
@@ -7,6 +6,7 @@
 #include <gui/style.h>
 #include <config.h>
 #include <options.h>
+#include <gui/smgui.h>
 #include <rtl-sdr.h>
 
 
@@ -315,12 +315,11 @@ private:
 
     static void menuHandler(void* ctx) {
         RTLSDRSourceModule* _this = (RTLSDRSourceModule*)ctx;
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
 
-        if (_this->running) { style::beginDisabled(); }
-
-        ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::Combo(CONCAT("##_rtlsdr_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
+        if (_this->running) { SmGui::BeginDisabled(); }
+        SmGui::FillWidth();
+        SmGui::ForceSync();
+        if (SmGui::Combo(CONCAT("##_rtlsdr_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
             _this->selectById(_this->devId);
             core::setInputSampleRate(_this->sampleRate);
             if (_this->selectedDevName != "") {
@@ -330,7 +329,7 @@ private:
             }
         }
 
-        if (ImGui::Combo(CONCAT("##_rtlsdr_sr_sel_", _this->name), &_this->srId, _this->sampleRateListTxt.c_str())) {
+        if (SmGui::Combo(CONCAT("##_rtlsdr_sr_sel_", _this->name), &_this->srId, _this->sampleRateListTxt.c_str())) {
             _this->sampleRate = sampleRates[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
             if (_this->selectedDevName != "") {
@@ -340,20 +339,21 @@ private:
             }
         }
 
-        ImGui::SameLine();
-        float refreshBtnWdith = menuWidth - ImGui::GetCursorPosX();
-        if (ImGui::Button(CONCAT("Refresh##_rtlsdr_refr_", _this->name), ImVec2(refreshBtnWdith, 0))) {
+        SmGui::SameLine();
+        SmGui::FillWidth();
+        SmGui::ForceSync();
+        if (SmGui::Button(CONCAT("Refresh##_rtlsdr_refr_", _this->name)/*, ImVec2(refreshBtnWdith, 0)*/)) {
             _this->refresh();
             _this->selectByName(_this->selectedDevName);
             core::setInputSampleRate(_this->sampleRate);
         }
 
-        if (_this->running) { style::endDisabled(); }
+        if (_this->running) { SmGui::EndDisabled(); }
 
         // Rest of rtlsdr config here
-        ImGui::LeftLabel("Direct Sampling");
-        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::Combo(CONCAT("##_rtlsdr_ds_", _this->name), &_this->directSamplingMode, directSamplingModesTxt)) {
+        SmGui::LeftLabel("Direct Sampling");
+        SmGui::FillWidth();
+        if (SmGui::Combo(CONCAT("##_rtlsdr_ds_", _this->name), &_this->directSamplingMode, directSamplingModesTxt)) {
             if (_this->running) {
                 rtlsdr_set_direct_sampling(_this->openDev, _this->directSamplingMode);
 
@@ -376,9 +376,9 @@ private:
             }
         }
 
-        ImGui::LeftLabel("PPM Correction");
-        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::InputInt(CONCAT("##_rtlsdr_ppm_", _this->name), &_this->ppm, 1, 10)) {
+        SmGui::LeftLabel("PPM Correction");
+        SmGui::FillWidth();
+        if (SmGui::InputInt(CONCAT("##_rtlsdr_ppm_", _this->name), &_this->ppm, 1, 10)) {
             _this->ppm = std::clamp<int>(_this->ppm, -1000000, 1000000);
             if (_this->running) {
                 rtlsdr_set_freq_correction(_this->openDev, _this->ppm);
@@ -390,22 +390,42 @@ private:
             }
         }
 
-        if (_this->tunerAgc || _this->gainList.size() == 0) { style::beginDisabled(); }
-        ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::SliderInt(CONCAT("##_rtlsdr_gain_", _this->name), &_this->gainId, 0, _this->gainList.size() - 1, _this->dbTxt)) {
-            _this->updateGainTxt();
-            if (_this->running) {
-                rtlsdr_set_tuner_gain(_this->openDev, _this->gainList[_this->gainId]);
-            }
-            if (_this->selectedDevName != "") {
-                config.acquire();
-                config.conf["devices"][_this->selectedDevName]["gain"] = _this->gainId;
-                config.release(true);
+        if (_this->tunerAgc || _this->gainList.size() == 0) { SmGui::BeginDisabled(); }
+        SmGui::FillWidth();
+        SmGui::ForceSync();
+
+        // TODO: FIND ANOTHER WAY
+        if (options::opts.serverMode) {
+            if (SmGui::SliderInt(CONCAT("##_rtlsdr_gain_", _this->name), &_this->gainId, 0, _this->gainList.size() - 1, SmGui::FMT_STR_NONE)) {
+                _this->updateGainTxt();
+                if (_this->running) {
+                    rtlsdr_set_tuner_gain(_this->openDev, _this->gainList[_this->gainId]);
+                }
+                if (_this->selectedDevName != "") {
+                    config.acquire();
+                    config.conf["devices"][_this->selectedDevName]["gain"] = _this->gainId;
+                    config.release(true);
+                }
             }
         }
-        if (_this->tunerAgc || _this->gainList.size() == 0) { style::endDisabled(); }
+        else {
+            if (ImGui::SliderInt(CONCAT("##_rtlsdr_gain_", _this->name), &_this->gainId, 0, _this->gainList.size() - 1, _this->dbTxt)) {
+                _this->updateGainTxt();
+                if (_this->running) {
+                    rtlsdr_set_tuner_gain(_this->openDev, _this->gainList[_this->gainId]);
+                }
+                if (_this->selectedDevName != "") {
+                    config.acquire();
+                    config.conf["devices"][_this->selectedDevName]["gain"] = _this->gainId;
+                    config.release(true);
+                }
+            }
+        }
 
-        if (ImGui::Checkbox(CONCAT("Bias T##_rtlsdr_rtl_biast_", _this->name), &_this->biasT)) {
+        
+        if (_this->tunerAgc || _this->gainList.size() == 0) { SmGui::EndDisabled(); }
+
+        if (SmGui::Checkbox(CONCAT("Bias T##_rtlsdr_rtl_biast_", _this->name), &_this->biasT)) {
             if (_this->running) {
                 rtlsdr_set_bias_tee(_this->openDev, _this->biasT);
             }
@@ -416,7 +436,7 @@ private:
             }
         }
 
-        if (ImGui::Checkbox(CONCAT("Offset Tuning##_rtlsdr_rtl_ofs_", _this->name), &_this->offsetTuning)) {
+        if (SmGui::Checkbox(CONCAT("Offset Tuning##_rtlsdr_rtl_ofs_", _this->name), &_this->offsetTuning)) {
             if (_this->running) {
                 rtlsdr_set_offset_tuning(_this->openDev, _this->offsetTuning);
             }
@@ -427,7 +447,7 @@ private:
             }
         }
 
-        if (ImGui::Checkbox(CONCAT("RTL AGC##_rtlsdr_rtl_agc_", _this->name), &_this->rtlAgc)) {
+        if (SmGui::Checkbox(CONCAT("RTL AGC##_rtlsdr_rtl_agc_", _this->name), &_this->rtlAgc)) {
             if (_this->running) {
                 rtlsdr_set_agc_mode(_this->openDev, _this->rtlAgc);
             }
@@ -438,7 +458,8 @@ private:
             }
         }
 
-        if (ImGui::Checkbox(CONCAT("Tuner AGC##_rtlsdr_tuner_agc_", _this->name), &_this->tunerAgc)) {
+        SmGui::ForceSync();
+        if (SmGui::Checkbox(CONCAT("Tuner AGC##_rtlsdr_tuner_agc_", _this->name), &_this->tunerAgc)) {
             if (_this->running) {
                 if (_this->tunerAgc) {
                     rtlsdr_set_tuner_gain_mode(_this->openDev, 0);

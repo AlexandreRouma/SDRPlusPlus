@@ -18,11 +18,9 @@ namespace ImGui {
         std::lock_guard<std::mutex> lck(bufferMtx);
         ImGuiWindow* window = GetCurrentWindow();
         ImGuiStyle& style = GetStyle();
-        float pad = style.FramePadding.y;
         ImVec2 min = window->DC.CursorPos;
         ImVec2 size = CalcItemSize(size_arg, CalcItemWidth(), 100);
         ImRect bb(min, ImVec2(min.x + size.x, min.y + size.y));
-        float lineHeight = size.y;
 
         ItemSize(size, style.FramePadding.y);
         if (!ItemAdd(bb, 0)) {
@@ -31,7 +29,6 @@ namespace ImGui {
 
         window->DrawList->AddRectFilled(min, ImVec2(min.x + size.x, min.y + size.y), IM_COL32(0, 0, 0, 255));
         ImU32 col = ImGui::GetColorU32(ImGuiCol_CheckMark, 0.7f);
-        ImU32 col2 = ImGui::GetColorU32(ImGuiCol_CheckMark, 0.7f);
         float increment = size.x / (float)sampleCount;
         float val;
 

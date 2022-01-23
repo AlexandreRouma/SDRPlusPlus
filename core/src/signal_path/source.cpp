@@ -1,6 +1,8 @@
+#include <server.h>
 #include <signal_path/source.h>
 #include <spdlog/spdlog.h>
 #include <signal_path/signal_path.h>
+#include <options.h>
 
 SourceManager::SourceManager() {
 }
@@ -48,7 +50,13 @@ void SourceManager::selectSource(std::string name) {
     selectedHandler = sources[name];
     selectedHandler->selectHandler(selectedHandler->ctx);
     selectedName = name;
-    sigpath::signalPath.setInput(selectedHandler->stream);
+    if (options::opts.serverMode) {
+        server::setInput(selectedHandler->stream);
+    }
+    else {
+        sigpath::signalPath.setInput(selectedHandler->stream);
+    }
+    // Set server input here
 }
 
 void SourceManager::showSelectedMenu() {

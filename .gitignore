@@ -9,6 +9,7 @@ build/
 *.wav
 .DS_Store
 root_dev/
+root_dev_srv/
 Folder.DotSettings.user
 CMakeSettings.json
 poggers_decoder

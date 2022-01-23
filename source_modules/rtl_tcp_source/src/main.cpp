@@ -6,6 +6,7 @@
 #include <signal_path/signal_path.h>
 #include <core.h>
 #include <options.h>
+#include <gui/smgui.h>
 #include <gui/style.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
@@ -188,27 +189,24 @@ private:
 
     static void menuHandler(void* ctx) {
         RTLTCPSourceModule* _this = (RTLTCPSourceModule*)ctx;
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
-        float portWidth = ImGui::CalcTextSize("00000").x + 20;
 
-        if (_this->running) { style::beginDisabled(); }
+        if (_this->running) { SmGui::BeginDisabled(); }
 
-        ImGui::SetNextItemWidth(menuWidth - portWidth);
-        if (ImGui::InputText(CONCAT("##_ip_select_", _this->name), _this->ip, 1024)) {
+        if (SmGui::InputText(CONCAT("##_ip_select_", _this->name), _this->ip, 1024)) {
             config.acquire();
             config.conf["host"] = std::string(_this->ip);
             config.release(true);
         }
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(portWidth);
-        if (ImGui::InputInt(CONCAT("##_port_select_", _this->name), &_this->port, 0)) {
+        SmGui::SameLine();
+        SmGui::FillWidth();
+        if (SmGui::InputInt(CONCAT("##_port_select_", _this->name), &_this->port, 0)) {
             config.acquire();
             config.conf["port"] = _this->port;
             config.release(true);
         }
 
-        ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::Combo(CONCAT("##_rtltcp_sr_", _this->name), &_this->srId, _this->srTxt.c_str())) {
+        SmGui::FillWidth();
+        if (SmGui::Combo(CONCAT("##_rtltcp_sr_", _this->name), &_this->srId, _this->srTxt.c_str())) {
             _this->sampleRate = sampleRates[_this->srId];
             core::setInputSampleRate(_this->sampleRate);
             config.acquire();
@@ -216,11 +214,11 @@ private:
             config.release(true);
         }
 
-        if (_this->running) { style::endDisabled(); }
+        if (_this->running) { SmGui::EndDisabled(); }
 
-        ImGui::LeftLabel("Direct Sampling");
-        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::Combo(CONCAT("##_rtltcp_ds_", _this->name), &_this->directSamplingMode, "Disabled\0I branch\0Q branch\0")) {
+        SmGui::LeftLabel("Direct Sampling");
+        SmGui::FillWidth();
+        if (SmGui::Combo(CONCAT("##_rtltcp_ds_", _this->name), &_this->directSamplingMode, "Disabled\0I branch\0Q branch\0")) {
             if (_this->running) {
                 _this->client.setDirectSampling(_this->directSamplingMode);
                 _this->client.setGainIndex(_this->gain);
@@ -230,9 +228,9 @@ private:
             config.release(true);
         }
 
-        ImGui::LeftLabel("PPM Correction");
-        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::InputInt(CONCAT("##_rtltcp_ppm_", _this->name), &_this->ppm, 1, 10)) {
+        SmGui::LeftLabel("PPM Correction");
+        SmGui::FillWidth();
+        if (SmGui::InputInt(CONCAT("##_rtltcp_ppm_", _this->name), &_this->ppm, 1, 10)) {
             if (_this->running) {
                 _this->client.setPPM(_this->ppm);
             }
@@ -241,9 +239,9 @@ private:
             config.release(true);
         }
 
-        if (_this->tunerAGC) { style::beginDisabled(); }
-        ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::SliderInt(CONCAT("##_gain_select_", _this->name), &_this->gain, 0, 28, "")) {
+        if (_this->tunerAGC) { SmGui::BeginDisabled(); }
+        SmGui::FillWidth();
+        if (SmGui::SliderInt(CONCAT("##_gain_select_", _this->name), &_this->gain, 0, 28, SmGui::FMT_STR_NONE)) {
             if (_this->running) {
                 _this->client.setGainIndex(_this->gain);
             }
@@ -251,9 +249,9 @@ private:
             config.conf["gainIndex"] = _this->gain;
             config.release(true);
         }
-        if (_this->tunerAGC) { style::endDisabled(); }
+        if (_this->tunerAGC) { SmGui::EndDisabled(); }
 
-        if (ImGui::Checkbox(CONCAT("Bias-T##_biast_select_", _this->name), &_this->biasTee)) {
+        if (SmGui::Checkbox(CONCAT("Bias-T##_biast_select_", _this->name), &_this->biasTee)) {
             if (_this->running) {
                 _this->client.setBiasTee(_this->biasTee);
             }
@@ -262,7 +260,7 @@ private:
             config.release(true);
         }
 
-        if (ImGui::Checkbox(CONCAT("Offset Tuning##_biast_select_", _this->name), &_this->offsetTuning)) {
+        if (SmGui::Checkbox(CONCAT("Offset Tuning##_biast_select_", _this->name), &_this->offsetTuning)) {
             if (_this->running) {
                 _this->client.setOffsetTuning(_this->offsetTuning);
             }
@@ -271,7 +269,7 @@ private:
             config.release(true);
         }
 
-        if (ImGui::Checkbox("RTL AGC", &_this->rtlAGC)) {
+        if (SmGui::Checkbox("RTL AGC", &_this->rtlAGC)) {
             if (_this->running) {
                 _this->client.setAGCMode(_this->rtlAGC);
                 if (!_this->rtlAGC) {
@@ -283,7 +281,8 @@ private:
             config.release(true);
         }
 
-        if (ImGui::Checkbox("Tuner AGC", &_this->tunerAGC)) {
+        SmGui::ForceSync();
+        if (SmGui::Checkbox("Tuner AGC", &_this->tunerAGC)) {
             if (_this->running) {
                 _this->client.setGainMode(!_this->tunerAGC);
                 if (!_this->tunerAGC) {
