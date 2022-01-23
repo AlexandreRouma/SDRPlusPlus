@@ -566,6 +566,10 @@ private:
             resp = "RPRT 0\n";
             client->write(resp.size(), (uint8_t*)resp.c_str());
         }
+        else if (parts[0] == "\\set_vfo_opt") {
+            resp = "RPRT 0\n";
+            client->write(resp.size(), (uint8_t*)resp.c_str());
+        }
         else if (parts[0] == "AOS" || parts[0] == "\\recorder_start") {
             std::lock_guard lck(recorderMtx);
 
