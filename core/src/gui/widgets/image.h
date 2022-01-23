@@ -4,7 +4,8 @@
 #include <imgui_internal.h>
 #include <dsp/stream.h>
 #include <mutex>
-#include <GL/glew.h>
+
+#include <utils/opengl_include_code.h>
 
 namespace ImGui {
     class ImageDisplay {

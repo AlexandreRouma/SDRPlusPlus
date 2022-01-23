@@ -4,8 +4,9 @@
 #include <gui/widgets/bandplan.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
-#include <GL/glew.h>
 #include <utils/event.h>
+
+#include <utils/opengl_include_code.h>
 
 #define WATERFALL_RESOLUTION 1000000
 

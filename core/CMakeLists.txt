@@ -56,9 +56,9 @@ if (MSVC)
     # Volk
     target_link_libraries(sdrpp_core PUBLIC volk)
 
-    # Glew
-    find_package(GLEW REQUIRED)
-    target_link_libraries(sdrpp_core PUBLIC GLEW::GLEW)
+    # OpenGL
+    find_package(OpenGL REQUIRED)
+    target_link_libraries(sdrpp_core PUBLIC OpenGL::GL)
 
     # GLFW3
     find_package(glfw3 CONFIG REQUIRED)
@@ -75,20 +75,19 @@ else()
     find_package(PkgConfig)
     find_package(OpenGL REQUIRED)
 
-    pkg_check_modules(GLEW REQUIRED glew)
     pkg_check_modules(FFTW3 REQUIRED fftw3f)
     pkg_check_modules(VOLK REQUIRED volk)
     pkg_check_modules(GLFW3 REQUIRED glfw3)
 
     target_include_directories(sdrpp_core PUBLIC
-        ${GLEW_INCLUDE_DIRS}
+        ${OPENGL_INCLUDE_DIRS}
         ${FFTW3_INCLUDE_DIRS}
         ${GLFW3_INCLUDE_DIRS}
         ${VOLK_INCLUDE_DIRS}
     )
     
     target_link_directories(sdrpp_core PUBLIC
-        ${GLEW_LIBRARY_DIRS}
+        ${OPENGL_LIBRARY_DIRS}
         ${FFTW3_LIBRARY_DIRS}
         ${GLFW3_LIBRARY_DIRS}
         ${VOLK_LIBRARY_DIRS}
@@ -96,7 +95,6 @@ else()
 
     target_link_libraries(sdrpp_core PUBLIC
         ${OPENGL_LIBRARIES}
-        ${GLEW_LIBRARIES}
         ${FFTW3_LIBRARIES}
         ${GLFW3_LIBRARIES}
         ${VOLK_LIBRARIES}

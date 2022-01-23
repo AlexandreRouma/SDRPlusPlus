@@ -10,7 +10,7 @@ echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://ap
 apt update
 
 # Install dependencies and tools
-apt install -y build-essential cmake git libfftw3-dev libglfw3-dev libglew-dev libvolk1-dev libsoapysdr-dev libairspy-dev \
+apt install -y build-essential cmake git libfftw3-dev libglfw3-dev libvolk1-dev libsoapysdr-dev libairspy-dev \
             libiio-dev libad9361-dev librtaudio-dev libhackrf-dev librtlsdr-dev libbladerf-dev liblimesuite-dev p7zip-full wget portaudio19-dev \
             libcodec2-dev
 
@@ -52,4 +52,4 @@ make VERBOSE=1 -j2
 
 # Generate package
 cd ..
-sh make_debian_package.sh ./build 'libfftw3-dev, libglfw3-dev, libglew-dev, libvolk1-dev, librtaudio-dev'
+sh make_debian_package.sh ./build 'libfftw3-dev, libglfw3-dev, libvolk1-dev, librtaudio-dev'
