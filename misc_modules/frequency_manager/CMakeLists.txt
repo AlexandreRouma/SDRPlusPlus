@@ -10,7 +10,11 @@ set_target_properties(frequency_manager PROPERTIES PREFIX "")
 target_include_directories(frequency_manager PRIVATE "src/" "../../decoder_modules/radio/src")
 
 if (MSVC)
-    target_compile_options(frequency_manager PRIVATE /O2 /Ob2 /std:c++17 /EHsc)
+    target_compile_options(frequency_manager
+    PRIVATE
+    $<$<CONFIG:Debug>:/Od /Ob2 /std:c++17 /EHsc>
+    $<$<CONFIG:Release>:/O2 /Ob2 /std:c++17 /EHsc>
+    )
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(frequency_manager PRIVATE -O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
 else ()

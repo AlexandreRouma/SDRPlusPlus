@@ -187,7 +187,11 @@ target_link_libraries(sdrpp PRIVATE sdrpp_core)
 
 # Compiler arguments for each platform
 if (MSVC)
-    target_compile_options(sdrpp PRIVATE /O2 /Ob2 /std:c++17 /EHsc)
+    target_compile_options(sdrpp
+    PRIVATE 
+    $<$<CONFIG:Debug>:/Od /Ob2 /std:c++17 /EHsc>
+    $<$<CONFIG:Release>:/O2 /Ob2 /std:c++17 /EHsc>
+    )
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(sdrpp PRIVATE -O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
 else ()

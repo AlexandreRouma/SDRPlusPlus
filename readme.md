@@ -131,6 +131,15 @@ cmake .. "-DCMAKE_TOOLCHAIN_FILE=<vcpkg install directory>/scripts/buildsystems/
 cmake --build . --config Release
 ```
 
+## Building using the CMake-GUI (tested on CMake 3.22.1)
+Browse Source and add the root folder of this GIT repository.
+Copy the same Directory to Where to build and add "/build" at the end.
+Push Configure
+Select "Specify toolchain file for cross-compiling" -> Push "Next"
+Browse to your installation of vcpkg.cmake -> Push "Finish"
+If all worked fine -> Push "Generate"
+And now -> Push "Open Project"
+
 ## Running for development
 
 ### Create a new configuration root directory

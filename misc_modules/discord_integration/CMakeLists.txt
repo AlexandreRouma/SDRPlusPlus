@@ -18,7 +18,11 @@ set_target_properties(discord_integration PROPERTIES PREFIX "")
 target_include_directories(discord_integration PRIVATE "src/" "discord-rpc/include" "../../decoder_modules/radio/src/")
 
 if (MSVC)
-    target_compile_options(discord_integration PRIVATE /O2 /Ob2 /std:c++17 /EHsc)
+    target_compile_options(discord_integration
+    PRIVATE
+    $<$<CONFIG:Debug>:/Od /Ob2 /std:c++17 /EHsc>
+    $<$<CONFIG:Release>:/O2 /Ob2 /std:c++17 /EHsc>
+    )
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(discord_integration PRIVATE -O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
 else ()
