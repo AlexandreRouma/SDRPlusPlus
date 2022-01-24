@@ -23,7 +23,7 @@ cp /usr/bin/qemu-arm-static /mnt/bin/
 # Inject script to install dependencies
 echo 'export DEBIAN_FRONTEND=noninteractive' >> /mnt/root/prepare.sh
 echo 'apt update --allow-releaseinfo-change' >> /mnt/root/prepare.sh
-echo 'apt install -y build-essential cmake git libfftw3-dev libglfw3-dev libglew-dev libvolk2-dev libsoapysdr-dev libairspyhf-dev libairspy-dev \' >> /mnt/root/prepare.sh
+echo 'apt install -y build-essential cmake git libfftw3-dev libglfw3-dev libvolk2-dev libsoapysdr-dev libairspyhf-dev libairspy-dev \' >> /mnt/root/prepare.sh
 echo '            libiio-dev libad9361-dev librtaudio-dev libhackrf-dev librtlsdr-dev libbladerf-dev liblimesuite-dev p7zip-full wget portaudio19-dev \' >> /mnt/root/prepare.sh
 echo '            libcodec2-dev' >> /mnt/root/prepare.sh
 
@@ -44,5 +44,5 @@ make VERBOSE=1 -j2
 
 # Create deb
 cd ..
-sh make_debian_package.sh ./build 'libfftw3-dev, libglfw3-dev, libglew-dev, libvolk2-dev, librtaudio-dev'
+sh make_debian_package.sh ./build 'libfftw3-dev, libglfw3-dev, libvolk2-dev, librtaudio-dev'
 mv sdrpp_debian_amd64.deb sdrpp_raspios_arm32.deb

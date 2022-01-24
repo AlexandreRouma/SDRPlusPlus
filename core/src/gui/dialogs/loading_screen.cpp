@@ -1,4 +1,3 @@
-#include <GL/glew.h>
 #include <gui/dialogs/loading_screen.h>
 #include <gui/main_window.h>
 #include <imgui.h>

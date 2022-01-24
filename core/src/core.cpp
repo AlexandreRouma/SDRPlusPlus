@@ -3,7 +3,6 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <stdio.h>
-#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <gui/main_window.h>
 #include <gui/style.h>
@@ -411,12 +410,6 @@ int sdrpp_main(int argc, char* argv[]) {
     for (int i = 1; i < 10; i++) {
         free(icons[i].pixels);
     }
-
-    if (glewInit() != GLEW_OK) {
-        spdlog::error("Failed to initialize OpenGL loader!");
-        return 1;
-    }
-
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
