@@ -738,7 +738,7 @@ private:
         }
 
         ImGui::BeginTooltip();
-        ImGui::Text(hoveredBookmarkName.c_str());
+        ImGui::Text("%s", hoveredBookmarkName.c_str());
         ImGui::Separator();
         ImGui::Text("List: %s", hoveredBookmark.listName.c_str());
         ImGui::Text("Frequency: %s", utils::formatFreq(hoveredBookmark.bookmark.frequency).c_str());

@@ -129,7 +129,7 @@ namespace vfo_color_menu {
                 core::configManager.release(true);
             }
             ImGui::SameLine();
-            ImGui::Text(name.c_str());
+            ImGui::Text("%s", name.c_str());
         }
         ImGui::EndTable();
     }
