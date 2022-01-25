@@ -313,11 +313,18 @@ private:
             receive_timeout = 0.1;
 
             // handle the error code
-            if (md.error_code != uhd::rx_metadata_t::ERROR_CODE_NONE) {
+            if (md.error_code == uhd::rx_metadata_t::ERROR_CODE_OVERFLOW) {
+                spdlog::warn("{0}", md.strerror());
+            }
+            else if (md.error_code != uhd::rx_metadata_t::ERROR_CODE_NONE) {
                 spdlog::error("error while receiving data: {0}", md.strerror());
                 receiving = false;
             }
-            std::memcpy(stream.writeBuf, &buff.front(), numRxSamps);
+
+            for (int i = 0; i < numRxSamps; i++) {
+                stream.writeBuf[i].re = buff[i].real();
+                stream.writeBuf[i].im = buff[i].imag();
+            }
             if (!stream.swap(numRxSamps)) { break; }
         }
 

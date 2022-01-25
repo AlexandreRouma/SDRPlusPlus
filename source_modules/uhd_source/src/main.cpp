@@ -3,6 +3,7 @@
 #include "uhd_device.h"
 
 #include "config.h"
+#include "core.h"
 #include "dsp/stream.h"
 #include "dsp/types.h"
 #include "gui/style.h"
@@ -152,6 +153,7 @@ private:
         if (ImGui::Combo(CONCAT("##uhd_sample_rate_", deviceName), &_this->sampleRateIndex, _this->getRxSampleRateListString().c_str())) {
             if (validDeviceOpen) {
                 _this->uhdDevice->setRxSampleRate(sampleRates[_this->sampleRateIndex]);
+                core::setInputSampleRate(_this->uhdDevice->getRxSampleRate());
                 config.acquire();
                 config.conf[DEVICES_FIELD][_this->uhdDevice->serial()][SAMPLE_RATE_INDEX_FIELD] = _this->sampleRateIndex;
                 config.release(true);
@@ -289,6 +291,7 @@ private:
         _this->uhdDevice->setRxGain(_this->rxGain);
         _this->uhdDevice->setRxAntennaByIndex(_this->rxAntennaIndex);
         _this->uhdDevice->setRxSampleRate(sampleRates[_this->sampleRateIndex]);
+        core::setInputSampleRate(_this->uhdDevice->getRxSampleRate());
         spdlog::debug("devie opened: index = {0}, serial = {1}", _this->deviceIndex, _this->devices.at(_this->deviceIndex).serial());
     }
 
