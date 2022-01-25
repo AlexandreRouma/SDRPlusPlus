@@ -4,7 +4,6 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <stdio.h>
-#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <thread>
 #include <complex>
@@ -75,7 +74,7 @@ void MainWindow::init() {
         gui::menu.order.push_back(opt);
     }
 
-    gui::menu.registerEntry("Source", sourecmenu::draw, NULL);
+    gui::menu.registerEntry("Source", sourcemenu::draw, NULL);
     gui::menu.registerEntry("Sinks", sinkmenu::draw, NULL);
     gui::menu.registerEntry("Band Plan", bandplanmenu::draw, NULL);
     gui::menu.registerEntry("Display", displaymenu::draw, NULL);
@@ -164,7 +163,7 @@ void MainWindow::init() {
 
     gui::waterfall.updatePalletteFromArray(colormaps::maps["Turbo"].map, colormaps::maps["Turbo"].entryCount);
 
-    sourecmenu::init();
+    sourcemenu::init();
     sinkmenu::init();
     bandplanmenu::init();
     displaymenu::init();
@@ -354,12 +353,6 @@ void MainWindow::draw() {
         core::configManager.release(true);
     }
 
-    ImVec2 vMin = ImGui::GetWindowContentRegionMin();
-    ImVec2 vMax = ImGui::GetWindowContentRegionMax();
-
-    int width = vMax.x - vMin.x;
-    int height = vMax.y - vMin.y;
-
     // To Bar
     ImGui::PushID(ImGui::GetID("sdrpp_menu_btn"));
     if (ImGui::ImageButton(icons::MENU, ImVec2(30, 30), ImVec2(0, 0), ImVec2(1, 1), 5) || ImGui::IsKeyPressed(GLFW_KEY_MENU, false)) {
@@ -489,7 +482,6 @@ void MainWindow::draw() {
         ImGui::SetColumnWidth(1, winSize.x - menuWidth - 60);
         ImGui::SetColumnWidth(2, 60);
         ImGui::BeginChild("Left Column");
-        float menuColumnWidth = ImGui::GetContentRegionAvailWidth();
 
         if (gui::menu.draw(firstMenuRender)) {
             core::configManager.acquire();
@@ -516,7 +508,7 @@ void MainWindow::draw() {
         }
 
         if (ImGui::CollapsingHeader("Debug")) {
-            ImGui::Text("Frame time: %.3f ms/frame", 1000.0 / ImGui::GetIO().Framerate);
+            ImGui::Text("Frame time: %.3f ms/frame", ImGui::GetIO().DeltaTime * 1000.0f);
             ImGui::Text("Framerate: %.1f FPS", ImGui::GetIO().Framerate);
             ImGui::Text("Center Frequency: %.0f Hz", gui::waterfall.getCenterFrequency());
             ImGui::Text("Source name: %s", sourceName.c_str());

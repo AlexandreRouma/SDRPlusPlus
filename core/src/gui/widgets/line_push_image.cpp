@@ -15,7 +15,6 @@ namespace ImGui {
 
         ImGuiWindow* window = GetCurrentWindow();
         ImGuiStyle& style = GetStyle();
-        float pad = style.FramePadding.y;
         ImVec2 min = window->DC.CursorPos;
 
         // Calculate scale
@@ -24,7 +23,6 @@ namespace ImGui {
 
         ImVec2 size = CalcItemSize(size_arg, CalcItemWidth(), height);
         ImRect bb(min, ImVec2(min.x + size.x, min.y + size.y));
-        float lineHeight = size.y;
 
         // If there are no lines, there is no point in drawing anything
         if (_lineCount == 0) { return; }

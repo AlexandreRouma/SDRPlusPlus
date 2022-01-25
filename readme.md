@@ -36,7 +36,7 @@ Download the latest release from [the Releases page](https://github.com/Alexandr
 Then, run:
 
 ```sh
-sudo apt install libfftw3-dev libglfw3-dev libglew-dev libvolk2-dev libsoapysdr-dev libairspyhf-dev libiio-dev libad9361-dev librtaudio-dev libhackrf-dev
+sudo apt install libfftw3-dev libglfw3-dev libvolk2-dev libsoapysdr-dev libairspyhf-dev libiio-dev libad9361-dev librtaudio-dev libhackrf-dev
 sudo dpkg -i sdrpp_debian_amd64.deb
 ```
 
@@ -71,7 +71,6 @@ brew install \
   cmake \
   codec2 \
   fftw \
-  glew \
   glfw \
   hackrf \
   libbladerf \
@@ -116,7 +115,6 @@ After this, install the following dependencies using vcpkg:
 
 * fftw3
 * glfw3
-* glew
 
 You are probably going to build in 64 bit so make sure vcpkg installs the correct versions using `.\vcpkg.exe install <package>:x64-windows`
 
@@ -222,7 +220,6 @@ you can disable it using the module parameter listed in the table below
 * cmake
 * fftw3
 * glfw
-* glew
 * libvolk
 
 Next install dependencies based on the modules you wish to build (See previous step)

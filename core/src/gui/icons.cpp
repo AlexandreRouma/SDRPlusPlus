@@ -1,6 +1,5 @@
 #include <gui/icons.h>
 #include <stdint.h>
-#include <GL/glew.h>
 #include <config.h>
 #include <options.h>
 

@@ -28,6 +28,8 @@ public:
     FileSourceModule(std::string name) : fileSelect("", { "Wav IQ Files (*.wav)", "*.wav", "All Files", "*" }) {
         this->name = name;
 
+        if (options::opts.serverMode) { return; }
+
         config.acquire();
         fileSelect.setPath(config.conf["path"], true);
         config.release();

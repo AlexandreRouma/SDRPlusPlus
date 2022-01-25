@@ -2,15 +2,15 @@
 #include <dsp/block.h>
 
 namespace dsp {
+    enum PCMType {
+        PCM_TYPE_I8,
+        PCM_TYPE_I16,
+        PCM_TYPE_F32
+    };
+
     class DynamicRangeCompressor : public generic_block<DynamicRangeCompressor> {
     public:
         DynamicRangeCompressor() {}
-
-        enum PCMType {
-            PCM_TYPE_I8,
-            PCM_TYPE_I16,
-            PCM_TYPE_F32
-        };
 
         DynamicRangeCompressor(stream<complex_t>* in, PCMType pcmType) { init(in, pcmType); }
 
@@ -41,44 +41,42 @@ namespace dsp {
         int run() {
             int count = _in->read();
             if (count < 0) { return -1; }
+            PCMType type = _pcmType;
 
-            float* scaler = (float*)out.writeBuf;
-            void* dataBuf = &out.writeBuf[4];
+            uint16_t* compressionType = (uint16_t*)out.writeBuf;
+            uint16_t* sampleType = (uint16_t*)&out.writeBuf[2];
+            float* scaler = (float*)&out.writeBuf[4];
+            void* dataBuf = &out.writeBuf[8];
 
-            // If no dynamic range compression is to be done, just pass the data to the output with a null scaler
-            if (_pcmType == PCM_TYPE_F32) {
+            // Write options and leave blank space for compression
+            *compressionType = 0;
+            *sampleType = type;
+
+            // If type is float32, no compression is needed
+            if (type == PCM_TYPE_F32) {
                 *scaler = 0;
                 memcpy(dataBuf, _in->readBuf, count * sizeof(complex_t));
                 _in->flush();
-                if (!out.swap(4 + (count * sizeof(complex_t)))) { return -1; }
+                if (!out.swap(8 + (count * sizeof(complex_t)))) { return -1; }
                 return count;
             }
 
             // Find maximum value
-            complex_t val;
-            float absre;
-            float absim;
-            float maxVal = 0;
-            for (int i = 0; i < count; i++) {
-                val = _in->readBuf[i];
-                absre = fabsf(val.re);
-                absim = fabsf(val.im);
-                if (absre > maxVal) { maxVal = absre; }
-                if (absim > maxVal) { maxVal = absim; }
-            }
+            uint32_t maxIdx;
+            volk_32f_index_max_32u(&maxIdx, (float*)_in->readBuf, count * 2);
+            float maxVal = ((float*)_in->readBuf)[maxIdx];
+            *scaler = maxVal;
 
             // Convert to the right type and send it out (sign bit determins pcm type)
-            if (_pcmType == PCM_TYPE_I8) {
-                *scaler = maxVal;
+            if (type == PCM_TYPE_I8) {
                 volk_32f_s32f_convert_8i((int8_t*)dataBuf, (float*)_in->readBuf, 128.0f / maxVal, count * 2);
                 _in->flush();
-                if (!out.swap(4 + (count * sizeof(int8_t) * 2))) { return -1; }
+                if (!out.swap(8 + (count * sizeof(int8_t) * 2))) { return -1; }
             }
-            else if (_pcmType == PCM_TYPE_I16) {
-                *scaler = -maxVal;
+            else if (type == PCM_TYPE_I16) {
                 volk_32f_s32f_convert_16i((int16_t*)dataBuf, (float*)_in->readBuf, 32768.0f / maxVal, count * 2);
                 _in->flush();
-                if (!out.swap(4 + (count * sizeof(int16_t) * 2))) { return -1; }
+                if (!out.swap(8 + (count * sizeof(int16_t) * 2))) { return -1; }
             }
             else {
                 _in->flush();
@@ -121,31 +119,29 @@ namespace dsp {
             int count = _in->read();
             if (count < 0) { return -1; }
 
-            float* scaler = (float*)_in->readBuf;
-            void* dataBuf = &_in->readBuf[4];
+            uint16_t sampleType = *(uint16_t*)&_in->readBuf[2];
+            float scaler = *(float*)&_in->readBuf[4];
+            void* dataBuf = &_in->readBuf[8];
 
-            // If the scaler is null, data is F32
-            if (*scaler == 0) {
-                memcpy(out.writeBuf, dataBuf, count - 4);
+            if (sampleType == PCM_TYPE_F32) {
+                memcpy(out.writeBuf, dataBuf, count - 8);
                 _in->flush();
-                if (!out.swap((count - 4) / sizeof(complex_t))) { return -1; }
-                return count;
+                if (!out.swap((count - 8) / sizeof(complex_t))) { return -1; }
             }
-
-            // Convert back to f32 from the pcm type
-            float absScale = fabsf(*scaler);
-            if (*scaler > 0) {
-                spdlog::warn("{0}", absScale);
-                int outCount = (count - 4) / (sizeof(int8_t) * 2);
-                volk_8i_s32f_convert_32f((float*)out.writeBuf, (int8_t*)dataBuf, 128.0f / absScale, outCount * 2);
+            else if (sampleType == PCM_TYPE_I16) {
+                int outCount = (count - 8) / (sizeof(int16_t) * 2);
+                volk_16i_s32f_convert_32f((float*)out.writeBuf, (int16_t*)dataBuf, 32768.0f / scaler, outCount * 2);
+                _in->flush();
+                if (!out.swap(outCount)) { return -1; }
+            }
+            else if (sampleType == PCM_TYPE_I8) {
+                int outCount = (count - 8) / (sizeof(int8_t) * 2);
+                volk_8i_s32f_convert_32f((float*)out.writeBuf, (int8_t*)dataBuf, 128.0f / scaler, outCount * 2);
                 _in->flush();
                 if (!out.swap(outCount)) { return -1; }
             }
             else {
-                int outCount = (count - 4) / (sizeof(int16_t) * 2);
-                volk_16i_s32f_convert_32f((float*)out.writeBuf, (int16_t*)dataBuf, 32768.0f / absScale, outCount * 2);
                 _in->flush();
-                if (!out.swap(outCount)) { return -1; }
             }
 
             return count;

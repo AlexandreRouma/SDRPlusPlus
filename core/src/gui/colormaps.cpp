@@ -37,7 +37,6 @@ namespace colormaps {
         map.map = new float[mapTxt.size() * 3];
         int i = 0;
         for (auto const& col : mapTxt) {
-            uint8_t r, g, b, a;
             map.map[i * 3] = std::stoi(col.substr(1, 2), NULL, 16);
             map.map[(i * 3) + 1] = std::stoi(col.substr(3, 2), NULL, 16);
             map.map[(i * 3) + 2] = std::stoi(col.substr(5, 2), NULL, 16);

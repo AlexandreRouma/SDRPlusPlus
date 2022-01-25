@@ -1,7 +1,8 @@
 #pragma once
 #include <imgui/imgui.h>
-#include <GL/glew.h>
 #include <string>
+
+#include <utils/opengl_include_code.h>
 
 namespace icons {
     extern ImTextureID LOGO;

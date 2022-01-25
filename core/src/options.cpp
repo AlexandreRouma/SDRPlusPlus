@@ -18,6 +18,8 @@ namespace options {
         opts.root = homedir + "/.config/sdrpp";
 #endif
         opts.root = std::filesystem::absolute(opts.root).string();
+        opts.serverHost = "0.0.0.0";
+        opts.serverPort = 5259;
     }
 
     bool parse(int argc, char* argv[]) {
@@ -32,6 +34,16 @@ namespace options {
             }
             else if (!strcmp(arg, "--server")) {
                 opts.serverMode = true;
+            }
+            else if (!strcmp(arg, "-a") || !strcmp(arg, "--addr")) {
+                if (i == argc - 1) { return false; }
+                opts.serverHost = argv[++i];
+                opts.showConsole = true;
+            }
+            else if (!strcmp(arg, "-p") || !strcmp(arg, "--port")) {
+                if (i == argc - 1) { return false; }
+                sscanf(argv[++i], "%d", &opts.serverPort);
+                opts.showConsole = true;
             }
             else {
                 spdlog::error("Invalid command line option: {0}", arg);

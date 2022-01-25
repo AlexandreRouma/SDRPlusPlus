@@ -11,6 +11,7 @@
 #include <core.h>
 #include <gui/style.h>
 #include <options.h>
+#include <gui/smgui.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -365,65 +366,66 @@ private:
     static void menuHandler(void* ctx) {
         SoapyModule* _this = (SoapyModule*)ctx;
 
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
-
         // If no device is selected, draw only the refresh button
         if (_this->devId < 0) {
-            if (ImGui::Button(CONCAT("Refresh##_dev_select_", _this->name), ImVec2(menuWidth, 0))) {
+            SmGui::FillWidth();
+            SmGui::ForceSync();
+            if (SmGui::Button(CONCAT("Refresh##_dev_select_", _this->name))) {
                 _this->refresh();
                 _this->selectDevice(config.conf["device"]);
             }
             return;
         }
 
-        if (_this->running) { style::beginDisabled(); }
+        if (_this->running) { SmGui::BeginDisabled(); }
 
-        ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::Combo(CONCAT("##_dev_select_", _this->name), &_this->devId, _this->txtDevList.c_str())) {
+        SmGui::FillWidth();
+        SmGui::ForceSync();
+        if (SmGui::Combo(CONCAT("##_dev_select_", _this->name), &_this->devId, _this->txtDevList.c_str())) {
             _this->selectDevice(_this->devList[_this->devId]["label"]);
             config.acquire();
             config.conf["device"] = _this->devList[_this->devId]["label"];
             config.release(true);
         }
 
-        if (ImGui::Combo(CONCAT("##_sr_select_", _this->name), &_this->srId, _this->txtSrList.c_str())) {
+        if (SmGui::Combo(CONCAT("##_sr_select_", _this->name), &_this->srId, _this->txtSrList.c_str())) {
             _this->selectSampleRate(_this->sampleRates[_this->srId]);
             if (_this->bandwidthList.size() > 2 && _this->running && _this->bandwidthList[_this->uiBandwidthId] == -1)
                 _this->dev->setBandwidth(SOAPY_SDR_RX, _this->channelId, _this->selectBwBySr(_this->sampleRates[_this->srId]));
             _this->saveCurrent();
         }
 
-        ImGui::SameLine();
-        float refreshBtnWdith = menuWidth - ImGui::GetCursorPosX();
-        if (ImGui::Button(CONCAT("Refresh##_dev_select_", _this->name), ImVec2(refreshBtnWdith, 0))) {
+        SmGui::SameLine();
+        SmGui::FillWidth();
+        if (SmGui::Button(CONCAT("Refresh##_dev_select_", _this->name))) {
             _this->refresh();
             _this->selectDevice(config.conf["device"]);
         }
 
-        if (_this->running) { style::endDisabled(); }
+        if (_this->running) { SmGui::EndDisabled(); }
 
         if (_this->antennaList.size() > 1) {
-            ImGui::LeftLabel("Antenna");
-            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::Combo(CONCAT("##_antenna_select_", _this->name), &_this->uiAntennaId, _this->txtAntennaList.c_str())) {
+            SmGui::LeftLabel("Antenna");
+            SmGui::FillWidth();
+            if (SmGui::Combo(CONCAT("##_antenna_select_", _this->name), &_this->uiAntennaId, _this->txtAntennaList.c_str())) {
                 if (_this->running)
                     _this->dev->setAntenna(SOAPY_SDR_RX, _this->channelId, _this->antennaList[_this->uiAntennaId]);
                 _this->saveCurrent();
             }
         }
 
-        float gainNameLen = 0;
-        float len;
-        for (auto gain : _this->gainList) {
-            len = ImGui::CalcTextSize((gain + " gain").c_str()).x;
-            if (len > gainNameLen) {
-                gainNameLen = len;
-            }
-        }
-        gainNameLen += 5.0f;
+        // float gainNameLen = 0;
+        // float len;
+        // for (auto gain : _this->gainList) {
+        //     len = ImGui::CalcTextSize((gain + " gain").c_str()).x;
+        //     if (len > gainNameLen) {
+        //         gainNameLen = len;
+        //     }
+        // }
+        // gainNameLen += 5.0f;
 
         if (_this->hasAgc) {
-            if (ImGui::Checkbox((std::string("AGC##_agc_sel_") + _this->name).c_str(), &_this->agc)) {
+            if (SmGui::Checkbox((std::string("AGC##_agc_sel_") + _this->name).c_str(), &_this->agc)) {
                 if (_this->running) { _this->dev->setGainMode(SOAPY_SDR_RX, _this->channelId, _this->agc); }
                 // When disabled, reset the gains
                 if (!_this->agc) {
@@ -441,16 +443,17 @@ private:
         char buf[128];
         for (auto gain : _this->gainList) {
             sprintf(buf, "%s gain", gain.c_str());
-            ImGui::LeftLabel(buf);
-            ImGui::SetCursorPosX(gainNameLen);
-            ImGui::SetNextItemWidth(menuWidth - gainNameLen);
+            SmGui::LeftLabel(buf);
+            // ImGui::SetCursorPosX(gainNameLen);
+            // ImGui::SetNextItemWidth(menuWidth - gainNameLen);
             float step = _this->gainRanges[i].step();
             bool res;
+            SmGui::FillWidth();
             if (step == 0.0f) {
-                res = ImGui::SliderFloat((std::string("##_gain_sel_") + _this->name + gain).c_str(), &_this->uiGains[i], _this->gainRanges[i].minimum(), _this->gainRanges[i].maximum());
+                res = SmGui::SliderFloat((std::string("##_gain_sel_") + _this->name + gain).c_str(), &_this->uiGains[i], _this->gainRanges[i].minimum(), _this->gainRanges[i].maximum());
             }
             else {
-                res = ImGui::SliderFloatWithSteps((std::string("##_gain_sel_") + _this->name + gain).c_str(), &_this->uiGains[i], _this->gainRanges[i].minimum(), _this->gainRanges[i].maximum(), step);
+                res = SmGui::SliderFloatWithSteps((std::string("##_gain_sel_") + _this->name + gain).c_str(), &_this->uiGains[i], _this->gainRanges[i].minimum(), _this->gainRanges[i].maximum(), step);
             }
             if (res) {
                 if (_this->running) {
@@ -461,9 +464,9 @@ private:
             i++;
         }
         if (_this->bandwidthList.size() > 2) {
-            ImGui::LeftLabel("Bandwidth");
-            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::Combo(CONCAT("##_bw_select_", _this->name), &_this->uiBandwidthId, _this->txtBwList.c_str())) {
+            SmGui::LeftLabel("Bandwidth");
+            SmGui::FillWidth();
+            if (SmGui::Combo(CONCAT("##_bw_select_", _this->name), &_this->uiBandwidthId, _this->txtBwList.c_str())) {
                 if (_this->running) {
                     if (_this->bandwidthList[_this->uiBandwidthId] == -1)
                         _this->dev->setBandwidth(SOAPY_SDR_RX, _this->channelId, _this->selectBwBySr(_this->sampleRates[_this->srId]));

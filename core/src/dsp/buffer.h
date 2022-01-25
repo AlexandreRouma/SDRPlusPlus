@@ -288,7 +288,6 @@ namespace dsp {
             {
                 std::lock_guard<std::mutex> lck(bufMtx);
                 memcpy(buffers[writeCur], _in->readBuf, count * sizeof(T));
-                uintptr_t ptr = (uintptr_t)buffers[writeCur];
                 sizes[writeCur] = count;
                 writeCur++;
                 writeCur = ((writeCur) % TEST_BUFFER_SIZE);
