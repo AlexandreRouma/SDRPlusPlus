@@ -27,7 +27,6 @@ public:
             return;
         }
 
-        // create a usrp device
         usrp = uhd::usrp::multi_usrp::make(args);
         if (!usrp) {
             spdlog::error("could not make UHD device with serial {0}", device.serial());

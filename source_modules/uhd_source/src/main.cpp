@@ -81,7 +81,6 @@ public:
     }
 
     ~UHDSourceModule() {
-        // TODO: check what needs to be done
         sigpath::sourceManager.unregisterSource("UHD");
     }
 
@@ -231,7 +230,6 @@ private:
     static void stopHandler(void* ctx) {
         spdlog::debug("UHDSourceModule::stopHandler");
         UHDSourceModule* _this = (UHDSourceModule*)ctx;
-        // TODO: stop receiving and cleanup resources
         if (_this->uhdDevice) {
             spdlog::debug("stop receiving data");
             _this->uhdDevice->stopReceiving();
@@ -299,7 +297,6 @@ private:
         spdlog::debug("UHDSourceModule::findUHDDevices");
 
         devices.clear();
-        // TODO: use arguments to filter devices, filter in GUI only (may waste time finding all devices all the time)?
         const uhd::device_addr_t args("");
         uhd::device_addrs_t device_addrs = uhd::device::find(append_findall(args));
         if (device_addrs.empty()) {
