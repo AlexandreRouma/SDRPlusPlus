@@ -78,7 +78,8 @@ brew install \
   portaudio \
   rtl-sdr \
   soapyrtlsdr \
-  volk
+  volk \
+  zstd
 mkdir build
 cd build
 cmake .. \
@@ -115,6 +116,7 @@ After this, install the following dependencies using vcpkg:
 
 * fftw3
 * glfw3
+* zstd
 
 You are probably going to build in 64 bit so make sure vcpkg installs the correct versions using `.\vcpkg.exe install <package>:x64-windows`
 
@@ -221,6 +223,7 @@ you can disable it using the module parameter listed in the table below
 * fftw3
 * glfw
 * libvolk
+* zstd
 
 Next install dependencies based on the modules you wish to build (See previous step)
 

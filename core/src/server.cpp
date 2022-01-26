@@ -74,7 +74,6 @@ namespace server {
 
         // Initialize compressor
         cctx = ZSTD_createCCtx();
-        ZSTD_CCtx_setParameter(cctx, ZSTD_c_compressionLevel, 1);
 
         core::configManager.acquire();
         std::string modulesDir = core::configManager.conf["modulesDirectory"];
@@ -226,8 +225,7 @@ namespace server {
         // Compress data if needed and fill out header fields
         if (compression) {
             bb_pkt_hdr->type = PACKET_TYPE_BASEBAND_COMPRESSED;
-            bb_pkt_hdr->size = sizeof(PacketHeader) + (uint32_t)ZSTD_compress2(cctx, &bbuf[sizeof(PacketHeader)], SERVER_MAX_PACKET_SIZE, data, count);
-
+            bb_pkt_hdr->size = sizeof(PacketHeader) + (uint32_t)ZSTD_compressCCtx(cctx, &bbuf[sizeof(PacketHeader)], SERVER_MAX_PACKET_SIZE, data, count, 1);
         }
         else {
             bb_pkt_hdr->type = PACKET_TYPE_BASEBAND;
