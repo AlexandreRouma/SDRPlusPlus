@@ -183,7 +183,7 @@ private:
             _this->startServer();
         }
 
-        ImGui::Text("Status:");
+        ImGui::TextUnformatted("Status:");
         ImGui::SameLine();
         if (_this->client && _this->client->isOpen()) {
             ImGui::TextColored(ImVec4(0.0, 1.0, 0.0, 1.0), "Connected");
@@ -192,7 +192,7 @@ private:
             ImGui::TextColored(ImVec4(1.0, 1.0, 0.0, 1.0), "Listening");
         }
         else {
-            ImGui::Text("Idle");
+            ImGui::TextUnformatted("Idle");
         }
     }
 

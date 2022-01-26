@@ -147,7 +147,7 @@ private:
         gui::mainWindow.playButtonLocked = !connected;
 
         ImGui::GenericDialog("##sdrpp_srv_src_err_dialog", _this->serverBusy, GENERIC_DIALOG_BUTTONS_OK, [=](){
-            ImGui::Text("This server is already in use.");
+            ImGui::TextUnformatted("This server is already in use.");
         });
 
         if (connected) { style::beginDisabled(); }
@@ -210,7 +210,7 @@ private:
                 _this->client->bytes = 0;
             }
 
-            ImGui::Text("Status:");
+            ImGui::TextUnformatted("Status:");
             ImGui::SameLine();
             ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Connected (%.3f Mbit/s)", _this->datarate);
 
@@ -219,9 +219,9 @@ private:
             _this->client->showMenu();
         }
         else {
-            ImGui::Text("Status:");
+            ImGui::TextUnformatted("Status:");
             ImGui::SameLine();
-            ImGui::Text("Not connected (--.--- Mbit/s)");
+            ImGui::TextUnformatted("Not connected (--.--- Mbit/s)");
         }
     }
 

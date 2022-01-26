@@ -668,7 +668,7 @@ namespace SmGui {
     }
 
     void Text(const char* str) {
-        if (!options::opts.serverMode) { ImGui::Text("%s", str); return; }
+        if (!options::opts.serverMode) { ImGui::TextUnformatted(str); return; }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_TEXT, false);
             rdl->pushString(str);

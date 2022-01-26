@@ -601,7 +601,7 @@ void MainWindow::draw() {
     ImGui::BeginChild("WaterfallControls");
 
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Zoom").x / 2.0));
-    ImGui::Text("Zoom");
+    ImGui::TextUnformatted("Zoom");
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10);
     if (ImGui::VSliderFloat("##_7_", ImVec2(20.0, 150.0), &bw, 1.0, 0.0, "")) {
         double factor = (double)bw * (double)bw;
@@ -620,7 +620,7 @@ void MainWindow::draw() {
     ImGui::NewLine();
 
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Max").x / 2.0));
-    ImGui::Text("Max");
+    ImGui::TextUnformatted("Max");
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10);
     if (ImGui::VSliderFloat("##_8_", ImVec2(20.0, 150.0), &fftMax, 0.0, -160.0f, "")) {
         fftMax = std::max<float>(fftMax, fftMin + 10);
@@ -632,7 +632,7 @@ void MainWindow::draw() {
     ImGui::NewLine();
 
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Min").x / 2.0));
-    ImGui::Text("Min");
+    ImGui::TextUnformatted("Min");
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10);
     if (ImGui::VSliderFloat("##_9_", ImVec2(20.0, 150.0), &fftMin, 0.0, -160.0f, "")) {
         fftMin = std::min<float>(fftMax - 10, fftMin);

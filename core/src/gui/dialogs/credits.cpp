@@ -22,7 +22,7 @@ namespace credits {
         ImGui::BeginPopupModal("Credits", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
 
         ImGui::PushFont(style::hugeFont);
-        ImGui::Text("SDR++          ");
+        ImGui::TextUnformatted("SDR++          ");
         ImGui::PopFont();
         ImGui::SameLine();
         ImGui::Image(icons::LOGO, ImVec2(128, 128));
@@ -30,29 +30,29 @@ namespace credits {
         ImGui::Spacing();
         ImGui::Spacing();
 
-        ImGui::Text("This software is brought to you by Alexandre Rouma (ON5RYZ) with the help of\n\n");
+        ImGui::TextUnformatted("This software is brought to you by Alexandre Rouma (ON5RYZ) with the help of\n\n");
 
         ImGui::Columns(4, "CreditColumns", true);
 
-        ImGui::Text("Contributors");
+        ImGui::TextUnformatted("Contributors");
         for (int i = 0; i < sdrpp_credits::contributorCount; i++) {
             ImGui::BulletText("%s", sdrpp_credits::contributors[i]);
         }
 
         ImGui::NextColumn();
-        ImGui::Text("Libraries");
+        ImGui::TextUnformatted("Libraries");
         for (int i = 0; i < sdrpp_credits::libraryCount; i++) {
             ImGui::BulletText("%s", sdrpp_credits::libraries[i]);
         }
 
         ImGui::NextColumn();
-        ImGui::Text("Hardware Donators");
+        ImGui::TextUnformatted("Hardware Donators");
         for (int i = 0; i < sdrpp_credits::hardwareDonatorCount; i++) {
             ImGui::BulletText("%s", sdrpp_credits::hardwareDonators[i]);
         }
 
         ImGui::NextColumn();
-        ImGui::Text("Patrons");
+        ImGui::TextUnformatted("Patrons");
         for (int i = 0; i < sdrpp_credits::patronCount; i++) {
             ImGui::BulletText("%s", sdrpp_credits::patrons[i]);
         }
@@ -62,7 +62,7 @@ namespace credits {
         ImGui::Spacing();
         ImGui::Spacing();
         ImGui::Spacing();
-        ImGui::Text("SDR++ v" VERSION_STR " (Built at " __TIME__ ", " __DATE__ ")");
+        ImGui::TextUnformatted("SDR++ v" VERSION_STR " (Built at " __TIME__ ", " __DATE__ ")");
 
         ImGui::EndPopup();
         ImGui::PopStyleColor();

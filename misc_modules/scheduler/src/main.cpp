@@ -114,7 +114,7 @@ private:
                 }
 
                 ImGui::TableSetColumnIndex(1);
-                ImGui::Text("todo");
+                ImGui::TextUnformatted("todo");
             }
             ImGui::EndTable();
         }

@@ -157,7 +157,7 @@ private:
             if (ImGui::Button(CONCAT("Record##_recorder_rec_", _this->name), ImVec2(menuWidth, 0))) {
                 _this->startRecording();
             }
-            ImGui::Text("Idle --.--MB");
+            ImGui::TextUnformatted("Idle --.--MB");
         }
 
         if (!_this->folderSelect.pathIsValid() && _this->enabled) { style::endDisabled(); }

@@ -449,8 +449,8 @@ namespace ImGui {
                             ImGui::Text("SNR: %0.1fdB", snr);
                         }
                         else {
-                            ImGui::Text("Strength: ---.-dBFS");
-                            ImGui::Text("SNR: ---.-dB");
+                            ImGui::TextUnformatted("Strength: ---.-dBFS");
+                            ImGui::TextUnformatted("SNR: ---.-dB");
                         }
                     }
 

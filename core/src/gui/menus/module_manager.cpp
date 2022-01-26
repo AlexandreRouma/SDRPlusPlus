@@ -56,7 +56,7 @@ namespace module_manager_menu {
                     confirmOpened = true;
                 }
                 ImGui::SetCursorPos(ImVec2(origPos.x + 2, origPos.y - 5));
-                ImGui::Text("_");
+                ImGui::TextUnformatted("_");
             }
             ImGui::EndTable();
         }

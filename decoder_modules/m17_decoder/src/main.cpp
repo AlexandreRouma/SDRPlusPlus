@@ -160,62 +160,62 @@ private:
             if (!_this->lsf.valid) {
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
-                ImGui::Text("Source");
+                ImGui::TextUnformatted("Source");
                 ImGui::TableSetColumnIndex(1);
-                ImGui::Text("--");
+                ImGui::TextUnformatted("--");
 
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
-                ImGui::Text("Destination");
+                ImGui::TextUnformatted("Destination");
                 ImGui::TableSetColumnIndex(1);
-                ImGui::Text("--");
+                ImGui::TextUnformatted("--");
 
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
-                ImGui::Text("Data Type");
+                ImGui::TextUnformatted("Data Type");
                 ImGui::TableSetColumnIndex(1);
-                ImGui::Text("--");
+                ImGui::TextUnformatted("--");
 
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
-                ImGui::Text("Encryption");
+                ImGui::TextUnformatted("Encryption");
                 ImGui::TableSetColumnIndex(1);
-                ImGui::Text("-- (Subtype --)");
+                ImGui::TextUnformatted("-- (Subtype --)");
 
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
-                ImGui::Text("CAN");
+                ImGui::TextUnformatted("CAN");
                 ImGui::TableSetColumnIndex(1);
-                ImGui::Text("--");
+                ImGui::TextUnformatted("--");
             }
             else {
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
-                ImGui::Text("Source");
+                ImGui::TextUnformatted("Source");
                 ImGui::TableSetColumnIndex(1);
                 ImGui::TextUnformatted(_this->lsf.src.c_str());
 
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
-                ImGui::Text("Destination");
+                ImGui::TextUnformatted("Destination");
                 ImGui::TableSetColumnIndex(1);
                 ImGui::TextUnformatted(_this->lsf.dst.c_str());
 
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
-                ImGui::Text("Data Type");
+                ImGui::TextUnformatted("Data Type");
                 ImGui::TableSetColumnIndex(1);
                 ImGui::TextUnformatted(M17DataTypesTxt[_this->lsf.dataType]);
 
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
-                ImGui::Text("Encryption");
+                ImGui::TextUnformatted("Encryption");
                 ImGui::TableSetColumnIndex(1);
                 ImGui::Text("%s (Subtype %d)", M17EncryptionTypesTxt[_this->lsf.encryptionType], _this->lsf.encryptionSubType);
 
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
-                ImGui::Text("CAN");
+                ImGui::TextUnformatted("CAN");
                 ImGui::TableSetColumnIndex(1);
                 ImGui::Text("%d", _this->lsf.channelAccessNum);
             }

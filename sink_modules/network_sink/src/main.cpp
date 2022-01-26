@@ -182,7 +182,7 @@ public:
             config.release(true);
         }
 
-        ImGui::Text("Status:");
+        ImGui::TextUnformatted("Status:");
         ImGui::SameLine();
         if (conn && conn->isOpen()) {
             ImGui::TextColored(ImVec4(0.0, 1.0, 0.0, 1.0), (modeId == SINK_MODE_TCP) ? "Connected" : "Sending");
@@ -191,7 +191,7 @@ public:
             ImGui::TextColored(ImVec4(1.0, 1.0, 0.0, 1.0), "Listening");
         }
         else {
-            ImGui::Text("Idle");
+            ImGui::TextUnformatted("Idle");
         }
     }
 
