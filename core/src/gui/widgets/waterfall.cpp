@@ -433,7 +433,7 @@ namespace ImGui {
                     char buf[128];
                     ImGui::BeginTooltip();
 
-                    ImGui::Text(name.c_str());
+                    ImGui::TextUnformatted(name.c_str());
 
                     if (ImGui::IsKeyDown(GLFW_KEY_LEFT_CONTROL) || ImGui::IsKeyDown(GLFW_KEY_RIGHT_CONTROL)) {
                         ImGui::Separator();

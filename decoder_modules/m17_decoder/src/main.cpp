@@ -193,19 +193,19 @@ private:
                 ImGui::TableSetColumnIndex(0);
                 ImGui::Text("Source");
                 ImGui::TableSetColumnIndex(1);
-                ImGui::Text(_this->lsf.src.c_str());
+                ImGui::TextUnformatted(_this->lsf.src.c_str());
 
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
                 ImGui::Text("Destination");
                 ImGui::TableSetColumnIndex(1);
-                ImGui::Text(_this->lsf.dst.c_str());
+                ImGui::TextUnformatted(_this->lsf.dst.c_str());
 
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
                 ImGui::Text("Data Type");
                 ImGui::TableSetColumnIndex(1);
-                ImGui::Text(M17DataTypesTxt[_this->lsf.dataType]);
+                ImGui::TextUnformatted(M17DataTypesTxt[_this->lsf.dataType]);
 
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
