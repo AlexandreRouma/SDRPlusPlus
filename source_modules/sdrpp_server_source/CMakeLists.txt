@@ -19,10 +19,6 @@ endif ()
 
 if(WIN32)
   target_link_libraries(sdrpp_server_source PRIVATE wsock32 ws2_32)
-
-  # ZSTD
-  find_package(zstd CONFIG REQUIRED)
-  target_link_libraries(sdrpp_server_source PRIVATE zstd::libzstd_shared)
 endif()
 
 # Install directives
