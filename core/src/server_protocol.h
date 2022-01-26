@@ -11,6 +11,7 @@ namespace server {
         PACKET_TYPE_COMMAND,
         PACKET_TYPE_COMMAND_ACK,
         PACKET_TYPE_BASEBAND,
+        PACKET_TYPE_BASEBAND_COMPRESSED,
         PACKET_TYPE_VFO,
         PACKET_TYPE_FFT,
         PACKET_TYPE_ERROR
@@ -25,6 +26,7 @@ namespace server {
         COMMAND_SET_FREQUENCY,
         COMMAND_GET_SAMPLERATE,
         COMMAND_SET_SAMPLE_TYPE,
+        COMMAND_SET_COMPRESSION,
 
         // Server to client
         COMMAND_SET_SAMPLERATE = 0x80,

@@ -194,11 +194,18 @@ private:
                 config.conf["servers"][_this->devConfName]["sampleType"] = _this->sampleTypeList.key(_this->sampleTypeId);
                 config.release(true);
             }
+            
+            if (ImGui::Checkbox("Compression", &_this->compression)) {
+                _this->client->setCompression(_this->compression);
 
-            bool dummy = false;
+                // Save config
+                config.acquire();
+                config.conf["servers"][_this->devConfName]["compression"] = _this->compression;
+                config.release(true);
+            }
+
+            bool dummy = true;
             style::beginDisabled();
-            ImGui::Checkbox("Compression", &dummy);
-            dummy = true;
             ImGui::Checkbox("Full IQ", &dummy);
             style::endDisabled();
 
@@ -237,9 +244,13 @@ private:
             std::string key = config.conf["servers"][devConfName]["sampleType"];
             if (sampleTypeList.keyExists(key)) { sampleTypeId = sampleTypeList.keyId(key); }
         }
+        if (config.conf["servers"][devConfName].contains("compression")) {
+            compression = config.conf["servers"][devConfName]["compression"];
+        }
 
         // Set settings
         client->setSampleType(sampleTypeList[sampleTypeId]);
+        client->setCompression(compression);
     }
 
     std::string name;
@@ -261,6 +272,7 @@ private:
 
     OptionList<std::string, dsp::PCMType> sampleTypeList;
     int sampleTypeId;
+    bool compression = false;
 
     server::Client client;
 };

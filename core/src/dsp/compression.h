@@ -12,11 +12,16 @@ namespace dsp {
     public:
         DynamicRangeCompressor() {}
 
-        DynamicRangeCompressor(stream<complex_t>* in, PCMType pcmType) { init(in, pcmType); }
+        DynamicRangeCompressor(stream<complex_t>* in, PCMType pcmType) {
+            init(in, pcmType);
+        }
 
         void init(stream<complex_t>* in, PCMType pcmType) {
             _in = in;
             _pcmType = pcmType;
+
+            out.setBufferSize((sizeof(dsp::complex_t) * STREAM_BUFFER_SIZE) + 8);
+
             generic_block<DynamicRangeCompressor>::registerInput(_in);
             generic_block<DynamicRangeCompressor>::registerOutput(&out);
             generic_block<DynamicRangeCompressor>::_block_init = true;

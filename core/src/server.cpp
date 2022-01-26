@@ -10,6 +10,7 @@
 #include <gui/smgui.h>
 #include <utils/optionlist.h>
 #include <dsp/compression.h>
+#include <zstd.h>
 
 namespace server {
     dsp::stream<dsp::complex_t> dummyInput;
@@ -35,11 +36,14 @@ namespace server {
 
     SmGui::DrawListElem dummyElem;
 
+    ZSTD_CCtx* cctx;
+
     net::Listener listener;
 
     OptionList<std::string, std::string> sourceList;
     int sourceId = 0;
     bool running = false;
+    bool compression = false;
     double sampleRate = 1000000.0;
 
     int main() {
@@ -68,9 +72,9 @@ namespace server {
         bb_pkt_hdr = (PacketHeader*)bbuf;
         bb_pkt_data = &bbuf[sizeof(PacketHeader)];
 
-        // Terminate config manager
-        core::configManager.disableAutoSave();
-        core::configManager.save();
+        // Initialize compressor
+        cctx = ZSTD_createCCtx();
+        ZSTD_CCtx_setParameter(cctx, ZSTD_c_compressionLevel, 1);
 
         core::configManager.acquire();
         std::string modulesDir = core::configManager.conf["modulesDirectory"];
@@ -183,6 +187,7 @@ namespace server {
         // Perform settings reset
         sigpath::sourceManager.stop();
         comp.setPCMType(dsp::PCM_TYPE_I16);
+        compression = false;
 
         sendSampleRate(sampleRate);
 
@@ -218,14 +223,20 @@ namespace server {
     }
 
     void _testServerHandler(uint8_t* data, int count, void* ctx) {
-        // Build data packet
-        PacketHeader* hdr = (PacketHeader*)bbuf;
-        hdr->type = PACKET_TYPE_BASEBAND;
-        hdr->size = sizeof(PacketHeader) + count;
-        memcpy(&bbuf[sizeof(PacketHeader)], data, count);
+        // Compress data if needed and fill out header fields
+        if (compression) {
+            bb_pkt_hdr->type = PACKET_TYPE_BASEBAND_COMPRESSED;
+            bb_pkt_hdr->size = sizeof(PacketHeader) + (uint32_t)ZSTD_compress2(cctx, &bbuf[sizeof(PacketHeader)], SERVER_MAX_PACKET_SIZE, data, count);
+
+        }
+        else {
+            bb_pkt_hdr->type = PACKET_TYPE_BASEBAND;
+            bb_pkt_hdr->size = sizeof(PacketHeader) + count;
+            memcpy(&bbuf[sizeof(PacketHeader)], data, count);
+        }
 
         // Write to network
-        if (client && client->isOpen()) { client->write(hdr->size, bbuf); }
+        if (client && client->isOpen()) { client->write(bb_pkt_hdr->size, bbuf); }
     }
 
     void setInput(dsp::stream<dsp::complex_t>* stream) {
@@ -280,6 +291,9 @@ namespace server {
         else if (cmd == COMMAND_SET_SAMPLE_TYPE && len == 1) {
             dsp::PCMType type = (dsp::PCMType)*(uint8_t*)data;
             comp.setPCMType(type);
+        }
+        else if (cmd == COMMAND_SET_COMPRESSION && len == 1) {
+            compression = *(uint8_t*)data;
         }
         else {
             spdlog::error("Invalid Command: {0} (len = {1})", cmd, len);

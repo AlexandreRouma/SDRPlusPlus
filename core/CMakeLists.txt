@@ -71,6 +71,10 @@ if (MSVC)
     # WinSock2
     target_link_libraries(sdrpp_core PUBLIC wsock32 ws2_32)
 
+    # ZSTD
+    find_package(zstd CONFIG REQUIRED)
+    target_link_libraries(sdrpp_core PRIVATE zstd::libzstd_shared)
+
 else()
     find_package(PkgConfig)
     find_package(OpenGL REQUIRED)
