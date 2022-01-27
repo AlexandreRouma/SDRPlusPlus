@@ -31,6 +31,13 @@ namespace dsp {
             volk_free(readBuf);
         }
 
+        void setBufferSize(int samples) {
+            volk_free(writeBuf);
+            volk_free(readBuf);
+            writeBuf = (T*)volk_malloc(samples * sizeof(T), volk_get_alignment());
+            readBuf = (T*)volk_malloc(samples * sizeof(T), volk_get_alignment());
+        }
+
         bool swap(int size) {
             {
                 // Wait to either swap or stop

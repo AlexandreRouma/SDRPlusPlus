@@ -11,6 +11,7 @@
 #include <dsp/compression.h>
 #include <dsp/sink.h>
 #include <dsp/link.h>
+#include <zstd.h>
 
 #define RFSPACE_MAX_SIZE                8192
 #define RFSPACE_HEARTBEAT_INTERVAL_MS   1000
@@ -85,6 +86,7 @@ namespace server {
         double getSampleRate();
         
         void setSampleType(dsp::PCMType type);
+        void setCompression(bool enabled);
 
         void start();
         void stop();
@@ -132,6 +134,8 @@ namespace server {
 
         SmGui::DrawList dl;
         std::mutex dlMtx;
+
+        ZSTD_DCtx* dctx;
 
         double currentSampleRate = 1000000.0;
     };
