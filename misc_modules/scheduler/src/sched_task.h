@@ -3,6 +3,7 @@
 #include <imgui.h>
 #include <gui/style.h>
 #include <sched_action.h>
+#include <keybinds.h>
 
 class Task {
 public:
@@ -77,8 +78,8 @@ public:
 
                 if (ImGui::Selectable((act->getName() + "##scheduler_task_actions_entry").c_str(), &act->selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_SelectOnClick)) {
                     // if shift or control isn't pressed, deselect all others
-                    if (!ImGui::IsKeyDown(GLFW_KEY_LEFT_SHIFT) && !ImGui::IsKeyDown(GLFW_KEY_RIGHT_SHIFT) &&
-                        !ImGui::IsKeyDown(GLFW_KEY_LEFT_CONTROL) && !ImGui::IsKeyDown(GLFW_KEY_RIGHT_CONTROL)) {
+                    if (!ImGui::IsKeyDown(KB_KEY_LSHIFT) && !ImGui::IsKeyDown(KB_KEY_RSHIFT) &&
+                        !ImGui::IsKeyDown(KB_KEY_LCTRL) && !ImGui::IsKeyDown(KB_KEY_RCTRL)) {
                         int _id = 0;
                         for (auto& _act : actions) {
                             if (_id == id) { continue; }

@@ -2,8 +2,8 @@
 #include <config.h>
 #include <gui/style.h>
 #include <gui/gui.h>
-#include <glfw_window.h>
-#include <GLFW/glfw3.h>
+#include <backend.h>
+#include <keybinds.h>
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -87,9 +87,9 @@ void FrequencySelect::decrementDigit(int i) {
 
 void FrequencySelect::moveCursorToDigit(int i) {
     double xpos, ypos;
-    glfwGetCursorPos(core::window, &xpos, &ypos);
-    float nxpos = (digitTopMaxs[i].x + digitTopMins[i].x) / 2.0f;
-    glfwSetCursorPos(core::window, nxpos, ypos);
+    backend::getMouseScreenPos(xpos, ypos);
+    double nxpos = (digitTopMaxs[i].x + digitTopMins[i].x) / 2.0;
+    backend::setMouseScreenPos(nxpos, ypos);
 }
 
 void FrequencySelect::draw() {
@@ -165,23 +165,23 @@ void FrequencySelect::draw() {
             }
             if (onDigit) {
                 hovered = true;
-                if (rightClick || (ImGui::IsKeyPressed(GLFW_KEY_DELETE) || ImGui::IsKeyPressed(GLFW_KEY_ENTER) || ImGui::IsKeyPressed(GLFW_KEY_KP_ENTER))) {
+                if (rightClick || (ImGui::IsKeyPressed(KB_KEY_DEL) || ImGui::IsKeyPressed(KB_KEY_ENTER) || ImGui::IsKeyPressed(KB_KEY_KP_ENTER))) {
                     for (int j = i; j < 12; j++) {
                         digits[j] = 0;
                     }
 
                     frequencyChanged = true;
                 }
-                if (ImGui::IsKeyPressed(GLFW_KEY_UP)) {
+                if (ImGui::IsKeyPressed(KB_KEY_UP)) {
                     incrementDigit(i);
                 }
-                if (ImGui::IsKeyPressed(GLFW_KEY_DOWN)) {
+                if (ImGui::IsKeyPressed(KB_KEY_DOWN)) {
                     decrementDigit(i);
                 }
-                if ((ImGui::IsKeyPressed(GLFW_KEY_LEFT) || ImGui::IsKeyPressed(GLFW_KEY_BACKSPACE)) && i > 0) {
+                if ((ImGui::IsKeyPressed(KB_KEY_LEFT) || ImGui::IsKeyPressed(KB_KEY_BACKSPACE)) && i > 0) {
                     moveCursorToDigit(i - 1);
                 }
-                if (ImGui::IsKeyPressed(GLFW_KEY_RIGHT) && i < 11) {
+                if (ImGui::IsKeyPressed(KB_KEY_RIGHT) && i < 11) {
                     moveCursorToDigit(i + 1);
                 }
 

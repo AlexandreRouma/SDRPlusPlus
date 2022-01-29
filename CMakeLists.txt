@@ -7,6 +7,9 @@ else()
     set(CMAKE_INSTALL_PREFIX "/usr")
 endif()
 
+# Backends
+option(OPT_BACKEND_GLFW "Use the GLFW backend" ON)
+
 # Compatibility Options
 option(OPT_OVERRIDE_STD_FILESYSTEM "Use a local version of std::filesystem on systems that don't have it yet" OFF)
 

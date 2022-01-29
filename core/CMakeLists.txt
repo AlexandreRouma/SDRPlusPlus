@@ -17,8 +17,13 @@ if (MSVC)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif ()
 
+# Configure backend sources
+if (OPT_BACKEND_GLFW)
+    file(GLOB_RECURSE BACKEND_SRC "backends/glfw/*.cpp" "backends/glfw/*.c")
+endif (OPT_BACKEND_GLFW)
+
 # Add code to dyn lib
-add_library(sdrpp_core SHARED ${SRC})
+add_library(sdrpp_core SHARED ${SRC} ${BACKEND_SRC})
 
 # Set compiler options
 if (MSVC)
@@ -35,6 +40,25 @@ target_compile_definitions(sdrpp_core PUBLIC INSTALL_PREFIX="${CMAKE_INSTALL_PRE
 # Include core headers
 target_include_directories(sdrpp_core PUBLIC "src/")
 target_include_directories(sdrpp_core PUBLIC "src/imgui")
+
+# Configure backend includes and libraries
+if (OPT_BACKEND_GLFW)
+    target_include_directories(sdrpp_core PUBLIC "backends/glfw")
+    target_include_directories(sdrpp_core PUBLIC "backends/glfw/imgui")
+
+    if (MSVC)
+        # GLFW3
+        find_package(glfw3 CONFIG REQUIRED)
+        target_link_libraries(sdrpp_core PUBLIC glfw)
+    else()
+        find_package(PkgConfig)
+        pkg_check_modules(GLFW3 REQUIRED glfw3)
+
+        target_include_directories(sdrpp_core PUBLIC ${GLFW3_INCLUDE_DIRS})
+        target_link_directories(sdrpp_core PUBLIC ${GLFW3_LIBRARY_DIRS})
+        target_link_libraries(sdrpp_core PUBLIC ${GLFW3_LIBRARIES})
+    endif()
+endif (OPT_BACKEND_GLFW)
 
 # Link to libcorrect
 if (USE_INTERNAL_LIBCORRECT)

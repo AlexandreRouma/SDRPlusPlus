@@ -7,6 +7,7 @@
 #include <gui/main_window.h>
 #include <signal_path/signal_path.h>
 #include <gui/style.h>
+#include <keybinds.h>
 
 namespace displaymenu {
     bool showWaterfall;
@@ -89,7 +90,7 @@ namespace displaymenu {
 
     void draw(void* ctx) {
         float menuWidth = ImGui::GetContentRegionAvailWidth();
-        bool homePressed = ImGui::IsKeyPressed(GLFW_KEY_HOME, false);
+        bool homePressed = ImGui::IsKeyPressed(KB_KEY_HOME, false);
         if (ImGui::Checkbox("Show Waterfall##_sdrpp", &showWaterfall) || homePressed) {
             if (homePressed) { showWaterfall = !showWaterfall; }
             showWaterfall ? gui::waterfall.showWaterfall() : gui::waterfall.hideWaterfall();

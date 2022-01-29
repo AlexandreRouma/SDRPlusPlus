@@ -4,9 +4,9 @@
 #include <imutils.h>
 #include <algorithm>
 #include <volk/volk.h>
-#include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
 #include <gui/gui.h>
+#include <keybinds.h>
 
 float DEFAULT_COLOR_MAP[][3] = {
     { 0x00, 0x00, 0x20 },
@@ -387,8 +387,8 @@ namespace ImGui {
         }
 
         // If the left and right keys are pressed while hovering the freq scale, move it too
-        bool leftKeyPressed = ImGui::IsKeyPressed(GLFW_KEY_LEFT);
-        if ((leftKeyPressed || ImGui::IsKeyPressed(GLFW_KEY_RIGHT)) && mouseInFreq) {
+        bool leftKeyPressed = ImGui::IsKeyPressed(KB_KEY_LEFT);
+        if ((leftKeyPressed || ImGui::IsKeyPressed(KB_KEY_RIGHT)) && mouseInFreq) {
             viewOffset += leftKeyPressed ? (viewBandwidth / 20.0) : (-viewBandwidth / 20.0);
 
             if (viewOffset + (viewBandwidth / 2.0) > wholeBandwidth / 2.0) {
@@ -435,7 +435,7 @@ namespace ImGui {
 
                     ImGui::TextUnformatted(name.c_str());
 
-                    if (ImGui::IsKeyDown(GLFW_KEY_LEFT_CONTROL) || ImGui::IsKeyDown(GLFW_KEY_RIGHT_CONTROL)) {
+                    if (ImGui::IsKeyDown(KB_KEY_LCTRL) || ImGui::IsKeyDown(KB_KEY_RCTRL)) {
                         ImGui::Separator();
                         printAndScale(_vfo->generalOffset + centerFreq, buf);
                         ImGui::Text("Frequency: %sHz", buf);
@@ -461,7 +461,7 @@ namespace ImGui {
         }
 
         // Handle Page Up to cycle through VFOs
-        if (ImGui::IsKeyPressed(GLFW_KEY_PAGE_UP) && selVfo != NULL) {
+        if (ImGui::IsKeyPressed(KB_KEY_PG_UP) && selVfo != NULL) {
             std::string next = (--vfos.end())->first;
             std::string lowest = "";
             double lowestOffset = INFINITY;
@@ -484,7 +484,7 @@ namespace ImGui {
         }
 
         // Handle Page Down to cycle through VFOs
-        if (ImGui::IsKeyPressed(GLFW_KEY_PAGE_DOWN) && selVfo != NULL) {
+        if (ImGui::IsKeyPressed(KB_KEY_PG_DOWN) && selVfo != NULL) {
             std::string next = (--vfos.end())->first;
             std::string highest = "";
             double highestOffset = -INFINITY;

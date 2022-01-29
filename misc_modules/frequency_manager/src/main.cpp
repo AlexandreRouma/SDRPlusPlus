@@ -13,6 +13,7 @@
 #include <gui/file_dialogs.h>
 #include <utils/freq_formatting.h>
 #include <gui/dialogs/dialog_box.h>
+#include <keybinds.h>
 
 SDRPP_MOD_INFO{
     /* Name:            */ "frequency_manager",
@@ -497,8 +498,8 @@ private:
 
                 if (ImGui::Selectable((name + "##_freq_mgr_bkm_name_" + _this->name).c_str(), &bm.selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_SelectOnClick)) {
                     // if shift or control isn't pressed, deselect all others
-                    if (!ImGui::IsKeyDown(GLFW_KEY_LEFT_SHIFT) && !ImGui::IsKeyDown(GLFW_KEY_RIGHT_SHIFT) &&
-                        !ImGui::IsKeyDown(GLFW_KEY_LEFT_CONTROL) && !ImGui::IsKeyDown(GLFW_KEY_RIGHT_CONTROL)) {
+                    if (!ImGui::IsKeyDown(KB_KEY_LSHIFT) && !ImGui::IsKeyDown(KB_KEY_RSHIFT) &&
+                        !ImGui::IsKeyDown(KB_KEY_LCTRL) && !ImGui::IsKeyDown(KB_KEY_RCTRL)) {
                         for (auto& [_name, _bm] : _this->bookmarks) {
                             if (name == _name) { continue; }
                             _bm.selected = false;
