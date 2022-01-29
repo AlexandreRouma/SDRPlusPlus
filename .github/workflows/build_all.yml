@@ -276,6 +276,28 @@ jobs:
               name: sdrpp_ubuntu_impish_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
+    build_ubuntu_jammy:
+        runs-on: ubuntu-latest
+
+        steps:
+        - uses: actions/checkout@v2
+        
+        - name: Create Docker Image
+          run: cd $GITHUB_WORKSPACE/docker_builds/ubuntu_jammy && docker build . --tag sdrpp_build
+
+        - name: Run Container
+          run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
+
+        - name: Recover Deb Archive
+          working-directory: ${{runner.workspace}}
+          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
+
+        - name: Save Deb Archive
+          uses: actions/upload-artifact@v2
+          with:
+              name: sdrpp_ubuntu_jammy_amd64
+              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
+
     build_raspios_bullseye_armhf:
         runs-on: ARM
 
@@ -304,8 +326,7 @@ jobs:
               path: ${{runner.workspace}}/sdrpp_debian_armhf.deb
 
     create_full_archive:
-    #   needs: ['build_windows', 'build_macos', 'build_debian_buster', 'build_debian_bullseye', 'build_debian_sid', 'build_ubuntu_bionic', 'build_ubuntu_focal', 'build_ubuntu_groovy', 'build_ubuntu_hirsute', 'build_ubuntu_impish', 'build_raspios_bullseye']
-        needs: ['build_windows', 'build_macos', 'build_debian_buster', 'build_debian_bullseye', 'build_debian_sid', 'build_ubuntu_bionic', 'build_ubuntu_focal', 'build_ubuntu_hirsute', 'build_ubuntu_impish', 'build_raspios_bullseye_armhf']
+        needs: ['build_windows', 'build_macos', 'build_debian_buster', 'build_debian_bullseye', 'build_debian_sid', 'build_ubuntu_bionic', 'build_ubuntu_focal', 'build_ubuntu_hirsute', 'build_ubuntu_impish', 'build_ubuntu_jammy', 'build_raspios_bullseye_armhf']
         runs-on: ubuntu-latest
 
         steps:
@@ -324,6 +345,7 @@ jobs:
             mv sdrpp_ubuntu_focal_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_focal_amd64.deb &&
             mv sdrpp_ubuntu_hirsute_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_hirsute_amd64.deb &&
             mv sdrpp_ubuntu_impish_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_impish_amd64.deb &&
+            mv sdrpp_ubuntu_jammy_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_jammy_amd64.deb &&
             mv sdrpp_raspios_bullseye_armhf/sdrpp_debian_armhf.deb sdrpp_all/sdrpp_raspios_bullseye_armhf.deb
 
         - uses: actions/upload-artifact@v2
