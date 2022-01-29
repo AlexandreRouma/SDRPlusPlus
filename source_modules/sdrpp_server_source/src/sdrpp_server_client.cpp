@@ -31,6 +31,7 @@ namespace server {
 
         // Initialize DSP
         decompIn.setBufferSize((sizeof(dsp::complex_t) * STREAM_BUFFER_SIZE) + 8);
+        decompIn.clearWriteStop();
         decomp.init(&decompIn);
         link.init(&decomp.out, output);
         decomp.start();
@@ -133,7 +134,9 @@ namespace server {
     void ClientClass::close() {
         decomp.stop();
         link.stop();
+        decompIn.stopWriter();
         client->close();
+        decompIn.clearWriteStop();
     }
 
     bool ClientClass::isOpen() {
