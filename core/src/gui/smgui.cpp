@@ -483,6 +483,7 @@ namespace SmGui {
 
     // Widget functions
     bool Combo(const char *label, int *current_item, const char *items_separated_by_zeros, int popup_max_height_in_items) {
+        nextItemFillWidth = false;
         if (!options::opts.serverMode) { return ImGui::Combo(label, current_item, items_separated_by_zeros, popup_max_height_in_items); }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_COMBO, forceSyncForNext);
@@ -501,7 +502,10 @@ namespace SmGui {
 
     bool Button(const char *label, ImVec2 size) {
         if (!options::opts.serverMode) {
-            if (nextItemFillWidth) { size.x = ImGui::GetContentRegionAvailWidth(); }
+            if (nextItemFillWidth) {
+                nextItemFillWidth = false;
+                size.x = ImGui::GetContentRegionAvailWidth();
+            }
             return ImGui::Button(label, size);
         }
         if (rdl) {
@@ -561,6 +565,7 @@ namespace SmGui {
     }
     
     bool SliderInt(const char *label, int *v, int v_min, int v_max, FormatString format, ImGuiSliderFlags flags) {
+        nextItemFillWidth = false;
         if (!options::opts.serverMode) { return ImGui::SliderInt(label, v, v_min, v_max, fmtStr[format], flags); }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_SLIDER_INT, forceSyncForNext);
@@ -580,6 +585,7 @@ namespace SmGui {
     }
 
     bool SliderFloatWithSteps(const char *label, float *v, float v_min, float v_max, float v_step, FormatString display_format) {
+        nextItemFillWidth = false;
         if (!options::opts.serverMode) { return ImGui::SliderFloatWithSteps(label, v, v_min, v_max, v_step, fmtStr[display_format]); }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_SLIDER_FLOAT_WITH_STEPS, forceSyncForNext);
@@ -599,6 +605,7 @@ namespace SmGui {
     }
 
     bool InputInt(const char *label, int *v, int step, int step_fast, ImGuiInputTextFlags flags) {
+        nextItemFillWidth = false;
         if (!options::opts.serverMode) { return ImGui::InputInt(label, v, step, step_fast, flags); }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_INPUT_INT, forceSyncForNext);
@@ -632,6 +639,7 @@ namespace SmGui {
     }
 
     bool SliderFloat(const char *label, float *v, float v_min, float v_max, FormatString format, ImGuiSliderFlags flags) {
+        nextItemFillWidth = false;
         if (!options::opts.serverMode) { return ImGui::SliderFloat(label, v, v_min, v_max, fmtStr[format], flags); }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_SLIDER_FLOAT, forceSyncForNext);
@@ -651,6 +659,7 @@ namespace SmGui {
     }
 
     bool InputText(const char *label, char *buf, size_t buf_size, ImGuiInputTextFlags flags) {
+        nextItemFillWidth = false;
         if (!options::opts.serverMode) { return ImGui::InputText(label, buf, buf_size, flags); }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_INPUT_TEXT, forceSyncForNext);
