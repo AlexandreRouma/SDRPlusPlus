@@ -161,17 +161,6 @@ public:
         config.release();
         selectByName(confSelectDev);
 
-        // if (sampleRateList.size() > 0) {
-        //     sampleRate = sampleRateList[0];
-        // }
-
-        // Select device from config
-        // config.acquire();
-        // std::string devSerial = config.conf["device"];
-        // config.release();
-        // selectByString(devSerial);
-        // core::setInputSampleRate(sampleRate);
-
         sigpath::sourceManager.registerSource("SDRplay", &handler);
 
         initOk = true;
