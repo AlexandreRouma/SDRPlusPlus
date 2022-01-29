@@ -8,18 +8,19 @@ namespace demod {
     public:
         CW() {}
 
-        CW(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler, double audioSR) {
-            init(name, config, input, bandwidth, outputChangeHandler, audioSR);
+        CW(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler, EventHandler<float> afbwChangeHandler, double audioSR) {
+            init(name, config, input, bandwidth, outputChangeHandler, afbwChangeHandler, audioSR);
         }
 
         ~CW() {
             stop();
         }
 
-        void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler, double audioSR) {
+        void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler, EventHandler<float> afbwChangeHandler, double audioSR) {
             this->name = name;
             this->_config = config;
-            this->outputChangeHandler = outputChangeHandler;
+            this->_bandwidth = bandwidth;
+            this->afbwChangeHandler = afbwChangeHandler;
 
             // Load config
             config->acquire();
@@ -55,13 +56,14 @@ namespace demod {
             if (ImGui::InputInt(("Stereo##_radio_cw_tone_" + name).c_str(), &tone, 10, 100)) {
                 tone = std::clamp<int>(tone, 250, 1250);
                 xlator.setFrequency(tone);
+                afbwChangeHandler.handler(getAFBandwidth(_bandwidth), afbwChangeHandler.ctx);
                 _config->acquire();
                 _config->conf[name][getName()]["tone"] = tone;
                 _config->release(true);
             }
         }
 
-        void setBandwidth(double bandwidth) {}
+        void setBandwidth(double bandwidth) { _bandwidth = bandwidth; }
 
         void setInput(dsp::stream<dsp::complex_t>* input) {
             xlator.setInput(input);
@@ -84,7 +86,7 @@ namespace demod {
         bool getDeempAllowed() { return false; }
         bool getPostProcEnabled() { return true; }
         int getDefaultDeemphasisMode() { return DEEMP_MODE_NONE; }
-        double getAFBandwidth(double bandwidth) { return (bandwidth / 2.0) + 1000.0; }
+        double getAFBandwidth(double bandwidth) { return (bandwidth / 2.0) + (float)tone; }
         bool getDynamicAFBandwidth() { return true; }
         bool getFMIFNRAllowed() { return false; }
         bool getNBAllowed() { return false; }
@@ -98,8 +100,10 @@ namespace demod {
         dsp::MonoToStereo m2s;
 
         std::string name;
-        EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler;
 
         int tone = 800;
+        double _bandwidth;
+
+        EventHandler<float> afbwChangeHandler;
     };
 }

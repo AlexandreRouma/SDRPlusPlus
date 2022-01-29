@@ -8,17 +8,16 @@ namespace demod {
     public:
         USB() {}
 
-        USB(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler, double audioSR) {
-            init(name, config, input, bandwidth, outputChangeHandler, audioSR);
+        USB(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler, EventHandler<float> afbwChangeHandler, double audioSR) {
+            init(name, config, input, bandwidth, outputChangeHandler, afbwChangeHandler, audioSR);
         }
 
         ~USB() {
             stop();
         }
 
-        void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler, double audioSR) {
+        void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler, EventHandler<float> afbwChangeHandler, double audioSR) {
             this->name = name;
-            this->outputChangeHandler = outputChangeHandler;
 
             // Define structure
             demod.init(input, getIFSampleRate(), bandwidth, dsp::SSBDemod::MODE_USB);
@@ -79,6 +78,5 @@ namespace demod {
         dsp::MonoToStereo m2s;
 
         std::string name;
-        EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler;
     };
 }

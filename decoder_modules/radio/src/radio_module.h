@@ -88,8 +88,11 @@ public:
 
         // Load configuration for and enabled all demodulators
         EventHandler<dsp::stream<dsp::stereo_t>*> _demodOutputChangeHandler;
+        EventHandler<float> _demodAfbwChangedHandler;
         _demodOutputChangeHandler.handler = demodOutputChangeHandler;
         _demodOutputChangeHandler.ctx = this;
+        _demodAfbwChangedHandler.handler = demodAfbwChangedHandler;
+        _demodAfbwChangedHandler.ctx = this;
         for (auto& demod : demods) {
             if (!demod) { continue; }
 
@@ -104,7 +107,7 @@ public:
             bw = std::clamp<double>(bw, demod->getMinBandwidth(), demod->getMaxBandwidth());
 
             // Initialize
-            demod->init(name, &config, ifChain.getOutput(), bw, _demodOutputChangeHandler, stream.getSampleRate());
+            demod->init(name, &config, ifChain.getOutput(), bw, _demodOutputChangeHandler, _demodAfbwChangedHandler, stream.getSampleRate());
         }
 
         // Initialize audio DSP chain
@@ -612,6 +615,17 @@ private:
     static void demodOutputChangeHandler(dsp::stream<dsp::stereo_t>* output, void* ctx) {
         RadioModule* _this = (RadioModule*)ctx;
         _this->afChain.setInput(output);
+    }
+
+    static void demodAfbwChangedHandler(float output, void* ctx) {
+        RadioModule* _this = (RadioModule*)ctx;
+        
+        float audioBW = std::min<float>(_this->selectedDemod->getMaxAFBandwidth(), _this->selectedDemod->getAFBandwidth(_this->bandwidth));
+        audioBW = std::min<float>(audioBW, _this->audioSampleRate / 2.0);
+
+        _this->win.setCutoff(audioBW);
+        _this->win.setTransWidth(audioBW);
+        _this->resamp.block.updateWindow(&_this->win);
     }
 
     static void ifChainOutputChangeHandler(dsp::stream<dsp::complex_t>* output, void* ctx) {
