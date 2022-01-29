@@ -18,10 +18,18 @@ namespace demod {
 
         void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler, double audioSR) {
             this->name = name;
+            this->_config = config;
             this->outputChangeHandler = outputChangeHandler;
 
+            // Load config
+            config->acquire();
+            if (config->conf[name][getName()].contains("tone")) {
+                tone = config->conf[name][getName()]["tone"];
+            }
+            config->release();
+
             // Define structure
-            xlator.init(input, getIFSampleRate(), 1000.0);
+            xlator.init(input, getIFSampleRate(), tone);
             c2r.init(&xlator.out);
             agc.init(&c2r.out, 20.0f, getIFSampleRate());
             m2s.init(&agc.out);
@@ -41,7 +49,17 @@ namespace demod {
             m2s.stop();
         }
 
-        void showMenu() {}
+        void showMenu() {
+            ImGui::LeftLabel("Tone Frequency");
+            ImGui::FillWidth();
+            if (ImGui::InputInt(("Stereo##_radio_cw_tone_" + name).c_str(), &tone, 10, 100)) {
+                tone = std::clamp<int>(tone, 250, 1250);
+                xlator.setFrequency(tone);
+                _config->acquire();
+                _config->conf[name][getName()]["tone"] = tone;
+                _config->release(true);
+            }
+        }
 
         void setBandwidth(double bandwidth) {}
 
@@ -73,6 +91,7 @@ namespace demod {
         dsp::stream<dsp::stereo_t>* getOutput() { return &m2s.out; }
 
     private:
+        ConfigManager* _config = NULL;
         dsp::FrequencyXlator<dsp::complex_t> xlator;
         dsp::ComplexToReal c2r;
         dsp::AGC agc;
@@ -80,5 +99,7 @@ namespace demod {
 
         std::string name;
         EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler;
+
+        int tone = 800;
     };
 }

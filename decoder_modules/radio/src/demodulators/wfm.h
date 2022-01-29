@@ -24,10 +24,6 @@ namespace demod {
             // Load config
             _config->acquire();
             bool modified = false;
-            if (!config->conf[name].contains(getName())) {
-                config->conf[name][getName()]["stereo"] = false;
-                modified = true;
-            }
             if (config->conf[name][getName()].contains("stereo")) {
                 stereo = config->conf[name][getName()]["stereo"];
             }
