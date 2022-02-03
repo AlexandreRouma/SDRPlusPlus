@@ -19,7 +19,7 @@ bundle_create_struct $BUNDLE
 cp -R root/res/* $BUNDLE/Contents/Resources/
 
 # Create the icon file
-bundle_create_icns root/res/icons/sdrpp.png $BUNDLE/Contents/Resources/sdrpp
+bundle_create_icns root/res/icons/sdrpp.macos.png $BUNDLE/Contents/Resources/sdrpp
 
 # Create the property list
 bundle_create_plist sdrpp SDR++ org.sdrpp.sdrpp 1.0.5 sdrp sdrpp sdrpp $BUNDLE/Contents/Info.plist
