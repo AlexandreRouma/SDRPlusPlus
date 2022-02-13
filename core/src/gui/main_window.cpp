@@ -518,7 +518,7 @@ void MainWindow::draw() {
             ImGui::Text("Center Frequency: %.0f Hz", gui::waterfall.getCenterFrequency());
             ImGui::Text("Source name: %s", sourceName.c_str());
             ImGui::Checkbox("Show demo window", &demoWindow);
-            ImGui::Text("ImGui version: %s_feb_2022", ImGui::GetVersion());
+            ImGui::Text("ImGui version: %s", ImGui::GetVersion());
 
             ImGui::Checkbox("Bypass buffering", &sigpath::signalPath.inputBuffer.bypass);
 
