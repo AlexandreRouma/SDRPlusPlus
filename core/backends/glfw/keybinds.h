@@ -22,3 +22,6 @@
 #define KB_KEY_RCTRL        GLFW_KEY_RIGHT_CONTROL
 #define KB_KEY_LSHIFT       GLFW_KEY_LEFT_SHIFT
 #define KB_KEY_RSHIFT       GLFW_KEY_RIGHT_SHIFT
+
+#define KB_KEY_A            GLFW_KEY_A
+#define KB_KEY_R            GLFW_KEY_R

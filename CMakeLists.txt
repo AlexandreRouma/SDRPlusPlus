@@ -7,8 +7,19 @@ else()
     set(CMAKE_INSTALL_PREFIX "/usr")
 endif()
 
+# Configure toolchain for android
+if (ANDROID)
+    set(CMAKE_SHARED_LINKER_FLAGS
+        "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate"
+    )
+    set(CMAKE_C_STANDARD 11)
+    set(CMAKE_CXX_STANDARD 14)
+    set(CMAKE_CXX14_EXTENSION_COMPILE_OPTION "-std=c++17")
+endif (ANDROID)
+
 # Backends
 option(OPT_BACKEND_GLFW "Use the GLFW backend" ON)
+option(OPT_BACKEND_ANDROID "Use the Android backend" OFF)
 
 # Compatibility Options
 option(OPT_OVERRIDE_STD_FILESYSTEM "Use a local version of std::filesystem on systems that don't have it yet" OFF)
@@ -31,6 +42,7 @@ option(OPT_BUILD_SPYSERVER_SOURCE "Build SpyServer Source Module (no dependencie
 option(OPT_BUILD_PLUTOSDR_SOURCE "Build PlutoSDR Source Module (Dependencies: libiio, libad9361)" ON)
 
 # Sinks
+option(OPT_BUILD_ANDROID_AUDIO_SINK "Build Android Audio Sink Module (Dependencies: AAudio, only for android)" OFF)
 option(OPT_BUILD_AUDIO_SINK "Build Audio Sink Module (Dependencies: rtaudio)" ON)
 option(OPT_BUILD_PORTAUDIO_SINK "Build PortAudio Sink Module (Dependencies: portaudio)" OFF)
 option(OPT_BUILD_NETWORK_SINK "Build Audio Sink Module (no dependencies required)" ON)
@@ -121,6 +133,10 @@ endif (OPT_BUILD_PLUTOSDR_SOURCE)
 
 
 # Sink modules
+if (OPT_BUILD_ANDROID_AUDIO_SINK)
+add_subdirectory("sink_modules/android_audio_sink")
+endif (OPT_BUILD_ANDROID_AUDIO_SINK)
+
 if (OPT_BUILD_AUDIO_SINK)
 add_subdirectory("sink_modules/audio_sink")
 endif (OPT_BUILD_AUDIO_SINK)

@@ -28,6 +28,7 @@ bool Menu::draw(bool updateStates) {
     bool changed = false;
     float menuWidth = ImGui::GetContentRegionAvailWidth();
     ImGuiWindow* window = ImGui::GetCurrentWindow();
+    ImVec2 checkboxOffset = ImVec2(menuWidth - ImGui::GetTextLineHeight() - (6.0f * style::uiScale), - ImGui::GetTextLineHeight() - (10.0f * style::uiScale));
 
     int displayedCount = 0;
     int rawId = 0;
@@ -46,6 +47,7 @@ bool Menu::draw(bool updateStates) {
             continue;
         }
 
+        // Draw dragged menu item
         if (displayedCount == insertBefore && !draggedMenuName.empty()) {
             if (updateStates) { ImGui::SetNextItemOpen(false); }
             ImVec2 posMin = ImGui::GetCursorScreenPos();
@@ -56,14 +58,14 @@ bool Menu::draw(bool updateStates) {
             if (items[draggedOpt.name].inst != NULL) {
                 window->WorkRect = orignalRect;
                 ImVec2 pos = ImGui::GetCursorPos();
-                ImGui::SetCursorPosX(pos.x + menuWidth - ImGui::GetTextLineHeight() - 6);
-                ImGui::SetCursorPosY(pos.y - 10 - ImGui::GetTextLineHeight());
+                ImGui::SetCursorPosX(pos.x + checkboxOffset.x);
+                ImGui::SetCursorPosY(pos.y + checkboxOffset.y);
                 bool enabled = items[draggedOpt.name].inst->isEnabled();
                 ImGui::Checkbox(("##_menu_checkbox_" + draggedOpt.name).c_str(), &enabled);
                 ImGui::SetCursorPos(pos);
             }
             style::endDisabled();
-            window->DrawList->AddRect(posMin, posMax, textColor);
+            window->DrawList->AddRect(posMin, posMax, textColor, 0.0f, 0, style::uiScale);
         }
         displayedCount++;
 
@@ -72,7 +74,7 @@ bool Menu::draw(bool updateStates) {
 
         ImRect orginalRect = window->WorkRect;
         if (item.inst != NULL) {
-            window->WorkRect = ImRect(orginalRect.Min, ImVec2(orginalRect.Max.x - ImGui::GetTextLineHeight() - 6, orginalRect.Max.y));
+            window->WorkRect = ImRect(orginalRect.Min, ImVec2(orginalRect.Max.x - ImGui::GetTextLineHeight() - (6.0f * style::uiScale), orginalRect.Max.y));
         }
 
         ImVec2 posMin = ImGui::GetCursorScreenPos();
@@ -93,13 +95,14 @@ bool Menu::draw(bool updateStates) {
             continue;
         }
 
+        // Draw menu header and menu content. There is a lot of boilerplate because the checkbox has to be drawn before the menu, TODO: fix
         if (updateStates) { ImGui::SetNextItemOpen(opt.open); }
         if (ImGui::CollapsingHeader((opt.name + "##sdrpp_main_menu").c_str())) {
             if (item.inst != NULL) {
                 window->WorkRect = orginalRect;
                 ImVec2 pos = ImGui::GetCursorPos();
-                ImGui::SetCursorPosX(pos.x + menuWidth - ImGui::GetTextLineHeight() - 6);
-                ImGui::SetCursorPosY(pos.y - 10 - ImGui::GetTextLineHeight());
+                ImGui::SetCursorPosX(pos.x + checkboxOffset.x);
+                ImGui::SetCursorPosY(pos.y + checkboxOffset.y);
                 bool enabled = item.inst->isEnabled();
                 if (ImGui::Checkbox(("##_menu_checkbox_" + opt.name).c_str(), &enabled)) {
                     enabled ? item.inst->enable() : item.inst->disable();
@@ -120,8 +123,8 @@ bool Menu::draw(bool updateStates) {
         else if (item.inst != NULL) {
             window->WorkRect = orginalRect;
             ImVec2 pos = ImGui::GetCursorPos();
-            ImGui::SetCursorPosX(pos.x + menuWidth - ImGui::GetTextLineHeight() - 6);
-            ImGui::SetCursorPosY(pos.y - 10 - ImGui::GetTextLineHeight());
+            ImGui::SetCursorPosX(pos.x + checkboxOffset.x);
+            ImGui::SetCursorPosY(pos.y + checkboxOffset.y);
             bool enabled = item.inst->isEnabled();
             if (ImGui::Checkbox(("##_menu_checkbox_" + opt.name).c_str(), &enabled)) {
                 enabled ? item.inst->enable() : item.inst->disable();
@@ -168,7 +171,7 @@ bool Menu::draw(bool updateStates) {
         insertBefore = -1;
     }
 
-
+    // TODO: Figure out why the hell this is needed
     if (insertBefore == displayedCount && !draggedMenuName.empty()) {
         if (updateStates) { ImGui::SetNextItemOpen(false); }
         ImVec2 posMin = ImGui::GetCursorScreenPos();
@@ -179,14 +182,14 @@ bool Menu::draw(bool updateStates) {
         if (items[draggedOpt.name].inst != NULL) {
             window->WorkRect = orignalRect;
             ImVec2 pos = ImGui::GetCursorPos();
-            ImGui::SetCursorPosX(pos.x + menuWidth - ImGui::GetTextLineHeight() - 6);
-            ImGui::SetCursorPosY(pos.y - 10 - ImGui::GetTextLineHeight());
+            ImGui::SetCursorPosX(pos.x + checkboxOffset.x);
+            ImGui::SetCursorPosY(pos.y + checkboxOffset.y);
             bool enabled = items[draggedOpt.name].inst->isEnabled();
             ImGui::Checkbox(("##_menu_checkbox_" + draggedOpt.name).c_str(), &enabled);
             ImGui::SetCursorPos(pos);
         }
         style::endDisabled();
-        window->DrawList->AddRect(posMin, posMax, textColor);
+        window->DrawList->AddRect(posMin, posMax, textColor, 0.0f, 0, style::uiScale);
     }
 
     if (!draggedMenuName.empty()) {

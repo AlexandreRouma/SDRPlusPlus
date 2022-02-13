@@ -13,6 +13,8 @@ namespace options {
 #elif defined(IS_MACOS_BUNDLE)
         std::string homedir = getenv("HOME");
         opts.root = homedir + "/Library/Application Support/sdrpp";
+#elif defined(__ANDROID__)
+        opts.root = "/storage/self/primary/sdrpp";
 #else
         std::string homedir = getenv("HOME");
         opts.root = homedir + "/.config/sdrpp";

@@ -19,6 +19,7 @@ public:
     bool sdrIsRunning();
     void setFFTSize(int size);
     void setFFTWindow(int win);
+    void setFirstMenuRender();
 
     // TODO: Replace with it's own class
     void setVFO(double freq);

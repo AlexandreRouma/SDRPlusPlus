@@ -1,8 +1,6 @@
 #include <gui/dialogs/loading_screen.h>
 #include <gui/main_window.h>
 #include <imgui.h>
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
 #include <gui/icons.h>
 #include <gui/style.h>
 #include <credits.h>
@@ -10,6 +8,11 @@
 #include <backend.h>
 
 namespace LoadingScreen {
+    ImVec2 imageSize(128.0f, 128.0f);
+
+    void init() {
+        imageSize = ImVec2(128.0f * style::uiScale, 128.0f * style::uiScale);
+    }
 
     void show(std::string msg) {
         backend::beginFrame();
@@ -26,7 +29,7 @@ namespace LoadingScreen {
         ImGui::TextUnformatted("SDR++    ");
         ImGui::PopFont();
         ImGui::SameLine();
-        ImGui::Image(icons::LOGO, ImVec2(128, 128));
+        ImGui::Image(icons::LOGO, imageSize);
 
         ImVec2 origPos = ImGui::GetCursorPos();
         ImGui::SetCursorPosY(origPos.y + 50);

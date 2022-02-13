@@ -5,10 +5,17 @@
 #include <core.h>
 #include <gui/style.h>
 #include <config.h>
-#include <libhackrf/hackrf.h>
 #include <gui/widgets/stepped_slider.h>
 #include <options.h>
 #include <gui/smgui.h>
+
+#ifndef __ANDROID__
+#include <libhackrf/hackrf.h>
+#else
+#include <android_backend.h>
+#include <spdlog/sinks/android_sink.h>
+#include <hackrf.h>
+#endif
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -127,6 +134,7 @@ public:
         devList.clear();
         devListTxt = "";
 
+#ifndef __ANDROID__
         uint64_t serials[256];
         hackrf_device_list_t* _devList = hackrf_device_list();
 
@@ -137,6 +145,15 @@ public:
         }
 
         hackrf_device_list_free(_devList);
+#else
+        int vid, pid;
+        devFd = backend::getDeviceFD(vid, pid, backend::HACKRF_VIDPIDS);
+        if (devFd < 0) { return; }
+        std::string fakeName = "HackRF USB";
+        devList.push_back("fake_serial");
+        devListTxt += fakeName;
+        devListTxt += '\0';
+#endif
     }
 
     void selectFirst() {
@@ -229,7 +246,11 @@ private:
             return;
         }
 
+#ifndef __ANDROID__
         hackrf_error err = (hackrf_error)hackrf_open_by_serial(_this->selectedSerial.c_str(), &_this->openDev);
+#else
+        hackrf_error err = (hackrf_error)hackrf_open_by_fd(&_this->openDev, _this->devFd);
+#endif
         if (err != HACKRF_SUCCESS) {
             spdlog::error("Could not open HackRF {0}: {1}", _this->selectedSerial, hackrf_error_name(err));
             return;
@@ -382,6 +403,10 @@ private:
     bool amp = false;
     float lna = 0;
     float vga = 0;
+
+#ifdef __ANDROID__
+    int devFd = -1;
+#endif
 
     std::vector<std::string> devList;
     std::string devListTxt;

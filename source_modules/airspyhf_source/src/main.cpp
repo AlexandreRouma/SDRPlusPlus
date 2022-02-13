@@ -10,6 +10,10 @@
 #include <airspyhf.h>
 #include <gui/widgets/stepped_slider.h>
 
+#ifdef __ANDROID__
+#include <android_backend.h>
+#endif
+
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
 SDRPP_MOD_INFO{
@@ -79,6 +83,7 @@ public:
         devList.clear();
         devListTxt = "";
 
+#ifndef __ANDROID__
         uint64_t serials[256];
         int n = airspyhf_list_devices(serials, 256);
 
@@ -89,6 +94,18 @@ public:
             devListTxt += buf;
             devListTxt += '\0';
         }
+#else
+        // Check for device presence
+        int vid, pid;
+        devFd = backend::getDeviceFD(vid, pid, backend::AIRSPYHF_VIDPIDS);
+        if (devFd < 0) { return; }
+
+        // Get device info
+        std::string fakeName = "Airspy HF+ USB";
+        devList.push_back(0xDEADBEEF);
+        devListTxt += fakeName;
+        devListTxt += '\0';
+#endif
     }
 
     void selectFirst() {
@@ -113,10 +130,14 @@ public:
     void selectBySerial(uint64_t serial) {
         airspyhf_device_t* dev;
         try {
-            int err = airspyhf_open_sn(&dev, selectedSerial);
+#ifndef __ANDROID__
+            int err = airspyhf_open_sn(&dev, serial);
+#else
+            int err = airspyhf_open_sn(&dev, devFd);
+#endif
             if (err != 0) {
                 char buf[1024];
-                sprintf(buf, "%016" PRIX64, selectedSerial);
+                sprintf(buf, "%016" PRIX64, serial);
                 spdlog::error("Could not open Airspy HF+ {0}", buf);
                 selectedSerial = 0;
                 return;
@@ -124,7 +145,7 @@ public:
         }
         catch (std::exception e) {
             char buf[1024];
-            sprintf(buf, "%016" PRIX64, selectedSerial);
+            sprintf(buf, "%016" PRIX64, serial);
             spdlog::error("Could not open Airspy HF+ {0}", buf);
         }
 
@@ -221,7 +242,11 @@ private:
             return;
         }
 
-        int err = airspyhf_open_sn(&_this->openDev, _this->selectedSerial);
+#ifndef __ANDROID__
+            int err = airspyhf_open_sn(&_this->openDev, _this->selectedSerial);
+#else
+            int err = airspyhf_open_sn(&_this->openDev, _this->devFd);
+#endif
         if (err != 0) {
             char buf[1024];
             sprintf(buf, "%016" PRIX64, _this->selectedSerial);
@@ -367,6 +392,10 @@ private:
     bool hfLNA = false;
     float atten = 0.0f;
     std::string selectedSerStr = "";
+
+#ifdef __ANDROID__
+    int devFd = 0;
+#endif
 
     std::vector<uint64_t> devList;
     std::string devListTxt;

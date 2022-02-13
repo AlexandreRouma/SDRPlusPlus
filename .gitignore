@@ -15,3 +15,5 @@ CMakeSettings.json
 poggers_decoder
 m17_decoder/libcorrect
 SDR++.app
+android/deps
+android/app/assets

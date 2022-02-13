@@ -1,7 +1,5 @@
 #include <server.h>
 #include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
 #include <stdio.h>
 #include <gui/main_window.h>
 #include <gui/style.h>
@@ -188,6 +186,7 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["theme"] = "Dark";
 
     defConfig["modules"] = json::array();
+
     defConfig["offsetMode"] = (int)0; // Off
     defConfig["offset"] = 0.0;
     defConfig["showMenu"] = true;
@@ -213,6 +212,9 @@ int sdrpp_main(int argc, char* argv[]) {
 #elif defined(IS_MACOS_BUNDLE)
     defConfig["modulesDirectory"] = "../Plugins";
     defConfig["resourcesDirectory"] = "../Resources";
+#elif defined(__ANDROID__)
+    defConfig["modulesDirectory"] = options::opts.root + "/modules";
+    defConfig["resourcesDirectory"] = options::opts.root + "/res";
 #else
     defConfig["modulesDirectory"] = INSTALL_PREFIX "/lib/sdrpp/plugins";
     defConfig["resourcesDirectory"] = INSTALL_PREFIX "/share/sdrpp";
@@ -223,8 +225,33 @@ int sdrpp_main(int argc, char* argv[]) {
     core::configManager.setPath(options::opts.root + "/config.json");
     core::configManager.load(defConfig);
     core::configManager.enableAutoSave();
-
     core::configManager.acquire();
+
+    // Android can't load just any .so file. This means we have to hardcode the name of the modules
+#ifdef __ANDROID__
+    int modCount = 0;
+    core::configManager.conf["modules"] = json::array();
+
+    core::configManager.conf["modules"][modCount++] = "airspy_source.so";
+    core::configManager.conf["modules"][modCount++] = "airspyhf_source.so";
+    core::configManager.conf["modules"][modCount++] = "hackrf_source.so";
+    core::configManager.conf["modules"][modCount++] = "plutosdr_source.so";
+    core::configManager.conf["modules"][modCount++] = "sdrpp_server_source.so";
+    core::configManager.conf["modules"][modCount++] = "rfspace_source.so";
+    core::configManager.conf["modules"][modCount++] = "rtl_sdr_source.so";
+    core::configManager.conf["modules"][modCount++] = "rtl_tcp_source.so";
+    core::configManager.conf["modules"][modCount++] = "spyserver_source.so";
+
+    core::configManager.conf["modules"][modCount++] = "network_sink.so";
+    core::configManager.conf["modules"][modCount++] = "audio_sink.so";
+
+    core::configManager.conf["modules"][modCount++] = "radio.so";
+
+    core::configManager.conf["modules"][modCount++] = "frequency_manager.so";
+    core::configManager.conf["modules"][modCount++] = "recorder.so";
+    core::configManager.conf["modules"][modCount++] = "rigctl_server.so";
+#endif
+
     // Fix missing elements in config
     for (auto const& item : defConfig.items()) {
         if (!core::configManager.conf.contains(item.key())) {
@@ -274,6 +301,7 @@ int sdrpp_main(int argc, char* argv[]) {
 
     if (!style::loadFonts(resDir)) { return -1; }
     thememenu::init(resDir);
+    LoadingScreen::init();
 
     LoadingScreen::show("Loading icons");
     spdlog::info("Loading icons");
@@ -294,6 +322,8 @@ int sdrpp_main(int argc, char* argv[]) {
     // Run render loop (TODO: CHECK RETURN VALUE)
     backend::renderLoop();
 
+    // On android, none of this shutdown should happen due to the way the UI works
+#ifndef __ANDROID__
     // Shut down all modules
     for (auto& [name, mod] : core::moduleManager.modules) {
         mod.end();
@@ -306,6 +336,7 @@ int sdrpp_main(int argc, char* argv[]) {
 
     core::configManager.disableAutoSave();
     core::configManager.save();
+#endif
 
     return 0;
 }

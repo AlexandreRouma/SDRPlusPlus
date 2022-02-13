@@ -21,6 +21,10 @@ endif ()
 if (OPT_BACKEND_GLFW)
     file(GLOB_RECURSE BACKEND_SRC "backends/glfw/*.cpp" "backends/glfw/*.c")
 endif (OPT_BACKEND_GLFW)
+if (OPT_BACKEND_ANDROID)
+    file(GLOB_RECURSE BACKEND_SRC "backends/android/*.cpp" "backends/android/*.c")
+    set(BACKEND_SRC ${BACKEND_SRC} ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
+endif (OPT_BACKEND_ANDROID)
 
 # Add code to dyn lib
 add_library(sdrpp_core SHARED ${SRC} ${BACKEND_SRC})
@@ -59,6 +63,10 @@ if (OPT_BACKEND_GLFW)
         target_link_libraries(sdrpp_core PUBLIC ${GLFW3_LIBRARIES})
     endif()
 endif (OPT_BACKEND_GLFW)
+if (OPT_BACKEND_ANDROID)
+    target_include_directories(sdrpp_core PUBLIC "backends/android")
+    target_include_directories(sdrpp_core PUBLIC "backends/android/imgui")
+endif (OPT_BACKEND_ANDROID)
 
 # Link to libcorrect
 if (USE_INTERNAL_LIBCORRECT)
@@ -98,7 +106,24 @@ if (MSVC)
     # ZSTD
     find_package(zstd CONFIG REQUIRED)
     target_link_libraries(sdrpp_core PUBLIC zstd::libzstd_shared)
+elseif (ANDROID)
+    target_include_directories(sdrpp_core PUBLIC
+        ../android/deps/volk/jni
+        ../android/deps/fftw3/jni
+        /mnt/android_sdr/zstd/lib
+        ${ANDROID_NDK}/sources/android/native_app_glue
+    )
 
+    target_link_libraries(sdrpp_core PUBLIC
+        ${PROJECT_SOURCE_DIR}/../android/deps/volk/${ANDROID_ABI}/libcpu_features.a
+        ${PROJECT_SOURCE_DIR}/../android/deps/volk/${ANDROID_ABI}/libvolk.so
+        ${PROJECT_SOURCE_DIR}/../android/deps/fftw3/${ANDROID_ABI}/libfftw3f.a
+        /mnt/android_sdr/output/zstd/${ANDROID_ABI}/libzstd.so
+        android
+        EGL
+        GLESv3
+        log
+    )
 else()
     find_package(PkgConfig)
     find_package(OpenGL REQUIRED)

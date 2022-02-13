@@ -9,6 +9,9 @@
 #include <gui/smgui.h>
 #include <rtl-sdr.h>
 
+#ifdef __ANDROID__
+#include <android_backend.h>
+#endif
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -114,6 +117,7 @@ public:
         devNames.clear();
         devListTxt = "";
 
+#ifndef __ANDROID__
         devCount = rtlsdr_get_device_count();
         char buf[1024];
         for (int i = 0; i < devCount; i++) {
@@ -123,6 +127,20 @@ public:
             devListTxt += buf;
             devListTxt += '\0';
         }
+#else
+        // Check for device connection
+        devCount = 0;
+        int vid, pid;
+        devFd = backend::getDeviceFD(vid, pid, backend::RTL_SDR_VIDPIDS);
+        if (devFd < 0) { return; }
+
+        // Generate fake device info
+        devCount = 1;
+        std::string fakeName = "RTL-SDR Dongle USB";
+        devNames.push_back(fakeName);
+        devListTxt += fakeName;
+        devListTxt += '\0';
+#endif
     }
 
     void selectFirst() {
@@ -144,9 +162,15 @@ public:
     void selectById(int id) {
         selectedDevName = devNames[id];
 
-        if (rtlsdr_open(&openDev, id) < 0) {
+#ifndef __ANDROID__
+        int oret = rtlsdr_open(&openDev, id);
+#else
+        int oret = rtlsdr_open(&openDev, devFd);
+#endif
+        
+        if (oret < 0) {
             selectedDevName = "";
-            spdlog::error("Could not open RTL-SDR");
+            spdlog::error("Could not open RTL-SDR: {0}", oret);
             return;
         }
 
@@ -252,7 +276,13 @@ private:
             return;
         }
 
-        if (rtlsdr_open(&_this->openDev, _this->devId) < 0) {
+#ifndef __ANDROID__
+        int oret = rtlsdr_open(&_this->openDev, _this->devId);
+#else
+        int oret = rtlsdr_open(&_this->openDev, _this->devFd);
+#endif
+
+        if (oret < 0) {
             spdlog::error("Could not open RTL-SDR");
             return;
         }
@@ -509,6 +539,10 @@ private:
     int srId = 0;
     int devCount = 0;
     std::thread workerThread;
+
+#ifdef __ANDROID__
+    int devFd = -1;
+#endif
 
     int ppm = 0;
 
