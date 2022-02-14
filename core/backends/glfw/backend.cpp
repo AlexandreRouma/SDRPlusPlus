@@ -285,6 +285,8 @@ namespace backend {
 
             render();
         }
+
+        return 0;
     }
 
     int end() {

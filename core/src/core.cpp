@@ -69,7 +69,7 @@ int sdrpp_main(int argc, char* argv[]) {
     if (!options::parse(argc, argv)) { return -1; }
 
 #ifdef _WIN32
-    if (!options::opts.showConsole) { FreeConsole(); }
+    if (!options::opts.showConsole && !options::opts.serverMode) { FreeConsole(); }
 #endif
 
     // Check root directory
@@ -338,5 +338,6 @@ int sdrpp_main(int argc, char* argv[]) {
     core::configManager.save();
 #endif
 
+    spdlog::info("Exiting successfully");
     return 0;
 }
