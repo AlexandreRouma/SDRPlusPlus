@@ -3,7 +3,6 @@
 #include <gui/style.h>
 #include <gui/gui.h>
 #include <backend.h>
-#include <keybinds.h>
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -155,23 +154,23 @@ void FrequencySelect::draw() {
             }
             if (onDigit) {
                 hovered = true;
-                if (rightClick || (ImGui::IsKeyPressed(KB_KEY_DEL) || ImGui::IsKeyPressed(KB_KEY_ENTER) || ImGui::IsKeyPressed(KB_KEY_KP_ENTER))) {
+                if (rightClick || (ImGui::IsKeyPressed(ImGuiKey_Delete) || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))) {
                     for (int j = i; j < 12; j++) {
                         digits[j] = 0;
                     }
 
                     frequencyChanged = true;
                 }
-                if (ImGui::IsKeyPressed(KB_KEY_UP)) {
+                if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) {
                     incrementDigit(i);
                 }
-                if (ImGui::IsKeyPressed(KB_KEY_DOWN)) {
+                if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
                     decrementDigit(i);
                 }
-                if ((ImGui::IsKeyPressed(KB_KEY_LEFT) || ImGui::IsKeyPressed(KB_KEY_BACKSPACE)) && i > 0) {
+                if ((ImGui::IsKeyPressed(ImGuiKey_LeftArrow) || ImGui::IsKeyPressed(ImGuiKey_Backspace)) && i > 0) {
                     moveCursorToDigit(i - 1);
                 }
-                if (ImGui::IsKeyPressed(KB_KEY_RIGHT) && i < 11) {
+                if (ImGui::IsKeyPressed(ImGuiKey_RightArrow) && i < 11) {
                     moveCursorToDigit(i + 1);
                 }
 

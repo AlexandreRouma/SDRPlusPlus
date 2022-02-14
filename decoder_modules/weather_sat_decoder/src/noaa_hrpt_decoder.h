@@ -220,7 +220,7 @@ public:
 
             if (ImGui::BeginTabItem("AVHRR RGB(221)")) {
                 ImGui::BeginChild("AVHRRRGBChild");
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 avhrrRGBImage.draw();
                 ImGui::SetScrollHereY(1.0f);
                 ImGui::EndChild();
@@ -229,7 +229,7 @@ public:
 
             if (ImGui::BeginTabItem("AVHRR 1")) {
                 ImGui::BeginChild("AVHRR1Child");
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 avhrr1Image.draw();
                 ImGui::SetScrollHereY(1.0f);
                 ImGui::EndChild();
@@ -238,7 +238,7 @@ public:
 
             if (ImGui::BeginTabItem("AVHRR 2")) {
                 ImGui::BeginChild("AVHRR2Child");
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 avhrr2Image.draw();
                 ImGui::SetScrollHereY(1.0f);
                 ImGui::EndChild();
@@ -247,7 +247,7 @@ public:
 
             if (ImGui::BeginTabItem("AVHRR 3")) {
                 ImGui::BeginChild("AVHRR3Child");
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 avhrr3Image.draw();
                 ImGui::SetScrollHereY(1.0f);
                 ImGui::EndChild();
@@ -256,7 +256,7 @@ public:
 
             if (ImGui::BeginTabItem("AVHRR 4")) {
                 ImGui::BeginChild("AVHRR4Child");
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 avhrr4Image.draw();
                 ImGui::SetScrollHereY(1.0f);
                 ImGui::EndChild();
@@ -265,7 +265,7 @@ public:
 
             if (ImGui::BeginTabItem("AVHRR 5")) {
                 ImGui::BeginChild("AVHRR5Child");
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 avhrr5Image.draw();
                 ImGui::SetScrollHereY(1.0f);
                 ImGui::EndChild();

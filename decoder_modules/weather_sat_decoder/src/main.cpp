@@ -102,7 +102,7 @@ private:
     static void menuHandler(void* ctx) {
         WeatherSatDecoderModule* _this = (WeatherSatDecoderModule*)ctx;
 
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
+        float menuWidth = ImGui::GetContentRegionAvail().x;
 
         if (!_this->enabled) { style::beginDisabled(); }
 

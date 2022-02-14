@@ -28,7 +28,6 @@
 #include <gui/colormaps.h>
 #include <gui/widgets/snr_meter.h>
 #include <gui/tuner.h>
-#include <keybinds.h>
 
 void MainWindow::init() {
     LoadingScreen::show("Initializing UI");
@@ -358,7 +357,7 @@ void MainWindow::draw() {
     // To Bar
     ImVec2 btnSize(30 * style::uiScale, 30 * style::uiScale);
     ImGui::PushID(ImGui::GetID("sdrpp_menu_btn"));
-    if (ImGui::ImageButton(icons::MENU, btnSize, ImVec2(0, 0), ImVec2(1, 1), 5) || ImGui::IsKeyPressed(KB_KEY_MENU, false)) {
+    if (ImGui::ImageButton(icons::MENU, btnSize, ImVec2(0, 0), ImVec2(1, 1), 5) || ImGui::IsKeyPressed(ImGuiKey_Menu, false)) {
         showMenu = !showMenu;
         core::configManager.acquire();
         core::configManager.conf["showMenu"] = showMenu;
@@ -372,14 +371,14 @@ void MainWindow::draw() {
     if (playButtonLocked && !tmpPlaySate) { style::beginDisabled(); }
     if (playing) {
         ImGui::PushID(ImGui::GetID("sdrpp_stop_btn"));
-        if (ImGui::ImageButton(icons::STOP, btnSize, ImVec2(0, 0), ImVec2(1, 1), 5) || ImGui::IsKeyPressed(KB_KEY_END, false)) {
+        if (ImGui::ImageButton(icons::STOP, btnSize, ImVec2(0, 0), ImVec2(1, 1), 5) || ImGui::IsKeyPressed(ImGuiKey_End, false)) {
             setPlayState(false);
         }
         ImGui::PopID();
     }
     else { // TODO: Might need to check if there even is a device
         ImGui::PushID(ImGui::GetID("sdrpp_play_btn"));
-        if (ImGui::ImageButton(icons::PLAY, btnSize, ImVec2(0, 0), ImVec2(1, 1), 5) || ImGui::IsKeyPressed(KB_KEY_END, false)) {
+        if (ImGui::ImageButton(icons::PLAY, btnSize, ImVec2(0, 0), ImVec2(1, 1), 5) || ImGui::IsKeyPressed(ImGuiKey_End, false)) {
             setPlayState(true);
         }
         ImGui::PopID();
@@ -444,7 +443,7 @@ void MainWindow::draw() {
     if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
         showCredits = false;
     }
-    if (ImGui::IsKeyPressed(KB_KEY_ESC)) {
+    if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
         showCredits = false;
     }
 
@@ -562,12 +561,12 @@ void MainWindow::draw() {
     if (!lockWaterfallControls) {
         // Handle arrow keys
         if (vfo != NULL && (gui::waterfall.mouseInFFT || gui::waterfall.mouseInWaterfall)) {
-            if (ImGui::IsKeyPressed(KB_KEY_LEFT) && !gui::freqSelect.digitHovered) {
+            if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow) && !gui::freqSelect.digitHovered) {
                 double nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset - vfo->snapInterval;
                 nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
                 tuner::tune(tuningMode, gui::waterfall.selectedVFO, nfreq);
             }
-            if (ImGui::IsKeyPressed(KB_KEY_RIGHT) && !gui::freqSelect.digitHovered) {
+            if (ImGui::IsKeyPressed(ImGuiKey_RightArrow) && !gui::freqSelect.digitHovered) {
                 double nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset + vfo->snapInterval;
                 nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
                 tuner::tune(tuningMode, gui::waterfall.selectedVFO, nfreq);

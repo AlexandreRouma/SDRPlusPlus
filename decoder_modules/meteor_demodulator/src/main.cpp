@@ -130,7 +130,7 @@ private:
     static void menuHandler(void* ctx) {
         MeteorDemodulatorModule* _this = (MeteorDemodulatorModule*)ctx;
 
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
+        float menuWidth = ImGui::GetContentRegionAvail().x;
 
         if (!_this->enabled) { style::beginDisabled(); }
 

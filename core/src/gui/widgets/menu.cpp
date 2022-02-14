@@ -26,7 +26,7 @@ void Menu::removeEntry(std::string name) {
 
 bool Menu::draw(bool updateStates) {
     bool changed = false;
-    float menuWidth = ImGui::GetContentRegionAvailWidth();
+    float menuWidth = ImGui::GetContentRegionAvail().x;
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     ImVec2 checkboxOffset = ImVec2(menuWidth - ImGui::GetTextLineHeight() - (6.0f * style::uiScale), - ImGui::GetTextLineHeight() - (10.0f * style::uiScale));
 

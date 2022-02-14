@@ -342,7 +342,7 @@ void SinkManager::loadSinksFromConfig() {
 }
 
 void SinkManager::showMenu() {
-    float menuWidth = ImGui::GetContentRegionAvailWidth();
+    float menuWidth = ImGui::GetContentRegionAvail().x;
     int count = 0;
     int maxCount = streams.size();
 

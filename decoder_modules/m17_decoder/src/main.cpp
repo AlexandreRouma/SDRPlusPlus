@@ -141,7 +141,7 @@ private:
     static void menuHandler(void* ctx) {
         M17DecoderModule* _this = (M17DecoderModule*)ctx;
 
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
+        float menuWidth = ImGui::GetContentRegionAvail().x;
 
         if (!_this->enabled) { style::beginDisabled(); }
 

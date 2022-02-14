@@ -137,7 +137,7 @@ public:
     }
 
     void menuHandler() {
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
+        float menuWidth = ImGui::GetContentRegionAvail().x;
 
         // Select device
         ImGui::SetNextItemWidth(menuWidth);

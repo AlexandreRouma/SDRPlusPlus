@@ -122,7 +122,7 @@ public:
     }
 
     void menuHandler() {
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
+        float menuWidth = ImGui::GetContentRegionAvail().x;
 
         bool listening = (listener && listener->isListening()) || (conn && conn->isOpen());
 

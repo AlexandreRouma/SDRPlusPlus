@@ -80,11 +80,11 @@ namespace module_manager_menu {
         ImGui::TableNextRow();
 
         ImGui::TableSetColumnIndex(0);
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         ImGui::InputText("##module_mod_name", modName, 1000);
 
         ImGui::TableSetColumnIndex(1);
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         ImGui::Combo("##module_mgr_type", &modTypeId, modTypesTxt.c_str());
 
         ImGui::TableSetColumnIndex(2);

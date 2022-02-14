@@ -193,7 +193,7 @@ private:
 
     static void menuHandler(void* ctx) {
         RecorderModule* _this = (RecorderModule*)ctx;
-        float menuColumnWidth = ImGui::GetContentRegionAvailWidth();
+        float menuColumnWidth = ImGui::GetContentRegionAvail().x;
 
         // Recording mode
         if (_this->recording) { style::beginDisabled(); }

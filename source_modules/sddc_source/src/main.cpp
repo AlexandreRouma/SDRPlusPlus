@@ -179,7 +179,7 @@ private:
 
     static void menuHandler(void* ctx) {
         AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
+        float menuWidth = ImGui::GetContentRegionAvail().x;
 
         if (_this->running) { style::beginDisabled(); }
 

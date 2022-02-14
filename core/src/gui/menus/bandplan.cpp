@@ -35,7 +35,7 @@ namespace bandplanmenu {
     }
 
     void draw(void* ctx) {
-        float menuColumnWidth = ImGui::GetContentRegionAvailWidth();
+        float menuColumnWidth = ImGui::GetContentRegionAvail().x;
         ImGui::PushItemWidth(menuColumnWidth);
         if (ImGui::Combo("##_bandplan_name_", &bandplanId, bandplan::bandplanNameTxt.c_str())) {
             gui::waterfall.bandplan = &bandplan::bandplans[bandplan::bandplanNames[bandplanId]];

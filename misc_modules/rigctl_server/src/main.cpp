@@ -107,7 +107,7 @@ public:
 private:
     static void menuHandler(void* ctx) {
         SigctlServerModule* _this = (SigctlServerModule*)ctx;
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
+        float menuWidth = ImGui::GetContentRegionAvail().x;
 
         bool listening = (_this->listener && _this->listener->isListening());
 

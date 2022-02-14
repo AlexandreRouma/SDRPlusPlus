@@ -156,7 +156,7 @@ namespace sourcemenu {
     }
 
     void draw(void* ctx) {
-        float itemWidth = ImGui::GetContentRegionAvailWidth();
+        float itemWidth = ImGui::GetContentRegionAvail().x;
         bool running = gui::mainWindow.sdrIsRunning();
 
         if (running) { style::beginDisabled(); }

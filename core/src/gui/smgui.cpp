@@ -459,7 +459,7 @@ namespace SmGui {
     void FillWidth() {
         if (!options::opts.serverMode) {
             nextItemFillWidth = true;
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             return;
         }
         if (rdl) { rdl->pushStep(DRAW_STEP_FILL_WIDTH, false); }
@@ -504,7 +504,7 @@ namespace SmGui {
         if (!options::opts.serverMode) {
             if (nextItemFillWidth) {
                 nextItemFillWidth = false;
-                size.x = ImGui::GetContentRegionAvailWidth();
+                size.x = ImGui::GetContentRegionAvail().x;
             }
             return ImGui::Button(label, size);
         }

@@ -70,6 +70,6 @@ namespace ImGui {
     }
 
     void FillWidth() {
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
     }
 }

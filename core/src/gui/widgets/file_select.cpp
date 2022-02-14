@@ -11,7 +11,7 @@ FileSelect::FileSelect(std::string defaultPath, std::vector<std::string> filter)
 
 bool FileSelect::render(std::string id) {
     bool _pathChanged = false;
-    float menuColumnWidth = ImGui::GetContentRegionAvailWidth();
+    float menuColumnWidth = ImGui::GetContentRegionAvail().x;
 
     float buttonWidth = ImGui::CalcTextSize("...").x + 20.0f;
     bool lastPathValid = pathValid;
