@@ -224,7 +224,9 @@ namespace backend {
     }
 
     void setMouseScreenPos(double x, double y) {
+        // Tell GLFW to move the cursor and then manually fire the event
         glfwSetCursorPos(window, x, y);
+        ImGui_ImplGlfw_CursorPosCallback(window, x, y);
     }
 
     int renderLoop() {
