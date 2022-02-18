@@ -7,6 +7,7 @@
 #include <gui/main_window.h>
 #include <signal_path/signal_path.h>
 #include <gui/style.h>
+#include <utils/optionlist.h>
 
 namespace displaymenu {
     bool showWaterfall;
@@ -18,6 +19,10 @@ namespace displaymenu {
     std::string colorMapAuthor = "";
     int selectedWindow = 0;
     int fftRate = 20;
+    int uiScaleId = 0;
+    bool restartRequired = false;
+
+    OptionList<float, float> uiScales;
 
     const int FFTSizes[] = {
         524288,
@@ -85,6 +90,17 @@ namespace displaymenu {
 
         selectedWindow = std::clamp<int>((int)core::configManager.conf["fftWindow"], 0, _FFT_WINDOW_COUNT - 1);
         gui::mainWindow.setFFTWindow(selectedWindow);
+
+        // Define and load UI scales
+        uiScales.define(0.5f, "50%", 0.5f);
+        uiScales.define(1.0f, "100%", 1.0f);
+        uiScales.define(1.5f, "150%", 1.5f);
+        uiScales.define(2.0f, "200%", 2.0f);
+        uiScales.define(2.5f, "250%", 2.5f);
+        uiScales.define(3.0f, "300%", 3.0f);
+        uiScales.define(3.5f, "350%", 3.5f);
+        uiScales.define(4.0f, "400%", 4.0f);
+        uiScaleId = uiScales.valueId(style::uiScale);
     }
 
     void draw(void* ctx) {
@@ -110,6 +126,15 @@ namespace displaymenu {
             core::configManager.acquire();
             core::configManager.conf["fullWaterfallUpdate"] = fullWaterfallUpdate;
             core::configManager.release(true);
+        }
+
+        ImGui::LeftLabel("High-DPI Scaling");
+        ImGui::FillWidth();
+        if (ImGui::Combo("##sdrpp_ui_scale", &uiScaleId, uiScales.txt)) {
+            core::configManager.acquire();
+            core::configManager.conf["uiScale"] = uiScales[uiScaleId];
+            core::configManager.release(true);
+            restartRequired = true;
         }
 
         ImGui::LeftLabel("FFT Framerate");
@@ -152,6 +177,10 @@ namespace displaymenu {
                 colorMapAuthor = map.author;
             }
             ImGui::Text("Color map Author: %s", colorMapAuthor.c_str());
+        }
+
+        if (restartRequired) {
+            ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Restart required.");
         }
     }
 }

@@ -450,7 +450,7 @@ void MainWindow::draw() {
     // Handle menu resize
     ImVec2 winSize = ImGui::GetWindowSize();
     ImVec2 mousePos = ImGui::GetMousePos();
-    if (!lockWaterfallControls) {
+    if (!lockWaterfallControls && showMenu) {
         float curY = ImGui::GetCursorPosY();
         bool click = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
         bool down = ImGui::IsMouseDown(ImGuiMouseButton_Left);
@@ -639,6 +639,7 @@ void MainWindow::draw() {
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - (ImGui::CalcTextSize("Min").x / 2.0));
     ImGui::TextUnformatted("Min");
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10 * style::uiScale);
+    ImGui::SetItemUsingMouseWheel();
     if (ImGui::VSliderFloat("##_9_", wfSliderSize, &fftMin, 0.0, -160.0f, "")) {
         fftMin = std::min<float>(fftMax - 10, fftMin);
         core::configManager.acquire();

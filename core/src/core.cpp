@@ -184,6 +184,7 @@ int sdrpp_main(int argc, char* argv[]) {
 
     // Themes
     defConfig["theme"] = "Dark";
+    defConfig["uiScale"] = 1.0f;
 
     defConfig["modules"] = json::array();
 
@@ -278,6 +279,9 @@ int sdrpp_main(int argc, char* argv[]) {
         newMod["enabled"] = true;
         core::configManager.conf["moduleInstances"][_name] = newMod;
     }
+
+    // Load UI scaling
+    style::uiScale = core::configManager.conf["uiScale"];
 
     core::configManager.release(true);
 
