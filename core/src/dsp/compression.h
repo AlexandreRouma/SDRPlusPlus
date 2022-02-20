@@ -72,7 +72,7 @@ namespace dsp {
             float maxVal = ((float*)_in->readBuf)[maxIdx];
             *scaler = maxVal;
 
-            // Convert to the right type and send it out (sign bit determins pcm type)
+            // Convert to the right type and send it out (sign bit determines pcm type)
             if (type == PCM_TYPE_I8) {
                 volk_32f_s32f_convert_8i((int8_t*)dataBuf, (float*)_in->readBuf, 128.0f / maxVal, count * 2);
                 _in->flush();

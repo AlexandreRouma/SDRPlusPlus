@@ -6,7 +6,7 @@
 #include <condition_variable>
 
 /*
-    Ryzerth's Epic Networking Functins
+    Ryzerth's Epic Networking Functions
 */
 
 namespace net {
