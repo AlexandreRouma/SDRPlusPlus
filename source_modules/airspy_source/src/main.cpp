@@ -444,7 +444,7 @@ private:
             }
         }
         else if (_this->gainMode == 2) {
-            // TODO: Switch to a table for alignement
+            // TODO: Switch to a table for alignment
             if (_this->lnaAgc) { SmGui::BeginDisabled(); }
             SmGui::LeftLabel("LNA Gain");
             SmGui::FillWidth();

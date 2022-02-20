@@ -46,7 +46,7 @@ namespace ImGui {
         int oldLineCount = _lineCount;
         _lineCount += count;
 
-        // If new data either fills up or excedes the limit, reallocate
+        // If new data either fills up or exceeds the limit, reallocate
         // TODO: Change it to avoid bug if count >= reservedIncrement
         if (_lineCount > reservedCount) {
             printf("Reallocating\n");
