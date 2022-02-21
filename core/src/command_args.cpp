@@ -1,4 +1,24 @@
 #include "command_args.h"
+#include <filesystem>
+
+void CommandArgsParser::defineAll() {
+#if defined(_WIN32)
+        std::string root = ".";
+        define('c', "con", "Show console on Windows");
+#elif defined(IS_MACOS_BUNDLE)
+        std::string root = (std::string)getenv("HOME") + "/Library/Application Support/sdrpp";
+#elif defined(__ANDROID__)
+        std::string root = "/storage/self/primary/sdrpp";
+#else
+        std::string root = (std::string)getenv("HOME") + "/.config/sdrpp";
+#endif
+
+        define('a', "addr", "Server mode address", "0.0.0.0");
+        define('h', "help", "Show help");
+        define('p', "port", "Server mode port", 5259);
+        define('r', "root", "Root directory, where all config files are stored", std::filesystem::absolute(root).string());
+        define('s', "server", "Run in server mode");
+}
 
 int CommandArgsParser::parse(int argc, char* argv[]) {
     for (int i = 1; i < argc; i++) {
@@ -94,10 +114,10 @@ int CommandArgsParser::parse(int argc, char* argv[]) {
 void CommandArgsParser::showHelp() {
     for (auto const& [ln, arg] : args) {
         if (arg.alias) {
-            printf("-%c\t--%s\t\t%s\n", arg.alias, ln.c_str(), arg.description.c_str());
+            printf("-%c --%s\t\t%s\n", arg.alias, ln.c_str(), arg.description.c_str());
         }
         else {
-            printf("  \t--%s\t\t%s\n", ln.c_str(), arg.description.c_str());
+            printf("   --%s\t\t%s\n", ln.c_str(), arg.description.c_str());
         }
     }
 }

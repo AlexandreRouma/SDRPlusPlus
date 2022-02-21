@@ -37,6 +37,7 @@ namespace core {
     ConfigManager configManager;
     ModuleManager moduleManager;
     ModuleComManager modComManager;
+    CommandArgsParser args;
 
     void setInputSampleRate(double samplerate) {
         // Forward this to the server
@@ -63,6 +64,16 @@ int sdrpp_main(int argc, char* argv[]) {
     auto execPath = std::filesystem::absolute(argv[0]);
     chdir(execPath.parent_path().string().c_str());
 #endif
+
+    // Define command line options and parse arguments
+    core::args.defineAll();
+    core::args.parse(argc, argv);
+
+    // Show help and exit if requested
+    if ((bool)core::args["help"]) {
+        core::args.showHelp();
+        return 0;
+    }
 
     // Load default options and parse command line
     options::loadDefaults();

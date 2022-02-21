@@ -48,7 +48,6 @@ public:
     }
 
     CLIArg(char al, std::string desc, std::string s) {
-        printf("String const called\n");
         alias = al;
         description = desc;
         type = CLI_ARG_TYPE_STRING;
@@ -56,7 +55,6 @@ public:
     }
 
     CLIArg(char al, std::string desc, const char* s) {
-        printf("String const called\n");
         alias = al;
         description = desc;
         type = CLI_ARG_TYPE_STRING;
@@ -107,6 +105,8 @@ public:
         args[name] = CLIArg(shortName, desc);
         aliases[shortName] = name;
     }
+
+    void defineAll();   
 
     template<class T>
     void define(char shortName, std::string name, std::string desc, T defValue) {
