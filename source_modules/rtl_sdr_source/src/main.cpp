@@ -59,7 +59,7 @@ public:
     RTLSDRSourceModule(std::string name) {
         this->name = name;
 
-        serverMode = core::args["server"];
+        serverMode = (bool)core::args["server"];
 
         sampleRate = sampleRates[0];
 

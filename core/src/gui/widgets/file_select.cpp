@@ -6,7 +6,7 @@
 
 FileSelect::FileSelect(std::string defaultPath, std::vector<std::string> filter) {
     _filter = filter;
-    root = core::args["root"];
+    root = (std::string)core::args["root"];
     setPath(defaultPath);
 }
 

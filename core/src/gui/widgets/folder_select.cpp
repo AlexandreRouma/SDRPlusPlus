@@ -5,7 +5,7 @@
 #include <core.h>
 
 FolderSelect::FolderSelect(std::string defaultPath) {
-    root = core::args["root"];
+    root = (std::string)core::args["root"];
     setPath(defaultPath);
 }
 

@@ -148,8 +148,8 @@ namespace server {
         sigpath::sourceManager.selectSource(sourceList[sourceId]);
 
         // TODO: Use command line option
-        std::string host = core::args["addr"];
-        int port = core::args["port"];
+        std::string host = (std::string)core::args["addr"];
+        int port = (int)core::args["port"];
         listener = net::listen(host, port);
         listener->acceptAsync(_clientHandler, NULL);
 

@@ -74,14 +74,14 @@ int sdrpp_main(int argc, char* argv[]) {
         return 0;
     }
 
-    bool serverMode = core::args["server"];
+    bool serverMode = (bool)core::args["server"];
 
 #ifdef _WIN32
     if (!core::args["con"].b() && !serverMode) { FreeConsole(); }
 #endif
 
     // Check root directory
-    std::string root = core::args["root"];
+    std::string root = (std::string)core::args["root"];
     if (!std::filesystem::exists(root)) {
         spdlog::warn("Root directory {0} does not exist, creating it", root);
         if (!std::filesystem::create_directories(root)) {

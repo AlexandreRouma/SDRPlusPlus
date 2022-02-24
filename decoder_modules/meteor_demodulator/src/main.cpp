@@ -243,7 +243,7 @@ private:
 
 MOD_EXPORT void _INIT_() {
     // Create default recording directory
-    std::string root = core::args["root"];
+    std::string root = (std::string)core::args["root"];
     if (!std::filesystem::exists(root + "/recordings")) {
         spdlog::warn("Recordings directory does not exist, creating it");
         if (!std::filesystem::create_directory(root + "/recordings")) {
