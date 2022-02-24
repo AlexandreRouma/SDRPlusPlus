@@ -24,6 +24,7 @@ public:
         alias = al;
         description = desc;
         type = CLI_ARG_TYPE_VOID;
+        bval = false;
     }
 
     CLIArg(char al, std::string desc, bool b) {

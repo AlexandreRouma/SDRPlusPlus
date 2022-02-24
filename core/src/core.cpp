@@ -66,10 +66,10 @@ int sdrpp_main(int argc, char* argv[]) {
 
     // Define command line options and parse arguments
     core::args.defineAll();
-    core::args.parse(argc, argv);
+    if (core::args.parse(argc, argv) < 0) { return -1; } 
 
     // Show help and exit if requested
-    if ((bool)core::args["help"]) {
+    if (core::args["help"].b()) {
         core::args.showHelp();
         return 0;
     }
