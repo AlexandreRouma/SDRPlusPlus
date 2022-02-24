@@ -426,7 +426,7 @@ private:
         SmGui::ForceSync();
 
         // TODO: FIND ANOTHER WAY
-        if (serverMode) {
+        if (_this->serverMode) {
             if (SmGui::SliderInt(CONCAT("##_rtlsdr_gain_", _this->name), &_this->gainId, 0, _this->gainList.size() - 1, SmGui::FMT_STR_NONE)) {
                 _this->updateGainTxt();
                 if (_this->running) {
