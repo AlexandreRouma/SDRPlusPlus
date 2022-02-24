@@ -9,6 +9,7 @@
 #include <config.h>
 #include <utils/optionlist.h>
 #include <aaudio/AAudio.h>
+#include <core.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 

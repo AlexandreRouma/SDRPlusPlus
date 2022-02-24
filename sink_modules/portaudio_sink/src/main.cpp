@@ -7,6 +7,7 @@
 #include <dsp/audio.h>
 #include <dsp/processing.h>
 #include <spdlog/spdlog.h>
+#include <core.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 

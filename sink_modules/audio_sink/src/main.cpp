@@ -8,6 +8,7 @@
 #include <spdlog/spdlog.h>
 #include <RtAudio.h>
 #include <config.h>
+#include <core.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 

@@ -9,6 +9,7 @@
 #include <spdlog/spdlog.h>
 #include <config.h>
 #include <gui/style.h>
+#include <core.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
