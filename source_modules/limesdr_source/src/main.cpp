@@ -5,7 +5,6 @@
 #include <core.h>
 #include <gui/style.h>
 #include <config.h>
-#include <options.h>
 #include <gui/smgui.h>
 #include <lime/LimeSuite.h>
 
@@ -522,7 +521,7 @@ MOD_EXPORT void _INIT_() {
     json def = json({});
     def["devices"] = json({});
     def["device"] = "";
-    config.setPath(options::opts.root + "/limesdr_config.json");
+    config.setPath(core::args["root"].s() + "/limesdr_config.json");
     config.load(def);
     config.enableAutoSave();
 }

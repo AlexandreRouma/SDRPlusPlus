@@ -8,7 +8,6 @@
 #include <recorder_interface.h>
 #include <meteor_demodulator_interface.h>
 #include <config.h>
-#include <options.h>
 #include <cctype>
 #include <radio_interface.h>
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
@@ -734,7 +733,7 @@ private:
 };
 
 MOD_EXPORT void _INIT_() {
-    config.setPath(options::opts.root + "/rigctl_server_config.json");
+    config.setPath(core::args["root"].s() + "/rigctl_server_config.json");
     config.load(json::object());
     config.enableAutoSave();
 }

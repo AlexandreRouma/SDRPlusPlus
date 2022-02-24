@@ -20,6 +20,7 @@ public:
 private:
     void worker();
     std::thread workerThread;
+    std::string root = "";
 
     bool pathValid = false;
     bool dialogOpen = false;

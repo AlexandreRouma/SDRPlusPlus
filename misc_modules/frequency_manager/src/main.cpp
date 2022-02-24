@@ -5,7 +5,6 @@
 #include <gui/style.h>
 #include <core.h>
 #include <thread>
-#include <options.h>
 #include <radio_interface.h>
 #include <signal_path/signal_path.h>
 #include <vector>
@@ -831,7 +830,7 @@ MOD_EXPORT void _INIT_() {
     def["lists"]["General"]["showOnWaterfall"] = true;
     def["lists"]["General"]["bookmarks"] = json::object();
 
-    config.setPath(options::opts.root + "/frequency_manager_config.json");
+    config.setPath(core::args["root"].s() + "/frequency_manager_config.json");
     config.load(def);
     config.enableAutoSave();
 

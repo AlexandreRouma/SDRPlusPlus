@@ -22,6 +22,7 @@ private:
     void worker();
     std::thread workerThread;
     std::vector<std::string> _filter;
+    std::string root = "";
 
     bool pathValid = false;
     bool dialogOpen = false;

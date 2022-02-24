@@ -124,9 +124,7 @@ class MainActivity : NativeActivity() {
     // We assume dispatchKeyEvent() of the NativeActivity is actually called for every
     // KeyEvent and not consumed by any View before it reaches here
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        Log.w(TAG, "Key Action");
         if (event.action == KeyEvent.ACTION_DOWN) {
-            Log.w(TAG, "Key Pressed");
             unicodeCharacterQueue.offer(event.getUnicodeChar(event.metaState))
         }
         return super.dispatchKeyEvent(event)

@@ -8,7 +8,6 @@
 #include <spdlog/spdlog.h>
 #include <RtAudio.h>
 #include <config.h>
-#include <options.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -276,7 +275,7 @@ private:
 
 MOD_EXPORT void _INIT_() {
     json def = json({});
-    config.setPath(options::opts.root + "/audio_sink_config.json");
+    config.setPath(core::args["root"].s() + "/audio_sink_config.json");
     config.load(def);
     config.enableAutoSave();
 }

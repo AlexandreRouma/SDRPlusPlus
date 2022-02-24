@@ -5,7 +5,6 @@
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
 #include <module.h>
-#include <options.h>
 #include <filesystem>
 #include <dsp/pll.h>
 #include <dsp/stream.h>
@@ -244,14 +243,15 @@ private:
 
 MOD_EXPORT void _INIT_() {
     // Create default recording directory
-    if (!std::filesystem::exists(options::opts.root + "/recordings")) {
+    std::string root = core::args["root"];
+    if (!std::filesystem::exists(root + "/recordings")) {
         spdlog::warn("Recordings directory does not exist, creating it");
-        if (!std::filesystem::create_directory(options::opts.root + "/recordings")) {
+        if (!std::filesystem::create_directory(root + "/recordings")) {
             spdlog::error("Could not create recordings directory");
         }
     }
     json def = json({});
-    config.setPath(options::opts.root + "/meteor_demodulator_config.json");
+    config.setPath(root + "/meteor_demodulator_config.json");
     config.load(def);
     config.enableAutoSave();
 }

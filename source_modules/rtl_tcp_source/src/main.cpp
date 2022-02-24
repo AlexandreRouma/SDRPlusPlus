@@ -5,7 +5,6 @@
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
 #include <core.h>
-#include <options.h>
 #include <gui/smgui.h>
 #include <gui/style.h>
 
@@ -337,7 +336,7 @@ private:
 };
 
 MOD_EXPORT void _INIT_() {
-    config.setPath(options::opts.root + "/rtl_tcp_config.json");
+    config.setPath(core::args["root"].s() + "/rtl_tcp_config.json");
     json defConf;
     defConf["host"] = "localhost";
     defConf["port"] = 1234;

@@ -24,7 +24,6 @@
 #include <filesystem>
 #include <signal_path/source.h>
 #include <gui/dialogs/loading_screen.h>
-#include <options.h>
 #include <gui/colormaps.h>
 #include <gui/widgets/snr_meter.h>
 #include <gui/tuner.h>

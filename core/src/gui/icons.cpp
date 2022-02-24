@@ -1,7 +1,6 @@
 #include <gui/icons.h>
 #include <stdint.h>
 #include <config.h>
-#include <options.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <imgui/stb_image.h>

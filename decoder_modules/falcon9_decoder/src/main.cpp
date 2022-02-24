@@ -4,7 +4,6 @@
 #include <gui/style.h>
 #include <signal_path/signal_path.h>
 #include <module.h>
-#include <options.h>
 #include <gui/gui.h>
 #include <dsp/pll.h>
 #include <dsp/stream.h>

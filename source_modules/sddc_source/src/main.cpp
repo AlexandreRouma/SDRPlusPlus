@@ -6,7 +6,6 @@
 #include <core.h>
 #include <gui/style.h>
 #include <config.h>
-#include <options.h>
 #include <gui/widgets/stepped_slider.h>
 #include <libsddc.h>
 
@@ -29,7 +28,7 @@ public:
     AirspyHFSourceModule(std::string name) {
         this->name = name;
 
-        if (options::opts.serverMode) { return; }
+        if (core::args["server"].b()) { return; }
 
         sampleRate = 768000.0;
 
@@ -229,7 +228,7 @@ MOD_EXPORT void _INIT_() {
     json def = json({});
     def["devices"] = json({});
     def["device"] = "";
-    config.setPath(options::opts.root + "/sddc_config.json");
+    config.setPath(core::args["root"].s() + "/sddc_config.json");
     config.load(def);
     config.enableAutoSave();
 }

@@ -6,7 +6,6 @@
 #include <gui/style.h>
 #include <config.h>
 #include <gui/widgets/stepped_slider.h>
-#include <options.h>
 #include <gui/smgui.h>
 
 #ifndef __ANDROID__
@@ -416,7 +415,7 @@ MOD_EXPORT void _INIT_() {
     json def = json({});
     def["devices"] = json({});
     def["device"] = "";
-    config.setPath(options::opts.root + "/hackrf_config.json");
+    config.setPath(core::args["root"].s() + "/hackrf_config.json");
     config.load(def);
     config.enableAutoSave();
 }

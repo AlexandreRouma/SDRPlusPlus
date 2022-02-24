@@ -9,7 +9,6 @@
 #include <spdlog/spdlog.h>
 #include <config.h>
 #include <algorithm>
-#include <options.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -424,7 +423,7 @@ private:
 };
 
 MOD_EXPORT void _INIT_() {
-    config.setPath(options::opts.root + "/new_audio_sink_config.json");
+    config.setPath(core::args["root"].s() + "/new_audio_sink_config.json");
     config.load(json::object());
     config.enableAutoSave();
 }

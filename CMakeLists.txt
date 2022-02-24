@@ -50,6 +50,7 @@ option(OPT_BUILD_NEW_PORTAUDIO_SINK "Build the new PortAudio Sink Module (Depend
 
 # Decoders
 option(OPT_BUILD_FALCON9_DECODER "Build the falcon9 live decoder (Dependencies: ffplay)" OFF)
+option(OPT_BUILD_KG_SSTV_DECODER "Build the M17 decoder module (no dependencies required)" OFF)
 option(OPT_BUILD_M17_DECODER "Build the M17 decoder module (no dependencies required)" OFF)
 option(OPT_BUILD_METEOR_DEMODULATOR "Build the meteor demodulator module (no dependencies required)" ON)
 option(OPT_BUILD_RADIO "Main audio modulation decoder (AM, FM, SSB, etc...)" ON)
@@ -64,7 +65,7 @@ option(OPT_BUILD_SCANNER "Frequency scanner" OFF)
 option(OPT_BUILD_SCHEDULER "Build the scheduler" OFF)
 
 # Other options
-option(USE_INTERNAL_LIBCORRECT "Use an external version of libcorrect" ON)
+option(USE_INTERNAL_LIBCORRECT "Use an internal version of libcorrect" ON)
 option(USE_BUNDLE_DEFAULTS "Set the default resource and module directories to the right ones for a MacOS .app" OFF)
 
 # Core of SDR++
@@ -158,6 +159,10 @@ endif (OPT_BUILD_NEW_PORTAUDIO_SINK)
 if (OPT_BUILD_FALCON9_DECODER)
 add_subdirectory("decoder_modules/falcon9_decoder")
 endif (OPT_BUILD_FALCON9_DECODER)
+
+if (OPT_BUILD_KG_SSTV_DECODER)
+add_subdirectory("decoder_modules/kg_sstv_decoder")
+endif (OPT_BUILD_KG_SSTV_DECODER)
 
 if (OPT_BUILD_M17_DECODER)
 add_subdirectory("decoder_modules/m17_decoder")

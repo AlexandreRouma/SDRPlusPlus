@@ -2,7 +2,6 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <config.h>
-#include <options.h>
 #include <spdlog/spdlog.h>
 #include <filesystem>
 

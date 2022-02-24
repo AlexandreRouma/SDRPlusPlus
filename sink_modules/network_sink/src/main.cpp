@@ -8,7 +8,6 @@
 #include <dsp/processing.h>
 #include <spdlog/spdlog.h>
 #include <config.h>
-#include <options.h>
 #include <gui/style.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
@@ -339,7 +338,7 @@ private:
 
 MOD_EXPORT void _INIT_() {
     json def = json({});
-    config.setPath(options::opts.root + "/network_sink_config.json");
+    config.setPath(core::args["root"].s() + "/network_sink_config.json");
     config.load(def);
     config.enableAutoSave();
 }

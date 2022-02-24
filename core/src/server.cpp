@@ -3,7 +3,6 @@
 #include <spdlog/spdlog.h>
 #include <version.h>
 #include <config.h>
-#include <options.h>
 #include <filesystem>
 #include <dsp/types.h>
 #include <signal_path/signal_path.h>
@@ -75,6 +74,7 @@ namespace server {
         // Initialize compressor
         cctx = ZSTD_createCCtx();
 
+        // Load config
         core::configManager.acquire();
         std::string modulesDir = core::configManager.conf["modulesDirectory"];
         std::vector<std::string> modules = core::configManager.conf["modules"];
@@ -83,8 +83,10 @@ namespace server {
         core::configManager.release();
         modulesDir = std::filesystem::absolute(modulesDir).string();
 
-        spdlog::info("Loading modules");
+        // Intialize SmGui in server mode
+        SmGui::init(true);
 
+        spdlog::info("Loading modules");
         // Load modules and check type to only load sources ( TODO: Have a proper type parameter int the info )
         // TODO LATER: Add whitelist/blacklist stuff
         if (std::filesystem::is_directory(modulesDir)) {
@@ -146,10 +148,12 @@ namespace server {
         sigpath::sourceManager.selectSource(sourceList[sourceId]);
 
         // TODO: Use command line option
-        listener = net::listen(options::opts.serverHost, options::opts.serverPort);
+        std::string host = core::args["addr"];
+        int port = core::args["port"];
+        listener = net::listen(host, port);
         listener->acceptAsync(_clientHandler, NULL);
 
-        spdlog::info("Ready, listening on {0}:{1}", options::opts.serverHost, options::opts.serverPort);
+        spdlog::info("Ready, listening on {0}:{1}", host, port);
         while(1) { std::this_thread::sleep_for(std::chrono::milliseconds(100)); }
 
         return 0;

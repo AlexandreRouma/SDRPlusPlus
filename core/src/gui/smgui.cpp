@@ -1,6 +1,5 @@
 #include "smgui.h"
 #include "style.h"
-#include <options.h>
 #include <gui/widgets/stepped_slider.h>
 #include <gui/gui.h>
 
@@ -25,6 +24,7 @@ namespace SmGui {
     std::string diffId = "";
     DrawListElem diffValue;
     bool nextItemFillWidth = false;
+    bool serverMode = false;
 
     std::string ImStrToString(const char* imstr) {
         int len = 0;
@@ -33,6 +33,10 @@ namespace SmGui {
         return std::string(imstr, end);
     }
 
+    void init(bool server) {
+        serverMode = server;
+    }
+    
     // Rec/Play functions
     void setDiff(std::string id, SmGui::DrawListElem value) {
         diffId = id;
@@ -457,7 +461,7 @@ namespace SmGui {
 
     // Format functions
     void FillWidth() {
-        if (!options::opts.serverMode) {
+        if (!serverMode) {
             nextItemFillWidth = true;
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             return;
@@ -466,17 +470,17 @@ namespace SmGui {
     }
 
     void SameLine() {
-        if (!options::opts.serverMode) { ImGui::SameLine(); return; }
+        if (!serverMode) { ImGui::SameLine(); return; }
         if (rdl) { rdl->pushStep(DRAW_STEP_SAME_LINE, false); }
     }
 
     void BeginDisabled() {
-        if (!options::opts.serverMode) { style::beginDisabled(); return; }
+        if (!serverMode) { style::beginDisabled(); return; }
         if (rdl) { rdl->pushStep(DRAW_STEP_BEGIN_DISABLED, false); }
     }
 
     void EndDisabled() {
-        if (!options::opts.serverMode) { style::endDisabled(); return; }
+        if (!serverMode) { style::endDisabled(); return; }
         if (rdl) { rdl->pushStep(DRAW_STEP_END_DISABLED, false); }
     }
 
@@ -484,7 +488,7 @@ namespace SmGui {
     // Widget functions
     bool Combo(const char *label, int *current_item, const char *items_separated_by_zeros, int popup_max_height_in_items) {
         nextItemFillWidth = false;
-        if (!options::opts.serverMode) { return ImGui::Combo(label, current_item, items_separated_by_zeros, popup_max_height_in_items); }
+        if (!serverMode) { return ImGui::Combo(label, current_item, items_separated_by_zeros, popup_max_height_in_items); }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_COMBO, forceSyncForNext);
             rdl->pushString(label);
@@ -501,7 +505,7 @@ namespace SmGui {
     }
 
     bool Button(const char *label, ImVec2 size) {
-        if (!options::opts.serverMode) {
+        if (!serverMode) {
             if (nextItemFillWidth) {
                 nextItemFillWidth = false;
                 size.x = ImGui::GetContentRegionAvail().x;
@@ -519,7 +523,7 @@ namespace SmGui {
     }
 
     void Columns(int count, const char *id, bool border) {
-        if (!options::opts.serverMode) { ImGui::Columns(count, id, border); return; }
+        if (!serverMode) { ImGui::Columns(count, id, border); return; }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_COLUMNS, forceSyncForNext);
             rdl->pushInt(count);
@@ -530,12 +534,12 @@ namespace SmGui {
     }
     
     void NextColumn() {
-        if (!options::opts.serverMode) { ImGui::NextColumn(); return; }
+        if (!serverMode) { ImGui::NextColumn(); return; }
         if (rdl) { rdl->pushStep(DRAW_STEP_NEXT_COLUMN, false); }
     }
     
     bool RadioButton(const char *label, bool active) {
-        if (!options::opts.serverMode) { return ImGui::RadioButton(label, active); }
+        if (!serverMode) { return ImGui::RadioButton(label, active); }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_RADIO_BUTTON, forceSyncForNext);
             rdl->pushString(label);
@@ -546,17 +550,17 @@ namespace SmGui {
     }
     
     void BeginGroup() {
-        if (!options::opts.serverMode) { ImGui::BeginGroup(); return; }
+        if (!serverMode) { ImGui::BeginGroup(); return; }
         if (rdl) { rdl->pushStep(DRAW_STEP_BEGIN_GROUP, false); }
     }
     
     void EndGroup() {
-        if (!options::opts.serverMode) { ImGui::EndGroup(); return; }
+        if (!serverMode) { ImGui::EndGroup(); return; }
         if (rdl) { rdl->pushStep(DRAW_STEP_END_GROUP, false); }
     }
     
     void LeftLabel(const char *text) {
-        if (!options::opts.serverMode) { ImGui::LeftLabel(text); return; }
+        if (!serverMode) { ImGui::LeftLabel(text); return; }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_LEFT_LABEL, forceSyncForNext);
             rdl->pushString(text);
@@ -566,7 +570,7 @@ namespace SmGui {
     
     bool SliderInt(const char *label, int *v, int v_min, int v_max, FormatString format, ImGuiSliderFlags flags) {
         nextItemFillWidth = false;
-        if (!options::opts.serverMode) { return ImGui::SliderInt(label, v, v_min, v_max, fmtStr[format], flags); }
+        if (!serverMode) { return ImGui::SliderInt(label, v, v_min, v_max, fmtStr[format], flags); }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_SLIDER_INT, forceSyncForNext);
             rdl->pushString(label);
@@ -586,7 +590,7 @@ namespace SmGui {
 
     bool SliderFloatWithSteps(const char *label, float *v, float v_min, float v_max, float v_step, FormatString display_format) {
         nextItemFillWidth = false;
-        if (!options::opts.serverMode) { return ImGui::SliderFloatWithSteps(label, v, v_min, v_max, v_step, fmtStr[display_format]); }
+        if (!serverMode) { return ImGui::SliderFloatWithSteps(label, v, v_min, v_max, v_step, fmtStr[display_format]); }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_SLIDER_FLOAT_WITH_STEPS, forceSyncForNext);
             rdl->pushString(label);
@@ -606,7 +610,7 @@ namespace SmGui {
 
     bool InputInt(const char *label, int *v, int step, int step_fast, ImGuiInputTextFlags flags) {
         nextItemFillWidth = false;
-        if (!options::opts.serverMode) { return ImGui::InputInt(label, v, step, step_fast, flags); }
+        if (!serverMode) { return ImGui::InputInt(label, v, step, step_fast, flags); }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_INPUT_INT, forceSyncForNext);
             rdl->pushString(label);
@@ -624,7 +628,7 @@ namespace SmGui {
     }
     
     bool Checkbox(const char *label, bool *v) {
-        if (!options::opts.serverMode) { return ImGui::Checkbox(label, v); }
+        if (!serverMode) { return ImGui::Checkbox(label, v); }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_CHECKBOX, forceSyncForNext);
             rdl->pushString(label);
@@ -640,7 +644,7 @@ namespace SmGui {
 
     bool SliderFloat(const char *label, float *v, float v_min, float v_max, FormatString format, ImGuiSliderFlags flags) {
         nextItemFillWidth = false;
-        if (!options::opts.serverMode) { return ImGui::SliderFloat(label, v, v_min, v_max, fmtStr[format], flags); }
+        if (!serverMode) { return ImGui::SliderFloat(label, v, v_min, v_max, fmtStr[format], flags); }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_SLIDER_FLOAT, forceSyncForNext);
             rdl->pushString(label);
@@ -660,7 +664,7 @@ namespace SmGui {
 
     bool InputText(const char *label, char *buf, size_t buf_size, ImGuiInputTextFlags flags) {
         nextItemFillWidth = false;
-        if (!options::opts.serverMode) { return ImGui::InputText(label, buf, buf_size, flags); }
+        if (!serverMode) { return ImGui::InputText(label, buf, buf_size, flags); }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_INPUT_TEXT, forceSyncForNext);
             rdl->pushString(label);
@@ -677,7 +681,7 @@ namespace SmGui {
     }
 
     void Text(const char* str) {
-        if (!options::opts.serverMode) { ImGui::TextUnformatted(str); return; }
+        if (!serverMode) { ImGui::TextUnformatted(str); return; }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_TEXT, false);
             rdl->pushString(str);
@@ -685,7 +689,7 @@ namespace SmGui {
     }
 
     void TextColored(const ImVec4 &col, const char *str) {
-        if (!options::opts.serverMode) { ImGui::TextColored(col, "%s", str); return; }
+        if (!serverMode) { ImGui::TextColored(col, "%s", str); return; }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_TEXT_COLORED, false);
             rdl->pushFloat(col.x);
@@ -697,7 +701,7 @@ namespace SmGui {
     }
 
     void OpenPopup(const char *str_id, ImGuiPopupFlags popup_flags) {
-        if (!options::opts.serverMode) { ImGui::OpenPopup(str_id, popup_flags); return; }
+        if (!serverMode) { ImGui::OpenPopup(str_id, popup_flags); return; }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_OPEN_POPUP, false);
             rdl->pushString(str_id);
@@ -706,7 +710,7 @@ namespace SmGui {
     }
 
     bool BeginPopup(const char *str_id, ImGuiWindowFlags flags) {
-        if (!options::opts.serverMode) { return ImGui::BeginPopup(str_id, flags); }
+        if (!serverMode) { return ImGui::BeginPopup(str_id, flags); }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_BEGIN_POPUP, false);
             rdl->pushString(str_id);
@@ -716,14 +720,14 @@ namespace SmGui {
     }
 
     void EndPopup() {
-        if (!options::opts.serverMode) { ImGui::EndPopup(); return; }
+        if (!serverMode) { ImGui::EndPopup(); return; }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_END_POPUP, false);
         }
     }
 
     bool BeginTable(const char *str_id, int column, ImGuiTableFlags flags, const ImVec2 &outer_size, float inner_width) {
-        if (!options::opts.serverMode) { return ImGui::BeginTable(str_id, column, flags, outer_size, inner_width); }
+        if (!serverMode) { return ImGui::BeginTable(str_id, column, flags, outer_size, inner_width); }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_BEGIN_TABLE, false);
             rdl->pushString(str_id);
@@ -737,14 +741,14 @@ namespace SmGui {
     }
 
     void EndTable() {
-        if (!options::opts.serverMode) { ImGui::EndTable(); return; }
+        if (!serverMode) { ImGui::EndTable(); return; }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_END_TABLE, false);
         }
     }
 
     void TableNextRow(ImGuiTableRowFlags row_flags, float min_row_height) {
-        if (!options::opts.serverMode) { ImGui::TableNextRow(row_flags, min_row_height); return; }
+        if (!serverMode) { ImGui::TableNextRow(row_flags, min_row_height); return; }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_TABLE_NEXT_ROW, false);
             rdl->pushInt(row_flags);
@@ -753,7 +757,7 @@ namespace SmGui {
     }
 
     void TableSetColumnIndex(int column_n) {
-        if (!options::opts.serverMode) { ImGui::TableSetColumnIndex(column_n); return; }
+        if (!serverMode) { ImGui::TableSetColumnIndex(column_n); return; }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_TABLE_SET_COLUMN_INDEX, false);
             rdl->pushInt(column_n);
@@ -761,7 +765,7 @@ namespace SmGui {
     }
     
     void SetNextItemWidth(float item_width) {
-        if (!options::opts.serverMode) { ImGui::SetNextItemWidth(item_width); return; }
+        if (!serverMode) { ImGui::SetNextItemWidth(item_width); return; }
         if (rdl) {
             rdl->pushStep(DRAW_STEP_SET_NEXT_ITEM_WIDTH, false);
             rdl->pushFloat(item_width);

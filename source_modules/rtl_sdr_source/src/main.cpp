@@ -5,7 +5,6 @@
 #include <core.h>
 #include <gui/style.h>
 #include <config.h>
-#include <options.h>
 #include <gui/smgui.h>
 #include <rtl-sdr.h>
 
@@ -59,6 +58,8 @@ class RTLSDRSourceModule : public ModuleManager::Instance {
 public:
     RTLSDRSourceModule(std::string name) {
         this->name = name;
+
+        serverMode = core::args["server"];
 
         sampleRate = sampleRates[0];
 
@@ -425,7 +426,7 @@ private:
         SmGui::ForceSync();
 
         // TODO: FIND ANOTHER WAY
-        if (options::opts.serverMode) {
+        if (serverMode) {
             if (SmGui::SliderInt(CONCAT("##_rtlsdr_gain_", _this->name), &_this->gainId, 0, _this->gainList.size() - 1, SmGui::FMT_STR_NONE)) {
                 _this->updateGainTxt();
                 if (_this->running) {
@@ -539,6 +540,7 @@ private:
     int srId = 0;
     int devCount = 0;
     std::thread workerThread;
+    bool serverMode = false;
 
 #ifdef __ANDROID__
     int devFd = -1;
@@ -571,7 +573,7 @@ MOD_EXPORT void _INIT_() {
     json def = json({});
     def["devices"] = json({});
     def["device"] = 0;
-    config.setPath(options::opts.root + "/rtl_sdr_config.json");
+    config.setPath(core::args["root"].s() + "/rtl_sdr_config.json");
     config.load(def);
     config.enableAutoSave();
 }

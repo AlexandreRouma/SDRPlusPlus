@@ -7,7 +7,6 @@
 #include <dsp/processing.h>
 #include <spdlog/spdlog.h>
 #include <config.h>
-#include <options.h>
 #include <utils/optionlist.h>
 #include <aaudio/AAudio.h>
 
@@ -175,7 +174,7 @@ private:
 
 MOD_EXPORT void _INIT_() {
     json def = json({});
-    config.setPath(options::opts.root + "/audio_sink_config.json");
+    config.setPath(core::args["root"].s() + "/audio_sink_config.json");
     config.load(def);
     config.enableAutoSave();
 }

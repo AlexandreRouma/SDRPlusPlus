@@ -6,7 +6,6 @@
 #include <core.h>
 #include <gui/style.h>
 #include <config.h>
-#include <options.h>
 #include <sdrplay_api.h>
 #include <gui/smgui.h>
 
@@ -1207,7 +1206,7 @@ MOD_EXPORT void _INIT_() {
     json def = json({});
     def["devices"] = json({});
     def["device"] = "";
-    config.setPath(options::opts.root + "/sdrplay_config.json");
+    config.setPath(core::args["root"].s() + "/sdrplay_config.json");
     config.load(def);
     config.enableAutoSave();
 }

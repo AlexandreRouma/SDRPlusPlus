@@ -7,7 +7,6 @@
 #include <core.h>
 #include <gui/style.h>
 #include <config.h>
-#include <options.h>
 #include <gui/widgets/stepped_slider.h>
 #include <utils/optionlist.h>
 #include <gui/smgui.h>
@@ -326,7 +325,7 @@ MOD_EXPORT void _INIT_() {
     def["hostname"] = "192.168.0.111";
     def["port"] = 50000;
     def["devices"] = json::object();
-    config.setPath(options::opts.root + "/rfspace_source_config.json");
+    config.setPath(core::args["root"].s() + "/rfspace_source_config.json");
     config.load(def);
     config.enableAutoSave();
 

@@ -1,5 +1,4 @@
 #include "radio_module.h"
-#include <options.h>
 
 SDRPP_MOD_INFO{
     /* Name:            */ "radio",
@@ -11,7 +10,7 @@ SDRPP_MOD_INFO{
 
 MOD_EXPORT void _INIT_() {
     json def = json({});
-    config.setPath(options::opts.root + "/radio_config.json");
+    config.setPath(core::args["root"].s() + "/radio_config.json");
     config.load(def);
     config.enableAutoSave();
 }

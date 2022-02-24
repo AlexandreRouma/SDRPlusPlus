@@ -11,7 +11,6 @@
 #include <stb_image.h>
 #include <config.h>
 #include <core.h>
-#include <options.h>
 #include <filesystem>
 #include <gui/menus/theme.h>
 #include <backend.h>
@@ -41,7 +40,7 @@ namespace core {
 
     void setInputSampleRate(double samplerate) {
         // Forward this to the server
-        if (options::opts.serverMode) { server::setInputSampleRate(samplerate); return; }
+        if (args["server"].b()) { server::setInputSampleRate(samplerate); return; }
         
         sigpath::signalPath.sourceSampleRate = samplerate;
         double effectiveSr = samplerate / ((double)(1 << sigpath::signalPath.decimation));
@@ -75,25 +74,25 @@ int sdrpp_main(int argc, char* argv[]) {
         return 0;
     }
 
-    // Load default options and parse command line
-    options::loadDefaults();
-    if (!options::parse(argc, argv)) { return -1; }
+    bool serverMode = core::args["server"];
 
 #ifdef _WIN32
-    if (!options::opts.showConsole && !options::opts.serverMode) { FreeConsole(); }
+    if (!core::args["con"].b() && !serverMode) { FreeConsole(); }
 #endif
 
     // Check root directory
-    if (!std::filesystem::exists(options::opts.root)) {
-        spdlog::warn("Root directory {0} does not exist, creating it", options::opts.root);
-        if (!std::filesystem::create_directories(options::opts.root)) {
-            spdlog::error("Could not create root directory {0}", options::opts.root);
+    std::string root = core::args["root"];
+    if (!std::filesystem::exists(root)) {
+        spdlog::warn("Root directory {0} does not exist, creating it", root);
+        if (!std::filesystem::create_directories(root)) {
+            spdlog::error("Could not create root directory {0}", root);
             return -1;
         }
     }
 
-    if (!std::filesystem::is_directory(options::opts.root)) {
-        spdlog::error("{0} is not a directory", options::opts.root);
+    // Check that the path actually is a directory
+    if (!std::filesystem::is_directory(root)) {
+        spdlog::error("{0} is not a directory", root);
         return -1;
     }
 
@@ -225,8 +224,8 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["modulesDirectory"] = "../Plugins";
     defConfig["resourcesDirectory"] = "../Resources";
 #elif defined(__ANDROID__)
-    defConfig["modulesDirectory"] = options::opts.root + "/modules";
-    defConfig["resourcesDirectory"] = options::opts.root + "/res";
+    defConfig["modulesDirectory"] = root + "/modules";
+    defConfig["resourcesDirectory"] = root + "/res";
 #else
     defConfig["modulesDirectory"] = INSTALL_PREFIX "/lib/sdrpp/plugins";
     defConfig["resourcesDirectory"] = INSTALL_PREFIX "/share/sdrpp";
@@ -234,7 +233,7 @@ int sdrpp_main(int argc, char* argv[]) {
 
     // Load config
     spdlog::info("Loading config");
-    core::configManager.setPath(options::opts.root + "/config.json");
+    core::configManager.setPath(root + "/config.json");
     core::configManager.load(defConfig);
     core::configManager.enableAutoSave();
     core::configManager.acquire();
@@ -296,7 +295,7 @@ int sdrpp_main(int argc, char* argv[]) {
 
     core::configManager.release(true);
 
-    if (options::opts.serverMode) { return server::main(); }
+    if (serverMode) { return server::main(); }
 
     core::configManager.acquire();
     std::string resDir = core::configManager.conf["resourcesDirectory"];
@@ -313,6 +312,9 @@ int sdrpp_main(int argc, char* argv[]) {
     // Initialize backend
     int biRes = backend::init(resDir);
     if (biRes < 0) { return biRes; }
+
+    // Intialize SmGui in normal mode
+    SmGui::init(false);
 
     if (!style::loadFonts(resDir)) { return -1; }
     thememenu::init(resDir);

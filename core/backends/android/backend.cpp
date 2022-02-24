@@ -16,7 +16,6 @@
 #include <gui/style.h>
 #include <gui/menus/theme.h>
 #include <filesystem>
-#include <options.h>
 
 // Credit to the ImGui android OpenGL3 example for a lot of this code!
 
@@ -36,9 +35,10 @@ namespace backend {
     int PollUnicodeChars();
 
     void doPartialInit() {
+        std::string root = core::args["root"];
         backend::init();
-        style::loadFonts(options::opts.root + "/res"); // TODO: Don't hardcode, use config
-        icons::load(options::opts.root + "/res");
+        style::loadFonts(root + "/res"); // TODO: Don't hardcode, use config
+        icons::load(root + "/res");
         thememenu::applyTheme();
         ImGui::GetStyle().ScaleAllSizes(style::uiScale);
         gui::mainWindow.setFirstMenuRender();
