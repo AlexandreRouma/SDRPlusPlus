@@ -36,7 +36,7 @@ namespace module_manager_menu {
         float lheight = ImGui::GetTextLineHeight();
         float cellWidth = lheight - (2.0f * cellpad.y);
         float hdiff = cellpad.x - cellpad.y;
-        ImVec2 btnSize = ImVec2(lheight + 1, lheight - 1);
+        ImVec2 btnSize = ImVec2(lheight, lheight - 1);
         ImVec2 textOff = ImVec2(3.0f * style::uiScale, -5.0f * style::uiScale);
 
         if (ImGui::BeginTable("Module Manager Table", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, 200))) {
@@ -97,8 +97,6 @@ namespace module_manager_menu {
 
             ImGui::TableSetColumnIndex(2);
             if (strlen(modName) == 0) { style::beginDisabled(); }
-            ImVec2 cpos = ImGui::GetCursorPos();
-            ImGui::SetCursorPos(ImVec2(cpos.x - hdiff, cpos.y));
             if (ImGui::Button("+##module_mgr_add_btn", ImVec2(btnSize.x, 0))) {
                 if (!core::moduleManager.createInstance(modName, modTypes[modTypeId])) {
                     core::moduleManager.postInit(modName);
