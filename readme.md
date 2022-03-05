@@ -388,6 +388,15 @@ If you also have the SoapySDR module loaded (not necessarily enabled), this is a
 The solution until a fixed libhackrf version is released is to completely remove the soapy_source module from SDR++. To do this, delete `modules/soapy_source.dll` on windows
 or `/usr/lib/sdrpp/plugins/soapy_source.so` on linux.
 
+## SDR++ doesn't show my devices (Linux)
+
+If you're running a recent Linux distribution that is using PipeWire instead of PulseAudio and you're using the enabled by default audio_sink you may be running accross a bug in the RtAudio library.
+Try running sdrpp with PIPEWIRE_PROPS and the jack-filter-name option set so that the PipeWire jack implementation removes certain characters from audio device names and avoids that bug.
+
+For example: `PIPEWIRE_PROPS='{ jack.filter-name=true }' ./build/sdrpp -r root_dev`
+
+If you are actually using jack/jack2 you will need to rename any devices/ports that have regex characters in the name.
+
 ## Issue not listed here?
 
 If you still have an issue, please open an issue about it or ask on the discord. I'll try to respond as quickly as I can. Please avoid trying to contact me on every platform imaginable thinking I'll respond faster though...
