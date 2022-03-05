@@ -186,8 +186,12 @@ private:
         stereoPacker.stop();
         monoPacker.out.stopReader();
         stereoPacker.out.stopReader();
-        audio.stopStream();
-        audio.closeStream();
+        try {
+            audio.stopStream();
+            audio.closeStream();
+        } catch (RtAudioError& e) {
+            spdlog::error("Could not close audio device - maybe it failed to open?");
+        }
         monoPacker.out.clearReadStop();
         stereoPacker.out.clearReadStop();
     }
