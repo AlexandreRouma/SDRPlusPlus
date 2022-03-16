@@ -2,9 +2,15 @@
   "name": "Canada",
   "country_name": "Canada",
   "country_code": "CA",
-  "author_name": "Cam K.",
-  "author_url": "https://github.com/Starman0620/",
+  "author_name": "Cam VE3KCN",
+  "author_url": "https://github.com/CamK06/",
   "bands": [
+    {
+      "name": "2200m Ham Band",
+      "type": "amateur",
+      "start": 135700,
+      "end": 137800
+    },
     {
       "name": "630m Ham Band",
       "type": "amateur",
@@ -12,10 +18,10 @@
       "end": 479000
     },
     {
-      "name": "AM Radio",
+      "name": "Mediumwave Broadcast",
       "type": "broadcast",
-      "start": 535000,
-      "end": 1705000
+      "start": 530000,
+      "end": 1700000
     },
     {
       "name": "160m Ham Band",
@@ -24,10 +30,40 @@
       "end": 2000000
     },
     {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 2300000,
+      "end": 2468000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 3200000,
+      "end": 3400000
+    },
+    {
       "name": "80m Ham Band",
       "type": "amateur",
       "start": 3500000,
+      "end": 3950000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 3950000,
       "end": 4000000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 4750000,
+      "end": 4995000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 5005000,
+      "end": 5060000
     },
     {
       "name": "60m Ham Band",
@@ -38,14 +74,20 @@
     {
       "name": "Shortwave Broadcast",
       "type": "broadcast",
-      "start": 5950000,
+      "start": 5900000,
       "end": 6200000
     },
     {
       "name": "40m Ham Band",
       "type": "amateur",
       "start": 7000000,
-      "end": 7300000
+      "end": 7200000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 7200000,
+      "end": 7450000
     },
     {
       "name": "Shortwave Broadcast",
@@ -62,14 +104,14 @@
     {
       "name": "Shortwave Broadcast",
       "type": "broadcast",
-      "start": 11650000,
-      "end": 12050000
+      "start": 11600000,
+      "end": 12100000
     },
     {
       "name": "Shortwave Broadcast",
       "type": "broadcast",
-      "start": 13600000,
-      "end": 13800000
+      "start": 13570000,
+      "end": 13870000
     },
     {
       "name": "20m Ham Band",
@@ -86,13 +128,25 @@
     {
       "name": "Shortwave Broadcast",
       "type": "broadcast",
-      "start": 17550000,
+      "start": 17480000,
       "end": 17900000
+    },
+    {
+      "name": "17m Ham Band",
+      "type": "amateur",
+      "start": 18068000,
+      "end": 18168000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 18900000,
+      "end": 19020000
     },
     {
       "name": "15m Ham Band",
       "type": "amateur",
-      "start": 18068000,
+      "start": 21000000,
       "end": 21450000
     },
     {
@@ -110,8 +164,8 @@
     {
       "name": "Shortwave Broadcast",
       "type": "broadcast",
-      "start": 25000000,
-      "end": 26000000
+      "start": 25670000,
+      "end": 26100000
     },
     {
       "name": "CB",
@@ -123,13 +177,7 @@
       "name": "10m Ham Band",
       "type": "amateur",
       "start": 28000000,
-      "end": 29000000
-    },
-    {
-      "name": "Cordless Phones",
-      "type": "broadcast",
-      "start": 41000000,
-      "end": 50000000
+      "end": 29750000
     },
     {
       "name": "6m Ham Band",
@@ -180,6 +228,12 @@
       "end": 216000000
     },
     {
+      "name": "1.25m Ham Band",
+      "type": "amateur",
+      "start": 222000000,
+      "end": 225000000
+    },
+    {
       "name": "70cm Ham Band",
       "type": "amateur",
       "start": 430000000,
@@ -208,6 +262,18 @@
       "type": "amateur",
       "start": 902000000,
       "end": 928000000
+    },
+    {
+      "name": "23cm Ham Band",
+      "type": "amateur",
+      "start": 1240000000,
+      "end": 1300000000
+    },
+    {
+      "name": "13cm Ham Band",
+      "type": "amateur",
+      "start": 2300000000,
+      "end": 2450000000
     }
   ]
 }
