@@ -354,6 +354,7 @@ void MainWindow::draw() {
     }
 
     // To Bar
+    // ImGui::BeginChild("TopBarChild", ImVec2(0, 49.0f * style::uiScale), false, ImGuiWindowFlags_HorizontalScrollbar);
     ImVec2 btnSize(30 * style::uiScale, 30 * style::uiScale);
     ImGui::PushID(ImGui::GetID("sdrpp_menu_btn"));
     if (ImGui::ImageButton(icons::MENU, btnSize, ImVec2(0, 0), ImVec2(1, 1), 5) || ImGui::IsKeyPressed(ImGuiKey_Menu, false)) {
@@ -424,7 +425,7 @@ void MainWindow::draw() {
     ImGui::SameLine();
 
     int snrOffset = 87.0f * style::uiScale;
-    int snrWidth = std::min<int>(300.0f * style::uiScale, ImGui::GetWindowSize().x - ImGui::GetCursorPosX() - snrOffset);
+    int snrWidth = std::clamp<int>(ImGui::GetWindowSize().x - ImGui::GetCursorPosX() - snrOffset, 100.0f * style::uiScale, 300.0f * style::uiScale);
 
     ImGui::SetCursorPosX(ImGui::GetWindowSize().x - (snrWidth + snrOffset));
     ImGui::SetCursorPosY(origY + (5.0f * style::uiScale));
@@ -435,7 +436,7 @@ void MainWindow::draw() {
 
     // Logo button
     ImGui::SetCursorPosX(ImGui::GetWindowSize().x - (48 * style::uiScale));
-    ImGui::SetCursorPosY(10 * style::uiScale);
+    ImGui::SetCursorPosY(10.0f * style::uiScale);
     if (ImGui::ImageButton(icons::LOGO, ImVec2(32 * style::uiScale, 32 * style::uiScale), ImVec2(0, 0), ImVec2(1, 1), 0)) {
         showCredits = true;
     }
@@ -445,6 +446,8 @@ void MainWindow::draw() {
     if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
         showCredits = false;
     }
+
+    // ImGui::EndChild();
 
     // Handle menu resize
     ImVec2 winSize = ImGui::GetWindowSize();

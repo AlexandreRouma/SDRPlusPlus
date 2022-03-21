@@ -928,13 +928,13 @@ private:
             }
 
             SmGui::ForceSync();
-            if (SmGui::Button("Apply", ImVec2(100, 0))) {
+            if (SmGui::Button(" Apply ")) {
                 open = false;
                 valid = true;
             }
             SmGui::SameLine();
             SmGui::ForceSync();
-            if (SmGui::Button("Cancel", ImVec2(100, 0))) {
+            if (SmGui::Button("Cancel")) {
                 open = false;
                 valid = false;
             }

@@ -92,13 +92,9 @@ namespace displaymenu {
         gui::mainWindow.setFFTWindow(selectedWindow);
 
         // Define and load UI scales
-        uiScales.define(0.5f, "50%", 0.5f);
         uiScales.define(1.0f, "100%", 1.0f);
-        uiScales.define(1.5f, "150%", 1.5f);
         uiScales.define(2.0f, "200%", 2.0f);
-        uiScales.define(2.5f, "250%", 2.5f);
         uiScales.define(3.0f, "300%", 3.0f);
-        uiScales.define(3.5f, "350%", 3.5f);
         uiScales.define(4.0f, "400%", 4.0f);
         uiScaleId = uiScales.valueId(style::uiScale);
     }

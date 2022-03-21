@@ -96,7 +96,7 @@ void FrequencySelect::draw() {
     ImGui::PushFont(style::bigFont);
     ImVec2 digitSz = ImGui::CalcTextSize("0");
     ImVec2 commaSz = ImGui::CalcTextSize(".");
-    widgetPos.y = cursorPos.y - ((digitSz.y / 2.0f) - ceilf(15 * style::uiScale) - 5);
+    widgetPos.y = window->Pos.y + cursorPos.y - ((digitSz.y / 2.0f) - ceilf(15 * style::uiScale) - 5);
 
     if (widgetPos.x != lastWidgetPos.x || widgetPos.y != lastWidgetPos.y) {
         lastWidgetPos = widgetPos;
