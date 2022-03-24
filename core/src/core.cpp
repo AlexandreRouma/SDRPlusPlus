@@ -194,7 +194,11 @@ int sdrpp_main(int argc, char* argv[]) {
 
     // Themes
     defConfig["theme"] = "Dark";
+#ifdef __ANDROID__
+    defConfig["uiScale"] = 3.0f;
+#else
     defConfig["uiScale"] = 1.0f;
+#endif
 
     defConfig["modules"] = json::array();
 
