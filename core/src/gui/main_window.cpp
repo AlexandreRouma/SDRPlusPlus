@@ -426,13 +426,17 @@ void MainWindow::draw() {
 
     int snrOffset = 87.0f * style::uiScale;
     int snrWidth = std::clamp<int>(ImGui::GetWindowSize().x - ImGui::GetCursorPosX() - snrOffset, 100.0f * style::uiScale, 300.0f * style::uiScale);
+    int snrPos = std::max<int>(ImGui::GetWindowSize().x - (snrWidth + snrOffset), ImGui::GetCursorPosX());
 
-    ImGui::SetCursorPosX(ImGui::GetWindowSize().x - (snrWidth + snrOffset));
+    ImGui::SetCursorPosX(snrPos);
     ImGui::SetCursorPosY(origY + (5.0f * style::uiScale));
     ImGui::SetNextItemWidth(snrWidth);
     ImGui::SNRMeter((vfo != NULL) ? gui::waterfall.selectedVFOSNR : 0);
 
+    // Note: this is what makes the vertical size correct, needs to be fixed
     ImGui::SameLine();
+
+    // ImGui::EndChild();
 
     // Logo button
     ImGui::SetCursorPosX(ImGui::GetWindowSize().x - (48 * style::uiScale));
@@ -446,8 +450,6 @@ void MainWindow::draw() {
     if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
         showCredits = false;
     }
-
-    // ImGui::EndChild();
 
     // Handle menu resize
     ImVec2 winSize = ImGui::GetWindowSize();
@@ -485,7 +487,7 @@ void MainWindow::draw() {
     if (showMenu) {
         ImGui::Columns(3, "WindowColumns", false);
         ImGui::SetColumnWidth(0, menuWidth);
-        ImGui::SetColumnWidth(1, winSize.x - menuWidth - (60.0f * style::uiScale));
+        ImGui::SetColumnWidth(1, std::max<int>(winSize.x - menuWidth - (60.0f * style::uiScale), 100.0f * style::uiScale));
         ImGui::SetColumnWidth(2, 60.0f * style::uiScale);
         ImGui::BeginChild("Left Column");
 
