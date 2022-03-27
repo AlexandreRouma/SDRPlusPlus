@@ -83,7 +83,7 @@ namespace module_manager_menu {
         if (ImGui::BeginTable("Module Manager Add Table", 3)) {
             ImGui::TableSetupColumn("Name");
             ImGui::TableSetupColumn("Type");
-            ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, cellWidth);
+            ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, cellWidth + cellpad.x);
             
             ImGui::TableNextRow();
 
