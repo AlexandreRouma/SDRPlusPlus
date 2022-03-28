@@ -4,7 +4,6 @@
 #include <gui/style.h>
 #include <signal_path/signal_path.h>
 #include <module.h>
-#include <options.h>
 #include <gui/gui.h>
 #include <dsp/pll.h>
 #include <dsp/stream.h>
@@ -131,7 +130,7 @@ private:
     static void menuHandler(void* ctx) {
         Falcon9DecoderModule* _this = (Falcon9DecoderModule*)ctx;
 
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
+        float menuWidth = ImGui::GetContentRegionAvail().x;
 
         if (!_this->enabled) { style::beginDisabled(); }
 

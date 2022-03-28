@@ -57,15 +57,20 @@ namespace sdrpp_credits {
         "Eric Johnson",
         "Ernest Murphy (NH7L)",
         "Flinger Films",
+        "gringogrigio",
+        "Joe Cupano",
         "Kezza",
+        "Krys Kamieniecki",
         "Lee Donaghy",
+        "Lee KD1SQ",
         ".lozenge. (Hank Hill)",
         "ON4MU",
         "Passion-Radio.com",
         "Scanner School",
         "SignalsEverywhere",
         "Syne Ardwin (WI9SYN)",
-        "W4IPA"
+        "W4IPA",
+        "Zipper"
     };
 
     const int contributorCount = sizeof(contributors) / sizeof(char*);

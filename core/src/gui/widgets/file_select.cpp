@@ -1,17 +1,18 @@
 #include <gui/widgets/file_select.h>
 #include <regex>
-#include <options.h>
 #include <filesystem>
 #include <gui/file_dialogs.h>
+#include <core.h>
 
 FileSelect::FileSelect(std::string defaultPath, std::vector<std::string> filter) {
     _filter = filter;
+    root = (std::string)core::args["root"];
     setPath(defaultPath);
 }
 
 bool FileSelect::render(std::string id) {
     bool _pathChanged = false;
-    float menuColumnWidth = ImGui::GetContentRegionAvailWidth();
+    float menuColumnWidth = ImGui::GetContentRegionAvail().x;
 
     float buttonWidth = ImGui::CalcTextSize("...").x + 20.0f;
     bool lastPathValid = pathValid;
@@ -54,7 +55,7 @@ void FileSelect::setPath(std::string path, bool markChanged) {
 }
 
 std::string FileSelect::expandString(std::string input) {
-    input = std::regex_replace(input, std::regex("%ROOT%"), options::opts.root);
+    input = std::regex_replace(input, std::regex("%ROOT%"), root);
     return std::regex_replace(input, std::regex("//"), "/");
 }
 

@@ -3,7 +3,7 @@
     "country_name": "United Kingdom",
     "country_code": "UK",
     "author_name": "John Donkersley",
-    "author_url": "--",
+    "author_url": "",
     "bands": [
         {
             "name": "Long Wave",
@@ -30,16 +30,40 @@
             "end": 2000000
         },
         {
+            "name": "Maritime",
+            "type": "marine",
+            "start": 2045000,
+            "end": 2300000
+        },
+        {
             "name": "120m Broadcast",
             "type": "broadcast",
             "start": 2300000,
             "end": 2495000
         },
         {
+            "name": "Maritime",
+            "type": "marine",
+            "start": 2500000,
+            "end": 2850000
+        },
+        {
+            "name": "Aeronautical Mobile",
+            "type": "aviation",
+            "start": 2850000,
+            "end": 3155000
+        },
+        {
             "name": "90m Broadcast",
             "type": "broadcast",
             "start": 3200000,
             "end": 3400000
+        },
+        {
+            "name": "Aeronautical Mobile",
+            "type": "aviation",
+            "start": 3400000,
+            "end": 3500000
         },
         {
             "name": "80m Ham Band",
@@ -54,6 +78,18 @@
             "end": 4000000
         },
         {
+            "name": "Maritime",
+            "type": "marine",
+            "start": 4063000,
+            "end": 4438000
+        },
+        {
+            "name": "Aeronautical Mobile",
+            "type": "aviation",
+            "start": 4650000,
+            "end": 4750000
+        },
+        {
             "name": "60m Broadcast",
             "type": "broadcast",
             "start": 4750000,
@@ -66,10 +102,28 @@
             "end": 5406500
         },
         {
+            "name": "Aeronautical Mobile",
+            "type": "aviation",
+            "start": 5450000,
+            "end": 5730000
+        },
+        {
             "name": "49m Broadcast",
             "type": "broadcast",
             "start": 5900000,
             "end": 6200000
+        },
+        {
+            "name": "Maritime",
+            "type": "marine",
+            "start": 6200000,
+            "end": 6525000
+        },
+        {
+            "name": "Aeronautical Mobile",
+            "type": "aviation",
+            "start": 6525000,
+            "end": 6765000
         },
         {
             "name": "40m Ham Band",
@@ -84,10 +138,28 @@
             "end": 7450000
         },
         {
+            "name": "Maritime",
+            "type": "marine",
+            "start": 8195000,
+            "end": 8815000
+        },
+        {
+            "name": "Aeronautical Mobile",
+            "type": "aviation",
+            "start": 8815000,
+            "end": 9040000
+        },
+        {
             "name": "31m Broadcast",
             "type": "broadcast",
             "start": 9400000,
             "end": 9900000
+        },
+        {
+            "name": "Aeronautical Mobile",
+            "type": "aviation",
+            "start": 10005000,
+            "end": 10100000
         },
         {
             "name": "30m Ham Band",
@@ -96,10 +168,28 @@
             "end": 10150000
         },
         {
+            "name": "Aeronautical Mobile",
+            "type": "aviation",
+            "start": 11175000,
+            "end": 11400000
+        },
+        {
             "name": "25m Broadcast",
             "type": "broadcast",
             "start": 11600000,
-            "end": 12100000
+            "end": 12230000
+        },
+        {
+            "name": "Maritime",
+            "type": "marine",
+            "start": 12230000,
+            "end": 13200000
+        },
+        {
+            "name": "Aeronautical Mobile",
+            "type": "aviation",
+            "start": 13200000,
+            "end": 13360000
         },
         {
             "name": "22m Broadcast",
@@ -114,6 +204,18 @@
             "end": 14350000
         },
         {
+            "name": "Aeronautical Mobile",
+            "type": "aviation",
+            "start": 15010000,
+            "end": 15100000
+        },
+        {
+            "name": "Maritime",
+            "type": "marine",
+            "start": 16360000,
+            "end": 17410000
+        },
+        {
             "name": "19m Broadcast",
             "type": "broadcast",
             "start": 15100000,
@@ -126,16 +228,34 @@
             "end": 17900000
         },
         {
+            "name": "Aeronautical Mobile",
+            "type": "aviation",
+            "start": 17900000,
+            "end": 18030000
+        },
+        {
             "name": "17m Ham Band",
             "type": "amateur",
             "start": 18068000,
             "end": 18168000
         },
         {
+            "name": "Maritime - ship tx",
+            "type": "marine",
+            "start": 18780000,
+            "end": 18900000
+        },
+        {
             "name": "15m Broadcast",
             "type": "broadcast",
             "start": 18900000,
             "end": 19020000
+        },
+        {
+            "name": "Maritime - coast tx",
+            "type": "marine",
+            "start": 19680000,
+            "end": 19990000
         },
         {
             "name": "15m Ham Band",
@@ -148,6 +268,18 @@
             "type": "broadcast",
             "start": 21450000,
             "end": 21850000
+        },
+        {
+            "name": "Aeronautical Mobile",
+            "type": "aviation",
+            "start": 21870000,
+            "end": 22000000
+        },
+        {
+            "name": "Aeronautical Mobile",
+            "type": "aviation",
+            "start": 23200000,
+            "end": 23350000
         },
         {
             "name": "12m Ham Band",
@@ -180,6 +312,18 @@
             "end": 29700000
         },
         {
+            "name": "Analogue Cordless Phones",
+            "type": "amateur",
+            "start": 31037500,
+            "end": 40112500
+        },
+        {
+            "name": "Low Power Devices",
+            "type": "amateur",
+            "start": 49820000,
+            "end": 49987500
+        },
+        {
             "name": "6m Ham Band",
             "type": "amateur",
             "start": 50000000,
@@ -198,7 +342,7 @@
             "end": 108000000
         },
         {
-            "name": "Air Band VOR/ILS",
+            "name": "Air Band TACAN/ILS",
             "type": "aviation",
             "start": 108000000,
             "end": 118000000
@@ -206,7 +350,7 @@
         {
             "name": "Air Band Voice",
             "type": "aviation",
-            "start": 118000000,
+            "start": 117975000,
             "end": 137000000
         },
         {
@@ -222,10 +366,52 @@
             "end": 146000000
         },
         {
-            "name": "Marine",
+            "name": "Land/Mountain Rescue",
+            "type": "PMR",
+            "start": 147343750,
+            "end": 147500000
+        },
+        {
+            "name": "Pagers - Flex/POCSAG",
+            "type": "PMR",
+            "start": 153025000,
+            "end": 153500000
+        },
+        {
+            "name": "Land/Mountain Rescue DMR",
+            "type": "PMR",
+            "start": 155000000,
+            "end": 156000000
+        },
+        {
+            "name": "Marine - ship tx",
             "type": "marine",
             "start": 156000000,
+            "end": 157850000
+        },
+        {
+            "name": "Short Term Hire",
+            "type": "PMR",
+            "start": 158787500,
+            "end": 159687500
+        },
+        {
+            "name": "Marine - coast tx",
+            "type": "marine",
+            "start": 160650000,
             "end": 162025000
+        },
+        {
+            "name": "Short Term Hire",
+            "type": "PMR",
+            "start": 163287500,
+            "end": 164200000
+        },
+        {
+            "name": "Business Radio",
+            "type": "PMR",
+            "start": 165000000,
+            "end": 174000000
         },
         {
             "name": "DAB Radio",
@@ -240,6 +426,12 @@
             "end": 400000000
         },
         {
+            "name": "Private Mobile Radio inc trams",
+            "type": "PMR",
+            "start": 422000000,
+            "end": 424000000
+        },
+        {
             "name": "70cm Ham Band",
             "type": "amateur",
             "start": 430000000,
@@ -247,15 +439,51 @@
         },
         {
             "name": "PMR446",
-            "type": "amateur",
+            "type": "PMR",
             "start": 446000000,
             "end": 446200000
+        },
+        {
+            "name": "Outside Broadcast Talkback",
+            "type": "PMR",
+            "start": 446200000,
+            "end": 447512500
+        },
+        {
+            "name": "Private Mobile Radio",
+            "type": "PMR",
+            "start": 447600000,
+            "end": 454000000
+        },
+        {
+            "name": "Mosques",
+            "type": "amateur",
+            "start": 454000000,
+            "end": 455000000
+        },
+        {
+            "name": "Private Mobile Radio",
+            "type": "PMR",
+            "start": 455000000,
+            "end": 467200000
+        },
+        {
+            "name": "Outside Broadcast Talkback",
+            "type": "PMR",
+            "start": 467200000,
+            "end": 468600000
         },
         {
             "name": "Digital TV Broadcast",
             "type": "broadcast",
             "start": 470000000,
             "end": 790000000
+        },
+        {
+            "name": "Licence Exempt Short Range",
+            "type": "amateur",
+            "start": 862000000,
+            "end": 875800000
         },
         {
             "name": "23cm Ham Band",

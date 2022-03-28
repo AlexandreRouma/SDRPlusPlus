@@ -6,9 +6,12 @@
 #include <core.h>
 #include <gui/style.h>
 #include <config.h>
-#include <options.h>
 #include <gui/smgui.h>
 #include <airspy.h>
+
+#ifdef __ANDROID__
+#include <android_backend.h>
+#endif
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -75,6 +78,7 @@ public:
     }
 
     void refresh() {
+#ifndef __ANDROID__
         devList.clear();
         devListTxt = "";
 
@@ -88,6 +92,18 @@ public:
             devListTxt += buf;
             devListTxt += '\0';
         }
+#else
+        // Check for device presence
+        int vid, pid;
+        devFd = backend::getDeviceFD(vid, pid, backend::AIRSPY_VIDPIDS);
+        if (devFd < 0) { return; }
+
+        // Get device info
+        std::string fakeName = "Airspy USB";
+        devList.push_back(0xDEADBEEF);
+        devListTxt += fakeName;
+        devListTxt += '\0';
+#endif
     }
 
     void selectFirst() {
@@ -112,7 +128,11 @@ public:
     void selectBySerial(uint64_t serial) {
         airspy_device* dev;
         try {
+#ifndef __ANDROID__
             int err = airspy_open_sn(&dev, serial);
+#else
+            int err = airspy_open_sn(&dev, devFd);
+#endif
             if (err != 0) {
                 char buf[1024];
                 sprintf(buf, "%016" PRIX64, serial);
@@ -245,7 +265,11 @@ private:
             return;
         }
 
+#ifndef __ANDROID__
         int err = airspy_open_sn(&_this->openDev, _this->selectedSerial);
+#else
+        int err = airspy_open_sn(&_this->openDev, _this->devFd);
+#endif
         if (err != 0) {
             char buf[1024];
             sprintf(buf, "%016" PRIX64, _this->selectedSerial);
@@ -571,6 +595,10 @@ private:
     bool lnaAgc = false;
     bool mixerAgc = false;
 
+#ifdef __ANDROID__
+    int devFd = 0;
+#endif
+
     std::vector<uint64_t> devList;
     std::string devListTxt;
     std::vector<uint32_t> sampleRateList;
@@ -581,7 +609,7 @@ MOD_EXPORT void _INIT_() {
     json def = json({});
     def["devices"] = json({});
     def["device"] = "";
-    config.setPath(options::opts.root + "/airspy_config.json");
+    config.setPath(core::args["root"].s() + "/airspy_config.json");
     config.load(def);
     config.enableAutoSave();
 }

@@ -7,7 +7,6 @@
 #include <core.h>
 #include <gui/style.h>
 #include <config.h>
-#include <options.h>
 #include <gui/widgets/stepped_slider.h>
 #include <utils/optionlist.h>
 #include <gui/dialogs/dialog_box.h>
@@ -30,7 +29,7 @@ public:
         this->name = name;
 
         // Yeah no server-ception, sorry...
-        if (options::opts.serverMode) { return; }
+        if (core::args["server"].b()) { return; }
 
         // Initialize lists
         sampleTypeList.define("Int8", dsp::PCM_TYPE_I8);
@@ -141,7 +140,7 @@ private:
 
     static void menuHandler(void* ctx) {
         SDRPPServerSourceModule* _this = (SDRPPServerSourceModule*)ctx;
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
+        float menuWidth = ImGui::GetContentRegionAvail().x;
 
         bool connected = (_this->client && _this->client->isOpen());
         gui::mainWindow.playButtonLocked = !connected;
@@ -282,7 +281,7 @@ MOD_EXPORT void _INIT_() {
     def["hostname"] = "localhost";
     def["port"] = 5259;
     def["servers"] = json::object();
-    config.setPath(options::opts.root + "/sdrpp_server_source_config.json");
+    config.setPath(core::args["root"].s() + "/sdrpp_server_source_config.json");
     config.load(def);
     config.enableAutoSave();
 }

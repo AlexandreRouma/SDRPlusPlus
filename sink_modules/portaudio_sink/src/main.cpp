@@ -7,6 +7,7 @@
 #include <dsp/audio.h>
 #include <dsp/processing.h>
 #include <spdlog/spdlog.h>
+#include <core.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -116,7 +117,7 @@ public:
     }
 
     void menuHandler() {
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
+        float menuWidth = ImGui::GetContentRegionAvail().x;
 
         ImGui::SetNextItemWidth(menuWidth);
         if (ImGui::Combo(("##_audio_sink_dev_" + _streamName).c_str(), &devListId, txtDevList.c_str())) {

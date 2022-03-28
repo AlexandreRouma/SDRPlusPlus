@@ -204,7 +204,7 @@ private:
 
         if (!_this->enabled) { style::beginDisabled(); }
 
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
+        float menuWidth = ImGui::GetContentRegionAvail().x;
         ImGui::BeginGroup();
 
         ImGui::Columns(4, CONCAT("RadioModeColumns##_", _this->name), false);

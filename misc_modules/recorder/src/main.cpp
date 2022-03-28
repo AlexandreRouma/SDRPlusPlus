@@ -13,7 +13,6 @@
 #include <gui/style.h>
 #include <gui/widgets/volume_meter.h>
 #include <regex>
-#include <options.h>
 #include <gui/widgets/folder_select.h>
 #include <recorder_interface.h>
 #include <core.h>
@@ -28,11 +27,6 @@ SDRPP_MOD_INFO{
 };
 
 ConfigManager config;
-
-std::string expandString(std::string input) {
-    input = std::regex_replace(input, std::regex("%ROOT%"), options::opts.root);
-    return std::regex_replace(input, std::regex("//"), "/");
-}
 
 std::string genFileName(std::string prefix, bool isVfo, std::string name = "") {
     time_t now = time(0);
@@ -51,6 +45,8 @@ class RecorderModule : public ModuleManager::Instance {
 public:
     RecorderModule(std::string name) : folderSelect("%ROOT%/recordings") {
         this->name = name;
+
+        root = (std::string)core::args["root"];
 
         // Load config
         config.acquire();
@@ -193,7 +189,7 @@ private:
 
     static void menuHandler(void* ctx) {
         RecorderModule* _this = (RecorderModule*)ctx;
-        float menuColumnWidth = ImGui::GetContentRegionAvailWidth();
+        float menuColumnWidth = ImGui::GetContentRegionAvail().x;
 
         // Recording mode
         if (_this->recording) { style::beginDisabled(); }
@@ -462,6 +458,11 @@ private:
         }
     }
 
+    std::string expandString(std::string input) {
+        input = std::regex_replace(input, std::regex("%ROOT%"), root);
+        return std::regex_replace(input, std::regex("//"), "/");
+    }
+
 
     std::string name;
     bool enabled = true;
@@ -496,6 +497,7 @@ private:
     std::string streamNamesTxt;
     int streamId = 0;
     std::string selectedStreamName = "";
+    std::string root;
 
     // Baseband path
     dsp::stream<dsp::complex_t> basebandStream;
@@ -516,14 +518,15 @@ struct RecorderContext_t {
 
 MOD_EXPORT void _INIT_() {
     // Create default recording directory
-    if (!std::filesystem::exists(options::opts.root + "/recordings")) {
+    std::string root = (std::string)core::args["root"];
+    if (!std::filesystem::exists(root + "/recordings")) {
         spdlog::warn("Recordings directory does not exist, creating it");
-        if (!std::filesystem::create_directory(options::opts.root + "/recordings")) {
+        if (!std::filesystem::create_directory(root + "/recordings")) {
             spdlog::error("Could not create recordings directory");
         }
     }
     json def = json({});
-    config.setPath(options::opts.root + "/recorder_config.json");
+    config.setPath(root + "/recorder_config.json");
     config.load(def);
     config.enableAutoSave();
 }

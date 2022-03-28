@@ -4,6 +4,9 @@
 
 ModuleManager::Module_t ModuleManager::loadModule(std::string path) {
     Module_t mod;
+
+    // On android, the path has to be relative, don't make it absolute
+#ifndef __ANDROID__
     if (!std::filesystem::exists(path)) {
         spdlog::error("{0} does not exist", path);
         mod.handle = NULL;
@@ -14,6 +17,7 @@ ModuleManager::Module_t ModuleManager::loadModule(std::string path) {
         mod.handle = NULL;
         return mod;
     }
+#endif
 #ifdef _WIN32
     mod.handle = LoadLibraryA(path.c_str());
     if (mod.handle == NULL) {

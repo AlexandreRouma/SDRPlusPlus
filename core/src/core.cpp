@@ -1,9 +1,6 @@
 #include <server.h>
 #include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
 #include <stdio.h>
-#include <GLFW/glfw3.h>
 #include <gui/main_window.h>
 #include <gui/style.h>
 #include <gui/gui.h>
@@ -14,10 +11,9 @@
 #include <stb_image.h>
 #include <config.h>
 #include <core.h>
-#include <glfw_window.h>
-#include <options.h>
 #include <filesystem>
 #include <gui/menus/theme.h>
+#include <backend.h>
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb_image_resize.h>
@@ -36,41 +32,15 @@
 #endif
 #endif
 
-const char* OPENGL_VERSIONS_GLSL[] = {
-    "#version 120",
-    "#version 300 es",
-    "#version 120"
-};
-
-const int OPENGL_VERSIONS_MAJOR[] = {
-    3,
-    3,
-    2
-};
-
-const int OPENGL_VERSIONS_MINOR[] = {
-    0,
-    1,
-    1
-};
-
-const bool OPENGL_VERSIONS_IS_ES[] = {
-    false,
-    true,
-    false
-};
-
-#define OPENGL_VERSION_COUNT (sizeof(OPENGL_VERSIONS_GLSL) / sizeof(char*))
-
 namespace core {
     ConfigManager configManager;
     ModuleManager moduleManager;
     ModuleComManager modComManager;
-    GLFWwindow* window;
+    CommandArgsParser args;
 
     void setInputSampleRate(double samplerate) {
         // Forward this to the server
-        if (options::opts.serverMode) { server::setInputSampleRate(samplerate); return; }
+        if (args["server"].b()) { server::setInputSampleRate(samplerate); return; }
         
         sigpath::signalPath.sourceSampleRate = samplerate;
         double effectiveSr = samplerate / ((double)(1 << sigpath::signalPath.decimation));
@@ -84,22 +54,6 @@ namespace core {
     }
 };
 
-bool maximized = false;
-bool fullScreen = false;
-
-static void glfw_error_callback(int error, const char* description) {
-    spdlog::error("Glfw Error {0}: {1}", error, description);
-}
-
-static void maximized_callback(GLFWwindow* window, int n) {
-    if (n == GLFW_TRUE) {
-        maximized = true;
-    }
-    else {
-        maximized = false;
-    }
-}
-
 // main
 int sdrpp_main(int argc, char* argv[]) {
     spdlog::info("SDR++ v" VERSION_STR);
@@ -110,25 +64,35 @@ int sdrpp_main(int argc, char* argv[]) {
     chdir(execPath.parent_path().string().c_str());
 #endif
 
-    // Load default options and parse command line
-    options::loadDefaults();
-    if (!options::parse(argc, argv)) { return -1; }
+    // Define command line options and parse arguments
+    core::args.defineAll();
+    if (core::args.parse(argc, argv) < 0) { return -1; } 
+
+    // Show help and exit if requested
+    if (core::args["help"].b()) {
+        core::args.showHelp();
+        return 0;
+    }
+
+    bool serverMode = (bool)core::args["server"];
 
 #ifdef _WIN32
-    if (!options::opts.showConsole) { FreeConsole(); }
+    if (!core::args["con"].b() && !serverMode) { FreeConsole(); }
 #endif
 
     // Check root directory
-    if (!std::filesystem::exists(options::opts.root)) {
-        spdlog::warn("Root directory {0} does not exist, creating it", options::opts.root);
-        if (!std::filesystem::create_directories(options::opts.root)) {
-            spdlog::error("Could not create root directory {0}", options::opts.root);
+    std::string root = (std::string)core::args["root"];
+    if (!std::filesystem::exists(root)) {
+        spdlog::warn("Root directory {0} does not exist, creating it", root);
+        if (!std::filesystem::create_directories(root)) {
+            spdlog::error("Could not create root directory {0}", root);
             return -1;
         }
     }
 
-    if (!std::filesystem::is_directory(options::opts.root)) {
-        spdlog::error("{0} is not a directory", options::opts.root);
+    // Check that the path actually is a directory
+    if (!std::filesystem::is_directory(root)) {
+        spdlog::error("{0} is not a directory", root);
         return -1;
     }
 
@@ -230,8 +194,14 @@ int sdrpp_main(int argc, char* argv[]) {
 
     // Themes
     defConfig["theme"] = "Dark";
+#ifdef __ANDROID__
+    defConfig["uiScale"] = 3.0f;
+#else
+    defConfig["uiScale"] = 1.0f;
+#endif
 
     defConfig["modules"] = json::array();
+
     defConfig["offsetMode"] = (int)0; // Off
     defConfig["offset"] = 0.0;
     defConfig["showMenu"] = true;
@@ -257,6 +227,9 @@ int sdrpp_main(int argc, char* argv[]) {
 #elif defined(IS_MACOS_BUNDLE)
     defConfig["modulesDirectory"] = "../Plugins";
     defConfig["resourcesDirectory"] = "../Resources";
+#elif defined(__ANDROID__)
+    defConfig["modulesDirectory"] = root + "/modules";
+    defConfig["resourcesDirectory"] = root + "/res";
 #else
     defConfig["modulesDirectory"] = INSTALL_PREFIX "/lib/sdrpp/plugins";
     defConfig["resourcesDirectory"] = INSTALL_PREFIX "/share/sdrpp";
@@ -264,12 +237,36 @@ int sdrpp_main(int argc, char* argv[]) {
 
     // Load config
     spdlog::info("Loading config");
-    core::configManager.setPath(options::opts.root + "/config.json");
+    core::configManager.setPath(root + "/config.json");
     core::configManager.load(defConfig);
     core::configManager.enableAutoSave();
-
-
     core::configManager.acquire();
+
+    // Android can't load just any .so file. This means we have to hardcode the name of the modules
+#ifdef __ANDROID__
+    int modCount = 0;
+    core::configManager.conf["modules"] = json::array();
+
+    core::configManager.conf["modules"][modCount++] = "airspy_source.so";
+    core::configManager.conf["modules"][modCount++] = "airspyhf_source.so";
+    core::configManager.conf["modules"][modCount++] = "hackrf_source.so";
+    core::configManager.conf["modules"][modCount++] = "plutosdr_source.so";
+    core::configManager.conf["modules"][modCount++] = "sdrpp_server_source.so";
+    core::configManager.conf["modules"][modCount++] = "rfspace_source.so";
+    core::configManager.conf["modules"][modCount++] = "rtl_sdr_source.so";
+    core::configManager.conf["modules"][modCount++] = "rtl_tcp_source.so";
+    core::configManager.conf["modules"][modCount++] = "spyserver_source.so";
+
+    core::configManager.conf["modules"][modCount++] = "network_sink.so";
+    core::configManager.conf["modules"][modCount++] = "audio_sink.so";
+
+    core::configManager.conf["modules"][modCount++] = "radio.so";
+
+    core::configManager.conf["modules"][modCount++] = "frequency_manager.so";
+    core::configManager.conf["modules"][modCount++] = "recorder.so";
+    core::configManager.conf["modules"][modCount++] = "rigctl_server.so";
+#endif
+
     // Fix missing elements in config
     for (auto const& item : defConfig.items()) {
         if (!core::configManager.conf.contains(item.key())) {
@@ -297,16 +294,14 @@ int sdrpp_main(int argc, char* argv[]) {
         core::configManager.conf["moduleInstances"][_name] = newMod;
     }
 
-    fullScreen = core::configManager.conf["fullscreen"];
+    // Load UI scaling
+    style::uiScale = core::configManager.conf["uiScale"];
 
     core::configManager.release(true);
 
-    if (options::opts.serverMode) { return server::main(); }
+    if (serverMode) { return server::main(); }
 
     core::configManager.acquire();
-    int winWidth = core::configManager.conf["windowSize"]["w"];
-    int winHeight = core::configManager.conf["windowSize"]["h"];
-    maximized = core::configManager.conf["maximized"];
     std::string resDir = core::configManager.conf["resourcesDirectory"];
     json bandColors = core::configManager.conf["bandColors"];
     core::configManager.release();
@@ -318,122 +313,16 @@ int sdrpp_main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Setup window
-    glfwSetErrorCallback(glfw_error_callback);
-    if (!glfwInit()) {
-        return 1;
-    }
+    // Initialize backend
+    int biRes = backend::init(resDir);
+    if (biRes < 0) { return biRes; }
 
-#ifdef __APPLE__
-    // GL 3.2 + GLSL 150
-    const char* glsl_version = "#version 150";
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);           // Required on Mac
-
-    // Create window with graphics context
-    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-    core::window = glfwCreateWindow(winWidth, winHeight, "SDR++ v" VERSION_STR " (Built at " __TIME__ ", " __DATE__ ")", NULL, NULL);
-    if (core::window == NULL)
-        return 1;
-    glfwMakeContextCurrent(core::window);
-#else
-    const char* glsl_version = "#version 120";
-    GLFWmonitor* monitor = NULL;
-    for (int i = 0; i < OPENGL_VERSION_COUNT; i++) {
-        glsl_version = OPENGL_VERSIONS_GLSL[i];
-        glfwWindowHint(GLFW_CLIENT_API, OPENGL_VERSIONS_IS_ES[i] ? GLFW_OPENGL_ES_API : GLFW_OPENGL_API);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_VERSIONS_MAJOR[i]);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_VERSIONS_MINOR[i]);
-
-        // Create window with graphics context
-        monitor = glfwGetPrimaryMonitor();
-        core::window = glfwCreateWindow(winWidth, winHeight, "SDR++ v" VERSION_STR " (Built at " __TIME__ ", " __DATE__ ")", NULL, NULL);
-        if (core::window == NULL) {
-            spdlog::info("OpenGL {0}.{1} {2}was not supported", OPENGL_VERSIONS_MAJOR[i], OPENGL_VERSIONS_MINOR[i], OPENGL_VERSIONS_IS_ES[i] ? "ES " : "");
-            continue;
-        }
-        spdlog::info("Using OpenGL {0}.{1}{2}", OPENGL_VERSIONS_MAJOR[i], OPENGL_VERSIONS_MINOR[i], OPENGL_VERSIONS_IS_ES[i] ? " ES" : "");
-        glfwMakeContextCurrent(core::window);
-        break;
-    }
-
-#endif
-
-    // Add callback for max/min if GLFW supports it
-#if (GLFW_VERSION_MAJOR == 3) && (GLFW_VERSION_MINOR >= 3)
-    if (maximized) {
-        glfwMaximizeWindow(core::window);
-    }
-
-    glfwSetWindowMaximizeCallback(core::window, maximized_callback);
-#endif
-
-    // Load app icon
-    if (!std::filesystem::is_regular_file(resDir + "/icons/sdrpp.png")) {
-        spdlog::error("Icon file '{0}' doesn't exist!", resDir + "/icons/sdrpp.png");
-        return 1;
-    }
-
-    GLFWimage icons[10];
-    icons[0].pixels = stbi_load(((std::string)(resDir + "/icons/sdrpp.png")).c_str(), &icons[0].width, &icons[0].height, 0, 4);
-    icons[1].pixels = (unsigned char*)malloc(16 * 16 * 4);
-    icons[1].width = icons[1].height = 16;
-    icons[2].pixels = (unsigned char*)malloc(24 * 24 * 4);
-    icons[2].width = icons[2].height = 24;
-    icons[3].pixels = (unsigned char*)malloc(32 * 32 * 4);
-    icons[3].width = icons[3].height = 32;
-    icons[4].pixels = (unsigned char*)malloc(48 * 48 * 4);
-    icons[4].width = icons[4].height = 48;
-    icons[5].pixels = (unsigned char*)malloc(64 * 64 * 4);
-    icons[5].width = icons[5].height = 64;
-    icons[6].pixels = (unsigned char*)malloc(96 * 96 * 4);
-    icons[6].width = icons[6].height = 96;
-    icons[7].pixels = (unsigned char*)malloc(128 * 128 * 4);
-    icons[7].width = icons[7].height = 128;
-    icons[8].pixels = (unsigned char*)malloc(196 * 196 * 4);
-    icons[8].width = icons[8].height = 196;
-    icons[9].pixels = (unsigned char*)malloc(256 * 256 * 4);
-    icons[9].width = icons[9].height = 256;
-    stbir_resize_uint8(icons[0].pixels, icons[0].width, icons[0].height, icons[0].width * 4, icons[1].pixels, 16, 16, 16 * 4, 4);
-    stbir_resize_uint8(icons[0].pixels, icons[0].width, icons[0].height, icons[0].width * 4, icons[2].pixels, 24, 24, 24 * 4, 4);
-    stbir_resize_uint8(icons[0].pixels, icons[0].width, icons[0].height, icons[0].width * 4, icons[3].pixels, 32, 32, 32 * 4, 4);
-    stbir_resize_uint8(icons[0].pixels, icons[0].width, icons[0].height, icons[0].width * 4, icons[4].pixels, 48, 48, 48 * 4, 4);
-    stbir_resize_uint8(icons[0].pixels, icons[0].width, icons[0].height, icons[0].width * 4, icons[5].pixels, 64, 64, 64 * 4, 4);
-    stbir_resize_uint8(icons[0].pixels, icons[0].width, icons[0].height, icons[0].width * 4, icons[6].pixels, 96, 96, 96 * 4, 4);
-    stbir_resize_uint8(icons[0].pixels, icons[0].width, icons[0].height, icons[0].width * 4, icons[7].pixels, 128, 128, 128 * 4, 4);
-    stbir_resize_uint8(icons[0].pixels, icons[0].width, icons[0].height, icons[0].width * 4, icons[8].pixels, 196, 196, 196 * 4, 4);
-    stbir_resize_uint8(icons[0].pixels, icons[0].width, icons[0].height, icons[0].width * 4, icons[9].pixels, 256, 256, 256 * 4, 4);
-    glfwSetWindowIcon(core::window, 10, icons);
-    stbi_image_free(icons[0].pixels);
-    for (int i = 1; i < 10; i++) {
-        free(icons[i].pixels);
-    }
-
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    (void)io;
-    io.IniFilename = NULL;
-
-    // Setup Platform/Renderer bindings
-    ImGui_ImplGlfw_InitForOpenGL(core::window, true);
-
-    if (!ImGui_ImplOpenGL3_Init(glsl_version)) {
-        // If init fail, try to fall back on GLSL 1.2
-        spdlog::warn("Could not init using OpenGL with normal GLSL version, falling back to GLSL 1.2");
-        if (!ImGui_ImplOpenGL3_Init("#version 120")) {
-            spdlog::error("Failed to initialize OpenGL with GLSL 1.2");
-            return -1;
-        }
-    }
+    // Intialize SmGui in normal mode
+    SmGui::init(false);
 
     if (!style::loadFonts(resDir)) { return -1; }
     thememenu::init(resDir);
-
-    LoadingScreen::setWindow(core::window);
+    LoadingScreen::init();
 
     LoadingScreen::show("Loading icons");
     spdlog::info("Loading icons");
@@ -447,115 +336,29 @@ int sdrpp_main(int argc, char* argv[]) {
     spdlog::info("Loading band plans color table");
     bandplan::loadColorTable(bandColors);
 
-    bool _maximized = maximized;
-    int fsWidth, fsHeight, fsPosX, fsPosY;
-    int _winWidth, _winHeight;
-    glfwGetWindowSize(core::window, &_winWidth, &_winHeight);
-
-    if (fullScreen) {
-        spdlog::info("Fullscreen: ON");
-        fsWidth = _winWidth;
-        fsHeight = _winHeight;
-        glfwGetWindowPos(core::window, &fsPosX, &fsPosY);
-        const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-        glfwSetWindowMonitor(core::window, monitor, 0, 0, mode->width, mode->height, 0);
-    }
-
     gui::mainWindow.init();
 
     spdlog::info("Ready.");
 
-    // Main loop
-    while (!glfwWindowShouldClose(core::window)) {
-        glfwPollEvents();
+    // Run render loop (TODO: CHECK RETURN VALUE)
+    backend::renderLoop();
 
-        // Start the Dear ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        //ImGui::ShowDemoWindow();
-
-        if (_maximized != maximized) {
-            _maximized = maximized;
-            core::configManager.acquire();
-            core::configManager.conf["maximized"] = _maximized;
-            if (!maximized) {
-                glfwSetWindowSize(core::window, core::configManager.conf["windowSize"]["w"], core::configManager.conf["windowSize"]["h"]);
-            }
-            core::configManager.release(true);
-        }
-
-        glfwGetWindowSize(core::window, &_winWidth, &_winHeight);
-
-        if (ImGui::IsKeyPressed(GLFW_KEY_F11)) {
-            fullScreen = !fullScreen;
-            if (fullScreen) {
-                spdlog::info("Fullscreen: ON");
-                fsWidth = _winWidth;
-                fsHeight = _winHeight;
-                glfwGetWindowPos(core::window, &fsPosX, &fsPosY);
-                const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-                glfwSetWindowMonitor(core::window, monitor, 0, 0, mode->width, mode->height, 0);
-                core::configManager.acquire();
-                core::configManager.conf["fullscreen"] = true;
-                core::configManager.release();
-            }
-            else {
-                spdlog::info("Fullscreen: OFF");
-                glfwSetWindowMonitor(core::window, nullptr, fsPosX, fsPosY, fsWidth, fsHeight, 0);
-                core::configManager.acquire();
-                core::configManager.conf["fullscreen"] = false;
-                core::configManager.release();
-            }
-        }
-
-        if ((_winWidth != winWidth || _winHeight != winHeight) && !maximized && _winWidth > 0 && _winHeight > 0) {
-            winWidth = _winWidth;
-            winHeight = _winHeight;
-            core::configManager.acquire();
-            core::configManager.conf["windowSize"]["w"] = winWidth;
-            core::configManager.conf["windowSize"]["h"] = winHeight;
-            core::configManager.release(true);
-        }
-
-        if (winWidth > 0 && winHeight > 0) {
-            ImGui::SetNextWindowPos(ImVec2(0, 0));
-            ImGui::SetNextWindowSize(ImVec2(_winWidth, _winHeight));
-            gui::mainWindow.draw();
-        }
-
-        // Rendering
-        ImGui::Render();
-        int display_w, display_h;
-        glfwGetFramebufferSize(core::window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        //glClearColor(0.0666f, 0.0666f, 0.0666f, 1.0f);
-        glClearColor(gui::themeManager.clearColor.x, gui::themeManager.clearColor.y, gui::themeManager.clearColor.z, gui::themeManager.clearColor.w);
-        glClear(GL_COLOR_BUFFER_BIT);
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        glfwSwapInterval(1); // Enable vsync
-        glfwSwapBuffers(core::window);
-    }
-
+    // On android, none of this shutdown should happen due to the way the UI works
+#ifndef __ANDROID__
     // Shut down all modules
     for (auto& [name, mod] : core::moduleManager.modules) {
         mod.end();
     }
 
-    // Cleanup
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-
-    glfwDestroyWindow(core::window);
-    glfwTerminate();
+    // Terminate backend (TODO: CHECK RETURN VALUE)
+    backend::end();
 
     sigpath::signalPath.stop();
 
     core::configManager.disableAutoSave();
     core::configManager.save();
+#endif
 
+    spdlog::info("Exiting successfully");
     return 0;
 }

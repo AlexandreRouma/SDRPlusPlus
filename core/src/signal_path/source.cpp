@@ -2,7 +2,7 @@
 #include <signal_path/source.h>
 #include <spdlog/spdlog.h>
 #include <signal_path/signal_path.h>
-#include <options.h>
+#include <core.h>
 
 SourceManager::SourceManager() {
 }
@@ -50,7 +50,7 @@ void SourceManager::selectSource(std::string name) {
     selectedHandler = sources[name];
     selectedHandler->selectHandler(selectedHandler->ctx);
     selectedName = name;
-    if (options::opts.serverMode) {
+    if (core::args["server"].b()) {
         server::setInput(selectedHandler->stream);
     }
     else {

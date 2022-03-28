@@ -1,6 +1,5 @@
 #include <gui/menus/theme.h>
 #include <gui/gui.h>
-#include <options.h>
 #include <core.h>
 #include <gui/style.h>
 
@@ -23,8 +22,11 @@ namespace thememenu {
             it = std::find(themeNames.begin(), themeNames.end(), "Dark");
             selectedThemeName = "Dark";
         }
-        gui::themeManager.applyTheme(selectedThemeName);
         themeId = std::distance(themeNames.begin(), it);
+        applyTheme();
+
+        // Apply scaling
+        ImGui::GetStyle().ScaleAllSizes(style::uiScale);
 
         themeNamesTxt = "";
         for (auto name : themeNames) {
@@ -33,12 +35,16 @@ namespace thememenu {
         }
     }
 
+     void applyTheme() {
+         gui::themeManager.applyTheme(themeNames[themeId]);
+     }
+
     void draw(void* ctx) {
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
+        float menuWidth = ImGui::GetContentRegionAvail().x;
         ImGui::LeftLabel("Theme");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo("##theme_select_combo", &themeId, themeNamesTxt.c_str())) {
-            gui::themeManager.applyTheme(themeNames[themeId]);
+            applyTheme();
             core::configManager.acquire();
             core::configManager.conf["theme"] = themeNames[themeId];
             core::configManager.release(true);

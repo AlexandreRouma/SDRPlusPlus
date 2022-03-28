@@ -5,10 +5,12 @@
 #include <core.h>
 #include <gui/style.h>
 #include <config.h>
-#include <options.h>
 #include <gui/smgui.h>
 #include <rtl-sdr.h>
 
+#ifdef __ANDROID__
+#include <android_backend.h>
+#endif
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -56,6 +58,8 @@ class RTLSDRSourceModule : public ModuleManager::Instance {
 public:
     RTLSDRSourceModule(std::string name) {
         this->name = name;
+
+        serverMode = (bool)core::args["server"];
 
         sampleRate = sampleRates[0];
 
@@ -114,6 +118,7 @@ public:
         devNames.clear();
         devListTxt = "";
 
+#ifndef __ANDROID__
         devCount = rtlsdr_get_device_count();
         char buf[1024];
         for (int i = 0; i < devCount; i++) {
@@ -123,6 +128,20 @@ public:
             devListTxt += buf;
             devListTxt += '\0';
         }
+#else
+        // Check for device connection
+        devCount = 0;
+        int vid, pid;
+        devFd = backend::getDeviceFD(vid, pid, backend::RTL_SDR_VIDPIDS);
+        if (devFd < 0) { return; }
+
+        // Generate fake device info
+        devCount = 1;
+        std::string fakeName = "RTL-SDR Dongle USB";
+        devNames.push_back(fakeName);
+        devListTxt += fakeName;
+        devListTxt += '\0';
+#endif
     }
 
     void selectFirst() {
@@ -144,9 +163,15 @@ public:
     void selectById(int id) {
         selectedDevName = devNames[id];
 
-        if (rtlsdr_open(&openDev, id) < 0) {
+#ifndef __ANDROID__
+        int oret = rtlsdr_open(&openDev, id);
+#else
+        int oret = rtlsdr_open(&openDev, devFd);
+#endif
+        
+        if (oret < 0) {
             selectedDevName = "";
-            spdlog::error("Could not open RTL-SDR");
+            spdlog::error("Could not open RTL-SDR: {0}", oret);
             return;
         }
 
@@ -252,7 +277,13 @@ private:
             return;
         }
 
-        if (rtlsdr_open(&_this->openDev, _this->devId) < 0) {
+#ifndef __ANDROID__
+        int oret = rtlsdr_open(&_this->openDev, _this->devId);
+#else
+        int oret = rtlsdr_open(&_this->openDev, _this->devFd);
+#endif
+
+        if (oret < 0) {
             spdlog::error("Could not open RTL-SDR");
             return;
         }
@@ -395,7 +426,7 @@ private:
         SmGui::ForceSync();
 
         // TODO: FIND ANOTHER WAY
-        if (options::opts.serverMode) {
+        if (_this->serverMode) {
             if (SmGui::SliderInt(CONCAT("##_rtlsdr_gain_", _this->name), &_this->gainId, 0, _this->gainList.size() - 1, SmGui::FMT_STR_NONE)) {
                 _this->updateGainTxt();
                 if (_this->running) {
@@ -509,6 +540,11 @@ private:
     int srId = 0;
     int devCount = 0;
     std::thread workerThread;
+    bool serverMode = false;
+
+#ifdef __ANDROID__
+    int devFd = -1;
+#endif
 
     int ppm = 0;
 
@@ -537,7 +573,7 @@ MOD_EXPORT void _INIT_() {
     json def = json({});
     def["devices"] = json({});
     def["device"] = 0;
-    config.setPath(options::opts.root + "/rtl_sdr_config.json");
+    config.setPath(core::args["root"].s() + "/rtl_sdr_config.json");
     config.load(def);
     config.enableAutoSave();
 }

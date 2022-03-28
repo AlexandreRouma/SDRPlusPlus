@@ -4,9 +4,9 @@
 #include <imutils.h>
 #include <algorithm>
 #include <volk/volk.h>
-#include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
 #include <gui/gui.h>
+#include <gui/style.h>
 
 float DEFAULT_COLOR_MAP[][3] = {
     { 0x00, 0x00, 0x20 },
@@ -99,51 +99,53 @@ namespace ImGui {
         ImU32 trace = ImGui::GetColorU32(ImGuiCol_PlotLines);
         ImU32 shadow = ImGui::GetColorU32(ImGuiCol_PlotLines, 0.2);
         ImU32 text = ImGui::GetColorU32(ImGuiCol_Text);
+        float textVOffset = 10.0f * style::uiScale;
 
         // Vertical scale
         for (float line = startLine; line > fftMin; line -= vRange) {
-            float yPos = widgetPos.y + fftHeight + 10 - ((line - fftMin) * scaleFactor);
-            window->DrawList->AddLine(ImVec2(roundf(widgetPos.x + 50), roundf(yPos)),
-                                      ImVec2(roundf(widgetPos.x + dataWidth + 50), roundf(yPos)),
-                                      IM_COL32(50, 50, 50, 255), 1.0);
+            float yPos = fftAreaMax.y - ((line - fftMin) * scaleFactor);
+            window->DrawList->AddLine(ImVec2(fftAreaMin.x, roundf(yPos)),
+                                      ImVec2(fftAreaMax.x, roundf(yPos)),
+                                      IM_COL32(50, 50, 50, 255), style::uiScale);
             sprintf(buf, "%d", (int)line);
             ImVec2 txtSz = ImGui::CalcTextSize(buf);
-            window->DrawList->AddText(ImVec2(widgetPos.x + 40 - txtSz.x, roundf(yPos - (txtSz.y / 2.0))), text, buf);
+            window->DrawList->AddText(ImVec2(fftAreaMin.x - txtSz.x - textVOffset, roundf(yPos - (txtSz.y / 2.0))), text, buf);
         }
 
         // Horizontal scale
         double startFreq = ceilf(lowerFreq / range) * range;
         double horizScale = (double)dataWidth / viewBandwidth;
+        float scaleVOfsset = 7 * style::uiScale;
         for (double freq = startFreq; freq < upperFreq; freq += range) {
-            double xPos = widgetPos.x + 50 + ((freq - lowerFreq) * horizScale);
-            window->DrawList->AddLine(ImVec2(roundf(xPos), widgetPos.y + 10),
-                                      ImVec2(roundf(xPos), widgetPos.y + fftHeight + 10),
-                                      IM_COL32(50, 50, 50, 255), 1.0);
-            window->DrawList->AddLine(ImVec2(roundf(xPos), widgetPos.y + fftHeight + 10),
-                                      ImVec2(roundf(xPos), widgetPos.y + fftHeight + 17),
-                                      text, 1.0);
+            double xPos = fftAreaMin.x + ((freq - lowerFreq) * horizScale);
+            window->DrawList->AddLine(ImVec2(roundf(xPos), fftAreaMin.y + 1),
+                                      ImVec2(roundf(xPos), fftAreaMax.y),
+                                      IM_COL32(50, 50, 50, 255), style::uiScale);
+            window->DrawList->AddLine(ImVec2(roundf(xPos), fftAreaMax.y),
+                                      ImVec2(roundf(xPos), fftAreaMax.y + scaleVOfsset),
+                                      text, style::uiScale);
             printAndScale(freq, buf);
             ImVec2 txtSz = ImGui::CalcTextSize(buf);
-            window->DrawList->AddText(ImVec2(roundf(xPos - (txtSz.x / 2.0)), widgetPos.y + fftHeight + 10 + txtSz.y), text, buf);
+            window->DrawList->AddText(ImVec2(roundf(xPos - (txtSz.x / 2.0)), fftAreaMax.y + txtSz.y), text, buf);
         }
 
         // Data
         if (latestFFT != NULL && fftLines != 0) {
             for (int i = 1; i < dataWidth; i++) {
-                double aPos = widgetPos.y + fftHeight + 10 - ((latestFFT[i - 1] - fftMin) * scaleFactor);
-                double bPos = widgetPos.y + fftHeight + 10 - ((latestFFT[i] - fftMin) * scaleFactor);
-                aPos = std::clamp<double>(aPos, widgetPos.y + 10, widgetPos.y + fftHeight + 10);
-                bPos = std::clamp<double>(bPos, widgetPos.y + 10, widgetPos.y + fftHeight + 10);
-                window->DrawList->AddLine(ImVec2(widgetPos.x + 49 + i, roundf(aPos)),
-                                          ImVec2(widgetPos.x + 50 + i, roundf(bPos)), trace, 1.0);
-                window->DrawList->AddLine(ImVec2(widgetPos.x + 50 + i, roundf(bPos)),
-                                          ImVec2(widgetPos.x + 50 + i, widgetPos.y + fftHeight + 10), shadow, 1.0);
+                double aPos = fftAreaMax.y - ((latestFFT[i - 1] - fftMin) * scaleFactor);
+                double bPos = fftAreaMax.y - ((latestFFT[i] - fftMin) * scaleFactor);
+                aPos = std::clamp<double>(aPos, fftAreaMin.y + 1, fftAreaMax.y);
+                bPos = std::clamp<double>(bPos, fftAreaMin.y + 1, fftAreaMax.y);
+                window->DrawList->AddLine(ImVec2(fftAreaMin.x + i - 1, roundf(aPos)),
+                                          ImVec2(fftAreaMin.x + i, roundf(bPos)), trace, 1.0);
+                window->DrawList->AddLine(ImVec2(fftAreaMin.x + i, roundf(bPos)),
+                                          ImVec2(fftAreaMin.x + i, fftAreaMax.y), shadow, 1.0);
             }
         }
 
         FFTRedrawArgs args;
-        args.min = ImVec2(widgetPos.x + 50, widgetPos.y + 9);
-        args.max = ImVec2(widgetPos.x + dataWidth + 50, widgetPos.y + fftHeight + 10);
+        args.min = fftAreaMin;
+        args.max = fftAreaMax;
         args.lowFreq = lowerFreq;
         args.highFreq = upperFreq;
         args.freqToPixelRatio = horizScale;
@@ -152,13 +154,13 @@ namespace ImGui {
         onFFTRedraw.emit(args);
 
         // X Axis
-        window->DrawList->AddLine(ImVec2(widgetPos.x + 50, widgetPos.y + fftHeight + 10),
-                                  ImVec2(widgetPos.x + dataWidth + 50, widgetPos.y + fftHeight + 10),
-                                  text, 1.0);
+        window->DrawList->AddLine(ImVec2(fftAreaMin.x, fftAreaMax.y),
+                                  ImVec2(fftAreaMax.x, fftAreaMax.y),
+                                  text, style::uiScale);
         // Y Axis
-        window->DrawList->AddLine(ImVec2(widgetPos.x + 50, widgetPos.y + 9),
-                                  ImVec2(widgetPos.x + 50, widgetPos.y + fftHeight + 9),
-                                  text, 1.0);
+        window->DrawList->AddLine(ImVec2(fftAreaMin.x, fftAreaMin.y),
+                                  ImVec2(fftAreaMin.x, fftAreaMax.y - 1),
+                                  text, style::uiScale);
     }
 
     void WaterFall::drawWaterfall() {
@@ -173,7 +175,7 @@ namespace ImGui {
             for (auto const& [name, vfo] : vfos) {
                 window->DrawList->AddRectFilled(vfo->wfRectMin, vfo->wfRectMax, vfo->color);
                 if (!vfo->lineVisible) { continue; }
-                window->DrawList->AddLine(vfo->wfLineMin, vfo->wfLineMax, (name == selectedVFO) ? IM_COL32(255, 0, 0, 255) : IM_COL32(255, 255, 0, 255));
+                window->DrawList->AddLine(vfo->wfLineMin, vfo->wfLineMax, (name == selectedVFO) ? IM_COL32(255, 0, 0, 255) : IM_COL32(255, 255, 0, 255), style::uiScale);
             }
         }
     }
@@ -212,7 +214,7 @@ namespace ImGui {
         bool mouseClicked = ImGui::ButtonBehavior(ImRect(fftAreaMin, wfMax), GetID("WaterfallID"), &mouseHovered, &mouseHeld,
                                                   ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_PressedOnClick);
 
-        mouseInFFTResize = (dragOrigin.x > widgetPos.x && dragOrigin.x < widgetPos.x + widgetSize.x && dragOrigin.y >= widgetPos.y + newFFTAreaHeight - 2 && dragOrigin.y <= widgetPos.y + newFFTAreaHeight + 2);
+        mouseInFFTResize = (dragOrigin.x > widgetPos.x && dragOrigin.x < widgetPos.x + widgetSize.x && dragOrigin.y >= widgetPos.y + newFFTAreaHeight - (2.0f * style::uiScale) && dragOrigin.y <= widgetPos.y + newFFTAreaHeight + (2.0f * style::uiScale));
         mouseInFreq = IS_IN_AREA(dragOrigin, freqAreaMin, freqAreaMax);
         mouseInFFT = IS_IN_AREA(dragOrigin, fftAreaMin, fftAreaMax);
         mouseInWaterfall = IS_IN_AREA(dragOrigin, wfMin, wfMax);
@@ -304,7 +306,7 @@ namespace ImGui {
             newFFTAreaHeight = mousePos.y - widgetPos.y;
             newFFTAreaHeight = std::clamp<float>(newFFTAreaHeight, 150, widgetSize.y - 50);
             ImGui::GetForegroundDrawList()->AddLine(ImVec2(widgetPos.x, newFFTAreaHeight + widgetPos.y), ImVec2(widgetEndPos.x, newFFTAreaHeight + widgetPos.y),
-                                                    ImGui::GetColorU32(ImGuiCol_SeparatorActive));
+                                                    ImGui::GetColorU32(ImGuiCol_SeparatorActive), style::uiScale);
             return;
         }
 
@@ -387,8 +389,8 @@ namespace ImGui {
         }
 
         // If the left and right keys are pressed while hovering the freq scale, move it too
-        bool leftKeyPressed = ImGui::IsKeyPressed(GLFW_KEY_LEFT);
-        if ((leftKeyPressed || ImGui::IsKeyPressed(GLFW_KEY_RIGHT)) && mouseInFreq) {
+        bool leftKeyPressed = ImGui::IsKeyPressed(ImGuiKey_LeftArrow);
+        if ((leftKeyPressed || ImGui::IsKeyPressed(ImGuiKey_RightArrow)) && mouseInFreq) {
             viewOffset += leftKeyPressed ? (viewBandwidth / 20.0) : (-viewBandwidth / 20.0);
 
             if (viewOffset + (viewBandwidth / 2.0) > wholeBandwidth / 2.0) {
@@ -417,7 +419,7 @@ namespace ImGui {
         // Finally, if nothing else was selected, just move the VFO
         if ((VFOMoveSingleClick ? ImGui::IsMouseClicked(ImGuiMouseButton_Left) : ImGui::IsMouseDown(ImGuiMouseButton_Left)) && (mouseInFFT | mouseInWaterfall) && (mouseMoved || hoveredVFOName == "")) {
             if (selVfo != NULL) {
-                int refCenter = mousePos.x - (widgetPos.x + 50);
+                int refCenter = mousePos.x - fftAreaMin.x;
                 if (refCenter >= 0 && refCenter < dataWidth) {
                     double off = ((((double)refCenter / ((double)dataWidth / 2.0)) - 1.0) * (viewBandwidth / 2.0)) + viewOffset;
                     off += centerFreq;
@@ -435,7 +437,7 @@ namespace ImGui {
 
                     ImGui::TextUnformatted(name.c_str());
 
-                    if (ImGui::IsKeyDown(GLFW_KEY_LEFT_CONTROL) || ImGui::IsKeyDown(GLFW_KEY_RIGHT_CONTROL)) {
+                    if (ImGui::GetIO().KeyCtrl) {
                         ImGui::Separator();
                         printAndScale(_vfo->generalOffset + centerFreq, buf);
                         ImGui::Text("Frequency: %sHz", buf);
@@ -461,7 +463,7 @@ namespace ImGui {
         }
 
         // Handle Page Up to cycle through VFOs
-        if (ImGui::IsKeyPressed(GLFW_KEY_PAGE_UP) && selVfo != NULL) {
+        if (ImGui::IsKeyPressed(ImGuiKey_PageUp) && selVfo != NULL) {
             std::string next = (--vfos.end())->first;
             std::string lowest = "";
             double lowestOffset = INFINITY;
@@ -484,7 +486,7 @@ namespace ImGui {
         }
 
         // Handle Page Down to cycle through VFOs
-        if (ImGui::IsKeyPressed(GLFW_KEY_PAGE_DOWN) && selVfo != NULL) {
+        if (ImGui::IsKeyPressed(ImGuiKey_PageDown) && selVfo != NULL) {
             std::string next = (--vfos.end())->first;
             std::string highest = "";
             double highestOffset = -INFINITY;
@@ -599,10 +601,10 @@ namespace ImGui {
         float bpBottom;
 
         if (bandPlanPos == BANDPLAN_POS_BOTTOM) {
-            bpBottom = widgetPos.y + fftHeight + 10;
+            bpBottom = fftAreaMax.y;
         }
         else {
-            bpBottom = widgetPos.y + height + 10;
+            bpBottom = fftAreaMin.y + height + 1;
         }
 
 
@@ -620,9 +622,9 @@ namespace ImGui {
             start = std::clamp<double>(start, lowerFreq, upperFreq);
             end = std::clamp<double>(end, lowerFreq, upperFreq);
             center = (start + end) / 2.0;
-            aPos = widgetPos.x + 50 + ((start - lowerFreq) * horizScale);
-            bPos = widgetPos.x + 50 + ((end - lowerFreq) * horizScale);
-            cPos = widgetPos.x + 50 + ((center - lowerFreq) * horizScale);
+            aPos = fftAreaMin.x + ((start - lowerFreq) * horizScale);
+            bPos = fftAreaMin.x + ((end - lowerFreq) * horizScale);
+            cPos = fftAreaMin.x + ((center - lowerFreq) * horizScale);
             width = bPos - aPos;
             txtSz = ImGui::CalcTextSize(bandplan->bands[i].name.c_str());
             if (bandplan::colorTable.find(bandplan->bands[i].type.c_str()) != bandplan::colorTable.end()) {
@@ -633,22 +635,22 @@ namespace ImGui {
                 color = IM_COL32(255, 255, 255, 255);
                 colorTrans = IM_COL32(255, 255, 255, 100);
             }
-            if (aPos <= widgetPos.x + 50) {
-                aPos = widgetPos.x + 51;
+            if (aPos <= fftAreaMin.x) {
+                aPos = fftAreaMin.x + 1;
             }
-            if (bPos <= widgetPos.x + 50) {
-                bPos = widgetPos.x + 51;
+            if (bPos <= fftAreaMin.x) {
+                bPos = fftAreaMin.x + 1;
             }
             if (width >= 1.0) {
                 window->DrawList->AddRectFilled(ImVec2(roundf(aPos), bpBottom - height),
                                                 ImVec2(roundf(bPos), bpBottom), colorTrans);
                 if (startVis) {
                     window->DrawList->AddLine(ImVec2(roundf(aPos), bpBottom - height - 1),
-                                              ImVec2(roundf(aPos), bpBottom - 1), color);
+                                              ImVec2(roundf(aPos), bpBottom - 1), color, style::uiScale);
                 }
                 if (endVis) {
                     window->DrawList->AddLine(ImVec2(roundf(bPos), bpBottom - height - 1),
-                                              ImVec2(roundf(bPos), bpBottom - 1), color);
+                                              ImVec2(roundf(bPos), bpBottom - 1), color, style::uiScale);
                 }
             }
             if (txtSz.x <= width) {
@@ -679,15 +681,15 @@ namespace ImGui {
         int lastWaterfallHeight = waterfallHeight;
 
         if (waterfallVisible) {
-            FFTAreaHeight = std::min<int>(FFTAreaHeight, widgetSize.y - 50);
+            FFTAreaHeight = std::min<int>(FFTAreaHeight, widgetSize.y - (50.0f * style::uiScale));
             newFFTAreaHeight = FFTAreaHeight;
-            fftHeight = FFTAreaHeight - 50;
-            waterfallHeight = widgetSize.y - fftHeight - 52;
+            fftHeight = FFTAreaHeight - (50.0f * style::uiScale);
+            waterfallHeight = widgetSize.y - fftHeight - (50.0f * style::uiScale) - 2;
         }
         else {
-            fftHeight = widgetSize.y - 50;
+            fftHeight = widgetSize.y - (50.0f * style::uiScale);
         }
-        dataWidth = widgetSize.x - 60.0;
+        dataWidth = widgetSize.x - (60.0f * style::uiScale);
 
         if (waterfallVisible) {
             // Raw FFT resize
@@ -724,12 +726,14 @@ namespace ImGui {
             latestFFT[i] = -1000.0; // Hide everything
         }
 
-        fftAreaMin = ImVec2(widgetPos.x + 50, widgetPos.y + 9);
-        fftAreaMax = ImVec2(widgetPos.x + dataWidth + 50, widgetPos.y + fftHeight + 10);
-        freqAreaMin = ImVec2(widgetPos.x + 50, widgetPos.y + fftHeight + 11);
-        freqAreaMax = ImVec2(widgetPos.x + dataWidth + 50, widgetPos.y + fftHeight + 50);
-        wfMin = ImVec2(widgetPos.x + 50, widgetPos.y + fftHeight + 51);
-        wfMax = ImVec2(widgetPos.x + 50 + dataWidth, widgetPos.y + fftHeight + 51 + waterfallHeight);
+        fftAreaMin = ImVec2(widgetPos.x + (50.0f * style::uiScale), widgetPos.y + (9.0f * style::uiScale));
+        fftAreaMax = ImVec2(fftAreaMin.x + dataWidth, fftAreaMin.y + fftHeight + 1);
+
+        freqAreaMin = ImVec2(fftAreaMin.x, fftAreaMax.y + 1);
+        freqAreaMax = ImVec2(fftAreaMax.x, fftAreaMax.y + (40.0f * style::uiScale));
+
+        wfMin = ImVec2(fftAreaMin.x, freqAreaMax.y + 1);
+        wfMax = ImVec2(fftAreaMin.x + dataWidth, wfMin.y + waterfallHeight);
 
         maxHSteps = dataWidth / (ImGui::CalcTextSize("000.000").x + 10);
         maxVSteps = fftHeight / (ImGui::CalcTextSize("000.000").y);
@@ -769,8 +773,8 @@ namespace ImGui {
         //window->DrawList->AddRectFilled(widgetPos, widgetEndPos, IM_COL32( 0, 0, 0, 255 ));
         ImU32 bg = ImGui::ColorConvertFloat4ToU32(gui::themeManager.waterfallBg);
         window->DrawList->AddRectFilled(widgetPos, widgetEndPos, bg);
-        window->DrawList->AddRect(widgetPos, widgetEndPos, IM_COL32(50, 50, 50, 255));
-        window->DrawList->AddLine(ImVec2(widgetPos.x, widgetPos.y + fftHeight + 50), ImVec2(widgetPos.x + widgetSize.x, widgetPos.y + fftHeight + 50), IM_COL32(50, 50, 50, 255), 1.0);
+        window->DrawList->AddRect(widgetPos, widgetEndPos, IM_COL32(50, 50, 50, 255), 0.0, 0, style::uiScale);
+        window->DrawList->AddLine(ImVec2(widgetPos.x, freqAreaMax.y), ImVec2(widgetPos.x + widgetSize.x, freqAreaMax.y), IM_COL32(50, 50, 50, 255), style::uiScale);
 
         if (!gui::mainWindow.lockWaterfallControls) {
             inputHandled = false;
@@ -1041,8 +1045,8 @@ namespace ImGui {
             vfo->updateDrawingVars(viewBandwidth, dataWidth, viewOffset, widgetPos, fftHeight);
             vfo->wfRectMin = ImVec2(vfo->rectMin.x, wfMin.y);
             vfo->wfRectMax = ImVec2(vfo->rectMax.x, wfMax.y);
-            vfo->wfLineMin = ImVec2(vfo->lineMin.x, wfMin.y);
-            vfo->wfLineMax = ImVec2(vfo->lineMax.x, wfMax.y);
+            vfo->wfLineMin = ImVec2(vfo->lineMin.x, wfMin.y - 1);
+            vfo->wfLineMax = ImVec2(vfo->lineMax.x, wfMax.y - 1);
             vfo->wfLbwSelMin = ImVec2(vfo->wfRectMin.x - 2, vfo->wfRectMin.y);
             vfo->wfLbwSelMax = ImVec2(vfo->wfRectMin.x + 2, vfo->wfRectMax.y);
             vfo->wfRbwSelMin = ImVec2(vfo->wfRectMax.x - 2, vfo->wfRectMin.y);
@@ -1175,16 +1179,16 @@ namespace ImGui {
 
         // Calculate the position of the line
         if (reference == REF_LOWER) {
-            lineMin = ImVec2(widgetPos.x + 50 + left, widgetPos.y + 9);
-            lineMax = ImVec2(widgetPos.x + 50 + left, widgetPos.y + fftHeight + 9);
+            lineMin = ImVec2(gui::waterfall.fftAreaMin.x + left, gui::waterfall.fftAreaMin.y);
+            lineMax = ImVec2(gui::waterfall.fftAreaMin.x + left, gui::waterfall.fftAreaMax.y - 1);
         }
         else if (reference == REF_CENTER) {
-            lineMin = ImVec2(widgetPos.x + 50 + center, widgetPos.y + 9);
-            lineMax = ImVec2(widgetPos.x + 50 + center, widgetPos.y + fftHeight + 9);
+            lineMin = ImVec2(gui::waterfall.fftAreaMin.x + center, gui::waterfall.fftAreaMin.y);
+            lineMax = ImVec2(gui::waterfall.fftAreaMin.x + center, gui::waterfall.fftAreaMax.y - 1);
         }
         else if (reference == REF_UPPER) {
-            lineMin = ImVec2(widgetPos.x + 50 + right, widgetPos.y + 9);
-            lineMax = ImVec2(widgetPos.x + 50 + right, widgetPos.y + fftHeight + 9);
+            lineMin = ImVec2(gui::waterfall.fftAreaMin.x + right, gui::waterfall.fftAreaMin.y);
+            lineMax = ImVec2(gui::waterfall.fftAreaMin.x + right, gui::waterfall.fftAreaMax.y - 1);
         }
 
         int _left = left;
@@ -1194,22 +1198,23 @@ namespace ImGui {
         leftClamped = (left != _left);
         rightClamped = (right != _right);
 
-        rectMin = ImVec2(widgetPos.x + 50 + left, widgetPos.y + 10);
-        rectMax = ImVec2(widgetPos.x + 51 + right, widgetPos.y + fftHeight + 10);
+        rectMin = ImVec2(gui::waterfall.fftAreaMin.x + left, gui::waterfall.fftAreaMin.y + 1);
+        rectMax = ImVec2(gui::waterfall.fftAreaMin.x + right + 1, gui::waterfall.fftAreaMax.y);
 
-        lbwSelMin = ImVec2(rectMin.x - 2, rectMin.y);
-        lbwSelMax = ImVec2(rectMin.x + 2, rectMax.y);
-        rbwSelMin = ImVec2(rectMax.x - 2, rectMin.y);
-        rbwSelMax = ImVec2(rectMax.x + 2, rectMax.y);
+        float gripSize = 2.0f * style::uiScale;
+        lbwSelMin = ImVec2(rectMin.x - gripSize, rectMin.y);
+        lbwSelMax = ImVec2(rectMin.x + gripSize, rectMax.y);
+        rbwSelMin = ImVec2(rectMax.x - gripSize, rectMin.y);
+        rbwSelMax = ImVec2(rectMax.x + gripSize, rectMax.y);
 
-        notchMin = ImVec2(widgetPos.x + 50 + notch - 2, widgetPos.y + 9);
-        notchMax = ImVec2(widgetPos.x + 50 + notch + 2, widgetPos.y + fftHeight + 9);
+        notchMin = ImVec2(gui::waterfall.fftAreaMin.x + notch - gripSize, gui::waterfall.fftAreaMin.y);
+        notchMax = ImVec2(gui::waterfall.fftAreaMin.x + notch + gripSize, gui::waterfall.fftAreaMax.y - 1);
     }
 
     void WaterfallVFO::draw(ImGuiWindow* window, bool selected) {
         window->DrawList->AddRectFilled(rectMin, rectMax, color);
         if (lineVisible) {
-            window->DrawList->AddLine(lineMin, lineMax, selected ? IM_COL32(255, 0, 0, 255) : IM_COL32(255, 255, 0, 255));
+            window->DrawList->AddLine(lineMin, lineMax, selected ? IM_COL32(255, 0, 0, 255) : IM_COL32(255, 255, 0, 255), style::uiScale);
         }
 
         if (notchVisible) {

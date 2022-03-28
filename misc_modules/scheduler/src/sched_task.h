@@ -77,8 +77,7 @@ public:
 
                 if (ImGui::Selectable((act->getName() + "##scheduler_task_actions_entry").c_str(), &act->selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_SelectOnClick)) {
                     // if shift or control isn't pressed, deselect all others
-                    if (!ImGui::IsKeyDown(GLFW_KEY_LEFT_SHIFT) && !ImGui::IsKeyDown(GLFW_KEY_RIGHT_SHIFT) &&
-                        !ImGui::IsKeyDown(GLFW_KEY_LEFT_CONTROL) && !ImGui::IsKeyDown(GLFW_KEY_RIGHT_CONTROL)) {
+                    if (!ImGui::GetIO().KeyShift && !ImGui::GetIO().KeyCtrl) {
                         int _id = 0;
                         for (auto& _act : actions) {
                             if (_id == id) { continue; }

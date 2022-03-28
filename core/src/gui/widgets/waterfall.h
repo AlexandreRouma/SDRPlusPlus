@@ -236,6 +236,13 @@ namespace ImGui {
             _BANDPLAN_POS_COUNT
         };
 
+        ImVec2 fftAreaMin;
+        ImVec2 fftAreaMax;
+        ImVec2 freqAreaMin;
+        ImVec2 freqAreaMax;
+        ImVec2 wfMin;
+        ImVec2 wfMax;
+
     private:
         void drawWaterfall();
         void drawFFT();
@@ -259,13 +266,6 @@ namespace ImGui {
 
         ImVec2 lastWidgetPos;
         ImVec2 lastWidgetSize;
-
-        ImVec2 fftAreaMin;
-        ImVec2 fftAreaMax;
-        ImVec2 freqAreaMin;
-        ImVec2 freqAreaMax;
-        ImVec2 wfMin;
-        ImVec2 wfMax;
 
         ImGuiWindow* window;
 

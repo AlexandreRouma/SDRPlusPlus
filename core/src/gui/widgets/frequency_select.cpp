@@ -2,8 +2,7 @@
 #include <config.h>
 #include <gui/style.h>
 #include <gui/gui.h>
-#include <glfw_window.h>
-#include <GLFW/glfw3.h>
+#include <backend.h>
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -40,9 +39,6 @@ void FrequencySelect::onPosChange() {
             commaOffset += commaSz.x;
         }
     }
-}
-
-void FrequencySelect::onResize() {
 }
 
 void FrequencySelect::incrementDigit(int i) {
@@ -87,40 +83,33 @@ void FrequencySelect::decrementDigit(int i) {
 
 void FrequencySelect::moveCursorToDigit(int i) {
     double xpos, ypos;
-    glfwGetCursorPos(core::window, &xpos, &ypos);
-    float nxpos = (digitTopMaxs[i].x + digitTopMins[i].x) / 2.0f;
-    glfwSetCursorPos(core::window, nxpos, ypos);
+    backend::getMouseScreenPos(xpos, ypos);
+    double nxpos = (digitTopMaxs[i].x + digitTopMins[i].x) / 2.0;
+    backend::setMouseScreenPos(nxpos, ypos);
 }
 
 void FrequencySelect::draw() {
-    window = ImGui::GetCurrentWindow();
+    auto window = ImGui::GetCurrentWindow();
     widgetPos = ImGui::GetWindowContentRegionMin();
-    widgetEndPos = ImGui::GetWindowContentRegionMax();
     ImVec2 cursorPos = ImGui::GetCursorPos();
     widgetPos.x += window->Pos.x + cursorPos.x;
-    widgetPos.y += window->Pos.y - 3;
-    widgetEndPos.x += window->Pos.x + cursorPos.x;
-    widgetEndPos.y += window->Pos.y - 3;
-    widgetSize = ImVec2(widgetEndPos.x - widgetPos.x, widgetEndPos.y - widgetPos.y);
-
     ImGui::PushFont(style::bigFont);
+    ImVec2 digitSz = ImGui::CalcTextSize("0");
+    ImVec2 commaSz = ImGui::CalcTextSize(".");
+    widgetPos.y = window->Pos.y + cursorPos.y - ((digitSz.y / 2.0f) - ceilf(15 * style::uiScale) - 5);
 
     if (widgetPos.x != lastWidgetPos.x || widgetPos.y != lastWidgetPos.y) {
         lastWidgetPos = widgetPos;
         onPosChange();
     }
-    if (widgetSize.x != lastWidgetSize.x || widgetSize.y != lastWidgetSize.y) {
-        lastWidgetSize = widgetSize;
-        onResize();
-    }
 
     ImU32 disabledColor = ImGui::GetColorU32(ImGuiCol_Text, 0.3f);
     ImU32 textColor = ImGui::GetColorU32(ImGuiCol_Text);
 
-    ImVec2 digitSz = ImGui::CalcTextSize("0");
-    ImVec2 commaSz = ImGui::CalcTextSize(".");
+    
     int digitWidth = digitSz.x;
     int commaOffset = 0;
+    float textOffset = 11.0f * style::uiScale;
     bool zeros = true;
 
     ImGui::ItemSize(ImRect(digitTopMins[0], ImVec2(digitBottomMaxs[11].x + 15, digitBottomMaxs[11].y)));
@@ -134,7 +123,7 @@ void FrequencySelect::draw() {
                                   zeros ? disabledColor : textColor, buf);
         if ((i + 1) % 3 == 0 && i < 11) {
             commaOffset += commaSz.x;
-            window->DrawList->AddText(ImVec2(widgetPos.x + (i * digitWidth) + commaOffset + 11, widgetPos.y),
+            window->DrawList->AddText(ImVec2(widgetPos.x + (i * digitWidth) + commaOffset + textOffset, widgetPos.y),
                                       zeros ? disabledColor : textColor, ".");
         }
     }
@@ -165,23 +154,23 @@ void FrequencySelect::draw() {
             }
             if (onDigit) {
                 hovered = true;
-                if (rightClick || (ImGui::IsKeyPressed(GLFW_KEY_DELETE) || ImGui::IsKeyPressed(GLFW_KEY_ENTER) || ImGui::IsKeyPressed(GLFW_KEY_KP_ENTER))) {
+                if (rightClick || (ImGui::IsKeyPressed(ImGuiKey_Delete) || ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))) {
                     for (int j = i; j < 12; j++) {
                         digits[j] = 0;
                     }
 
                     frequencyChanged = true;
                 }
-                if (ImGui::IsKeyPressed(GLFW_KEY_UP)) {
+                if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) {
                     incrementDigit(i);
                 }
-                if (ImGui::IsKeyPressed(GLFW_KEY_DOWN)) {
+                if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
                     decrementDigit(i);
                 }
-                if ((ImGui::IsKeyPressed(GLFW_KEY_LEFT) || ImGui::IsKeyPressed(GLFW_KEY_BACKSPACE)) && i > 0) {
+                if ((ImGui::IsKeyPressed(ImGuiKey_LeftArrow) || ImGui::IsKeyPressed(ImGuiKey_Backspace)) && i > 0) {
                     moveCursorToDigit(i - 1);
                 }
-                if (ImGui::IsKeyPressed(GLFW_KEY_RIGHT) && i < 11) {
+                if (ImGui::IsKeyPressed(ImGuiKey_RightArrow) && i < 11) {
                     moveCursorToDigit(i + 1);
                 }
 
@@ -223,9 +212,7 @@ void FrequencySelect::draw() {
 
     ImGui::PopFont();
 
-    ImGui::SetCursorPosX(digitBottomMaxs[11].x + 17);
-
-    //ImGui::NewLine();
+    ImGui::SetCursorPosX(digitBottomMaxs[11].x + (17.0f * style::uiScale));
 }
 
 void FrequencySelect::setFrequency(int64_t freq) {

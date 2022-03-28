@@ -7,6 +7,8 @@ namespace style {
     extern ImFont* bigFont;
     extern ImFont* hugeFont;
 
+    extern float uiScale;
+
     bool setDefaultStyle(std::string resDir);
     bool loadFonts(std::string resDir);
     void beginDisabled();

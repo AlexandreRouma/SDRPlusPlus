@@ -10,7 +10,6 @@
 #include <SoapySDR/Logger.hpp>
 #include <core.h>
 #include <gui/style.h>
-#include <options.h>
 #include <gui/smgui.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
@@ -525,7 +524,7 @@ private:
 };
 
 MOD_EXPORT void _INIT_() {
-    config.setPath(options::opts.root + "/soapy_source_config.json");
+    config.setPath(core::args["root"].s() + "/soapy_source_config.json");
     json defConf;
     defConf["device"] = "";
     defConf["devices"] = json({});

@@ -1,0 +1,133 @@
+○ Transmission by MSK and 4L-FSK
+MSK is a type of FSK method that is a modulation method for digital signals, and is the mark frequency of FSK.
+Minimize the frequency between the number and the space frequency (Minimum Shift Keying)
+4L-FSK is a 4-value FSK, and 4 modulation frequencies that can be taken with a type of FSK are provided.
+This makes it possible to obtain twice the transmission speed compared to MSK.
+4L-FSK is more susceptible to noise because the frequency interval is narrower than MSK.
+It also becomes more susceptible to deterioration of transmission line characteristics.
+There are two types of choices, but when the line condition such as FM is good, the image will be sent quickly, so
+Or I think you should select 4L-FSK to send high quality images. wireless
+If the SSB transmission in HF where the line condition is unstable is set to MSK, the data will be as it is.
+I think it will be.
+The first pull-down menu from the top of the pull-down menu on the right side of Send Image
+You can select MSK or 4L-FSK in the new.
+
+○ Transmission in convolutional code mode
+The second pull-down menu from the top of the pull-down menu on the right side of Send Image
+New is the choice of code processing. Here no code processing (NORM) or convolutional code processing
+Set whether to perform (CONV).
+When convolutional code processing is performed, it becomes stronger against noise, but the same data is sent.
+It takes about twice as long to complete.
+Please select the code processing on a case-by-case basis while checking the transmission status.
+This setting can be changed even during transmission.
+
+○ Sending and receiving text messages
+With KG-STV, a maximum of 510 half-width characters (255 full-width characters) text message can be sent once.
+You can send sage.
+To send a text message, text in the input box under Resp BSR
+And click Send Text on the right.
+When you receive a text message, the text will be displayed in the box below.
+
+○ KG-STV transmission standard
+Modulation format: MSK or composite modulation of MSK and 4-value FSK
+Modulation speed: 1200baud
+Modulation frequency: MSK …… Space frequency 1200Hz Mark frequency 1800Hz
+
+4L-FSK ... 
+'00' 1200Hz
+'01' 1400Hz
+'10' 1600Hz
+'11' 1800Hz
+
+Bandwidth: 500-2500Hz
+Error correction: None or Viterbi code (NASA standard K = 7, R=1/2, P=[109, 79] code)
+Whitening: Yes (add M-sequence code with a period of 127 bits to each bit)
+Interleaver: None
+Header: 01 repeat signal is 256 bits
+Basic code configuration: Synchronous code + 54-bit length information chunk + arbitrary length data chunk
+Error detection: Yes (CRC 16 CCITT)
+Synchronous bit: 63-bit M-sequence code
+Image compression: JPEG compatible (16x16 pixels, thinning 4: 1: 1)
+Character code: Shift JIS compatible
+Radio format: F1D (operation in SSB mode)
+F2D (operation in FM mode)
+
+Information chunk configuration (system code version '0')
+
+┌─────┬─────┬───┬───┬───┬───┬────┬──────┬─────┐
+│ sys │ com │ c │ m │ x │ y │ sc │ size │ CRC │
+└─────┴─────┴───┴───┴───┴───┴────┴──────┴─────┘
+0     4     8   9   10  16  22   26     38    54bit
+
+Sys:    system code
+Com:    command code
+C:      sign mode
+M:      Modulation mode
+X:      Image block position (X)
+Y:      Image block position (Y)
+Sc:     JPEG scale size
+Size:   data size
+CRC:    Error detection code
+
+* Information chunks always perform MSK modulation + convolution processing.
+
+Data chunk structure (system code version '0')
+
+┌──────┬─────┐
+│ data │ CRC │
+└──────┴─────┘
+
+* Data chunks are transmitted following the CRC code of the information chunks.
+
+Command table (system code version '0')
+┌─────┬────────┐
+│ Command value │ Operation │ │
+├─────┼────────┤
+│ 0 │ text transmission │
+├─────┼────────┤
+│ 1 │ Image transmission │ │
+├─────┼────────┤
+│ 2 │ BSR response │ │
+├─────┼────────┤
+│ │ 3 │ end │ │
+├─────┼────────┤
+│ │ 4 │ BSR request │ │
+├─────┼────────┤
+│ 5 │ Canceled (suspended) │
+├─────┼────────┤
+│ 6 │ call sign │
+└─────┴────────┘
+
+* When starting transmission, the header code of 01 shall be transmitted first.
+* One data format (code configuration) is
+Synchronous code + information chunk + data chunk
+It will be. However, the end signal, stop signal, and BSR signal do not include data chunks.
+  stomach.
+* In the case of image data, this data format is continuous for the number of image blocks.
+It shall be sent.
+* In the case of text transmission, it shall be completed in one data format.
+* When the transmission is completed normally, the end signal shall be transmitted three times at the end.
+* When the transmission is canceled, the cancellation signal shall be transmitted three times at the end.
+
+Synchronous code
+000011100001001000110110010110101110111100110001010100111111010
+
+Whitening code
+1110110011000100100111001111100100000100011010101001101101001010000101100001100101111111010110111011110001110100010101110000001
+
+○ KG-STV needs more experiments
+KG-STV was born from the creator's own interest in digital image communication.
+However, there is a lack of practical experience due to the ability of the person himself / herself.
+Therefore, the actual luck is that the transmission time is slow, the image quality is poor, and it is difficult to receive.
+I think there are many situations where it is not practical in terms of use.
+In such a case, I would like to research as a new issue, so by all means
+We hope that many people will use it and give us their impressions.
+Inconvenience such as bugs and operational problems until the degree of completion is high after receiving your opinions
+We apologize for the inconvenience, but thank you for your cooperation.
+
+Creator: K.G (JJ0OBZ Myoko City, Niigata Prefecture)
+
+-------------------------------------------------- -------------------------------------------------- --------------------
+  Created and written by K.G k.g8956@ymail.plala.or.jp
+Today also from the day of the plane http://www2.plala.or.jp/hikokibiyori/
+-------------------------------------------------- -------------------------------------------------- --------------------

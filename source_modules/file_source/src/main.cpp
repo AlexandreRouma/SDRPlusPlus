@@ -5,7 +5,6 @@
 #include <signal_path/signal_path.h>
 #include <wavreader.h>
 #include <core.h>
-#include <options.h>
 #include <gui/widgets/file_select.h>
 #include <filesystem>
 #include <regex>
@@ -28,7 +27,7 @@ public:
     FileSourceModule(std::string name) : fileSelect("", { "Wav IQ Files (*.wav)", "*.wav", "All Files", "*" }) {
         this->name = name;
 
-        if (options::opts.serverMode) { return; }
+        if (core::args["server"].b()) { return; }
 
         config.acquire();
         fileSelect.setPath(config.conf["path"], true);
@@ -200,7 +199,7 @@ private:
 MOD_EXPORT void _INIT_() {
     json def = json({});
     def["path"] = "";
-    config.setPath(options::opts.root + "/file_source_config.json");
+    config.setPath(core::args["root"].s() + "/file_source_config.json");
     config.load(def);
     config.enableAutoSave();
 }

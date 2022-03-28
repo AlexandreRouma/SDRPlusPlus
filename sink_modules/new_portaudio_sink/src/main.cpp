@@ -9,7 +9,7 @@
 #include <spdlog/spdlog.h>
 #include <config.h>
 #include <algorithm>
-#include <options.h>
+#include <core.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -137,7 +137,7 @@ public:
     }
 
     void menuHandler() {
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
+        float menuWidth = ImGui::GetContentRegionAvail().x;
 
         // Select device
         ImGui::SetNextItemWidth(menuWidth);
@@ -424,7 +424,7 @@ private:
 };
 
 MOD_EXPORT void _INIT_() {
-    config.setPath(options::opts.root + "/new_audio_sink_config.json");
+    config.setPath(core::args["root"].s() + "/new_audio_sink_config.json");
     config.load(json::object());
     config.enableAutoSave();
 }

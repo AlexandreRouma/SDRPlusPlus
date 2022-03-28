@@ -5,7 +5,6 @@
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
 #include <module.h>
-#include <options.h>
 
 #include <dsp/pll.h>
 #include <dsp/stream.h>
@@ -102,7 +101,7 @@ private:
     static void menuHandler(void* ctx) {
         WeatherSatDecoderModule* _this = (WeatherSatDecoderModule*)ctx;
 
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
+        float menuWidth = ImGui::GetContentRegionAvail().x;
 
         if (!_this->enabled) { style::beginDisabled(); }
 

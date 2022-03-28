@@ -8,8 +8,10 @@
 
 namespace credits {
     ImFont* bigFont;
+    ImVec2 imageSize(128.0f, 128.0f);
 
     void init() {
+        imageSize = ImVec2(128.0f * style::uiScale, 128.0f * style::uiScale);
     }
 
     void show() {
@@ -25,7 +27,7 @@ namespace credits {
         ImGui::TextUnformatted("SDR++          ");
         ImGui::PopFont();
         ImGui::SameLine();
-        ImGui::Image(icons::LOGO, ImVec2(128, 128));
+        ImGui::Image(icons::LOGO, imageSize);
         ImGui::Spacing();
         ImGui::Spacing();
         ImGui::Spacing();
