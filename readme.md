@@ -411,8 +411,12 @@ I will soon publish a contributing.md listing the code style to use.
 * Eric Johnson
 * Ernest Murphy (NH7L)
 * Flinger Films
+* gringogrigio
+* Joe Cupano
 * Kezza
+* Krys Kamieniecki
 * Lee Donaghy
+* Lee KD1SQ
 * .lozenge. (Hank Hill)
 * ON4MU
 * [Passion-Radio.com](https://passion-radio.com/)
@@ -420,6 +424,7 @@ I will soon publish a contributing.md listing the code style to use.
 * [SignalsEverywhere](https://signalseverywhere.com/)
 * Syne Ardwin (WI9SYN)
 * [W4IPA](https://twitter.com/W4IPAstroke5)
+* [Zipper](github.com/reppiZ)
 
 ## Contributors
 
@@ -444,6 +449,7 @@ I will soon publish a contributing.md listing the code style to use.
 * [Szymon Zakrent](https://github.com/zakrent)
 * [Tobias Mädel](https://github.com/Manawyrm)
 * [Zimm](https://github.com/invader-zimm)
+
 
 ## Libraries used
 
