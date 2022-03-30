@@ -26,13 +26,13 @@ if (MSVC)
 elseif (ANDROID)
     target_include_directories(m17_decoder PUBLIC
         /mnt/android_sdr/codec2/src
-        /mnt/android_sdr/codec2/build_${ANDROID_ABI}/
+        /mnt/android_sdr/output/codec2/${ANDROID_ABI}/
     )
 
     target_link_libraries(m17_decoder PUBLIC
         /mnt/android_sdr/output/codec2/${ANDROID_ABI}/libcodec2.so
     )
-else (MSVC)
+else ()
     find_package(PkgConfig)
 
     pkg_check_modules(LIBCODEC2 REQUIRED codec2)

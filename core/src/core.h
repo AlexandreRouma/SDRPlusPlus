@@ -1,7 +1,6 @@
 #pragma once
 #include <config.h>
 #include <module.h>
-#include <module.h>
 #include <module_com.h>
 #include "command_args.h"
 
