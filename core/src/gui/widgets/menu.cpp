@@ -88,11 +88,15 @@ bool Menu::draw(bool updateStates) {
             clickedMenuName = opt.name;
         }
 
-        if (menuClicked && ImGui::IsMouseDragging(ImGuiMouseButton_Left) && draggedMenuName.empty() && clickedMenuName == opt.name && !locked) {
+        bool menuDragged = (menuClicked && ImGui::IsMouseDragging(ImGuiMouseButton_Left) && draggedMenuName.empty() && clickedMenuName == opt.name);
+        if (menuDragged && !locked) {
             draggedMenuName = opt.name;
             draggedId = rawId - 1;
             draggedOpt = opt;
             continue;
+        }
+        else if (menuDragged) {
+            ImGui::SetTooltip("Menu Order Locked!");
         }
 
         // Draw menu header and menu content. There is a lot of boilerplate because the checkbox has to be drawn before the menu, TODO: fix
