@@ -23,12 +23,12 @@ if (MSVC)
 
     target_link_libraries(hackrf_source PRIVATE hackrf)
 elseif (ANDROID)
-    target_include_directories(sdrpp_core PUBLIC
+    target_include_directories(hackrf_source PUBLIC
         /mnt/android_sdr/libusb/libusb
         /mnt/android_sdr/hackrf/host/libhackrf/src
     )
 
-    target_link_libraries(sdrpp_core PUBLIC
+    target_link_libraries(hackrf_source PUBLIC
         /mnt/android_sdr/output/libusb/${ANDROID_ABI}/libusb1.0.so
         /mnt/android_sdr/output/libhackrf/${ANDROID_ABI}/libhackrf.so
     )

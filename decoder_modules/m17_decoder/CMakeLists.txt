@@ -23,7 +23,15 @@ if (MSVC)
     target_link_directories(m17_decoder PRIVATE "C:/Program Files/codec2/lib")
 
     target_link_libraries(m17_decoder PRIVATE libcodec2)
+elseif (ANDROID)
+    target_include_directories(m17_decoder PUBLIC
+        /mnt/android_sdr/codec2/src
+        /mnt/android_sdr/codec2/build_${ANDROID_ABI}/
+    )
 
+    target_link_libraries(m17_decoder PUBLIC
+        /mnt/android_sdr/output/codec2/${ANDROID_ABI}/libcodec2.so
+    )
 else (MSVC)
     find_package(PkgConfig)
 

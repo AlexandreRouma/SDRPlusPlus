@@ -23,12 +23,12 @@ if (MSVC)
 
     target_link_libraries(rtl_sdr_source PRIVATE rtlsdr)
 elseif (ANDROID)
-    target_include_directories(sdrpp_core PUBLIC
+    target_include_directories(rtl_sdr_source PUBLIC
         /mnt/android_sdr/libusb/libusb
         /mnt/android_sdr/librtlsdr/include
     )
 
-    target_link_libraries(sdrpp_core PUBLIC
+    target_link_libraries(rtl_sdr_source PUBLIC
         /mnt/android_sdr/output/libusb/${ANDROID_ABI}/libusb1.0.so
         /mnt/android_sdr/output/librtlsdr/${ANDROID_ABI}/librtlsdr.so
     )

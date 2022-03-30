@@ -25,12 +25,12 @@ if (MSVC)
 
     target_link_libraries(airspy_source PRIVATE airspy)
 elseif (ANDROID)
-    target_include_directories(sdrpp_core PUBLIC
+    target_include_directories(airspy_source PUBLIC
         /mnt/android_sdr/libusb/libusb
         /mnt/android_sdr/airspyone_host/libairspy/src
     )
 
-    target_link_libraries(sdrpp_core PUBLIC
+    target_link_libraries(airspy_source PUBLIC
         /mnt/android_sdr/output/libusb/${ANDROID_ABI}/libusb1.0.so
         /mnt/android_sdr/output/libairspy/${ANDROID_ABI}/libairspy.so
     )

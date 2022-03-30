@@ -25,12 +25,12 @@ if (MSVC)
     target_link_libraries(plutosdr_source PRIVATE libiio)
     target_link_libraries(plutosdr_source PRIVATE libad9361)
 elseif (ANDROID)
-    target_include_directories(sdrpp_core PUBLIC
+    target_include_directories(plutosdr_source PUBLIC
         /mnt/android_sdr/libiio
         /mnt/android_sdr/libad9361-iio
     )
 
-    target_link_libraries(sdrpp_core PUBLIC
+    target_link_libraries(plutosdr_source PUBLIC
         /mnt/android_sdr/output/libxml2/${ANDROID_ABI}/libxml2.so
         /mnt/android_sdr/output/libiio/${ANDROID_ABI}/libiio.so
         /mnt/android_sdr/output/libad9361/${ANDROID_ABI}/libad9361.so
