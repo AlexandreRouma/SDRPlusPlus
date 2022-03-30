@@ -88,7 +88,7 @@ bool Menu::draw(bool updateStates) {
             clickedMenuName = opt.name;
         }
 
-        if (menuClicked && ImGui::IsMouseDragging(ImGuiMouseButton_Left) && draggedMenuName.empty() && clickedMenuName == opt.name) {
+        if (menuClicked && ImGui::IsMouseDragging(ImGuiMouseButton_Left) && draggedMenuName.empty() && clickedMenuName == opt.name && !locked) {
             draggedMenuName = opt.name;
             draggedId = rawId - 1;
             draggedOpt = opt;

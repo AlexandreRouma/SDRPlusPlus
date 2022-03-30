@@ -537,6 +537,7 @@ void MainWindow::draw() {
             }
 
             ImGui::Checkbox("WF Single Click", &gui::waterfall.VFOMoveSingleClick);
+            ImGui::Checkbox("Lock Menu Order", &gui::menu.locked);
 
             ImGui::Spacing();
         }

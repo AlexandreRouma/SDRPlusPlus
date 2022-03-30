@@ -27,9 +27,12 @@ public:
 
     std::vector<MenuOption_t> order;
 
+    bool locked = false;
+
 private:
     bool isInOrderList(std::string name);
 
+    
     bool menuClicked = false;
     std::string clickedMenuName = "";
     std::string draggedMenuName = "";

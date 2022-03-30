@@ -221,6 +221,12 @@ int sdrpp_main(int argc, char* argv[]) {
 
     defConfig["vfoColors"]["Radio"] = "#FFFFFF";
 
+#ifdef __ANDROID__
+    defConfig["lockMenuOrder"] = true;
+#else
+    defConfig["lockMenuOrder"] = false;
+#endif
+
 #if defined(_WIN32)
     defConfig["modulesDirectory"] = "./modules";
     defConfig["resourcesDirectory"] = "./res";

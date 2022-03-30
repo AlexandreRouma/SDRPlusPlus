@@ -91,6 +91,8 @@ namespace displaymenu {
         selectedWindow = std::clamp<int>((int)core::configManager.conf["fftWindow"], 0, _FFT_WINDOW_COUNT - 1);
         gui::mainWindow.setFFTWindow(selectedWindow);
 
+        gui::menu.locked = core::configManager.conf["lockMenuOrder"];
+
         // Define and load UI scales
         uiScales.define(1.0f, "100%", 1.0f);
         uiScales.define(2.0f, "200%", 2.0f);
@@ -121,6 +123,12 @@ namespace displaymenu {
             gui::waterfall.setFullWaterfallUpdate(fullWaterfallUpdate);
             core::configManager.acquire();
             core::configManager.conf["fullWaterfallUpdate"] = fullWaterfallUpdate;
+            core::configManager.release(true);
+        }
+
+        if (ImGui::Checkbox("Lock Menu Order##_sdrpp", &gui::menu.locked)) {
+            core::configManager.acquire();
+            core::configManager.conf["lockMenuOrder"] = gui::menu.locked;
             core::configManager.release(true);
         }
 
