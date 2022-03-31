@@ -77,6 +77,7 @@ namespace ImGui {
         lastWidgetSize.x = 0;
         lastWidgetSize.y = 0;
         latestFFT = new float[1];
+        latestFFTHold = new float[1];
         waterfallFb = new uint32_t[1];
 
         viewBandwidth = 1.0;
@@ -97,6 +98,7 @@ namespace ImGui {
         char buf[100];
 
         ImU32 trace = ImGui::GetColorU32(ImGuiCol_PlotLines);
+        ImU32 traceHold = ImGui::ColorConvertFloat4ToU32(ImVec4(1.0, 1.0, 0.0, 1.0));
         ImU32 shadow = ImGui::GetColorU32(ImGuiCol_PlotLines, 0.2);
         ImU32 text = ImGui::GetColorU32(ImGuiCol_Text);
         float textVOffset = 10.0f * style::uiScale;
@@ -140,6 +142,18 @@ namespace ImGui {
                                           ImVec2(fftAreaMin.x + i, roundf(bPos)), trace, 1.0);
                 window->DrawList->AddLine(ImVec2(fftAreaMin.x + i, roundf(bPos)),
                                           ImVec2(fftAreaMin.x + i, fftAreaMax.y), shadow, 1.0);
+            }
+        }
+
+        // Hold
+        if (fftHold && latestFFT != NULL && latestFFTHold != NULL && fftLines != 0) {
+            for (int i = 1; i < dataWidth; i++) {
+                double aPos = fftAreaMax.y - ((latestFFTHold[i - 1] - fftMin) * scaleFactor);
+                double bPos = fftAreaMax.y - ((latestFFTHold[i] - fftMin) * scaleFactor);
+                aPos = std::clamp<double>(aPos, fftAreaMin.y + 1, fftAreaMax.y);
+                bPos = std::clamp<double>(bPos, fftAreaMin.y + 1, fftAreaMax.y);
+                window->DrawList->AddLine(ImVec2(fftAreaMin.x + i - 1, roundf(aPos)),
+                                          ImVec2(fftAreaMin.x + i, roundf(bPos)), traceHold, 1.0);
             }
         }
 
@@ -712,10 +726,17 @@ namespace ImGui {
             // ==============
         }
 
+        // Reallocate display FFT
         if (latestFFT != NULL) {
             delete[] latestFFT;
         }
         latestFFT = new float[dataWidth];
+
+        // Reallocate hold FFT
+        if (latestFFTHold != NULL) {
+            delete[] latestFFTHold;
+        }
+        latestFFTHold = new float[dataWidth];
 
         if (waterfallVisible) {
             delete[] waterfallFb;
@@ -724,6 +745,7 @@ namespace ImGui {
         }
         for (int i = 0; i < dataWidth; i++) {
             latestFFT[i] = -1000.0; // Hide everything
+            latestFFTHold[i] = -1000.0;
         }
 
         fftAreaMin = ImVec2(widgetPos.x + (50.0f * style::uiScale), widgetPos.y + (9.0f * style::uiScale));
@@ -861,6 +883,13 @@ namespace ImGui {
         if (selectedVFO != "" && vfos.size() > 0) {
             float dummy;
             calculateVFOSignalInfo(waterfallVisible ? &rawFFTs[currentFFTLine * rawFFTSize] : rawFFTs, vfos[selectedVFO], dummy, selectedVFOSNR);
+        }
+
+        // If FFT hold is enabled, update it
+        if (fftHold && latestFFT != NULL && latestFFTHold != NULL && fftLines != 0) {
+            for (int i = 1; i < dataWidth; i++) {
+                latestFFTHold[i] = std::max<float>(latestFFT[i], latestFFTHold[i] - 0.3f);
+            }
         }
 
         buf_mtx.unlock();
@@ -1072,6 +1101,15 @@ namespace ImGui {
 
     void WaterFall::setBandPlanPos(int pos) {
         bandPlanPos = pos;
+    }
+
+    void WaterFall::setFFTHold(bool hold) {
+        fftHold = hold;
+        if (fftHold && latestFFTHold) {
+            for (int i = 0; i < dataWidth; i++) {
+                latestFFTHold[i] = -1000.0;
+            }
+        }
     }
 
     void WaterfallVFO::setOffset(double offset) {

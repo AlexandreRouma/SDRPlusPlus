@@ -176,6 +176,8 @@ namespace ImGui {
 
         void setBandPlanPos(int pos);
 
+        void setFFTHold(bool hold);
+
         bool centerFreqMoved = false;
         bool vfoFreqChanged = false;
         bool bandplanEnabled = false;
@@ -307,6 +309,7 @@ namespace ImGui {
         int rawFFTSize;
         float* rawFFTs = NULL;
         float* latestFFT;
+        float* latestFFTHold;
         int currentFFTLine = 0;
         int fftLines = 0;
 
@@ -323,6 +326,8 @@ namespace ImGui {
         bool _fullUpdate = true;
 
         int bandPlanPos = BANDPLAN_POS_BOTTOM;
+
+        bool fftHold = false;
 
         // UI Select elements
         bool fftResizeSelect = false;
