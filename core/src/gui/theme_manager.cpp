@@ -84,7 +84,7 @@ bool ThemeManager::loadTheme(std::string path) {
         if (param == "name" || param == "author") { continue; }
 
         // Exception for non-imgu colors
-        if (param == "WaterfallBackground" || param == "ClearColor") {
+        if (param == "WaterfallBackground" || param == "ClearColor" || param == "FFTHoldColor") {
             if (val[0] != '#' || !std::all_of(val.begin() + 1, val.end(), ::isxdigit) || val.length() != 9) {
                 spdlog::error("Theme {0} contains invalid {1} field. Expected hex RGBA color", path, param);
                 return false;
@@ -149,6 +149,12 @@ bool ThemeManager::applyTheme(std::string name) {
         if (param == "ClearColor") {
             decodeRGBA(val, ret);
             clearColor = ImVec4((float)ret[0] / 255.0f, (float)ret[1] / 255.0f, (float)ret[2] / 255.0f, (float)ret[3] / 255.0f);
+            continue;
+        }
+
+        if (param == "FFTHoldColor") {
+            decodeRGBA(val, ret);
+            fftHoldColor = ImVec4((float)ret[0] / 255.0f, (float)ret[1] / 255.0f, (float)ret[2] / 255.0f, (float)ret[3] / 255.0f);
             continue;
         }
 

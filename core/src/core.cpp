@@ -108,6 +108,8 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["bandPlanPos"] = 0;
     defConfig["centerTuning"] = false;
     defConfig["colorMap"] = "Classic";
+    defConfig["fftHold"] = false;
+    defConfig["fftHoldSpeed"] = 60;
     defConfig["fastFFT"] = false;
     defConfig["fftHeight"] = 300;
     defConfig["fftRate"] = 20;

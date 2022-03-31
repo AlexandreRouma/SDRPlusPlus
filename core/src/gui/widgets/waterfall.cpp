@@ -76,8 +76,8 @@ namespace ImGui {
         lastWidgetPos.y = 0;
         lastWidgetSize.x = 0;
         lastWidgetSize.y = 0;
-        latestFFT = new float[1];
-        latestFFTHold = new float[1];
+        latestFFT = new float[dataWidth];
+        latestFFTHold = new float[dataWidth];
         waterfallFb = new uint32_t[1];
 
         viewBandwidth = 1.0;
@@ -98,7 +98,7 @@ namespace ImGui {
         char buf[100];
 
         ImU32 trace = ImGui::GetColorU32(ImGuiCol_PlotLines);
-        ImU32 traceHold = ImGui::ColorConvertFloat4ToU32(ImVec4(1.0, 1.0, 0.0, 1.0));
+        ImU32 traceHold = ImGui::ColorConvertFloat4ToU32(gui::themeManager.fftHoldColor);
         ImU32 shadow = ImGui::GetColorU32(ImGuiCol_PlotLines, 0.2);
         ImU32 text = ImGui::GetColorU32(ImGuiCol_Text);
         float textVOffset = 10.0f * style::uiScale;
@@ -888,7 +888,7 @@ namespace ImGui {
         // If FFT hold is enabled, update it
         if (fftHold && latestFFT != NULL && latestFFTHold != NULL && fftLines != 0) {
             for (int i = 1; i < dataWidth; i++) {
-                latestFFTHold[i] = std::max<float>(latestFFT[i], latestFFTHold[i] - 0.3f);
+                latestFFTHold[i] = std::max<float>(latestFFT[i], latestFFTHold[i] - fftHoldSpeed);
             }
         }
 
@@ -1110,6 +1110,10 @@ namespace ImGui {
                 latestFFTHold[i] = -1000.0;
             }
         }
+    }
+
+    void WaterFall::setFFTHoldSpeed(float speed) {
+        fftHoldSpeed = speed;
     }
 
     void WaterfallVFO::setOffset(double offset) {

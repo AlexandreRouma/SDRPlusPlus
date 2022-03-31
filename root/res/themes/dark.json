@@ -9,6 +9,7 @@
     "CheckMark": "#3D84E0FF",
     "ChildBg": "#FFFFFF00",
     "DragDropTarget": "#FFFF00E5",
+    "FFTHoldColor": "#FFFF00FF",
     "FrameBg": "#33353889",
     "FrameBgActive": "#33353889",
     "FrameBgHovered": "#33353889",
