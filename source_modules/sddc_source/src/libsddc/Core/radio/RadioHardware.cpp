@@ -1,4 +1,4 @@
-#include "RadioHandler.h"
+#include "../RadioHandler.h"
 
 bool RadioHardware::FX3SetGPIO(uint32_t mask)
 {

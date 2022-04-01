@@ -8,6 +8,7 @@
 // modified 2017 11 30 ik1xpv@gmail.com, http://www.steila.com/blog
 // 
 #include <windows.h>
+#include "../../config.h"
 #include "FX3handler.h"
 #include "./CyAPI/CyAPI.h"
 #include "./CyAPI/cyioctl.h"

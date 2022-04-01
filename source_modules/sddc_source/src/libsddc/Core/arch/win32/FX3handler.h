@@ -18,13 +18,13 @@
 #include <time.h>
 #include "config.h"
 
-#include "dsp/ringbuffer.h"
+#include "../../dsp/ringbuffer.h"
 
 #define	VENDOR_ID     (0x04B4)
 #define	STREAMER_ID   (0x00F1)
 #define	BOOTLOADER_ID (0x00F3)
 
-#include "FX3Class.h"
+#include "../../FX3Class.h"
 
 class CCyFX3Device;
 class CCyUSBEndPoint;

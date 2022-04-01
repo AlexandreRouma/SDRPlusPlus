@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
-#include "pf_mixer.h"
+#include "pffft/pf_mixer.h"
 #include "RadioHandler.h"
 #include "config.h"
 #include "fft_mt_r2iq.h"
