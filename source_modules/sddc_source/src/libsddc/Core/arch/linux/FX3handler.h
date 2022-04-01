@@ -1,7 +1,7 @@
 #ifndef FX3HANDLER_H
 #define FX3HANDLER_H
 
-#include "sddc_config.h"
+#include "config.h"
 
 #define	VENDOR_ID     (0x04B4)
 #define	STREAMER_ID   (0x00F1)
@@ -23,9 +23,10 @@ public:
 	bool Control(FX3Command command, uint64_t data) override;
 	bool SetArgument(uint16_t index, uint16_t value) override;
 	bool GetHardwareInfo(uint32_t* data) override;
-	bool ReadDebugTrace(uint8_t* pdata, uint8_t len);
-	void StartStream(ringbuffer<int16_t>& input, int numofblock);
-	void StopStream();
+	bool ReadDebugTrace(uint8_t* pdata, uint8_t len) override;
+	void StartStream(ringbuffer<int16_t>& input, int numofblock) override;
+	void StopStream() override;
+	bool Enumerate(unsigned char &idx, char *lbuf, uint8_t* fw_data, uint32_t fw_size) override;
 
 private:
 	bool ReadUsb(uint8_t command, uint16_t value, uint16_t index, uint8_t *data, size_t size);

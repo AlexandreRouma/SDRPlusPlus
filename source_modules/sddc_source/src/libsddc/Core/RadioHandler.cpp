@@ -5,9 +5,9 @@
 #include <inttypes.h>
 #include "pf_mixer.h"
 #include "RadioHandler.h"
-#include "sddc_config.h"
+#include "config.h"
 #include "fft_mt_r2iq.h"
-#include "sddc_config.h"
+#include "config.h"
 #include "PScope_uti.h"
 #include "../Interface.h"
 

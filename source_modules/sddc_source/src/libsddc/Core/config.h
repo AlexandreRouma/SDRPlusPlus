@@ -45,8 +45,7 @@ inline void null_func(const char *format, ...) { }
 #define DbgPrintf DbgEmpty
 #endif
 
-#define VERSION             (1.2)	//	Dll version number x.xx
-#define SWVERSION           "1.2.1"	  
+#define SWVERSION           "1.3.0 RC1"	  
 #define SETTINGS_IDENTIFIER	"sddc_1.06"
 #define SWNAME				"ExtIO_sddc.dll"
 
@@ -76,6 +75,9 @@ enum rf_mode { NOMODE = 0, HFMODE = 0x1, VHFMODE = 0x2 };
 #define URL1               "<a>http://www.hdsdr.de/</a>"
 #define URL_HDSR            "http://www.hdsdr.de/"
 #define URL_HDSDRA          "<a>http://www.hdsdr.de/</a>"
+
+#define MAXNDEV (4)  // max number of SDR device connected to PC
+#define MAXDEVSTRLEN (64)  //max char len of SDR device description
 
 extern bool saveADCsamplesflag;
 extern uint32_t  adcnominalfreq;

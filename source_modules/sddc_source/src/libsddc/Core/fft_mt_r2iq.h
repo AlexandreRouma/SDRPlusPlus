@@ -2,7 +2,7 @@
 
 #include "r2iq.h"
 #include "fftw3.h"
-#include "sddc_config.h"
+#include "config.h"
 #include <algorithm>
 #include <string.h>
 
@@ -91,6 +91,7 @@ private:
     void * r2iqThreadf_avx(r2iqThreadArg *th);
     void * r2iqThreadf_avx2(r2iqThreadArg *th);
     void * r2iqThreadf_avx512(r2iqThreadArg *th);
+    void * r2iqThreadf_neon(r2iqThreadArg *th);
 
     fftwf_complex **filterHw;       // Hw complex to each decimation ratio
 

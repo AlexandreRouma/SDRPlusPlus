@@ -1,7 +1,7 @@
 #pragma once
 
 #define FIRMWARE_VER_MAJOR 2
-#define FIRMWARE_VER_MINOR 1
+#define FIRMWARE_VER_MINOR 2
 
 // HF103 commands !!!
 enum FX3Command {
