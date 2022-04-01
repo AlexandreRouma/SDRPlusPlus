@@ -1,0 +1,285 @@
+{
+  "name": "Australia",
+  "country_name": "Australia",
+  "country_code": "AU",
+  "author_name": "Owen",
+  "author_url": "https://github.com/Ozies",
+  "bands": [
+    {
+      "name": "2200m Ham Band",
+      "type": "amateur",
+      "start": 135700,
+      "end": 137800
+    },
+    {
+      "name": "630m Ham Band",
+      "type": "amateur",
+      "start": 472000,
+      "end": 479000
+    },
+    {
+      "name": "Medium Wave Broadcast (AM Broadcast)",
+      "type": "broadcast",
+      "start": 520000,
+      "end": 1710000
+    },
+    {
+      "name": "160m Ham Band",
+      "type": "amateur",
+      "start": 1800000,
+      "end": 1875000
+    },
+    {
+      "name": "80m Ham Band",
+      "type": "amateur",
+      "start": 3500000,
+      "end": 3700000
+    },
+    {
+      "name": "80m Ham Band",
+      "type": "amateur",
+      "start": 3776000,
+      "end": 3800000
+    },
+    {
+      "name": "60m Ham Band (Unavailable)",
+      "type": "amateur",
+      "start": 5351500,
+      "end": 5366500
+    },
+    {
+      "name": "40m Ham Band",
+      "type": "amateur",
+      "start": 7000000,
+      "end": 7300000
+    },
+    {
+      "name": "30m Ham Band",
+      "type": "amateur",
+      "start": 10100000,
+      "end": 10150000
+    },
+    {
+      "name": "20m Ham Band",
+      "type": "amateur",
+      "start": 14000000,
+      "end": 14350000
+    },
+    {
+      "name": "17m Ham Band",
+      "type": "amateur",
+      "start": 18068000,
+      "end": 18168000
+    },
+    {
+      "name": "15m Ham Band",
+      "type": "amateur",
+      "start": 21000000,
+      "end": 21450000
+    },
+    {
+      "name": "12m Ham Band",
+      "type": "amateur",
+      "start": 24890000,
+      "end": 24990000
+    },
+    {
+      "name": "27MHz CB",
+      "type": "amateur",
+      "start": 26965000,
+      "end": 27405000
+    },
+    {
+      "name": "27MHz Marine Band",
+      "type": "marine",
+      "start": 27680000,
+      "end": 27980000
+    },
+    {
+      "name": "10m Ham Band",
+      "type": "amateur",
+      "start": 28000000,
+      "end": 29700000
+    },
+    {
+      "name": "6m Ham Band",
+      "type": "amateur",
+      "start": 50000000,
+      "end": 54000000
+    },
+    {
+      "name": "FM Broadcast",
+      "type": "broadcast",
+      "start": 87500000,
+      "end": 108000000
+    },
+    {
+      "name": "Air Band VOR/ILS",
+      "type": "aviation",
+      "start": 108000000,
+      "end": 117975000
+    },
+    {
+      "name": "Air Band Voice",
+      "type": "aviation",
+      "start": 117975000,
+      "end": 137000000
+    },
+    {
+      "name": "Polar Orbiting Satellites",
+      "type": "satellite",
+      "start": 137000000,
+      "end": 138000000
+    },
+    {
+      "name": "2m Ham Band",
+      "type": "amateur",
+      "start": 144000000,
+      "end": 148000000
+    },
+    {
+      "name": "VHF Marine Band",
+      "type": "marine",
+      "start": 156000000,
+      "end": 162050000
+    },
+    {
+      "name": "Digital TV Broadcast (DVB-T)",
+      "type": "broadcast",
+      "start": 174000000,
+      "end": 195000000
+    },
+    {
+      "name": "Digital Radio Broadcast (DAB+)",
+      "type": "broadcast",
+      "start": 195000000,
+      "end": 209000000
+    },
+    {
+      "name": "Digital TV Broadcast (DVB-T)",
+      "type": "broadcast",
+      "start": 209000000,
+      "end": 230000000
+    },
+    {
+      "name": "70cm Ham Band",
+      "type": "amateur",
+      "start": 430000000,
+      "end": 450000000
+    },
+    {
+      "name": "UHF CB",
+      "type": "amateur",
+      "start": 476425000,
+      "end": 477412500
+    },
+    {
+      "name": "Digital TV Broadcast (DVB-T)",
+      "type": "broadcast",
+      "start": 526000000,
+      "end": 694000000
+    },
+    {
+      "name": "ISM Band",
+      "type": "other",
+      "start": 915000000,
+      "end": 928000000
+    },
+    {
+      "name": "23cm Ham Band",
+      "type": "amateur",
+      "start": 1240000000,
+      "end": 1300000000
+    },
+    {
+      "name": "13cm Ham Band",
+      "type": "amateur",
+      "start": 2300000000,
+      "end": 2302000000
+    },
+    {
+      "name": "2.4GHz WiFi (ISM Band)",
+      "type": "other",
+      "start": 2400000000,
+      "end": 2483500000
+    },
+    {
+      "name": "13cm Ham Band",
+      "type": "amateur",
+      "start": 2400000000,
+      "end": 2450000000
+    },
+    {
+      "name": "9cm Ham Band",
+      "type": "amateur",
+      "start": 3300000000,
+      "end": 3400000000
+    },
+    {
+      "name": "9cm Ham Band (Restricted)",
+      "type": "amateur",
+      "start": 3400000000,
+      "end": 3600000000
+    },
+    {
+      "name": "5GHz WiFi (ISM Band)",
+      "type": "other",
+      "start": 5150000000,
+      "end": 5590000000
+    },
+    {
+      "name": "5GHz WiFi (ISM Band)",
+      "type": "other",
+      "start": 5650000000,
+      "end": 5835000000
+    },
+    {
+      "name": "6cm Ham Band",
+      "type": "amateur",
+      "start": 5650000000,
+      "end": 5850000000
+    },
+    {
+      "name": "3cm Ham Band",
+      "type": "amateur",
+      "start": 10000000000,
+      "end": 10500000000
+    },
+    {
+      "name": "12mm Ham Band",
+      "type": "amateur",
+      "start": 24000000000,
+      "end": 24250000000
+    },
+    {
+      "name": "6mm Ham Band",
+      "type": "amateur",
+      "start": 47000000000,
+      "end": 47200000000
+    },
+    {
+      "name": "4mm Ham Band",
+      "type": "amateur",
+      "start": 76000000000,
+      "end": 81000000000
+    },
+    {
+      "name": "122-123GHz Ham Band",
+      "type": "amateur",
+      "start": 122250000000,
+      "end": 123000000000
+    },
+    {
+      "name": "134-141GHz Ham Band",
+      "type": "amateur",
+      "start": 134000000000,
+      "end": 141000000000
+    },
+    {
+      "name": "241-250GHz Ham Band",
+      "type": "amateur",
+      "start": 241000000000,
+      "end": 250000000000
+    }
+  ]
+} 
