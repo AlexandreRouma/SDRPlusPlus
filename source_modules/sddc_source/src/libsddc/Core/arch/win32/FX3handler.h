@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>
-#include "sddc_config.h"
+#include "config.h"
 
 #include "dsp/ringbuffer.h"
 
@@ -34,6 +34,7 @@ class fx3handler : public fx3class
 public:
 	fx3handler();
 	virtual ~fx3handler(void);
+
 	bool Open(uint8_t* fw_data, uint32_t fw_size);
 	bool IsOn() { return Fx3IsOn; }
 	bool Control(FX3Command command, uint8_t data);
@@ -44,7 +45,7 @@ public:
 	bool ReadDebugTrace(uint8_t* pdata, uint8_t len);
 	void StartStream(ringbuffer<int16_t>& input, int numofblock);
 	void StopStream();
-
+	bool Enumerate(unsigned char &idx, char *lbuf, uint8_t* fw_data, uint32_t fw_size);
 private:
 	bool SendI2cbytes(uint8_t i2caddr, uint8_t regaddr, uint8_t* pdata, uint8_t len);
 	bool ReadI2cbytes(uint8_t i2caddr, uint8_t regaddr, uint8_t* pdata, uint8_t len);
@@ -58,7 +59,6 @@ private:
 
     std::thread *adc_samples_thread;
 
-	bool GetFx3Device();
 	bool GetFx3DeviceStreamer();
 	bool Fx3IsOn;
 	bool Close(void);
@@ -67,6 +67,7 @@ private:
 	ringbuffer<int16_t> *inputbuffer;
 	int numofblock;
 	bool run;
+	UCHAR devidx;
 };
 
 

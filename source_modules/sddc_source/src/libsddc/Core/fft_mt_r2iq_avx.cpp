@@ -1,5 +1,5 @@
 #include "fft_mt_r2iq.h"
-#include "sddc_config.h"
+#include "config.h"
 #include "fftw3.h"
 #include "RadioHandler.h"
 

@@ -3,6 +3,8 @@ project(SDDC VERSION 1.0.1)
 
 include(CTest)
 
+message(STATUS "CMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR}")
+
 ### build options
 # default build type: Release
 if(NOT CMAKE_BUILD_TYPE)

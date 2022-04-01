@@ -21,7 +21,8 @@ fx3class* CreateUsbHandler()
 
 fx3handler::fx3handler():
 	fx3dev (nullptr),
-	Fx3IsOn (false)
+	Fx3IsOn (false),
+	devidx (0)
 {
 
 }
@@ -33,111 +34,57 @@ fx3handler::~fx3handler() // reset USB device and exit
 	Close();
 }
 
-bool fx3handler::GetFx3Device() { 
+char* wchar2char(const wchar_t* wchar)
+{
+	char* m_char;
+	int len = WideCharToMultiByte(CP_ACP, 0, wchar, wcslen(wchar), NULL, 0, NULL, NULL);
+	m_char = new char[len + 1];
+	WideCharToMultiByte(CP_ACP, 0, wchar, wcslen(wchar), m_char, len, NULL, NULL);
+	m_char[len] = '\0';
+	return m_char;
+}
+
+bool fx3handler::GetFx3DeviceStreamer() {   // open class 
 	bool r = false;
-	if (fx3dev == nullptr) return r; // no device
-	int n = fx3dev->DeviceCount();
-	if (n == 0)  return r;   // no one
-
-    // Walk through all devices looking for VENDOR_ID/STREAMER_ID	
-	for (int i = 0; i <= n; i++) {
-		fx3dev->Open(i); // go down the list of devices to find our device
-		if ((fx3dev->VendorID == VENDOR_ID) && (fx3dev->ProductID == STREAMER_ID))
-		{
-			r = true;
-			break;
-		}
-
-		if ((fx3dev->VendorID == VENDOR_ID) && (fx3dev->ProductID == BOOTLOADER_ID))
-		{
-			r = true;
-			break;
-		}
-	}
+	if (fx3dev == NULL) return r;
+	fx3dev->Open(devidx);
+	if ((fx3dev->VendorID == VENDOR_ID) && (fx3dev->ProductID == STREAMER_ID)) r = true;
 	if (r == false)
 		fx3dev->Close();
 	return r;
 }
 
-bool fx3handler::GetFx3DeviceStreamer(void) {   // open class 
+bool fx3handler::Enumerate(unsigned char& idx, char* lbuf, uint8_t* fw_data, uint32_t fw_size)
+{
 	bool r = false;
-	if (fx3dev == NULL) return r;
-	int n = fx3dev->DeviceCount();
-	// Walk through all devices looking for VENDOR_ID/STREAMER_ID
-	if (n == 0) return r; 
-	// go down the list of devices to find STREAMER_ID device
-	for (int i = 0; i <= n; i++) {
-		fx3dev->Open(i);
-		if ((fx3dev->VendorID == VENDOR_ID) && (fx3dev->ProductID == STREAMER_ID))
-		{
-			r = true;
-			break;
+	strcpy(lbuf, "");
+	if (fx3dev == nullptr)
+		fx3dev = new CCyFX3Device;              // instantiate the device
+	if (fx3dev == nullptr) return r;		// return if failed
+	if (!fx3dev->Open(idx)) return r;
+	if (fx3dev->IsBootLoaderRunning()) {
+		if (fx3dev->DownloadFwToRam(fw_data, fw_size) != SUCCESS) {
+			DbgPrintf("Failed to DownloadFwToRam device(%x)\n", idx);
+		}
+		else {
+			fx3dev->Close();
+			Sleep(800);					    // wait after firmware change ?
+			fx3dev->Open(idx);
 		}
 	}
-	if (r == false)
-		fx3dev->Close();
-	return r;
+	strcpy (lbuf, fx3dev->DeviceName);
+	while (strlen(lbuf) < 18) strcat(lbuf, " ");
+	strcat(lbuf, "sn:");
+	strcat(lbuf, wchar2char((wchar_t*)fx3dev->SerialNumber));
+	fx3dev->Close();
+	devidx = idx;  // -> devidx
+	return true;
 }
 
 bool  fx3handler::Open(uint8_t* fw_data, uint32_t fw_size) {
 	bool r = false;
-	fx3dev = new CCyFX3Device;              // instantiate the device
-	if (fx3dev == nullptr) return r;        // return if failed
-	int n = fx3dev->DeviceCount();          
-	if (n == 0) return r;					// return if no devices connected
-	if (!GetFx3Device()) return r;          // NO FX3 device connected
 
-#ifdef _DEBUG
-	if (!fx3dev->IsBootLoaderRunning()) { // if not bootloader device
-		Control(RESETFX3);          // reset the fx3 firmware via CyU3PDeviceReset(false)
-		DbgPrintf("DEBUG - Reset Firmware\n");
-		Sleep(300);
-		fx3dev->Close();            // close class
-		delete fx3dev;              // destroy class
-		Sleep(300);
-		fx3dev = new CCyFX3Device;  // create class
-		GetFx3Device();             // open class
-	}
-#endif
-
-	FX3_FWDWNLOAD_ERROR_CODE dlf = SUCCESS;
-	if (fx3dev->IsBootLoaderRunning())
-	{
-		dlf = fx3dev->DownloadFwToRam(fw_data, fw_size);
-		Sleep(500); // wait for download to finish
-	}
-
-	if (dlf != 0)
-	{
-		DbgPrintf("MISSING/OLD FIRMWARE\n");
-		return false;
-	}
-	int x = 0;
-	int maxretry = 30;
-	CCyFX3Device* expdev = nullptr;
-	while (x++ < maxretry) // wait new firmware setup
-	{
-		bool r = false;
-		expdev = new CCyFX3Device;              // instantiate the device
-		if (expdev != NULL)
-			int n = expdev->DeviceCount();      
-		if (n > 0)
-		{
-			expdev->Open(0);
-			// go down the list of devices to find our device
-			for (int i = 1; i <= n; i++)
-			{
-				if ((expdev->VendorID == VENDOR_ID) && (expdev->ProductID == STREAMER_ID))
-				{
-					x = maxretry;	//got it exit
-				}
-			}
-		}
-		expdev->Close();            // close class
-		delete expdev;              // destroy class
-	}
-	GetFx3DeviceStreamer();         // open class with new ram firmware
-	if (!fx3dev->IsOpen()) {
+	if (!GetFx3DeviceStreamer()) {
 		DbgPrintf("Failed to open device\n");
 		return r;
 	}
