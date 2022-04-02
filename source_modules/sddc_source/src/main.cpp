@@ -66,8 +66,16 @@ public:
 
         refresh();
 
-        selectFirst();
-        switch_mode(rfmode);
+        config.acquire();
+        if (!config.conf["device"].is_string()) {
+            selectedDevName = "";
+            config.conf["device"] = "";
+        }
+        else {
+            selectedDevName = config.conf["device"];
+        }
+        config.release(true);
+        selectByName(selectedDevName);
 
         sigpath::sourceManager.registerSource("SDDC", &handler);
     }
@@ -122,9 +130,11 @@ public:
         for (int i = 0; i < devCount; i++) {
             if (devNames[i] == name) {
                 selectById(i);
-                break;
+                return;
             }
         }
+
+        selectFirst();
     }
 
     void selectById(int id) {
@@ -145,9 +155,50 @@ public:
         Fx3->Open(res_data, res_size);
         RadioHandler.Init(Fx3, Callback);
 
+        config.acquire();
+        config.conf["device"] = selectedDevName;
+        config.release(true);
+    
         // check if contains the index section
-        srId = 0;
-        rfmode = HFMODE;
+        bool created = false;
+        config.acquire();
+        if (!config.conf["devices"].contains(selectedDevName)) {
+            created = true;
+            config.conf["devices"][selectedDevName]["sampleRateIndex"] = 1;
+            config.conf["devices"][selectedDevName]["rfmode"] = HFMODE;
+            config.conf["devices"][selectedDevName]["rand"] = RadioHandler.GetDither();
+            config.conf["devices"][selectedDevName]["pga"] = RadioHandler.GetPga();
+            config.conf["devices"][selectedDevName]["dither"] = RadioHandler.GetDither();
+            config.conf["devices"][selectedDevName]["modes"] = json({});
+        }
+
+        if (config.conf["devices"][selectedDevName].contains("sampleRateIndex")) {
+            srId = config.conf["devices"][selectedDevName]["sampleRateIndex"];
+        }
+
+        if (config.conf["devices"][selectedDevName].contains("rfmode")) {
+            rfmode = config.conf["devices"][selectedDevName]["rfmode"];
+        }
+
+        if (config.conf["devices"][selectedDevName].contains("rand")) {
+            rand = config.conf["devices"][selectedDevName]["rand"];
+        }
+
+        if (config.conf["devices"][selectedDevName].contains("pga")) {
+            pga = config.conf["devices"][selectedDevName]["pga"];
+        }
+
+        if (config.conf["devices"][selectedDevName].contains("dither")) {
+            dither = config.conf["devices"][selectedDevName]["dither"];
+        }
+
+        config.release(created);
+
+        RadioHandler.UptRand(rand);
+        RadioHandler.UptPga(pga);
+        RadioHandler.UptDither(dither);
+
+        switch_mode(rfmode);
     }
 
 private:
@@ -198,8 +249,6 @@ private:
         current_stream = &_this->stream;
 
         // Start device
-        _this->RadioHandler.UpdatemodeRF(_this->rfmode);
-
         _this->RadioHandler.Start(_this->srId);
         _this->RadioHandler.TuneLO(_this->freq);
 
@@ -241,17 +290,29 @@ private:
 
         SmGui::SetNextItemWidth(menuWidth);
         if (SmGui::Combo(CONCAT("##_sddc_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
-            // Select here
+            _this->selectById(_this->devId);
         }
 
         SmGui::LeftLabel("Mode");
         SmGui::FillWidth();
-        if (SmGui::Combo(CONCAT("##_sddc_rfmode_sel_", _this->name), (int*)&_this->rfmode, "HF\0VHF\0")) {
+        int mode = _this->rfmode == HFMODE ? 0 : 1;
+        if (SmGui::Combo(CONCAT("##_sddc_rfmode_sel_", _this->name), &mode, "HF\0VHF\0")) {
+            _this->rfmode = mode == 0 ? HFMODE : VHFMODE;
             _this->switch_mode(_this->rfmode);
+            if (_this->selectedDevName != "") {
+                config.acquire();
+                config.conf["devices"][_this->selectedDevName]["rfmode"] = _this->rfmode;
+                config.release(true);
+            }
         }
 
         if (SmGui::Combo(CONCAT("##_sddc_sr_sel_", _this->name), &_this->srId, _this->sampleRateListTxt.c_str())) {
             core::setInputSampleRate(_this->sampleRateList[_this->srId]);
+            if (_this->selectedDevName != "") {
+                config.acquire();
+                config.conf["devices"][_this->selectedDevName]["sampleRateIndex"] = _this->srId;
+                config.release(true);
+            }
         }
 
         SmGui::SameLine();
@@ -264,43 +325,65 @@ private:
         if (_this->running) { style::endDisabled(); }
 
 
-        // All other controls
-        SmGui::LeftLabel("RF Gains");
-        SmGui::FillWidth();
-        if (SmGui::SliderFloatWithSteps(CONCAT("##_sddc_rf_sel_", _this->name), &_this->rf_steps_select, _this->rf_steps[0], _this->rf_steps[_this->rf_steps_length - 1], 0.5, SmGui::FMT_STR_FLOAT_DB_NO_DECIMAL)) {
-            _this->set_rf_steps();
-        }
-
-        SmGui::LeftLabel("IF Gains");
-        SmGui::FillWidth();
-        if (SmGui::SliderFloatWithSteps(CONCAT("##_sddc_if_sel_", _this->name), &_this->if_steps_select, _this->if_steps[0], _this->if_steps[_this->if_steps_length - 1], 0.5, SmGui::FMT_STR_FLOAT_DB_NO_DECIMAL)) {
-            _this->set_if_steps();
-        }
-
-        SmGui::LeftLabel("Bias");
-        SmGui::FillWidth();
-        if (SmGui::Checkbox(CONCAT("##_sddc_bias_", _this->name), &_this->bias)) {
-            _this->set_bias();
-        }
-
-        SmGui::SameLine();
-        SmGui::LeftLabel("RAND");
-        SmGui::FillWidth();
-        if (SmGui::Checkbox(CONCAT("##_sddc_rand_", _this->name), &_this->rand)) {
+        if (SmGui::Checkbox(CONCAT("RAND##_sddc_rand_", _this->name), &_this->rand)) {
             _this->RadioHandler.UptRand(_this->rand);
-        }
-
-        SmGui::LeftLabel("PGA");
-        SmGui::FillWidth();
-        if (SmGui::Checkbox(CONCAT("##_sddc_pga_", _this->name), &_this->pga)) {
-            _this->RadioHandler.UptPga(_this->pga);
+            if (_this->selectedDevName != "") {
+                config.acquire();
+                config.conf["devices"][_this->selectedDevName]["rand"] = _this->rand;
+                config.release(true);
+            }
         }
 
         SmGui::SameLine();
-        SmGui::LeftLabel("Dither");
-        SmGui::FillWidth();
-        if (SmGui::Checkbox(CONCAT("##_sddc_dither_", _this->name), &_this->dither)) {
+        if (SmGui::Checkbox(CONCAT("PGA##_sddc_pga_", _this->name), &_this->pga)) {
+            _this->RadioHandler.UptPga(_this->pga);
+            if (_this->selectedDevName != "") {
+                config.acquire();
+                config.conf["devices"][_this->selectedDevName]["pga"] = _this->pga;
+                config.release(true);
+            }
+        }
+
+        SmGui::SameLine();
+        if (SmGui::Checkbox(CONCAT("Dither##_sddc_dither_", _this->name), &_this->dither)) {
             _this->RadioHandler.UptDither(_this->dither);
+            if (_this->selectedDevName != "") {
+                config.acquire();
+                config.conf["devices"][_this->selectedDevName]["dither"] = _this->dither;
+                config.release(true);
+            }
+        }
+
+        // All other controls
+        SmGui::LeftLabel("RF");
+        SmGui::FillWidth();
+        if (SmGui::SliderFloatWithSteps(CONCAT("##_sddc_rf_sel_", _this->name), &_this->rf_steps_select, _this->rf_steps[0], _this->rf_steps[_this->rf_steps_length - 1], 1, SmGui::FMT_STR_FLOAT_DB_NO_DECIMAL)) {
+            _this->set_rf_steps();
+            if (_this->selectedDevName != "") {
+                config.acquire();
+                config.conf["devices"][_this->selectedDevName]["modes"][_this->mode_str]["rf_step"] = _this->rf_steps_select;
+                config.release(true);
+            }
+        }
+
+        SmGui::LeftLabel("IF");
+        SmGui::FillWidth();
+        if (SmGui::SliderFloatWithSteps(CONCAT("##_sddc_if_sel_", _this->name), &_this->if_steps_select, _this->if_steps[0], _this->if_steps[_this->if_steps_length - 1], 1, SmGui::FMT_STR_FLOAT_DB_NO_DECIMAL)) {
+            _this->set_if_steps();
+            if (_this->selectedDevName != "") {
+                config.acquire();
+                config.conf["devices"][_this->selectedDevName]["modes"][_this->mode_str]["if_step"] = _this->if_steps_select;
+                config.release(true);
+            }
+        }
+
+        if (SmGui::Checkbox(CONCAT("biasT##_sddc_bias_", _this->name), &_this->biasT)) {
+            _this->set_biasT();
+            if (_this->selectedDevName != "") {
+                config.acquire();
+                config.conf["devices"][_this->selectedDevName]["modes"][_this->mode_str]["biasT"] = _this->biasT;
+                config.release(true);
+            }
         }
     }
 
@@ -322,25 +405,47 @@ private:
         }
     }
 
-    void set_bias() {
+    void set_biasT() {
         if (rfmode == HFMODE)
-            RadioHandler.UpdBiasT_HF(bias);
+            RadioHandler.UpdBiasT_HF(biasT);
         else if (rfmode == VHFMODE)
-            RadioHandler.UpdBiasT_VHF(bias);
+            RadioHandler.UpdBiasT_VHF(biasT);
     }
 
     void switch_mode(rf_mode mode) {
         mode_str = (mode == HFMODE) ? "HF" : "VHF";
 
-        bias = (mode == HFMODE) ? RadioHandler.GetBiasT_HF() : RadioHandler.GetBiasT_VHF();
-
+        RadioHandler.UpdatemodeRF(mode);
         rf_steps_length = RadioHandler.GetRFAttSteps(&rf_steps);
-        // todo Load from config
-        rf_steps_select = 0;
 
         if_steps_length = RadioHandler.GetIFGainSteps(&if_steps);
-        // todo Load from config
-        if_steps_select = 0;
+
+        bool created = false;
+        config.acquire();
+        if (!config.conf["devices"][selectedDevName]["modes"].contains(mode_str)) {
+            created = true;
+            config.conf["devices"][selectedDevName]["modes"][mode_str]["biasT"] = false;
+            config.conf["devices"][selectedDevName]["modes"][mode_str]["rf_step"] = 0;
+            config.conf["devices"][selectedDevName]["modes"][mode_str]["if_step"] = 0;
+        }
+
+        if (config.conf["devices"][selectedDevName]["modes"][mode_str].contains("rf_step")) {
+            rf_steps_select = config.conf["devices"][selectedDevName]["modes"][mode_str]["rf_step"];
+        }
+
+        if (config.conf["devices"][selectedDevName]["modes"][mode_str].contains("if_step")) {
+            if_steps_select = config.conf["devices"][selectedDevName]["modes"][mode_str]["if_step"];
+        }
+
+        if (config.conf["devices"][selectedDevName]["modes"][mode_str].contains("biasT")) {
+            biasT = config.conf["devices"][selectedDevName]["modes"][mode_str]["biasT"];
+        }
+
+        config.release(created);
+
+        set_biasT();
+        set_if_steps();
+        set_rf_steps();
     }
 
     std::string name;
@@ -378,7 +483,7 @@ private:
     int rf_steps_length;
     float rf_steps_select;
 
-    bool bias;
+    bool biasT;
 
     RadioHandlerClass RadioHandler;
 
