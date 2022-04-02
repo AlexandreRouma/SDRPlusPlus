@@ -3,16 +3,16 @@ project(sddc_source)
 
 if (MSVC)
     # What the fuck?
-    file(GLOB SRC "src/*.cpp" "src/*.c" "src/libsddc/libsddc/*.c" "src/libsddc/libsddc/*.cpp" "src/libsddc/Core/*.c" "src/libsddc/Core/*.cpp" "src/libsddc/Core/radio/*.cpp" "src/libsddc/Core/pffft/*.c" "src/libsddc/Core/pffft/*.cpp" "src/libsddc/Core/arch/win32/*.c" "src/libsddc/Core/arch/win32/*.cpp" "src/libsddc/Core/arch/win32/CyAPI/*.cpp")
+    file(GLOB SRC "src/*.cpp" "src/resource.rc" "src/libsddc/Core/*.cpp" "src/libsddc/Core/pffft/*.cpp" "src/libsddc/Core/radio/*.cpp" "src/libsddc/Core/arch/win32/*.cpp" "src/libsddc/Core/arch/win32/CyAPI/*.cpp")
 else (MSVC)
-    file(GLOB SRC "src/*.cpp" "src/*.c" "src/libsddc/libsddc/*.c" "src/libsddc/libsddc/*.cpp" "src/libsddc/Core/*.c" "src/libsddc/Core/*.cpp" "src/libsddc/Core/radio/*.cpp" "src/libsddc/Core/pffft/*.c" "src/libsddc/Core/pffft/*.cpp" "src/libsddc/Core/arch/linux/*.c" "src/libsddc/Core/arch/linux/*.cpp")
+    file(GLOB SRC "src/*.cpp" "src/libsddc/Core/*.c" "src/libsddc/Core/*.cpp" "src/libsddc/Core/pffft/*.cpp" "src/libsddc/Core/radio/*.cpp" "src/libsddc/Core/arch/linux/*.c")
 endif ()
 
 add_library(sddc_source SHARED ${SRC})
 target_link_libraries(sddc_source PRIVATE sdrpp_core)
 set_target_properties(sddc_source PROPERTIES PREFIX "")
 
-target_include_directories(sddc_source PRIVATE "src/" "src/libsddc/" "src/libsddc/Core/" "src/libsddc/Core/pffft/" "src/libsddc/libsddc/")
+target_include_directories(sddc_source PRIVATE "src/" "src/libsddc/")
 
 if (MSVC)
     target_compile_options(sddc_source PRIVATE /O2 /Ob2 /std:c++17 /EHsc)

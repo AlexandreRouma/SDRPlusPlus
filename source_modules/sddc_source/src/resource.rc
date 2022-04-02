@@ -1,0 +1,5 @@
+#include "resource.h"
+
+#include "winres.h"
+
+RES_BIN_FIRMWARE        RCDATA                  "libsddc\SDDC_FX3.img"
