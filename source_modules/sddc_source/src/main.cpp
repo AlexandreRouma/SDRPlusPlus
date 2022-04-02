@@ -2,12 +2,20 @@
 #include <spdlog/spdlog.h>
 #include <module.h>
 #include <gui/gui.h>
-#include <signal_path/signal_path.h>
-#include <core.h>
 #include <gui/style.h>
-#include <config.h>
-#include <gui/widgets/stepped_slider.h>
-#include <libsddc.h>
+#include <core.h>
+#include <thread>
+#include <signal_path/signal_path.h>
+#include <vector>
+#include <gui/tuner.h>
+#include <gui/file_dialogs.h>
+#include <utils/freq_formatting.h>
+#include <gui/dialogs/dialog_box.h>
+#include <gui/smgui.h>
+
+#include "resource.h"
+#include "Core/RadioHandler.h"
+#include "Core/FX3class.h"
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -21,16 +29,19 @@ SDRPP_MOD_INFO{
 
 ConfigManager config;
 
-const char* AGG_MODES_STR = "Off\0Low\0High\0";
+// firmware data
+unsigned char* res_data;
+uint32_t res_size;
 
-class AirspyHFSourceModule : public ModuleManager::Instance {
+class SDDCSourceModule : public ModuleManager::Instance {
 public:
-    AirspyHFSourceModule(std::string name) {
+    SDDCSourceModule(std::string name) {
         this->name = name;
 
         if (core::args["server"].b()) { return; }
 
-        sampleRate = 768000.0;
+        srId = 0;
+        rfmode = HFMODE;
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
@@ -41,19 +52,35 @@ public:
         handler.tuneHandler = tune;
         handler.stream = &stream;
 
+        for (int srate_idx = 0; ; srate_idx++) {
+            double div = pow(2.0, srate_idx);
+            double srateM = div * 2.0;
+            double bwmin = adcnominalfreq / 64.0;
+            if (adcnominalfreq > N2_BANDSWITCH) bwmin /= 2.0;
+            double srate = bwmin * srateM;
+            if ((srate / adcnominalfreq) * 2.0 > 1.1)
+                break;
+
+            this->sampleRateList.push_back(srate);
+            this->sampleRateListTxt += getSampleRate(srate);
+            this->sampleRateListTxt += '\0';
+        }
+
         refresh();
 
         selectFirst();
+        switch_mode(rfmode);
 
         sigpath::sourceManager.registerSource("SDDC", &handler);
     }
 
-    ~AirspyHFSourceModule() {
+    ~SDDCSourceModule() {
         stop(this);
         sigpath::sourceManager.unregisterSource("SDDC");
     }
 
-    void postInit() {}
+    void postInit() {
+    }
 
     void enable() {
         enabled = true;
@@ -68,28 +95,33 @@ public:
     }
 
     void refresh() {
-        devListTxt = "";
+        auto Fx3 = CreateUsbHandler();
+        unsigned char idx = 0;
+        int selected = 0;
+        char name[256];
+        while (Fx3->Enumerate(idx, name, res_data, res_size) && (idx < MAXNDEV)) {
+            // https://en.wikipedia.org/wiki/West_Bridge
+            int retry = 2;
+            while ((strncmp("WestBridge", name, sizeof("WestBridge")) != NULL) && retry-- > 0)
+                Fx3->Enumerate(idx, name, res_data, res_size); // if it enumerates as BootLoader retry
+            idx++;
+        }
 
-        devCount = sddc_get_device_count();
-        for (int i = 0; i < devCount; i++) {
-            // Open device
-            sddc_t* dev = sddc_open(i, "../sddc_source/res/firmwares/SDDC_FX3.img");
-            if (dev == NULL) { continue; }
+        if (idx > 1) {
+            // TODO:
+            // register multi
+        }
 
-            // Get device name (check if implemented)
-            const char* name = sddc_get_hw_model_name(dev);
-            if (name == NULL) {
-                sddc_close(dev);
-                continue;
-            }
+        idx = selected;
+        Fx3->Enumerate(idx, name, res_data, res_size);
+        devNames.push_back(name);
+        devListTxt += name;
+        devListTxt += '\0';
 
-            // Add to list
-            char tmp[256];
-            sprintf(tmp, "%s (%d)", name, i);
-            devNames.push_back(name);
-            devListTxt += name;
-            devListTxt += '\0';
-            sddc_close(dev);
+        if (Fx3->Open(res_data, res_size) &&
+            RadioHandler.Init(Fx3, Callback)) // Check if it there hardware
+        {
+            devCount = 1;
         }
     }
 
@@ -119,7 +151,7 @@ public:
     }
 
 private:
-    std::string getBandwdithScaled(double bw) {
+    static std::string getBandwdithScaled(double bw) {
         char buf[1024];
         if (bw >= 1000000.0) {
             sprintf(buf, "%.1lfMHz", bw / 1000000.0);
@@ -133,99 +165,266 @@ private:
         return std::string(buf);
     }
 
+    static std::string getSampleRate(double rate) {
+        char buf[1024];
+        sprintf(buf, "%.1lf MHz", rate/1000000);
+        return std::string(buf);
+    }
+
+    static void Callback(const float* data, uint32_t len) {
+        if (data) {
+            int sampCount = len;
+            for (int i = 0; i < sampCount; i++) {
+                current_stream->writeBuf[i].re = data[i * 2];
+                current_stream->writeBuf[i].im = data[(i * 2) + 1];
+            }
+            if (!current_stream->swap(sampCount)) { return; }
+        }
+    }
+
     static void menuSelected(void* ctx) {
-        AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
-        core::setInputSampleRate(_this->sampleRate);
-        spdlog::info("AirspyHFSourceModule '{0}': Menu Select!", _this->name);
+        SDDCSourceModule* _this = (SDDCSourceModule*)ctx;
+
+        spdlog::info("SDDCSourceModule '{0}': Menu Select!", _this->name);
     }
 
     static void menuDeselected(void* ctx) {
-        AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
-        spdlog::info("AirspyHFSourceModule '{0}': Menu Deselect!", _this->name);
+        SDDCSourceModule* _this = (SDDCSourceModule*)ctx;
+
+        spdlog::info("SDDCSourceModule '{0}': Menu Deselect!", _this->name);
     }
 
     static void start(void* ctx) {
-        AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
+        SDDCSourceModule* _this = (SDDCSourceModule*)ctx;
         if (_this->running) { return; }
         if (_this->selectedDevName == "") { return; }
 
-        // Start device
+        current_stream = &_this->stream;
 
-        _this->running = true;
-        spdlog::info("AirspyHFSourceModule '{0}': Start!", _this->name);
+        // Start device
+        _this->RadioHandler.UpdatemodeRF(_this->rfmode);
+
+        _this->RadioHandler.Start(_this->srId);
+        _this->RadioHandler.TuneLO(_this->freq);
+
+        if (_this->RadioHandler.IsReady()) //  HF103 connected
+        {
+            _this->running = true;
+        }
+
+        spdlog::info("SDDCSourceModule '{0}': Start!", _this->name);
     }
 
     static void stop(void* ctx) {
-        AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
+        SDDCSourceModule* _this = (SDDCSourceModule*)ctx;
         if (!_this->running) { return; }
         _this->running = false;
         _this->stream.stopWriter();
 
         // Stop device
+        _this->RadioHandler.Stop();
 
         _this->stream.clearWriteStop();
-        spdlog::info("AirspyHFSourceModule '{0}': Stop!", _this->name);
+        spdlog::info("SDDCSourceModule '{0}': Stop!", _this->name);
     }
 
     static void tune(double freq, void* ctx) {
-        AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
+        SDDCSourceModule* _this = (SDDCSourceModule*)ctx;
         if (_this->running) {
-            // Tune device
+            _this->RadioHandler.TuneLO(freq);
         }
         _this->freq = freq;
-        spdlog::info("AirspyHFSourceModule '{0}': Tune: {1}!", _this->name, freq);
+        spdlog::info("SDDCSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
 
     static void menuHandler(void* ctx) {
-        AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
+        SDDCSourceModule* _this = (SDDCSourceModule*)ctx;
         float menuWidth = ImGui::GetContentRegionAvail().x;
 
         if (_this->running) { style::beginDisabled(); }
 
-        ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::Combo(CONCAT("##_sddc_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
+        SmGui::SetNextItemWidth(menuWidth);
+        if (SmGui::Combo(CONCAT("##_sddc_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
             // Select here
         }
 
-        if (ImGui::Combo(CONCAT("##_sddc_sr_sel_", _this->name), &_this->srId, _this->sampleRateListTxt.c_str())) {
-            _this->sampleRate = _this->sampleRateList[_this->srId];
-            core::setInputSampleRate(_this->sampleRate);
-            // Select SR here
+        SmGui::LeftLabel("Mode");
+        SmGui::FillWidth();
+        if (SmGui::Combo(CONCAT("##_sddc_rfmode_sel_", _this->name), (int*)&_this->rfmode, "HF\0VHF\0")) {
+            // Select here
+            _this->mode_str = _this->rfmode == HFMODE? "HF" : "VHF"; 
         }
 
-        ImGui::SameLine();
+        if (SmGui::Combo(CONCAT("##_sddc_sr_sel_", _this->name), &_this->srId, _this->sampleRateListTxt.c_str())) {
+            core::setInputSampleRate(_this->sampleRateList[_this->srId]);
+        }
+
+        SmGui::SameLine();
         float refreshBtnWdith = menuWidth - ImGui::GetCursorPosX();
-        if (ImGui::Button(CONCAT("Refresh##_sddc_refr_", _this->name), ImVec2(refreshBtnWdith, 0))) {
+        if (SmGui::Button(CONCAT("Refresh##_sddc_refr_", _this->name), ImVec2(refreshBtnWdith, 0))) {
             _this->refresh();
             // Reselect and reset samplerate if it changed
         }
 
         if (_this->running) { style::endDisabled(); }
 
+
         // All other controls
+        SmGui::LeftLabel("RF Gains");
+        SmGui::FillWidth();
+        if (SmGui::SliderFloatWithSteps(CONCAT("##_sddc_rf_sel_", _this->name), &_this->rf_steps_select, _this->rf_steps[0], _this->rf_steps[_this->rf_steps_length - 1], 0.5, SmGui::FMT_STR_FLOAT_DB_NO_DECIMAL)) {
+            _this->set_rf_steps();
+        }
+        
+        SmGui::LeftLabel("IF Gains");
+        SmGui::FillWidth();
+        if (SmGui::SliderFloatWithSteps(CONCAT("##_sddc_if_sel_", _this->name), &_this->if_steps_select, _this->if_steps[0], _this->if_steps[_this->if_steps_length - 1], 0.5, SmGui::FMT_STR_FLOAT_DB_NO_DECIMAL)) {
+            _this->set_if_steps();
+        }
+
+        SmGui::LeftLabel("Bias");
+        SmGui::FillWidth();
+        if (SmGui::Checkbox(CONCAT("_sddc_rand_", _this->name), &_this->bias)) {
+            _this->set_bias();
+        }
+
+        SmGui::LeftLabel("RAND");
+        SmGui::FillWidth();
+        if (SmGui::Checkbox(CONCAT("_sddc_rand_", _this->name), &_this->rand)) {
+            _this->RadioHandler.UptRand(_this->rand);
+        }
+
+        SmGui::LeftLabel("RAND");
+        SmGui::FillWidth();
+        if (SmGui::Checkbox(CONCAT("_sddc_pga_", _this->name), &_this->pga)) {
+            _this->RadioHandler.UptPga(_this->pga);
+        }
+
+        SmGui::LeftLabel("RAND");
+        SmGui::FillWidth();
+        if (SmGui::Checkbox(CONCAT("_sddc_dither_", _this->name), &_this->dither)) {
+            _this->RadioHandler.UptDither(_this->dither);
+        }
+
+    }
+
+    void set_if_steps()
+    {
+        for(int i = 0; i < if_steps_length - 1; i++)
+        {
+            if (if_steps_select < if_steps[i + 1])
+            {
+                RadioHandler.UpdateIFGain(i);
+                return;
+            }
+        }
+    }
+
+    void set_rf_steps()
+    {
+        for(int i = 0; i < rf_steps_length - 1; i++)
+        {
+            if (rf_steps_select < rf_steps[i + 1])
+            {
+                RadioHandler.UpdateattRF(i);
+                return;
+            }
+        }
+    }
+
+    void set_bias()
+    {
+        if (rfmode == HFMODE)
+            RadioHandler.UpdBiasT_HF(bias);
+        else if (rfmode == VHFMODE)
+            RadioHandler.UpdBiasT_VHF(bias);
+    }
+
+    void switch_mode(rf_mode mode)
+    {
+        bias = (mode == HFMODE)?
+            RadioHandler.GetBiasT_HF():
+            RadioHandler.GetBiasT_VHF();
+
+        rf_steps_length = RadioHandler.GetRFAttSteps(&rf_steps);
+        // todo Load from config
+        rf_steps_select = 0;
+
+        if_steps_length = RadioHandler.GetIFGainSteps(&if_steps);
+        // todo Load from config
+        if_steps_select = 0;
     }
 
     std::string name;
     bool enabled = true;
     dsp::stream<dsp::complex_t> stream;
-    double sampleRate;
     SourceManager::SourceHandler handler;
     bool running = false;
+
     double freq;
-    int devId = 0;
-    int srId = 0;
-    sddc_t* openDev;
 
     int devCount = 0;
     std::vector<std::string> devNames;
     std::string selectedDevName = "";
     std::string devListTxt;
+    int devId = 0;
+
     std::vector<uint32_t> sampleRateList;
     std::string sampleRateListTxt;
+    int srId = 0;
+
+    bool rand;
+    bool pga;
+    bool dither;
+
+    // settings
+    std::string mode_str;
+    rf_mode rfmode;
+
+    // mode specific settings
+    const float* if_steps;
+    int if_steps_length;
+    float if_steps_select;
+    
+    const float* rf_steps;
+    int rf_steps_length;
+    float rf_steps_select;
+    
+    bool bias;
+
+    RadioHandlerClass RadioHandler;
+
+    static dsp::stream<dsp::complex_t>* current_stream;
 };
+
+dsp::stream<dsp::complex_t>* SDDCSourceModule::current_stream;
 
 MOD_EXPORT void _INIT_() {
     json def = json({});
+
+#if (_WIN32)
+    // Load firmware
+    HMODULE hInst = NULL;
+    GetModuleHandleEx(
+        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+        (LPCTSTR)_INIT_,
+        &hInst);
+
+    HRSRC res = FindResource(hInst, MAKEINTRESOURCE(RES_BIN_FIRMWARE), RT_RCDATA);
+    HGLOBAL res_handle = LoadResource(hInst, res);
+    res_data = (unsigned char*)LockResource(res_handle);
+    res_size = SizeofResource(hInst, res);
+#else
+    FILE* fp = fopen("SDDC_FX3.img", "rb");
+    if (fp != nullptr) {
+        fseek(fp, 0, SEEK_END);
+        res_size = ftell(fp);
+        res_data = (unsigned char*)malloc(res_size);
+        fseek(fp, 0, SEEK_SET);
+        fread(res_data, 1, res_size, fp);
+    }
+#endif
+
     def["devices"] = json({});
     def["device"] = "";
     config.setPath(core::args["root"].s() + "/sddc_config.json");
@@ -233,12 +432,12 @@ MOD_EXPORT void _INIT_() {
     config.enableAutoSave();
 }
 
-MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
-    return new AirspyHFSourceModule(name);
+MOD_EXPORT void* _CREATE_INSTANCE_(std::string name) {
+    return new SDDCSourceModule(name);
 }
 
-MOD_EXPORT void _DELETE_INSTANCE_(ModuleManager::Instance* instance) {
-    delete (AirspyHFSourceModule*)instance;
+MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
+    delete (SDDCSourceModule*)instance;
 }
 
 MOD_EXPORT void _END_() {
