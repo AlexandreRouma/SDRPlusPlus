@@ -42,6 +42,8 @@ cp $build_dir/source_modules/sdrpp_server_source/Release/sdrpp_server_source.dll
 
 cp $build_dir/source_modules/soapy_source/Release/soapy_source.dll sdrpp_windows_x64/modules/
 
+cp $build_dir/source_modules/sddc_source/Release/sddc_source.dll sdrpp_windows_x64/modules/
+
 cp $build_dir/source_modules/plutosdr_source/Release/plutosdr_source.dll sdrpp_windows_x64/modules/
 cp 'C:/Program Files/PothosSDR/bin/libiio.dll' sdrpp_windows_x64/
 cp 'C:/Program Files/PothosSDR/bin/libad9361.dll' sdrpp_windows_x64/
