@@ -32,6 +32,7 @@ ConfigManager config;
 // firmware data
 unsigned char* res_data;
 uint32_t res_size;
+fx3class* Fx3 = nullptr;
 
 class SDDCSourceModule : public ModuleManager::Instance {
 public:
@@ -39,9 +40,6 @@ public:
         this->name = name;
 
         if (core::args["server"].b()) { return; }
-
-        srId = 0;
-        rfmode = HFMODE;
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
@@ -52,7 +50,7 @@ public:
         handler.tuneHandler = tune;
         handler.stream = &stream;
 
-        for (int srate_idx = 0; ; srate_idx++) {
+        for (int srate_idx = 0;; srate_idx++) {
             double div = pow(2.0, srate_idx);
             double srateM = div * 2.0;
             double bwmin = adcnominalfreq / 64.0;
@@ -95,34 +93,23 @@ public:
     }
 
     void refresh() {
-        auto Fx3 = CreateUsbHandler();
         unsigned char idx = 0;
         int selected = 0;
         char name[256];
+
         while (Fx3->Enumerate(idx, name, res_data, res_size) && (idx < MAXNDEV)) {
             // https://en.wikipedia.org/wiki/West_Bridge
             int retry = 2;
             while ((strncmp("WestBridge", name, sizeof("WestBridge")) != NULL) && retry-- > 0)
                 Fx3->Enumerate(idx, name, res_data, res_size); // if it enumerates as BootLoader retry
+
+            devNames.push_back(name);
+            devListTxt += name;
+            devListTxt += '\0';
+
             idx++;
         }
-
-        if (idx > 1) {
-            // TODO:
-            // register multi
-        }
-
-        idx = selected;
-        Fx3->Enumerate(idx, name, res_data, res_size);
-        devNames.push_back(name);
-        devListTxt += name;
-        devListTxt += '\0';
-
-        if (Fx3->Open(res_data, res_size) &&
-            RadioHandler.Init(Fx3, Callback)) // Check if it there hardware
-        {
-            devCount = 1;
-        }
+        devCount = idx;
     }
 
     void selectFirst() {
@@ -141,6 +128,7 @@ public:
     }
 
     void selectById(int id) {
+        unsigned char idx;
         if (id < 0 || id >= devCount) {
             selectedDevName = "";
             return;
@@ -148,6 +136,18 @@ public:
 
         devId = id;
         selectedDevName = devNames[id];
+
+        idx = id;
+        char buf[256];
+        Fx3->Enumerate(idx, buf, res_data, res_size);
+
+        // Fx3->Enum already specify the device index
+        Fx3->Open(res_data, res_size);
+        RadioHandler.Init(Fx3, Callback);
+
+        // check if contains the index section
+        srId = 0;
+        rfmode = HFMODE;
     }
 
 private:
@@ -167,18 +167,14 @@ private:
 
     static std::string getSampleRate(double rate) {
         char buf[1024];
-        sprintf(buf, "%.1lf MHz", rate/1000000);
+        sprintf(buf, "%.1lf MHz", rate / 1000000);
         return std::string(buf);
     }
 
     static void Callback(const float* data, uint32_t len) {
         if (data) {
-            int sampCount = len;
-            for (int i = 0; i < sampCount; i++) {
-                current_stream->writeBuf[i].re = data[i * 2];
-                current_stream->writeBuf[i].im = data[(i * 2) + 1];
-            }
-            if (!current_stream->swap(sampCount)) { return; }
+            memcpy(current_stream->writeBuf, data, len * sizeof(float) * 2);
+            if (!current_stream->swap(len)) { return; }
         }
     }
 
@@ -251,8 +247,7 @@ private:
         SmGui::LeftLabel("Mode");
         SmGui::FillWidth();
         if (SmGui::Combo(CONCAT("##_sddc_rfmode_sel_", _this->name), (int*)&_this->rfmode, "HF\0VHF\0")) {
-            // Select here
-            _this->mode_str = _this->rfmode == HFMODE? "HF" : "VHF"; 
+            _this->switch_mode(_this->rfmode);
         }
 
         if (SmGui::Combo(CONCAT("##_sddc_sr_sel_", _this->name), &_this->srId, _this->sampleRateListTxt.c_str())) {
@@ -275,7 +270,7 @@ private:
         if (SmGui::SliderFloatWithSteps(CONCAT("##_sddc_rf_sel_", _this->name), &_this->rf_steps_select, _this->rf_steps[0], _this->rf_steps[_this->rf_steps_length - 1], 0.5, SmGui::FMT_STR_FLOAT_DB_NO_DECIMAL)) {
             _this->set_rf_steps();
         }
-        
+
         SmGui::LeftLabel("IF Gains");
         SmGui::FillWidth();
         if (SmGui::SliderFloatWithSteps(CONCAT("##_sddc_if_sel_", _this->name), &_this->if_steps_select, _this->if_steps[0], _this->if_steps[_this->if_steps_length - 1], 0.5, SmGui::FMT_STR_FLOAT_DB_NO_DECIMAL)) {
@@ -284,67 +279,60 @@ private:
 
         SmGui::LeftLabel("Bias");
         SmGui::FillWidth();
-        if (SmGui::Checkbox(CONCAT("_sddc_rand_", _this->name), &_this->bias)) {
+        if (SmGui::Checkbox(CONCAT("##_sddc_bias_", _this->name), &_this->bias)) {
             _this->set_bias();
         }
 
+        SmGui::SameLine();
         SmGui::LeftLabel("RAND");
         SmGui::FillWidth();
-        if (SmGui::Checkbox(CONCAT("_sddc_rand_", _this->name), &_this->rand)) {
+        if (SmGui::Checkbox(CONCAT("##_sddc_rand_", _this->name), &_this->rand)) {
             _this->RadioHandler.UptRand(_this->rand);
         }
 
-        SmGui::LeftLabel("RAND");
+        SmGui::LeftLabel("PGA");
         SmGui::FillWidth();
-        if (SmGui::Checkbox(CONCAT("_sddc_pga_", _this->name), &_this->pga)) {
+        if (SmGui::Checkbox(CONCAT("##_sddc_pga_", _this->name), &_this->pga)) {
             _this->RadioHandler.UptPga(_this->pga);
         }
 
-        SmGui::LeftLabel("RAND");
+        SmGui::SameLine();
+        SmGui::LeftLabel("Dither");
         SmGui::FillWidth();
-        if (SmGui::Checkbox(CONCAT("_sddc_dither_", _this->name), &_this->dither)) {
+        if (SmGui::Checkbox(CONCAT("##_sddc_dither_", _this->name), &_this->dither)) {
             _this->RadioHandler.UptDither(_this->dither);
         }
-
     }
 
-    void set_if_steps()
-    {
-        for(int i = 0; i < if_steps_length - 1; i++)
-        {
-            if (if_steps_select < if_steps[i + 1])
-            {
+    void set_if_steps() {
+        for (int i = 0; i < if_steps_length - 1; i++) {
+            if (if_steps_select < if_steps[i + 1]) {
                 RadioHandler.UpdateIFGain(i);
                 return;
             }
         }
     }
 
-    void set_rf_steps()
-    {
-        for(int i = 0; i < rf_steps_length - 1; i++)
-        {
-            if (rf_steps_select < rf_steps[i + 1])
-            {
+    void set_rf_steps() {
+        for (int i = 0; i < rf_steps_length - 1; i++) {
+            if (rf_steps_select < rf_steps[i + 1]) {
                 RadioHandler.UpdateattRF(i);
                 return;
             }
         }
     }
 
-    void set_bias()
-    {
+    void set_bias() {
         if (rfmode == HFMODE)
             RadioHandler.UpdBiasT_HF(bias);
         else if (rfmode == VHFMODE)
             RadioHandler.UpdBiasT_VHF(bias);
     }
 
-    void switch_mode(rf_mode mode)
-    {
-        bias = (mode == HFMODE)?
-            RadioHandler.GetBiasT_HF():
-            RadioHandler.GetBiasT_VHF();
+    void switch_mode(rf_mode mode) {
+        mode_str = (mode == HFMODE) ? "HF" : "VHF";
+
+        bias = (mode == HFMODE) ? RadioHandler.GetBiasT_HF() : RadioHandler.GetBiasT_VHF();
 
         rf_steps_length = RadioHandler.GetRFAttSteps(&rf_steps);
         // todo Load from config
@@ -371,7 +359,7 @@ private:
 
     std::vector<uint32_t> sampleRateList;
     std::string sampleRateListTxt;
-    int srId = 0;
+    int srId;
 
     bool rand;
     bool pga;
@@ -385,11 +373,11 @@ private:
     const float* if_steps;
     int if_steps_length;
     float if_steps_select;
-    
+
     const float* rf_steps;
     int rf_steps_length;
     float rf_steps_select;
-    
+
     bool bias;
 
     RadioHandlerClass RadioHandler;
@@ -401,6 +389,7 @@ dsp::stream<dsp::complex_t>* SDDCSourceModule::current_stream;
 
 MOD_EXPORT void _INIT_() {
     json def = json({});
+    Fx3 = CreateUsbHandler();
 
 #if (_WIN32)
     // Load firmware
@@ -415,7 +404,7 @@ MOD_EXPORT void _INIT_() {
     res_data = (unsigned char*)LockResource(res_handle);
     res_size = SizeofResource(hInst, res);
 #else
-    FILE* fp = fopen("SDDC_FX3.img", "rb");
+    FILE* fp = fopen((core::args["root"].s() + "/SDDC_FX3.img").c_str(), "rb");
     if (fp != nullptr) {
         fseek(fp, 0, SEEK_END);
         res_size = ftell(fp);
@@ -441,6 +430,7 @@ MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
 }
 
 MOD_EXPORT void _END_() {
+    delete Fx3;
     config.disableAutoSave();
     config.save();
 }
