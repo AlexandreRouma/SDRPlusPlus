@@ -51,12 +51,9 @@ public:
         handler.stream = &stream;
 
         for (int srate_idx = 0;; srate_idx++) {
-            double div = pow(2.0, srate_idx);
-            double srateM = div * 2.0;
-            double bwmin = adcnominalfreq / 64.0;
-            if (adcnominalfreq > N2_BANDSWITCH) bwmin /= 2.0;
-            double srate = bwmin * srateM;
-            if ((srate / adcnominalfreq) * 2.0 > 1.1)
+            double srate = getRatebyId(srate_idx);
+
+            if (srate < 0)
                 break;
 
             this->sampleRateList.push_back(srate);
@@ -137,6 +134,20 @@ public:
         selectFirst();
     }
 
+    double getRatebyId(int id)
+    {
+        double div = pow(2.0, id);
+        double srateM = div * 2.0;
+        double bwmin = adcnominalfreq / 64.0;
+        if (adcnominalfreq > N2_BANDSWITCH) bwmin /= 2.0;
+        double srate = bwmin * srateM;
+
+        if ((srate / adcnominalfreq) * 2.0 > 1.1)
+            return -1;
+
+        return srate;
+    }
+
     void selectById(int id) {
         unsigned char idx;
         if (id < 0 || id >= devCount) {
@@ -153,7 +164,7 @@ public:
 
         // Fx3->Enum already specify the device index
         Fx3->Open(res_data, res_size);
-        RadioHandler.Init(Fx3, Callback);
+        RadioHandler.Init(Fx3, Callback, nullptr, this);
 
         config.acquire();
         config.conf["device"] = selectedDevName;
@@ -222,10 +233,12 @@ private:
         return std::string(buf);
     }
 
-    static void Callback(const float* data, uint32_t len) {
+    static void Callback(void* ctx, const float* data, uint32_t len) {
+        SDDCSourceModule* _this = (SDDCSourceModule*)ctx;
+
         if (data) {
-            memcpy(current_stream->writeBuf, data, len * sizeof(float) * 2);
-            if (!current_stream->swap(len)) { return; }
+            memcpy(_this->stream.writeBuf, data, len * sizeof(float) * 2);
+            _this->stream.swap(len);
         }
     }
 
@@ -245,8 +258,6 @@ private:
         SDDCSourceModule* _this = (SDDCSourceModule*)ctx;
         if (_this->running) { return; }
         if (_this->selectedDevName == "") { return; }
-
-        current_stream = &_this->stream;
 
         // Start device
         _this->RadioHandler.Start(_this->srId);
@@ -486,11 +497,7 @@ private:
     bool biasT;
 
     RadioHandlerClass RadioHandler;
-
-    static dsp::stream<dsp::complex_t>* current_stream;
 };
-
-dsp::stream<dsp::complex_t>* SDDCSourceModule::current_stream;
 
 MOD_EXPORT void _INIT_() {
     json def = json({});

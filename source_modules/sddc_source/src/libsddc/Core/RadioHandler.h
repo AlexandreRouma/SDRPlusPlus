@@ -30,7 +30,7 @@ class RadioHandlerClass {
 public:
     RadioHandlerClass();
     virtual ~RadioHandlerClass();
-    bool Init(fx3class* Fx3, void (*callback)(const float*, uint32_t), r2iqControlClass *r2iqCntrl = nullptr);
+    bool Init(fx3class* Fx3, void (*callback)(void* context, const float*, uint32_t), r2iqControlClass *r2iqCntrl = nullptr, void* context = nullptr);
     bool Start(int srate_idx);
     bool Stop();
     bool Close();
@@ -86,7 +86,8 @@ private:
     void OnDataPacket();
     r2iqControlClass* r2iqCntrl;
 
-    void (*Callback)(const float *data, uint32_t length);
+    void (*Callback)(void* context, const float *data, uint32_t length);
+    void *callbackContext;
     void (*DbgPrintFX3)(const char* fmt, ...);
     bool (*GetConsoleIn)(char* buf, int maxlen);
 

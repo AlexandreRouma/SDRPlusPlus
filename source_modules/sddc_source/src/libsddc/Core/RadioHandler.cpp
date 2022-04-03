@@ -48,7 +48,7 @@ void RadioHandlerClass::OnDataPacket()
 		}
 #endif
 
-    	Callback(buf, len);
+		Callback(callbackContext, buf, len);
 
 		outputbuffer.ReadDone();
 
@@ -86,11 +86,12 @@ const char *RadioHandlerClass::getName()
 	return hardware->getName();
 }
 
-bool RadioHandlerClass::Init(fx3class* Fx3, void (*callback)(const float*, uint32_t), r2iqControlClass *r2iqCntrl)
+bool RadioHandlerClass::Init(fx3class* Fx3, void (*callback)(void*context, const float*, uint32_t), r2iqControlClass *r2iqCntrl, void *context)
 {
 	uint8_t rdata[4];
 	this->fx3 = Fx3;
 	this->Callback = callback;
+	this->callbackContext = context;
 
 	if (r2iqCntrl == nullptr)
 		r2iqCntrl = new fft_mt_r2iq();
