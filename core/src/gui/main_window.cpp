@@ -221,6 +221,7 @@ void MainWindow::init() {
         }
     }
 
+    autostart = core::args["autostart"].b();
     initComplete = true;
 
     core::moduleManager.doPostInitAll();
@@ -384,6 +385,12 @@ void MainWindow::draw() {
         ImGui::PopID();
     }
     if (playButtonLocked && !tmpPlaySate) { style::endDisabled(); }
+
+    // Handle auto-start
+    if (autostart) {
+        autostart = false;
+        setPlayState(true);
+    }
 
     ImGui::SameLine();
     float origY = ImGui::GetCursorPosY();

@@ -63,6 +63,7 @@ private:
     int selectedWindow = 0;
 
     bool initComplete = false;
+    bool autostart = false;
 
     EventHandler<VFOManager::VFO*> vfoCreatedHandler;
 };
