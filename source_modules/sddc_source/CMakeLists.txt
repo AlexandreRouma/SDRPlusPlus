@@ -1,15 +1,13 @@
 cmake_minimum_required(VERSION 3.13)
 project(sddc_source)
 
-if (MSVC)
-    # What the fuck?
-    file(GLOB SRC "src/*.cpp" "src/resource.rc" "src/libsddc/Core/*.cpp" "src/libsddc/Core/pffft/*.cpp" "src/libsddc/Core/radio/*.cpp" "src/libsddc/Core/arch/win32/*.cpp" "src/libsddc/Core/arch/win32/CyAPI/*.cpp")
-else (MSVC)
-    file(GLOB SRC "src/*.cpp" "src/libsddc/Core/*.c" "src/libsddc/Core/*.cpp" "src/libsddc/Core/pffft/*.cpp" "src/libsddc/Core/radio/*.cpp" "src/libsddc/Core/arch/linux/*.c")
-endif ()
+SET(SRCS "src/main.cpp" "src/resource.rc")
 
-add_library(sddc_source SHARED ${SRC})
+add_subdirectory(src/libsddc/Core)
+
+add_library(sddc_source SHARED ${SRCS})
 target_link_libraries(sddc_source PRIVATE sdrpp_core)
+target_link_libraries(sddc_source PRIVATE SDDC_CORE)
 set_target_properties(sddc_source PROPERTIES PREFIX "")
 
 target_include_directories(sddc_source PRIVATE "src/" "src/libsddc/")
