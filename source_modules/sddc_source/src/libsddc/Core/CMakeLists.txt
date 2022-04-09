@@ -32,8 +32,6 @@ else()
   else()
     message(FATAL_ERROR "Unable to identify CPU: ${CMAKE_SYSTEM_PROCESSOR}")
   endif()
-
-    include_directories(${LIBUSB_INCLUDE_DIRS})
 endif (MSVC)
 
 include_directories(${LIBFFTW_INCLUDE_DIRS})
@@ -43,6 +41,15 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
 add_library(SDDC_CORE STATIC ${SRC})
 set_target_properties(SDDC_CORE PROPERTIES POSITION_INDEPENDENT_CODE True)
 target_compile_definitions(SDDC_CORE PUBLIC _CRT_SECURE_NO_WARNINGS)
+
+if (NOT MSVC)
+  find_package(PkgConfig)
+
+  pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
+
+  target_include_directories(SDDC_CORE PRIVATE ${LIBUSB_INCLUDE_DIRS})
+endif (MSVC)
+
 
 if (NOT USE_SIMD_OPTIMIZATIONS)
    target_compile_definitions(SDDC_CORE PRIVATE NO_SIMD_OPTIM)

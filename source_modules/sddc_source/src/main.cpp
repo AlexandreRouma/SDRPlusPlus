@@ -15,7 +15,7 @@
 
 #include "resource.h"
 #include "Core/RadioHandler.h"
-#include "Core/FX3class.h"
+#include "Core/FX3Class.h"
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -105,7 +105,7 @@ public:
         while (Fx3->Enumerate(idx, name, res_data, res_size) && (idx < MAXNDEV)) {
             // https://en.wikipedia.org/wiki/West_Bridge
             int retry = 2;
-            while ((strncmp("WestBridge", name, sizeof("WestBridge")) != NULL) && retry-- > 0)
+            while ((strncmp("WestBridge", name, sizeof("WestBridge")) != 0) && retry-- > 0)
                 Fx3->Enumerate(idx, name, res_data, res_size); // if it enumerates as BootLoader retry
 
             devNames.push_back(name);
@@ -522,7 +522,8 @@ MOD_EXPORT void _INIT_() {
         res_size = ftell(fp);
         res_data = (unsigned char*)malloc(res_size);
         fseek(fp, 0, SEEK_SET);
-        fread(res_data, 1, res_size, fp);
+        if (fread(res_data, 1, res_size, fp) != res_size)
+            return;
     }
 #endif
 
