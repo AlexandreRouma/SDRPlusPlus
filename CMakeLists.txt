@@ -31,7 +31,7 @@ option(OPT_BUILD_BLADERF_SOURCE "Build BladeRF Source Module (Dependencies: libb
 option(OPT_BUILD_FILE_SOURCE "Wav file source" ON)
 option(OPT_BUILD_HACKRF_SOURCE "Build HackRF Source Module (Dependencies: libhackrf)" ON)
 option(OPT_BUILD_LIMESDR_SOURCE "Build LimeSDR Source Module (Dependencies: liblimesuite)" OFF)
-option(OPT_BUILD_SDDC_SOURCE "Build SDDC Source Module (Dependencies: libusb-1.0)" OFF)
+option(OPT_BUILD_SDDC_SOURCE "Build SDDC Source Module (Dependencies: libusb-1.0)" ON)
 option(OPT_BUILD_SDRPP_SERVER_SOURCE "Build SDR++ Server Source Module (no dependencies required)" ON)
 option(OPT_BUILD_RFSPACE_SOURCE "Build RFspace Source Module (no dependencies required)" ON)
 option(OPT_BUILD_RTL_SDR_SOURCE "Build RTL-SDR Source Module (Dependencies: librtlsdr)" ON)
