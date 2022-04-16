@@ -993,6 +993,17 @@ namespace ImGui {
         updateAllVFOs();
     }
 
+    void WaterFall::setZoom(double bw) {
+        double factor = bw * bw;
+
+        // Map 0.0 -> 1.0 to 1000.0 -> bandwidth
+        double wfBw = getBandwidth();
+        double delta = wfBw - 1000.0;
+        double finalBw = std::min<double>(1000.0 + (factor * delta), wfBw);
+
+        setViewBandwidth(finalBw);
+    }
+
     double WaterFall::getViewBandwidth() {
         return viewBandwidth;
     }
