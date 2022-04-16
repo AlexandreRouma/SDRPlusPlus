@@ -153,6 +153,8 @@ namespace ImGui {
         float getWaterfallMax();
 
         void setZoom(double zoomLevel);
+        double getZoom();
+
         void setOffset(double zoomOffset);
 
         void autoRange();
@@ -258,6 +260,7 @@ namespace ImGui {
         void updateWaterfallTexture();
         void updateAllVFOs(bool checkRedrawRequired = false);
         bool calculateVFOSignalInfo(float* fftLine, WaterfallVFO* vfo, float& strength, float& snr);
+        double calculateZoomLevelFromBw(double bw);
 
         bool waterfallUpdate = false;
 
@@ -285,7 +288,8 @@ namespace ImGui {
         int fftHeight;           // Height of the fft graph
         int waterfallHeight = 0; // Height of the waterfall
 
-        double viewBandwidth;
+        double viewBandwidth; // actual bandwidth displayed
+        double viewZoom;      // linearized representation of the current zoom (e. g. percentage on a slider)
         double viewOffset;
 
         double lowerFreq;

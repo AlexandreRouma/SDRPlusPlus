@@ -81,6 +81,7 @@ namespace ImGui {
         waterfallFb = new uint32_t[1];
 
         viewBandwidth = 1.0;
+        viewZoom = 1.0;
         wholeBandwidth = 1.0;
 
         updatePallette(DEFAULT_COLOR_MAP, 13);
@@ -986,6 +987,7 @@ namespace ImGui {
             }
         }
         viewBandwidth = bandWidth;
+        viewZoom = calculateZoomLevelFromBw(bandWidth);
         lowerFreq = (centerFreq + viewOffset) - (viewBandwidth / 2.0);
         upperFreq = (centerFreq + viewOffset) + (viewBandwidth / 2.0);
         range = findBestRange(bandWidth, maxHSteps);
@@ -993,8 +995,9 @@ namespace ImGui {
         updateAllVFOs();
     }
 
-    void WaterFall::setZoom(double bw) {
-        double factor = bw * bw;
+    void WaterFall::setZoom(double zoomLevel) {
+        viewZoom = zoomLevel;
+        double factor = zoomLevel * zoomLevel;
 
         // Map 0.0 -> 1.0 to 1000.0 -> bandwidth
         double wfBw = getBandwidth();
@@ -1002,6 +1005,17 @@ namespace ImGui {
         double finalBw = std::min<double>(1000.0 + (factor * delta), wfBw);
 
         setViewBandwidth(finalBw);
+    }
+
+    double WaterFall::getZoom() {
+        return viewZoom;
+    }
+
+    double WaterFall::calculateZoomLevelFromBw(double bw) {
+        double wfBw = getBandwidth();
+        double onCurve = (bw - 1000.0) / (wfBw - 1000.0);
+        double zoomLevel = std::sqrt(onCurve);
+        return zoomLevel;
     }
 
     double WaterFall::getViewBandwidth() {

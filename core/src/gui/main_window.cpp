@@ -620,6 +620,7 @@ void MainWindow::draw() {
     ImGui::TextUnformatted("Zoom");
     ImGui::SetCursorPosX((ImGui::GetWindowSize().x / 2.0) - 10 * style::uiScale);
     ImVec2 wfSliderSize(20.0 * style::uiScale, 150.0 * style::uiScale);
+    bw = gui::waterfall.getZoom(); // check if the zoom hasn't been updated
     if (ImGui::VSliderFloat("##_7_", wfSliderSize, &bw, 1.0, 0.0, "")) {
         gui::waterfall.setZoom(bw);
         if (vfo != NULL) {
