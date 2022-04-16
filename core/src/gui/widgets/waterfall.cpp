@@ -442,38 +442,34 @@ namespace ImGui {
                 }
             }
         }
-        else if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-            // Check if a VFO is hovered. If yes, show tooltip
-            for (auto const& [name, _vfo] : vfos) {
-                if (ImGui::IsMouseHoveringRect(_vfo->rectMin, _vfo->rectMax) || ImGui::IsMouseHoveringRect(_vfo->wfRectMin, _vfo->wfRectMax)) {
-                    char buf[128];
-                    ImGui::BeginTooltip();
+        else if (!ImGui::IsMouseDown(ImGuiMouseButton_Left) && hoveredVFOName != "") {
+            WaterfallVFO* _vfo = vfos[hoveredVFOName];
 
-                    ImGui::TextUnformatted(name.c_str());
+            char buf[128];
+            ImGui::BeginTooltip();
 
-                    if (ImGui::GetIO().KeyCtrl) {
-                        ImGui::Separator();
-                        printAndScale(_vfo->generalOffset + centerFreq, buf);
-                        ImGui::Text("Frequency: %sHz", buf);
-                        printAndScale(_vfo->bandwidth, buf);
-                        ImGui::Text("Bandwidth: %sHz", buf);
-                        ImGui::Text("Bandwidth Locked: %s", _vfo->bandwidthLocked ? "Yes" : "No");
+            ImGui::TextUnformatted(hoveredVFOName.c_str());
 
-                        float strength, snr;
-                        if (calculateVFOSignalInfo(waterfallVisible ? &rawFFTs[currentFFTLine * rawFFTSize] : rawFFTs, _vfo, strength, snr)) {
-                            ImGui::Text("Strength: %0.1fdBFS", strength);
-                            ImGui::Text("SNR: %0.1fdB", snr);
-                        }
-                        else {
-                            ImGui::TextUnformatted("Strength: ---.-dBFS");
-                            ImGui::TextUnformatted("SNR: ---.-dB");
-                        }
-                    }
+            if (ImGui::GetIO().KeyCtrl) {
+                ImGui::Separator();
+                printAndScale(_vfo->generalOffset + centerFreq, buf);
+                ImGui::Text("Frequency: %sHz", buf);
+                printAndScale(_vfo->bandwidth, buf);
+                ImGui::Text("Bandwidth: %sHz", buf);
+                ImGui::Text("Bandwidth Locked: %s", _vfo->bandwidthLocked ? "Yes" : "No");
 
-                    ImGui::EndTooltip();
-                    break;
+                float strength, snr;
+                if (calculateVFOSignalInfo(waterfallVisible ? &rawFFTs[currentFFTLine * rawFFTSize] : rawFFTs, _vfo, strength, snr)) {
+                    ImGui::Text("Strength: %0.1fdBFS", strength);
+                    ImGui::Text("SNR: %0.1fdB", snr);
+                }
+                else {
+                    ImGui::TextUnformatted("Strength: ---.-dBFS");
+                    ImGui::TextUnformatted("SNR: ---.-dB");
                 }
             }
+
+            ImGui::EndTooltip();
         }
 
         // Handle Page Up to cycle through VFOs
