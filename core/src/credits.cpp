@@ -66,6 +66,7 @@ namespace sdrpp_credits {
         ".lozenge. (Hank Hill)",
         "ON4MU",
         "Passion-Radio.com",
+        "Paul Maine",
         "Scanner School",
         "SignalsEverywhere",
         "Syne Ardwin (WI9SYN)",

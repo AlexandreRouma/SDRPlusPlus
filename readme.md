@@ -420,6 +420,7 @@ I will soon publish a contributing.md listing the code style to use.
 * .lozenge. (Hank Hill)
 * ON4MU
 * [Passion-Radio.com](https://passion-radio.com/)
+* Paul Maine
 * [Scanner School](https://scannerschool.com/)
 * [SignalsEverywhere](https://signalseverywhere.com/)
 * Syne Ardwin (WI9SYN)
