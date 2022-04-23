@@ -1,0 +1,117 @@
+{
+    "name": "Slovakia",
+    "country_name": "Slovakia",
+    "country_code": "SK",
+    "author_name": "Tomas Pytel",
+    "author_url": "https://github.com/Pytlicek",
+    "bands": [
+        {
+            "name": "LW",
+            "type": "amateur",
+            "start": 135700,
+            "end": 137800
+        },
+        {
+            "name": "160m",
+            "type": "amateur",
+            "start": 1810000,
+            "end": 2000000
+        },
+        {
+            "name": "80m",
+            "type": "amateur",
+            "start": 3500000,
+            "end": 3740000
+        },
+        {
+            "name": "40m",
+            "type": "amateur",
+            "start": 7000000,
+            "end": 7200000
+        },
+        {
+            "name": "30m",
+            "type": "amateur",
+            "start": 10100000,
+            "end": 10150000
+        },
+        {
+            "name": "20m",
+            "type": "amateur",
+            "start": 14000000,
+            "end": 14230000
+        },
+        {
+            "name": "17m",
+            "type": "amateur",
+            "start": 18068000,
+            "end": 18168000
+        },
+        {
+            "name": "15m",
+            "type": "amateur",
+            "start": 21000000,
+            "end": 21340000
+        },
+        {
+            "name": "12m",
+            "type": "amateur",
+            "start": 24890000,
+            "end": 24990000
+        },
+        {
+            "name": "CB",
+            "type": "other",
+            "start": 26965000,
+            "end": 27405000
+        },
+        {
+            "name": "10m",
+            "type": "amateur",
+            "start": 28000000,
+            "end": 29700000
+        },
+        {
+            "name": "6m",
+            "type": "amateur",
+            "start": 50000000,
+            "end": 52000000
+        },
+        {
+            "name": "FM",
+            "type": "broadcast",
+            "start": 87500000,
+            "end": 108000000
+        },
+        {
+            "name": "2m",
+            "type": "amateur",
+            "start": 144000000,
+            "end": 146000000
+        },
+        {
+            "name": "70cm",
+            "type": "amateur",
+            "start": 430000000,
+            "end": 440000000
+        },
+        {
+            "name": "PMR446",
+            "type": "other",
+            "start": 446006250,
+            "end": 446193750
+        },
+        {
+            "name": "23cm",
+            "type": "amateur",
+            "start": 1240000000,
+            "end": 1300000000
+        },
+        {
+            "name": "13cm",
+            "type": "amateur",
+            "start": 2300000000,
+            "end":   2450000000
+        }
+    ]
+}
