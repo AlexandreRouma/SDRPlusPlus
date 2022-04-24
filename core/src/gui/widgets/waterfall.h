@@ -258,6 +258,8 @@ namespace ImGui {
         void updateWaterfallTexture();
         void updateAllVFOs(bool checkRedrawRequired = false);
         bool calculateVFOSignalInfo(float* fftLine, WaterfallVFO* vfo, float& strength, float& snr);
+        double calculateStrongestSignal(double posRel);
+        int calculateStrongestSignalPosX(double posRel, double rangeRel);
 
         bool waterfallUpdate = false;
 

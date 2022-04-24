@@ -442,6 +442,11 @@ namespace ImGui {
                 }
             }
         }
+        else if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && selVfo != NULL && (mouseInFFT | mouseInWaterfall)) {
+            int refCenter = mousePos.x - fftAreaMin.x;
+            double strongestRel = calculateStrongestSignal((double)refCenter / dataWidth);
+            selVfo->setOffset(lowerFreq + viewBandwidth * strongestRel - centerFreq);
+        }
         else if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
             // Check if a VFO is hovered. If yes, show tooltip
             for (auto const& [name, _vfo] : vfos) {
@@ -601,6 +606,55 @@ namespace ImGui {
         }
         delete[] tempData;
         waterfallUpdate = true;
+    }
+
+    double WaterFall::calculateStrongestSignal(double posRel) {
+        if (latestFFT == NULL || fftLines == 0) {
+            return 0;
+        }
+
+        posRel = std::clamp(posRel, 0.0, 1.0);
+
+        double wfAvg = 0.0;
+        for (size_t i = 0; i < dataWidth; i++) {
+            wfAvg += latestFFT[i];
+        }
+        wfAvg /= (double)dataWidth;
+
+        // first see what's around us (10 % of bw)
+        int bigPeakIdx = calculateStrongestSignalPosX(posRel, 0.1);
+        float bigPeakSnr = latestFFT[bigPeakIdx] - wfAvg;
+
+        // then try in the immediate vicinity of the cursor
+        int smallPeakIdx = calculateStrongestSignalPosX(posRel, 0.02);
+        float smallPeakSnr = latestFFT[smallPeakIdx] - wfAvg;
+
+        // the close-by signal is reasonably strong
+        size_t foundIdx = smallPeakSnr > bigPeakSnr * 0.5 ? smallPeakIdx : bigPeakIdx;
+
+        return (double)foundIdx / dataWidth;
+    }
+
+    int WaterFall::calculateStrongestSignalPosX(double posRel, double rangeRel) {
+        if (latestFFT == NULL || fftLines == 0) {
+            return -1;
+        }
+
+        double wfLowerPos = posRel - rangeRel / 2.0;
+        double wfUpperPos = posRel + rangeRel / 2.0;
+        size_t lowerIdx = std::max(0, (int)(wfLowerPos * dataWidth));
+        size_t upperIdx = std::min(dataWidth - 1, (int)(wfUpperPos * dataWidth));
+
+        size_t maxIdx = 0;
+        float maxVal = -INFINITY;
+        for (size_t i = lowerIdx; i <= upperIdx; i++) {
+            if (latestFFT[i] > maxVal) {
+                maxVal = latestFFT[i];
+                maxIdx = i;
+            }
+        }
+
+        return maxIdx;
     }
 
     void WaterFall::drawBandPlan() {
