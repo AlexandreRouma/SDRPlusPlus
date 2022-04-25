@@ -21,7 +21,7 @@
             "name": "80m",
             "type": "amateur",
             "start": 3500000,
-            "end": 3740000
+            "end": 3800000
         },
         {
             "name": "40m",
@@ -39,7 +39,7 @@
             "name": "20m",
             "type": "amateur",
             "start": 14000000,
-            "end": 14230000
+            "end": 14350000
         },
         {
             "name": "17m",
@@ -51,7 +51,7 @@
             "name": "15m",
             "type": "amateur",
             "start": 21000000,
-            "end": 21340000
+            "end": 21450000
         },
         {
             "name": "12m",
