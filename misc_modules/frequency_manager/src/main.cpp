@@ -190,6 +190,58 @@ private:
         }
         return open;
     }
+    
+    bool quickJumpDialog() {
+        bool open = true;
+        gui::mainWindow.lockWaterfallControls = true;
+        if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+            open = false;
+        }
+        std::string id = "Quick Jump##freq_manager_quick_jump_popup_" + name;
+        ImGui::OpenPopup(id.c_str());
+        ImGui::SetNextWindowSize(ImVec2(800,0));
+        if (ImGui::BeginPopupModal(id.c_str(),nullptr, ImGuiWindowFlags_NoResize)) {
+            char buf[1024];
+            strcpy(buf, quickJumpSearch.c_str());
+            if(ImGui::InputText("Search",buf, 1024)){
+                quickJumpSearch = buf;
+            }
+            // Bookmark list
+            if (ImGui::BeginTable(("freq_manager_quick_jump_bkm_table" + this->name).c_str(), 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, 200))) {
+                ImGui::TableSetupColumn("Name");
+                ImGui::TableSetupColumn("Bookmark");
+                ImGui::TableSetupScrollFreeze(2, 1);
+                ImGui::TableHeadersRow();
+                for (auto& [name, bm] : this->bookmarks) {
+                    std::string lowerJumpSearch = quickJumpSearch;
+                    for (auto& c : lowerJumpSearch){
+                        c = tolower(c);
+                    }
+                    std::string lowerName = name;
+                    for (auto& c : lowerName) {
+                        c = tolower(c);
+                    }
+                    if (lowerName.find(lowerJumpSearch) == std::string::npos) { continue; }
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImVec2 min = ImGui::GetCursorPos();
+
+                    if (ImGui::Selectable((name + "##freq_manager_quick_jump_bkm_name" + this->name).c_str(), &bm.selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_SelectOnClick)) {
+                        applyBookmark(bm, gui::waterfall.selectedVFO);
+                    }
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::Text("%s %s", utils::formatFreq(bm.frequency).c_str(), demodModeList[bm.mode]);
+                    ImVec2 max = ImGui::GetCursorPos();
+                }
+                ImGui::EndTable();
+            }
+            if (ImGui::Button("Ok",ImVec2(ImGui::GetContentRegionAvail().x,0))) {
+                open = false;
+            }
+            ImGui::EndPopup();
+        }
+        return open;
+    }
 
     bool newListDialog() {
         bool open = true;
@@ -348,6 +400,11 @@ private:
     static void menuHandler(void* ctx) {
         FrequencyManagerModule* _this = (FrequencyManagerModule*)ctx;
         float menuWidth = ImGui::GetContentRegionAvail().x;
+
+        if(ImGui::IsKeyPressed(ImGuiKey_Space)&&ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
+        {
+            _this->quickJumpOpen = true;
+        }
 
         // TODO: Replace with something that won't iterate every frame
         std::vector<std::string> selectedNames;
@@ -568,6 +625,10 @@ private:
 
         if (_this->editOpen) {
             _this->editOpen = _this->bookmarkEditDialog();
+        }
+        
+        if (_this->quickJumpOpen){
+            _this->quickJumpOpen = _this->quickJumpDialog();
         }
 
         if (_this->newListOpen) {
@@ -794,6 +855,7 @@ private:
     bool enabled = true;
     bool createOpen = false;
     bool editOpen = false;
+    bool quickJumpOpen = false;
     bool newListOpen = false;
     bool renameListOpen = false;
     bool selectListsOpen = false;
@@ -809,7 +871,7 @@ private:
     std::string editedBookmarkName = "";
     std::string firstEditedBookmarkName = "";
     FrequencyBookmark editedBookmark;
-
+    std::string quickJumpSearch = "";
     std::vector<std::string> listNames;
     std::string listNamesTxt = "";
     std::string selectedListName = "";
