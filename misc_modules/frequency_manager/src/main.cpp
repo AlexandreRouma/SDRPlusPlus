@@ -401,8 +401,7 @@ private:
         FrequencyManagerModule* _this = (FrequencyManagerModule*)ctx;
         float menuWidth = ImGui::GetContentRegionAvail().x;
 
-        if(ImGui::IsKeyPressed(ImGuiKey_Space)&&ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
-        {
+        if (ImGui::IsKeyPressed(ImGuiKey_Space) && ImGui::IsKeyPressed(ImGuiKey_ModCtrl)) {
             _this->quickJumpOpen = true;
         }
 
