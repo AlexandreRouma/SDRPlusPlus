@@ -443,9 +443,9 @@ namespace ImGui {
             }
         }
         else if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && selVfo != NULL && (mouseInFFT | mouseInWaterfall)) {
-            int refCenter = mousePos.x - fftAreaMin.x;
-            double strongestRel = calculateStrongestSignal((double)refCenter / dataWidth);
-            selVfo->setOffset(lowerFreq + viewBandwidth * strongestRel - centerFreq);
+            double clickedRel = (double) (mousePos.x - fftAreaMin.x) / dataWidth;
+            double strongestRel = calculateStrongestSignal(clickedRel);
+            selVfo->setOffset((wholeBandwidth * strongestRel) - wholeBandwidth / 2.0);
         }
         else if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
             // Check if a VFO is hovered. If yes, show tooltip
@@ -609,47 +609,66 @@ namespace ImGui {
     }
 
     double WaterFall::calculateStrongestSignal(double posRel) {
-        if (latestFFT == NULL || fftLines == 0) {
+        if (rawFFTs == NULL) {
             return 0;
         }
 
         posRel = std::clamp(posRel, 0.0, 1.0);
+        float* rawFFT = &rawFFTs[currentFFTLine * rawFFTSize];
 
         double wfAvg = 0.0;
-        for (size_t i = 0; i < dataWidth; i++) {
-            wfAvg += latestFFT[i];
+        double medWfAvg = 0.0;
+        for (size_t i = 0; i < rawFFTSize; i++) {
+            // iteratively calculate the mean of the FFT array
+            medWfAvg += ((double) rawFFT[i] - medWfAvg) / (i + 1);
+            wfAvg += (double) rawFFT[i];
         }
-        wfAvg /= (double)dataWidth;
+        wfAvg /= rawFFTSize;
+        spdlog::warn("mean: {}, avg: {}", medWfAvg, wfAvg);
 
         // first see what's around us (10 % of bw)
-        int bigPeakIdx = calculateStrongestSignalPosX(posRel, 0.1);
-        float bigPeakSnr = latestFFT[bigPeakIdx] - wfAvg;
+        int bigPeakIdx = calculateStrongestSignalIdx(posRel, 0.1);
+        float bigPeakSnr = rawFFT[bigPeakIdx] - wfAvg;
 
         // then try in the immediate vicinity of the cursor
-        int smallPeakIdx = calculateStrongestSignalPosX(posRel, 0.02);
-        float smallPeakSnr = latestFFT[smallPeakIdx] - wfAvg;
+        int smallPeakIdx = calculateStrongestSignalIdx(posRel, 0.02);
+        float smallPeakSnr = rawFFT[smallPeakIdx] - wfAvg;
 
         // the close-by signal is reasonably strong
         size_t foundIdx = smallPeakSnr > bigPeakSnr * 0.5 ? smallPeakIdx : bigPeakIdx;
 
-        return (double)foundIdx / dataWidth;
+        return ((double) foundIdx / rawFFTSize);
     }
 
-    int WaterFall::calculateStrongestSignalPosX(double posRel, double rangeRel) {
-        if (latestFFT == NULL || fftLines == 0) {
+    size_t WaterFall::calculateStrongestSignalIdx(double posRel, double rangeRel) {
+        if (rawFFTs == NULL) {
             return -1;
         }
 
-        double wfLowerPos = posRel - rangeRel / 2.0;
-        double wfUpperPos = posRel + rangeRel / 2.0;
-        size_t lowerIdx = std::max(0, (int)(wfLowerPos * dataWidth));
-        size_t upperIdx = std::min(dataWidth - 1, (int)(wfUpperPos * dataWidth));
+        float* rawFFT = &rawFFTs[currentFFTLine * rawFFTSize];
+
+        // only search within the zoomed window
+        double wfRatio = (viewBandwidth / wholeBandwidth);
+        double offsetRatio = viewOffset / (wholeBandwidth / 2.0) + 1;
+        size_t drawDataSize = wfRatio * rawFFTSize;
+        size_t drawDataStart = (((double) rawFFTSize / 2.0) * offsetRatio) - (drawDataSize / 2);
+
+        // scale the search window accordingly
+        size_t rangeHalf = (rangeRel * drawDataSize) / 2.0;
+
+        size_t windowCenter = drawDataStart + (posRel * drawDataSize);
+        size_t lowerIdx = windowCenter - rangeHalf;
+        lowerIdx = std::max(lowerIdx, drawDataStart);
+        lowerIdx = std::max((size_t) 0, lowerIdx);
+        size_t upperIdx = windowCenter + rangeHalf;
+        upperIdx = std::min(upperIdx, drawDataStart + drawDataSize);
+        upperIdx = std::min((size_t) rawFFTSize - 1, upperIdx);
 
         size_t maxIdx = 0;
         float maxVal = -INFINITY;
         for (size_t i = lowerIdx; i <= upperIdx; i++) {
-            if (latestFFT[i] > maxVal) {
-                maxVal = latestFFT[i];
+            if (rawFFT[i] > maxVal) {
+                maxVal = rawFFT[i];
                 maxIdx = i;
             }
         }
