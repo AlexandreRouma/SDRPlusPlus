@@ -617,14 +617,10 @@ namespace ImGui {
         float* rawFFT = &rawFFTs[currentFFTLine * rawFFTSize];
 
         double wfAvg = 0.0;
-        double medWfAvg = 0.0;
         for (size_t i = 0; i < rawFFTSize; i++) {
             // iteratively calculate the mean of the FFT array
-            medWfAvg += ((double) rawFFT[i] - medWfAvg) / (i + 1);
-            wfAvg += (double) rawFFT[i];
+            wfAvg += ((double) rawFFT[i] - wfAvg) / (i + 1);
         }
-        wfAvg /= rawFFTSize;
-        spdlog::warn("mean: {}, avg: {}", medWfAvg, wfAvg);
 
         // first see what's around us (10 % of bw)
         int bigPeakIdx = calculateStrongestSignalIdx(posRel, 0.1);
