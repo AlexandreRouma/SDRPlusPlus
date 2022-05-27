@@ -9,7 +9,6 @@ namespace style {
     ImFont* baseFont;
     ImFont* bigFont;
     ImFont* hugeFont;
-    ImVector<ImWchar> ranges;
     ImFontGlyphRangesBuilder builder;
 
 #ifndef __ANDROID__
@@ -24,14 +23,12 @@ namespace style {
             return false;
         }
 
-        // Create font range
         ImFontAtlas* fonts = ImGui::GetIO().Fonts;
-        builder.AddRanges(fonts->GetGlyphRangesDefault());
-        builder.AddRanges(fonts->GetGlyphRangesCyrillic());
-        builder.BuildRanges(&ranges);
+        // Load all glyphs in the font
+        static const ImWchar font_ranges[] = { 0x0001, 0xffff, 0 };
         
         // Add bigger fonts for frequency select and title
-        baseFont = fonts->AddFontFromFileTTF(((std::string)(resDir + "/fonts/Roboto-Medium.ttf")).c_str(), 16.0f * uiScale, NULL, ranges.Data);
+        baseFont = fonts->AddFontFromFileTTF(((std::string)(resDir + "/fonts/Roboto-Medium.ttf")).c_str(), 16.0f * uiScale, NULL, font_ranges);
         bigFont = fonts->AddFontFromFileTTF(((std::string)(resDir + "/fonts/Roboto-Medium.ttf")).c_str(), 45.0f * uiScale);
         hugeFont = fonts->AddFontFromFileTTF(((std::string)(resDir + "/fonts/Roboto-Medium.ttf")).c_str(), 128.0f * uiScale);
 
