@@ -138,12 +138,12 @@ namespace sourcemenu {
         offsetMode = core::configManager.conf["offsetMode"];
         decimationPower = core::configManager.conf["decimationPower"];
         iqCorrection = core::configManager.conf["iqCorrection"];
-        sigpath::signalPath.setIQCorrection(iqCorrection);
+        sigpath::iqFrontEnd.setDCBlocking(iqCorrection);
         updateOffset();
 
         refreshSources();
         selectSource(selected);
-        sigpath::signalPath.setDecimation(decimationPower);
+        sigpath::iqFrontEnd.setDecimation(1 << decimationPower);
 
         sourceRegisteredHandler.handler = onSourceRegistered;
         sourceUnregisterHandler.handler = onSourceUnregister;
@@ -174,7 +174,7 @@ namespace sourcemenu {
         sigpath::sourceManager.showSelectedMenu();
 
         if (ImGui::Checkbox("IQ Correction##_sdrpp_iq_corr", &iqCorrection)) {
-            sigpath::signalPath.setIQCorrection(iqCorrection);
+            sigpath::iqFrontEnd.setDCBlocking(iqCorrection);
             core::configManager.acquire();
             core::configManager.conf["iqCorrection"] = iqCorrection;
             core::configManager.release(true);
@@ -209,7 +209,7 @@ namespace sourcemenu {
         ImGui::LeftLabel("Decimation");
         ImGui::SetNextItemWidth(itemWidth - ImGui::GetCursorPosX());
         if (ImGui::Combo("##source_decim", &decimationPower, decimationStages)) {
-            sigpath::signalPath.setDecimation(decimationPower);
+            sigpath::iqFrontEnd.setDecimation(1 << decimationPower);
             core::configManager.acquire();
             core::configManager.conf["decimationPower"] = decimationPower;
             core::configManager.release(true);

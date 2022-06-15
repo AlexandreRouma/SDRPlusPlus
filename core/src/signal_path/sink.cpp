@@ -24,7 +24,7 @@ void SinkManager::Stream::init(dsp::stream<dsp::stereo_t>* in, EventHandler<floa
     _sampleRate = sampleRate;
     splitter.init(_in);
     splitter.bindStream(&volumeInput);
-    volumeAjust.init(&volumeInput, 1.0f);
+    volumeAjust.init(&volumeInput, 1.0f, false);
     sinkOut = &volumeAjust.out;
 }
 

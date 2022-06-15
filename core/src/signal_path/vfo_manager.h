@@ -1,5 +1,5 @@
 #pragma once
-#include <dsp/vfo.h>
+#include "../dsp/channel/rx_vfo.h"
 #include <gui/widgets/waterfall.h>
 #include <utils/event.h>
 
@@ -30,7 +30,7 @@ public:
 
         friend class VFOManager;
 
-        dsp::VFO* dspVFO;
+        dsp::channel::RxVFO* dspVFO;
         ImGui::WaterfallVFO* wtfVFO;
 
     private:

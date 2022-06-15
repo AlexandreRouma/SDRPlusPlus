@@ -1,7 +1,7 @@
 #pragma once
 #include "../demod.h"
-#include <dsp/demodulator.h>
-#include <dsp/filter.h>
+#include <dsp/demod/am.h>
+#include <dsp/convert/mono_to_stereo.h>
 
 namespace demod {
     class AM : public Demodulator {
@@ -20,20 +20,17 @@ namespace demod {
             this->name = name;
 
             // Define structure
-            demod.init(input);
-            agc.init(&demod.out, 20.0f, getIFSampleRate());
-            m2s.init(&agc.out);
+            demod.init(input, dsp::demod::AM::AGCMode::CARRIER, 200000.0 / getIFSampleRate());
+            m2s.init(&demod.out);
         }
 
         void start() {
             demod.start();
-            agc.start();
             m2s.start();
         }
 
         void stop() {
             demod.stop();
-            agc.stop();
             m2s.stop();
         }
 
@@ -71,9 +68,8 @@ namespace demod {
         dsp::stream<dsp::stereo_t>* getOutput() { return &m2s.out; }
 
     private:
-        dsp::AMDemod demod;
-        dsp::AGC agc;
-        dsp::MonoToStereo m2s;
+        dsp::demod::AM demod;
+        dsp::convert::MonoToStereo m2s;
 
         std::string name;
     };

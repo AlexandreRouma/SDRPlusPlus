@@ -346,11 +346,11 @@ private:
         if (recMode == RECORDER_MODE_BASEBAND) {
             samplesWritten = 0;
             std::string expandedPath = expandString(folderSelect.path + genFileName("/baseband_", false));
-            sampleRate = sigpath::signalPath.getSampleRate();
-            basebandWriter = new WavWriter(expandedPath, 16, 2, sigpath::signalPath.getSampleRate());
+            sampleRate = sigpath::iqFrontEnd.getSampleRate();
+            basebandWriter = new WavWriter(expandedPath, 16, 2, sigpath::iqFrontEnd.getSampleRate());
             if (basebandWriter->isOpen()) {
                 basebandHandler.start();
-                sigpath::signalPath.bindIQStream(&basebandStream);
+                sigpath::iqFrontEnd.bindIQStream(&basebandStream);
                 recording = true;
                 spdlog::info("Recording to '{0}'", expandedPath);
             }
@@ -381,7 +381,7 @@ private:
     void stopRecording() {
         if (recMode == 0) {
             recording = false;
-            sigpath::signalPath.unbindIQStream(&basebandStream);
+            sigpath::iqFrontEnd.unbindIQStream(&basebandStream);
             basebandHandler.stop();
             basebandWriter->close();
             delete basebandWriter;

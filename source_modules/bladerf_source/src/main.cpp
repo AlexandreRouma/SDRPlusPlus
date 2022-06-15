@@ -8,7 +8,6 @@
 #include <config.h>
 #include <gui/widgets/stepped_slider.h>
 #include <libbladeRF.h>
-#include <dsp/processing.h>
 #include <gui/smgui.h>
 #include <algorithm>
 

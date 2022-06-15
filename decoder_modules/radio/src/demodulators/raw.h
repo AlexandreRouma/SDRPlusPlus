@@ -1,7 +1,6 @@
 #pragma once
 #include "../demod.h"
-#include <dsp/demodulator.h>
-#include <dsp/filter.h>
+#include <dsp/convert/complex_to_stereo.h>
 
 namespace demod {
     class RAW : public Demodulator {
@@ -67,7 +66,7 @@ namespace demod {
 
     private:
         double audioSampleRate;
-        dsp::ComplexToStereo c2s;
+        dsp::convert::ComplexToStereo c2s;
 
         std::string name;
     };

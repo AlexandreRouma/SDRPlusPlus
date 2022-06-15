@@ -6,7 +6,7 @@
 #include <complex>
 #include <gui/widgets/waterfall.h>
 #include <gui/widgets/frequency_select.h>
-#include <signal_path/dsp.h>
+#include <signal_path/iq_frontend.h>
 #include <gui/icons.h>
 #include <gui/widgets/bandplan.h>
 #include <gui/style.h>
@@ -88,8 +88,8 @@ void MainWindow::init() {
     fft_out = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * fftSize);
     fftwPlan = fftwf_plan_dft_1d(fftSize, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
 
-    sigpath::signalPath.init(8000000, 20, fftSize, &dummyStream, (dsp::complex_t*)fft_in, fftHandler, this);
-    sigpath::signalPath.start();
+    sigpath::iqFrontEnd.init(&dummyStream, 8000000, true, 1, false, 1024, 20.0, IQFrontEnd::FFTWindow::NUTTALL, acquireFFTBuffer, releaseFFTBuffer, this);
+    sigpath::iqFrontEnd.start();
 
     vfoCreatedHandler.handler = vfoAddedHandler;
     vfoCreatedHandler.ctx = this;
@@ -227,37 +227,11 @@ void MainWindow::init() {
     core::moduleManager.doPostInitAll();
 }
 
-void MainWindow::fftHandler(dsp::complex_t* samples, int count, void* ctx) {
-    MainWindow* _this = (MainWindow*)ctx;
-    std::lock_guard<std::mutex> lck(_this->fft_mtx);
+float* MainWindow::acquireFFTBuffer(void* ctx) {
+    return gui::waterfall.getFFTBuffer();
+}
 
-    // Check if the count is valid
-    if (count > _this->fftSize) {
-        return;
-    }
-
-    // Apply window
-    volk_32fc_32f_multiply_32fc((lv_32fc_t*)_this->fft_in, (lv_32fc_t*)samples, sigpath::signalPath.fftTaps, count);
-
-    // Zero out the rest of the samples
-    if (count < _this->fftSize) {
-        memset(&_this->fft_in[count], 0, (_this->fftSize - count) * sizeof(dsp::complex_t));
-    }
-
-    // Execute FFT
-    fftwf_execute(_this->fftwPlan);
-
-    // Get the FFT buffer
-    float* fftBuf = gui::waterfall.getFFTBuffer();
-    if (fftBuf == NULL) {
-        gui::waterfall.pushFFT();
-        return;
-    }
-
-    // Take power of spectrum
-    volk_32fc_s32f_power_spectrum_32f(fftBuf, (lv_32fc_t*)_this->fft_out, _this->fftSize, _this->fftSize);
-
-    // Push back data
+void MainWindow::releaseFFTBuffer(void* ctx) {
     gui::waterfall.pushFFT();
 }
 
@@ -530,9 +504,9 @@ void MainWindow::draw() {
             ImGui::Checkbox("Show demo window", &demoWindow);
             ImGui::Text("ImGui version: %s", ImGui::GetVersion());
 
-            ImGui::Checkbox("Bypass buffering", &sigpath::signalPath.inputBuffer.bypass);
+            // ImGui::Checkbox("Bypass buffering", &sigpath::iqFrontEnd.inputBuffer.bypass);
 
-            ImGui::Text("Buffering: %d", (sigpath::signalPath.inputBuffer.writeCur - sigpath::signalPath.inputBuffer.readCur + 32) % 32);
+            // ImGui::Text("Buffering: %d", (sigpath::iqFrontEnd.inputBuffer.writeCur - sigpath::iqFrontEnd.inputBuffer.readCur + 32) % 32);
 
             if (ImGui::Button("Test Bug")) {
                 spdlog::error("Will this make the software crash?");
@@ -680,7 +654,7 @@ void MainWindow::draw() {
 void MainWindow::setPlayState(bool _playing) {
     if (_playing == playing) { return; }
     if (_playing) {
-        sigpath::signalPath.inputBuffer.flush();
+        sigpath::iqFrontEnd.flushInputBuffer();
         sigpath::sourceManager.start();
         sigpath::sourceManager.tune(gui::waterfall.getCenterFrequency());
         playing = true;
@@ -690,7 +664,7 @@ void MainWindow::setPlayState(bool _playing) {
         playing = false;
         onPlayStateChange.emit(false);
         sigpath::sourceManager.stop();
-        sigpath::signalPath.inputBuffer.flush();
+        sigpath::iqFrontEnd.flushInputBuffer();
     }
 }
 
@@ -700,27 +674,6 @@ void MainWindow::setViewBandwidthSlider(float bandwidth) {
 
 bool MainWindow::sdrIsRunning() {
     return playing;
-}
-
-void MainWindow::setFFTSize(int size) {
-    std::lock_guard<std::mutex> lck(fft_mtx);
-    fftSize = size;
-
-    gui::waterfall.setRawFFTSize(fftSize);
-    sigpath::signalPath.setFFTSize(fftSize);
-
-    fftwf_destroy_plan(fftwPlan);
-    fftwf_free(fft_in);
-    fftwf_free(fft_out);
-
-    fft_in = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * fftSize);
-    fft_out = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * fftSize);
-    fftwPlan = fftwf_plan_dft_1d(fftSize, fft_in, fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
-}
-
-void MainWindow::setFFTWindow(int win) {
-    std::lock_guard<std::mutex> lck(fft_mtx);
-    sigpath::signalPath.setFFTWindow(win);
 }
 
 bool MainWindow::isPlaying() {

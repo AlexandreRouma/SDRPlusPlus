@@ -8,13 +8,14 @@
 #include <signal_path/signal_path.h>
 #include <gui/smgui.h>
 #include <utils/optionlist.h>
-#include <dsp/compression.h>
+#include "dsp/compression/sample_stream_compressor.h"
+#include "dsp/sink/handler_sink.h"
 #include <zstd.h>
 
 namespace server {
     dsp::stream<dsp::complex_t> dummyInput;
-    dsp::DynamicRangeCompressor comp;
-    dsp::HandlerSink<uint8_t> hnd;
+    dsp::compression::SampleStreamCompressor comp;
+    dsp::sink::Handler<uint8_t> hnd;
     net::Conn client;
     uint8_t* rbuf = NULL;
     uint8_t* sbuf = NULL;
@@ -49,7 +50,7 @@ namespace server {
         spdlog::info("=====| SERVER MODE |=====");
 
         // Init DSP
-        comp.init(&dummyInput, dsp::PCM_TYPE_I8);
+        comp.init(&dummyInput, dsp::compression::PCM_TYPE_I8);
         hnd.init(&comp.out, _testServerHandler, NULL);
         rbuf = new uint8_t[SERVER_MAX_PACKET_SIZE];
         sbuf = new uint8_t[SERVER_MAX_PACKET_SIZE];
@@ -189,7 +190,7 @@ namespace server {
 
         // Perform settings reset
         sigpath::sourceManager.stop();
-        comp.setPCMType(dsp::PCM_TYPE_I16);
+        comp.setPCMType(dsp::compression::PCM_TYPE_I16);
         compression = false;
 
         sendSampleRate(sampleRate);
@@ -291,7 +292,7 @@ namespace server {
             sendCommandAck(COMMAND_SET_FREQUENCY, 0);
         }
         else if (cmd == COMMAND_SET_SAMPLE_TYPE && len == 1) {
-            dsp::PCMType type = (dsp::PCMType)*(uint8_t*)data;
+            dsp::compression::PCMType type = (dsp::compression::PCMType)*(uint8_t*)data;
             comp.setPCMType(type);
         }
         else if (cmd == COMMAND_SET_COMPRESSION && len == 1) {

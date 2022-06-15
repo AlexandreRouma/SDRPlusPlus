@@ -1,7 +1,7 @@
 #include <signal_path/signal_path.h>
 
 namespace sigpath {
-    SignalPath signalPath;
+    IQFrontEnd iqFrontEnd;
     VFOManager vfoManager;
     SourceManager sourceManager;
     SinkManager sinkManager;

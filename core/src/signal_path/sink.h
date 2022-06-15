@@ -3,9 +3,9 @@
 #include <string>
 #include <dsp/stream.h>
 #include <dsp/types.h>
-#include <dsp/routing.h>
-#include <dsp/processing.h>
-#include <dsp/sink.h>
+#include "../dsp/routing/splitter.h"
+#include "../dsp/audio/volume.h"
+#include "../dsp/sink/null_sink.h"
 #include <mutex>
 #include <utils/event.h>
 #include <vector>
@@ -52,10 +52,10 @@ public:
 
     private:
         dsp::stream<dsp::stereo_t>* _in;
-        dsp::Splitter<dsp::stereo_t> splitter;
+        dsp::routing::Splitter<dsp::stereo_t> splitter;
         SinkManager::Sink* sink;
         dsp::stream<dsp::stereo_t> volumeInput;
-        dsp::Volume<dsp::stereo_t> volumeAjust;
+        dsp::audio::Volume volumeAjust;
         std::mutex ctrlMtx;
         float _sampleRate;
         int providerId = 0;
@@ -85,7 +85,7 @@ public:
         }
 
     private:
-        dsp::NullSink<dsp::stereo_t> ns;
+        dsp::sink::Null<dsp::stereo_t> ns;
     };
 
     void registerSinkProvider(std::string name, SinkProvider provider);

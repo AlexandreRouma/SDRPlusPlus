@@ -1,7 +1,7 @@
 #pragma once
 #include "../demod.h"
-#include <dsp/demodulator.h>
-#include <dsp/filter.h>
+#include <dsp/demod/fm.h>
+#include <dsp/convert/mono_to_stereo.h>
 
 namespace demod {
     class NFM : public Demodulator {
@@ -20,21 +20,24 @@ namespace demod {
             this->name = name;
 
             // Define structure
-            demod.init(input, getIFSampleRate(), bandwidth / 2.0f);
+            demod.init(input, bandwidth / 2.0, getIFSampleRate());
+            m2s.init(&demod.out);
         }
 
         void start() {
             demod.start();
+            m2s.start();
         }
 
         void stop() {
             demod.stop();
+            m2s.stop();
         }
 
         void showMenu() {}
 
         void setBandwidth(double bandwidth) {
-            demod.setDeviation(bandwidth / 2.0f);
+            demod.setDeviation(bandwidth / 2.0, getIFSampleRate());
         }
 
         void setInput(dsp::stream<dsp::complex_t>* input) {
@@ -62,10 +65,11 @@ namespace demod {
         bool getDynamicAFBandwidth() { return true; }
         bool getFMIFNRAllowed() { return true; }
         bool getNBAllowed() { return false; }
-        dsp::stream<dsp::stereo_t>* getOutput() { return &demod.out; }
+        dsp::stream<dsp::stereo_t>* getOutput() { return &m2s.out; }
 
     private:
-        dsp::FMDemod demod;
+        dsp::demod::FM demod;
+        dsp::convert::MonoToStereo m2s;
 
         std::string name;
     };

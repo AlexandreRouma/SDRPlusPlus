@@ -1,7 +1,9 @@
 #pragma once
 #include "../demod.h"
-#include <dsp/demodulator.h>
-#include <dsp/filter.h>
+#include <dsp/channel/frequency_xlator.h>
+#include <dsp/convert/complex_to_real.h>
+#include <dsp/convert/mono_to_stereo.h>
+#include <dsp/loop/agc.h>
 
 namespace demod {
     class CW : public Demodulator {
@@ -30,9 +32,9 @@ namespace demod {
             config->release();
 
             // Define structure
-            xlator.init(input, getIFSampleRate(), tone);
+            xlator.init(input, tone, getIFSampleRate());
             c2r.init(&xlator.out);
-            agc.init(&c2r.out, 20.0f, getIFSampleRate());
+            agc.init(&c2r.out, 1.0, 200000.0 / getIFSampleRate());
             m2s.init(&agc.out);
         }
 
@@ -55,7 +57,7 @@ namespace demod {
             ImGui::FillWidth();
             if (ImGui::InputInt(("Stereo##_radio_cw_tone_" + name).c_str(), &tone, 10, 100)) {
                 tone = std::clamp<int>(tone, 250, 1250);
-                xlator.setFrequency(tone);
+                xlator.setOffset(tone, getIFSampleRate());
                 afbwChangeHandler.handler(getAFBandwidth(_bandwidth), afbwChangeHandler.ctx);
                 _config->acquire();
                 _config->conf[name][getName()]["tone"] = tone;
@@ -94,10 +96,10 @@ namespace demod {
 
     private:
         ConfigManager* _config = NULL;
-        dsp::FrequencyXlator<dsp::complex_t> xlator;
-        dsp::ComplexToReal c2r;
-        dsp::AGC agc;
-        dsp::MonoToStereo m2s;
+        dsp::channel::FrequencyXlator xlator;
+        dsp::convert::ComplexToReal c2r;
+        dsp::loop::AGC<float> agc;
+        dsp::convert::MonoToStereo m2s;
 
         std::string name;
 

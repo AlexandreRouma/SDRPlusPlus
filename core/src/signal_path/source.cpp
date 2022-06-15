@@ -26,7 +26,7 @@ void SourceManager::unregisterSource(std::string name) {
         if (selectedHandler != NULL) {
             sources[selectedName]->deselectHandler(sources[selectedName]->ctx);
         }
-        sigpath::signalPath.setInput(&nullSource);
+        sigpath::iqFrontEnd.setInput(&nullSource);
         selectedHandler = NULL;
     }
     sources.erase(name);
@@ -54,7 +54,7 @@ void SourceManager::selectSource(std::string name) {
         server::setInput(selectedHandler->stream);
     }
     else {
-        sigpath::signalPath.setInput(selectedHandler->stream);
+        sigpath::iqFrontEnd.setInput(selectedHandler->stream);
     }
     // Set server input here
 }

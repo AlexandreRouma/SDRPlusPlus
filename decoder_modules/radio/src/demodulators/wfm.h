@@ -1,7 +1,6 @@
 #pragma once
 #include "../demod.h"
-#include <dsp/demodulator.h>
-#include <dsp/filter.h>
+#include <dsp/demod/broadcast_fm.h>
 
 namespace demod {
     class WFM : public Demodulator {
@@ -25,41 +24,37 @@ namespace demod {
             _config->acquire();
             bool modified = false;
             if (config->conf[name][getName()].contains("stereo")) {
-                stereo = config->conf[name][getName()]["stereo"];
+                _stereo = config->conf[name][getName()]["stereo"];
             }
             _config->release(modified);
 
             // Define structure
-            demod.init(input, getIFSampleRate(), bandwidth / 2.0f);
-            demodStereo.init(input, getIFSampleRate(), bandwidth / 2.0f);
+            demod.init(input, bandwidth / 2.0f, getIFSampleRate(), _stereo);
         }
 
         void start() {
-            stereo ? demodStereo.start() : demod.start();
+            demod.start();
         }
 
         void stop() {
             demod.stop();
-            demodStereo.stop();
         }
 
         void showMenu() {
-            if (ImGui::Checkbox(("Stereo##_radio_wfm_stereo_" + name).c_str(), &stereo)) {
-                setStereo(stereo);
+            if (ImGui::Checkbox(("Stereo##_radio_wfm_stereo_" + name).c_str(), &_stereo)) {
+                setStereo(_stereo);
                 _config->acquire();
-                _config->conf[name][getName()]["stereo"] = stereo;
+                _config->conf[name][getName()]["stereo"] = _stereo;
                 _config->release(true);
             }
         }
 
         void setBandwidth(double bandwidth) {
             demod.setDeviation(bandwidth / 2.0f);
-            demodStereo.setDeviation(bandwidth / 2.0f);
         }
 
         void setInput(dsp::stream<dsp::complex_t>* input) {
             demod.setInput(input);
-            demodStereo.setInput(input);
         }
 
         void AFSampRateChanged(double newSR) {}
@@ -83,31 +78,21 @@ namespace demod {
         bool getDynamicAFBandwidth() { return false; }
         bool getFMIFNRAllowed() { return true; }
         bool getNBAllowed() { return false; }
-        dsp::stream<dsp::stereo_t>* getOutput() { return stereo ? demodStereo.out : &demod.out; }
+        dsp::stream<dsp::stereo_t>* getOutput() { return &demod.out; }
 
         // ============= DEDICATED FUNCTIONS =============
 
-        void setStereo(bool _stereo) {
-            stereo = _stereo;
-            if (stereo) {
-                demod.stop();
-                outputChangeHandler.handler(demodStereo.out, outputChangeHandler.ctx);
-                demodStereo.start();
-            }
-            else {
-                demodStereo.stop();
-                outputChangeHandler.handler(&demod.out, outputChangeHandler.ctx);
-                demod.start();
-            }
+        void setStereo(bool stereo) {
+            _stereo = stereo;
+            demod.setStereo(_stereo);
         }
 
     private:
-        dsp::FMDemod demod;
-        dsp::StereoFMDemod demodStereo;
+        dsp::demod::BroadcastFM demod;
 
         ConfigManager* _config = NULL;
 
-        bool stereo = false;
+        bool _stereo = false;
 
         std::string name;
         EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler;

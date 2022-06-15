@@ -68,7 +68,7 @@ private:
         FileSourceModule* _this = (FileSourceModule*)ctx;
         core::setInputSampleRate(_this->sampleRate);
         tuner::tune(tuner::TUNER_MODE_IQ_ONLY, "", _this->centerFreq);
-        sigpath::signalPath.setBuffering(false);
+        sigpath::iqFrontEnd.setBuffering(false);
         gui::waterfall.centerFrequencyLocked = true;
         //gui::freqSelect.minFreq = _this->centerFreq - (_this->sampleRate/2);
         //gui::freqSelect.maxFreq = _this->centerFreq + (_this->sampleRate/2);
@@ -78,7 +78,7 @@ private:
 
     static void menuDeselected(void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
-        sigpath::signalPath.setBuffering(true);
+        sigpath::iqFrontEnd.setBuffering(true);
         //gui::freqSelect.limitFreq = false;
         gui::waterfall.centerFrequencyLocked = false;
         spdlog::info("FileSourceModule '{0}': Menu Deselect!", _this->name);

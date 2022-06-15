@@ -1,7 +1,7 @@
 #pragma once
 #include "../demod.h"
-#include <dsp/demodulator.h>
-#include <dsp/filter.h>
+#include <dsp/demod/ssb.h>
+#include <dsp/convert/mono_to_stereo.h>
 
 namespace demod {
     class DSB : public Demodulator {
@@ -20,20 +20,17 @@ namespace demod {
             this->name = name;
 
             // Define structure
-            demod.init(input, getIFSampleRate(), bandwidth, dsp::SSBDemod::MODE_DSB);
-            agc.init(&demod.out, 20.0f, getIFSampleRate());
-            m2s.init(&agc.out);
+            demod.init(input, dsp::demod::SSB::Mode::DSB, bandwidth, getIFSampleRate(), 200000.0 / getIFSampleRate());
+            m2s.init(&demod.out);
         }
 
         void start() {
             demod.start();
-            agc.start();
             m2s.start();
         }
 
         void stop() {
             demod.stop();
-            agc.stop();
             m2s.stop();
         }
 
@@ -42,7 +39,7 @@ namespace demod {
         }
 
         void setBandwidth(double bandwidth) {
-            demod.setBandWidth(bandwidth);
+            demod.setBandwidth(bandwidth);
         }
 
         void setInput(dsp::stream<dsp::complex_t>* input) {
@@ -73,9 +70,8 @@ namespace demod {
         dsp::stream<dsp::stereo_t>* getOutput() { return &m2s.out; }
 
     private:
-        dsp::SSBDemod demod;
-        dsp::AGC agc;
-        dsp::MonoToStereo m2s;
+        dsp::demod::SSB demod;
+        dsp::convert::MonoToStereo m2s;
 
         std::string name;
     };
