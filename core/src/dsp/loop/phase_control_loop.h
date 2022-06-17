@@ -36,7 +36,7 @@ namespace dsp::loop {
         }
 
         void setCoefficients(T alpha, T beta) {
-            _alpha = alpha:
+            _alpha = alpha;
             _beta = beta;
         }
 
