@@ -64,7 +64,10 @@ namespace dsp::demod {
                 audioAgc.process(count, out, out);
             }
             else {
-                volk_32f_s32f_add_32f(out, out, -1.0f, count);
+                // TODO: Find a volk function for it
+                for (int i = 0; i < count; i++) {
+                    out[i] -= 1.0;
+                }
             }
 
             return count;
