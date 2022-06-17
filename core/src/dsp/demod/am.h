@@ -1,6 +1,7 @@
 #pragma once
 #include "../processor.h"
 #include "../loop/agc.h"
+#include "../correction/dc_blocker.h"
 
 namespace dsp::demod {
     class AM : public Processor<dsp::complex_t, float> {
@@ -13,13 +14,14 @@ namespace dsp::demod {
 
         AM() {}
 
-        AM(stream<complex_t>* in, AGCMode agcMode, double agcRate) { init(in, agcMode, agcRate); }
+        AM(stream<complex_t>* in, AGCMode agcMode, double agcAttack, double agcDecay, double dcBlockRate) { init(in, agcMode, agcAttack, agcDecay, dcBlockRate); }
 
-        void init(stream<complex_t>* in, AGCMode agcMode, double agcRate) {
+        void init(stream<complex_t>* in, AGCMode agcMode, double agcAttack, double agcDecay, double dcBlockRate) {
             _agcMode = agcMode;
 
-            carrierAgc.init(NULL, 1.0, agcRate, 10e6, 10.0);
-            audioAgc.init(NULL, 1.0, agcRate, 10e6, 10.0);
+            carrierAgc.init(NULL, 1.0, agcAttack, agcDecay, 10e6, 10.0);
+            audioAgc.init(NULL, 1.0, agcAttack, agcDecay, 10e6, 10.0);
+            dcBlock.init(NULL, dcBlockRate);
             
             base_type::init(in);
         }
@@ -33,11 +35,24 @@ namespace dsp::demod {
             base_type::tempStart();
         }
 
-        void setAGCRate(double agcRate) {
+        void setAGCAttack(double attack) {
             assert(base_type::_block_init);
             std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
-            carrierAgc.setRate(agcRate);
-            audioAgc.setRate(agcRate);
+            carrierAgc.setAttack(attack);
+            audioAgc.setAttack(attack);
+        }
+
+        void setAGCDecay(double decay) {
+            assert(base_type::_block_init);
+            std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
+            carrierAgc.setDecay(decay);
+            audioAgc.setDecay(decay);
+        }
+
+        void setDCBlockRate(double rate) {
+            assert(base_type::_block_init);
+            std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
+            dcBlock.setRate(rate);
         }
 
         void reset() {
@@ -46,6 +61,7 @@ namespace dsp::demod {
             base_type::tempStop();
             carrierAgc.reset();
             audioAgc.reset();
+            dcBlock.reset();
             base_type::tempStart();
         }
 
@@ -56,18 +72,13 @@ namespace dsp::demod {
                 in = carrierAgc.out.writeBuf;
             }
 
-            // Get magnitude of each sample (TODO: use block instead)
+            // Get magnitude of each sample and remove DC (TODO: use block instead)
             volk_32fc_magnitude_32f(out, (lv_32fc_t*)in, count);
+            dcBlock.process(count, out, out);
 
             // Apply audio AGC if needed
             if (_agcMode == AGCMode::AUDIO) {
                 audioAgc.process(count, out, out);
-            }
-            else {
-                // TODO: Find a volk function for it
-                for (int i = 0; i < count; i++) {
-                    out[i] -= 1.0;
-                }
             }
 
             return count;
@@ -89,6 +100,7 @@ namespace dsp::demod {
 
         loop::AGC<complex_t> carrierAgc;
         loop::AGC<float> audioAgc;
+        correction::DCBlocker<float> dcBlock;
 
     };
 }

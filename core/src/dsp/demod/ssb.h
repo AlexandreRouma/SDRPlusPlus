@@ -16,29 +16,17 @@ namespace dsp::demod {
 
         SSB() {}
 
-        /** Calls the init function
-         */
-        SSB(stream<complex_t>* in, Mode mode, double bandwidth, double samplerate, double agcRate) { init(in, mode, bandwidth, samplerate, agcRate); }
+        SSB(stream<complex_t>* in, Mode mode, double bandwidth, double samplerate, double agcAttack, double agcDecay) { init(in, mode, bandwidth, samplerate, agcAttack, agcDecay); }
 
-        /** Initialize the SSB/DSB Demodulator
-         *  \param in           Input stream
-         *  \param mode         Demodulation mode, can be USB, LSB or DSB
-         *  \param bandwidth    Bandwidth needed to shift back the IQ correctly
-         *  \param samplerate   Samplerate of the IQ data
-         *  \param agcRate      Speed at which the AGC corrects the audio level. This is NOT automatically scaled to the samplerate.
-         */
-        void init(stream<complex_t>* in, Mode mode, double bandwidth, double samplerate, double agcRate) {
+        void init(stream<complex_t>* in, Mode mode, double bandwidth, double samplerate, double agcAttack, double agcDecay) {
             _mode = mode;
             _bandwidth = bandwidth;
             _samplerate = samplerate;
             xlator.init(NULL, getTranslation(), _samplerate);
-            agc.init(NULL, 1.0, agcRate, 10e6, 10.0);
+            agc.init(NULL, 1.0, agcAttack, agcDecay, 10e6, 10.0);
             base_type::init(in);
         }
 
-        /** Set demodulation mode
-         *  \param mode Either USB, LSB or DSB
-         */
         void setMode(Mode mode) {
             assert(base_type::_block_init);
             std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
@@ -48,9 +36,6 @@ namespace dsp::demod {
             base_type::tempStart();
         }
 
-        /** Set bandwidth
-         *  \param bandwidth Bandwidth in Hz
-         */
         void setBandwidth(double bandwidth) {
             assert(base_type::_block_init);
             std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
@@ -60,9 +45,6 @@ namespace dsp::demod {
             base_type::tempStart();
         }
 
-        /** Set samplerate
-         *  \param samplerate Samplerate in Hz
-         */
         void setSamplerate(double samplerate) {
             assert(base_type::_block_init);
             std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
@@ -72,20 +54,18 @@ namespace dsp::demod {
             base_type::tempStart();
         }
 
-        /** Set AGC rate
-         *  \param agcRate AGC rate in units per second
-         */
-        void setAGCRate(double agcRate) {
+        void setAGCAttack(double attack) {
             assert(base_type::_block_init);
             std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
-            agc.setRate(agcRate);
+            agc.setAttack(attack);
         }
 
-        /** Process data
-         *  \param count    Number of samples
-         *  \param in       Input buffer
-         *  \param out      Output buffer
-         */
+        void setAGCDecay(double decay) {
+            assert(base_type::_block_init);
+            std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
+            agc.setDecay(decay);
+        }
+
         int process(int count, const complex_t* in, float* out) {
             // Move back sideband
             xlator.process(count, in, xlator.out.writeBuf);

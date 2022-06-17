@@ -8,12 +8,14 @@ namespace dsp::loop {
     public:
         AGC() {}
 
-        AGC(stream<T>* in, double setPoint, double rate, double maxGain, double maxOutputAmp, double initGain = 1.0) { init(in, setPoint, rate, maxGain, maxOutputAmp, initGain); }
+        AGC(stream<T>* in, double setPoint, double attack, double decay, double maxGain, double maxOutputAmp, double initGain = 1.0) { init(in, setPoint, attack, decay, maxGain, maxOutputAmp, initGain); }
 
-        void init(stream<T>* in, double setPoint, double rate, double maxGain, double maxOutputAmp, double initGain = 1.0) {
+        void init(stream<T>* in, double setPoint, double attack, double decay, double maxGain, double maxOutputAmp, double initGain = 1.0) {
             _setPoint = setPoint;
-            _rate = rate;
-            _invRate = 1.0f - _rate;
+            _attack = attack;
+            _invAttack = 1.0f - _attack;
+            _decay = decay;
+            _invDecay = 1.0f - _decay;
             _maxGain = maxGain;
             _maxOutputAmp = maxOutputAmp;
             _initGain = initGain;
@@ -27,11 +29,18 @@ namespace dsp::loop {
             _setPoint = setPoint;
         }
 
-        void setRate(double rate) {
+        void setAttack(double attack) {
             assert(base_type::_block_init);
             std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
-            _rate = rate;
-            _invRate = 1.0f - _rate;
+            _attack = attack;
+            _invAttack = 1.0f - _attack;
+        }
+
+        void setDecay(double decay) {
+            assert(base_type::_block_init);
+            std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
+            _decay = decay;
+            _invDecay = 1.0f - _decay;
         }
 
         void setMaxGain(double maxGain) {
@@ -72,7 +81,7 @@ namespace dsp::loop {
 
                 // Update average amplitude
                 if (inAmp != 0.0f) {
-                    amp = (amp * _invRate) + (inAmp * _rate);
+                    amp = (inAmp > amp) ? ((amp * _invAttack) + (inAmp * _attack)) : ((amp * _invDecay) + (inAmp * _decay));
                     gain = std::min<float>(_setPoint / amp, _maxGain);
                 }
 
@@ -95,8 +104,10 @@ namespace dsp::loop {
 
     protected:
         float _setPoint;
-        float _rate;
-        float _invRate;
+        float _attack;
+        float _invAttack;
+        float _decay;
+        float _invDecay;
         float _maxGain;
         float _maxOutputAmp;
         float _initGain;

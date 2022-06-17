@@ -26,10 +26,13 @@ namespace demod {
             if (config->conf[name][getName()].contains("stereo")) {
                 _stereo = config->conf[name][getName()]["stereo"];
             }
+            if (config->conf[name][getName()].contains("lowPass")) {
+                _lowPass = config->conf[name][getName()]["lowPass"];
+            }
             _config->release(modified);
 
             // Define structure
-            demod.init(input, bandwidth / 2.0f, getIFSampleRate(), _stereo);
+            demod.init(input, bandwidth / 2.0f, getIFSampleRate(), _stereo, _lowPass);
         }
 
         void start() {
@@ -49,6 +52,9 @@ namespace demod {
             }
             if (ImGui::Checkbox(("Low Pass##_radio_wfm_lowpass_" + name).c_str(), &_lowPass)) {
                 demod.setLowPass(_lowPass);
+                _config->acquire();
+                _config->conf[name][getName()]["lowPass"] = _lowPass;
+                _config->release(true);
             }
         }
 

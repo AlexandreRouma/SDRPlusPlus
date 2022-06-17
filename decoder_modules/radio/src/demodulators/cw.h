@@ -26,6 +26,12 @@ namespace demod {
 
             // Load config
             config->acquire();
+            if (config->conf[name][getName()].contains("agcAttack")) {
+                agcAttack = config->conf[name][getName()]["agcAttack"];
+            }
+            if (config->conf[name][getName()].contains("agcDecay")) {
+                agcDecay = config->conf[name][getName()]["agcDecay"];
+            }
             if (config->conf[name][getName()].contains("tone")) {
                 tone = config->conf[name][getName()]["tone"];
             }
@@ -34,7 +40,7 @@ namespace demod {
             // Define structure
             xlator.init(input, tone, getIFSampleRate());
             c2r.init(&xlator.out);
-            agc.init(&c2r.out, 1.0, 24.0 / getIFSampleRate(), 10e6, 10.0);
+            agc.init(&c2r.out, 1.0, agcAttack / getIFSampleRate(), agcDecay / getIFSampleRate(), 10e6, 10.0);
             m2s.init(&agc.out);
         }
 
@@ -53,6 +59,23 @@ namespace demod {
         }
 
         void showMenu() {
+            float menuWidth = ImGui::GetContentRegionAvail().x;
+            ImGui::LeftLabel("AGC Attack");
+            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+            if (ImGui::SliderFloat(("##_radio_cw_agc_attack_" + name).c_str(), &agcAttack, 1.0f, 50.0f)) {
+                agc.setAttack(agcAttack / getIFSampleRate());
+                _config->acquire();
+                _config->conf[name][getName()]["agcAttack"] = agcAttack;
+                _config->release(true);
+            }
+            ImGui::LeftLabel("AGC Decay");
+            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+            if (ImGui::SliderFloat(("AGC Decay##_radio_cw_agc_decay_" + name).c_str(), &agcDecay, 1.0f, 50.0f)) {
+                agc.setDecay(agcDecay / getIFSampleRate());
+                _config->acquire();
+                _config->conf[name][getName()]["agcDecay"] = agcDecay;
+                _config->release(true);
+            }
             ImGui::LeftLabel("Tone Frequency");
             ImGui::FillWidth();
             if (ImGui::InputInt(("Stereo##_radio_cw_tone_" + name).c_str(), &tone, 10, 100)) {
@@ -103,6 +126,8 @@ namespace demod {
 
         std::string name;
 
+        float agcAttack = 40.0f;
+        float agcDecay = 5.0f;
         int tone = 800;
         double _bandwidth;
 

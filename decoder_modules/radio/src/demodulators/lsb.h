@@ -18,9 +18,20 @@ namespace demod {
 
         void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler, EventHandler<float> afbwChangeHandler, double audioSR) {
             this->name = name;
+            _config = config;
+
+            // Load config
+            config->acquire();
+            if (config->conf[name][getName()].contains("agcAttack")) {
+                agcAttack = config->conf[name][getName()]["agcAttack"];
+            }
+            if (config->conf[name][getName()].contains("agcDecay")) {
+                agcDecay = config->conf[name][getName()]["agcDecay"];
+            }
+            config->release();
 
             // Define structure
-            demod.init(input, dsp::demod::SSB::Mode::LSB, bandwidth, getIFSampleRate(), 24.0 / getIFSampleRate());
+            demod.init(input, dsp::demod::SSB::Mode::LSB, bandwidth, getIFSampleRate(), agcAttack / getIFSampleRate(), agcDecay / getIFSampleRate());
             m2s.init(&demod.out);
         }
 
@@ -35,7 +46,23 @@ namespace demod {
         }
 
         void showMenu() {
-            // TODO: Adjust AGC settings
+            float menuWidth = ImGui::GetContentRegionAvail().x;
+            ImGui::LeftLabel("AGC Attack");
+            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+            if (ImGui::SliderFloat(("##_radio_lsb_agc_attack_" + name).c_str(), &agcAttack, 1.0f, 50.0f)) {
+                demod.setAGCAttack(agcAttack / getIFSampleRate());
+                _config->acquire();
+                _config->conf[name][getName()]["agcAttack"] = agcAttack;
+                _config->release(true);
+            }
+            ImGui::LeftLabel("AGC Decay");
+            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+            if (ImGui::SliderFloat(("AGC Decay##_radio_lsb_agc_decay_" + name).c_str(), &agcDecay, 1.0f, 50.0f)) {
+                demod.setAGCDecay(agcDecay / getIFSampleRate());
+                _config->acquire();
+                _config->conf[name][getName()]["agcDecay"] = agcDecay;
+                _config->release(true);
+            }
         }
 
         void setBandwidth(double bandwidth) {
@@ -72,6 +99,11 @@ namespace demod {
     private:
         dsp::demod::SSB demod;
         dsp::convert::MonoToStereo m2s;
+
+        ConfigManager* _config;
+
+        float agcAttack = 40.0f;
+        float agcDecay = 5.0f;
 
         std::string name;
     };
