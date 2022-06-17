@@ -42,18 +42,18 @@ namespace dsp::routing {
         }
 
         int run() {
-            int count = _in->read();
+            int count = base_type::_in->read();
             if (count < 0) { return -1; }
 
             for (const auto& stream : streams) {
-                memcpy(stream->writeBuf, _in->readBuf, count * sizeof(T));
+                memcpy(stream->writeBuf, base_type::_in->readBuf, count * sizeof(T));
                 if (!stream->swap(count)) {
-                    _in->flush();
+                    base_type::_in->flush();
                     return -1;
                 }
             }
 
-            _in->flush();
+            base_type::_in->flush();
 
             return count;
         }
