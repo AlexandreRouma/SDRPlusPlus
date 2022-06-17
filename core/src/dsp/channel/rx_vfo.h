@@ -92,13 +92,13 @@ namespace dsp::channel {
         }
 
         int run() {
-            int count = _in->read();
+            int count = base_type::_in->read();
             if (count < 0) { return -1; }
 
-            int outCount = process(count, _in->readBuf, out.writeBuf);
+            int outCount = process(count, base_type::_in->readBuf, out.writeBuf);
 
             // Swap if some data was generated
-            _in->flush();
+            base_type::_in->flush();
             if (outCount) {
                 if (!out.swap(outCount)) { return -1; }
             }

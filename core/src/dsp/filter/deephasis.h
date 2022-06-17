@@ -79,7 +79,7 @@ namespace dsp::filter {
         //DEFAULT_PROC_RUN();
 
         int run() {
-            int count = _in->read();
+            int count = base_type::_in->read();
             if (count < 0) { return -1; }
             process(count, base_type::_in->readBuf, base_type::out.writeBuf);
             base_type::_in->flush();
