@@ -20,7 +20,7 @@ namespace dsp::sink {
             int count = base_type::_in->read();
             if (count < 0) { return -1; }
 
-            _handler(_in->readBuf, count, _ctx);
+            _handler(base_type::_in->readBuf, count, _ctx);
 
             base_type::_in->flush();
             return count;
