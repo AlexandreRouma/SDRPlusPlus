@@ -27,12 +27,12 @@ namespace dsp::routing {
         }
 
         int run() {
-            int count = _in->read();
+            int count = base_type::_in->read();
             if (count < 0) { return -1; }
 
-            memcpy(_out->writeBuf, _in->readBuf, count * sizeof(T));
+            memcpy(_out->writeBuf, base_type::_in->readBuf, count * sizeof(T));
 
-            _in->flush();
+            base_type::_in->flush();
             if (!_out->swap(count)) { return -1; }
             return count;
         }
