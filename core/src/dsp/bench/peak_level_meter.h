@@ -3,12 +3,22 @@
 
 namespace dsp::bench {
     template<class T>
-    class PeakLevelMeter : Sink<T> {
+    class PeakLevelMeter : public Sink<T> {
         using base_type = Sink<T>;
     public:
         PeakLevelMeter() {}
 
-        PeakLevelMeter(stream<T>* in) { base_type::init(in); }
+        PeakLevelMeter(stream<T>* in) { init(in); }
+
+        void init(stream<T>* in) {
+            if constexpr (std::is_same_v<T, float>) {
+                level = 0.0f;
+            }
+            if constexpr (std::is_same_v<T, complex_t> || std::is_same_v<T, stereo_t>) {
+                level = { 0.0f, 0.0f };
+            }
+            base_type::init(in);
+        }
 
         T getLevel() {
             return level;

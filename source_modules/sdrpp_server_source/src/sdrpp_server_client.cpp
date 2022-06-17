@@ -109,7 +109,7 @@ namespace server {
         return currentSampleRate;
     }
 
-    void ClientClass::setSampleType(dsp::PCMType type) {
+    void ClientClass::setSampleType(dsp::compression::PCMType type) {
         s_cmd_data[0] = type;
         sendCommand(COMMAND_SET_SAMPLE_TYPE, 1);
     }

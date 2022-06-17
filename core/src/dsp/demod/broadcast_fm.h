@@ -1,5 +1,6 @@
 #pragma once
 #include "fm.h"
+#include "../taps/low_pass.h"
 #include "../taps/band_pass.h"
 #include "../filter/fir.h"
 #include "../loop/pll.h"
@@ -18,7 +19,7 @@ namespace dsp::demod {
     public:
         BroadcastFM() {}
 
-        BroadcastFM(stream<complex_t>* in, double deviation, double samplerate, bool stereo = true) { init(in, deviation, samplerate, stereo); }
+        BroadcastFM(stream<complex_t>* in, double deviation, double samplerate, bool stereo = true, bool lowPass = true) { init(in, deviation, samplerate, stereo, lowPass); }
 
         ~BroadcastFM() {
             if (!base_type::_block_init) { return; }
@@ -26,19 +27,26 @@ namespace dsp::demod {
             buffer::free(lmr);
             buffer::free(l);
             buffer::free(r);
+            taps::free(pilotFirTaps);
+            taps::free(audioFirTaps);
         }
 
-        virtual void init(stream<complex_t>* in, double deviation, double samplerate, bool stereo = true) {
+        virtual void init(stream<complex_t>* in, double deviation, double samplerate, bool stereo = true, bool lowPass = true) {
             _deviation = deviation;
             _samplerate = samplerate;
             _stereo = stereo;
+            _lowPass = lowPass;
             
             demod.init(NULL, _deviation, _samplerate);
-            pilotFirTaps = taps::bandPass<complex_t>(18750.0, 19250.0, 3000.0, _samplerate);
+            pilotFirTaps = taps::bandPass<complex_t>(18750.0, 19250.0, 3000.0, _samplerate, true);
             pilotFir.init(NULL, pilotFirTaps);
             rtoc.init(NULL);
-            pilotPLL.init(NULL, 0.1/*TODO: adapt to samplerate*/, 0.0, math::freqToOmega(19000.0, _samplerate), math::freqToOmega(18750.0, _samplerate), math::freqToOmega(19250.0, _samplerate));
-            delay.init(NULL, pilotFirTaps.size / 2.0);
+            pilotPLL.init(NULL, 25000.0 / _samplerate, 0.0, math::freqToOmega(19000.0, _samplerate), math::freqToOmega(18750.0, _samplerate), math::freqToOmega(19250.0, _samplerate));
+            lprDelay.init(NULL, ((pilotFirTaps.size - 1) / 2) + 1);
+            lmrDelay.init(NULL, ((pilotFirTaps.size - 1) / 2) + 1);
+            audioFirTaps = taps::lowPass(15000.0, 4000.0, _samplerate);
+            alFir.init(NULL, audioFirTaps);
+            arFir.init(NULL, audioFirTaps);
 
             lmr = buffer::alloc<float>(STREAM_BUFFER_SIZE);
             l = buffer::alloc<float>(STREAM_BUFFER_SIZE);
@@ -62,11 +70,18 @@ namespace dsp::demod {
 
             demod.setDeviation(_deviation, _samplerate);
             taps::free(pilotFirTaps);
-            pilotFirTaps = taps::bandPass<complex_t>(18750.0, 19250.0, 3000.0, samplerate);
+            pilotFirTaps = taps::bandPass<complex_t>(18750.0, 19250.0, 3000.0, samplerate, true);
             pilotFir.setTaps(pilotFirTaps);
+            
             pilotPLL.setFrequencyLimits(math::freqToOmega(18750.0, _samplerate), math::freqToOmega(19250.0, _samplerate));
             pilotPLL.setInitialFreq(math::freqToOmega(19000.0, _samplerate));
-            delay.setDelay(pilotFirTaps.size / 2);
+            lprDelay.setDelay(((pilotFirTaps.size - 1) / 2) + 1);
+            lmrDelay.setDelay(((pilotFirTaps.size - 1) / 2) + 1);
+
+            taps::free(audioFirTaps);
+            audioFirTaps = taps::lowPass(15000.0, 4000.0, _samplerate);
+            alFir.setTaps(audioFirTaps);
+            arFir.setTaps(audioFirTaps);
 
             reset();
             base_type::tempStart();
@@ -81,6 +96,15 @@ namespace dsp::demod {
             base_type::tempStart();
         }
 
+        void setLowPass(bool lowPass) {
+            assert(base_type::_block_init);
+            std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
+            base_type::tempStop();
+            _lowPass = lowPass;
+            reset();
+            base_type::tempStart();
+        }
+
         void reset() {
             assert(base_type::_block_init);
             std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
@@ -88,7 +112,10 @@ namespace dsp::demod {
             demod.reset();
             pilotFir.reset();
             pilotPLL.reset();
-            delay.reset();
+            lprDelay.reset();
+            lmrDelay.reset();
+            alFir.reset();
+            arFir.reset();
             base_type::tempStart();
         }
 
@@ -103,21 +130,40 @@ namespace dsp::demod {
                 pilotFir.process(count, rtoc.out.writeBuf, pilotFir.out.writeBuf);
                 pilotPLL.process(count, pilotFir.out.writeBuf, pilotPLL.out.writeBuf);
 
-                // Conjugate PLL output to down convert the L-R signal
+                // Delay
+                lprDelay.process(count, demod.out.writeBuf, demod.out.writeBuf);
+                lmrDelay.process(count, rtoc.out.writeBuf, rtoc.out.writeBuf);
+                
+                // Double and conjugate PLL output to down convert the L-R signal
+                math::Multiply<dsp::complex_t>::process(count, pilotPLL.out.writeBuf, pilotPLL.out.writeBuf, pilotPLL.out.writeBuf);
                 math::Conjugate::process(count, pilotPLL.out.writeBuf, pilotPLL.out.writeBuf);
                 math::Multiply<dsp::complex_t>::process(count, rtoc.out.writeBuf, pilotPLL.out.writeBuf, rtoc.out.writeBuf);
 
                 // Convert output back to real for further processing
                 convert::ComplexToReal::process(count, rtoc.out.writeBuf, lmr);
 
+                // Amplify by 2x
+                volk_32f_s32f_multiply_32f(lmr, lmr, 2.0f, count);
+
                 // Do L = (L+R) + (L-R), R = (L+R) - (L-R)
                 math::Add<float>::process(count, demod.out.writeBuf, lmr, l);
                 math::Subtract<float>::process(count, demod.out.writeBuf, lmr, r);
+
+                // Filter if needed
+                if (_lowPass) {
+                    alFir.process(count, l, l);
+                    arFir.process(count, r, r);
+                }
 
                 // Interleave into stereo
                 convert::LRToStereo::process(count, l, r, out);
             }
             else {
+                // Filter if needed
+                if (_lowPass) {
+                    alFir.process(count, demod.out.writeBuf, demod.out.writeBuf);
+                }
+
                 // Interleave raw MPX to stereo
                 convert::LRToStereo::process(count, demod.out.writeBuf, demod.out.writeBuf, out);
             }
@@ -140,13 +186,18 @@ namespace dsp::demod {
         double _deviation;
         double _samplerate;
         bool _stereo;
+        bool _lowPass = true;
 
         FM demod;
         tap<complex_t> pilotFirTaps;
         filter::FIR<complex_t, complex_t> pilotFir;
         convert::RealToComplex rtoc;
         loop::PLL pilotPLL;
-        math::Delay<float> delay;
+        math::Delay<float> lprDelay;
+        math::Delay<complex_t> lmrDelay;
+        tap<float> audioFirTaps;
+        filter::FIR<float, float> arFir;
+        filter::FIR<float, float> alFir;
 
         float* lmr;
         float* l;

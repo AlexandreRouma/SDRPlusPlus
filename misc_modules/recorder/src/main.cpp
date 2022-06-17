@@ -3,7 +3,10 @@
 #include <wav.h>
 #include <dsp/types.h>
 #include <dsp/stream.h>
-#include <dsp/measure.h>
+#include <dsp/bench./peak_level_meter.h>
+#include <dsp/sink/handler_sink.h>
+#include <dsp/routing/splitter.h>
+#include <dsp/audio/volume.h>
 #include <thread>
 #include <ctime>
 #include <gui/gui.h>
@@ -72,7 +75,7 @@ public:
         config.release(created);
 
         // Init audio path
-        vol.init(&dummyStream, audioVolume);
+        vol.init(&dummyStream, audioVolume, false);
         audioSplit.init(&vol.out);
         audioSplit.bindStream(&meterStream);
         meter.init(&meterStream);
@@ -269,13 +272,14 @@ private:
         if (recording) { style::endDisabled(); }
 
         double frameTime = 1.0 / ImGui::GetIO().Framerate;
-        lvlL = std::max<float>(lvlL - (frameTime * 50.0), -90);
-        lvlR = std::max<float>(lvlR - (frameTime * 50.0), -90);
+        lvlL = std::clamp<float>(lvlL - (frameTime * 50.0), -90.0f, 10.0f);
+        lvlR = std::clamp<float>(lvlR - (frameTime * 50.0), -90.0f, 10.0f);
 
-        float _lvlL = meter.getLeftLevel();
-        float _lvlR = meter.getRightLevel();
-        if (_lvlL > lvlL) { lvlL = _lvlL; }
-        if (_lvlR > lvlR) { lvlR = _lvlR; }
+        dsp::stereo_t rawLvl = meter.getLevel();
+        meter.resetLevel();
+        dsp::stereo_t dbLvl = { 10.0f * log10f(rawLvl.l), 10.0f * log10f(rawLvl.r) };
+        if (dbLvl.l > lvlL) { lvlL = dbLvl.l; }
+        if (dbLvl.r > lvlR) { lvlR = dbLvl.r; }
         ImGui::VolumeMeter(lvlL, lvlL, -60, 10);
         ImGui::VolumeMeter(lvlR, lvlR, -60, 10);
 
@@ -485,12 +489,12 @@ private:
 
     // Audio path
     dsp::stream<dsp::stereo_t>* audioInput = NULL;
-    dsp::Volume<dsp::stereo_t> vol;
-    dsp::Splitter<dsp::stereo_t> audioSplit;
+    dsp::audio::Volume vol;
+    dsp::routing::Splitter<dsp::stereo_t> audioSplit;
     dsp::stream<dsp::stereo_t> meterStream;
-    dsp::LevelMeter meter;
+    dsp::bench::PeakLevelMeter<dsp::stereo_t> meter;
     dsp::stream<dsp::stereo_t> audioHandlerStream;
-    dsp::HandlerSink<dsp::stereo_t> audioHandler;
+    dsp::sink::Handler<dsp::stereo_t> audioHandler;
     WavWriter* audioWriter;
 
     std::vector<std::string> streamNames;
@@ -501,7 +505,7 @@ private:
 
     // Baseband path
     dsp::stream<dsp::complex_t> basebandStream;
-    dsp::HandlerSink<dsp::complex_t> basebandHandler;
+    dsp::sink::Handler<dsp::complex_t> basebandHandler;
     WavWriter* basebandWriter;
 
     uint64_t samplesWritten;

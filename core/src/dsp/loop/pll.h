@@ -24,6 +24,16 @@ namespace dsp::loop {
             base_type::init(in);
         }
 
+        void setBandwidth(double bandwidth) {
+            assert(base_type::_block_init);
+            std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
+            base_type::tempStop();
+            float alpha, beta;
+            PhaseControlLoop<float>::criticallyDamped(bandwidth, alpha, beta);
+            
+            base_type::tempStart();
+        }
+
         void setInitialPhase(double initPhase) {
             assert(base_type::_block_init);
             std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);

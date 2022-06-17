@@ -47,6 +47,9 @@ namespace demod {
                 _config->conf[name][getName()]["stereo"] = _stereo;
                 _config->release(true);
             }
+            if (ImGui::Checkbox(("Low Pass##_radio_wfm_lowpass_" + name).c_str(), &_lowPass)) {
+                demod.setLowPass(_lowPass);
+            }
         }
 
         void setBandwidth(double bandwidth) {
@@ -93,6 +96,7 @@ namespace demod {
         ConfigManager* _config = NULL;
 
         bool _stereo = false;
+        bool _lowPass = true;
 
         std::string name;
         EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler;

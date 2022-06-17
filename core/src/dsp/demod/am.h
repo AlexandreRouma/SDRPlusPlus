@@ -18,8 +18,8 @@ namespace dsp::demod {
         void init(stream<complex_t>* in, AGCMode agcMode, double agcRate) {
             _agcMode = agcMode;
 
-            carrierAgc.init(NULL, 1.0, agcRate);
-            audioAgc.init(NULL, 1.0, agcRate);
+            carrierAgc.init(NULL, 1.0, agcRate, 10e6, 10.0);
+            audioAgc.init(NULL, 1.0, agcRate, 10e6, 10.0);
             
             base_type::init(in);
         }
@@ -62,6 +62,9 @@ namespace dsp::demod {
             // Apply audio AGC if needed
             if (_agcMode == AGCMode::AUDIO) {
                 audioAgc.process(count, out, out);
+            }
+            else {
+                volk_32f_s32f_add_32f(out, out, -1.0f, count);
             }
 
             return count;

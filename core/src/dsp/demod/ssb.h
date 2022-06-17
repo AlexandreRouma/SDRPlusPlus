@@ -32,7 +32,7 @@ namespace dsp::demod {
             _bandwidth = bandwidth;
             _samplerate = samplerate;
             xlator.init(NULL, getTranslation(), _samplerate);
-            agc.init(NULL, 1.0, agcRate);
+            agc.init(NULL, 1.0, agcRate, 10e6, 10.0);
             base_type::init(in);
         }
 

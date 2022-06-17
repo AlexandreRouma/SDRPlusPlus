@@ -60,8 +60,8 @@ namespace dsp::multirate {
             int last = stageCount - 1;
             for (int i = 0; i < stageCount; i++) {
                 auto fir = decimFirs[i];
-                count = fir->process(count, data, (i == last) ? out : fir->out.writeBuf);
-                data = fir->out.writeBuf;
+                count = fir->process(count, data, out);
+                data = out;
             }
             return count;
         }

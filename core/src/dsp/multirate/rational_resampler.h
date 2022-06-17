@@ -63,8 +63,8 @@ namespace dsp::multirate {
         inline int process(int count, const T* in, T* out) {
             switch(mode) {
                 case Mode::BOTH:
-                    count = decim.process(count, in, decim.out.writeBuf);
-                    return resamp.process(count, decim.out.writeBuf, out);
+                    count = decim.process(count, in, out);
+                    return resamp.process(count, out, out);
                 case Mode::DECIM_ONLY:
                     return decim.process(count, in, out);
                 case Mode::RESAMP_ONLY:

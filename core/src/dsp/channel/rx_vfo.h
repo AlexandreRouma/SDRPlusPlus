@@ -82,12 +82,12 @@ namespace dsp::channel {
         }
 
         inline int process(int count, const complex_t* in, complex_t* out) {
-            xlator.process(count, in, xlator.out.writeBuf);
+            xlator.process(count, in, out);
             if (!filterNeeded) {
-                return resamp.process(count, xlator.out.writeBuf, out);
+                return resamp.process(count, out, out);
             }
-            count = resamp.process(count, xlator.out.writeBuf, resamp.out.writeBuf);
-            filter.process(count, resamp.out.writeBuf, out);
+            count = resamp.process(count, out, out);
+            filter.process(count, out, out);
             return count;
         }
 

@@ -34,7 +34,7 @@ namespace demod {
             // Define structure
             xlator.init(input, tone, getIFSampleRate());
             c2r.init(&xlator.out);
-            agc.init(&c2r.out, 1.0, 200000.0 / getIFSampleRate());
+            agc.init(&c2r.out, 1.0, 24.0 / getIFSampleRate(), 10e6, 10.0);
             m2s.init(&agc.out);
         }
 

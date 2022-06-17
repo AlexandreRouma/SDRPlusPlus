@@ -35,6 +35,11 @@ namespace dsp::loop {
             beta = (4 * bandwidth * bandwidth) / denominator;
         }
 
+        void setCoefficients(T alpha, T beta) {
+            _alpha = alpha:
+            _beta = beta;
+        }
+
         void setPhaseLimits(T minPhase, T maxPhase) {
             assert(maxPhase > minPhase);
             _minPhase = minPhase;

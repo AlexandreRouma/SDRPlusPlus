@@ -4,8 +4,8 @@
 #include <signal_path/signal_path.h>
 #include <signal_path/sink.h>
 #include <portaudio.h>
-#include <dsp/audio.h>
-#include <dsp/processing.h>
+#include <dsp/buffer/packer.h>
+#include <dsp/convert/stereo_to_mono.h>
 #include <spdlog/spdlog.h>
 #include <config.h>
 #include <algorithm>
@@ -374,8 +374,8 @@ private:
     std::string selectedDevName;
 
     SinkManager::Stream* _stream;
-    dsp::Packer<dsp::stereo_t> packer;
-    dsp::StereoToMono s2m;
+    dsp::buffer::Packer<dsp::stereo_t> packer;
+    dsp::convert::StereoToMono s2m;
 
     PaStream* devStream;
 

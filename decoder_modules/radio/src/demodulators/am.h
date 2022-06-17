@@ -20,7 +20,7 @@ namespace demod {
             this->name = name;
 
             // Define structure
-            demod.init(input, dsp::demod::AM::AGCMode::CARRIER, 200000.0 / getIFSampleRate());
+            demod.init(input, dsp::demod::AM::AGCMode::CARRIER, 24.0 / getIFSampleRate());
             m2s.init(&demod.out);
         }
 
