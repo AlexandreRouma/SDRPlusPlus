@@ -3,7 +3,7 @@
 #include <wav.h>
 #include <dsp/types.h>
 #include <dsp/stream.h>
-#include <dsp/bench./peak_level_meter.h>
+#include <dsp/bench/peak_level_meter.h>
 #include <dsp/sink/handler_sink.h>
 #include <dsp/routing/splitter.h>
 #include <dsp/audio/volume.h>
