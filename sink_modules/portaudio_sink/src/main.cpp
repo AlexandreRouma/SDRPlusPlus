@@ -4,8 +4,8 @@
 #include <signal_path/signal_path.h>
 #include <signal_path/sink.h>
 #include <portaudio.h>
-#include <dsp/audio.h>
-#include <dsp/processing.h>
+#include <dsp/convert/stereo_to_mono.h>
+#include <dsp/sink/ring_buffer.h>
 #include <spdlog/spdlog.h>
 #include <core.h>
 
@@ -249,9 +249,9 @@ private:
 
 
     SinkManager::Stream* _stream;
-    dsp::StereoToMono s2m;
-    dsp::RingBufferSink<float> monoRB;
-    dsp::RingBufferSink<dsp::stereo_t> stereoRB;
+    dsp::convert::StereoToMono s2m;
+    dsp::sink::RingBuffer<float> monoRB;
+    dsp::sink::RingBuffer<dsp::stereo_t> stereoRB;
 
     // dsp::Packer<float> monoPacker;
     // dsp::Packer<dsp::stereo_t> stereoPacker;
