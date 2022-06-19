@@ -20,7 +20,7 @@ namespace dsp::taps {
                 taps.taps[i] = math::sinc(t * omega) * window(t - half, count) * corr;
             }
             if constexpr (std::is_same_v<T, complex_t>) {
-                complex_t cplx = { math::sinc(t * omega), 0.0f };
+                complex_t cplx = { (float)math::sinc(t * omega), 0.0f };
                 taps.taps[i] = cplx * window(t - half, count) * corr;
             }
         }
