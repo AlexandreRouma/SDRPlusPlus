@@ -60,7 +60,7 @@ namespace dsp::audio {
                 if (lvl.l > maxLvl.l) { maxLvl.l = lvl.l; }
                 if (lvl.r > maxLvl.r) { maxLvl.r = lvl.r; }
             }
-            stereo_t maxLvlDB = { 20.0 * log10f(maxLvl.l), 20.0 * log10f(maxLvl.r) };
+            stereo_t maxLvlDB = { 20.0f * log10f(maxLvl.l), 20.0f * log10f(maxLvl.r) };
 
             // Update max level
             {
