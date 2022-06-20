@@ -10,6 +10,12 @@ namespace dsp::channel {
 
         RxVFO(stream<complex_t>* in, double inSamplerate, double outSamplerate, double bandwidth, double offset) { init(in, inSamplerate, outSamplerate, bandwidth, offset); }
 
+        ~RxVFO() {
+            if (!base_type::_block_init) { return; }
+            base_type::stop();
+            taps::free(ftaps);
+        }
+
         void init(stream<complex_t>* in, double inSamplerate, double outSamplerate, double bandwidth, double offset) {
             _inSamplerate = inSamplerate;
             _outSamplerate = outSamplerate;

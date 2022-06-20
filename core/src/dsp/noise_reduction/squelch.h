@@ -12,6 +12,7 @@ namespace dsp::noise_reduction {
 
         ~Squelch() {
             if (!base_type::_block_init) { return; }
+            base_type::stop();
             buffer::free(normBuffer);
         }
 

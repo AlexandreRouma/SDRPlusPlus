@@ -18,6 +18,12 @@ namespace dsp::multirate {
 
         RationalResampler(stream<T>* in, double inSamplerate, double outSamplerate) { init(in, inSamplerate, outSamplerate); }
 
+        ~RationalResampler() {
+            if (!base_type::_block_init) { return; }
+            base_type::stop();
+            taps::free(rtaps);
+        }
+
         void init(stream<T>* in, double inSamplerate, double outSamplerate) {
             _inSamplerate = inSamplerate;
             _outSamplerate = outSamplerate;

@@ -14,7 +14,12 @@ namespace dsp::correction {
 
         void init(stream<T>* in, double rate) {
             _rate = rate;
-            reset();
+            if constexpr (std::is_same_v<T, float>) {
+                offset = 0.0f;
+            }
+            if constexpr (std::is_same_v<T, complex_t> || std::is_same_v<T, stereo_t>) {
+                offset = { 0.0f, 0.0f };
+            }
             base_type::init(in);
         }
 
