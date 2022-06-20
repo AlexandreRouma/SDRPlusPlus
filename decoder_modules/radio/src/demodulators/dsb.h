@@ -49,7 +49,7 @@ namespace demod {
             float menuWidth = ImGui::GetContentRegionAvail().x;
             ImGui::LeftLabel("AGC Attack");
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::SliderFloat(("##_radio_dsb_agc_attack_" + name).c_str(), &agcAttack, 1.0f, 50.0f)) {
+            if (ImGui::SliderFloat(("##_radio_dsb_agc_attack_" + name).c_str(), &agcAttack, 1.0f, 100.0f)) {
                 demod.setAGCAttack(agcAttack / getIFSampleRate());
                 _config->acquire();
                 _config->conf[name][getName()]["agcAttack"] = agcAttack;
@@ -57,7 +57,7 @@ namespace demod {
             }
             ImGui::LeftLabel("AGC Decay");
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::SliderFloat(("AGC Decay##_radio_dsb_agc_decay_" + name).c_str(), &agcDecay, 1.0f, 50.0f)) {
+            if (ImGui::SliderFloat(("AGC Decay##_radio_dsb_agc_decay_" + name).c_str(), &agcDecay, 1.0f, 20.0f)) {
                 demod.setAGCDecay(agcDecay / getIFSampleRate());
                 _config->acquire();
                 _config->conf[name][getName()]["agcDecay"] = agcDecay;
@@ -102,7 +102,7 @@ namespace demod {
 
         ConfigManager* _config;
 
-        float agcAttack = 40.0f;
+        float agcAttack = 50.0f;
         float agcDecay = 5.0f;
 
         std::string name;

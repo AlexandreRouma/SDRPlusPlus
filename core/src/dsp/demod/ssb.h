@@ -22,8 +22,12 @@ namespace dsp::demod {
             _mode = mode;
             _bandwidth = bandwidth;
             _samplerate = samplerate;
+
             xlator.init(NULL, getTranslation(), _samplerate);
             agc.init(NULL, 1.0, agcAttack, agcDecay, 10e6, 10.0);
+
+            agc.out.free();
+
             base_type::init(in);
         }
 

@@ -19,7 +19,7 @@ namespace dsp::loop {
             _maxGain = maxGain;
             _maxOutputAmp = maxOutputAmp;
             _initGain = initGain;
-            gain = _initGain;
+            amp = _setPoint / _initGain;
             base_type::init(in);
         }
 
@@ -64,14 +64,13 @@ namespace dsp::loop {
         void reset() {
             assert(base_type::_block_init);
             std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
-            gain = _initGain;
-            amp = 1.0f;
+            amp = _setPoint / _initGain;
         }
 
         inline int process(int count, T* in, T* out) {
             for (int i = 0; i < count; i++) {
                 // Get signal amplitude
-                float inAmp;
+                float inAmp, gain;
                 if constexpr (std::is_same_v<T, complex_t>) {
                     inAmp = in[i].amplitude();
                 }
@@ -83,6 +82,22 @@ namespace dsp::loop {
                 if (inAmp != 0.0f) {
                     amp = (inAmp > amp) ? ((amp * _invAttack) + (inAmp * _attack)) : ((amp * _invDecay) + (inAmp * _decay));
                     gain = std::min<float>(_setPoint / amp, _maxGain);
+                }
+
+                // If clipping is detected look ahead and correct
+                if (inAmp*gain > _maxOutputAmp) {
+                    float maxAmp = 0;
+                    for (int j = i; j < count; j++) {
+                        if constexpr (std::is_same_v<T, complex_t>) {
+                            inAmp = in[i].amplitude();
+                        }
+                        if constexpr (std::is_same_v<T, float>) {
+                            inAmp = fabsf(in[i]);
+                        }
+                        if (inAmp > maxAmp) { maxAmp = inAmp; }
+                    }
+                    amp = maxAmp;
+                    gain = _setPoint / maxAmp;
                 }
 
                 // Scale output by gain
@@ -112,7 +127,6 @@ namespace dsp::loop {
         float _maxOutputAmp;
         float _initGain;
 
-        float gain;
         float amp = 1.0;
 
     };

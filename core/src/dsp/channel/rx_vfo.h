@@ -54,14 +54,13 @@ namespace dsp::channel {
         void setBandwidth(double bandwidth) {
             assert(base_type::_block_init);
             std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
-            base_type::tempStop();
+            std::lock_guard<std::mutex> lck2(filterMtx);
             _bandwidth = bandwidth;
             filterNeeded = (_bandwidth != _outSamplerate);
             if (filterNeeded) {
                 generateTaps();
                 filter.setTaps(ftaps);
             }
-            base_type::tempStart();
         }
 
         void setOffset(double offset) {
@@ -87,7 +86,10 @@ namespace dsp::channel {
                 return resamp.process(count, out, out);
             }
             count = resamp.process(count, out, out);
-            filter.process(count, out, out);
+            {
+                std::lock_guard<std::mutex> lck(filterMtx);
+                filter.process(count, out, out);
+            }
             return count;
         }
 
@@ -110,7 +112,6 @@ namespace dsp::channel {
             taps::free(ftaps);
             double filterWidth = _bandwidth / 2.0;
             ftaps = taps::lowPass(filterWidth, filterWidth * 0.1, _outSamplerate);
-            printf("New taps just dropped: %lf %lf %lf\n", filterWidth, filterWidth*0.1, _outSamplerate);
         }
 
         FrequencyXlator xlator;
@@ -123,5 +124,7 @@ namespace dsp::channel {
         double _outSamplerate;
         double _bandwidth;
         double _offset;
+
+        std::mutex filterMtx;
     };
 }

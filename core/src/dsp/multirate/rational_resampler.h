@@ -27,6 +27,9 @@ namespace dsp::multirate {
             decim.init(NULL, 2);
             resamp.init(NULL, 1, 1, rtaps);
 
+            decim.out.free();
+            resamp.out.free();
+
             // Proper configuration
             reconfigure();
 

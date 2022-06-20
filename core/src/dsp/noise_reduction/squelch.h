@@ -10,8 +10,16 @@ namespace dsp::noise_reduction {
 
         Squelch(stream<complex_t>* in, double level) {}
 
+        ~Squelch() {
+            if (!base_type::_block_init) { return; }
+            buffer::free(normBuffer);
+        }
+
         void init(stream<complex_t>* in, double level) {
             _level = level;
+
+            normBuffer = buffer::alloc<float>(STREAM_BUFFER_SIZE);
+
             base_type::init(in);
         }
 

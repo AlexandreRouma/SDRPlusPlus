@@ -29,8 +29,7 @@ namespace dsp {
         }
 
         virtual ~stream() {
-            buffer::free(writeBuf);
-            buffer::free(readBuf);
+            free();
         }
 
         virtual void setBufferSize(int samples) {
@@ -113,6 +112,13 @@ namespace dsp {
 
         virtual void clearReadStop() {
             readerStop = false;
+        }
+
+        void free() {
+            if (writeBuf) { buffer::free(writeBuf); }
+            if (readBuf) { buffer::free(readBuf); }
+            writeBuf = NULL;
+            readBuf = NULL;
         }
 
         T* writeBuf;

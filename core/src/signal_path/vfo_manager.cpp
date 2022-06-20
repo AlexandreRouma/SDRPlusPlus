@@ -4,6 +4,7 @@
 
 VFOManager::VFO::VFO(std::string name, int reference, double offset, double bandwidth, double sampleRate, double minBandwidth, double maxBandwidth, bool bandwidthLocked) {
     this->name = name;
+    _bandwidth = bandwidth;
     dspVFO = sigpath::iqFrontEnd.addVFO(name, sampleRate, bandwidth, offset);
     wtfVFO = new ImGui::WaterfallVFO;
     wtfVFO->setReference(reference);
@@ -41,6 +42,8 @@ void VFOManager::VFO::setCenterOffset(double offset) {
 }
 
 void VFOManager::VFO::setBandwidth(double bandwidth, bool updateWaterfall) {
+    if (_bandwidth == bandwidth) { return; }
+    _bandwidth = bandwidth;
     if (updateWaterfall) { wtfVFO->setBandwidth(bandwidth); }
     dspVFO->setBandwidth(bandwidth);
 }

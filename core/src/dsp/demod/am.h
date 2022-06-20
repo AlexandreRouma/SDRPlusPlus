@@ -22,6 +22,9 @@ namespace dsp::demod {
             carrierAgc.init(NULL, 1.0, agcAttack, agcDecay, 10e6, 10.0);
             audioAgc.init(NULL, 1.0, agcAttack, agcDecay, 10e6, 10.0);
             dcBlock.init(NULL, dcBlockRate);
+
+            audioAgc.out.free();
+            dcBlock.out.free();
             
             base_type::init(in);
         }

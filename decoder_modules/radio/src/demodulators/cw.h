@@ -62,7 +62,7 @@ namespace demod {
             float menuWidth = ImGui::GetContentRegionAvail().x;
             ImGui::LeftLabel("AGC Attack");
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::SliderFloat(("##_radio_cw_agc_attack_" + name).c_str(), &agcAttack, 1.0f, 50.0f)) {
+            if (ImGui::SliderFloat(("##_radio_cw_agc_attack_" + name).c_str(), &agcAttack, 1.0f, 100.0f)) {
                 agc.setAttack(agcAttack / getIFSampleRate());
                 _config->acquire();
                 _config->conf[name][getName()]["agcAttack"] = agcAttack;
@@ -70,7 +70,7 @@ namespace demod {
             }
             ImGui::LeftLabel("AGC Decay");
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::SliderFloat(("AGC Decay##_radio_cw_agc_decay_" + name).c_str(), &agcDecay, 1.0f, 50.0f)) {
+            if (ImGui::SliderFloat(("AGC Decay##_radio_cw_agc_decay_" + name).c_str(), &agcDecay, 1.0f, 20.0f)) {
                 agc.setDecay(agcDecay / getIFSampleRate());
                 _config->acquire();
                 _config->conf[name][getName()]["agcDecay"] = agcDecay;
@@ -101,7 +101,7 @@ namespace demod {
         const char* getName() { return "CW"; }
         double getIFSampleRate() { return 3000.0; }
         double getAFSampleRate() { return getIFSampleRate(); }
-        double getDefaultBandwidth() { return 500.0; }
+        double getDefaultBandwidth() { return 200.0; }
         double getMinBandwidth() { return 50.0; }
         double getMaxBandwidth() { return 500.0; }
         bool getBandwidthLocked() { return false; }
@@ -126,7 +126,7 @@ namespace demod {
 
         std::string name;
 
-        float agcAttack = 40.0f;
+        float agcAttack = 50.0f;
         float agcDecay = 5.0f;
         int tone = 800;
         double _bandwidth;

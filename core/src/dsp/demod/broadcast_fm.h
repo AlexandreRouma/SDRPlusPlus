@@ -52,6 +52,11 @@ namespace dsp::demod {
             l = buffer::alloc<float>(STREAM_BUFFER_SIZE);
             r = buffer::alloc<float>(STREAM_BUFFER_SIZE);
 
+            lprDelay.out.free();
+            lmrDelay.out.free();
+            arFir.out.free();
+            alFir.out.free();
+
             base_type::init(in);
         }
 

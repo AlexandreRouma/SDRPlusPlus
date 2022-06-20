@@ -100,6 +100,7 @@ namespace dsp::multirate {
                 for (int i = 0; i < stageCount; i++) {
                     tap<float> taps = taps::fromArray<float>(plan.stages[i].tapcount, plan.stages[i].taps);
                     auto fir = new filter::DecimatingFIR<T, float>(NULL, taps, plan.stages[i].decimation);
+                    fir->out.free();
                     decimTaps.push_back(taps);
                     decimFirs.push_back(fir);
                 }
