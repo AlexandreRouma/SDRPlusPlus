@@ -42,6 +42,14 @@ sudo dpkg -i sdrpp_debian_amd64.deb
 
 If `libvolk2-dev` is not available, use `libvolk1-dev`.
 
+### Fedora 35 and later
+
+Fedora SDRPP: https://src.fedoraproject.org/rpms/sdrpp
+
+```sh
+sudo dnf install sdrpp
+```
+
 ### Arch-based
 
 Install the latest release from the [sdrpp-git](https://aur.archlinux.org/packages/sdrpp-git/) AUR package
