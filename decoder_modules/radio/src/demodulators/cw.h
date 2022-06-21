@@ -1,9 +1,6 @@
 #pragma once
 #include "../demod.h"
-#include <dsp/channel/frequency_xlator.h>
-#include <dsp/convert/complex_to_real.h>
-#include <dsp/convert/mono_to_stereo.h>
-#include <dsp/loop/agc.h>
+#include <dsp/demod/cw.h>
 
 namespace demod {
     class CW : public Demodulator {
@@ -21,7 +18,6 @@ namespace demod {
         void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler, EventHandler<float> afbwChangeHandler, double audioSR) {
             this->name = name;
             this->_config = config;
-            this->_bandwidth = bandwidth;
             this->afbwChangeHandler = afbwChangeHandler;
 
             // Load config
@@ -38,32 +34,19 @@ namespace demod {
             config->release();
 
             // Define structure
-            xlator.init(input, tone, getIFSampleRate());
-            c2r.init(&xlator.out);
-            agc.init(&c2r.out, 1.0, agcAttack / getIFSampleRate(), agcDecay / getIFSampleRate(), 10e6, 10.0);
-            m2s.init(&agc.out);
+            demod.init(input, tone, agcAttack / getIFSampleRate(), agcDecay / getIFSampleRate(), getIFSampleRate());
         }
 
-        void start() {
-            xlator.start();
-            c2r.start();
-            agc.start();
-            m2s.start();
-        }
+        void start() { demod.start(); }
 
-        void stop() {
-            xlator.stop();
-            c2r.stop();
-            agc.stop();
-            m2s.stop();
-        }
+        void stop() { demod.stop(); }
 
         void showMenu() {
             float menuWidth = ImGui::GetContentRegionAvail().x;
             ImGui::LeftLabel("AGC Attack");
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::SliderFloat(("##_radio_cw_agc_attack_" + name).c_str(), &agcAttack, 1.0f, 100.0f)) {
-                agc.setAttack(agcAttack / getIFSampleRate());
+            if (ImGui::SliderFloat(("##_radio_cw_agc_attack_" + name).c_str(), &agcAttack, 1.0f, 200.0f)) {
+                demod.setAGCAttack(agcAttack / getIFSampleRate());
                 _config->acquire();
                 _config->conf[name][getName()]["agcAttack"] = agcAttack;
                 _config->release(true);
@@ -71,7 +54,7 @@ namespace demod {
             ImGui::LeftLabel("AGC Decay");
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             if (ImGui::SliderFloat(("AGC Decay##_radio_cw_agc_decay_" + name).c_str(), &agcDecay, 1.0f, 20.0f)) {
-                agc.setDecay(agcDecay / getIFSampleRate());
+                demod.setAGCDecay(agcDecay / getIFSampleRate());
                 _config->acquire();
                 _config->conf[name][getName()]["agcDecay"] = agcDecay;
                 _config->release(true);
@@ -80,19 +63,16 @@ namespace demod {
             ImGui::FillWidth();
             if (ImGui::InputInt(("Stereo##_radio_cw_tone_" + name).c_str(), &tone, 10, 100)) {
                 tone = std::clamp<int>(tone, 250, 1250);
-                xlator.setOffset(tone, getIFSampleRate());
-                afbwChangeHandler.handler(getAFBandwidth(_bandwidth), afbwChangeHandler.ctx);
+                demod.setTone(tone);
                 _config->acquire();
                 _config->conf[name][getName()]["tone"] = tone;
                 _config->release(true);
             }
         }
 
-        void setBandwidth(double bandwidth) { _bandwidth = bandwidth; }
+        void setBandwidth(double bandwidth) {}
 
-        void setInput(dsp::stream<dsp::complex_t>* input) {
-            xlator.setInput(input);
-        }
+        void setInput(dsp::stream<dsp::complex_t>* input) { demod.setInput(input); }
 
         void AFSampRateChanged(double newSR) {}
 
@@ -115,21 +95,17 @@ namespace demod {
         bool getDynamicAFBandwidth() { return true; }
         bool getFMIFNRAllowed() { return false; }
         bool getNBAllowed() { return false; }
-        dsp::stream<dsp::stereo_t>* getOutput() { return &m2s.out; }
+        dsp::stream<dsp::stereo_t>* getOutput() { return &demod.out; }
 
     private:
         ConfigManager* _config = NULL;
-        dsp::channel::FrequencyXlator xlator;
-        dsp::convert::ComplexToReal c2r;
-        dsp::loop::AGC<float> agc;
-        dsp::convert::MonoToStereo m2s;
+        dsp::demod::CW<dsp::stereo_t> demod;
 
         std::string name;
 
-        float agcAttack = 50.0f;
+        float agcAttack = 100.0f;
         float agcDecay = 5.0f;
         int tone = 800;
-        double _bandwidth;
 
         EventHandler<float> afbwChangeHandler;
     };

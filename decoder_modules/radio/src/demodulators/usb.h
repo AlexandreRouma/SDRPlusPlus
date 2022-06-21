@@ -31,25 +31,18 @@ namespace demod {
             config->release();
 
             // Define structure
-            demod.init(input, dsp::demod::SSB::Mode::USB, bandwidth, getIFSampleRate(), agcAttack / getIFSampleRate(), agcDecay / getIFSampleRate());
-            m2s.init(&demod.out);
+            demod.init(input, dsp::demod::SSB<dsp::stereo_t>::Mode::USB, bandwidth, getIFSampleRate(), agcAttack / getIFSampleRate(), agcDecay / getIFSampleRate());
         }
 
-        void start() {
-            demod.start();
-            m2s.start();
-        }
+        void start() { demod.start(); }
 
-        void stop() {
-            demod.stop();
-            m2s.stop();
-        }
+        void stop() { demod.stop(); }
 
         void showMenu() {
             float menuWidth = ImGui::GetContentRegionAvail().x;
             ImGui::LeftLabel("AGC Attack");
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-            if (ImGui::SliderFloat(("##_radio_usb_agc_attack_" + name).c_str(), &agcAttack, 1.0f, 100.0f)) {
+            if (ImGui::SliderFloat(("##_radio_usb_agc_attack_" + name).c_str(), &agcAttack, 1.0f, 200.0f)) {
                 demod.setAGCAttack(agcAttack / getIFSampleRate());
                 _config->acquire();
                 _config->conf[name][getName()]["agcAttack"] = agcAttack;
@@ -65,13 +58,9 @@ namespace demod {
             }
         }
 
-        void setBandwidth(double bandwidth) {
-            demod.setBandwidth(bandwidth);
-        }
+        void setBandwidth(double bandwidth) { demod.setBandwidth(bandwidth); }
 
-        void setInput(dsp::stream<dsp::complex_t>* input) {
-            demod.setInput(input);
-        }
+        void setInput(dsp::stream<dsp::complex_t>* input) { demod.setInput(input); }
 
         void AFSampRateChanged(double newSR) {}
 
@@ -94,11 +83,10 @@ namespace demod {
         bool getDynamicAFBandwidth() { return true; }
         bool getFMIFNRAllowed() { return false; }
         bool getNBAllowed() { return true; }
-        dsp::stream<dsp::stereo_t>* getOutput() { return &m2s.out; }
+        dsp::stream<dsp::stereo_t>* getOutput() { return &demod.out; }
 
     private:
-        dsp::demod::SSB demod;
-        dsp::convert::MonoToStereo m2s;
+        dsp::demod::SSB<dsp::stereo_t> demod;
 
         ConfigManager* _config;
 

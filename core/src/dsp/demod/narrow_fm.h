@@ -1,20 +1,20 @@
 #pragma once
 #include "../processor.h"
-#include "quadrature.h"
+#include "fm.h"
 #include "../filter/fir.h"
 #include "../taps/low_pass.h"
 #include "../convert/mono_to_stereo.h"
 
 namespace dsp::demod {
     template <class T>
-    class FM : public dsp::Processor<dsp::complex_t, T> {
+    class NarrowFM : public dsp::Processor<dsp::complex_t, T> {
         using base_type = dsp::Processor<dsp::complex_t, T>;
     public:
-        FM() {}
+        NarrowFM() {}
 
-        FM(dsp::stream<dsp::complex_t>* in, double samplerate, double bandwidth, bool lowPass) { init(in, samplerate, bandwidth, lowPass); }
+        NarrowFM(dsp::stream<dsp::complex_t>* in, double samplerate, double bandwidth, bool lowPass) { init(in, samplerate, bandwidth, lowPass); }
 
-        ~FM() {
+        ~NarrowFM() {
             if (!base_type::_block_init) { return; }
             base_type::stop();
             dsp::taps::free(lpfTaps);
@@ -26,7 +26,7 @@ namespace dsp::demod {
             _lowPass = lowPass;
 
             demod.init(NULL, bandwidth / 2.0, _samplerate);
-            lpfTaps = dsp::taps::lowPass(_bandwidth / 2.0, (_bandwidth / 2.0) * 0.1, _samplerate);
+            lpfTaps = dsp::taps::lowPass(_bandwidth / 2, (_bandwidth / 2) * 0.1, _samplerate);
             lpf.init(NULL, lpfTaps);
 
             if constexpr (std::is_same_v<T, float>) {
@@ -42,7 +42,7 @@ namespace dsp::demod {
             _samplerate = samplerate;
             demod.setDeviation(_bandwidth / 2.0, _samplerate);
             dsp::taps::free(lpfTaps);
-            lpfTaps = dsp::taps::lowPass(_bandwidth / 2.0, (_bandwidth / 2.0) * 0.1, _samplerate);
+            lpfTaps = dsp::taps::lowPass(_bandwidth / 2, (_bandwidth / 2) * 0.1, _samplerate);
             lpf.setTaps(lpfTaps);
             base_type::tempStart();
         }
@@ -52,7 +52,6 @@ namespace dsp::demod {
             std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
             if (bandwidth == _bandwidth) { return; }
             _bandwidth = bandwidth;
-            std::lock_guard<std::mutex> lck2(lpfMtx);
             demod.setDeviation(_bandwidth / 2.0, _samplerate);
             dsp::taps::free(lpfTaps);
             lpfTaps = dsp::taps::lowPass(_bandwidth / 2, (_bandwidth / 2) * 0.1, _samplerate);
@@ -62,7 +61,6 @@ namespace dsp::demod {
         void setLowPass(bool lowPass) {
             assert(base_type::_block_init);
             std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
-            std::lock_guard<std::mutex> lck2(lpfMtx);
             _lowPass = lowPass;
             lpf.reset();
         }
@@ -76,18 +74,16 @@ namespace dsp::demod {
             base_type::tempStart();
         }
 
-        inline int process(int count, dsp::complex_t* in, T* out) {
+        inline int process(int count, dsp::complex_t* in, float* out) {
             if constexpr (std::is_same_v<T, float>) {
                 demod.process(count, in, out);
                 if (_lowPass) {
-                    std::lock_guard<std::mutex> lck(lpfMtx);
                     lpf.process(count, out, out);
                 }
             }
             if constexpr (std::is_same_v<T, stereo_t>) {
                 demod.process(count, in, demod.out.writeBuf);
                 if (_lowPass) {
-                    std::lock_guard<std::mutex> lck(lpfMtx);
                     lpf.process(count, demod.out.writeBuf, demod.out.writeBuf);
                 }
                 convert::MonoToStereo::process(count, demod.out.writeBuf, out);
@@ -111,9 +107,8 @@ namespace dsp::demod {
         double _bandwidth;
         bool _lowPass;
 
-        Quadrature demod;
-        tap<float> lpfTaps;
-        filter::FIR<float, float> lpf;
-        std::mutex lpfMtx;
+        dsp::demod::FM demod;
+        dsp::tap<float> lpfTaps;
+        dsp::filter::FIR<float, float> lpf;
     };
 }

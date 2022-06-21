@@ -3,10 +3,12 @@
 #include "../channel/frequency_xlator.h" 
 #include "../convert/complex_to_real.h"
 #include "../loop/agc.h"
+#include "../convert/mono_to_stereo.h"
 
 namespace dsp::demod {
-    class SSB : public Processor<complex_t, float> {
-        using base_type = Processor<complex_t, float>;
+    template <class T>
+    class SSB : public Processor<complex_t, T> {
+        using base_type = Processor<complex_t, T>;
     public:
         enum Mode {
             USB,
@@ -26,7 +28,9 @@ namespace dsp::demod {
             xlator.init(NULL, getTranslation(), _samplerate);
             agc.init(NULL, 1.0, agcAttack, agcDecay, 10e6, 10.0);
 
-            agc.out.free();
+            if constexpr (std::is_same_v<T, float>) {
+                agc.out.free();
+            }
 
             base_type::init(in);
         }
@@ -70,15 +74,19 @@ namespace dsp::demod {
             agc.setDecay(decay);
         }
 
-        int process(int count, const complex_t* in, float* out) {
+        int process(int count, const complex_t* in, T* out) {
             // Move back sideband
             xlator.process(count, in, xlator.out.writeBuf);
 
-            // Extract the real component
-            convert::ComplexToReal::process(count, xlator.out.writeBuf, out);
-
-            // Apply AGC
-            agc.process(count, out, out);
+            if constexpr (std::is_same_v<T, float>) {
+                convert::ComplexToReal::process(count, xlator.out.writeBuf, out);
+                agc.process(count, out, out);
+            }
+            if constexpr (std::is_same_v<T, stereo_t>) {
+                convert::ComplexToReal::process(count, xlator.out.writeBuf, agc.out.writeBuf);
+                agc.process(count, agc.out.writeBuf, agc.out.writeBuf);
+                convert::MonoToStereo::process(count, agc.out.writeBuf, out);
+            }
 
             return count;
         }

@@ -1,7 +1,6 @@
 #pragma once
 #include "../demod.h"
 #include <dsp/demod/fm.h>
-#include <dsp/convert/mono_to_stereo.h>
 
 namespace demod {
     class NFM : public Demodulator {
@@ -12,37 +11,33 @@ namespace demod {
             init(name, config, input, bandwidth, outputChangeHandler, afbwChangeHandler, audioSR);
         }
 
-        ~NFM() {
-            stop();
-        }
+        ~NFM() { stop(); }
 
         void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler, EventHandler<float> afbwChangeHandler, double audioSR) {
             this->name = name;
 
             // Define structure
-            demod.init(input, bandwidth / 2.0, getIFSampleRate());
-            m2s.init(&demod.out);
+            demod.init(input, getIFSampleRate(), bandwidth, _lowPass);
         }
 
-        void start() {
-            demod.start();
-            m2s.start();
-        }
+        void start() { demod.start(); }
 
-        void stop() {
-            demod.stop();
-            m2s.stop();
-        }
+        void stop() { demod.stop(); }
 
-        void showMenu() {}
+        void showMenu() {
+            if (ImGui::Checkbox(("Low Pass##_radio_wfm_lowpass_" + name).c_str(), &_lowPass)) {
+                demod.setLowPass(_lowPass);
+                // _config->acquire();
+                // _config->conf[name][getName()]["lowPass"] = _lowPass;
+                // _config->release(true);
+            }
+        }
 
         void setBandwidth(double bandwidth) {
-            demod.setDeviation(bandwidth / 2.0, getIFSampleRate());
+            demod.setBandwidth(bandwidth);
         }
 
-        void setInput(dsp::stream<dsp::complex_t>* input) {
-            demod.setInput(input);
-        }
+        void setInput(dsp::stream<dsp::complex_t>* input) { demod.setInput(input); }
 
         void AFSampRateChanged(double newSR) {}
 
@@ -65,11 +60,12 @@ namespace demod {
         bool getDynamicAFBandwidth() { return true; }
         bool getFMIFNRAllowed() { return true; }
         bool getNBAllowed() { return false; }
-        dsp::stream<dsp::stereo_t>* getOutput() { return &m2s.out; }
+        dsp::stream<dsp::stereo_t>* getOutput() { return &demod.out; }
 
     private:
-        dsp::demod::FM demod;
-        dsp::convert::MonoToStereo m2s;
+        dsp::demod::FM<dsp::stereo_t> demod;
+
+        bool _lowPass = true;
 
         std::string name;
     };

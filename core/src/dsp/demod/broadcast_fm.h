@@ -1,5 +1,5 @@
 #pragma once
-#include "fm.h"
+#include "quadrature.h"
 #include "../taps/low_pass.h"
 #include "../taps/band_pass.h"
 #include "../filter/fir.h"
@@ -193,7 +193,7 @@ namespace dsp::demod {
         bool _stereo;
         bool _lowPass = true;
 
-        FM demod;
+        Quadrature demod;
         tap<complex_t> pilotFirTaps;
         filter::FIR<complex_t, complex_t> pilotFir;
         convert::RealToComplex rtoc;

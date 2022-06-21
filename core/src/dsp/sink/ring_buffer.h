@@ -17,7 +17,7 @@ namespace dsp::sink {
             int count = base_type::_in->read();
             if (count < 0) { return -1; }
 
-            if (data.write(_in->readBuf, count) < 0) { return -1; }
+            if (data.write(base_type::_in->readBuf, count) < 0) { return -1; }
 
             base_type::_in->flush();
             return count;
