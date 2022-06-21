@@ -7,13 +7,13 @@ namespace demod {
     public:
         AM() {}
 
-        AM(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler, EventHandler<float> afbwChangeHandler, double audioSR) {
-            init(name, config, input, bandwidth, outputChangeHandler, afbwChangeHandler, audioSR);
+        AM(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, double audioSR) {
+            init(name, config, input, bandwidth, audioSR);
         }
 
         ~AM() { stop(); }
 
-        void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler, EventHandler<float> afbwChangeHandler, double audioSR) {
+        void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, double audioSR) {
             this->name = name;
             _config = config;
 

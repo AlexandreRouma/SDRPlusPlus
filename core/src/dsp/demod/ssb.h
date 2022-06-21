@@ -26,7 +26,7 @@ namespace dsp::demod {
             _samplerate = samplerate;
 
             xlator.init(NULL, getTranslation(), _samplerate);
-            agc.init(NULL, 1.0, agcAttack, agcDecay, 10e6, 10.0);
+            agc.init(NULL, 1.0, agcAttack, agcDecay, 10e6, 10.0, INFINITY);
 
             if constexpr (std::is_same_v<T, float>) {
                 agc.out.free();

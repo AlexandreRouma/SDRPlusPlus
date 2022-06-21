@@ -31,8 +31,8 @@ namespace dsp::demod {
             _bandwidth = bandwidth;
             _samplerate = samplerate;
 
-            carrierAgc.init(NULL, 1.0, agcAttack, agcDecay, 10e6, 10.0);
-            audioAgc.init(NULL, 1.0, agcAttack, agcDecay, 10e6, 10.0);
+            carrierAgc.init(NULL, 1.0, agcAttack, agcDecay, 10e6, 10.0, INFINITY);
+            audioAgc.init(NULL, 1.0, agcAttack, agcDecay, 10e6, 10.0, INFINITY);
             dcBlock.init(NULL, dcBlockRate);
             lpfTaps = taps::lowPass(bandwidth / 2.0, (bandwidth / 2.0) * 0.1, samplerate);
             lpf.init(NULL, lpfTaps);

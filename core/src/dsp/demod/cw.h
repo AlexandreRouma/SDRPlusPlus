@@ -16,9 +16,10 @@ namespace dsp::demod {
 
         void init(stream<complex_t>* in, double tone, double agcAttack, double agcDecay, double samplerate) {
             _tone = tone;
+            _samplerate = samplerate;
             
             xlator.init(NULL, tone, samplerate);
-            agc.init(NULL, 1.0, agcAttack, agcDecay, 10e6, 10.0);
+            agc.init(NULL, 1.0, agcAttack, agcDecay, 10e6, 10.0, INFINITY);
 
             if constexpr (std::is_same_v<T, float>) {
                 agc.out.free();
@@ -31,7 +32,7 @@ namespace dsp::demod {
             assert(base_type::_block_init);
             std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
             _tone = tone;
-            xlator.setOffset(_tone);
+            xlator.setOffset(_tone, _samplerate);
         }
 
         void setAGCAttack(double attack) {
@@ -49,7 +50,8 @@ namespace dsp::demod {
         void setSamplerate(double samplerate) {
             assert(base_type::_block_init);
             std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
-            xlator.setOffset(_tone, samplerate);
+            _samplerate = samplerate;
+            xlator.setOffset(_tone, _samplerate);
         }
 
         inline int process(int count, const complex_t* in, T* out) {
@@ -79,6 +81,7 @@ namespace dsp::demod {
 
     private:
         double _tone;
+        double _samplerate;
 
         dsp::channel::FrequencyXlator xlator;
         dsp::loop::AGC<float> agc;
