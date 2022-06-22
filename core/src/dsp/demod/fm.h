@@ -33,6 +33,8 @@ namespace dsp::demod {
                 demod.out.free();
             }
             lpf.out.free();
+
+            base_type::init(in);
         }
 
         void setSamplerate(double samplerate) {
