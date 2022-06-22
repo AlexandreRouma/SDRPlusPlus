@@ -318,11 +318,13 @@ private:
 
     void selectDemod(demod::Demodulator* demod) {
         // Stopcurrently selected demodulator and select new
+        afChain.stop();
         if (selectedDemod) {
             selectedDemod->stop();
             delete selectedDemod;
         }
         selectedDemod = demod;
+        afChain.start();
 
         // Give the demodulator the most recent audio SR
         selectedDemod->AFSampRateChanged(audioSampleRate);

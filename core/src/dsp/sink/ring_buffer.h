@@ -11,7 +11,12 @@ namespace dsp::sink {
     public:
         RingBuffer() {}
 
-        RingBuffer(stream<T>* in) { base_type::init(in); }
+        RingBuffer(stream<T>* in, int maxLatency) { init(in, maxLatency); }
+
+        void init(stream<T>* in, int maxLatency) {
+            data.init(maxLatency);
+            base_type::init(in);
+        }
 
         int run() {
             int count = base_type::_in->read();

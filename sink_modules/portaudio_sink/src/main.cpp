@@ -34,8 +34,8 @@ public:
         _stream = stream;
         _streamName = streamName;
         s2m.init(_stream->sinkOut);
-        monoRB.init(&s2m.out);
-        stereoRB.init(_stream->sinkOut);
+        monoRB.init(&s2m.out, 480);
+        stereoRB.init(_stream->sinkOut, 480);
 
         // monoPacker.init(&s2m.out, 240);
         // stereoPacker.init(_stream->sinkOut, 240);

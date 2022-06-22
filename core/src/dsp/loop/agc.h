@@ -89,17 +89,17 @@ namespace dsp::loop {
                     float maxAmp = 0;
                     for (int j = i; j < count; j++) {
                         if constexpr (std::is_same_v<T, complex_t>) {
-                            inAmp = in[i].amplitude();
+                            inAmp = in[j].amplitude();
                         }
                         if constexpr (std::is_same_v<T, float>) {
-                            inAmp = fabsf(in[i]);
+                            inAmp = fabsf(in[j]);
                         }
                         if (inAmp > maxAmp) { maxAmp = inAmp; }
                     }
                     amp = maxAmp;
-                    gain = _setPoint / maxAmp;
+                    gain = std::min<float>(_setPoint / amp, _maxGain);
                 }
-
+                
                 // Scale output by gain
                 out[i] = in[i] * gain;
             }
