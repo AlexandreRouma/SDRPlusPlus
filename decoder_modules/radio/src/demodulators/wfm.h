@@ -17,7 +17,6 @@ namespace demod {
 
         void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, double audioSR) {
             this->name = name;
-            this->outputChangeHandler = outputChangeHandler;
             _config = config;
 
             // Load config
@@ -105,6 +104,5 @@ namespace demod {
         bool _lowPass = true;
 
         std::string name;
-        EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler;
     };
 }
