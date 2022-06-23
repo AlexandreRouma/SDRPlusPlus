@@ -17,6 +17,15 @@ if (ANDROID)
     set(CMAKE_CXX14_EXTENSION_COMPILE_OPTION "-std=c++17")
 endif (ANDROID)
 
+# Compiler arguments for each platform
+if (MSVC)
+    target_compile_options(sdrpp PRIVATE /O2 /Ob2 /std:c++17 /EHsc)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(sdrpp PRIVATE -O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
+else ()
+    target_compile_options(sdrpp PRIVATE -O3 -std=c++17)
+endif ()
+
 # Backends
 option(OPT_BACKEND_GLFW "Use the GLFW backend" ON)
 option(OPT_BACKEND_ANDROID "Use the Android backend" OFF)
@@ -209,22 +218,11 @@ endif (OPT_BUILD_SCHEDULER)
 add_executable(sdrpp "src/main.cpp" "win32/resources.rc")
 target_link_libraries(sdrpp PRIVATE sdrpp_core)
 
-# Compiler arguments for each platform
-if (MSVC)
-    target_compile_options(sdrpp PRIVATE /O2 /Ob2 /std:c++17 /EHsc)
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(sdrpp PRIVATE -O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
-else ()
-    target_compile_options(sdrpp PRIVATE -O3 -std=c++17)
-endif ()
-
-
 # Copy dynamic libs over
 if (MSVC)
     add_custom_target(do_always ALL xcopy /s \"$<TARGET_FILE_DIR:sdrpp_core>\\*.dll\" \"$<TARGET_FILE_DIR:sdrpp>\" /Y)
     add_custom_target(do_always_volk ALL xcopy /s \"C:/Program Files/PothosSDR/bin\\volk.dll\" \"$<TARGET_FILE_DIR:sdrpp>\" /Y)
 endif ()
-
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD")
     add_custom_target(do_always ALL cp \"$<TARGET_FILE_DIR:sdrpp_core>/libsdrpp_core.so\" \"$<TARGET_FILE_DIR:sdrpp>\")
