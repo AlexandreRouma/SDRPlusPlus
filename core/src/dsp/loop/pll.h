@@ -61,7 +61,7 @@ namespace dsp::loop {
             base_type::tempStart();
         }
 
-        inline int process(int count, complex_t* in, complex_t* out) {
+        virtual inline int process(int count, complex_t* in, complex_t* out) {
             for (int i = 0; i < count; i++) {
                 out[i] = math::phasor(pcl.phase);
                 pcl.advance(math::normPhaseDiff(in[i].phase() - pcl.phase));

@@ -22,6 +22,7 @@ namespace sdrpp_credits {
         "Syne Ardwin (WI9SYN)",
         "Szymon Zakrent",
         "Tobias Mädel",
+        "Youssef Touil",
         "Zimm"
     };
 
