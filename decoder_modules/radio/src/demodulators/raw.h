@@ -52,14 +52,11 @@ namespace demod {
         double getMinBandwidth() { return audioSampleRate; }
         double getMaxBandwidth() { return audioSampleRate; }
         bool getBandwidthLocked() { return true; }
-        double getMaxAFBandwidth() { return audioSampleRate; }
         double getDefaultSnapInterval() { return 2500.0; }
         int getVFOReference() { return ImGui::WaterfallVFO::REF_CENTER; }
         bool getDeempAllowed() { return false; }
         bool getPostProcEnabled() { return false; }
         int getDefaultDeemphasisMode() { return DEEMP_MODE_NONE; }
-        double getAFBandwidth(double bandwidth) { return bandwidth; }
-        bool getDynamicAFBandwidth() { return false; }
         bool getFMIFNRAllowed() { return false; }
         bool getNBAllowed() { return true; }
         dsp::stream<dsp::stereo_t>* getOutput() { return &c2s.out; }

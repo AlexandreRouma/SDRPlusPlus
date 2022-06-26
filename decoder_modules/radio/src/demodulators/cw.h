@@ -85,14 +85,11 @@ namespace demod {
         double getMinBandwidth() { return 50.0; }
         double getMaxBandwidth() { return 500.0; }
         bool getBandwidthLocked() { return false; }
-        double getMaxAFBandwidth() { return getIFSampleRate() / 2.0; }
         double getDefaultSnapInterval() { return 10.0; }
         int getVFOReference() { return ImGui::WaterfallVFO::REF_CENTER; }
         bool getDeempAllowed() { return false; }
         bool getPostProcEnabled() { return true; }
         int getDefaultDeemphasisMode() { return DEEMP_MODE_NONE; }
-        double getAFBandwidth(double bandwidth) { return (bandwidth / 2.0) + (float)tone; }
-        bool getDynamicAFBandwidth() { return true; }
         bool getFMIFNRAllowed() { return false; }
         bool getNBAllowed() { return false; }
         dsp::stream<dsp::stereo_t>* getOutput() { return &demod.out; }

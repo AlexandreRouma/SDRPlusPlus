@@ -67,11 +67,15 @@ public:
         if (!config.conf[name].contains("audioVolume")) {
             config.conf[name]["audioVolume"] = 1.0;
         }
+        if (!config.conf[name].contains("ignoreSilence")) {
+            config.conf[name]["ignoreSilence"] = false;
+        }
 
         recMode = config.conf[name]["mode"];
         folderSelect.setPath(config.conf[name]["recPath"]);
         selectedStreamName = config.conf[name]["audioStream"];
         audioVolume = config.conf[name]["audioVolume"];
+        ignoreSilence = config.conf[name]["ignoreSilence"];
         config.release(created);
 
         // Init audio path
@@ -291,6 +295,12 @@ private:
         }
         ImGui::PopItemWidth();
 
+        if (ImGui::Checkbox(CONCAT("Ignore silence##_recorder_ing_silence_", name), &ignoreSilence)) {
+            config.acquire();
+            config.conf[name]["ignoreSilence"] = ignoreSilence;
+            config.release(true);
+        }
+
         if (!folderSelect.pathIsValid() || selectedStreamName == "") { style::beginDisabled(); }
         if (!recording) {
             if (ImGui::Button(CONCAT("Record##_recorder_rec_", name), ImVec2(menuColumnWidth, 0))) {
@@ -314,6 +324,9 @@ private:
 
     static void _audioHandler(dsp::stereo_t* data, int count, void* ctx) {
         RecorderModule* _this = (RecorderModule*)ctx;
+        if (_this->ignoreSilence && data[0].l == 0.0f && data[0].r == 0.0f) {
+            return;
+        }
         volk_32f_s32f_convert_16i(_this->wavSampleBuf, (float*)data, 32767.0f, count * 2);
         _this->audioWriter->writeSamples(_this->wavSampleBuf, count * 2 * sizeof(int16_t));
         _this->samplesWritten += count;
@@ -514,6 +527,8 @@ private:
     EventHandler<std::string> streamRegisteredHandler;
     EventHandler<std::string> streamUnregisterHandler;
     EventHandler<std::string> streamUnregisteredHandler;
+
+    bool ignoreSilence = false;
 };
 
 struct RecorderContext_t {
