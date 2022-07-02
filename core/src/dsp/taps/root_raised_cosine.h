@@ -3,7 +3,7 @@
 #include "tap.h"
 #include "../math/constants.h"
 
-namespace dsp {
+namespace dsp::taps {
     template<class T>
     inline tap<T> rootRaisedCosine(int count, double beta, double Ts) {
         // Allocate taps

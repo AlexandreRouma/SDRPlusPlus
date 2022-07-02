@@ -4,7 +4,7 @@
 #include "../types.h"
 
 namespace dsp::loop {
-    template<class T>
+    template<class T, bool CLAMP_PHASE = true>
     class PhaseControlLoop {
     public:
         PhaseControlLoop() {}
@@ -62,7 +62,7 @@ namespace dsp::loop {
 
             // Increment and clamp phase
             phase += freq + (_alpha * error);
-            clampPhase();
+            if constexpr(CLAMP_PHASE) { clampPhase(); }
         }
 
         T freq;

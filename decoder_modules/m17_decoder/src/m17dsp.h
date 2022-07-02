@@ -1,8 +1,11 @@
 #pragma once
 #include <dsp/block.h>
+#include <dsp/hier_block.h>
+#include <dsp/sink/null_sink.h>
+#include <dsp/demod/gmsk.h>
+#include <dsp/routing/doubler.h>
 #include <volk/volk.h>
 #include <codec2.h>
-#include <dsp/demodulator.h>
 #include <golay24.h>
 #include <lsf_decode.h>
 
@@ -86,7 +89,7 @@ const uint8_t M17_PUNCTURING_P2[12] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0 };
 static const correct_convolutional_polynomial_t correct_conv_m17_polynomial[] = { 0b11001, 0b10111 };
 
 namespace dsp {
-    class M17Slice4FSK : public generic_block<M17Slice4FSK> {
+    class M17Slice4FSK : public block {
     public:
         M17Slice4FSK() {}
 
@@ -94,19 +97,19 @@ namespace dsp {
 
         void init(stream<float>* in) {
             _in = in;
-            generic_block<M17Slice4FSK>::registerInput(_in);
-            generic_block<M17Slice4FSK>::registerOutput(&out);
-            generic_block<M17Slice4FSK>::_block_init = true;
+            block::registerInput(_in);
+            block::registerOutput(&out);
+            block::_block_init = true;
         }
 
         void setInput(stream<float>* in) {
-            assert(generic_block<M17Slice4FSK>::_block_init);
-            std::lock_guard<std::mutex> lck(generic_block<M17Slice4FSK>::ctrlMtx);
-            generic_block<M17Slice4FSK>::tempStop();
-            generic_block<M17Slice4FSK>::unregisterInput(_in);
+            assert(block::_block_init);
+            std::lock_guard<std::recursive_mutex> lck(block::ctrlMtx);
+            block::tempStop();
+            block::unregisterInput(_in);
             _in = in;
-            generic_block<M17Slice4FSK>::registerInput(_in);
-            generic_block<M17Slice4FSK>::tempStart();
+            block::registerInput(_in);
+            block::tempStart();
         }
 
         int run() {
@@ -132,15 +135,15 @@ namespace dsp {
         stream<float>* _in;
     };
 
-    class M17FrameDemux : public generic_block<M17FrameDemux> {
+    class M17FrameDemux : public block {
     public:
         M17FrameDemux() {}
 
         M17FrameDemux(stream<uint8_t>* in) { init(in); }
 
         ~M17FrameDemux() {
-            if (!generic_block<M17FrameDemux>::_block_init) { return; }
-            generic_block<M17FrameDemux>::stop();
+            if (!block::_block_init) { return; }
+            block::stop();
             delete[] delay;
         }
 
@@ -149,22 +152,22 @@ namespace dsp {
 
             delay = new uint8_t[STREAM_BUFFER_SIZE];
 
-            generic_block<M17FrameDemux>::registerInput(_in);
-            generic_block<M17FrameDemux>::registerOutput(&linkSetupOut);
-            generic_block<M17FrameDemux>::registerOutput(&lichOut);
-            generic_block<M17FrameDemux>::registerOutput(&streamOut);
-            generic_block<M17FrameDemux>::registerOutput(&packetOut);
-            generic_block<M17FrameDemux>::_block_init = true;
+            block::registerInput(_in);
+            block::registerOutput(&linkSetupOut);
+            block::registerOutput(&lichOut);
+            block::registerOutput(&streamOut);
+            block::registerOutput(&packetOut);
+            block::_block_init = true;
         }
 
         void setInput(stream<uint8_t>* in) {
-            assert(generic_block<M17FrameDemux>::_block_init);
-            std::lock_guard<std::mutex> lck(generic_block<M17FrameDemux>::ctrlMtx);
-            generic_block<M17FrameDemux>::tempStop();
-            generic_block<M17FrameDemux>::unregisterInput(_in);
+            assert(block::_block_init);
+            std::lock_guard<std::recursive_mutex> lck(block::ctrlMtx);
+            block::tempStop();
+            block::unregisterInput(_in);
             _in = in;
-            generic_block<M17FrameDemux>::registerInput(_in);
-            generic_block<M17FrameDemux>::tempStart();
+            block::registerInput(_in);
+            block::tempStart();
         }
 
         int run() {
@@ -268,15 +271,15 @@ namespace dsp {
         int outCount = 0;
     };
 
-    class M17LSFDecoder : public generic_block<M17LSFDecoder> {
+    class M17LSFDecoder : public block {
     public:
         M17LSFDecoder() {}
 
         M17LSFDecoder(stream<uint8_t>* in, void (*handler)(M17LSF& lsf, void* ctx), void* ctx) { init(in, handler, ctx); }
 
         ~M17LSFDecoder() {
-            if (!generic_block<M17LSFDecoder>::_block_init) { return; }
-            generic_block<M17LSFDecoder>::stop();
+            if (!block::_block_init) { return; }
+            block::stop();
             correct_convolutional_destroy(conv);
         }
 
@@ -287,18 +290,18 @@ namespace dsp {
 
             conv = correct_convolutional_create(2, 5, correct_conv_m17_polynomial);
 
-            generic_block<M17LSFDecoder>::registerInput(_in);
-            generic_block<M17LSFDecoder>::_block_init = true;
+            block::registerInput(_in);
+            block::_block_init = true;
         }
 
         void setInput(stream<uint8_t>* in) {
-            assert(generic_block<M17LSFDecoder>::_block_init);
-            std::lock_guard<std::mutex> lck(generic_block<M17LSFDecoder>::ctrlMtx);
-            generic_block<M17LSFDecoder>::tempStop();
-            generic_block<M17LSFDecoder>::unregisterInput(_in);
+            assert(block::_block_init);
+            std::lock_guard<std::recursive_mutex> lck(block::ctrlMtx);
+            block::tempStop();
+            block::unregisterInput(_in);
             _in = in;
-            generic_block<M17LSFDecoder>::registerInput(_in);
-            generic_block<M17LSFDecoder>::tempStart();
+            block::registerInput(_in);
+            block::tempStart();
         }
 
         int run() {
@@ -346,15 +349,15 @@ namespace dsp {
         correct_convolutional* conv;
     };
 
-    class M17PayloadFEC : public generic_block<M17PayloadFEC> {
+    class M17PayloadFEC : public block {
     public:
         M17PayloadFEC() {}
 
         M17PayloadFEC(stream<uint8_t>* in) { init(in); }
 
         ~M17PayloadFEC() {
-            if (!generic_block<M17PayloadFEC>::_block_init) { return; }
-            generic_block<M17PayloadFEC>::stop();
+            if (!block::_block_init) { return; }
+            block::stop();
             correct_convolutional_destroy(conv);
         }
 
@@ -363,19 +366,19 @@ namespace dsp {
 
             conv = correct_convolutional_create(2, 5, correct_conv_m17_polynomial);
 
-            generic_block<M17PayloadFEC>::registerInput(_in);
-            generic_block<M17PayloadFEC>::registerOutput(&out);
-            generic_block<M17PayloadFEC>::_block_init = true;
+            block::registerInput(_in);
+            block::registerOutput(&out);
+            block::_block_init = true;
         }
 
         void setInput(stream<uint8_t>* in) {
-            assert(generic_block<M17PayloadFEC>::_block_init);
-            std::lock_guard<std::mutex> lck(generic_block<M17PayloadFEC>::ctrlMtx);
-            generic_block<M17PayloadFEC>::tempStop();
-            generic_block<M17PayloadFEC>::unregisterInput(_in);
+            assert(block::_block_init);
+            std::lock_guard<std::recursive_mutex> lck(block::ctrlMtx);
+            block::tempStop();
+            block::unregisterInput(_in);
             _in = in;
-            generic_block<M17PayloadFEC>::registerInput(_in);
-            generic_block<M17PayloadFEC>::tempStart();
+            block::registerInput(_in);
+            block::tempStart();
         }
 
         int run() {
@@ -419,15 +422,15 @@ namespace dsp {
         correct_convolutional* conv;
     };
 
-    class M17Codec2Decode : public generic_block<M17Codec2Decode> {
+    class M17Codec2Decode : public block {
     public:
         M17Codec2Decode() {}
 
         M17Codec2Decode(stream<uint8_t>* in) { init(in); }
 
         ~M17Codec2Decode() {
-            if (!generic_block<M17Codec2Decode>::_block_init) { return; }
-            generic_block<M17Codec2Decode>::stop();
+            if (!block::_block_init) { return; }
+            block::stop();
             codec2_destroy(codec);
             delete[] int16Audio;
             delete[] floatAudio;
@@ -442,19 +445,19 @@ namespace dsp {
             int16Audio = new int16_t[sampsPerC2FrameDouble];
             floatAudio = new float[sampsPerC2FrameDouble];
 
-            generic_block<M17Codec2Decode>::registerInput(_in);
-            generic_block<M17Codec2Decode>::registerOutput(&out);
-            generic_block<M17Codec2Decode>::_block_init = true;
+            block::registerInput(_in);
+            block::registerOutput(&out);
+            block::_block_init = true;
         }
 
         void setInput(stream<uint8_t>* in) {
-            assert(generic_block<M17Codec2Decode>::_block_init);
-            std::lock_guard<std::mutex> lck(generic_block<M17Codec2Decode>::ctrlMtx);
-            generic_block<M17Codec2Decode>::tempStop();
-            generic_block<M17Codec2Decode>::unregisterInput(_in);
+            assert(block::_block_init);
+            std::lock_guard<std::recursive_mutex> lck(block::ctrlMtx);
+            block::tempStop();
+            block::unregisterInput(_in);
             _in = in;
-            generic_block<M17Codec2Decode>::registerInput(_in);
-            generic_block<M17Codec2Decode>::tempStart();
+            block::registerInput(_in);
+            block::tempStart();
         }
 
         int run() {
@@ -490,7 +493,7 @@ namespace dsp {
         int sampsPerC2FrameDouble = 0;
     };
 
-    class M17LICHDecoder : public generic_block<M17LICHDecoder> {
+    class M17LICHDecoder : public block {
     public:
         M17LICHDecoder() {}
 
@@ -500,18 +503,18 @@ namespace dsp {
             _in = in;
             _handler = handler;
             _ctx = ctx;
-            generic_block<M17LICHDecoder>::registerInput(_in);
-            generic_block<M17LICHDecoder>::_block_init = true;
+            block::registerInput(_in);
+            block::_block_init = true;
         }
 
         void setInput(stream<uint8_t>* in) {
-            assert(generic_block<M17LICHDecoder>::_block_init);
-            std::lock_guard<std::mutex> lck(generic_block<M17LICHDecoder>::ctrlMtx);
-            generic_block<M17LICHDecoder>::tempStop();
-            generic_block<M17LICHDecoder>::unregisterInput(_in);
+            assert(block::_block_init);
+            std::lock_guard<std::recursive_mutex> lck(block::ctrlMtx);
+            block::tempStop();
+            block::unregisterInput(_in);
             _in = in;
-            generic_block<M17LICHDecoder>::registerInput(_in);
-            generic_block<M17LICHDecoder>::tempStart();
+            block::registerInput(_in);
+            block::tempStart();
         }
 
         int run() {
@@ -590,7 +593,7 @@ namespace dsp {
         int lastId = 0;
     };
 
-    class M17Decoder : public generic_hier_block<M17Decoder> {
+    class M17Decoder : public hier_block {
     public:
         M17Decoder() {}
 
@@ -601,11 +604,8 @@ namespace dsp {
         void init(stream<complex_t>* input, float sampleRate, void (*handler)(M17LSF& lsf, void* ctx), void* ctx) {
             _sampleRate = sampleRate;
 
-            demod.init(input, _sampleRate, M17_DEVIATION);
-            rrc.init(31, _sampleRate, M17_BAUDRATE, M17_RRC_ALPHA);
-            fir.init(&demod.out, &rrc);
-            recov.init(&fir.out, _sampleRate / M17_BAUDRATE, 1e-6f, 0.01f, 0.01f);
-            doubler.init(&recov.out);
+            demod.init(input, M17_BAUDRATE, sampleRate, M17_DEVIATION, 31, M17_RRC_ALPHA, 1e-6f, 0.01f, 0.01f);
+            doubler.init(&demod.out);
             slice.init(&doubler.outA);
             demux.init(&slice.out);
             lsfFEC.init(&demux.linkSetupOut, handler, ctx);
@@ -618,24 +618,22 @@ namespace dsp {
             diagOut = &doubler.outB;
             out = &decodeAudio.out;
 
-            generic_hier_block<M17Decoder>::registerBlock(&demod);
-            generic_hier_block<M17Decoder>::registerBlock(&fir);
-            generic_hier_block<M17Decoder>::registerBlock(&recov);
-            generic_hier_block<M17Decoder>::registerBlock(&doubler);
-            generic_hier_block<M17Decoder>::registerBlock(&slice);
-            generic_hier_block<M17Decoder>::registerBlock(&demux);
-            generic_hier_block<M17Decoder>::registerBlock(&lsfFEC);
-            generic_hier_block<M17Decoder>::registerBlock(&payloadFEC);
-            generic_hier_block<M17Decoder>::registerBlock(&decodeLICH);
-            generic_hier_block<M17Decoder>::registerBlock(&decodeAudio);
+            hier_block::registerBlock(&demod);
+            hier_block::registerBlock(&doubler);
+            hier_block::registerBlock(&slice);
+            hier_block::registerBlock(&demux);
+            hier_block::registerBlock(&lsfFEC);
+            hier_block::registerBlock(&payloadFEC);
+            hier_block::registerBlock(&decodeLICH);
+            hier_block::registerBlock(&decodeAudio);
 
-            generic_hier_block<M17Decoder>::registerBlock(&ns2);
+            hier_block::registerBlock(&ns2);
 
-            generic_hier_block<M17Decoder>::_block_init = true;
+            hier_block::_block_init = true;
         }
 
         void setInput(stream<complex_t>* input) {
-            assert(generic_hier_block<M17Decoder>::_block_init);
+            assert(hier_block::_block_init);
             demod.setInput(input);
         }
 
@@ -643,11 +641,8 @@ namespace dsp {
         stream<stereo_t>* out = NULL;
 
     private:
-        FloatFMDemod demod;
-        RRCTaps rrc;
-        FIR<float> fir;
-        MMClockRecovery<float> recov;
-        StreamDoubler<float> doubler;
+        demod::GMSK demod;
+        routing::Doubler<float> doubler;
         M17Slice4FSK slice;
         M17FrameDemux demux;
         M17LSFDecoder lsfFEC;
@@ -655,7 +650,7 @@ namespace dsp {
         M17LICHDecoder decodeLICH;
         M17Codec2Decode decodeAudio;
 
-        NullSink<uint8_t> ns2;
+        dsp::sink::Null<uint8_t> ns2;
 
 
         float _sampleRate;

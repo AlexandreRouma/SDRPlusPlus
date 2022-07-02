@@ -1,0 +1,69 @@
+{
+    "name": "QO-100",
+    "country_name": "Worldwide",
+    "country_code": "--",
+    "author_name": "Ryzerth",
+    "author_url": "https://github.com/AlexandreRouma",
+    "bands": [
+        {
+            "name": "Beacon",
+            "type": "broadcast",
+            "start": 10489500000,
+            "end": 10489505000
+        },
+        {
+            "name": "CW",
+            "type": "amateur",
+            "start": 10489505000,
+            "end": 10489540000
+        },
+        {
+            "name": "NB Digi",
+            "type": "amateur",
+            "start": 10489540000,
+            "end": 10489580000
+        },
+        {
+            "name": "Digi",
+            "type": "amateur",
+            "start": 10489580000,
+            "end": 10489650000
+        },
+        {
+            "name": "SSB",
+            "type": "amateur",
+            "start": 10489650000,
+            "end": 10489745000
+        },
+        {
+            "name": "Beacon",
+            "type": "broadcast",
+            "start": 10489745000,
+            "end": 10489755000
+        },
+        {
+            "name": "SSB",
+            "type": "amateur",
+            "start": 10489755000,
+            "end": 10489850000
+        },
+        {
+            "name": "Emergency",
+            "type": "amateur",
+            "start": 10489850000,
+            "end": 10489870000
+        },
+        {
+            "name": "Mixed/Contest",
+            "type": "amateur",
+            "start": 10489870000,
+            "end": 10489990000
+        },
+        {
+            "name": "Beacon",
+            "type": "broadcast",
+            "start": 10489990000,
+            "end": 10490000000
+        }
+    ]
+}
