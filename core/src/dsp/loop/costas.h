@@ -28,7 +28,7 @@ namespace dsp::loop {
             if constexpr (ORDER == 8) {
                 // The way this works is it compresses order 4 constellations into the quadrants
                 const float K = sqrtf(2.0) - 1.0;
-                if (fabsf(outVal.re) >= fabsf(outVal.im)) {
+                if (fabsf(val.re) >= fabsf(val.im)) {
                     err = (math::step(val.re) * val.im) - (math::step(val.im) * val.re * K);
                 }
                 else {

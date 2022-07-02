@@ -2,7 +2,7 @@
 #include <dsp/block.h>
 #include <dsp/hier_block.h>
 #include <dsp/sink/null_sink.h>
-#include <dsp/demod/gmsk.h>
+#include <dsp/demod/gfsk.h>
 #include <dsp/routing/doubler.h>
 #include <volk/volk.h>
 #include <codec2.h>
@@ -641,7 +641,7 @@ namespace dsp {
         stream<stereo_t>* out = NULL;
 
     private:
-        demod::GMSK demod;
+        demod::GFSK demod;
         routing::Doubler<float> doubler;
         M17Slice4FSK slice;
         M17FrameDemux demux;
