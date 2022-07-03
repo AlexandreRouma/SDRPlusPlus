@@ -1,0 +1,1167 @@
+{
+    "name": "Italy",
+    "country_name": "Italy",
+    "country_code": "IT",
+    "author_name": "Jacopo (RAD750)",
+    "author_url": "https://www.a-centauri.com",
+    "bands": [{
+            "name": "Ausili metereologici",
+            "type": "utility",
+            "start": 8300,
+            "end": 11300
+        },
+        {
+            "name": "Radionavigazione",
+            "type": "marine",
+            "start": 11300,
+            "end": 135500
+        },
+        {
+            "name": "Radioamatori 137kHz",
+            "type": "amateur",
+            "start": 135500,
+            "end": 137800
+        },
+        {
+            "name": "Radiodiffusione OL",
+            "type": "broadcast",
+            "start": 148500,
+            "end": 283500
+        },
+        {
+            "name": "Radiofari e NDB",
+            "type": "aviation",
+            "start": 283500,
+            "end": 405000
+        },
+        {
+            "name": "Radiogoniometria",
+            "type": "marine",
+            "start": 405000,
+            "end": 415000
+        },
+        {
+            "name": "Mobile marittimo, NAVTEX",
+            "type": "marine",
+            "start": 435000,
+            "end": 520000
+        },
+        {
+            "name": "Radioamatori 472 kHz",
+            "type": "amateur",
+            "start": 472000,
+            "end": 479000
+        },
+        {
+            "name": "Radiodiffusione OM",
+            "type": "broadcast",
+            "start": 520000,
+            "end": 1606500
+        },
+        {
+            "name": "Mobile marittimo",
+            "type": "marine",
+            "start": 1606500,
+            "end": 1830000
+        },
+        {
+            "name": "Radioamatori 160 m",
+            "type": "amateur",
+            "start": 1830000,
+            "end": 1850000
+        },
+        {
+            "name": "Mobile marittimo",
+            "type": "marine",
+            "start": 1850000,
+            "end": 2300000
+        },
+        {
+            "name": "Radiodiffusione OC 120 m",
+            "type": "broadcast",
+            "start": 2300000,
+            "end": 2500000
+        },
+        {
+            "name": "Segnali orari",
+            "type": "utility",
+            "start": 2501000,
+            "end": 2502000
+        },
+        {
+            "name": "Mobile marittimo",
+            "type": "marine",
+            "start": 2502000,
+            "end": 2850000
+        },
+        {
+            "name": "Mobile aeronautico",
+            "type": "aviation",
+            "start": 2850000,
+            "end": 3155000
+        },
+        {
+            "name": "Mobile marittimo",
+            "type": "marine",
+            "start": 3155000,
+            "end": 3200000
+        },
+        {
+            "name": "Radiodiffusione OC 90 m",
+            "type": "broadcast",
+            "start": 3200000,
+            "end": 3400000
+        },
+        {
+            "name": "Mobile aviazione",
+            "type": "aviation",
+            "start": 3400000,
+            "end": 3500000
+        },
+        {
+            "name": "Mobile marittimo",
+            "type": "marine",
+            "start": 3500000,
+            "end": 3600000
+        },
+        {
+            "name": "Radioamatori 80 m",
+            "type": "amateur",
+            "start": 3600000,
+            "end": 3800000
+        },
+        {
+            "name": "Radiodiffusione OC 75 m",
+            "type": "broadcast",
+            "start": 3900000,
+            "end": 4000000
+        },
+        {
+            "name": "Mobile marittimo",
+            "type": "marine",
+            "start": 4065000,
+            "end": 4440000
+        },
+        {
+            "name": "Mobile aeronautico",
+            "type": "aviation",
+            "start": 4650000,
+            "end": 4750000
+        },
+
+        {
+            "name": "Radiodiffusione OC 60 m",
+            "type": "broadcast",
+            "start": 4750000,
+            "end": 4995000
+        },
+        {
+            "name": "Radiodiffusione OC 60 m",
+            "type": "broadcast",
+            "start": 5005000,
+            "end": 5060000
+        },
+        {
+            "name": "Radioamatori 60 m",
+            "type": "amateur",
+            "start": 5351500,
+            "end": 5366500
+        },
+        {
+            "name": "Mobile aeronautico",
+            "type": "aviation",
+            "start": 5450000,
+            "end": 5730000
+        },
+        {
+            "name": "Radiodiffusione OC 49 m",
+            "type": "broadcast",
+            "start": 5900000,
+            "end": 6200000
+        },
+        {
+            "name": "Mobile marittimo",
+            "type": "marine",
+            "start": 6200000,
+            "end": 6525000
+        },
+        {
+            "name": "ISM, reti fisse pubbliche",
+            "type": "utility",
+            "start": 6525000,
+            "end": 6765000
+        },
+        {
+            "name": "Radioamatori 40 m",
+            "type": "amateur",
+            "start": 7000000,
+            "end": 7200000
+        },
+        {
+            "name": "Radiodiffusione OC 41 m",
+            "type": "broadcast",
+            "start": 7200000,
+            "end": 7450000
+        },
+        {
+            "name": "Mobile marittimo",
+            "type": "marine",
+            "start": 8195000,
+            "end": 8815000
+        },
+        {
+            "name": "Mobile aeronautico",
+            "type": "aviation",
+            "start": 8815000,
+            "end": 9040000
+        },
+        {
+            "name": "Radiodiffusione OC 31 m",
+            "type": "broadcast",
+            "start": 9400000,
+            "end": 9900000
+        },
+        {
+            "name": "Mobile aeronautico",
+            "type": "aviation",
+            "start": 10005000,
+            "end": 10100000
+        },
+        {
+            "name": "30m - Radioamateur",
+            "type": "amateur",
+            "start": 10100000,
+            "end": 10150000
+        },
+        {
+            "name": "Mobile aeronautico",
+            "type": "aviation",
+            "start": 11175000,
+            "end": 11400000
+        },
+        {
+            "name": "Radiodiffusione OC 25m",
+            "type": "broadcast",
+            "start": 11600000,
+            "end": 12100000
+        },
+        {
+            "name": "Mobile marittimo",
+            "type": "marine",
+            "start": 12230000,
+            "end": 13200000
+        },
+        {
+            "name": "Mobile aeronautico",
+            "type": "aviation",
+            "start": 13200000,
+            "end": 13360000
+        },
+        {
+            "name": "Radiodiffusione OC 21m",
+            "type": "broadcast",
+            "start": 13570000,
+            "end": 13870000
+        },
+        {
+            "name": "Radioamatori 20m",
+            "type": "amateur",
+            "start": 14000000,
+            "end": 14350000
+        },
+        {
+            "name": "Segnali orari",
+            "type": "utility",
+            "start": 14990000,
+            "end": 15010000
+        },
+        {
+            "name": "Mobile aeronautico",
+            "type": "aviation",
+            "start": 15010000,
+            "end": 15100000
+        },
+        {
+            "name": "Radiodiffusione OC 19 m",
+            "type": "broadcast",
+            "start": 15100000,
+            "end": 15800000
+        },
+        {
+            "name": "Mobile marittimo",
+            "type": "marine",
+            "start": 16360000,
+            "end": 17410000
+        },
+        {
+            "name": "Radiodiffusione OC 16 m",
+            "type": "broadcast",
+            "start": 17480000,
+            "end": 17900000
+        },
+        {
+            "name": "Mobile aeronautico",
+            "type": "aviation",
+            "start": 17900000,
+            "end": 18030000
+        },
+        {
+            "name": "Radioamatori 17 m",
+            "type": "amateur",
+            "start": 18068000,
+            "end": 18168000
+        },
+        {
+            "name": "Mobile marittimo",
+            "type": "marine",
+            "start": 18780000,
+            "end": 18900000
+        },
+        {
+            "name": "Radiodiffusione OC 15 m",
+            "type": "broadcast",
+            "start": 18900000,
+            "end": 19020000
+        },
+        {
+            "name": "Mobile marittimo",
+            "type": "marine",
+            "start": 19680000,
+            "end": 19800000
+        },
+        {
+            "name": "Segnali orari",
+            "type": "utility",
+            "start": 19990000,
+            "end": 20010000
+        },
+        {
+            "name": "Radioamatori 15 m",
+            "type": "amateur",
+            "start": 21000000,
+            "end": 21450000
+        },
+        {
+            "name": "Radiodiffusione OC 13 m",
+            "type": "broadcast",
+            "start": 21450000,
+            "end": 21850000
+        },
+        {
+            "name": "Mobile aeronautico",
+            "type": "aviation",
+            "start": 21925000,
+            "end": 22000000
+        },
+        {
+            "name": "Mobile marittimo",
+            "type": "marine",
+            "start": 22000000,
+            "end": 22855000
+        },
+        {
+            "name": "Mobile aeronautico",
+            "type": "aviation",
+            "start": 23200000,
+            "end": 23350000
+        },
+        {
+            "name": "Radioamatori 12 m",
+            "type": "amateur",
+            "start": 24890000,
+            "end": 24990000
+        },
+        {
+            "name": "Segnali orari",
+            "type": "utility",
+            "start": 24990000,
+            "end": 25010000
+        },
+        {
+            "name": "Mobile marittimo",
+            "type": "marine",
+            "start": 25070000,
+            "end": 25210000
+        },
+        {
+            "name": "Radioastronomia",
+            "type": "utility",
+            "start": 25550000,
+            "end": 25670000
+        },
+        {
+            "name": "Radiodiffusione OC 11 m",
+            "type": "broadcast",
+            "start": 25670000,
+            "end": 26100000
+        },
+        {
+            "name": "Mobile marittimo",
+            "type": "military",
+            "start": 26100000,
+            "end": 26175000
+        },
+        {
+            "name": "CB",
+            "type": "amateur",
+            "start": 26175000,
+            "end": 27230000
+        },
+        {
+            "name": "Radioamatori 10 m",
+            "type": "amateur",
+            "start": 28000000,
+            "end": 29700000
+        },
+        {
+            "name": "Wind profiler",
+            "type": "military",
+            "start": 45000000,
+            "end": 47000000
+        },
+        {
+            "name": "Radioamatori 9 m",
+            "type": "amateur",
+            "start": 47000000,
+            "end": 52500000
+        },
+        {
+            "name": "Wind profiler",
+            "type": "military",
+            "start": 52500000,
+            "end": 68000000
+        },
+        {
+            "name": "Soccorso alpino",
+            "type": "military",
+            "start": 68000000,
+            "end": 74800000
+        },
+        {
+            "name": "Radiofari 75 MHz",
+            "type": "aviation",
+            "start": 74800000,
+            "end": 75200000
+        },
+        {
+            "name": "Radiodiffusione FM",
+            "type": "broadcast",
+            "start": 80000000,
+            "end": 108000000
+        },
+        {
+            "name": "VOR/ILS",
+            "type": "aviation",
+            "start": 108000000,
+            "end": 118000000
+        },
+        {
+            "name": "Mobile aeronautico",
+            "type": "aviation",
+            "start": 118000000,
+            "end": 137000000
+        },
+        {
+            "name": "Satelliti polari",
+            "type": "satellite",
+            "start": 137000000,
+            "end": 138000000
+        },
+        {
+            "name": "Radioamatori 2 m",
+            "type": "amateur",
+            "start": 144000000,
+            "end": 148000000
+        },
+        {
+            "name": "Telefonia satellitare",
+            "type": "satellite",
+            "start": 148000000,
+            "end": 150050000
+        },
+        {
+            "name": "Marittimo VHF",
+            "type": "marine",
+            "start": 156000000,
+            "end": 162025000
+        },
+        {
+            "name": "TV banda III e DAB",
+            "type": "broadcast",
+            "start": 174000000,
+            "end": 223000000
+        },
+        {
+            "name": "Mobile aeronautico militare",
+            "type": "military",
+            "start": 225000000,
+            "end": 240000000
+        },
+        {
+            "name": "Satelliti militari",
+            "type": "military",
+            "start": 240000000,
+            "end": 270000000
+        },
+        {
+            "name": "Mobile aeronautico militare",
+            "type": "military",
+            "start": 270000000,
+            "end": 399900000
+        },
+        {
+            "name": "Telefonia satellitare",
+            "type": "satellite",
+            "start": 399900000,
+            "end": 400050000
+        },
+        {
+            "name": "Segnali orari via satellite",
+            "type": "satellite",
+            "start": 400050000,
+            "end": 400150000
+        },
+        {
+            "name": "Radiosonde",
+            "type": "satellite",
+            "start": 400150000,
+            "end": 406000000
+        },
+        {
+            "name": "EPIRB e PLB",
+            "type": "satellite",
+            "start": 406000000,
+            "end": 406100000
+        },
+        {
+            "name": "Satelliti militari",
+            "type": "military",
+            "start": 406100000,
+            "end": 410000000
+        },
+        {
+            "name": "Fisso militare",
+            "type": "military",
+            "start": 410000000,
+            "end": 420000000
+        },
+        {
+            "name": "Mobile militare",
+            "type": "military",
+            "start": 420000000,
+            "end": 430000000
+        },
+        {
+            "name": "Radioamatori 70 cm",
+            "type": "amateur",
+            "start": 430000000,
+            "end": 434000000
+        },
+        {
+            "name": "Fisso militare",
+            "type": "military",
+            "start": 434000000,
+            "end": 435000000
+        },
+        {
+            "name": "Radioamatori 70 cm",
+            "type": "amateur",
+            "start": 435000000,
+            "end": 436000000
+        },
+        {
+            "name": "Mobile o fisso privato",
+            "type": "comms",
+            "start": 438000000,
+            "end": 446000000
+        },
+        {
+            "name": "PMR446",
+            "type": "amateur",
+            "start": 446000000,
+            "end": 446200000
+        },
+        {
+            "name": "Mobile o fisso privato",
+            "type": "utility",
+            "start": 446200000,
+            "end": 470000000
+        },
+        {
+            "name": "TV UHF",
+            "type": "broadcast",
+            "start": 470000000,
+            "end": 791000000
+        },
+        {
+            "name": "LTE",
+            "type": "broadcast",
+            "start": 791000000,
+            "end": 862000000
+        },
+        {
+            "name": "ISM e RFID",
+            "type": "ism",
+            "start": 862000000,
+            "end": 876000000
+        },
+        {
+            "name": "GSM-R",
+            "type": "cellular",
+            "start": 876000000,
+            "end": 880000000
+        },
+        {
+            "name": "GSM",
+            "type": "cellular",
+            "start": 880000000,
+            "end": 915000000
+        },
+        {
+            "name": "GSM-R",
+            "type": "cellular",
+            "start": 9210000000,
+            "end": 925000000
+        },
+        {
+            "name": "GSM",
+            "type": "cellular",
+            "start": 925000000,
+            "end": 960000000
+        },
+        {
+            "name": "ADS-B, DME, TACAN",
+            "type": "aviation",
+            "start": 960000000,
+            "end": 1164000000
+        },
+        {
+            "name": "Radiolocalizzazione GNSS",
+            "type": "utility",
+            "start": 1164000000,
+            "end": 124000000
+        },
+        {
+            "name": "Radioamatori 23 cm",
+            "type": "amateur",
+            "start": 1240000000,
+            "end": 1270000000
+        },
+        {
+            "name": "Wind profiler",
+            "type": "military",
+            "start": 1270000000,
+            "end": 129800000
+        },
+        {
+            "name": "Radiolocalizzazione",
+            "type": "military",
+            "start": 1298000000,
+            "end": 130000000
+        },
+        {
+            "name": "Wind profiler",
+            "type": "military",
+            "start": 1300000000,
+            "end": 1400000000
+        },
+        {
+            "name": "Radioastronomia",
+            "type": "utility",
+            "start": 1400000000,
+            "end": 1427000000
+        },
+        {
+            "name": "Reti per segnali audio",
+            "type": "utility",
+            "start": 1427000000,
+            "end": 1525000000
+        },
+        {
+            "name": "Telefonia satellitare",
+            "type": "satellite",
+            "start": 1525000000,
+            "end": 1559000000
+        },
+        {
+            "name": "Radionavigazione GNSS",
+            "type": "satellite",
+            "start": 1559000000,
+            "end": 1626000000
+        },
+        {
+            "name": "Telefonia satellitare",
+            "type": "satellite",
+            "start": 1626000000,
+            "end": 1660000000
+        },
+        {
+            "name": "Satelliti militari",
+            "type": "military",
+            "start": 1660000000,
+            "end": 1710000000
+        },
+        {
+            "name": "MCA, MCV",
+            "type": "utility",
+            "start": 1710000000,
+            "end": 1715000000
+        },
+        {
+            "name": "GSM, IMT, MCA, MCV",
+            "type": "cellular",
+            "start": 1715000000,
+            "end": 1785000000
+        },
+        {
+            "name": "Radiomicrofoni",
+            "type": "utility",
+            "start": 1785000000,
+            "end": 1805000000
+        },
+        {
+            "name": "GSM, IMT, MCA, MCV",
+            "type": "cellular",
+            "start": 1805000000,
+            "end": 1880000000
+        },
+        {
+            "name": "DECT",
+            "type": "utility",
+            "start": 1880000000,
+            "end": 1900000000
+        },
+        {
+            "name": "GSM, IMT, MCA, MCV",
+            "type": "cellular",
+            "start": 1880000000,
+            "end": 1900000000
+        },
+        {
+            "name": "IMT, MCA, MCV",
+            "type": "utility",
+            "start": 1900000000,
+            "end": 1980000000
+        },
+        {
+            "name": "MSS 2 GHz",
+            "type": "satellite",
+            "start": 1980000000,
+            "end": 201000000
+        },
+        {
+            "name": "SAP/SAB, IMT, PMSE",
+            "type": "utility",
+            "start": 2010000000,
+            "end": 2025000000
+        },
+        {
+            "name": "Satelliti",
+            "type": "satellite",
+            "start": 2025000000,
+            "end": 2110000000
+        },
+        {
+            "name": "Radioastronomia",
+            "type": "utility",
+            "start": 2110000000,
+            "end": 2120000000
+        },
+        {
+            "name": "IMT, MCA, MCV",
+            "type": "utility",
+            "start": 2120000000,
+            "end": 2170000000
+        },
+        {
+            "name": "MSS 2 GHz",
+            "type": "satellite",
+            "start": 2170000000,
+            "end": 2200000000
+        },
+        {
+            "name": "Telemetria",
+            "type": "utility",
+            "start": 2200000000,
+            "end": 2290000000
+        },
+        {
+            "name": "SAP/SAB",
+            "type": "utility",
+            "start": 2290000000,
+            "end": 2300000000
+        },
+        {
+            "name": "Radioamatori 13 cm",
+            "type": "amateur",
+            "start": 2300000000,
+            "end": 2400000000
+        },
+        {
+            "name": "ISM, SAP/SAB, 802.11",
+            "type": "ism",
+            "start": 2400000000,
+            "end": 2500000000
+        },
+        {
+            "name": "IMT",
+            "type": "cellular",
+            "start": 2500000000,
+            "end": 2544500000
+        },
+        {
+            "name": "Radioastronomia",
+            "type": "utility",
+            "start": 2690000000,
+            "end": 2700000000
+        },
+        {
+            "name": "Radar meteo",
+            "type": "military",
+            "start": 2700000000,
+            "end": 2900000000
+        },
+        {
+            "name": "Radar marittimi",
+            "type": "marine",
+            "start": 2900000000,
+            "end": 3400000000
+        },
+        {
+            "name": "Radioamatori 9 cm",
+            "type": "amateur",
+            "start": 3400000000,
+            "end": 3475000000
+        },
+        {
+            "name": "Reti numeriche",
+            "type": "comms",
+            "start": 3475000000,
+            "end": 4200000000
+        },
+        {
+            "name": "Radioaltimetri",
+            "type": "aviation",
+            "start": 4200000000,
+            "end": 4400000000
+        },
+        {
+            "name": "Feeder link",
+            "type": "satellite",
+            "start": 5150000000,
+            "end": 5250000000
+        },
+        {
+            "name": "Reti numeriche e 802.11",
+            "type": "comms",
+            "start": 5250000000,
+            "end": 5650000000
+        },
+        {
+            "name": "Radioamatori 6 cm",
+            "type": "amateur",
+            "start": 5650000000,
+            "end": 5850000000
+        },
+        {
+            "name": "Reti numeriche e LPR",
+            "type": "comms",
+            "start": 5925000000,
+            "end": 7750000000
+        },
+        {
+            "name": "LPR",
+            "type": "comms",
+            "start": 7750000000,
+            "end": 7975000000
+        },
+        {
+            "name": "Telerilevamento",
+            "type": "utility",
+            "start": 7975000000,
+            "end": 8215000000
+        },
+        {
+            "name": "TLPR e SRD",
+            "type": "comms",
+            "start": 8215000000,
+            "end": 8650000000
+        },
+        {
+            "name": "Radar Doppler",
+            "type": "aircraft",
+            "start": 8650000000,
+            "end": 8850000000
+        },
+        {
+            "name": "Radar marittimi",
+            "type": "marine",
+            "start": 8850000000,
+            "end": 9000000000
+        },
+        {
+            "name": "Radar e transponder SART",
+            "type": "marine",
+            "start": 9000000000,
+            "end": 9500000000
+        },
+        {
+            "name": "TLPR e SRD",
+            "type": "utility",
+            "start": 9500000000,
+            "end": 10000000000
+        },
+        {
+            "name": "Radioamatori 3 cm",
+            "type": "amateur",
+            "start": 10000000000,
+            "end": 10500000000
+        },
+        {
+            "name": "Reti punto-punto televisive",
+            "type": "comms",
+            "start": 10500000000,
+            "end": 10680000000
+        },
+        {
+            "name": "Reti fisse numeriche",
+            "type": "comms",
+            "start": 10680000000,
+            "end": 11700000000
+        },
+        {
+            "name": "Satelliti televisivi",
+            "type": "satellite",
+            "start": 11700000000,
+            "end": 12500000000
+        },
+        {
+            "name": "Reti fisse numeriche",
+            "type": "comms",
+            "start": 12500000000,
+            "end": 13250000000
+        },
+        {
+            "name": "Uplink satellitari",
+            "type": "satellite",
+            "start": 14000000000,
+            "end": 14500000000
+        },
+        {
+            "name": "Rete fisse numeriche",
+            "type": "comms",
+            "start": 14500000000,
+            "end": 14620000000
+        },
+        {
+            "name": "Rete fisse numeriche",
+            "type": "comms",
+            "start": 15230000000,
+            "end": 15350000000
+        },
+        {
+            "name": "Reti numeriche punto-punto",
+            "type": "comms",
+            "start": 17100000000,
+            "end": 19300000000
+        },
+        {
+            "name": "Feeder link",
+            "type": "satellite",
+            "start": 19300000000,
+            "end": 19700000000
+        },
+        {
+            "name": "HEST, LEST, ESIM, ESOMP",
+            "type": "satellite",
+            "start": 19700000000,
+            "end": 20200000000
+        },
+        {
+            "name": "Reti fisse numeriche",
+            "type": "comms",
+            "start": 22000000000,
+            "end": 22330000000
+        },
+        {
+            "name": "Reti fisse numeriche",
+            "type": "comms",
+            "start": 22674750000,
+            "end": 2283350000
+        },
+        {
+            "name": "Reti fisse numeriche, SAP/SAB",
+            "type": "comms",
+            "start": 22926750000,
+            "end": 23150000000
+        },
+        {
+            "name": "Reti fisse numeriche",
+            "type": "comms",
+            "start": 23150000000,
+            "end": 23338000000
+        },
+        {
+            "name": "ISM, SRD e LPR",
+            "type": "ism",
+            "start": 24000000000,
+            "end": 24450000000
+        },
+        {
+            "name": "Reti punto-punto e punto-multipunto",
+            "type": "comms",
+            "start": 24450000000,
+            "end": 25109000000
+        },
+        {
+            "name": "LPR, SRD e SRR",
+            "type": "utility",
+            "start": 25109000000,
+            "end": 2544500000
+        },
+        {
+            "name": "Reti punto-punto e punto-multipunto",
+            "type": "comms",
+            "start": 2544500000,
+            "end": 2611700000
+        },
+        {
+            "name": "LPR, SRD e SRR",
+            "type": "utility",
+            "start": 2611700000,
+            "end": 2650000000
+        },
+        {
+            "name": "Comunicazioni elettroniche terrestri",
+            "type": "comms",
+            "start": 26500000000,
+            "end": 27500000000
+        },
+        {
+            "name": "Reti punto-punto e punto-multipunto",
+            "type": "comms",
+            "start": 27500000000,
+            "end": 29100000000
+        },
+        {
+            "name": "Reti punto-punto e punto-multipunto",
+            "type": "comms",
+            "start": 29100000000,
+            "end": 29500000000
+        },
+        {
+            "name": "Reti punto-punto e punto-multipunto",
+            "type": "comms",
+            "start": 31000000000,
+            "end": 31300000000
+        },
+        {
+            "name": "Reti fisse numeriche ad alta densità",
+            "type": "comms",
+            "start": 31983000000,
+            "end": 32599000000
+        },
+        {
+            "name": "Reti fisse numeriche ad alta densità",
+            "type": "comms",
+            "start": 32795000000,
+            "end": 33400000000
+        },
+        {
+            "name": "Reti fisse numeriche ad alta densità",
+            "type": "comms",
+            "start": 37338000000,
+            "end": 38300000000
+        },
+        {
+            "name": "Reti fisse numeriche ad alta densità",
+            "type": "comms",
+            "start": 38590000000,
+            "end": 39500000000
+        },
+        {
+            "name": "Sistemi fissi via radio FWS",
+            "type": "utility",
+            "start": 40500000000,
+            "end": 43500000000
+        },
+        {
+            "name": "Radioamatori 6 mm",
+            "type": "amateur",
+            "start": 47000000000,
+            "end": 47200000000
+        },
+        {
+            "name": "Reti fisse numeriche ad alta densità",
+            "type": "comms",
+            "start": 51400000000,
+            "end": 52600000000
+        },
+        {
+            "name": "Reti fisse numeriche ad alta densità",
+            "type": "comms",
+            "start": 55780000000,
+            "end": 61000000000
+        },
+        {
+            "name": "ISM",
+            "type": "ism",
+            "start": 61000000000,
+            "end": 64000000000
+        },
+        {
+            "name": "Reti fisse numeriche ad alta densità",
+            "type": "comms",
+            "start": 64000000000,
+            "end": 66000000000
+        },
+        {
+            "name": "Collegamenti fissi ad alta capacità",
+            "type": "comms",
+            "start": 71000000000,
+            "end": 74000000000
+        },
+        {
+            "name": "LPR, SRD, SRR, TLPR, radar veicoli",
+            "type": "utility",
+            "start": 74000000000,
+            "end": 76500000000
+        },
+        {
+            "name": "Radioamatori 4 mm",
+            "type": "amateur",
+            "start": 76500000000,
+            "end": 81500000000
+        },
+        {
+            "name": "Collegamenti fissi ad alta capacità",
+            "type": "comms",
+            "start": 84000000000,
+            "end": 86000000000
+        },
+        {
+            "name": "ISM",
+            "type": "ism",
+            "start": 120200000000,
+            "end": 122250000000
+        },
+        {
+            "name": "Radioamatori 2,5 mm",
+            "type": "amateur",
+            "start": 122250000000,
+            "end": 123000000000
+        },
+        {
+            "name": "Radioamatori 2 mm",
+            "type": "amateur",
+            "start": 134000000000,
+            "end": 141000000000
+        },
+        {
+            "name": "Radioamatori 1 mm",
+            "type": "amateur",
+            "start": 241000000000,
+            "end": 250000000000
+        }
+    ]
+}
