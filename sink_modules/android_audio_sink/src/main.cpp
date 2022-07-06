@@ -3,8 +3,7 @@
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
 #include <signal_path/sink.h>
-#include <dsp/audio.h>
-#include <dsp/processing.h>
+#include <dsp/buffer/packer.h>
 #include <spdlog/spdlog.h>
 #include <config.h>
 #include <utils/optionlist.h>
@@ -125,7 +124,7 @@ private:
 
     AAudioStream *stream = NULL;
     SinkManager::Stream* _stream;
-    dsp::Packer<dsp::stereo_t> packer;
+    dsp::buffer::Packer<dsp::stereo_t> packer;
 
     std::string _streamName;
     double sampleRate;

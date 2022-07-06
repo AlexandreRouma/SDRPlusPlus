@@ -188,6 +188,31 @@ namespace dsp::demod {
                 convert::LRToStereo::process(count, l, r, out);
             }
             else {
+                // Process RDS if needed. Note: find a way to not have to copy half the code from the stereo demod
+                if (_rdsOut) {
+                    // Convert to complex
+                    rtoc.process(count, demod.out.writeBuf, rtoc.out.writeBuf);
+
+                    // Filter out pilot and run through PLL
+                    pilotFir.process(count, rtoc.out.writeBuf, pilotFir.out.writeBuf);
+                    pilotPLL.process(count, pilotFir.out.writeBuf, pilotPLL.out.writeBuf);
+
+                    // Delay
+                    lprDelay.process(count, demod.out.writeBuf, demod.out.writeBuf);
+                    lmrDelay.process(count, rtoc.out.writeBuf, rtoc.out.writeBuf);
+                    
+                    // conjugate PLL output to down convert twice the L-R signal
+                    math::Conjugate::process(count, pilotPLL.out.writeBuf, pilotPLL.out.writeBuf);
+                    math::Multiply<dsp::complex_t>::process(count, rtoc.out.writeBuf, pilotPLL.out.writeBuf, rtoc.out.writeBuf);
+                    math::Multiply<dsp::complex_t>::process(count, rtoc.out.writeBuf, pilotPLL.out.writeBuf, rtoc.out.writeBuf);
+
+                    // Since the PLL output is no longer needed after this, use it as the output
+                    math::Multiply<dsp::complex_t>::process(count, rtoc.out.writeBuf, pilotPLL.out.writeBuf, pilotPLL.out.writeBuf);
+                    convert::ComplexToReal::process(count, pilotPLL.out.writeBuf, rdsout);
+                    volk_32f_s32f_multiply_32f(rdsout, rdsout, 100.0, count);
+                    rdsOutCount = rdsResamp.process(count, rdsout, rdsout);
+                }
+
                 // Filter if needed
                 if (_lowPass) {
                     alFir.process(count, demod.out.writeBuf, demod.out.writeBuf);
