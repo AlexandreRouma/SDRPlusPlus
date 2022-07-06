@@ -56,7 +56,7 @@ public:
         config.release(created);
 
         vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 150000, INPUT_SAMPLE_RATE, 150000, 150000, true);
-        demod.init(vfo->output, 72000.0f, INPUT_SAMPLE_RATE, 33, 0.6f, 0.1f, 0.005f, (0.01 * 0.01) / 4.0, 0.01);
+        demod.init(vfo->output, 72000.0f, INPUT_SAMPLE_RATE, 33, 0.6f, 0.1f, 0.005f, 1e-6, 0.01);
         split.init(&demod.out);
         split.bindStream(&symSinkStream);
         split.bindStream(&sinkStream);

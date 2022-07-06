@@ -12,6 +12,7 @@
 #include "../math/multiply.h"
 #include "../math/add.h"
 #include "../math/subtract.h"
+#include "../multirate/rational_resampler.h"
 
 namespace dsp::demod {
     class BroadcastFM : public Processor<complex_t, stereo_t> {
@@ -19,7 +20,7 @@ namespace dsp::demod {
     public:
         BroadcastFM() {}
 
-        BroadcastFM(stream<complex_t>* in, double deviation, double samplerate, bool stereo = true, bool lowPass = true) { init(in, deviation, samplerate, stereo, lowPass); }
+        BroadcastFM(stream<complex_t>* in, double deviation, double samplerate, bool stereo = true, bool lowPass = true, bool rdsOut = false) { init(in, deviation, samplerate, stereo, lowPass); }
 
         ~BroadcastFM() {
             if (!base_type::_block_init) { return; }
@@ -31,11 +32,12 @@ namespace dsp::demod {
             taps::free(audioFirTaps);
         }
 
-        virtual void init(stream<complex_t>* in, double deviation, double samplerate, bool stereo = true, bool lowPass = true) {
+        virtual void init(stream<complex_t>* in, double deviation, double samplerate, bool stereo = true, bool lowPass = true, bool rdsOut = false) {
             _deviation = deviation;
             _samplerate = samplerate;
             _stereo = stereo;
             _lowPass = lowPass;
+            _rdsOut = rdsOut;
             
             demod.init(NULL, _deviation, _samplerate);
             pilotFirTaps = taps::bandPass<complex_t>(18750.0, 19250.0, 3000.0, _samplerate, true);
@@ -47,6 +49,7 @@ namespace dsp::demod {
             audioFirTaps = taps::lowPass(15000.0, 4000.0, _samplerate);
             alFir.init(NULL, audioFirTaps);
             arFir.init(NULL, audioFirTaps);
+            rdsResamp.init(NULL, samplerate, 5000.0);
 
             lmr = buffer::alloc<float>(STREAM_BUFFER_SIZE);
             l = buffer::alloc<float>(STREAM_BUFFER_SIZE);
@@ -56,6 +59,7 @@ namespace dsp::demod {
             lmrDelay.out.free();
             arFir.out.free();
             alFir.out.free();
+            rdsResamp.out.free();
 
             base_type::init(in);
         }
@@ -88,6 +92,8 @@ namespace dsp::demod {
             alFir.setTaps(audioFirTaps);
             arFir.setTaps(audioFirTaps);
 
+            rdsResamp.setInSamplerate(samplerate);
+
             reset();
             base_type::tempStart();
         }
@@ -110,6 +116,15 @@ namespace dsp::demod {
             base_type::tempStart();
         }
 
+        void setRDSOut(bool rdsOut) {
+            assert(base_type::_block_init);
+            std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
+            base_type::tempStop();
+            _rdsOut = rdsOut;
+            reset();
+            base_type::tempStart();
+        }
+
         void reset() {
             assert(base_type::_block_init);
             std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
@@ -124,7 +139,7 @@ namespace dsp::demod {
             base_type::tempStart();
         }
 
-        inline int process(int count, complex_t* in, stereo_t* out) {
+        inline int process(int count, complex_t* in, stereo_t* out, int& rdsOutCount, float* rdsout = NULL) {
             // Demodulate
             demod.process(count, in, demod.out.writeBuf);
             if (_stereo) {
@@ -139,10 +154,19 @@ namespace dsp::demod {
                 lprDelay.process(count, demod.out.writeBuf, demod.out.writeBuf);
                 lmrDelay.process(count, rtoc.out.writeBuf, rtoc.out.writeBuf);
                 
-                // Double and conjugate PLL output to down convert the L-R signal
-                math::Multiply<dsp::complex_t>::process(count, pilotPLL.out.writeBuf, pilotPLL.out.writeBuf, pilotPLL.out.writeBuf);
+                // conjugate PLL output to down convert twice the L-R signal
                 math::Conjugate::process(count, pilotPLL.out.writeBuf, pilotPLL.out.writeBuf);
                 math::Multiply<dsp::complex_t>::process(count, rtoc.out.writeBuf, pilotPLL.out.writeBuf, rtoc.out.writeBuf);
+                math::Multiply<dsp::complex_t>::process(count, rtoc.out.writeBuf, pilotPLL.out.writeBuf, rtoc.out.writeBuf);
+
+                // Do RDS demod
+                if (_rdsOut) {
+                    // Since the PLL output is no longer needed after this, use it as the output
+                    math::Multiply<dsp::complex_t>::process(count, rtoc.out.writeBuf, pilotPLL.out.writeBuf, pilotPLL.out.writeBuf);
+                    convert::ComplexToReal::process(count, pilotPLL.out.writeBuf, rdsout);
+                    volk_32f_s32f_multiply_32f(rdsout, rdsout, 100.0, count);
+                    rdsOutCount = rdsResamp.process(count, rdsout, rdsout);
+                }
 
                 // Convert output back to real for further processing
                 convert::ComplexToReal::process(count, rtoc.out.writeBuf, lmr);
@@ -180,18 +204,25 @@ namespace dsp::demod {
             int count = base_type::_in->read();
             if (count < 0) { return -1; }
 
-            process(count, base_type::_in->readBuf, base_type::out.writeBuf);
+            int rdsOutCount = 0;
+            process(count, base_type::_in->readBuf, base_type::out.writeBuf, rdsOutCount, rdsOut.writeBuf);
 
             base_type::_in->flush();
             if (!base_type::out.swap(count)) { return -1; }
+            if (rdsOutCount && _rdsOut) {
+                if (!rdsOut.swap(rdsOutCount)) { return -1; }
+            }
             return count;
         }
+
+        stream<float> rdsOut;
 
     protected:
         double _deviation;
         double _samplerate;
         bool _stereo;
-        bool _lowPass = true;
+        bool _lowPass;
+        bool _rdsOut;
 
         Quadrature demod;
         tap<complex_t> pilotFirTaps;
@@ -203,6 +234,7 @@ namespace dsp::demod {
         tap<float> audioFirTaps;
         filter::FIR<float, float> arFir;
         filter::FIR<float, float> alFir;
+        multirate::RationalResampler<float> rdsResamp;
 
         float* lmr;
         float* l;

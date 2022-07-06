@@ -6,22 +6,21 @@
 #include "../math/step.h"
 
 namespace dsp::clock_recovery {
-    template<class T>
-    class MM : public Processor<T, T> {
-        using base_type = Processor<T, T> ;
+    class FD : public Processor<float, float> {
+        using base_type = Processor<float, float> ;
     public:
-        MM() {}
+        FD() {}
 
-        MM(stream<T>* in, double omega, double omegaGain, double muGain, double omegaRelLimit, int interpPhaseCount = 128, int interpTapCount = 8) { init(in, omega, omegaGain, muGain, omegaRelLimit, interpPhaseCount, interpTapCount); }
+        FD(stream<float>* in, double omega, double omegaGain, double muGain, double omegaRelLimit, int interpPhaseCount = 128, int interpTapCount = 8) { init(in, omega, omegaGain, muGain, omegaRelLimit, interpPhaseCount, interpTapCount); }
 
-        ~MM() {
+        ~FD() {
             if (!base_type::_block_init) { return; }
             base_type::stop();
             dsp::multirate::freePolyphaseBank(interpBank);
             buffer::free(buffer);
         }
 
-        void init(stream<T>* in, double omega, double omegaGain, double muGain, double omegaRelLimit, int interpPhaseCount = 128, int interpTapCount = 8) {
+        void init(stream<float>* in, double omega, double omegaGain, double muGain, double omegaRelLimit, int interpPhaseCount = 128, int interpTapCount = 8) {
             _omega = omega;
             _omegaGain = omegaGain;
             _muGain = muGain;
@@ -31,7 +30,7 @@ namespace dsp::clock_recovery {
 
             pcl.init(_muGain, _omegaGain, 0.0, 0.0, 1.0, _omega, _omega * (1.0 - omegaRelLimit), _omega * (1.0 + omegaRelLimit));
             generateInterpTaps();
-            buffer = buffer::alloc<T>(STREAM_BUFFER_SIZE + _interpTapCount);
+            buffer = buffer::alloc<float>(STREAM_BUFFER_SIZE + _interpTapCount);
             bufStart = &buffer[_interpTapCount - 1];
         
             base_type::init(in);
@@ -79,7 +78,7 @@ namespace dsp::clock_recovery {
             dsp::multirate::freePolyphaseBank(interpBank);
             buffer::free(buffer);
             generateInterpTaps();
-            buffer = buffer::alloc<T>(STREAM_BUFFER_SIZE + _interpTapCount);
+            buffer = buffer::alloc<float>(STREAM_BUFFER_SIZE + _interpTapCount);
             bufStart = &buffer[_interpTapCount - 1];
             base_type::tempStart();
         }
@@ -91,51 +90,46 @@ namespace dsp::clock_recovery {
             offset = 0;
             pcl.phase = 0.0f;
             pcl.freq = _omega;
-            lastOut = 0.0f;
-            _p_0T = { 0.0f, 0.0f }; _p_1T = { 0.0f, 0.0f }; _p_2T = { 0.0f, 0.0f };
-            _c_0T = { 0.0f, 0.0f }; _c_1T = { 0.0f, 0.0f }; _c_2T = { 0.0f, 0.0f };
             base_type::tempStart();
         }
 
-        inline int process(int count, const T* in, T* out) {
+        inline int process(int count, const float* in, float* out) {
             // Copy data to work buffer
-            memcpy(bufStart, in, count * sizeof(T));
+            memcpy(bufStart, in, count * sizeof(float));
 
             // Process all samples
             int outCount = 0;
             while (offset < count) {
                 float error;
-                T outVal;
+                float outVal;
+                float dfdt;
 
                 // Calculate new output value
                 int phase = std::clamp<int>(floorf(pcl.phase * (float)_interpPhaseCount), 0, _interpPhaseCount - 1);
-                if constexpr (std::is_same_v<T, float>) {
-                    volk_32f_x2_dot_prod_32f(&outVal, &buffer[offset], interpBank.phases[phase], _interpTapCount);
-                }
-                if constexpr (std::is_same_v<T, complex_t>) {
-                    volk_32fc_32f_dot_prod_32fc((lv_32fc_t*)&outVal, (lv_32fc_t*)&buffer[offset], interpBank.phases[phase], _interpTapCount);
-                }
+                volk_32f_x2_dot_prod_32f(&outVal, &buffer[offset], interpBank.phases[phase], _interpTapCount);
                 out[outCount++] = outVal;
 
-                // Calculate symbol phase error
-                if constexpr (std::is_same_v<T, float>) {
-                    error = (math::step(lastOut) * outVal) - (lastOut * math::step(outVal));
-                    lastOut = outVal;
+                // Calculate derivative of the signal
+                if (phase == 0) {
+                    float fT1;
+                    volk_32f_x2_dot_prod_32f(&fT1, &buffer[offset], interpBank.phases[phase+1], _interpTapCount);
+                    dfdt = fT1 - outVal;
                 }
-                if constexpr (std::is_same_v<T, complex_t>) {
-                    // Propagate delay
-                    _p_2T = _p_1T;
-                    _p_1T = _p_0T;
-                    _c_2T = _c_1T;
-                    _c_1T = _c_0T;
-
-                    // Update the T0 values
-                    _p_0T = outVal;
-                    _c_0T = math::step(outVal);
-
-                    // Error
-                    error = (((_p_0T - _p_2T) * _c_1T.conj()) - ((_c_0T - _c_2T) * _p_1T.conj())).re;
+                else if (phase == _interpPhaseCount - 1) {
+                    float fT_1;
+                    volk_32f_x2_dot_prod_32f(&fT_1, &buffer[offset], interpBank.phases[phase-1], _interpTapCount);
+                    dfdt = outVal - fT_1;
                 }
+                else {
+                    float fT_1;
+                    float fT1;
+                    volk_32f_x2_dot_prod_32f(&fT_1, &buffer[offset], interpBank.phases[phase-1], _interpTapCount);
+                    volk_32f_x2_dot_prod_32f(&fT1, &buffer[offset], interpBank.phases[phase+1], _interpTapCount);
+                    dfdt = (fT1 - fT_1) * 0.5f;
+                }
+                
+                // Calculate error
+                error = dfdt * math::step(outVal);
 
                 // Clamp symbol phase error
                 if (error > 1.0f) { error = 1.0f; }
@@ -150,7 +144,7 @@ namespace dsp::clock_recovery {
             offset -= count;
 
             // Update delay buffer
-            memmove(buffer, &buffer[count], (_interpTapCount - 1) * sizeof(T));
+            memmove(buffer, &buffer[count], (_interpTapCount - 1) * sizeof(float));
 
             return outCount;
         }
@@ -169,6 +163,8 @@ namespace dsp::clock_recovery {
             return outCount;
         }
 
+        loop::PhaseControlLoop<float, false> pcl;
+
     protected:
         void generateInterpTaps() {
             double bw = 0.5 / (double)_interpPhaseCount;
@@ -178,7 +174,6 @@ namespace dsp::clock_recovery {
         }
 
         dsp::multirate::PolyphaseBank<float> interpBank;
-        loop::PhaseControlLoop<float, false> pcl;
 
         double _omega;
         double _omegaGain;
@@ -187,13 +182,8 @@ namespace dsp::clock_recovery {
         int _interpPhaseCount;
         int _interpTapCount;
 
-        // Previous output storage
-        float lastOut = 0.0f;
-        complex_t _p_0T = { 0.0f, 0.0f }, _p_1T = { 0.0f, 0.0f }, _p_2T = { 0.0f, 0.0f };
-        complex_t _c_0T = { 0.0f, 0.0f }, _c_1T = { 0.0f, 0.0f }, _c_2T = { 0.0f, 0.0f };
-
         int offset = 0;
-        T* buffer;
-        T* bufStart;
+        float* buffer;
+        float* bufStart;
     };
 }

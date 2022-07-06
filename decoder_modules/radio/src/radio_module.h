@@ -232,16 +232,19 @@ private:
         }
 
         // Noise blanker
-        if (ImGui::Checkbox(("Noise blanker (W.I.P.)##_radio_nb_ena_" + _this->name).c_str(), &_this->nbEnabled)) {
-            _this->setNBEnabled(_this->nbEnabled);
+        if (_this->nbAllowed) {
+            if (ImGui::Checkbox(("Noise blanker (W.I.P.)##_radio_nb_ena_" + _this->name).c_str(), &_this->nbEnabled)) {
+                _this->setNBEnabled(_this->nbEnabled);
+            }
+            if (!_this->nbEnabled && _this->enabled) { style::beginDisabled(); }
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+            if (ImGui::SliderFloat(("##_radio_nb_lvl_" + _this->name).c_str(), &_this->nbLevel, _this->MIN_NB, _this->MAX_NB, "%.3fdB")) {
+                _this->setNBLevel(_this->nbLevel);
+            }
+            if (!_this->nbEnabled && _this->enabled) { style::endDisabled(); }
         }
-        if (!_this->nbEnabled && _this->enabled) { style::beginDisabled(); }
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::SliderFloat(("##_radio_nb_lvl_" + _this->name).c_str(), &_this->nbLevel, _this->MIN_NB, _this->MAX_NB, "%.3fdB")) {
-            _this->setNBLevel(_this->nbLevel);
-        }
-        if (!_this->nbEnabled && _this->enabled) { style::endDisabled(); }
+        
 
         // Squelch
         if (ImGui::Checkbox(("Squelch##_radio_sqelch_ena_" + _this->name).c_str(), &_this->squelchEnabled)) {
@@ -422,7 +425,7 @@ private:
         // Configure noise blanker
         nb.setRate(500.0 / ifSamplerate);
         setNBLevel(nbLevel);
-        setNBEnabled(nbEnabled);
+        setNBEnabled(nbAllowed&& nbEnabled);
 
         // Configure FM IF Noise Reduction
         setIFNRPreset((selectedDemodID == RADIO_DEMOD_NFM) ? ifnrPresets[fmIFPresetId] : IFNR_PRESET_BROADCAST);
