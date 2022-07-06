@@ -155,7 +155,7 @@ namespace rds {
 
         // All groups
         std::mutex groupMtx;
-        std::chrono::steady_clock::time_point anyGroupLastUpdate;
+        std::chrono::time_point<std::chrono::high_resolution_clock> anyGroupLastUpdate;
         uint8_t countryCode;
         AreaCoverage programCoverage;
         uint8_t programRefNumber;
@@ -163,7 +163,7 @@ namespace rds {
         ProgramType programType;
 
         // Group type 0
-        std::chrono::steady_clock::time_point group0LastUpdate;
+        std::chrono::time_point<std::chrono::high_resolution_clock> group0LastUpdate;
         bool trafficAnnouncement;
         bool music;
         uint8_t decoderIdent;
@@ -171,7 +171,7 @@ namespace rds {
         std::string programServiceName = "        ";
 
         // Group type 2
-        std::chrono::steady_clock::time_point group2LastUpdate;
+        std::chrono::time_point<std::chrono::high_resolution_clock> group2LastUpdate;
         bool rtAB = false;
         std::string radioText = "                                                                ";
 
