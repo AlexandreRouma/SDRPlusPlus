@@ -53,8 +53,10 @@ namespace rds {
     const int BLOCK_LEN = 26;
     const int DATA_LEN = 16;
     const int POLY_LEN = 10;
-    const uint16_t LFSR_POLY = 0x5B9;
-    const uint16_t IN_POLY = 0x31B;
+
+    //                           9876543210
+    const uint16_t LFSR_POLY = 0b0110111001;
+    const uint16_t IN_POLY   = 0b1100011011;
 
     void RDSDecoder::process(uint8_t* symbols, int count) {
         for (int i = 0; i < count; i++) {
@@ -71,10 +73,6 @@ namespace rds {
             auto synIt = SYNDROMES.find(syn);
             bool knownSyndrome = synIt != SYNDROMES.end();
             sync = std::clamp<int>(knownSyndrome ? ++sync : --sync, 0, 4);
-
-            // if (knownSyndrome) {
-            //     printf("Found known syn: %04X\n", syn);
-            // }
             
             // If we're still no longer in sync, try to resync
             if (!sync) { continue; }
@@ -89,9 +87,7 @@ namespace rds {
             }
 
             // Save block while correcting errors (NOT YET)
-            blocks[type] = shiftReg;//correctErrors(shiftReg, type);
-
-            //printf("Block type: %d, Sync: %d, KnownSyndrome: %s, contGroup: %d, offset: %d\n", type, sync, knownSyndrome ? "yes" : "no", contGroup, i);
+            blocks[type] = correctErrors(shiftReg, type, blockAvail[type]);
 
             // Update continous group count
             if (type == BLOCK_TYPE_A) { contGroup = 1; }
@@ -121,13 +117,13 @@ namespace rds {
         return syn;
     }
 
-    uint32_t RDSDecoder::correctErrors(uint32_t block, BlockType type) {
+    uint32_t RDSDecoder::correctErrors(uint32_t block, BlockType type, bool& recovered) {        
+        // Subtract the offset from block
+        block ^= (uint32_t)OFFSETS[type];
+        
         // Init the syndrome and output
         uint16_t syn = 0;
         uint32_t out = block;
-
-        // Subtract the offset from block
-        block ^= (uint32_t)OFFSETS[type];
 
         // Feed in the data
         for (int i = BLOCK_LEN - 1; i >= 0; i--) {
@@ -142,27 +138,33 @@ namespace rds {
             syn ^= IN_POLY * ((block >> i) & 1);
         }
 
-        // Use the syndrome register to do error correction
-        // TODO: For some reason there's always zeros in the syn when starting
+        uint16_t firstSyn = syn;
+
+        // Use the syndrome register to do error correction if errors are present
         uint8_t errorFound = 0;
-        for (int i = DATA_LEN - 1; i >= 0; i--) {
-            // Check if the 5 leftmost bits are all zero
-            errorFound |= !(syn & 0b11111);
+        if (syn) {
+            for (int i = DATA_LEN - 1; i >= 0; i--) {
+                // Check if the 5 leftmost bits are all zero
+                errorFound |= !(syn & 0b11111);
 
-            // Write output
-            uint8_t outBit = (syn >> (POLY_LEN - 1)) & 1;
-            out ^= (errorFound & outBit) << (i + POLY_LEN);
+                // Write output
+                uint8_t outBit = (syn >> (POLY_LEN - 1)) & 1;
+                out ^= (errorFound & outBit) << (i + POLY_LEN);
 
-            // Shift syndrome
-            syn = (syn << 1) & 0b1111111111;
-            syn ^= LFSR_POLY * outBit * !errorFound;
+                // Shift syndrome
+                syn = (syn << 1) & 0b1111111111;
+                syn ^= LFSR_POLY * outBit * !errorFound;
+            }
         }
+        recovered = !(syn & 0b11111);
 
-        // TODO: mark block as irrecoverable if too damaged
-
-        if (errorFound) {
-            printf("Error found\n");
-        }
+        // // One last check
+        // if (errorFound) {
+        //     printf("Error found: %04X -> %04X, %08X -> %08X\n", firstSyn, syn, block, out);
+        // }
+        // else if (!recovered) {
+        //     printf("Non recoverable error\n");
+        // }
 
         return out;
     }
@@ -171,6 +173,9 @@ namespace rds {
         std::lock_guard<std::mutex> lck(groupMtx);
         auto now = std::chrono::high_resolution_clock::now();
         anyGroupLastUpdate = now;
+
+        // Make sure blocks A and B are available
+        if (!blockAvail[BLOCK_TYPE_A] || !blockAvail[BLOCK_TYPE_B]) { return; }
 
         // Decode PI code
         countryCode = (blocks[BLOCK_TYPE_A] >> 22) & 0xF;
@@ -194,7 +199,7 @@ namespace rds {
             uint8_t diOffset = 3 - offset;
             uint8_t psOffset = offset * 2;
 
-            if (groupVer == GROUP_VER_A) {
+            if (groupVer == GROUP_VER_A && blockAvail[BLOCK_TYPE_C]) {
                 alternateFrequency = (blocks[BLOCK_TYPE_C] >> 10) & 0xFFFF;
             }
 
@@ -203,8 +208,10 @@ namespace rds {
             decoderIdent |= (diBit << diOffset);
 
             // Write chars at offset the PSName
-            programServiceName[psOffset] = (blocks[BLOCK_TYPE_D] >> 18) & 0xFF;
-            programServiceName[psOffset + 1] = (blocks[BLOCK_TYPE_D] >> 10) & 0xFF;
+            if (blockAvail[BLOCK_TYPE_D]) {
+                programServiceName[psOffset] = (blocks[BLOCK_TYPE_D] >> 18) & 0xFF;
+                programServiceName[psOffset + 1] = (blocks[BLOCK_TYPE_D] >> 10) & 0xFF;
+            }
         }
         else if (groupType == 2) {
             group2LastUpdate = now;
@@ -221,15 +228,21 @@ namespace rds {
             // Write char at offset in Radiotext
             if (groupVer == GROUP_VER_A) {
                 uint8_t rtOffset = offset * 4;
-                radioText[rtOffset] = (blocks[BLOCK_TYPE_C] >> 18) & 0xFF;
-                radioText[rtOffset + 1] = (blocks[BLOCK_TYPE_C] >> 10) & 0xFF;
-                radioText[rtOffset + 2] = (blocks[BLOCK_TYPE_D] >> 18) & 0xFF;
-                radioText[rtOffset + 3] = (blocks[BLOCK_TYPE_D] >> 10) & 0xFF;
+                if (blockAvail[BLOCK_TYPE_C]) {
+                    radioText[rtOffset] = (blocks[BLOCK_TYPE_C] >> 18) & 0xFF;
+                    radioText[rtOffset + 1] = (blocks[BLOCK_TYPE_C] >> 10) & 0xFF;
+                }
+                if (blockAvail[BLOCK_TYPE_D]) {
+                    radioText[rtOffset + 2] = (blocks[BLOCK_TYPE_D] >> 18) & 0xFF;
+                    radioText[rtOffset + 3] = (blocks[BLOCK_TYPE_D] >> 10) & 0xFF;
+                }
             }
             else {
                 uint8_t rtOffset = offset * 2;
-                radioText[rtOffset] = (blocks[BLOCK_TYPE_D] >> 18) & 0xFF;
-                radioText[rtOffset + 1] = (blocks[BLOCK_TYPE_D] >> 10) & 0xFF;
+                if (blockAvail[BLOCK_TYPE_D]) {
+                    radioText[rtOffset] = (blocks[BLOCK_TYPE_D] >> 18) & 0xFF;
+                    radioText[rtOffset + 1] = (blocks[BLOCK_TYPE_D] >> 10) & 0xFF;
+                }
             }
         }
     }

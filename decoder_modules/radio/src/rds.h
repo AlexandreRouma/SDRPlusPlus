@@ -138,7 +138,7 @@ namespace rds {
 
     private:
         static uint16_t calcSyndrome(uint32_t block);
-        static uint32_t correctErrors(uint32_t block, BlockType type);
+        static uint32_t correctErrors(uint32_t block, BlockType type, bool& recovered);
         void decodeGroup();
 
         bool anyGroupValid();
@@ -152,6 +152,7 @@ namespace rds {
         BlockType lastType = BLOCK_TYPE_A;
         int contGroup = 0;
         uint32_t blocks[_BLOCK_TYPE_COUNT];
+        bool blockAvail[_BLOCK_TYPE_COUNT];
 
         // All groups
         std::mutex groupMtx;
