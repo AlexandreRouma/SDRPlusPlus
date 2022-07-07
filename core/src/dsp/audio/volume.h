@@ -12,6 +12,7 @@ namespace dsp::audio {
 
         void init(stream<stereo_t>* in, double volume, bool muted) {
             _volume = powf(volume, 2);
+            _muted = muted;
             level = { -150.0f, -150.0f };
             base_type::init(in);
         }

@@ -21,8 +21,8 @@ namespace dsp::routing {
 
             // Add to the list
             base_type::tempStop();
-            streams.push_back(stream);
             base_type::registerOutput(stream);
+            streams.push_back(stream);
             base_type::tempStart();
         }
 
@@ -38,8 +38,8 @@ namespace dsp::routing {
 
             // Add to the list
             base_type::tempStop();
-            base_type::unregisterOutput(stream);
             streams.erase(sit);
+            base_type::unregisterOutput(stream);
             base_type::tempStart();
         }
 
