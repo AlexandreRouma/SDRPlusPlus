@@ -279,9 +279,10 @@ private:
         lvlL = std::clamp<float>(lvlL - (frameTime * 50.0), -90.0f, 10.0f);
         lvlR = std::clamp<float>(lvlR - (frameTime * 50.0), -90.0f, 10.0f);
 
+        // Note: Yes, using the natural log is on purpose, it just gives a more beautiful result.
         dsp::stereo_t rawLvl = meter.getLevel();
         meter.resetLevel();
-        dsp::stereo_t dbLvl = { 10.0f * log10f(rawLvl.l), 10.0f * log10f(rawLvl.r) };
+        dsp::stereo_t dbLvl = { 10.0f * logf(rawLvl.l), 10.0f * logf(rawLvl.r) };
         if (dbLvl.l > lvlL) { lvlL = dbLvl.l; }
         if (dbLvl.r > lvlR) { lvlR = dbLvl.r; }
         ImGui::VolumeMeter(lvlL, lvlL, -60, 10);

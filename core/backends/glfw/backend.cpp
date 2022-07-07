@@ -114,15 +114,6 @@ namespace backend {
 
     #endif
 
-        // Add callback for max/min if GLFW supports it
-    #if (GLFW_VERSION_MAJOR == 3) && (GLFW_VERSION_MINOR >= 3)
-        if (maximized) {
-            glfwMaximizeWindow(window);
-        }
-
-        glfwSetWindowMaximizeCallback(window, maximized_callback);
-    #endif
-
         // Load app icon
         if (!std::filesystem::is_regular_file(resDir + "/icons/sdrpp.png")) {
             spdlog::error("Icon file '{0}' doesn't exist!", resDir + "/icons/sdrpp.png");
@@ -163,6 +154,15 @@ namespace backend {
         for (int i = 1; i < 10; i++) {
             free(icons[i].pixels);
         }
+
+        // Add callback for max/min if GLFW supports it
+    #if (GLFW_VERSION_MAJOR == 3) && (GLFW_VERSION_MINOR >= 3)
+        if (maximized) {
+            glfwMaximizeWindow(window);
+        }
+
+        glfwSetWindowMaximizeCallback(window, maximized_callback);
+    #endif
 
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
