@@ -42,12 +42,6 @@
             "end": 2000000
         },
         {
-            "name": "Train communications",
-            "type": "aviation",
-            "start": 2130000,
-            "end": 2150000
-        },
-        {
             "name": "SW 90m",
             "type": "broadcast",
             "start": 3200000,
@@ -651,7 +645,7 @@
             "name": "PMR",
             "type": "amateur",
             "start": 446000000,
-            "end": 446100000
+            "end": 446200000
         },
         {
             "name": "LTE-FDD-450 Uplink",
