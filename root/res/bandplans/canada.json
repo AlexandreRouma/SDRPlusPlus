@@ -45,24 +45,12 @@
       "name": "80m Ham Band",
       "type": "amateur",
       "start": 3500000,
-      "end": 3950000
-    },
-    {
-      "name": "Shortwave Broadcast",
-      "type": "broadcast",
-      "start": 3950000,
       "end": 4000000
     },
     {
       "name": "Shortwave Broadcast",
       "type": "broadcast",
       "start": 4750000,
-      "end": 4995000
-    },
-    {
-      "name": "Shortwave Broadcast",
-      "type": "broadcast",
-      "start": 5005000,
       "end": 5060000
     },
     {
@@ -81,12 +69,12 @@
       "name": "40m Ham Band",
       "type": "amateur",
       "start": 7000000,
-      "end": 7200000
+      "end": 7300000
     },
     {
       "name": "Shortwave Broadcast",
       "type": "broadcast",
-      "start": 7200000,
+      "start": 7300000,
       "end": 7450000
     },
     {
