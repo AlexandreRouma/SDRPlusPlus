@@ -30,6 +30,18 @@
       "end": 1875000
     },
     {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 2300000,
+      "end": 2468000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 3200000,
+      "end": 3400000
+    },
+    {
       "name": "80m Ham Band",
       "type": "amateur",
       "start": 3500000,
@@ -42,10 +54,34 @@
       "end": 3800000
     },
     {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 3950000,
+      "end": 4000000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 4750000,
+      "end": 4995000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 5005000,
+      "end": 5060000
+    },
+    {
       "name": "60m Ham Band (Unavailable)",
       "type": "amateur",
       "start": 5351500,
       "end": 5366500
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 5900000,
+      "end": 6200000
     },
     {
       "name": "40m Ham Band",
@@ -54,10 +90,34 @@
       "end": 7300000
     },
     {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 7200000,
+      "end": 7450000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 9400000,
+      "end": 9900000
+    },
+    {
       "name": "30m Ham Band",
       "type": "amateur",
       "start": 10100000,
       "end": 10150000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 11600000,
+      "end": 12100000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 13570000,
+      "end": 13870000
     },
     {
       "name": "20m Ham Band",
@@ -66,10 +126,28 @@
       "end": 14350000
     },
     {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 15100000,
+      "end": 15800000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 17480000,
+      "end": 17900000
+    },
+    {
       "name": "17m Ham Band",
       "type": "amateur",
       "start": 18068000,
       "end": 18168000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 18900000,
+      "end": 19020000
     },
     {
       "name": "15m Ham Band",
@@ -78,10 +156,22 @@
       "end": 21450000
     },
     {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 21450000,
+      "end": 21850000
+    },
+    {
       "name": "12m Ham Band",
       "type": "amateur",
       "start": 24890000,
       "end": 24990000
+    },
+    {
+      "name": "Shortwave Broadcast",
+      "type": "broadcast",
+      "start": 25670000,
+      "end": 26100000
     },
     {
       "name": "27MHz CB",
