@@ -20,43 +20,13 @@ namespace rds {
         { BLOCK_TYPE_D,  0b0110110100 }
     };
 
-    // This parity check matrix is given in annex B2.1 of the specificiation
-    const uint16_t PARITY_CHECK_MAT[] = {
-        0b1000000000,
-        0b0100000000,
-        0b0010000000,
-        0b0001000000,
-        0b0000100000,
-        0b0000010000,
-        0b0000001000,
-        0b0000000100,
-        0b0000000010,
-        0b0000000001,
-        0b1011011100,
-        0b0101101110,
-        0b0010110111,
-        0b1010000111,
-        0b1110011111,
-        0b1100010011,
-        0b1101010101,
-        0b1101110110,
-        0b0110111011,
-        0b1000000001,
-        0b1111011100,
-        0b0111101110,
-        0b0011110111,
-        0b1010100111,
-        0b1110001111,
-        0b1100011011
-    };
+    //                           9876543210
+    const uint16_t LFSR_POLY = 0b0110111001;
+    const uint16_t IN_POLY   = 0b1100011011;
 
     const int BLOCK_LEN = 26;
     const int DATA_LEN = 16;
     const int POLY_LEN = 10;
-
-    //                           9876543210
-    const uint16_t LFSR_POLY = 0b0110111001;
-    const uint16_t IN_POLY   = 0b1100011011;
 
     void RDSDecoder::process(uint8_t* symbols, int count) {
         for (int i = 0; i < count; i++) {
@@ -64,9 +34,7 @@ namespace rds {
             shiftReg = ((shiftReg << 1) & 0x3FFFFFF) | (symbols[i] & 1);
 
             // Skip if we need to shift in new data
-            if (--skip > 0) {
-                continue;
-            }
+            if (--skip > 0) { continue; }
 
             // Calculate the syndrome and update sync status
             uint16_t syn = calcSyndrome(shiftReg);
@@ -109,23 +77,9 @@ namespace rds {
     }
 
     uint16_t RDSDecoder::calcSyndrome(uint32_t block) {
-        // Perform vector/matrix dot product between block and parity matrix
         uint16_t syn = 0;
-        for(int i = 0; i < BLOCK_LEN; i++) {
-            syn ^= PARITY_CHECK_MAT[BLOCK_LEN - 1 - i] * ((block >> i) & 1);
-        }
-        return syn;
-    }
 
-    uint32_t RDSDecoder::correctErrors(uint32_t block, BlockType type, bool& recovered) {        
-        // Subtract the offset from block
-        block ^= (uint32_t)OFFSETS[type];
-        
-        // Init the syndrome and output
-        uint16_t syn = 0;
-        uint32_t out = block;
-
-        // Feed in the data
+        // Calculate the syndrome using a LFSR
         for (int i = BLOCK_LEN - 1; i >= 0; i--) {
             // Shift the syndrome and keep the output
             uint8_t outBit = (syn >> (POLY_LEN - 1)) & 1;
@@ -138,7 +92,16 @@ namespace rds {
             syn ^= IN_POLY * ((block >> i) & 1);
         }
 
-        uint16_t firstSyn = syn;
+        return syn;
+    }
+
+    uint32_t RDSDecoder::correctErrors(uint32_t block, BlockType type, bool& recovered) {        
+        // Subtract the offset from block
+        block ^= (uint32_t)OFFSETS[type];
+        uint32_t out = block;
+
+        // Calculate syndrome of corrected block
+        uint16_t syn = calcSyndrome(block);
 
         // Use the syndrome register to do error correction if errors are present
         uint8_t errorFound = 0;
@@ -157,14 +120,6 @@ namespace rds {
             }
         }
         recovered = !(syn & 0b11111);
-
-        // // One last check
-        // if (errorFound) {
-        //     printf("Error found: %04X -> %04X, %08X -> %08X\n", firstSyn, syn, block, out);
-        // }
-        // else if (!recovered) {
-        //     printf("Non recoverable error\n");
-        // }
 
         return out;
     }
