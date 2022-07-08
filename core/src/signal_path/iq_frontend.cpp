@@ -178,7 +178,7 @@ void IQFrontEnd::removeVFO(std::string name) {
 
 void IQFrontEnd::setFFTSize(int size) {
     _fftSize = size;
-    updateFFTPath();
+    updateFFTPath(true);
 }
 
 void IQFrontEnd::setFFTRate(double rate) {
@@ -260,7 +260,7 @@ void IQFrontEnd::handler(dsp::complex_t* data, int count, void* ctx) {
     _this->_releaseFFTBuffer(_this->_fftCtx);
 }
 
-void IQFrontEnd::updateFFTPath() {
+void IQFrontEnd::updateFFTPath(bool updateWaterfall) {
     // Temp stop branch
     reshape.tempStop();
     fftSink.tempStop();
@@ -295,7 +295,7 @@ void IQFrontEnd::updateFFTPath() {
     dsp::buffer::clear(fftInBuf, _fftSize - _nzFFTSize, _nzFFTSize);
 
     // Update waterfall (TODO: This is annoying, it makes this module non testable and will constantly clear the waterfall for any reason)
-    gui::waterfall.setRawFFTSize(_fftSize);
+    if (updateWaterfall) { gui::waterfall.setRawFFTSize(_fftSize); }
 
     // Restart branch
     reshape.tempStart();

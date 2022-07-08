@@ -48,7 +48,7 @@ public:
 
 protected:
     static void handler(dsp::complex_t* data, int count, void* ctx);
-    void updateFFTPath();
+    void updateFFTPath(bool updateWaterfall = false);
 
     static inline double genDCBlockRate(double sampleRate) {
         return 50.0 / sampleRate;
