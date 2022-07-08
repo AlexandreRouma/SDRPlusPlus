@@ -32,10 +32,10 @@ public:
         if (core::args["server"].b()) { return; }
 
         // Initialize lists
-        sampleTypeList.define("Int8", dsp::PCM_TYPE_I8);
-        sampleTypeList.define("Int16", dsp::PCM_TYPE_I16);
-        sampleTypeList.define("Float32", dsp::PCM_TYPE_F32);
-        sampleTypeId = sampleTypeList.valueId(dsp::PCM_TYPE_I16);
+        sampleTypeList.define("Int8", dsp::compression::PCM_TYPE_I8);
+        sampleTypeList.define("Int16", dsp::compression::PCM_TYPE_I16);
+        sampleTypeList.define("Float32", dsp::compression::PCM_TYPE_F32);
+        sampleTypeId = sampleTypeList.valueId(dsp::compression::PCM_TYPE_I16);
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
@@ -238,7 +238,7 @@ private:
         devConfName = buf;
 
         // Load settings
-        sampleTypeId = sampleTypeList.valueId(dsp::PCM_TYPE_I16);
+        sampleTypeId = sampleTypeList.valueId(dsp::compression::PCM_TYPE_I16);
         if (config.conf["servers"][devConfName].contains("sampleType")) {
             std::string key = config.conf["servers"][devConfName]["sampleType"];
             if (sampleTypeList.keyExists(key)) { sampleTypeId = sampleTypeList.keyId(key); }
@@ -269,7 +269,7 @@ private:
     dsp::stream<dsp::complex_t> stream;
     SourceManager::SourceHandler handler;
 
-    OptionList<std::string, dsp::PCMType> sampleTypeList;
+    OptionList<std::string, dsp::compression::PCMType> sampleTypeList;
     int sampleTypeId;
     bool compression = false;
 

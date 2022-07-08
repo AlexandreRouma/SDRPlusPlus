@@ -6,14 +6,10 @@
 #include <signal_path/signal_path.h>
 #include <module.h>
 #include <filesystem>
-#include <dsp/pll.h>
-#include <dsp/stream.h>
-#include <dsp/demodulator.h>
-#include <dsp/window.h>
-#include <dsp/resampling.h>
-#include <dsp/processing.h>
-#include <dsp/routing.h>
-#include <dsp/sink.h>
+#include <dsp/demod/psk.h>
+#include <dsp/routing/splitter.h>
+#include <dsp/buffer/reshaper.h>
+#include <dsp/sink/handler_sink.h>
 #include <meteor_demodulator_interface.h>
 #include <gui/widgets/folder_select.h>
 #include <gui/widgets/constellation_diagram.h>
@@ -60,8 +56,8 @@ public:
         config.release(created);
 
         vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 150000, INPUT_SAMPLE_RATE, 150000, 150000, true);
-        demod.init(vfo->output, INPUT_SAMPLE_RATE, 72000.0f, 32, 0.6f, 0.1f, 0.005f);
-        split.init(demod.out);
+        demod.init(vfo->output, 72000.0f, INPUT_SAMPLE_RATE, 33, 0.6f, 0.1f, 0.005f, 1e-6, 0.01);
+        split.init(&demod.out);
         split.bindStream(&symSinkStream);
         split.bindStream(&sinkStream);
         reshape.init(&symSinkStream, 1024, (72000 / 30) - 1024);
@@ -220,14 +216,14 @@ private:
 
     // DSP Chain
     VFOManager::VFO* vfo;
-    dsp::PSKDemod<4, false> demod;
-    dsp::Splitter<dsp::complex_t> split;
+    dsp::demod::PSK<4> demod;
+    dsp::routing::Splitter<dsp::complex_t> split;
 
     dsp::stream<dsp::complex_t> symSinkStream;
     dsp::stream<dsp::complex_t> sinkStream;
-    dsp::Reshaper<dsp::complex_t> reshape;
-    dsp::HandlerSink<dsp::complex_t> symSink;
-    dsp::HandlerSink<dsp::complex_t> sink;
+    dsp::buffer::Reshaper<dsp::complex_t> reshape;
+    dsp::sink::Handler<dsp::complex_t> symSink;
+    dsp::sink::Handler<dsp::complex_t> sink;
 
     ImGui::ConstellationDiagram constDiagram;
 

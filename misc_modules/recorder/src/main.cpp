@@ -3,7 +3,10 @@
 #include <wav.h>
 #include <dsp/types.h>
 #include <dsp/stream.h>
-#include <dsp/measure.h>
+#include <dsp/bench/peak_level_meter.h>
+#include <dsp/sink/handler_sink.h>
+#include <dsp/routing/splitter.h>
+#include <dsp/audio/volume.h>
 #include <thread>
 #include <ctime>
 #include <gui/gui.h>
@@ -64,15 +67,19 @@ public:
         if (!config.conf[name].contains("audioVolume")) {
             config.conf[name]["audioVolume"] = 1.0;
         }
+        if (!config.conf[name].contains("ignoreSilence")) {
+            config.conf[name]["ignoreSilence"] = false;
+        }
 
         recMode = config.conf[name]["mode"];
         folderSelect.setPath(config.conf[name]["recPath"]);
         selectedStreamName = config.conf[name]["audioStream"];
         audioVolume = config.conf[name]["audioVolume"];
+        ignoreSilence = config.conf[name]["ignoreSilence"];
         config.release(created);
 
         // Init audio path
-        vol.init(&dummyStream, audioVolume);
+        vol.init(&dummyStream, audioVolume, false);
         audioSplit.init(&vol.out);
         audioSplit.bindStream(&meterStream);
         meter.init(&meterStream);
@@ -269,13 +276,15 @@ private:
         if (recording) { style::endDisabled(); }
 
         double frameTime = 1.0 / ImGui::GetIO().Framerate;
-        lvlL = std::max<float>(lvlL - (frameTime * 50.0), -90);
-        lvlR = std::max<float>(lvlR - (frameTime * 50.0), -90);
+        lvlL = std::clamp<float>(lvlL - (frameTime * 50.0), -90.0f, 10.0f);
+        lvlR = std::clamp<float>(lvlR - (frameTime * 50.0), -90.0f, 10.0f);
 
-        float _lvlL = meter.getLeftLevel();
-        float _lvlR = meter.getRightLevel();
-        if (_lvlL > lvlL) { lvlL = _lvlL; }
-        if (_lvlR > lvlR) { lvlR = _lvlR; }
+        // Note: Yes, using the natural log is on purpose, it just gives a more beautiful result.
+        dsp::stereo_t rawLvl = meter.getLevel();
+        meter.resetLevel();
+        dsp::stereo_t dbLvl = { 10.0f * logf(rawLvl.l), 10.0f * logf(rawLvl.r) };
+        if (dbLvl.l > lvlL) { lvlL = dbLvl.l; }
+        if (dbLvl.r > lvlR) { lvlR = dbLvl.r; }
         ImGui::VolumeMeter(lvlL, lvlL, -60, 10);
         ImGui::VolumeMeter(lvlR, lvlR, -60, 10);
 
@@ -286,6 +295,12 @@ private:
             config.release(true);
         }
         ImGui::PopItemWidth();
+
+        if (ImGui::Checkbox(CONCAT("Ignore silence##_recorder_ing_silence_", name), &ignoreSilence)) {
+            config.acquire();
+            config.conf[name]["ignoreSilence"] = ignoreSilence;
+            config.release(true);
+        }
 
         if (!folderSelect.pathIsValid() || selectedStreamName == "") { style::beginDisabled(); }
         if (!recording) {
@@ -310,6 +325,9 @@ private:
 
     static void _audioHandler(dsp::stereo_t* data, int count, void* ctx) {
         RecorderModule* _this = (RecorderModule*)ctx;
+        if (_this->ignoreSilence && data[0].l == 0.0f && data[0].r == 0.0f) {
+            return;
+        }
         volk_32f_s32f_convert_16i(_this->wavSampleBuf, (float*)data, 32767.0f, count * 2);
         _this->audioWriter->writeSamples(_this->wavSampleBuf, count * 2 * sizeof(int16_t));
         _this->samplesWritten += count;
@@ -346,11 +364,11 @@ private:
         if (recMode == RECORDER_MODE_BASEBAND) {
             samplesWritten = 0;
             std::string expandedPath = expandString(folderSelect.path + genFileName("/baseband_", false));
-            sampleRate = sigpath::signalPath.getSampleRate();
-            basebandWriter = new WavWriter(expandedPath, 16, 2, sigpath::signalPath.getSampleRate());
+            sampleRate = sigpath::iqFrontEnd.getSampleRate();
+            basebandWriter = new WavWriter(expandedPath, 16, 2, sigpath::iqFrontEnd.getSampleRate());
             if (basebandWriter->isOpen()) {
                 basebandHandler.start();
-                sigpath::signalPath.bindIQStream(&basebandStream);
+                sigpath::iqFrontEnd.bindIQStream(&basebandStream);
                 recording = true;
                 spdlog::info("Recording to '{0}'", expandedPath);
             }
@@ -381,7 +399,7 @@ private:
     void stopRecording() {
         if (recMode == 0) {
             recording = false;
-            sigpath::signalPath.unbindIQStream(&basebandStream);
+            sigpath::iqFrontEnd.unbindIQStream(&basebandStream);
             basebandHandler.stop();
             basebandWriter->close();
             delete basebandWriter;
@@ -485,12 +503,12 @@ private:
 
     // Audio path
     dsp::stream<dsp::stereo_t>* audioInput = NULL;
-    dsp::Volume<dsp::stereo_t> vol;
-    dsp::Splitter<dsp::stereo_t> audioSplit;
+    dsp::audio::Volume vol;
+    dsp::routing::Splitter<dsp::stereo_t> audioSplit;
     dsp::stream<dsp::stereo_t> meterStream;
-    dsp::LevelMeter meter;
+    dsp::bench::PeakLevelMeter<dsp::stereo_t> meter;
     dsp::stream<dsp::stereo_t> audioHandlerStream;
-    dsp::HandlerSink<dsp::stereo_t> audioHandler;
+    dsp::sink::Handler<dsp::stereo_t> audioHandler;
     WavWriter* audioWriter;
 
     std::vector<std::string> streamNames;
@@ -501,7 +519,7 @@ private:
 
     // Baseband path
     dsp::stream<dsp::complex_t> basebandStream;
-    dsp::HandlerSink<dsp::complex_t> basebandHandler;
+    dsp::sink::Handler<dsp::complex_t> basebandHandler;
     WavWriter* basebandWriter;
 
     uint64_t samplesWritten;
@@ -510,6 +528,8 @@ private:
     EventHandler<std::string> streamRegisteredHandler;
     EventHandler<std::string> streamUnregisterHandler;
     EventHandler<std::string> streamUnregisteredHandler;
+
+    bool ignoreSilence = false;
 };
 
 struct RecorderContext_t {

@@ -4,8 +4,9 @@
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
 #include <signal_path/sink.h>
-#include <dsp/audio.h>
-#include <dsp/processing.h>
+#include <dsp/buffer/packer.h>
+#include <dsp/convert/stereo_to_mono.h>
+#include <dsp/sink/handler_sink.h>
 #include <spdlog/spdlog.h>
 #include <config.h>
 #include <gui/style.h>
@@ -271,10 +272,10 @@ private:
     }
 
     SinkManager::Stream* _stream;
-    dsp::Packer<dsp::stereo_t> packer;
-    dsp::StereoToMono s2m;
-    dsp::HandlerSink<float> monoSink;
-    dsp::HandlerSink<dsp::stereo_t> stereoSink;
+    dsp::buffer::Packer<dsp::stereo_t> packer;
+    dsp::convert::StereoToMono s2m;
+    dsp::sink::Handler<float> monoSink;
+    dsp::sink::Handler<dsp::stereo_t> stereoSink;
 
     std::string _streamName;
 

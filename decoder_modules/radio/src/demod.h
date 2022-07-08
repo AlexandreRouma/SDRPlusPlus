@@ -24,7 +24,7 @@ namespace demod {
     class Demodulator {
     public:
         virtual ~Demodulator() {}
-        virtual void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, EventHandler<dsp::stream<dsp::stereo_t>*> outputChangeHandler, EventHandler<float> afbwChangeHandler, double audioSR) = 0;
+        virtual void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, double audioSR) = 0;
         virtual void start() = 0;
         virtual void stop() = 0;
         virtual void showMenu() = 0;
@@ -38,17 +38,13 @@ namespace demod {
         virtual double getMinBandwidth() = 0;
         virtual double getMaxBandwidth() = 0;
         virtual bool getBandwidthLocked() = 0;
-        virtual double getMaxAFBandwidth() = 0;
         virtual double getDefaultSnapInterval() = 0;
         virtual int getVFOReference() = 0;
         virtual bool getDeempAllowed() = 0;
         virtual bool getPostProcEnabled() = 0;
         virtual int getDefaultDeemphasisMode() = 0;
-        virtual double getAFBandwidth(double bandwidth) = 0;
         virtual bool getFMIFNRAllowed() = 0;
         virtual bool getNBAllowed() = 0;
-
-        virtual bool getDynamicAFBandwidth() = 0;
         virtual dsp::stream<dsp::stereo_t>* getOutput() = 0;
     };
 }

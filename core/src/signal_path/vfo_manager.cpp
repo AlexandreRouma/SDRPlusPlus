@@ -4,7 +4,8 @@
 
 VFOManager::VFO::VFO(std::string name, int reference, double offset, double bandwidth, double sampleRate, double minBandwidth, double maxBandwidth, bool bandwidthLocked) {
     this->name = name;
-    dspVFO = sigpath::signalPath.addVFO(name, sampleRate, bandwidth, offset);
+    _bandwidth = bandwidth;
+    dspVFO = sigpath::iqFrontEnd.addVFO(name, sampleRate, bandwidth, offset);
     wtfVFO = new ImGui::WaterfallVFO;
     wtfVFO->setReference(reference);
     wtfVFO->setBandwidth(bandwidth);
@@ -12,7 +13,7 @@ VFOManager::VFO::VFO(std::string name, int reference, double offset, double band
     wtfVFO->minBandwidth = minBandwidth;
     wtfVFO->maxBandwidth = maxBandwidth;
     wtfVFO->bandwidthLocked = bandwidthLocked;
-    output = dspVFO->out;
+    output = &dspVFO->out;
     gui::waterfall.vfos[name] = wtfVFO;
 }
 
@@ -22,7 +23,7 @@ VFOManager::VFO::~VFO() {
     if (gui::waterfall.selectedVFO == name) {
         gui::waterfall.selectFirstVFO();
     }
-    sigpath::signalPath.removeVFO(name);
+    sigpath::iqFrontEnd.removeVFO(name);
     delete wtfVFO;
 }
 
@@ -41,12 +42,14 @@ void VFOManager::VFO::setCenterOffset(double offset) {
 }
 
 void VFOManager::VFO::setBandwidth(double bandwidth, bool updateWaterfall) {
+    if (_bandwidth == bandwidth) { return; }
+    _bandwidth = bandwidth;
     if (updateWaterfall) { wtfVFO->setBandwidth(bandwidth); }
     dspVFO->setBandwidth(bandwidth);
 }
 
 void VFOManager::VFO::setSampleRate(double sampleRate, double bandwidth) {
-    dspVFO->setOutSampleRate(sampleRate, bandwidth);
+    dspVFO->setOutSamplerate(sampleRate, bandwidth);
     wtfVFO->setBandwidth(bandwidth);
 }
 

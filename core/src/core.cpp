@@ -42,15 +42,18 @@ namespace core {
         // Forward this to the server
         if (args["server"].b()) { server::setInputSampleRate(samplerate); return; }
         
-        sigpath::signalPath.sourceSampleRate = samplerate;
-        double effectiveSr = samplerate / ((double)(1 << sigpath::signalPath.decimation));
-        // NOTE: Zoom controls won't work
-        spdlog::info("New DSP samplerate: {0} (source samplerate is {1})", effectiveSr, samplerate);
+        // Update IQ frontend input samplerate and get effective samplerate
+        sigpath::iqFrontEnd.setSampleRate(samplerate);
+        double effectiveSr  = sigpath::iqFrontEnd.getEffectiveSamplerate();
+        
+        // Reset zoom
         gui::waterfall.setBandwidth(effectiveSr);
         gui::waterfall.setViewOffset(0);
         gui::waterfall.setViewBandwidth(effectiveSr);
-        sigpath::signalPath.setSampleRate(effectiveSr);
         gui::mainWindow.setViewBandwidthSlider(1.0);
+
+        // Debug logs
+        spdlog::info("New DSP samplerate: {0} (source samplerate is {1})", effectiveSr, samplerate);
     }
 };
 
@@ -114,7 +117,7 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["fftHeight"] = 300;
     defConfig["fftRate"] = 20;
     defConfig["fftSize"] = 65536;
-    defConfig["fftWindow"] = 1;
+    defConfig["fftWindow"] = 2;
     defConfig["frequency"] = 100000000.0;
     defConfig["fullWaterfallUpdate"] = false;
     defConfig["max"] = 0.0;
@@ -363,7 +366,7 @@ int sdrpp_main(int argc, char* argv[]) {
     // Terminate backend (TODO: CHECK RETURN VALUE)
     backend::end();
 
-    sigpath::signalPath.stop();
+    sigpath::iqFrontEnd.stop();
 
     core::configManager.disableAutoSave();
     core::configManager.save();

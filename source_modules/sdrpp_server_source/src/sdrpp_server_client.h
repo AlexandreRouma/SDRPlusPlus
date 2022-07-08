@@ -8,9 +8,9 @@
 #include <atomic>
 #include <map>
 #include <vector>
-#include <dsp/compression.h>
+#include <dsp/compression/sample_stream_decompressor.h>
 #include <dsp/sink.h>
-#include <dsp/link.h>
+#include <dsp/routing/stream_link.h>
 #include <zstd.h>
 
 #define RFSPACE_MAX_SIZE                8192
@@ -85,7 +85,7 @@ namespace server {
         void setFrequency(double freq);
         double getSampleRate();
         
-        void setSampleType(dsp::PCMType type);
+        void setSampleType(dsp::compression::PCMType type);
         void setCompression(bool enabled);
 
         void start();
@@ -115,8 +115,8 @@ namespace server {
         net::Conn client;
 
         dsp::stream<uint8_t> decompIn;
-        dsp::DynamicRangeDecompressor decomp;
-        dsp::Link<dsp::complex_t> link;
+        dsp::compression::SampleStreamDecompressor decomp;
+        dsp::routing::StreamLink<dsp::complex_t> link;
         dsp::stream<dsp::complex_t>* output;
 
         uint8_t* rbuffer = NULL;
