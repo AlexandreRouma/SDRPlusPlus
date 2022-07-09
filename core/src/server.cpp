@@ -83,7 +83,7 @@ namespace server {
         core::configManager.release();
         modulesDir = std::filesystem::absolute(modulesDir).string();
 
-        // Intialize SmGui in server mode
+        // Initialize SmGui in server mode
         SmGui::init(true);
 
         spdlog::info("Loading modules");
