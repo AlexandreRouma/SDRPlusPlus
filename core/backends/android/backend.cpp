@@ -368,7 +368,7 @@ namespace backend {
 
         jint jni_return = java_vm->GetEnv((void**)&java_env, JNI_VERSION_1_6);
         if (jni_return == JNI_ERR)
-            throw std::runtime_error("Could not get JNI environement");
+            throw std::runtime_error("Could not get JNI environment");
 
         jni_return = java_vm->AttachCurrentThread(&java_env, NULL);
         if (jni_return != JNI_OK)
@@ -380,7 +380,7 @@ namespace backend {
 
         jmethodID method_id = java_env->GetMethodID(native_activity_clazz, "getAppDir", "()Ljava/lang/String;");
         if (method_id == NULL)
-            throw std::runtime_error("Could not get methode ID");
+            throw std::runtime_error("Could not get method ID");
 
         jstring jstr = (jstring)java_env->CallObjectMethod(app->activity->clazz, method_id);
 
