@@ -120,6 +120,12 @@ private:
     static void start(void* ctx) {
         SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
         if (_this->running) { return; }
+        
+        // Try to connect if not already connected
+        if (!_this->client) {
+            _this->tryConnect();
+            if (!_this->client) { return; }
+        }
 
         int srvBits = streamFormatsBitCount[_this->iqType];
         _this->client->setSetting(SPYSERVER_SETTING_IQ_FORMAT, streamFormats[_this->iqType]);
@@ -178,51 +184,7 @@ private:
         SmGui::FillWidth();
         SmGui::ForceSync();
         if (!connected && SmGui::Button("Connect##spyserver_source")) {
-            try {
-                if (_this->client) { _this->client.reset(); }
-                _this->client = spyserver::connect(_this->hostname, _this->port, &_this->stream);
-
-                if (!_this->client->waitForDevInfo(3000)) {
-                    spdlog::error("SpyServer didn't respond with device information");
-                }
-                else {
-                    char buf[1024];
-                    sprintf(buf, "%s [%08X]", deviceTypesStr[_this->client->devInfo.DeviceType], _this->client->devInfo.DeviceSerial);
-                    _this->devRef = std::string(buf);
-
-                    config.acquire();
-                    if (!config.conf["devices"].contains(_this->devRef)) {
-                        config.conf["devices"][_this->devRef]["sampleRateId"] = 0;
-                        config.conf["devices"][_this->devRef]["sampleBitDepthId"] = 1;
-                        config.conf["devices"][_this->devRef]["gainId"] = 0;
-                    }
-                    _this->srId = config.conf["devices"][_this->devRef]["sampleRateId"];
-                    _this->iqType = config.conf["devices"][_this->devRef]["sampleBitDepthId"];
-                    _this->gain = config.conf["devices"][_this->devRef]["gainId"];
-                    config.release(true);
-
-                    _this->gain = std::clamp<int>(_this->gain, 0, _this->client->devInfo.MaximumGainIndex);
-
-                    // Refresh sample rates
-                    _this->sampleRates.clear();
-                    _this->sampleRatesTxt.clear();
-                    for (int i = _this->client->devInfo.MinimumIQDecimation; i <= _this->client->devInfo.DecimationStageCount; i++) {
-                        double sr = (double)_this->client->devInfo.MaximumSampleRate / ((double)(1 << i));
-                        _this->sampleRates.push_back(sr);
-                        _this->sampleRatesTxt += _this->getBandwdithScaled(sr);
-                        _this->sampleRatesTxt += '\0';
-                    }
-
-                    _this->srId = std::clamp<int>(_this->srId, 0, _this->sampleRates.size() - 1);
-
-                    _this->sampleRate = _this->sampleRates[_this->srId];
-                    core::setInputSampleRate(_this->sampleRate);
-                    spdlog::info("Connected to server");
-                }
-            }
-            catch (std::exception e) {
-                spdlog::error("Could not connect to spyserver {0}", e.what());
-            }
+            _this->tryConnect();
         }
         else if (connected && SmGui::Button("Disconnect##spyserver_source")) {
             _this->client->close();
@@ -275,6 +237,54 @@ private:
             SmGui::Text("Status:");
             SmGui::SameLine();
             SmGui::Text("Not connected");
+        }
+    }
+
+    void tryConnect() {
+        try {
+            if (client) { client.reset(); }
+            client = spyserver::connect(hostname, port, &stream);
+
+            if (!client->waitForDevInfo(3000)) {
+                spdlog::error("SpyServer didn't respond with device information");
+            }
+            else {
+                char buf[1024];
+                sprintf(buf, "%s [%08X]", deviceTypesStr[client->devInfo.DeviceType], client->devInfo.DeviceSerial);
+                devRef = std::string(buf);
+
+                config.acquire();
+                if (!config.conf["devices"].contains(devRef)) {
+                    config.conf["devices"][devRef]["sampleRateId"] = 0;
+                    config.conf["devices"][devRef]["sampleBitDepthId"] = 1;
+                    config.conf["devices"][devRef]["gainId"] = 0;
+                }
+                srId = config.conf["devices"][devRef]["sampleRateId"];
+                iqType = config.conf["devices"][devRef]["sampleBitDepthId"];
+                gain = config.conf["devices"][devRef]["gainId"];
+                config.release(true);
+
+                gain = std::clamp<int>(gain, 0, client->devInfo.MaximumGainIndex);
+
+                // Refresh sample rates
+                sampleRates.clear();
+                sampleRatesTxt.clear();
+                for (int i = client->devInfo.MinimumIQDecimation; i <= client->devInfo.DecimationStageCount; i++) {
+                    double sr = (double)client->devInfo.MaximumSampleRate / ((double)(1 << i));
+                    sampleRates.push_back(sr);
+                    sampleRatesTxt += getBandwdithScaled(sr);
+                    sampleRatesTxt += '\0';
+                }
+
+                srId = std::clamp<int>(srId, 0, sampleRates.size() - 1);
+
+                sampleRate = sampleRates[srId];
+                core::setInputSampleRate(sampleRate);
+                spdlog::info("Connected to server");
+            }
+        }
+        catch (std::exception e) {
+            spdlog::error("Could not connect to spyserver {0}", e.what());
         }
     }
 

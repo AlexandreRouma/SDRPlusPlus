@@ -109,6 +109,12 @@ private:
         SDRPPServerSourceModule* _this = (SDRPPServerSourceModule*)ctx;
         if (_this->running) { return; }
 
+        // Try to connect if not already connected
+        if (!_this->client) {
+            _this->tryConnect();
+            if (!_this->client) { return; }
+        }
+
         // TODO: Set configuration here
         if (_this->client) {
             _this->client->setFrequency(_this->freq);
@@ -166,15 +172,7 @@ private:
 
         if (_this->running) { style::beginDisabled(); }
         if (!connected && ImGui::Button("Connect##sdrpp_srv_source", ImVec2(menuWidth, 0))) {
-            try {
-                if (_this->client) { _this->client.reset(); }
-                _this->client = server::connect(_this->hostname, _this->port, &_this->stream);
-                _this->deviceInit();
-            }
-            catch (std::exception e) {
-                spdlog::error("Could not connect to SDR: {0}", e.what());
-                if (!strcmp(e.what(), "Server busy")) { _this->serverBusy = true; }
-            }
+            _this->tryConnect();
         }
         else if (connected && ImGui::Button("Disconnect##sdrpp_srv_source", ImVec2(menuWidth, 0))) {
             _this->client->close();
@@ -228,6 +226,18 @@ private:
             ImGui::TextUnformatted("Status:");
             ImGui::SameLine();
             ImGui::TextUnformatted("Not connected (--.--- Mbit/s)");
+        }
+    }
+
+    void tryConnect() {
+        try {
+            if (client) { client.reset(); }
+            client = server::connect(hostname, port, &stream);
+            deviceInit();
+        }
+        catch (std::exception e) {
+            spdlog::error("Could not connect to SDR: {0}", e.what());
+            if (!strcmp(e.what(), "Server busy")) { serverBusy = true; }
         }
     }
 
