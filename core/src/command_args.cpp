@@ -79,7 +79,7 @@ int CommandArgsParser::parse(int argc, char* argv[]) {
                 carg.bval = true;
             }
             else {
-                printf("Invald argument, expected bool (true, false, on, off, 1, 0)\n");
+                printf("Invalid argument, expected bool (true, false, on, off, 1, 0)\n");
                 showHelp();
                 return -1;
             }
@@ -89,7 +89,7 @@ int CommandArgsParser::parse(int argc, char* argv[]) {
                 carg.ival = std::stoi(arg);
             }
             catch (std::exception e) {
-                printf("Invald argument, failed to parse integer\n");
+                printf("Invalid argument, failed to parse integer\n");
                 showHelp();
                 return -1;
             }
@@ -99,7 +99,7 @@ int CommandArgsParser::parse(int argc, char* argv[]) {
                 carg.fval = std::stod(arg);
             }
             catch (std::exception e) {
-                printf("Invald argument, failed to parse float\n");
+                printf("Invalid argument, failed to parse float\n");
                 showHelp();
                 return -1;
             }

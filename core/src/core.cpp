@@ -330,7 +330,7 @@ int sdrpp_main(int argc, char* argv[]) {
     int biRes = backend::init(resDir);
     if (biRes < 0) { return biRes; }
 
-    // Intialize SmGui in normal mode
+    // Initialize SmGui in normal mode
     SmGui::init(false);
 
     if (!style::loadFonts(resDir)) { return -1; }
