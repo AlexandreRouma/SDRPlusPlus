@@ -30,7 +30,7 @@ namespace dsp::loop {
             base_type::tempStop();
             float alpha, beta;
             PhaseControlLoop<float>::criticallyDamped(bandwidth, alpha, beta);
-            
+            pcl.setCoefficients(alpha, beta);
             base_type::tempStart();
         }
 
