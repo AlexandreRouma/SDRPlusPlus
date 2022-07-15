@@ -6,7 +6,7 @@
 #include <signal_path/signal_path.h>
 #include <module.h>
 #include <filesystem>
-#include <dsp/demod/psk.h>
+#include "meteor_demod.h"
 #include <dsp/routing/splitter.h>
 #include <dsp/buffer/reshaper.h>
 #include <dsp/sink/handler_sink.h>
@@ -47,16 +47,20 @@ public:
 
         // Load config
         config.acquire();
-        bool created = false;
+        // Note: this first one may not be needed but I'm paranoid
         if (!config.conf.contains(name)) {
-            config.conf[name]["recPath"] = "%ROOT%/recordings";
-            created = true;
+            config.conf[name] = json({});
         }
-        folderSelect.setPath(config.conf[name]["recPath"]);
-        config.release(created);
+        if (config.conf[name].contains("recPath")) {
+            folderSelect.setPath(config.conf[name]["recPath"]);
+        }
+        if (config.conf[name].contains("brokenModulation")) {
+            brokenModulation = config.conf[name]["brokenModulation"];
+        }
+        config.release();
 
         vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 150000, INPUT_SAMPLE_RATE, 150000, 150000, true);
-        demod.init(vfo->output, 72000.0f, INPUT_SAMPLE_RATE, 33, 0.6f, 0.1f, 0.005f, 1e-6, 0.01);
+        demod.init(vfo->output, 72000.0f, INPUT_SAMPLE_RATE, 33, 0.6f, 0.1f, 0.005f, brokenModulation, 1e-6, 0.01);
         split.init(&demod.out);
         split.bindStream(&symSinkStream);
         split.bindStream(&sinkStream);
@@ -132,7 +136,7 @@ private:
         ImGui::SetNextItemWidth(menuWidth);
         _this->constDiagram.draw();
 
-        if (_this->folderSelect.render("##meteor-recorder-" + _this->name)) {
+        if (_this->folderSelect.render("##meteor_rec" + _this->name)) {
             if (_this->folderSelect.pathIsValid()) {
                 config.acquire();
                 config.conf[_this->name]["recPath"] = _this->folderSelect.path;
@@ -140,16 +144,23 @@ private:
             }
         }
 
+        if (ImGui::Checkbox(CONCAT("Broken modulation##meteor_rec", _this->name), &_this->brokenModulation)) {
+            _this->demod.setBrokenModulation(_this->brokenModulation);
+            config.acquire();
+            config.conf[_this->name]["brokenModulation"] = _this->brokenModulation;
+            config.release(true);
+        }
+
         if (!_this->folderSelect.pathIsValid() && _this->enabled) { style::beginDisabled(); }
 
         if (_this->recording) {
-            if (ImGui::Button(CONCAT("Stop##_recorder_rec_", _this->name), ImVec2(menuWidth, 0))) {
+            if (ImGui::Button(CONCAT("Stop##meteor_rec_", _this->name), ImVec2(menuWidth, 0))) {
                 _this->stopRecording();
             }
             ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Recording %.2fMB", (float)_this->dataWritten / 1000000.0f);
         }
         else {
-            if (ImGui::Button(CONCAT("Record##_recorder_rec_", _this->name), ImVec2(menuWidth, 0))) {
+            if (ImGui::Button(CONCAT("Record##meteor_rec_", _this->name), ImVec2(menuWidth, 0))) {
                 _this->startRecording();
             }
             ImGui::TextUnformatted("Idle --.--MB");
@@ -216,7 +227,7 @@ private:
 
     // DSP Chain
     VFOManager::VFO* vfo;
-    dsp::demod::PSK<4> demod;
+    dsp::demod::Meteor demod;
     dsp::routing::Splitter<dsp::complex_t> split;
 
     dsp::stream<dsp::complex_t> symSinkStream;
@@ -233,6 +244,7 @@ private:
     bool recording = false;
     uint64_t dataWritten = 0;
     std::ofstream recFile;
+    bool brokenModulation = false;
 
     int8_t* writeBuffer;
 };
