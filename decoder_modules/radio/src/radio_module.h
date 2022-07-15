@@ -472,7 +472,7 @@ private:
         audioSampleRate = sr;
         if (!selectedDemod) { return; }
         selectedDemod->AFSampRateChanged(audioSampleRate);
-        if (!postProcEnabled) {
+        if (!postProcEnabled && vfo) {
             // If postproc is disabled, IF SR = AF SR
             minBandwidth = selectedDemod->getMinBandwidth();
             maxBandwidth = selectedDemod->getMaxBandwidth();

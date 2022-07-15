@@ -91,6 +91,7 @@ namespace ImGui {
     }
 
     void WaterFall::drawFFT() {
+        std::lock_guard<std::recursive_mutex> lck(latestFFTMtx);
         // Calculate scaling factor
         float startLine = floorf(fftMax / vRange) * vRange;
         float vertRange = fftMax - fftMin;
@@ -182,7 +183,11 @@ namespace ImGui {
             waterfallUpdate = false;
             updateWaterfallTexture();
         }
-        window->DrawList->AddImage((void*)(intptr_t)textureId, wfMin, wfMax);
+        {
+            std::lock_guard<std::mutex> lck(texMtx);
+            window->DrawList->AddImage((void*)(intptr_t)textureId, wfMin, wfMax);
+        }
+        
         ImVec2 mPos = ImGui::GetMousePos();
 
         if (IS_IN_AREA(mPos, wfMin, wfMax) && !gui::mainWindow.lockWaterfallControls && !inputHandled) {
@@ -675,6 +680,7 @@ namespace ImGui {
     }
 
     void WaterFall::updateWaterfallTexture() {
+        std::lock_guard<std::mutex> lck(texMtx);
         glBindTexture(GL_TEXTURE_2D, textureId);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -687,6 +693,7 @@ namespace ImGui {
     }
 
     void WaterFall::onResize() {
+        std::lock_guard<std::recursive_mutex> lck(latestFFTMtx);
         // return if widget is too small
         if (widgetSize.x < 100 || widgetSize.y < 100) {
             return;
@@ -849,6 +856,7 @@ namespace ImGui {
 
     void WaterFall::pushFFT() {
         if (rawFFTs == NULL) { return; }
+        std::lock_guard<std::recursive_mutex> lck(latestFFTMtx);
         double offsetRatio = viewOffset / (wholeBandwidth / 2.0);
         int drawDataSize = (viewBandwidth / wholeBandwidth) * rawFFTSize;
         int drawDataStart = (((double)rawFFTSize / 2.0) * (offsetRatio + 1)) - (drawDataSize / 2);
@@ -928,6 +936,7 @@ namespace ImGui {
     }
 
     void WaterFall::autoRange() {
+        std::lock_guard<std::recursive_mutex> lck(latestFFTMtx);
         float min = INFINITY;
         float max = -INFINITY;
         for (int i = 0; i < dataWidth; i++) {
@@ -1114,6 +1123,20 @@ namespace ImGui {
 
     void WaterFall::setFFTHoldSpeed(float speed) {
         fftHoldSpeed = speed;
+    }
+
+    float* WaterFall::acquireLatestFFT(int& width) {
+        latestFFTMtx.lock();
+        if (!latestFFT) {
+            latestFFTMtx.unlock();
+            return NULL;
+        }
+        width = dataWidth;
+        return latestFFT;
+    }
+
+    void WaterFall::releaseLatestFFT() {
+        latestFFTMtx.unlock();
     }
 
     void WaterfallVFO::setOffset(double offset) {

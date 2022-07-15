@@ -179,6 +179,9 @@ namespace ImGui {
         void setFFTHold(bool hold);
         void setFFTHoldSpeed(float speed);
 
+        float* acquireLatestFFT(int& width);
+        void releaseLatestFFT();
+
         bool centerFreqMoved = false;
         bool vfoFreqChanged = false;
         bool bandplanEnabled = false;
@@ -275,6 +278,8 @@ namespace ImGui {
         GLuint textureId;
 
         std::recursive_mutex buf_mtx;
+        std::recursive_mutex latestFFTMtx;
+        std::mutex texMtx;
 
         float vRange;
 

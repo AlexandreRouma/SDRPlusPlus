@@ -80,6 +80,7 @@ namespace dsp::demod {
             _rrcBeta = rrcBeta;
             taps::free(rrcTaps);
             rrcTaps = taps::rootRaisedCosine<float>(_rrcTapCount, _rrcBeta, _symbolrate, _samplerate);
+            rrc.setTaps(rrcTaps);
             base_type::tempStart();
         }
 
