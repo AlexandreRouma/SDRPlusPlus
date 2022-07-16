@@ -332,25 +332,24 @@ public:
                 // No config to load
             }
             else if (openDev.hwVer == SDRPLAY_RSP1A_ID) {
-                config.conf["devices"][selectedName]["fmNotch"] = false;
+                config.conf["devices"][selectedName]["fmmwNotch"] = false;
                 config.conf["devices"][selectedName]["dabNotch"] = false;
                 config.conf["devices"][selectedName]["biast"] = false;
             }
             else if (openDev.hwVer == SDRPLAY_RSP2_ID) {
                 config.conf["devices"][selectedName]["antenna"] = 0;
-                config.conf["devices"][selectedName]["notch"] = false;
+                config.conf["devices"][selectedName]["fmmwNotch"] = false;
                 config.conf["devices"][selectedName]["biast"] = false;
             }
             else if (openDev.hwVer == SDRPLAY_RSPduo_ID) {
                 config.conf["devices"][selectedName]["antenna"] = 0;
-                config.conf["devices"][selectedName]["fmNotch"] = false;
+                config.conf["devices"][selectedName]["fmmwNotch"] = false;
                 config.conf["devices"][selectedName]["dabNotch"] = false;
-                config.conf["devices"][selectedName]["amNotch"] = false;
                 config.conf["devices"][selectedName]["biast"] = false;
             }
             else if (openDev.hwVer == SDRPLAY_RSPdx_ID) {
                 config.conf["devices"][selectedName]["antenna"] = 0;
-                config.conf["devices"][selectedName]["fmNotch"] = false;
+                config.conf["devices"][selectedName]["fmmwNotch"] = false;
                 config.conf["devices"][selectedName]["dabNotch"] = false;
                 config.conf["devices"][selectedName]["biast"] = false;
             }
@@ -419,8 +418,8 @@ public:
             // No config to load
         }
         else if (openDev.hwVer == SDRPLAY_RSP1A_ID) {
-            if (config.conf["devices"][selectedName].contains("fmNotch")) {
-                rsp1a_fmNotch = config.conf["devices"][selectedName]["fmNotch"];
+            if (config.conf["devices"][selectedName].contains("fmmwNotch")) {
+                rsp1a_fmmwNotch = config.conf["devices"][selectedName]["fmmwNotch"];
             }
             if (config.conf["devices"][selectedName].contains("dabNotch")) {
                 rsp1a_dabNotch = config.conf["devices"][selectedName]["dabNotch"];
@@ -433,8 +432,8 @@ public:
             if (config.conf["devices"][selectedName].contains("antenna")) {
                 rsp2_antennaPort = config.conf["devices"][selectedName]["antenna"];
             }
-            if (config.conf["devices"][selectedName].contains("notch")) {
-                rsp2_notch = config.conf["devices"][selectedName]["notch"];
+            if (config.conf["devices"][selectedName].contains("fmmwNotch")) {
+                rsp2_fmmwNotch = config.conf["devices"][selectedName]["fmmwNotch"];
             }
             if (config.conf["devices"][selectedName].contains("biast")) {
                 rsp2_biasT = config.conf["devices"][selectedName]["biast"];
@@ -444,14 +443,11 @@ public:
             if (config.conf["devices"][selectedName].contains("antenna")) {
                 rspduo_antennaPort = config.conf["devices"][selectedName]["antenna"];
             }
-            if (config.conf["devices"][selectedName].contains("fmNotch")) {
-                rspduo_fmNotch = config.conf["devices"][selectedName]["fmNotch"];
+            if (config.conf["devices"][selectedName].contains("fmmwNotch")) {
+                rspduo_fmmwNotch = config.conf["devices"][selectedName]["fmmwNotch"];
             }
             if (config.conf["devices"][selectedName].contains("dabNotch")) {
                 rspduo_dabNotch = config.conf["devices"][selectedName]["dabNotch"];
-            }
-            if (config.conf["devices"][selectedName].contains("amNotch")) {
-                rspduo_amNotch = config.conf["devices"][selectedName]["amNotch"];
             }
             if (config.conf["devices"][selectedName].contains("biast")) {
                 rspduo_biasT = config.conf["devices"][selectedName]["biast"];
@@ -461,8 +457,8 @@ public:
             if (config.conf["devices"][selectedName].contains("antenna")) {
                 rspdx_antennaPort = config.conf["devices"][selectedName]["antenna"];
             }
-            if (config.conf["devices"][selectedName].contains("fmNotch")) {
-                rspdx_fmNotch = config.conf["devices"][selectedName]["fmNotch"];
+            if (config.conf["devices"][selectedName].contains("fmmwNotch")) {
+                rspdx_fmmwNotch = config.conf["devices"][selectedName]["fmmwNotch"];
             }
             if (config.conf["devices"][selectedName].contains("dabNotch")) {
                 rspdx_dabNotch = config.conf["devices"][selectedName]["dabNotch"];
@@ -578,7 +574,7 @@ private:
 
         // RSP1A Options
         if (_this->openDev.hwVer == SDRPLAY_RSP1A_ID) {
-            _this->openDevParams->devParams->rsp1aParams.rfNotchEnable = _this->rsp1a_fmNotch;
+            _this->openDevParams->devParams->rsp1aParams.rfNotchEnable = _this->rsp1a_fmmwNotch;
             _this->openDevParams->devParams->rsp1aParams.rfDabNotchEnable = _this->rsp1a_dabNotch;
             _this->channelParams->rsp1aTunerParams.biasTEnable = _this->rsp1a_biasT;
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Rsp1a_RfNotchControl, sdrplay_api_Update_Ext1_None);
@@ -586,7 +582,7 @@ private:
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Rsp1a_BiasTControl, sdrplay_api_Update_Ext1_None);
         }
         else if (_this->openDev.hwVer == SDRPLAY_RSP2_ID) {
-            _this->channelParams->rsp2TunerParams.rfNotchEnable = _this->rsp2_notch;
+            _this->channelParams->rsp2TunerParams.rfNotchEnable = _this->rsp2_fmmwNotch;
             _this->channelParams->rsp2TunerParams.biasTEnable = _this->rsp2_biasT;
             _this->channelParams->rsp2TunerParams.antennaSel = rsp2_antennaPorts[_this->rsp2_antennaPort];
             _this->channelParams->rsp2TunerParams.amPortSel = (_this->rsp2_antennaPort == 2) ? sdrplay_api_Rsp2_AMPORT_1 : sdrplay_api_Rsp2_AMPORT_2;
@@ -599,16 +595,16 @@ private:
             // NOTE: mmight require setting it on both RXA and RXB
             _this->rspDuoSelectAntennaPort(_this->rspduo_antennaPort);
             _this->channelParams->rspDuoTunerParams.biasTEnable = _this->rspduo_biasT;
-            _this->channelParams->rspDuoTunerParams.rfNotchEnable = _this->rspduo_fmNotch;
+            _this->channelParams->rspDuoTunerParams.rfNotchEnable = _this->rspduo_fmmwNotch;
             _this->channelParams->rspDuoTunerParams.rfDabNotchEnable = _this->rspduo_dabNotch;
-            _this->channelParams->rspDuoTunerParams.tuner1AmNotchEnable = _this->rspduo_amNotch;
+            _this->channelParams->rspDuoTunerParams.tuner1AmNotchEnable = _this->rspduo_fmmwNotch;
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_RspDuo_BiasTControl, sdrplay_api_Update_Ext1_None);
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_RspDuo_RfNotchControl, sdrplay_api_Update_Ext1_None);
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_RspDuo_RfDabNotchControl, sdrplay_api_Update_Ext1_None);
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_RspDuo_Tuner1AmNotchControl, sdrplay_api_Update_Ext1_None);
         }
         else if (_this->openDev.hwVer == SDRPLAY_RSPdx_ID) {
-            _this->openDevParams->devParams->rspDxParams.rfNotchEnable = _this->rspdx_fmNotch;
+            _this->openDevParams->devParams->rspDxParams.rfNotchEnable = _this->rspdx_fmmwNotch;
             _this->openDevParams->devParams->rspDxParams.rfDabNotchEnable = _this->rspdx_dabNotch;
             _this->openDevParams->devParams->rspDxParams.biasTEnable = _this->rspdx_biasT;
             _this->openDevParams->devParams->rspDxParams.antennaSel = rspdx_antennaPorts[_this->rspdx_antennaPort];
@@ -948,13 +944,13 @@ private:
     }
 
     void RSP1AMenu() {
-        if (SmGui::Checkbox(CONCAT("FM Notch##sdrplay_rsp1a_fmnotch", name), &rsp1a_fmNotch)) {
+        if (SmGui::Checkbox(CONCAT("FM/MW Notch##sdrplay_rsp1a_fmmwnotch", name), &rsp1a_fmmwNotch)) {
             if (running) {
-                openDevParams->devParams->rsp1aParams.rfNotchEnable = rsp1a_fmNotch;
+                openDevParams->devParams->rsp1aParams.rfNotchEnable = rsp1a_fmmwNotch;
                 sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp1a_RfNotchControl, sdrplay_api_Update_Ext1_None);
             }
             config.acquire();
-            config.conf["devices"][selectedName]["fmNotch"] = rsp1a_fmNotch;
+            config.conf["devices"][selectedName]["fmmwNotch"] = rsp1a_fmmwNotch;
             config.release(true);
         }
         if (SmGui::Checkbox(CONCAT("DAB Notch##sdrplay_rsp1a_dabnotch", name), &rsp1a_dabNotch)) {
@@ -980,6 +976,7 @@ private:
     void RSP2Menu() {
         SmGui::LeftLabel("Antenna");
         SmGui::FillWidth();
+        SmGui::ForceSync();
         if (SmGui::Combo(CONCAT("##sdrplay_rsp2_ant", name), &rsp2_antennaPort, rsp2_antennaPortsTxt)) {
             if (running) {
                 channelParams->rsp2TunerParams.antennaSel = rsp2_antennaPorts[rsp2_antennaPort];
@@ -991,15 +988,26 @@ private:
             config.conf["devices"][selectedName]["antenna"] = rsp2_antennaPort;
             config.release(true);
         }
-        if (SmGui::Checkbox(CONCAT("MW/FM Notch##sdrplay_rsp2_notch", name), &rsp2_notch)) {
-            if (running) {
-                channelParams->rsp2TunerParams.rfNotchEnable = rsp2_notch;
-                sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp2_RfNotchControl, sdrplay_api_Update_Ext1_None);
+
+        // The notch is only available on the 50Ohm ports
+        if (rsp2_antennaPort != 2) {
+            if (SmGui::Checkbox(CONCAT("MW/FM Notch##sdrplay_rsp2_fmmwnotch", name), &rsp2_fmmwNotch)) {
+                if (running) {
+                    channelParams->rsp2TunerParams.rfNotchEnable = rsp2_fmmwNotch;
+                    sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp2_RfNotchControl, sdrplay_api_Update_Ext1_None);
+                }
+                config.acquire();
+                config.conf["devices"][selectedName]["fmmwNotch"] = rsp2_fmmwNotch;
+                config.release(true);
             }
-            config.acquire();
-            config.conf["devices"][selectedName]["notch"] = rsp2_notch;
-            config.release(true);
         }
+        else {
+            style::beginDisabled();
+            bool dummy = false;
+            SmGui::Checkbox(CONCAT("MW/FM Notch##sdrplay_rsp2_fmmwnotch", name), &dummy);
+            style::endDisabled();
+        }
+        
         if (SmGui::Checkbox(CONCAT("Bias-T##sdrplay_rsp2_biast", name), &rsp2_biasT)) {
             if (running) {
                 channelParams->rsp2TunerParams.biasTEnable = rsp2_biasT;
@@ -1022,13 +1030,15 @@ private:
             config.conf["devices"][selectedName]["antenna"] = rspduo_antennaPort;
             config.release(true);
         }
-        if (SmGui::Checkbox(CONCAT("FM Notch##sdrplay_rspduo_notch", name), &rspduo_fmNotch)) {
+        if (SmGui::Checkbox(CONCAT("FM/MW Notch##sdrplay_rspduo_fmmwnotch", name), &rspduo_fmmwNotch)) {
             if (running) {
-                channelParams->rspDuoTunerParams.rfNotchEnable = rspduo_fmNotch;
+                channelParams->rspDuoTunerParams.rfNotchEnable = rspduo_fmmwNotch;
+                channelParams->rspDuoTunerParams.tuner1AmNotchEnable = rspduo_fmmwNotch;
                 sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_RfNotchControl, sdrplay_api_Update_Ext1_None);
+                sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_Tuner1AmNotchControl, sdrplay_api_Update_Ext1_None);
             }
             config.acquire();
-            config.conf["devices"][selectedName]["fmNotch"] = rspduo_fmNotch;
+            config.conf["devices"][selectedName]["fmmwnotch"] = rspduo_fmmwNotch;
             config.release(true);
         }
         if (SmGui::Checkbox(CONCAT("DAB Notch##sdrplay_rspduo_dabnotch", name), &rspduo_dabNotch)) {
@@ -1038,15 +1048,6 @@ private:
             }
             config.acquire();
             config.conf["devices"][selectedName]["dabNotch"] = rspduo_dabNotch;
-            config.release(true);
-        }
-        if (SmGui::Checkbox(CONCAT("AM Notch##sdrplay_rspduo_dabnotch", name), &rspduo_amNotch)) {
-            if (running) {
-                channelParams->rspDuoTunerParams.tuner1AmNotchEnable = rspduo_amNotch;
-                sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_RspDuo_Tuner1AmNotchControl, sdrplay_api_Update_Ext1_None);
-            }
-            config.acquire();
-            config.conf["devices"][selectedName]["amNotch"] = rspduo_amNotch;
             config.release(true);
         }
         if (SmGui::Checkbox(CONCAT("Bias-T##sdrplay_rspduo_biast", name), &rspduo_biasT)) {
@@ -1073,13 +1074,13 @@ private:
             config.release(true);
         }
 
-        if (SmGui::Checkbox(CONCAT("FM Notch##sdrplay_rspdx_fmnotch", name), &rspdx_fmNotch)) {
+        if (SmGui::Checkbox(CONCAT("FM/MW Notch##sdrplay_rspdx_fmmwnotch", name), &rspdx_fmmwNotch)) {
             if (running) {
-                openDevParams->devParams->rspDxParams.rfNotchEnable = rspdx_fmNotch;
+                openDevParams->devParams->rspDxParams.rfNotchEnable = rspdx_fmmwNotch;
                 sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_None, sdrplay_api_Update_RspDx_RfNotchControl);
             }
             config.acquire();
-            config.conf["devices"][selectedName]["fmNotch"] = rspdx_fmNotch;
+            config.conf["devices"][selectedName]["fmmwNotch"] = rspdx_fmmwNotch;
             config.release(true);
         }
         if (SmGui::Checkbox(CONCAT("DAB Notch##sdrplay_rspdx_dabnotch", name), &rspdx_dabNotch)) {
@@ -1174,24 +1175,23 @@ private:
     int ifModeId = 0;
 
     // RSP1A Options
-    bool rsp1a_fmNotch = false;
+    bool rsp1a_fmmwNotch = false;
     bool rsp1a_dabNotch = false;
     bool rsp1a_biasT = false;
 
     // RSP2 Options
-    bool rsp2_notch = false;
+    bool rsp2_fmmwNotch = false;
     bool rsp2_biasT = false;
     int rsp2_antennaPort = 0;
 
     // RSP Duo Options
-    bool rspduo_fmNotch = false;
+    bool rspduo_fmmwNotch = false;
     bool rspduo_dabNotch = false;
     bool rspduo_biasT = false;
-    bool rspduo_amNotch = false;
     int rspduo_antennaPort = 0;
 
     // RSPdx Options
-    bool rspdx_fmNotch = false;
+    bool rspdx_fmmwNotch = false;
     bool rspdx_dabNotch = false;
     bool rspdx_biasT = false;
     int rspdx_antennaPort = 0;
