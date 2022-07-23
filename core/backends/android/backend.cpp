@@ -158,7 +158,7 @@ namespace backend {
         ImGui::NewFrame();
     }
 
-    void render(bool vsync) {
+    void render() {
         // Rendering
         ImGui::Render();
         auto dSize = ImGui::GetIO().DisplaySize;
@@ -167,6 +167,7 @@ namespace backend {
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         eglSwapBuffers(_EglDisplay, _EglSurface);
+        // TODO: add support for v-sync on Android
     }
 
     // No screen pos to detect

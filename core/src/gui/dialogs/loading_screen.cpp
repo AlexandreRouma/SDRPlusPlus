@@ -42,6 +42,6 @@ namespace LoadingScreen {
 
         ImGui::End();
 
-        backend::render(false);
+        backend::render();
     }
 }

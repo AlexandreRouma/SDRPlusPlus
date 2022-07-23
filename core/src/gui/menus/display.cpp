@@ -13,6 +13,7 @@ namespace displaymenu {
     bool showWaterfall;
     bool fastFFT = true;
     bool fullWaterfallUpdate = true;
+    bool vsync;
     int colorMapId = 0;
     std::vector<std::string> colorMapNames;
     std::string colorMapNamesTxt = "";
@@ -86,6 +87,8 @@ namespace displaymenu {
 
         fullWaterfallUpdate = core::configManager.conf["fullWaterfallUpdate"];
         gui::waterfall.setFullWaterfallUpdate(fullWaterfallUpdate);
+
+        vsync = core::configManager.conf["vsync"];
 
         fftSizeId = 3;
         int fftSize = core::configManager.conf["fftSize"];
@@ -173,6 +176,16 @@ namespace displaymenu {
             core::configManager.release(true);
             restartRequired = true;
         }
+
+#ifndef __ANDROID__
+        // TODO: add support for v-sync on Android
+        if (ImGui::Checkbox("V-Sync##_sdrpp", &vsync)) {
+            core::configManager.acquire();
+            core::configManager.conf["vsync"] = vsync;
+            core::configManager.release(true);
+            restartRequired = true;
+        }
+#endif
 
         ImGui::LeftLabel("FFT Framerate");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());

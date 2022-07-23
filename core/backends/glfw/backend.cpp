@@ -39,6 +39,7 @@ namespace backend {
 
     #define OPENGL_VERSION_COUNT (sizeof(OPENGL_VERSIONS_GLSL) / sizeof(char*))
 
+    bool vsync;
     bool maximized = false;
     bool fullScreen = false;
     int winHeight;
@@ -69,6 +70,7 @@ namespace backend {
         winHeight = core::configManager.conf["windowSize"]["h"];
         maximized = core::configManager.conf["maximized"];
         fullScreen = core::configManager.conf["fullscreen"];
+        vsync = core::configManager.conf["vsync"];
         core::configManager.release();
 
         // Setup window
@@ -205,7 +207,7 @@ namespace backend {
         ImGui::NewFrame();
     }
 
-    void render(bool vsync) {
+    void render() {
         // Rendering
         ImGui::Render();
         int display_w, display_h;

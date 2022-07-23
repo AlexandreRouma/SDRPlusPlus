@@ -4,7 +4,7 @@
 namespace backend {
     int init(std::string resDir = "");
     void beginFrame();
-    void render(bool vsync = true);
+    void render();
     void getMouseScreenPos(double& x, double& y);
     void setMouseScreenPos(double x, double y);
     int renderLoop();
