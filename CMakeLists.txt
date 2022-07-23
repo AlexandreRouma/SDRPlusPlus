@@ -3,6 +3,7 @@ project(sdrpp)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(CMAKE_INSTALL_PREFIX "/usr/local")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
 else()
     set(CMAKE_INSTALL_PREFIX "/usr")
 endif()
