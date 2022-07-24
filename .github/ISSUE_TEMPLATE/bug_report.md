@@ -7,6 +7,8 @@ assignees: ''
 
 ---
 
+FIRST: Before reporting any bug, make sure that the bug you are reporting has not been reported before. Also, try to use the [nightly version](https://www.sdrpp.org/nightly) if possible in case I've already fixed the bug.
+
 **Hardware**
 - CPU: 
 - GPU: 
@@ -23,6 +25,13 @@ A clear description of the bug.
 1. ...
 2. ...
 3. ...
+
+**Only If SDR++ fails to lauch or the SDR fails to start:**
+Run SDR++ from a command line window with special parameters:
+* On Windows, open a terminal and `cd` to SDR++'s directory and run `.\sdrpp.exe -c` (if running SDR++ version 1.0.4 or older, use `-s` instead, though you should probably update SDR++ instead...)
+* On Linux: Open a terminal and run `sdrpp -c`
+* On MacOS: Open a terminal and run `/path/to/the/SDR++.app/Contents/MacOS/sdrpp -c`
+Then, post the **entire** logs from start to after the issue. **DOT NOT truncate to where you *think* the error is...**
 
 **Screenshots**
 Add any screenshot that is relevant to the bug (GUI error messages, strange behavior, graphics glitch, etc...).
