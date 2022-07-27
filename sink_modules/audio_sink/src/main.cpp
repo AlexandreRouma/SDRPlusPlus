@@ -172,7 +172,7 @@ private:
             audio.startStream();
             stereoPacker.start();
         }
-        catch (RtAudioError& e) {
+        catch (RtAudioErrorType& e) {
             spdlog::error("Could not open audio device");
             return;
         }
