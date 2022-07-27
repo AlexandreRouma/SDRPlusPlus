@@ -110,7 +110,7 @@ The preferred IDE is [VS Code](https://code.visualstudio.com/) in order to have 
 * [cmake](https://cmake.org)
 * [vcpkg](https://vcpkg.io)
 * [PothosSDR](https://github.com/pothosware/PothosSDR) (This will install libraries for most SDRs)
-* [RtAudio](https://www.music.mcgill.ca/~gary/rtaudio/) (You have to build and install it in `C:/Program Files (x86)/RtAudio/`)
+* [RtAudio](https://www.music.mcgill.ca/~gary/rtaudio/) (You have to build and install it in `C:/Program Files (x86)/RtAudio/`, use [version 5.2.0]( http://www.music.mcgill.ca/~gary/rtaudio/release/rtaudio-5.2.0.tar.gz))
 
 After this, install the following dependencies using vcpkg:
 
