@@ -1,6 +1,6 @@
 #pragma once
 #include "../processor.h"
-#include "../math/freq_to_omega.h"
+#include "../math/hz_to_rads.h"
 
 namespace dsp::channel {
     class FrequencyXlator : public Processor<complex_t, complex_t> {
@@ -19,7 +19,7 @@ namespace dsp::channel {
         }
 
         void init(stream<complex_t>* in, double offset, double samplerate) {
-            init(in, math::freqToOmega(offset, samplerate));
+            init(in, math::hzToRads(offset, samplerate));
         }
 
         void setOffset(double offset) {
@@ -29,7 +29,7 @@ namespace dsp::channel {
         }
 
         void setOffset(double offset, double samplerate) {
-            setOffset(math::freqToOmega(offset, samplerate));
+            setOffset(math::hzToRads(offset, samplerate));
         }
 
         void reset() {

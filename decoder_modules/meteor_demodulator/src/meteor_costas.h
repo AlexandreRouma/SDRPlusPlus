@@ -39,10 +39,10 @@ namespace dsp::loop {
                 const float PHASE4 = -0.29067248091319986;
 
                 float phase = val.phase();
-                float dp1 = math::normPhaseDiff(phase - PHASE1);
-                float dp2 = math::normPhaseDiff(phase - PHASE2);
-                float dp3 = math::normPhaseDiff(phase - PHASE3);
-                float dp4 = math::normPhaseDiff(phase - PHASE4);
+                float dp1 = math::normalizePhase(phase - PHASE1);
+                float dp2 = math::normalizePhase(phase - PHASE2);
+                float dp3 = math::normalizePhase(phase - PHASE3);
+                float dp4 = math::normalizePhase(phase - PHASE4);
                 float lowest = dp1;
                 if (fabsf(dp2) < fabsf(lowest)) { lowest = dp2; }
                 if (fabsf(dp3) < fabsf(lowest)) { lowest = dp3; }

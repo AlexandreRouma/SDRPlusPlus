@@ -112,6 +112,7 @@ public:
     }
 
     ~RadioModule() {
+        core::modComManager.unregisterInterface(name);
         gui::menu.removeEntry(name);
         stream.stop();
         if (enabled) {

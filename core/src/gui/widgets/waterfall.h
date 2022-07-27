@@ -90,7 +90,7 @@ namespace ImGui {
         float* getFFTBuffer();
         void pushFFT();
 
-        inline void doZoom(int offset, int width, int outWidth, float* data, float* out, bool fast) {
+        inline void doZoom(int offset, int width, int outWidth, float* data, float* out) {
             // NOTE: REMOVE THAT SHIT, IT'S JUST A HACKY FIX
             if (offset < 0) {
                 offset = 0;
@@ -100,28 +100,20 @@ namespace ImGui {
             }
 
             float factor = (float)width / (float)outWidth;
-
-            if (fast) {
-                for (int i = 0; i < outWidth; i++) {
-                    out[i] = data[(int)(offset + ((float)i * factor))];
+            float sFactor = ceilf(factor);
+            float uFactor;
+            float id = offset;
+            float maxVal;
+            int sId;
+            for (int i = 0; i < outWidth; i++) {
+                maxVal = -INFINITY;
+                sId = (int)id;
+                uFactor = (sId + sFactor > rawFFTSize) ? sFactor - ((sId + sFactor) - rawFFTSize) : sFactor;
+                for (int j = 0; j < uFactor; j++) {
+                    if (data[sId + j] > maxVal) { maxVal = data[sId + j]; }
                 }
-            }
-            else {
-                float sFactor = ceilf(factor);
-                float uFactor;
-                float id = offset;
-                float maxVal;
-                int sId;
-                for (int i = 0; i < outWidth; i++) {
-                    maxVal = -INFINITY;
-                    sId = (int)id;
-                    uFactor = (sId + sFactor > rawFFTSize) ? sFactor - ((sId + sFactor) - rawFFTSize) : sFactor;
-                    for (int j = 0; j < uFactor; j++) {
-                        if (data[sId + j] > maxVal) { maxVal = data[sId + j]; }
-                    }
-                    out[i] = maxVal;
-                    id += factor;
-                }
+                out[i] = maxVal;
+                id += factor;
             }
         }
 
@@ -169,8 +161,6 @@ namespace ImGui {
         int getFFTHeight();
 
         void setRawFFTSize(int size);
-
-        void setFastFFT(bool fastFFT);
 
         void setFullWaterfallUpdate(bool fullUpdate);
 
@@ -328,7 +318,6 @@ namespace ImGui {
         bool waterfallVisible = true;
         bool bandplanVisible = false;
 
-        bool _fastFFT = true;
         bool _fullUpdate = true;
 
         int bandPlanPos = BANDPLAN_POS_BOTTOM;

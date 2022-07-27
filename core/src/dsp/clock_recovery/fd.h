@@ -168,7 +168,7 @@ namespace dsp::clock_recovery {
     protected:
         void generateInterpTaps() {
             double bw = 0.5 / (double)_interpPhaseCount;
-            dsp::tap<float> lp = dsp::taps::windowedSinc<float>(_interpPhaseCount * _interpTapCount, dsp::math::freqToOmega(bw, 1.0), dsp::window::nuttall, _interpPhaseCount);
+            dsp::tap<float> lp = dsp::taps::windowedSinc<float>(_interpPhaseCount * _interpTapCount, dsp::math::hzToRads(bw, 1.0), dsp::window::nuttall, _interpPhaseCount);
             interpBank = dsp::multirate::buildPolyphaseBank<float>(_interpPhaseCount, lp);
             taps::free(lp);
         }

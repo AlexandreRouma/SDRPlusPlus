@@ -4,13 +4,13 @@
 #include "estimate_tap_count.h"
 #include "../window/nuttall.h"
 #include "../math/phasor.h"
-#include "../math/freq_to_omega.h"
+#include "../math/hz_to_rads.h"
 
 namespace dsp::taps {
     template<class T>
     inline tap<T> bandPass(double bandStart, double bandStop, double transWidth, double sampleRate, bool oddTapCount = false) {
         assert(bandStop > bandStart);
-        float offsetOmega = math::freqToOmega((bandStart + bandStop) / 2.0, sampleRate);
+        float offsetOmega = math::hzToRads((bandStart + bandStop) / 2.0, sampleRate);
         int count = estimateTapCount(transWidth, sampleRate);
         if (oddTapCount && !(count % 2)) { count++; }
         return windowedSinc<T>(count, (bandStop - bandStart) / 2.0, sampleRate, [=](double n, double N) {

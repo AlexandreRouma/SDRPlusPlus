@@ -43,7 +43,7 @@ namespace dsp::demod {
             pilotFirTaps = taps::bandPass<complex_t>(18750.0, 19250.0, 3000.0, _samplerate, true);
             pilotFir.init(NULL, pilotFirTaps);
             rtoc.init(NULL);
-            pilotPLL.init(NULL, 25000.0 / _samplerate, 0.0, math::freqToOmega(19000.0, _samplerate), math::freqToOmega(18750.0, _samplerate), math::freqToOmega(19250.0, _samplerate));
+            pilotPLL.init(NULL, 25000.0 / _samplerate, 0.0, math::hzToRads(19000.0, _samplerate), math::hzToRads(18750.0, _samplerate), math::hzToRads(19250.0, _samplerate));
             lprDelay.init(NULL, ((pilotFirTaps.size - 1) / 2) + 1);
             lmrDelay.init(NULL, ((pilotFirTaps.size - 1) / 2) + 1);
             audioFirTaps = taps::lowPass(15000.0, 4000.0, _samplerate);
@@ -82,8 +82,8 @@ namespace dsp::demod {
             pilotFirTaps = taps::bandPass<complex_t>(18750.0, 19250.0, 3000.0, samplerate, true);
             pilotFir.setTaps(pilotFirTaps);
             
-            pilotPLL.setFrequencyLimits(math::freqToOmega(18750.0, _samplerate), math::freqToOmega(19250.0, _samplerate));
-            pilotPLL.setInitialFreq(math::freqToOmega(19000.0, _samplerate));
+            pilotPLL.setFrequencyLimits(math::hzToRads(18750.0, _samplerate), math::hzToRads(19250.0, _samplerate));
+            pilotPLL.setInitialFreq(math::hzToRads(19000.0, _samplerate));
             lprDelay.setDelay(((pilotFirTaps.size - 1) / 2) + 1);
             lmrDelay.setDelay(((pilotFirTaps.size - 1) / 2) + 1);
 

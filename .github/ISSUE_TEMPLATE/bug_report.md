@@ -11,6 +11,7 @@ FIRST: Before reporting any bug, make sure that the bug you are reporting has no
 
 **Hardware**
 - CPU: 
+- RAM:
 - GPU: 
 - SDR: (Remote or local? If remote, what protocol?)
 

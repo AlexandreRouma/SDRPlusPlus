@@ -69,6 +69,16 @@ namespace dsp::multirate {
             base_type::tempStart();
         }
 
+        void setRates(double inSamplerate, double outSamplerate) {
+            assert(base_type::_block_init);
+            std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
+            base_type::tempStop();
+            _inSamplerate = inSamplerate;
+            _outSamplerate = outSamplerate;
+            reconfigure();
+            base_type::tempStart();
+        }
+
         inline int process(int count, const T* in, T* out) {
             switch(mode) {
                 case Mode::BOTH:

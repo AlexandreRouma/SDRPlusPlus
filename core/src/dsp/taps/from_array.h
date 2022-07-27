@@ -1,7 +1,7 @@
 #pragma once
 #include "tap.h"
 #include "../math/sinc.h"
-#include "../math/freq_to_omega.h"
+#include "../math/hz_to_rads.h"
 #include "../window/nuttall.h"
 
 namespace dsp::taps {
