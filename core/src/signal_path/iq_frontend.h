@@ -23,7 +23,7 @@ public:
 
     void setInput(dsp::stream<dsp::complex_t>* in);
     void setSampleRate(double sampleRate);
-    inline double getSampleRate() { return _sampleRate; }
+    inline double getSampleRate() { return _sampleRate / _decimRatio; }
 
     void setBuffering(bool enabled);
     void setDecimation(int ratio);
