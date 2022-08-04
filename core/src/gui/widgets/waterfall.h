@@ -101,7 +101,6 @@ namespace ImGui {
 
             float* bufEnd = data + rawFFTSize;
             double factor = (double)width / (double)outWidth; // The output "FFT" is `factor` times smaller than the input.
-            double sFactor = ceil(factor);
             double id = offset;
             for (int i = 0; i < outWidth; i++) {
                 // For each pixel on the output, "window" the source FFT datapoints (starting from `&data[(int) id]`
@@ -109,13 +108,12 @@ namespace ImGui {
                 // The fractional part is discarded in the cast, so with zoomed-in view (`factor` < 1), pixels are "stretched".
                 // So with `factor` == 0.5, one pixel is `data[(int) 69]`, and the very next one is `data[(int) 69.5]`.
                 float* cursor = data + (int)id;
-                float* searchEnd = cursor + (int)sFactor;
-                
+                float* searchEnd = cursor + (int)factor;
                 if (searchEnd > bufEnd) { // This compiles into `cmp` and `cmovbe`, non-branching instructions.
                     searchEnd = bufEnd;
                 }
 
-                float maxVal = -INFINITY;
+                float maxVal = *cursor;
                 while (cursor != searchEnd) {
                     if (*cursor > maxVal) { maxVal = *cursor; }
                     cursor++;
