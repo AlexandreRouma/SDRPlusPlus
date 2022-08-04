@@ -78,6 +78,7 @@ namespace ImGui {
         lastWidgetSize.y = 0;
         latestFFT = new float[dataWidth];
         latestFFTHold = new float[dataWidth];
+        tempZoomFFT = new float[dataWidth];
         waterfallFb = new uint32_t[1];
 
         viewBandwidth = 1.0;
@@ -575,31 +576,21 @@ namespace ImGui {
             return;
         }
         double offsetRatio = viewOffset / (wholeBandwidth / 2.0);
-        int drawDataSize;
-        int drawDataStart;
-        // TODO: Maybe put on the stack for faster alloc?
-        float* tempData = new float[dataWidth];
+        int drawDataSize = (viewBandwidth / wholeBandwidth) * rawFFTSize;;
+        int drawDataStart = (((double)rawFFTSize / 2.0) * (offsetRatio + 1)) - (drawDataSize / 2);;
         float pixel;
         float dataRange = waterfallMax - waterfallMin;
         int count = std::min<float>(waterfallHeight, fftLines);
         if (rawFFTs != NULL && fftLines >= 0) {
             for (int i = 0; i < count; i++) {
-                drawDataSize = (viewBandwidth / wholeBandwidth) * rawFFTSize;
-                drawDataStart = (((double)rawFFTSize / 2.0) * (offsetRatio + 1)) - (drawDataSize / 2);
-                doZoom(drawDataStart, drawDataSize, dataWidth, &rawFFTs[((i + currentFFTLine) % waterfallHeight) * rawFFTSize], tempData);
+                doZoom(drawDataStart, drawDataSize, dataWidth, &rawFFTs[((i + currentFFTLine) % waterfallHeight) * rawFFTSize], tempZoomFFT);
                 for (int j = 0; j < dataWidth; j++) {
-                    pixel = (std::clamp<float>(tempData[j], waterfallMin, waterfallMax) - waterfallMin) / dataRange;
+                    pixel = (std::clamp<float>(tempZoomFFT[j], waterfallMin, waterfallMax) - waterfallMin) / dataRange;
                     waterfallFb[(i * dataWidth) + j] = waterfallPallet[(int)(pixel * (WATERFALL_RESOLUTION - 1))];
                 }
             }
-
-            for (int i = count; i < waterfallHeight; i++) {
-                for (int j = 0; j < dataWidth; j++) {
-                    waterfallFb[(i * dataWidth) + j] = (uint32_t)255 << 24;
-                }
-            }
+            memset(waterfallFb + (count * dataWidth), (uint32_t)255 << 24, (waterfallHeight - count) * dataWidth);
         }
-        delete[] tempData;
         waterfallUpdate = true;
     }
 
@@ -739,6 +730,12 @@ namespace ImGui {
             delete[] latestFFTHold;
         }
         latestFFTHold = new float[dataWidth];
+
+        // Reallocate temporary buffer for zooming the FFT
+        if (tempZoomFFT != NULL) {
+            delete[] tempZoomFFT;
+        }
+        tempZoomFFT = new float[dataWidth];
 
         if (waterfallVisible) {
             delete[] waterfallFb;
