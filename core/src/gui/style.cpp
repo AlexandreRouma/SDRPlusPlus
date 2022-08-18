@@ -22,30 +22,20 @@ namespace style {
 
     struct Font {
         std::string path;
-        float norm;
-        
-        bool normal;
-        bool big;
-        bool huge;
+        float size;
 
         int oversample;
     };
 
     void from_json(const json& j, Font& f) {
         f.path = j["path"].get<std::string>();
-        f.norm = j.value("norm", 16.0f);
-        f.normal = j.value("normal", true);
-        f.big = j.value("big", true);
-        f.huge = j.value("huge", false);
+        f.size = j.value("size", 16.0f);
         f.oversample = j.value("oversample", 2);
     }
 
     void to_json(json& j, const Font& t) {
         j["path"] = t.path;
-        j["norm"] = t.norm;
-        j["normal"] = t.normal;
-        j["big"] = t.big;
-        j["huge"] = t.huge;
+        j["size"] = t.size;
         j["oversample"] = t.oversample;
     }
 
@@ -60,41 +50,50 @@ namespace style {
         builder.AddRanges(atlas->GetGlyphRangesChineseFull());
         builder.AddRanges(atlas->GetGlyphRangesCyrillic());
         builder.BuildRanges(&ranges);
-
-        
+  
         core::configManager.acquire();
-        auto fonts = core::configManager.conf["fonts"].get<std::vector<Font>>();
-    
+        auto baseFontNames = core::configManager.conf["baseFonts"].get<std::vector<std::string>>();
+        auto bigFontNames = core::configManager.conf["bigFonts"].get<std::vector<std::string>>();
+        auto hugeFontNames = core::configManager.conf["hugeFonts"].get<std::vector<std::string>>();
+
+        std::vector<Font> baseFonts, bigFonts, hugeFonts;
+
+        for (auto &fontName : baseFontNames) {
+            baseFonts.push_back(core::configManager.conf["fonts"][fontName].get<Font>());
+        }
+
+        for (auto &fontName : bigFontNames) {
+            bigFonts.push_back(core::configManager.conf["fonts"][fontName].get<Font>());
+        }
+
+        for (auto &fontName : hugeFontNames) {
+            hugeFonts.push_back(core::configManager.conf["fonts"][fontName].get<Font>());
+        }
+
         // Build the baseFont
         fontConfig.MergeMode = false;
-        for (auto &font : fonts) {
-            if (!font.normal) { continue; }
-        
+        for (auto &font : baseFonts) {
             fontConfig.OversampleH = font.oversample;
             
-            baseFont = atlas->AddFontFromFileTTF(((std::string)(resDir + font.path)).c_str(), font.norm * uiScale, &fontConfig, ranges.Data);
+            baseFont = atlas->AddFontFromFileTTF(((std::string)(resDir + font.path)).c_str(), font.size * uiScale, &fontConfig, ranges.Data);
             fontConfig.MergeMode = true;
         }
         
         // Build the bigFont
         fontConfig.MergeMode = false;
-        for (auto &font : fonts) {
-            if (!font.big) { continue; } 
-    
+        for (auto &font : bigFonts) {
             fontConfig.OversampleH = font.oversample;
     
-            bigFont = atlas->AddFontFromFileTTF(((std::string)(resDir + font.path)).c_str(), 2.8125f * font.norm * uiScale, &fontConfig, ranges.Data);
+            bigFont = atlas->AddFontFromFileTTF(((std::string)(resDir + font.path)).c_str(), 2.8125f * font.size * uiScale, &fontConfig, ranges.Data);
             fontConfig.MergeMode = true;
         }
         
         // Build the hugeFont
         fontConfig.MergeMode = false;
-        for (auto &font : fonts) {
-            if (!font.huge) { continue; }
-    
+        for (auto &font : hugeFonts) {
             fontConfig.OversampleH = font.oversample;
 
-            hugeFont = atlas->AddFontFromFileTTF(((std::string)(resDir + font.path)).c_str(), 8.0f * font.norm * uiScale, &fontConfig, ranges.Data);
+            hugeFont = atlas->AddFontFromFileTTF(((std::string)(resDir + font.path)).c_str(), 8.0f * font.size * uiScale, &fontConfig, ranges.Data);
             fontConfig.MergeMode = true;
         }
         
