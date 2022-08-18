@@ -109,7 +109,6 @@ void FrequencySelect::draw() {
     
     int digitWidth = digitSz.x;
     int commaOffset = 0;
-    float textOffset = 11.0f * style::uiScale;
     bool zeros = true;
 
     ImGui::ItemSize(ImRect(digitTopMins[0], ImVec2(digitBottomMaxs[11].x + 15, digitBottomMaxs[11].y)));
@@ -122,9 +121,13 @@ void FrequencySelect::draw() {
         window->DrawList->AddText(ImVec2(widgetPos.x + (i * digitWidth) + commaOffset, widgetPos.y),
                                   zeros ? disabledColor : textColor, buf);
         if ((i + 1) % 3 == 0 && i < 11) {
-            commaOffset += commaSz.x;
-            window->DrawList->AddText(ImVec2(widgetPos.x + (i * digitWidth) + commaOffset + textOffset, widgetPos.y),
+            // Find where to place the comma
+            float pos = widgetPos.x + (i+1)*digitWidth + commaOffset;
+            float nextPos = widgetPos.x + (i+1)*digitWidth + commaOffset + commaSz.x;
+            float commaPos = (pos + nextPos)/2 - commaSz.x/2;
+            window->DrawList->AddText(ImVec2(commaPos, widgetPos.y),
                                       zeros ? disabledColor : textColor, ".");
+            commaOffset += commaSz.x;
         }
     }
 
