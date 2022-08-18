@@ -118,6 +118,10 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["fftRate"] = 20;
     defConfig["fftSize"] = 65536;
     defConfig["fftWindow"] = 2;
+    defConfig["fonts"] = json::array();
+    defConfig["fonts"][0]["path"] = "/fonts/Roboto-Medium.ttf";
+    defConfig["fonts"][0]["norm"] = 16.0f;
+    defConfig["fonts"][0]["huge"] = true;
     defConfig["frequency"] = 100000000.0;
     defConfig["fullWaterfallUpdate"] = false;
     defConfig["max"] = 0.0;

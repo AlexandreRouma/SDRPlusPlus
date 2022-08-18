@@ -1,6 +1,7 @@
 #include <gui/style.h>
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <core.h>
 #include <config.h>
 #include <spdlog/spdlog.h>
 #include <filesystem>
@@ -11,12 +12,42 @@ namespace style {
     ImFont* hugeFont;
     ImVector<ImWchar> ranges;
     ImFontGlyphRangesBuilder builder;
+    ImFontConfig fontConfig;
 
 #ifndef __ANDROID__
     float uiScale = 1.0f;
 #else
     float uiScale = 3.0f;
 #endif
+
+    struct Font {
+        std::string path;
+        float norm;
+        
+        bool normal;
+        bool big;
+        bool huge;
+
+        int oversample;
+    };
+
+    void from_json(const json& j, Font& f) {
+        f.path = j["path"].get<std::string>();
+        f.norm = j.value("norm", 16.0f);
+        f.normal = j.value("normal", true);
+        f.big = j.value("big", true);
+        f.huge = j.value("huge", false);
+        f.oversample = j.value("oversample", 2);
+    }
+
+    void to_json(json& j, const Font& t) {
+        j["path"] = t.path;
+        j["norm"] = t.norm;
+        j["normal"] = t.normal;
+        j["big"] = t.big;
+        j["huge"] = t.huge;
+        j["oversample"] = t.oversample;
+    }
 
     bool loadFonts(std::string resDir) {
         if (!std::filesystem::is_directory(resDir)) {
@@ -25,15 +56,49 @@ namespace style {
         }
 
         // Create font range
-        ImFontAtlas* fonts = ImGui::GetIO().Fonts;
-        builder.AddRanges(fonts->GetGlyphRangesDefault());
-        builder.AddRanges(fonts->GetGlyphRangesCyrillic());
+        ImFontAtlas* atlas = ImGui::GetIO().Fonts;
+        builder.AddRanges(atlas->GetGlyphRangesChineseFull());
+        builder.AddRanges(atlas->GetGlyphRangesCyrillic());
         builder.BuildRanges(&ranges);
+
         
-        // Add bigger fonts for frequency select and title
-        baseFont = fonts->AddFontFromFileTTF(((std::string)(resDir + "/fonts/Roboto-Medium.ttf")).c_str(), 16.0f * uiScale, NULL, ranges.Data);
-        bigFont = fonts->AddFontFromFileTTF(((std::string)(resDir + "/fonts/Roboto-Medium.ttf")).c_str(), 45.0f * uiScale);
-        hugeFont = fonts->AddFontFromFileTTF(((std::string)(resDir + "/fonts/Roboto-Medium.ttf")).c_str(), 128.0f * uiScale);
+        core::configManager.acquire();
+        auto fonts = core::configManager.conf["fonts"].get<std::vector<Font>>();
+    
+        // Build the baseFont
+        fontConfig.MergeMode = false;
+        for (auto &font : fonts) {
+            if (!font.normal) { continue; }
+        
+            fontConfig.OversampleH = font.oversample;
+            
+            baseFont = atlas->AddFontFromFileTTF(((std::string)(resDir + font.path)).c_str(), font.norm * uiScale, &fontConfig, ranges.Data);
+            fontConfig.MergeMode = true;
+        }
+        
+        // Build the bigFont
+        fontConfig.MergeMode = false;
+        for (auto &font : fonts) {
+            if (!font.big) { continue; } 
+    
+            fontConfig.OversampleH = font.oversample;
+    
+            bigFont = atlas->AddFontFromFileTTF(((std::string)(resDir + font.path)).c_str(), 2.8125f * font.norm * uiScale, &fontConfig, ranges.Data);
+            fontConfig.MergeMode = true;
+        }
+        
+        // Build the hugeFont
+        fontConfig.MergeMode = false;
+        for (auto &font : fonts) {
+            if (!font.huge) { continue; }
+    
+            fontConfig.OversampleH = font.oversample;
+
+            hugeFont = atlas->AddFontFromFileTTF(((std::string)(resDir + font.path)).c_str(), 8.0f * font.norm * uiScale, &fontConfig, ranges.Data);
+            fontConfig.MergeMode = true;
+        }
+        
+        core::configManager.release();
 
         return true;
     }
