@@ -209,7 +209,7 @@ The modules built will be some of the following (Repeat the instructions above f
 ## Select which modules you wish to build
 
 Depending on which module you want to build, you will need to install some additional dependencies.
-Here are listed every module that requires addition dependencies. If a module enabled by default and you do not wish to install a perticular dependency (or can't, eg. the BladeRF module on Debian Buster),
+Here are listed every module that requires addition dependencies. If a module enabled by default and you do not wish to install a particular dependency (or can't, eg. the BladeRF module on Debian Buster),
 you can disable it using the module parameter listed in the table below
 
 * soapy_source: SoapySDR + drivers for each SDRs (see SoapySDR docs)
@@ -363,7 +363,7 @@ First, please make sure you're running the latest automated build. If your issue
 
 This is a bug in 1.0.0 that was fixed in 1.0.1
 
-In some cases, if a crash happened while the config was being saved, the config file woul be corrupted and SDR++ would refuse to start because of it.
+In some cases, if a crash happened while the config was being saved, the config file would be corrupted and SDR++ would refuse to start because of it.
 
 This has now been fixed. If a config file is corrupted it'll just reset it to its default state.
 
