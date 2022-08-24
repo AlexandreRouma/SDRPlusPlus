@@ -123,10 +123,13 @@ public:
         char buf[1024];
         for (int i = 0; i < devCount; i++) {
             const char* devName = rtlsdr_get_device_name(i);
-            sprintf(buf, "%s [%d]", devName, i);
+            char* serialNo = new char[256];
+            rtlsdr_get_device_usb_strings(i, NULL, NULL, serialNo);
+            sprintf(buf, "%s %s [%d]", devName, serialNo, i);
             devNames.push_back(buf);
             devListTxt += buf;
             devListTxt += '\0';
+            delete[] serialNo;
         }
 #else
         // Check for device connection
