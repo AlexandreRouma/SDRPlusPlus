@@ -123,8 +123,12 @@ public:
         char buf[1024];
         for (int i = 0; i < devCount; i++) {
             const char* devName = rtlsdr_get_device_name(i);
+
             char* serialNo = new char[256];
+            memset(serialNo, '\0', 256);
+            strcpy(serialNo, "[No Serial]\0");
             rtlsdr_get_device_usb_strings(i, NULL, NULL, serialNo);
+
             sprintf(buf, "%s %s [%d]", devName, serialNo, i);
             devNames.push_back(buf);
             devListTxt += buf;
