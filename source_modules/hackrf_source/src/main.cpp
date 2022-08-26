@@ -379,10 +379,8 @@ private:
 
     static int callback(hackrf_transfer* transfer) {
         HackRFSourceModule* _this = (HackRFSourceModule*)transfer->rx_ctx;
-        int count = transfer->valid_length / 2;
-        int8_t* buffer = (int8_t*)transfer->buffer;
-        volk_8i_s32f_convert_32f((float*)_this->stream.writeBuf, buffer, 128.0f, count * 2);
-        if (!_this->stream.swap(count)) { return -1; }
+        volk_8i_s32f_convert_32f((float*)_this->stream.writeBuf, (int8_t*)transfer->buffer, 128.0f, transfer->valid_length);
+        if (!_this->stream.swap(transfer->valid_length / 2)) { return -1; }
         return 0;
     }
 
