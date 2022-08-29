@@ -210,6 +210,8 @@ private:
 
         hasAgc = dev->hasGainMode(SOAPY_SDR_RX, channelId);
 
+        settings = dev->getSettingInfo();
+
         SoapySDR::Device::unmake(dev);
 
         config.acquire();
@@ -248,6 +250,11 @@ private:
             else {
                 selectSampleRate(sampleRates[0]);
             }
+            if (config.conf["devices"][name].contains("settings")) {
+                for (auto& [key, value] : config.conf["devices"][name]["settings"].items()) {
+                    configSettings[key] = value;
+                }
+            }
         }
         else {
             uiAntennaId = 0;
@@ -279,6 +286,14 @@ private:
             conf["bandwidth"] = uiBandwidthId;
         if (hasAgc) {
             conf["agc"] = agc;
+        }
+        if (running) {
+            for (SoapySDR::ArgInfo argInfo : settings) {
+                std::string val = dev->readSetting(argInfo.key);;
+                if (val != argInfo.value) { // only save non-default values
+                    conf["settings"][argInfo.key] = val;
+                }
+            }
         }
         config.acquire();
         config.conf["devices"][devArgs["label"]] = conf;
@@ -328,6 +343,10 @@ private:
         for (auto gain : _this->gainList) {
             _this->dev->setGain(SOAPY_SDR_RX, _this->channelId, gain, _this->uiGains[i]);
             i++;
+        }
+
+        for (auto& [key, value] : _this->configSettings) {
+            _this->dev->writeSetting(key, value);
         }
 
         _this->dev->setFrequency(SOAPY_SDR_RX, _this->channelId, _this->freq);
@@ -475,6 +494,84 @@ private:
                 _this->saveCurrent();
             }
         }
+
+        for (SoapySDR::ArgInfo argInfo : _this->settings) {
+            if (!_this->running)
+                break;
+
+            std::string guiName = (std::string("##_soapy_arg_") + _this->name + "_" + argInfo.key).c_str();
+
+            if (argInfo.type != SoapySDR::ArgInfo::Type::BOOL) {
+                // only SmGui::Checkbox has a label, the rest need a separate one
+                SmGui::LeftLabel(argInfo.name.c_str());
+                SmGui::FillWidth();
+            }
+
+            if (!argInfo.options.empty() && argInfo.type != SoapySDR::ArgInfo::Type::BOOL) {
+                std::string currentVal = _this->dev->readSetting(argInfo.key);
+                std::string labels;
+                int selectedIdx = 0;
+                bool hasNames = argInfo.options.size() == argInfo.optionNames.size();
+                for (int i = 0; i != argInfo.options.size(); ++i) {
+                    labels += hasNames ? argInfo.optionNames[i] : argInfo.options[i];
+                    labels += '\0';
+                    if (currentVal == argInfo.options[i]) {
+                        selectedIdx = i;
+                    }
+                }
+
+                if (SmGui::Combo(guiName.c_str(), &selectedIdx, labels.c_str())) {
+                    _this->dev->writeSetting(argInfo.key, argInfo.options[selectedIdx]);
+                    _this->saveCurrent();
+                }
+            } else if (argInfo.type == SoapySDR::ArgInfo::Type::BOOL) {
+                auto val = _this->dev->readSetting<bool>(argInfo.key);
+                if (SmGui::Checkbox((argInfo.name + guiName).c_str(), &val)) {
+                    _this->dev->writeSetting<>(argInfo.key, val);
+                    _this->saveCurrent();
+                }
+            } else if (argInfo.type == SoapySDR::ArgInfo::Type::INT) {
+                auto val = _this->dev->readSetting<int>(argInfo.key);
+                if (argInfo.range.minimum() != argInfo.range.maximum()) { // not an empty range
+                    if (SmGui::SliderInt((argInfo.units + guiName).c_str(), &val, argInfo.range.minimum(), argInfo.range.maximum(), SmGui::FMT_STR_INT_DEFAULT)) {
+                        _this->dev->writeSetting<>(argInfo.key, val);
+                        _this->saveCurrent();
+                    }
+                } else {
+                    if (SmGui::InputInt((argInfo.units + guiName).c_str(), &val)) {
+                        _this->dev->writeSetting<>(argInfo.key, val);
+                        _this->saveCurrent();
+                    }
+                }
+            } else if (argInfo.type == SoapySDR::ArgInfo::Type::FLOAT) {
+                auto val = _this->dev->readSetting<float>(argInfo.key);
+                if (argInfo.range.minimum() != argInfo.range.maximum()) { // not an empty range
+                    if (SmGui::SliderFloatWithSteps((argInfo.units + guiName).c_str(), &val, argInfo.range.minimum(), argInfo.range.maximum(), argInfo.range.step(), SmGui::FMT_STR_FLOAT_DEFAULT)) {
+                        _this->dev->writeSetting<>(argInfo.key, val);
+                        _this->saveCurrent();
+                    }
+                } else {
+                    if (SmGui::SliderFloat((argInfo.units + guiName).c_str(), &val, 0, 100, SmGui::FMT_STR_FLOAT_DEFAULT)) {
+                        _this->dev->writeSetting<>(argInfo.key, val);
+                        _this->saveCurrent();
+                    }
+                }
+            } else if (argInfo.type == SoapySDR::ArgInfo::Type::STRING) {
+                auto val = _this->dev->readSetting<std::string>(argInfo.key);
+                val.copy(_this->stringSettingVal, sizeof(_this->stringSettingVal));
+                if (SmGui::InputText((argInfo.units + guiName).c_str(), _this->stringSettingVal, sizeof(_this->stringSettingVal) - 1, SmGui::FMT_STR_FLOAT_DEFAULT)) {
+                    _this->dev->writeSetting<>(argInfo.key, _this->stringSettingVal);
+                    _this->saveCurrent();
+                }
+            } else {
+                spdlog::warn("Unknown Soapy argument type: {} for {} ({})", argInfo.type, argInfo.key, argInfo.name);
+                continue;
+            }
+
+            if (!argInfo.description.empty() && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+                ImGui::SetTooltip("%s", argInfo.description.c_str());
+            }
+        }
     }
 
     static void _worker(SoapyModule* _this) {
@@ -521,6 +618,10 @@ private:
     int uiBandwidthId = 0;
     std::vector<float> bandwidthList;
     std::string txtBwList;
+    SoapySDR::ArgInfoList settings;
+    char stringSettingVal[1024];
+    std::unordered_map<std::string, std::string> configSettings;
+
 };
 
 MOD_EXPORT void _INIT_() {
