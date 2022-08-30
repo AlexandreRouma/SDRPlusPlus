@@ -9,7 +9,7 @@ SDRPP_MOD_INFO{
     /* Description:     */ "Frequency scanner for SDR++",
     /* Author:          */ "Ryzerth",
     /* Version:         */ 0, 1, 0,
-    /* Max instances    */ -1
+    /* Max instances    */ 1
 };
 
 class ScannerModule : public ModuleManager::Instance {
@@ -59,11 +59,44 @@ private:
         if (ImGui::InputDouble("##interval_scanner", &_this->interval, 100.0, 100000.0, "%0.0f")) {
             _this->interval = round(_this->interval);
         }
+        ImGui::LeftLabel("Passband Ratio (%)");
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::InputDouble("##pb_ratio_scanner", &_this->passbandRatio, 1.0, 10.0, "%0.0f")) {
+            _this->passbandRatio = std::clamp<double>(round(_this->passbandRatio), 1.0, 100.0);
+        }
+        ImGui::LeftLabel("Tuning Time (ms)");
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::InputInt("##tuning_time_scanner", &_this->tuningTime, 100, 1000)) {
+            _this->tuningTime = std::clamp<int>(_this->tuningTime, 100, 10000.0);
+        }
+        ImGui::LeftLabel("Linger Time (ms)");
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::InputInt("##linger_time_scanner", &_this->lingerTime, 100, 1000)) {
+            _this->lingerTime = std::clamp<int>(_this->lingerTime, 100, 10000.0);
+        }
         if (_this->running) { ImGui::EndDisabled(); }
 
         ImGui::LeftLabel("Level");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         ImGui::SliderFloat("##scanner_level", &_this->level, -150.0, 0.0);
+
+        ImGui::BeginTable(("scanner_bottom_btn_table" + _this->name).c_str(), 2);
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        if (ImGui::Button(("<<##scanner_back_" + _this->name).c_str(), ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+            std::lock_guard<std::mutex> lck(_this->scanMtx);
+            _this->reverseLock = true;
+            _this->receiving = false;
+            _this->scanUp = false;
+        }
+        ImGui::TableSetColumnIndex(1);
+        if (ImGui::Button((">>##scanner_forw_" + _this->name).c_str(), ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+            std::lock_guard<std::mutex> lck(_this->scanMtx);
+            _this->reverseLock = true;
+            _this->receiving = false;
+            _this->scanUp = true;
+        }
+        ImGui::EndTable();
 
         if (!_this->running) {
             if (ImGui::Button("Start##scanner_start", ImVec2(menuWidth, 0))) {
@@ -74,17 +107,6 @@ private:
             if (ImGui::Button("Stop##scanner_start", ImVec2(menuWidth, 0))) {
                 _this->stop();
             }
-        }
-
-        if (ImGui::Button("<<##scanner_start", ImVec2(menuWidth, 0))) {
-            std::lock_guard<std::mutex> lck(_this->scanMtx);
-            _this->receiving = false;
-            _this->scanUp = false;
-        }
-        if (ImGui::Button(">>##scanner_start", ImVec2(menuWidth, 0))) {
-            std::lock_guard<std::mutex> lck(_this->scanMtx);
-            _this->receiving = false;
-            _this->scanUp = true;
         }
     }
 
@@ -107,18 +129,21 @@ private:
         // 10Hz scan loop
         while (running) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
             {
                 std::lock_guard<std::mutex> lck(scanMtx);
                 auto now = std::chrono::high_resolution_clock::now();
 
                 // Enforce tuning
-                tuner::normalTuning(selectedVFO, current);
+                if (gui::waterfall.selectedVFO.empty()) {
+                    running = false;
+                    return;
+                }
+                tuner::normalTuning(gui::waterfall.selectedVFO, current);
 
                 // Check if we are waiting for a tune
                 if (tuning) {
                     spdlog::warn("Tuning");
-                    if ((std::chrono::duration_cast<std::chrono::milliseconds>(now - lastTuneTime)).count() > 250.0) {
+                    if ((std::chrono::duration_cast<std::chrono::milliseconds>(now - lastTuneTime)).count() > tuningTime) {
                         tuning = false;
                     }
                     continue;
@@ -136,7 +161,7 @@ private:
                 double wfEnd = wfCenter + (wfWidth / 2.0);
 
                 // Gather VFO data
-                double vfoWidth = sigpath::vfoManager.getBandwidth(selectedVFO);
+                double vfoWidth = sigpath::vfoManager.getBandwidth(gui::waterfall.selectedVFO);
 
                 if (receiving) {
                     spdlog::warn("Receiving");
@@ -145,26 +170,30 @@ private:
                     if (maxLevel >= level) {
                         lastSignalTime = now;
                     }
-                    else if ((std::chrono::duration_cast<std::chrono::milliseconds>(now - lastSignalTime)).count() > 1000.0) {
+                    else if ((std::chrono::duration_cast<std::chrono::milliseconds>(now - lastSignalTime)).count() > lingerTime) {
                         receiving = false;
                     }
                 }
                 else {
                     spdlog::warn("Seeking signal");
-                    double bottomLimit = INFINITY;
-                    double topLimit = -INFINITY;
+                    double bottomLimit = current;
+                    double topLimit = current;
                     
                     // Search for a signal in scan direction
-                    if (tuneIfAvailable(scanUp, bottomLimit, topLimit, wfStart, wfEnd, wfWidth, vfoWidth, data, dataWidth)) {
+                    if (findSignal(scanUp, bottomLimit, topLimit, wfStart, wfEnd, wfWidth, vfoWidth, data, dataWidth)) {
                         gui::waterfall.releaseLatestFFT();
                         continue;
                     }
                     
-                    // Search for signal in the inverse scan direction
-                    if (tuneIfAvailable(!scanUp, bottomLimit, topLimit, wfStart, wfEnd, wfWidth, vfoWidth, data, dataWidth)) {
-                        gui::waterfall.releaseLatestFFT();
-                        continue;
+                    // Search for signal in the inverse scan direction if direction isn't enforced
+                    if (!reverseLock) {
+                        if (findSignal(!scanUp, bottomLimit, topLimit, wfStart, wfEnd, wfWidth, vfoWidth, data, dataWidth)) {
+                            gui::waterfall.releaseLatestFFT();
+                            continue;
+                        }
                     }
+                    else { reverseLock = false; }
+                    
 
                     // There is no signal on the visible spectrum, tune in scan direction and retry
                     if (scanUp) {
@@ -172,7 +201,7 @@ private:
                         if (current > stopFreq) { current = startFreq; }
                     }
                     else {
-                        current = topLimit - interval;
+                        current = bottomLimit - interval;
                         if (current < startFreq) { current = stopFreq; }
                     }
 
@@ -189,7 +218,7 @@ private:
         }
     }
 
-    bool tuneIfAvailable(bool scanDir, double& bottomLimit, double& topLimit, double wfStart, double wfEnd, double wfWidth, double vfoWidth, float* data, int dataWidth) {
+    bool findSignal(bool scanDir, double& bottomLimit, double& topLimit, double wfStart, double wfEnd, double wfWidth, double vfoWidth, float* data, int dataWidth) {
         bool found = false;
         double freq = current;
         for (freq += scanDir ? interval : -interval;
@@ -204,7 +233,7 @@ private:
             if (freq > topLimit) { topLimit = freq; }
             
             // Check signal level
-            float maxLevel = getMaxLevel(data, freq, vfoWidth *0.2, dataWidth, wfStart, wfWidth);
+            float maxLevel = getMaxLevel(data, freq, vfoWidth * (passbandRatio * 0.01f), dataWidth, wfStart, wfWidth);
             if (maxLevel >= level) {
                 found = true;
                 receiving = true;
@@ -231,15 +260,19 @@ private:
     bool enabled = true;
     
     bool running = false;
-    std::string selectedVFO = "Radio";
-    double startFreq = 93300000.0;
-    double stopFreq = 98700000.0;
+    //std::string selectedVFO = "Radio";
+    double startFreq = 88000000.0;
+    double stopFreq = 108000000.0;
     double interval = 100000.0;
     double current = 88000000.0;
+    double passbandRatio = 10.0;
+    int tuningTime = 250;
+    int lingerTime = 1000.0;
     float level = -50.0;
     bool receiving = true;
     bool tuning = false;
     bool scanUp = true;
+    bool reverseLock = false;
     std::chrono::time_point<std::chrono::high_resolution_clock> lastSignalTime;
     std::chrono::time_point<std::chrono::high_resolution_clock> lastTuneTime;
     std::thread workerThread;
