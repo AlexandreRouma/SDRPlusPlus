@@ -278,6 +278,7 @@ int sdrpp_main(int argc, char* argv[]) {
     core::configManager.conf["modules"][modCount++] = "frequency_manager.so";
     core::configManager.conf["modules"][modCount++] = "recorder.so";
     core::configManager.conf["modules"][modCount++] = "rigctl_server.so";
+    core::configManager.conf["modules"][modCount++] = "scanner.so";
 #endif
 
     // Fix missing elements in config

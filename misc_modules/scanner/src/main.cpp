@@ -102,10 +102,20 @@ private:
             if (ImGui::Button("Start##scanner_start", ImVec2(menuWidth, 0))) {
                 _this->start();
             }
+            ImGui::Text("Status: Idle");
         }
         else {
             if (ImGui::Button("Stop##scanner_start", ImVec2(menuWidth, 0))) {
                 _this->stop();
+            }
+            if (_this->receiving) {
+                ImGui::TextColored(ImVec4(0, 1, 0, 1), "Status: Receiving");
+            }
+            else if (_this->tuning) {
+                ImGui::TextColored(ImVec4(0, 1, 1, 1), "Status: Tuning");
+            }
+            else {
+                ImGui::TextColored(ImVec4(1, 1, 0, 1), "Status: Scanning");
             }
         }
     }
