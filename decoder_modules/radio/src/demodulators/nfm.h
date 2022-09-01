@@ -15,6 +15,16 @@ namespace demod {
 
         void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, double audioSR) {
             this->name = name;
+            this->_config = config;
+
+            // Load config
+            _config->acquire();
+            bool modified = false;
+            if (config->conf[name][getName()].contains("lowPass")) {
+                _lowPass = config->conf[name][getName()]["lowPass"];
+            }
+            _config->release(modified);
+
 
             // Define structure
             demod.init(input, getIFSampleRate(), bandwidth, _lowPass);
@@ -27,9 +37,9 @@ namespace demod {
         void showMenu() {
             if (ImGui::Checkbox(("Low Pass##_radio_wfm_lowpass_" + name).c_str(), &_lowPass)) {
                 demod.setLowPass(_lowPass);
-                // _config->acquire();
-                // _config->conf[name][getName()]["lowPass"] = _lowPass;
-                // _config->release(true);
+                _config->acquire();
+                _config->conf[name][getName()]["lowPass"] = _lowPass;
+                _config->release(true);
             }
         }
 
@@ -61,6 +71,8 @@ namespace demod {
 
     private:
         dsp::demod::FM<dsp::stereo_t> demod;
+
+        ConfigManager* _config = NULL;
 
         bool _lowPass = true;
 
