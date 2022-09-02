@@ -132,7 +132,9 @@ public:
 #ifndef __ANDROID__
             int err = airspyhf_open_sn(&dev, serial);
 #else
+            spdlog::warn("====  CALLING airspyhf_open_fd  ====");
             int err = airspyhf_open_fd(&dev, devFd);
+            spdlog::warn("====  CALLED airspyhf_open_fd  => ({0}) ====", err);
 #endif
             if (err != 0) {
                 char buf[1024];
@@ -244,7 +246,7 @@ private:
 #ifndef __ANDROID__
             int err = airspyhf_open_sn(&_this->openDev, _this->selectedSerial);
 #else
-            int err = airspyhf_open_sn(&_this->openDev, _this->devFd);
+            int err = airspyhf_open_fd(&_this->openDev, _this->devFd);
 #endif
         if (err != 0) {
             char buf[1024];
