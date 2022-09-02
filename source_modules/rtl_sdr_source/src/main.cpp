@@ -285,7 +285,7 @@ private:
 #ifndef __ANDROID__
         int oret = rtlsdr_open(&_this->openDev, _this->devId);
 #else
-        int oret = rtlsdr_open(&_this->openDev, _this->devFd);
+        int oret = rtlsdr_open_fd(&_this->openDev, _this->devFd);
 #endif
 
         if (oret < 0) {

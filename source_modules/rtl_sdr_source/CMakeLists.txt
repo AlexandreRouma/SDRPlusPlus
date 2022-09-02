@@ -23,14 +23,9 @@ if (MSVC)
 
     target_link_libraries(rtl_sdr_source PRIVATE rtlsdr)
 elseif (ANDROID)
-    target_include_directories(rtl_sdr_source PUBLIC
-        /mnt/android_sdr/libusb/libusb
-        /mnt/android_sdr/librtlsdr/include
-    )
-
     target_link_libraries(rtl_sdr_source PUBLIC
-        /mnt/android_sdr/output/libusb/${ANDROID_ABI}/libusb1.0.so
-        /mnt/android_sdr/output/librtlsdr/${ANDROID_ABI}/librtlsdr.so
+        /sdr-kit/${ANDROID_ABI}/lib/libusb1.0.so
+        /sdr-kit/${ANDROID_ABI}/lib/librtlsdr.so
     )
 else (MSVC)
     find_package(PkgConfig)

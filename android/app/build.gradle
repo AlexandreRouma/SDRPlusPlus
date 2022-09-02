@@ -4,7 +4,7 @@ apply plugin: 'kotlin-android'
 android {
     compileSdkVersion 28
     buildToolsVersion "30.0.3"
-    ndkVersion "23.0.7599858"
+    ndkVersion "25.1.8937393"
     defaultConfig {
         applicationId "org.sdrpp.sdrpp"
         minSdkVersion 28
@@ -14,7 +14,7 @@ android {
 
         externalNativeBuild {
             cmake {
-                arguments "-DOPT_BACKEND_GLFW=OFF", "-DOPT_BACKEND_ANDROID=ON", "-DOPT_BUILD_SOAPY_SOURCE=OFF", "-DOPT_BUILD_ANDROID_AUDIO_SINK=ON", "-DOPT_BUILD_AUDIO_SINK=OFF", "-DOPT_BUILD_DISCORD_PRESENCE=OFF", "-DOPT_BUILD_M17_DECODER=ON"
+                arguments "-DOPT_BACKEND_GLFW=OFF", "-DOPT_BACKEND_ANDROID=ON", "-DOPT_BUILD_SOAPY_SOURCE=OFF", "-DOPT_BUILD_ANDROID_AUDIO_SINK=ON", "-DOPT_BUILD_AUDIO_SINK=OFF", "-DOPT_BUILD_DISCORD_PRESENCE=OFF", "-DOPT_BUILD_M17_DECODER=OFF", "-DOPT_BUILD_PLUTOSDR_SOURCE=OFF"
             }
         }
     }

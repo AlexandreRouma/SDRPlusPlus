@@ -248,7 +248,7 @@ private:
 #ifndef __ANDROID__
         hackrf_error err = (hackrf_error)hackrf_open_by_serial(_this->selectedSerial.c_str(), &_this->openDev);
 #else
-        hackrf_error err = (hackrf_error)hackrf_open_by_fd(&_this->openDev, _this->devFd);
+        hackrf_error err = (hackrf_error)hackrf_open_by_fd(_this->devFd, &_this->openDev);
 #endif
         if (err != HACKRF_SUCCESS) {
             spdlog::error("Could not open HackRF {0}: {1}", _this->selectedSerial, hackrf_error_name(err));

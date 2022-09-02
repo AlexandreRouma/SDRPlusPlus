@@ -131,7 +131,7 @@ public:
 #ifndef __ANDROID__
             int err = airspy_open_sn(&dev, serial);
 #else
-            int err = airspy_open_sn(&dev, devFd);
+            int err = airspy_open_fd(&dev, devFd);
 #endif
             if (err != 0) {
                 char buf[1024];
