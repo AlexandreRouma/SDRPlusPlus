@@ -292,7 +292,7 @@ jobs:
           run: git clone https://github.com/AlexandreRouma/android-sdr-kit
         
         - name: Build container
-          working-directory: ${{runner.workspace}}
+          working-directory: ${{runner.workspace}}/android-sdr-kit
           run: docker build --progress=plain -t android-sdr-kit .
 
         - name: Build
