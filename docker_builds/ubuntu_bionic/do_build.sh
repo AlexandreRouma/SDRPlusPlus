@@ -21,6 +21,14 @@ wget https://www.sdrplay.com/software/SDRplay_RSP_API-Linux-3.07.1.run
 cp x86_64/libsdrplay_api.so.3.07 /usr/lib/libsdrplay_api.so
 cp inc/* /usr/include/
 
+# Install a more recent libusb version
+wget https://github.com/libusb/libusb/releases/download/v1.0.25/libusb-1.0.25.tar.bz2
+tar -xvf libusb-1.0.25.tar.bz2
+cd libusb-1.0.25
+./configure
+make -j2
+make install
+
 # Install a more recent libairspyhf version
 git clone https://github.com/airspy/airspyhf
 cd airspyhf
