@@ -28,6 +28,7 @@ cd libusb-1.0.25
 ./configure
 make -j2
 make install
+cd ..
 
 # Install a more recent libairspyhf version
 git clone https://github.com/airspy/airspyhf
