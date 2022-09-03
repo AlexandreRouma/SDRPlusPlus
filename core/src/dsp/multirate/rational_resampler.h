@@ -141,7 +141,7 @@ namespace dsp::multirate {
             double actualOutSR = (double)IntSR * (double)interp / (double)decim;
             double error = abs((actualOutSR - _outSamplerate) / _outSamplerate) * 100.0;
             if (error > 0.01) {
-                fprintf(stderr, "Warning: resampling error is over 0.01%: %lf\n", error);
+                fprintf(stderr, "Warning: resampling error is over 0.01%%: %lf\n", error);
             }
             
             // If the power decimator already did all the work, don't use the resampler
