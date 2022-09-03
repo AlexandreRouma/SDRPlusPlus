@@ -281,6 +281,23 @@ jobs:
               name: sdrpp_raspios_bullseye_armhf
               path: ${{runner.workspace}}/sdrpp_debian_armhf.deb
 
+    build_android:
+        runs-on: ubuntu-latest
+
+        steps:
+        - uses: actions/checkout@v2
+
+        - name: Fetch container
+          working-directory: ${{runner.workspace}}
+          run: git clone https://github.com/AlexandreRouma/android-sdr-kit
+        
+        - name: Build container
+          working-directory: ${{runner.workspace}}
+          run: docker build --progress=plain -t android-sdr-kit .
+
+        - name: Build
+          run: docker run -v $GITHUB_WORKSPACE:/root/SDRPlusPlus -it android-sdr-kit /bin/bash -l -c "cd /root/SDRPlusPlus/android && gradle --info assembleDebug"
+
     create_full_archive:
         needs: ['build_windows', 'build_macos', 'build_debian_buster', 'build_debian_bullseye', 'build_debian_sid', 'build_ubuntu_bionic', 'build_ubuntu_focal', 'build_ubuntu_jammy', 'build_raspios_bullseye_armhf']
         runs-on: ubuntu-latest
