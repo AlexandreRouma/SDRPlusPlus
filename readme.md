@@ -52,50 +52,7 @@ There are currently no existing packages for other distributions, for these syst
 
 ## MacOS
 
-You might get lucky by using the installer downloadable from [the Releases page](https://github.com/AlexandreRouma/SDRPlusPlus/releases).
-
-### Building it yourself
-
-This guide requires you to have Homebrew installed. Check out https://brew.sh/ on how to do so.
-
-Get yourself a copy of the source code. This can be done by downloading the
-source package from [the Releases
-page](https://github.com/AlexandreRouma/SDRPlusPlus/releases). Extract it to a
-location of your choice. Alternativley you can clone
-https://github.com/AlexandreRouma/SDRPlusPlus.git using git.
-
-```sh
-brew install \
-  airspy \
-  airspyhf \
-  cmake \
-  codec2 \
-  fftw \
-  glfw \
-  hackrf \
-  libbladerf \
-  librtlsdr \
-  portaudio \
-  rtl-sdr \
-  soapyrtlsdr \
-  volk \
-  zstd
-mkdir build
-cd build
-cmake .. \
-  -DOPT_BUILD_AUDIO_SINK=OFF \
-  -DOPT_BUILD_BLADERF_SOURCE=OFF \
-  -DOPT_BUILD_M17_DECODER=ON \
-  -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON \
-  -DOPT_BUILD_PLUTOSDR_SOURCE=OFF \
-  -DOPT_BUILD_PORTAUDIO_SINK=ON \
-  -DOPT_BUILD_SOAPY_SOURCE=OFF
-make -j$(sysctl -n hw.ncpu)
-```
-
-The above was tested on macOS Big Sur (11.5).
-
-Check `jobs.build_macos` in the [build_all.yaml](https://github.com/AlexandreRouma/SDRPlusPlus/blob/master/.github/workflows/build_all.yml) workflow for the exact options used for building the package available in the [releases](https://github.com/AlexandreRouma/SDRPlusPlus/releases/tag/1.0.3)
+Download the app bundle from the latest [nightly build](https://www.sdrpp.org/nightly)
 
 ## BSD
 
@@ -305,6 +262,10 @@ To install SDR++, run the following command in your ``build`` folder:
 ```sh
 sudo make install
 ```
+
+# Building on MacOS
+
+No instructions yet, follow the CI script if you know what you're doing or just install the app bundle.
 
 # Module List
 
