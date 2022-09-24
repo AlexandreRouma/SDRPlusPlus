@@ -955,7 +955,7 @@ private:
         }
         if (SmGui::Checkbox(CONCAT("DAB Notch##sdrplay_rsp1a_dabnotch", name), &rsp1a_dabNotch)) {
             if (running) {
-                openDevParams->devParams->rsp1aParams.rfNotchEnable = rsp1a_dabNotch;
+                openDevParams->devParams->rsp1aParams.rfDabNotchEnable = rsp1a_dabNotch;
                 sdrplay_api_Update(openDev.dev, openDev.tuner, sdrplay_api_Update_Rsp1a_RfDabNotchControl, sdrplay_api_Update_Ext1_None);
             }
             config.acquire();
