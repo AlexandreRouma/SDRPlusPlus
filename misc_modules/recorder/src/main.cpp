@@ -77,10 +77,10 @@ public:
         config.release();
 
         // Init audio path
-        splitter.init(NULL);
+        volume.init(NULL, audioVolume, false);
+        splitter.init(&volume.out);
         splitter.bindStream(&meterStream);
         meter.init(&meterStream);
-        meter.start();
 
         // Init sinks
         basebandSink.init(NULL, complexHandler, this);
@@ -98,7 +98,7 @@ public:
     }
 
     void postInit() {
-        
+        selectStream("Radio");
     }
 
     void enable() {
@@ -184,15 +184,16 @@ public:
         deselectStream();
         audioStream = sigpath::sinkManager.bindStream(name);
         if (!audioStream) { return; }
-        splitter.setInput(audioStream);
-        splitter.start();
+        selectedStreamName = name;
+        volume.setInput(audioStream);
+        startAudioPath();
     }
 
     void deselectStream() {
         std::lock_guard<std::recursive_mutex> lck(recMtx);
         if (selectedStreamName.empty() || !audioStream) { return; }
         if (recording && recMode == RECORDER_MODE_AUDIO) { stop(); }
-        splitter.stop();
+        stopAudioPath();
         sigpath::sinkManager.unbindStream(selectedStreamName, audioStream);
         selectedStreamName = "";
         audioStream = NULL;
@@ -260,16 +261,16 @@ private:
             ImGui::FillWidth();
             if (ImGui::SliderFloat(CONCAT("##_recorder_vol_", _this->name), &_this->audioVolume, 0, 1, "")) {
                 // TODO: ADD VOLUME CONTROL
-                //_this->vol.setVolume(_this->audioVolume);
+                _this->volume.setVolume(_this->audioVolume);
                 config.acquire();
                 config.conf[_this->name]["audioVolume"] = _this->audioVolume;
                 config.release(true);
             }
-            ImGui::PopItemWidth();
+            //ImGui::PopItemWidth();
 
             if (_this->recording) { style::beginDisabled(); }
             if (ImGui::Checkbox(CONCAT("Stereo##_recorder_stereo_", _this->name), &_this->stereo)) {
-                config.acquire();audioStream
+                config.acquire();
                 config.conf[_this->name]["stereo"] = _this->stereo;
                 config.release(true);
             }
@@ -302,14 +303,26 @@ private:
         }
     }
 
+    void startAudioPath() {
+        volume.start();
+        splitter.start();
+        meter.start();
+    }
+
+    void stopAudioPath() {
+        volume.stop();
+        splitter.stop();
+        meter.stop();
+    }
+
     void updateAudioMeter(dsp::stereo_t& lvl) {
         // Note: Yes, using the natural log is on purpose, it just gives a more beautiful result.
         double frameTime = 1.0 / ImGui::GetIO().Framerate;
         lvl.l = std::clamp<float>(lvl.l - (frameTime * 50.0), -90.0f, 10.0f);
         lvl.r = std::clamp<float>(lvl.r - (frameTime * 50.0), -90.0f, 10.0f);
         // TODO: FINISH METER
-        dsp::stereo_t rawLvl = {0.0f,0.0f};//meter.getLevel();
-        //meter.resetLevel();
+        dsp::stereo_t rawLvl = meter.getLevel();
+        meter.resetLevel();
         dsp::stereo_t dbLvl = { 10.0f * logf(rawLvl.l), 10.0f * logf(rawLvl.r) };
         if (dbLvl.l > lvl.l) { lvl.l = dbLvl.l; }
         if (dbLvl.r > lvl.r) { lvl.r = dbLvl.r; }
@@ -373,6 +386,7 @@ private:
     dsp::sink::Handler<float> monoSink;
 
     dsp::stream<dsp::stereo_t>* audioStream = NULL;
+    dsp::audio::Volume volume;
     dsp::routing::Splitter<dsp::stereo_t> splitter;
     dsp::stream<dsp::stereo_t> meterStream;
     dsp::bench::PeakLevelMeter<dsp::stereo_t> meter;
