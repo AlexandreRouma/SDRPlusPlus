@@ -76,6 +76,12 @@ public:
         }
         config.release();
 
+        // Init audio path
+        splitter.init(NULL);
+        splitter.bindStream(&meterStream);
+        meter.init(&meterStream);
+        meter.start();
+
         // Init sinks
         basebandSink.init(NULL, complexHandler, this);
         stereoSink.init(NULL, stereoHandler, this);
@@ -85,6 +91,9 @@ public:
     }
 
     ~RecorderModule() {
+        stop();
+        deselectStream();
+        meter.stop();
         gui::menu.removeEntry(name);
     }
 
@@ -170,6 +179,22 @@ public:
         recording = false;
     }
 
+    void selectStream(std::string name) {
+        deselectStream();
+        audioStream = sigpath::sinkManager.bindStream(name);
+        if (!audioStream) { return; }
+        splitter.setInput(audioStream);
+        splitter.start();
+    }
+
+    void deselectStream() {
+        if (selectedStreamName.empty() || !audioStream) { return; }
+        splitter.stop();
+        sigpath::sinkManager.unbindStream(selectedStreamName, audioStream);
+        selectedStreamName = "";
+        audioStream = NULL;
+    }
+
 private:
     static void menuHandler(void* ctx) {
         RecorderModule* _this = (RecorderModule*)ctx;
@@ -241,7 +266,7 @@ private:
 
             if (_this->recording) { style::beginDisabled(); }
             if (ImGui::Checkbox(CONCAT("Stereo##_recorder_stereo_", _this->name), &_this->stereo)) {
-                config.acquire();
+                config.acquire();audioStream
                 config.conf[_this->name]["stereo"] = _this->stereo;
                 config.release(true);
             }
@@ -343,6 +368,11 @@ private:
     dsp::sink::Handler<dsp::complex_t> basebandSink;
     dsp::sink::Handler<dsp::stereo_t> stereoSink;
     dsp::sink::Handler<float> monoSink;
+
+    dsp::stream<dsp::stereo_t>* audioStream = NULL;
+    dsp::routing::Splitter<dsp::stereo_t> splitter;
+    dsp::stream<dsp::stereo_t> meterStream;
+    dsp::bench::PeakLevelMeter<dsp::stereo_t> meter;
 
     uint64_t samplerate = 48000;
 
