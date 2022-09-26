@@ -180,6 +180,7 @@ public:
     }
 
     void selectStream(std::string name) {
+        std::lock_guard<std::recursive_mutex> lck(recMtx);
         deselectStream();
         audioStream = sigpath::sinkManager.bindStream(name);
         if (!audioStream) { return; }
@@ -188,7 +189,9 @@ public:
     }
 
     void deselectStream() {
+        std::lock_guard<std::recursive_mutex> lck(recMtx);
         if (selectedStreamName.empty() || !audioStream) { return; }
+        if (recording && recMode == RECORDER_MODE_AUDIO) { stop(); }
         splitter.stop();
         sigpath::sinkManager.unbindStream(selectedStreamName, audioStream);
         selectedStreamName = "";
