@@ -31,10 +31,12 @@ void IQFrontEnd::init(dsp::stream<dsp::complex_t>* in, double sampleRate, bool b
 
     decim.init(NULL, _decimRatio);
     dcBlock.init(NULL, genDCBlockRate(effectiveSr));
+    conjugate.init(NULL);
 
     preproc.init(&inBuf.out);
     preproc.addBlock(&decim, _decimRatio > 1);
     preproc.addBlock(&dcBlock, dcBlocking);
+    preproc.addBlock(&conjugate, false); // TODO: Replace by parameter
 
     split.init(preproc.out);
 
@@ -121,6 +123,10 @@ void IQFrontEnd::setDecimation(int ratio) {
 
 void IQFrontEnd::setDCBlocking(bool enabled) {
     preproc.setBlockEnabled(&dcBlock, enabled, [=](dsp::stream<dsp::complex_t>* out){ split.setInput(out); });
+}
+
+void IQFrontEnd::setInvertIQ(bool enabled) {
+    preproc.setBlockEnabled(&conjugate, enabled, [=](dsp::stream<dsp::complex_t>* out){ split.setInput(out); });
 }
 
 void IQFrontEnd::bindIQStream(dsp::stream<dsp::complex_t>* stream) {

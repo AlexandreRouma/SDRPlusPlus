@@ -13,6 +13,7 @@ namespace sourcemenu {
     double effectiveOffset = 0.0;
     int decimationPower = 0;
     bool iqCorrection = false;
+    bool invertIQ = false;
 
     EventHandler<std::string> sourceRegisteredHandler;
     EventHandler<std::string> sourceUnregisterHandler;
@@ -138,7 +139,9 @@ namespace sourcemenu {
         offsetMode = core::configManager.conf["offsetMode"];
         decimationPower = core::configManager.conf["decimationPower"];
         iqCorrection = core::configManager.conf["iqCorrection"];
+        invertIQ = core::configManager.conf["invertIQ"];
         sigpath::iqFrontEnd.setDCBlocking(iqCorrection);
+        sigpath::iqFrontEnd.setInvertIQ(invertIQ);
         updateOffset();
 
         refreshSources();
@@ -177,6 +180,13 @@ namespace sourcemenu {
             sigpath::iqFrontEnd.setDCBlocking(iqCorrection);
             core::configManager.acquire();
             core::configManager.conf["iqCorrection"] = iqCorrection;
+            core::configManager.release(true);
+        }
+
+        if (ImGui::Checkbox("Invert IQ##_sdrpp_inv_iq", &invertIQ)) {
+            sigpath::iqFrontEnd.setInvertIQ(invertIQ);
+            core::configManager.acquire();
+            core::configManager.conf["invertIQ"] = invertIQ;
             core::configManager.release(true);
         }
 

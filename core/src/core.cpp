@@ -214,6 +214,7 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["source"] = "";
     defConfig["decimationPower"] = 0;
     defConfig["iqCorrection"] = false;
+    defConfig["invertIQ"] = false;
 
     defConfig["streams"]["Radio"]["muted"] = false;
     defConfig["streams"]["Radio"]["sink"] = "Audio";
