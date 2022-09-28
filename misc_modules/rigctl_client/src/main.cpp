@@ -34,16 +34,17 @@ public:
     SigctlServerModule(std::string name) {
         this->name = name;
 
+        strcpy(host, "127.0.0.1");
+
         _retuneHandler.ctx = this;
         _retuneHandler.handler = retuneHandler;
 
-        sigpath::sourceManager.onRetune.bindHandler(&_retuneHandler);
         gui::menu.registerEntry(name, menuHandler, this, NULL);
     }
 
     ~SigctlServerModule() {
+        stop();
         gui::menu.removeEntry(name);
-        sigpath::sourceManager.onRetune.unbindHandler(&_retuneHandler);
     }
 
     void postInit() {
@@ -62,14 +63,62 @@ public:
         return enabled;
     }
 
+    void start() {
+        std::lock_guard<std::recursive_mutex> lck(mtx);
+        if (running) { return; }
+
+        sigpath::sourceManager.setPanadpterIF(ifFreq);
+        sigpath::sourceManager.setTuningMode(SourceManager::TuningMode::PANADAPTER);
+        sigpath::sourceManager.onRetune.bindHandler(&_retuneHandler);
+        running = true;
+    }
+
+    void stop() {
+        std::lock_guard<std::recursive_mutex> lck(mtx);
+        if (!running) { return; }
+
+        sigpath::sourceManager.onRetune.unbindHandler(&_retuneHandler);
+        sigpath::sourceManager.setTuningMode(SourceManager::TuningMode::NORMAL);
+        running = false;
+    }
+
 private:
     static void menuHandler(void* ctx) {
         SigctlServerModule* _this = (SigctlServerModule*)ctx;
         float menuWidth = ImGui::GetContentRegionAvail().x;
 
-        if (ImGui::Checkbox("Panadapter Mode", &_this->panMode)) {
-            sigpath::sourceManager.setPanadpterIF(8830000.0);
-            sigpath::sourceManager.setTuningMode(_this->panMode ? SourceManager::TuningMode::PANADAPTER : SourceManager::TuningMode::NORMAL);
+        if (_this->running) { style::beginDisabled(); }
+        if (ImGui::InputText(CONCAT("##_rigctl_cli_host_", _this->name), _this->host, 1023)) {
+            config.acquire();
+            config.conf[_this->name]["host"] = std::string(_this->host);
+            config.release(true);
+        }
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::InputInt(CONCAT("##_rigctl_cli_port_", _this->name), &_this->port, 0, 0)) {
+            config.acquire();
+            config.conf[_this->name]["port"] = _this->port;
+            config.release(true);
+        }
+        if (_this->running) { style::endDisabled(); }
+
+        ImGui::LeftLabel("IF Frequency");
+        ImGui::FillWidth();
+        if (ImGui::InputDouble(CONCAT("##_rigctl_if_freq_", _this->name), &_this->ifFreq, 100.0, 100000.0, "%.0f")) {
+            if (_this->running) {
+                sigpath::sourceManager.setPanadpterIF(_this->ifFreq);
+            }
+            config.acquire();
+            config.conf[_this->name]["ifFreq"] = _this->ifFreq;
+            config.release(true);
+        }
+
+        ImGui::FillWidth();
+        if (_this->running && ImGui::Button(CONCAT("Stop##_rigctl_cli_stop_", _this->name), ImVec2(menuWidth, 0))) {
+            _this->stop();
+        }
+        else if (!_this->running && ImGui::Button(CONCAT("Start##_rigctl_cli_stop_", _this->name), ImVec2(menuWidth, 0))) {
+            _this->start();
         }
     }
 
@@ -79,7 +128,13 @@ private:
 
     std::string name;
     bool enabled = true;
-    bool panMode = false;
+    bool running = false;
+    std::recursive_mutex mtx;
+
+    char host[1024];
+    int port = 4532;
+
+    double ifFreq = 8830000.0;
 
     EventHandler<double> _retuneHandler;
 };
