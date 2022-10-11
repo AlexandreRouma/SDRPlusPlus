@@ -51,6 +51,6 @@ private:
     double tuneOffset;
     double currentFreq;
     double ifFreq = 0.0;
-    TuningMode tuneMode;
+    TuningMode tuneMode = TuningMode::NORMAL;
     dsp::stream<dsp::complex_t> nullSource;
 };
