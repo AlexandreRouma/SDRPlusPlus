@@ -98,7 +98,7 @@ public:
     }
 
     void postInit() {
-        selectStream("Radio");
+        selectStream(selectedStreamName);
     }
 
     void enable() {
@@ -177,26 +177,6 @@ public:
         writer.close();
         
         recording = false;
-    }
-
-    void selectStream(std::string name) {
-        std::lock_guard<std::recursive_mutex> lck(recMtx);
-        deselectStream();
-        audioStream = sigpath::sinkManager.bindStream(name);
-        if (!audioStream) { return; }
-        selectedStreamName = name;
-        volume.setInput(audioStream);
-        startAudioPath();
-    }
-
-    void deselectStream() {
-        std::lock_guard<std::recursive_mutex> lck(recMtx);
-        if (selectedStreamName.empty() || !audioStream) { return; }
-        if (recording && recMode == RECORDER_MODE_AUDIO) { stop(); }
-        stopAudioPath();
-        sigpath::sinkManager.unbindStream(selectedStreamName, audioStream);
-        selectedStreamName = "";
-        audioStream = NULL;
     }
 
 private:
@@ -301,6 +281,26 @@ private:
             tm* dtm = gmtime(&diff);
             ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Recording %02d:%02d:%02d", dtm->tm_hour, dtm->tm_min, dtm->tm_sec);
         }
+    }
+
+    void selectStream(std::string name) {
+        std::lock_guard<std::recursive_mutex> lck(recMtx);
+        deselectStream();
+        audioStream = sigpath::sinkManager.bindStream(name);
+        if (!audioStream) { return; }
+        selectedStreamName = name;
+        volume.setInput(audioStream);
+        startAudioPath();
+    }
+
+    void deselectStream() {
+        std::lock_guard<std::recursive_mutex> lck(recMtx);
+        if (selectedStreamName.empty() || !audioStream) { return; }
+        if (recording && recMode == RECORDER_MODE_AUDIO) { stop(); }
+        stopAudioPath();
+        sigpath::sinkManager.unbindStream(selectedStreamName, audioStream);
+        selectedStreamName = "";
+        audioStream = NULL;
     }
 
     void startAudioPath() {
