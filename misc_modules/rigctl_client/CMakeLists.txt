@@ -13,7 +13,11 @@ target_include_directories(rigctl_client PRIVATE "../../decoder_modules/meteor_d
 target_include_directories(rigctl_client PRIVATE "../../decoder_modules/radio/src")
 
 if (MSVC)
-    target_compile_options(rigctl_client PRIVATE /O2 /Ob2 /std:c++17 /EHsc)
+    if ( NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Debug")
+        target_compile_options(rigctl_client PRIVATE /Ob2 /std:c++17 /EHsc)
+    else()
+        target_compile_options(rigctl_client PRIVATE /O2 /Ob2 /std:c++17 /EHsc)
+    endif()
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(rigctl_client PRIVATE -O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
 else ()
