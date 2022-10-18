@@ -302,7 +302,7 @@ make -j<N>
 From the top of the SDRPlusPlus directory:
 
 ```sh
-sh make_macos_bundle.sh ${{runner.workspace}}/build ./SDR++.app
+sh make_macos_bundle.sh ./build ./SDR++.app
 ```
 
 This will create a `SDR++.app` bundle that you can instal like any other MacOS app by dragging it into Applications.
