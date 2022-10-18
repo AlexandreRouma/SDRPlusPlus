@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <thread>
 
 #define HERMES_DISCOVER_REPEAT  5
 #define HERMES_DISCOVER_TIMEOUT 1000
