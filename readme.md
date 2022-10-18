@@ -265,7 +265,47 @@ sudo make install
 
 # Building on MacOS
 
-No instructions yet, follow the CI script if you know what you're doing or just install the app bundle.
+Warning: This is not for the faint of heart and the instructions are mostly untested. It is recommended to use the [nightly builds](https://www.sdrpp.org/nightly) instead.
+
+## Install dependencies
+
+The dependencies are exactly the same as for linux, see that section for the core dependencies as well as the module list for the per-module dependencies.
+You will need to install the dependencies using Homebrew.
+
+Make sure to install portaudio as it'll be needed later.
+
+An example install command would be:
+
+```sh
+brew install libusb fftw glfw airspy airspyhf portaudio hackrf rtl-sdr libbladerf codec2 && pip3 install mako zstd
+```
+
+### Install volk
+
+You will need to install volk from source. Follow the instructions on their repository. On M1 there are a few more manipulations needed.
+
+## Build
+
+You will need a few special cmake argument on top of the linux ones. You will need to enable the portaudio sink modules `-DOPT_BUILD_PORTAUDIO_SINK=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON` and disable the usual rtaudio sink `-DOPT_BUILD_AUDIO_SINK=OFF` as well as the option to tell SDR++ that it will run as a MacOS bundle `-DUSE_BUNDLE_DEFAULTS=ON`. On MacOS versions older than Catalina (10.15), you will also need to use the internal std::filesystem as the OS can't provide it `-DOPT_OVERRIDE_STD_FILESYSTEM=ON`.
+
+Here is an example of build commands that will build almost all modules at the time of writing. You can always check the CI scripts for the latest arguments just in case but this should work. From the top of the SDRPlusPlus directory:
+
+```sh
+mkdir build
+cd build
+cmake .. -DOPT_BUILD_SOAPY_SOURCE=OFF -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_AUDIO_SINK=OFF -DOPT_BUILD_PORTAUDIO_SINK=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON -DUSE_BUNDLE_DEFAULTS=ON -DCMAKE_BUILD_TYPE=Release
+make -j<N>
+```
+
+# Create bundle and install
+
+From the top of the SDRPlusPlus directory:
+
+```sh
+sh make_macos_bundle.sh ${{runner.workspace}}/build ./SDR++.app
+```
+
+This will create a `SDR++.app` bundle that you can instal like any other MacOS app by dragging it into Applications.
 
 # Module List
 
