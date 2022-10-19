@@ -297,7 +297,7 @@ cmake .. -DOPT_BUILD_SOAPY_SOURCE=OFF -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_
 make -j<N>
 ```
 
-# Create bundle and install
+## Create bundle and install
 
 From the top of the SDRPlusPlus directory:
 
