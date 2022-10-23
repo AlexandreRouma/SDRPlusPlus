@@ -314,23 +314,24 @@ Modules in beta are still included in releases for the most part but not enabled
 
 ## Sources
 
-| Name                | Stage      | Dependencies      | Option                     | Built by default| Built in Release        | Enabled in SDR++ by default |
-|---------------------|------------|-------------------|----------------------------|:---------------:|:-----------------------:|:---------------------------:|
-| airspy_source       | Working    | libairspy         | OPT_BUILD_AIRSPY_SOURCE    | ✅              | ✅                     | ✅                         |
-| airspyhf_source     | Working    | libairspyhf       | OPT_BUILD_AIRSPYHF_SOURCE  | ✅              | ✅                     | ✅                         |
-| bladerf_source      | Working    | libbladeRF        | OPT_BUILD_BLADERF_SOURCE   | ⛔              | ⚠️ (not Debian Buster) | ✅                         |
-| file_source         | Working    | -                 | OPT_BUILD_FILE_SOURCE      | ✅              | ✅                     | ✅                         |
-| hackrf_source       | Working    | libhackrf         | OPT_BUILD_HACKRF_SOURCE    | ✅              | ✅                     | ✅                         |
-| hermes_source       | Unfinished | -                 | OPT_BUILD_HERMES_SOURCE    | ✅              | ✅                     | ✅                         |
-| limesdr_source      | Working    | liblimesuite      | OPT_BUILD_LIMESDR_SOURCE   | ⛔              | ✅                     | ✅                         |
-| plutosdr_source     | Working    | libiio, libad9361 | OPT_BUILD_PLUTOSDR_SOURCE  | ✅              | ✅                     | ✅                         |
-| rfspace_source      | Working    | -                 | OPT_BUILD_RFSPACE_SOURCE   | ✅              | ✅                     | ✅                         |
-| rtl_sdr_source      | Working    | librtlsdr         | OPT_BUILD_RTL_SDR_SOURCE   | ✅              | ✅                     | ✅                         |
-| rtl_tcp_source      | Working    | -                 | OPT_BUILD_RTL_TCP_SOURCE   | ✅              | ✅                     | ✅                         |
-| sdrplay_source      | Working    | SDRplay API       | OPT_BUILD_SDRPLAY_SOURCE   | ⛔              | ✅                     | ✅                         |
-| sdrpp_server_source | Working    | -                 | OPT_BUILD_SPYSERVER_SOURCE | ✅              | ✅                     | ✅                         |
-| soapy_source        | Working    | soapysdr          | OPT_BUILD_SOAPY_SOURCE     | ✅              | ✅                     | ✅                         |
-| spyserver_source    | Working    | -                 | OPT_BUILD_SPYSERVER_SOURCE | ✅              | ✅                     | ✅                         |
+| Name                | Stage      | Dependencies      | Option                        | Built by default| Built in Release        | Enabled in SDR++ by default |
+|---------------------|------------|-------------------|-------------------------------|:---------------:|:-----------------------:|:---------------------------:|
+| airspy_source       | Working    | libairspy         | OPT_BUILD_AIRSPY_SOURCE       | ✅              | ✅                     | ✅                         |
+| airspyhf_source     | Working    | libairspyhf       | OPT_BUILD_AIRSPYHF_SOURCE     | ✅              | ✅                     | ✅                         |
+| bladerf_source      | Working    | libbladeRF        | OPT_BUILD_BLADERF_SOURCE      | ⛔              | ⚠️ (not Debian Buster) | ✅                         |
+| file_source         | Working    | -                 | OPT_BUILD_FILE_SOURCE         | ✅              | ✅                     | ✅                         |
+| hackrf_source       | Working    | libhackrf         | OPT_BUILD_HACKRF_SOURCE       | ✅              | ✅                     | ✅                         |
+| hermes_source       | Unfinished | -                 | OPT_BUILD_HERMES_SOURCE       | ✅              | ✅                     | ⛔                         |
+| limesdr_source      | Working    | liblimesuite      | OPT_BUILD_LIMESDR_SOURCE      | ⛔              | ✅                     | ✅                         |
+| plutosdr_source     | Working    | libiio, libad9361 | OPT_BUILD_PLUTOSDR_SOURCE     | ✅              | ✅                     | ✅                         |
+| rfspace_source      | Working    | -                 | OPT_BUILD_RFSPACE_SOURCE      | ✅              | ✅                     | ✅                         |
+| rtl_sdr_source      | Working    | librtlsdr         | OPT_BUILD_RTL_SDR_SOURCE      | ✅              | ✅                     | ✅                         |
+| rtl_tcp_source      | Working    | -                 | OPT_BUILD_RTL_TCP_SOURCE      | ✅              | ✅                     | ✅                         |
+| sdrplay_source      | Working    | SDRplay API       | OPT_BUILD_SDRPLAY_SOURCE      | ⛔              | ✅                     | ✅                         |
+| sdrpp_server_source | Working    | -                 | OPT_BUILD_SDRPP_SERVER_SOURCE | ✅              | ✅                     | ✅                         |
+| soapy_source        | Working    | soapysdr          | OPT_BUILD_SOAPY_SOURCE        | ✅              | ✅                     | ✅                         |
+| spyserver_source    | Working    | -                 | OPT_BUILD_SPYSERVER_SOURCE    | ✅              | ✅                     | ✅                         |
+| usrp_source         | Beta       | libuhd            | OPT_BUILD_USRP_SOURCE         | ⛔              | ✅                     | ⛔                         |
 
 ## Sinks
 

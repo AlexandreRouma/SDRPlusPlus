@@ -310,6 +310,7 @@ private:
             _this->select(ser);
         }
 
+        // TODO: Hide if only one channel
         SmGui::LeftLabel("Channel");
         SmGui::FillWidth();
         SmGui::ForceSync();
@@ -324,6 +325,7 @@ private:
 
         if (_this->running) { SmGui::EndDisabled(); }
 
+        // TODO: Hide if only one antenna
         SmGui::LeftLabel("Antenna");
         SmGui::FillWidth();
         if (SmGui::Combo(CONCAT("##_usrp_ant_sel_", _this->name), &_this->antId, _this->antennas.txt)) {

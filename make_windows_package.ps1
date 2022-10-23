@@ -25,13 +25,19 @@ cp $build_dir/source_modules/file_source/Release/file_source.dll sdrpp_windows_x
 cp $build_dir/source_modules/hackrf_source/Release/hackrf_source.dll sdrpp_windows_x64/modules/
 cp 'C:/Program Files/PothosSDR/bin/hackrf.dll' sdrpp_windows_x64/
 
-cp $build_dir/source_modules/rtl_sdr_source/Release/rtl_sdr_source.dll sdrpp_windows_x64/modules/
-cp 'C:/Program Files/PothosSDR/bin/rtlsdr.dll' sdrpp_windows_x64/
+cp $build_dir/source_modules/hermes_source/Release/hermes_source.dll sdrpp_windows_x64/modules/
 
 cp $build_dir/source_modules/limesdr_source/Release/limesdr_source.dll sdrpp_windows_x64/modules/
 cp 'C:/Program Files/PothosSDR/bin/LimeSuite.dll' sdrpp_windows_x64/
 
+cp $build_dir/source_modules/plutosdr_source/Release/plutosdr_source.dll sdrpp_windows_x64/modules/
+cp 'C:/Program Files/PothosSDR/bin/libiio.dll' sdrpp_windows_x64/
+cp 'C:/Program Files/PothosSDR/bin/libad9361.dll' sdrpp_windows_x64/
+
 cp $build_dir/source_modules/rfspace_source/Release/rfspace_source.dll sdrpp_windows_x64/modules/
+
+cp $build_dir/source_modules/rtl_sdr_source/Release/rtl_sdr_source.dll sdrpp_windows_x64/modules/
+cp 'C:/Program Files/PothosSDR/bin/rtlsdr.dll' sdrpp_windows_x64/
 
 cp $build_dir/source_modules/rtl_tcp_source/Release/rtl_tcp_source.dll sdrpp_windows_x64/modules/
 
@@ -42,16 +48,15 @@ cp $build_dir/source_modules/sdrpp_server_source/Release/sdrpp_server_source.dll
 
 cp $build_dir/source_modules/soapy_source/Release/soapy_source.dll sdrpp_windows_x64/modules/
 
-cp $build_dir/source_modules/plutosdr_source/Release/plutosdr_source.dll sdrpp_windows_x64/modules/
-cp 'C:/Program Files/PothosSDR/bin/libiio.dll' sdrpp_windows_x64/
-cp 'C:/Program Files/PothosSDR/bin/libad9361.dll' sdrpp_windows_x64/
-
 cp $build_dir/source_modules/spyserver_source/Release/spyserver_source.dll sdrpp_windows_x64/modules/
+
+cp $build_dir/source_modules/usrp_source/Release/usrp_source.dll sdrpp_windows_x64/modules/
 
 
 # Copy sink modules
 cp $build_dir/sink_modules/audio_sink/Release/audio_sink.dll sdrpp_windows_x64/modules/
 cp "C:/Program Files (x86)/RtAudio/bin/rtaudio.dll" sdrpp_windows_x64/
+
 cp $build_dir/sink_modules/network_sink/Release/network_sink.dll sdrpp_windows_x64/modules/
 
 
@@ -60,14 +65,19 @@ cp $build_dir/decoder_modules/m17_decoder/Release/m17_decoder.dll sdrpp_windows_
 cp "C:/Program Files/codec2/lib/libcodec2.dll" sdrpp_windows_x64/
 
 cp $build_dir/decoder_modules/meteor_demodulator/Release/meteor_demodulator.dll sdrpp_windows_x64/modules/
+
 cp $build_dir/decoder_modules/radio/Release/radio.dll sdrpp_windows_x64/modules/
 
 
 # Copy misc modules
 cp $build_dir/misc_modules/discord_integration/Release/discord_integration.dll sdrpp_windows_x64/modules/
+
 cp $build_dir/misc_modules/frequency_manager/Release/frequency_manager.dll sdrpp_windows_x64/modules/
+
 cp $build_dir/misc_modules/recorder/Release/recorder.dll sdrpp_windows_x64/modules/
+
 cp $build_dir/misc_modules/rigctl_server/Release/rigctl_server.dll sdrpp_windows_x64/modules/
+
 cp $build_dir/misc_modules/scanner/Release/scanner.dll sdrpp_windows_x64/modules/
 
 
