@@ -119,7 +119,7 @@ public:
         auto subdevs = dev->get_rx_subdev_spec();
         for (int i = 0; i < subdevs.size(); i++) {
             std::string slot = subdevs[i].db_name;
-            sprintf(buf, "%s [%s]", dev->get_rx_subdev_name(i), slot.c_str());
+            sprintf(buf, "%s [%s]", dev->get_rx_subdev_name(i).c_str(), slot.c_str());
             channels.define(buf, buf, slot);
         }
 
@@ -310,32 +310,34 @@ private:
             _this->select(ser);
         }
 
-        // TODO: Hide if only one channel
-        SmGui::LeftLabel("Channel");
-        SmGui::FillWidth();
-        SmGui::ForceSync();
-        if (SmGui::Combo(CONCAT("##_usrp_ch_sel_", _this->name), &_this->chanId, _this->channels.txt)) {
-            if (!_this->selectedSer.empty()) {
-                config.acquire();
-                config.conf["devices"][_this->selectedSer]["channel"] = _this->channels.key(_this->chanId);
-                config.release(true);
+        if (_this->channels.size() > 1) {
+            SmGui::LeftLabel("Channel");
+            SmGui::FillWidth();
+            SmGui::ForceSync();
+            if (SmGui::Combo(CONCAT("##_usrp_ch_sel_", _this->name), &_this->chanId, _this->channels.txt)) {
+                if (!_this->selectedSer.empty()) {
+                    config.acquire();
+                    config.conf["devices"][_this->selectedSer]["channel"] = _this->channels.key(_this->chanId);
+                    config.release(true);
+                }
+                _this->select(_this->devices.key(_this->devId));
             }
-            _this->select(_this->devices.key(_this->devId));
         }
 
         if (_this->running) { SmGui::EndDisabled(); }
 
-        // TODO: Hide if only one antenna
-        SmGui::LeftLabel("Antenna");
-        SmGui::FillWidth();
-        if (SmGui::Combo(CONCAT("##_usrp_ant_sel_", _this->name), &_this->antId, _this->antennas.txt)) {
-            if (_this->running) {
-                _this->dev->set_rx_antenna(_this->antennas.key(_this->antId), _this->chanId);
-            }
-            if (!_this->selectedSer.empty() && !_this->selectedChan.empty()) {
-                config.acquire();
-                config.conf["devices"][_this->selectedSer]["channels"][_this->selectedChan]["antenna"] = _this->antennas.key(_this->antId);
-                config.release(true);
+        if (_this->antennas.size() > 1) {
+            SmGui::LeftLabel("Antenna");
+            SmGui::FillWidth();
+            if (SmGui::Combo(CONCAT("##_usrp_ant_sel_", _this->name), &_this->antId, _this->antennas.txt)) {
+                if (_this->running) {
+                    _this->dev->set_rx_antenna(_this->antennas.key(_this->antId), _this->chanId);
+                }
+                if (!_this->selectedSer.empty() && !_this->selectedChan.empty()) {
+                    config.acquire();
+                    config.conf["devices"][_this->selectedSer]["channels"][_this->selectedChan]["antenna"] = _this->antennas.key(_this->antId);
+                    config.release(true);
+                }
             }
         }
 
