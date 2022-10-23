@@ -165,7 +165,7 @@ namespace net {
 
             // Receive
             int addrLen = sizeof(sockaddr_in);
-            int err = ::recvfrom(sock, (char*)&data[read], maxLen - read, 0,(sockaddr*)(dest ? &dest->addr : NULL), dest ? &addrLen : NULL);
+            int err = ::recvfrom(sock, (char*)&data[read], maxLen - read, 0,(sockaddr*)(dest ? &dest->addr : NULL), (socklen_t*)(dest ? &addrLen : NULL));
             if (err <= 0 && !WOULD_BLOCK) {
                 close();
                 return err;
@@ -232,7 +232,7 @@ namespace net {
 
         // Accept
         int addrLen = sizeof(sockaddr_in);
-        SockHandle_t s = ::accept(sock, (sockaddr*)(dest ? &dest->addr : NULL), dest ? &addrLen : NULL);
+        SockHandle_t s = ::accept(sock, (sockaddr*)(dest ? &dest->addr : NULL), (socklen_t*)(dest ? &addrLen : NULL));
         if ((int)s < 0) {
             if (!WOULD_BLOCK) { stop(); }
             return NULL;

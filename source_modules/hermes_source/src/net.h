@@ -21,6 +21,7 @@
 namespace net {
 #ifdef _WIN32
     typedef SOCKET SockHandle_t;
+    typedef int socklen_t;
 #else
     typedef int SockHandle_t;
 #endif
