@@ -120,7 +120,7 @@ public:
         for (int i = 0; i < subdevs.size(); i++) {
             std::string slot = subdevs[i].db_name;
             sprintf(buf, "%s [%s]", dev->get_rx_subdev_name(i).c_str(), slot.c_str());
-            channels.define(buf, buf, slot);
+            channels.define(buf, buf, buf);
         }
 
         // Select channel
