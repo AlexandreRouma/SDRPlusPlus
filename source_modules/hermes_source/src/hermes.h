@@ -32,10 +32,15 @@ namespace hermes {
     };
 
     struct Info {
+        net::Address addr;
         uint8_t mac[6];
         uint8_t gatewareVerMaj;
         uint8_t gatewareVerMin;
         BoardID boardId;
+
+        bool operator==(const Info& b) {
+            return !memcmp(mac, b.mac, 6);
+        }
     };
 
     enum HermesLiteReg {
@@ -122,6 +127,7 @@ namespace hermes {
         void start();
         void stop();
 
+        void setSamplerate(HermesLiteSamplerate samplerate);
         void setFrequency(double freq);
         void setGain(int gain);
 
@@ -146,4 +152,5 @@ namespace hermes {
 
     std::vector<Info> discover();
     std::shared_ptr<Client> open(std::string host, int port);
+    std::shared_ptr<Client> open(const net::Address& addr);
 }

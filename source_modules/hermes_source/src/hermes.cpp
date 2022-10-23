@@ -27,6 +27,10 @@ namespace hermes {
         sendMetisControl(METIS_CTRL_NONE);
     }
 
+    void Client::setSamplerate(HermesLiteSamplerate samplerate) {
+        writeReg(0, (uint32_t)samplerate << 24);
+    }
+
     void Client::setFrequency(double freq) {
         writeReg(HL_REG_TX1_NCO_FREQ, freq);
     }
@@ -122,7 +126,6 @@ namespace hermes {
                 }
 
                 // Decode and send IQ to stream
-                // TODO: More efficient way?
                 uint8_t* iq = &frame[8];
                 for (int i = 0; i < 63; i++) {
                     // Convert to 32bit
@@ -133,11 +136,12 @@ namespace hermes {
                     si = (si << 8) >> 8;
                     sq = (sq << 8) >> 8;
 
-                    // Convert to float (IQ swapper for some reason... I means in-phase :facepalm:)
+                    // Convert to float (IQ swapper for some reason... 'I' means in-phase... :facepalm:)
                     out.writeBuf[i].im = (float)si / (float)0x1000000;
                     out.writeBuf[i].re = (float)sq / (float)0x1000000;
                 }
                 out.swap(63);
+                // TODO: Buffer the data to avoid having a very high DSP frame rate
             }            
         }
     }
@@ -160,8 +164,9 @@ namespace hermes {
 
         while (true) {
             // Wait for a response
+            net::Address addr;
             uint8_t resp[1024];
-            int len = sock->recv(resp, sizeof(resp), false, HERMES_DISCOVER_TIMEOUT);
+            int len = sock->recv(resp, sizeof(resp), false, HERMES_DISCOVER_TIMEOUT, &addr);
             
             // Give up if timeout or error
             if (len <= 0) { break; }
@@ -172,6 +177,7 @@ namespace hermes {
 
             // Analyze
             Info info;
+            info.addr = addr;
             memcpy(info.mac, &resp[3], 6);
             info.gatewareVerMaj = resp[0x09];
             info.gatewareVerMin = resp[0x15];
@@ -194,8 +200,12 @@ namespace hermes {
     }
 
     std::shared_ptr<Client> open(std::string host, int port) {
+        return open(net::Address(host, port));
+    }
+
+    std::shared_ptr<Client> open(const net::Address& addr) {
         // Open UDP socket
-        auto sock = net::openudp(host, port);
+        auto sock = net::openudp(addr);
 
         // TODO: Check if open successful
         return std::make_shared<Client>(sock);

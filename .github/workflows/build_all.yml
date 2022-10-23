@@ -87,7 +87,7 @@ jobs:
           run: brew update
 
         - name: Install dependencies
-          run: brew install libusb fftw glfw airspy airspyhf portaudio hackrf rtl-sdr libbladerf codec2 && pip3 install mako zstd
+          run: brew install libusb fftw glfw airspy airspyhf portaudio hackrf rtl-sdr libbladerf codec2 && pip3 install mako zstd uhd
 
         - name: Install volk
           run: git clone --recursive https://github.com/gnuradio/volk && cd volk && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../

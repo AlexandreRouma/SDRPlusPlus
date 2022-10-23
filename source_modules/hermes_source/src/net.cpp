@@ -37,6 +37,7 @@ namespace net {
 
     void closeSocket(SockHandle_t sock) {
 #ifdef _WIN32
+        shutdown(sock, SD_BOTH);
         closesocket(sock);
 #else
         shutdown(sock, SHUT_RDWR);
@@ -44,19 +45,80 @@ namespace net {
 #endif
     }
 
+    void setNonblocking(SockHandle_t sock) {
+#ifdef _WIN32
+        u_long enabled = 1;
+        ioctlsocket(sock, FIONBIO, &enabled);
+#else
+        fcntl(sock, F_SETFL, O_NONBLOCK);
+#endif
+    }
+
+    // === Address functions ===
+
+    Address::Address() {
+        memset(&addr, 0, sizeof(addr));
+    }
+
+    Address::Address(const std::string& host, int port) {
+        // Initialize WSA if needed
+        init();
+        
+        // Lookup host
+        hostent* ent = gethostbyname(host.c_str());
+        if (!ent || !ent->h_addr_list[0]) {
+            throw std::runtime_error("Unknown host");
+        }
+        
+        // Build address
+        memset(&addr, 0, sizeof(addr));
+        addr.sin_family = AF_INET;
+        addr.sin_addr.s_addr = *(uint32_t*)ent->h_addr_list[0];
+        addr.sin_port = htons(port);
+    }
+
+    Address::Address(IP_t ip, int port) {
+        memset(&addr, 0, sizeof(addr));
+        addr.sin_family = AF_INET;
+        addr.sin_addr.s_addr = htonl(ip);
+        addr.sin_port = htons(port);
+    }
+
+    std::string Address::getIPStr() {
+        char buf[128];
+        IP_t ip = getIP();
+        sprintf(buf, "%d.%d.%d.%d", (ip >> 24) & 0xFF, (ip >> 16) & 0xFF, (ip >> 8) & 0xFF, ip & 0xFF);
+        return buf;
+    }
+
+    IP_t Address::getIP() {
+        return htonl(addr.sin_addr.s_addr);
+    }
+
+    void Address::setIP(IP_t ip) {
+        addr.sin_addr.s_addr = htonl(ip);
+    }
+
+    int Address::getPort() {
+        return htons(addr.sin_port);
+    }
+
+    void Address::setPort(int port) {
+        addr.sin_port = htons(port);
+    }
+
     // === Socket functions ===
 
-    Socket::Socket(SockHandle_t sock, struct sockaddr_in* raddr) {
+    Socket::Socket(SockHandle_t sock, const Address* raddr) {
         this->sock = sock;
         if (raddr) {
-            this->raddr = (struct sockaddr_in*)malloc(sizeof(sockaddr_in));
-            memcpy(this->raddr, raddr, sizeof(sockaddr_in));
+            this->raddr = new Address(*raddr);
         }
     }
 
     Socket::~Socket() {
         close();
-        if (raddr) { free(raddr); }
+        if (raddr) { delete raddr; }
     }
 
     void Socket::close() {
@@ -73,15 +135,15 @@ namespace net {
         return raddr ? SOCKET_TYPE_UDP : SOCKET_TYPE_TCP;
     }
 
-    int Socket::send(const uint8_t* data, size_t len) {
-        return sendto(sock, (const char*)data, len, 0, (sockaddr*)raddr, sizeof(sockaddr_in));
+    int Socket::send(const uint8_t* data, size_t len, const Address* dest) {
+        return sendto(sock, (const char*)data, len, 0, (sockaddr*)(dest ? &dest->addr : (raddr ? &raddr->addr : NULL)), sizeof(sockaddr_in));
     }
 
-    int Socket::sendstr(const std::string& str) {
-        return send((const uint8_t*)str.c_str(), str.length());
+    int Socket::sendstr(const std::string& str, const Address* dest) {
+        return send((const uint8_t*)str.c_str(), str.length(), dest);
     }
 
-    int Socket::recv(uint8_t* data, size_t maxLen, bool forceLen, int timeout) {
+    int Socket::recv(uint8_t* data, size_t maxLen, bool forceLen, int timeout, Address* dest) {
         // Create FD set
         fd_set set;
         FD_ZERO(&set);
@@ -102,7 +164,8 @@ namespace net {
             }
 
             // Receive
-            int err = ::recv(sock, (char*)&data[read], maxLen - read, 0);
+            int addrLen = sizeof(sockaddr_in);
+            int err = ::recvfrom(sock, (char*)&data[read], maxLen - read, 0,(sockaddr*)(dest ? &dest->addr : NULL), dest ? &addrLen : NULL);
             if (err <= 0 && !WOULD_BLOCK) {
                 close();
                 return err;
@@ -113,7 +176,7 @@ namespace net {
         return read;
     }
 
-    int Socket::recvline(std::string& str, int maxLen, int timeout) {
+    int Socket::recvline(std::string& str, int maxLen, int timeout, Address* dest) {
         // Disallow nonblocking mode
         if (timeout < 0) { return -1; }
         
@@ -121,7 +184,7 @@ namespace net {
         int read = 0;
         while (true) {
             char c;
-            int err = recv((uint8_t*)&c, 1, timeout);
+            int err = recv((uint8_t*)&c, 1, false, timeout, dest);
             if (err <= 0) { return err; }
             if (c == '\n') { break; }
             str += c;
@@ -150,7 +213,7 @@ namespace net {
         return open;
     }
 
-    std::shared_ptr<Socket> Listener::accept(int timeout) {
+    std::shared_ptr<Socket> Listener::accept(Address* dest, int timeout) {
         // Create FD set
         fd_set set;
         FD_ZERO(&set);
@@ -162,39 +225,30 @@ namespace net {
         tv.tv_usec = timeout * 1000;
 
         // Wait for data or error
-        // TODO: Support non-blockign mode
-        int err = select(sock+1, &set, NULL, &set, (timeout > 0) ? &tv : NULL);
-        if (err <= 0) { return NULL; }
+        if (timeout != NONBLOCKING) {
+            int err = select(sock+1, &set, NULL, &set, (timeout > 0) ? &tv : NULL);
+            if (err <= 0) { return NULL; }
+        }
 
         // Accept
-        SockHandle_t s = ::accept(sock, NULL, 0);
-        if (!s) {
-            stop();
+        int addrLen = sizeof(sockaddr_in);
+        SockHandle_t s = ::accept(sock, (sockaddr*)(dest ? &dest->addr : NULL), dest ? &addrLen : NULL);
+        if ((int)s < 0) {
+            if (!WOULD_BLOCK) { stop(); }
             return NULL;
         }
 
         // Enable nonblocking mode
-#ifdef _WIN32
-        u_long enabled = 1;
-        ioctlsocket(s, FIONBIO, &enabled);
-#else
-        fcntl(s, F_SETFL, O_NONBLOCK);
-#endif
+        setNonblocking(s);
 
         return std::make_shared<Socket>(s);
     }
 
     // === Creation functions ===
 
-    std::shared_ptr<Listener> listen(std::string host, int port) {
+    std::shared_ptr<Listener> listen(const Address& addr) {
         // Init library if needed
         init();
-
-        // Get host address
-        struct sockaddr_in addr;
-        addr.sin_family = AF_INET;
-        addr.sin_port = htons(port);
-        if (!queryHost((uint32_t*)&addr.sin_addr.s_addr, host)) { return NULL; }
 
         // Create socket
         SockHandle_t s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -214,7 +268,7 @@ namespace net {
 #endif
 
         // Bind socket to the port
-        if (bind(s, (sockaddr*)&addr, sizeof(addr))) {
+        if (bind(s, (sockaddr*)&addr.addr, sizeof(sockaddr_in))) {
             closeSocket(s);
             throw std::runtime_error("Could not bind socket");
             return NULL;
@@ -226,63 +280,51 @@ namespace net {
             return NULL;
         }
 
+        // Enable nonblocking mode
+        setNonblocking(s);
+
         // Return listener class
         return std::make_shared<Listener>(s);
     }
 
-    std::shared_ptr<Socket> connect(std::string host, int port) {
+    std::shared_ptr<Listener> listen(std::string host, int port) {
+        return listen(Address(host, port));
+    }
+
+    std::shared_ptr<Socket> connect(const Address& addr) {
         // Init library if needed
         init();
 
-        // Get host address
-        struct sockaddr_in addr;
-        addr.sin_family = AF_INET;
-        addr.sin_port = htons(port);
-        if (!queryHost((uint32_t*)&addr.sin_addr.s_addr, host)) { return NULL; }
-        
         // Create socket
         SockHandle_t s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
         // Connect to server
-        if (::connect(s, (sockaddr*)&addr, sizeof(addr))) {
+        if (::connect(s, (sockaddr*)&addr.addr, sizeof(sockaddr_in))) {
             closeSocket(s);
             throw std::runtime_error("Could not connect");
             return NULL;
         }
 
         // Enable nonblocking mode
-#ifdef _WIN32
-        u_long enabled = 1;
-        ioctlsocket(s, FIONBIO, &enabled);
-#else
-        fcntl(s, F_SETFL, O_NONBLOCK);
-#endif
+        setNonblocking(s);
 
         // Return socket class
         return std::make_shared<Socket>(s);
     }
 
-    std::shared_ptr<Socket> openudp(std::string rhost, int rport, std::string lhost, int lport) {
+    std::shared_ptr<Socket> connect(std::string host, int port) {
+        return connect(Address(host, port));
+    }
+
+    std::shared_ptr<Socket> openudp(const Address& raddr, const Address& laddr) {
         // Init library if needed
         init();
-
-        // Get local address
-        struct sockaddr_in laddr;
-        laddr.sin_family = AF_INET;
-        laddr.sin_port = htons(lport);
-        if (!queryHost((uint32_t*)&laddr.sin_addr.s_addr, lhost)) { return NULL; }
-
-        // Get remote address
-        struct sockaddr_in raddr;
-        raddr.sin_family = AF_INET;
-        raddr.sin_port = htons(rport);
-        if (!queryHost((uint32_t*)&raddr.sin_addr.s_addr, rhost)) { return NULL; }
 
         // Create socket
         SockHandle_t s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
         // Bind socket to local port
-        if (bind(s, (sockaddr*)&laddr, sizeof(laddr))) {
+        if (bind(s, (sockaddr*)&laddr.addr, sizeof(sockaddr_in))) {
             closeSocket(s);
             throw std::runtime_error("Could not bind socket");
             return NULL;
@@ -290,5 +332,17 @@ namespace net {
         
         // Return socket class
         return std::make_shared<Socket>(s, &raddr);
+    }
+
+    std::shared_ptr<Socket> openudp(std::string rhost, int rport, const Address& laddr) {
+        return openudp(Address(rhost, rport), laddr);
+    }
+
+    std::shared_ptr<Socket> openudp(const Address& raddr, std::string lhost, int lport) {
+        return openudp(raddr, Address(lhost, lport));
+    }
+
+    std::shared_ptr<Socket> openudp(std::string rhost, int rport, std::string lhost, int lport) {
+        return openudp(Address(rhost, rport), Address(lhost, lport));
     }
 }

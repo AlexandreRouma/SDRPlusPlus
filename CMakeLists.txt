@@ -40,6 +40,7 @@ option(OPT_BUILD_SDRPLAY_SOURCE "Build SDRplay Source Module (Dependencies: libs
 option(OPT_BUILD_SOAPY_SOURCE "Build SoapySDR Source Module (Dependencies: soapysdr)" ON)
 option(OPT_BUILD_SPYSERVER_SOURCE "Build SpyServer Source Module (no dependencies required)" ON)
 option(OPT_BUILD_PLUTOSDR_SOURCE "Build PlutoSDR Source Module (Dependencies: libiio, libad9361)" ON)
+option(OPT_BUILD_USRP_SOURCE "Build USRP Source Module (libuhd)" OFF)
 
 # Sinks
 option(OPT_BUILD_ANDROID_AUDIO_SINK "Build Android Audio Sink Module (Dependencies: AAudio, only for android)" OFF)
@@ -132,6 +133,10 @@ endif (OPT_BUILD_SPYSERVER_SOURCE)
 if (OPT_BUILD_PLUTOSDR_SOURCE)
 add_subdirectory("source_modules/plutosdr_source")
 endif (OPT_BUILD_PLUTOSDR_SOURCE)
+
+if (OPT_BUILD_USRP_SOURCE)
+add_subdirectory("source_modules/usrp_source")
+endif (OPT_BUILD_USRP_SOURCE)
 
 
 # Sink modules
@@ -248,7 +253,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_custom_target(do_always ALL cp \"$<TARGET_FILE_DIR:sdrpp_core>/libsdrpp_core.dylib\" \"$<TARGET_FILE_DIR:sdrpp>\")
 endif ()
 
-# cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake" -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_M17_DECODER=ON -DOPT_BUILD_SCANNER=ON -DOPT_BUILD_SCHEDULER=ON
+# cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake" -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_M17_DECODER=ON -DOPT_BUILD_SCANNER=ON -DOPT_BUILD_SCHEDULER=ON -DOPT_BUILD_USRP_SOURCE=ON
 
 # Install directives
 install(TARGETS sdrpp DESTINATION bin)
