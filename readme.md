@@ -40,8 +40,6 @@ sudo apt install libfftw3-dev libglfw3-dev libvolk2-dev libsoapysdr-dev libairsp
 sudo dpkg -i sdrpp_debian_amd64.deb
 ```
 
-If `libvolk2-dev` is not available, use `libvolk1-dev`.
-
 ### Arch-based
 
 Install the latest release from the [sdrpp-git](https://aur.archlinux.org/packages/sdrpp-git/) AUR package
