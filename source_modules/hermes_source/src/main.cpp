@@ -48,15 +48,6 @@ public:
         handler.stopHandler = stop;
         handler.tuneHandler = tune;
         handler.stream = &stream;
-        
-        // TODO: Move the refresh and first select to the select event instead
-        refresh();
-
-        // Select device
-        config.acquire();
-        selectedMac = config.conf["device"];
-        config.release();
-        selectMac(selectedMac);
 
         sigpath::sourceManager.registerSource("Hermes", &handler);
     }
@@ -132,6 +123,20 @@ private:
 
     static void menuSelected(void* ctx) {
         HermesSourceModule* _this = (HermesSourceModule*)ctx;
+
+        if (_this->firstSelect) {
+            _this->firstSelect = false;
+
+            // Refresh
+            _this->refresh();
+
+            // Select device
+            config.acquire();
+            _this->selectedMac = config.conf["device"];
+            config.release();
+            _this->selectMac(_this->selectedMac);
+        }
+
         core::setInputSampleRate(_this->sampleRate);
         spdlog::info("HermesSourceModule '{0}': Menu Select!", _this->name);
     }
@@ -256,6 +261,8 @@ private:
     int devId = 0;
     int srId = 0;
     int gain = 0;
+
+    bool firstSelect = true;
 
     std::shared_ptr<hermes::Client> dev;
 

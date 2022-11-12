@@ -1,5 +1,6 @@
 #include "net.h"
 #include <string.h>
+#include <codecvt>
 
 #ifdef _WIN32
 #define WOULD_BLOCK (WSAGetLastError() == WSAEWOULDBLOCK)
@@ -245,6 +246,60 @@ namespace net {
     }
 
     // === Creation functions ===
+
+    std::map<std::string, InterfaceInfo> listInterfaces() {
+        // Init library if needed
+        init();
+
+        std::map<std::string, InterfaceInfo> ifaces;
+#ifdef _WIN32
+        // Pre-allocate buffer
+        ULONG size = sizeof(IP_ADAPTER_ADDRESSES);
+        PIP_ADAPTER_ADDRESSES addresses = (PIP_ADAPTER_ADDRESSES)malloc(size);
+
+        // Reallocate to real size
+        if (GetAdaptersAddresses(AF_INET, 0, NULL, addresses, &size) == ERROR_BUFFER_OVERFLOW) {
+            addresses = (PIP_ADAPTER_ADDRESSES)realloc(addresses, size);
+            if (GetAdaptersAddresses(AF_INET, 0, NULL, addresses, &size)) {
+                throw std::exception("Could not list network interfaces");
+            }
+        }
+
+        // Save data
+        std::wstring_convert<std::codecvt_utf8<wchar_t>> utfConv;
+        for (auto iface = addresses; iface; iface = iface->Next) {
+            InterfaceInfo info;
+            auto ip = iface->FirstUnicastAddress;
+            if (!ip || ip->Address.lpSockaddr->sa_family != AF_INET) { continue; }
+            info.address = ntohl(*(uint32_t*)&ip->Address.lpSockaddr->sa_data[2]);
+            info.netmask = ~((1 << (32 - ip->OnLinkPrefixLength)) - 1);
+            info.broadcast = info.address | (~info.netmask);
+            ifaces[utfConv.to_bytes(iface->FriendlyName)] = info;
+        }
+        
+        // Free tables
+        free(addresses);
+#else
+        // Get iface list
+        struct ifaddrs* addresses = NULL;
+        getifaddrs(&addresses);
+
+        // Save data
+        for (auto iface = addresses; iface; iface = iface->ifa_next) {
+            if (iface->ifa_addr->sa_family != AF_INET) { continue; }
+            InterfaceInfo info;
+            info.address = ntohl(*(uint32_t*)&iface->ifa_addr->sa_data[2]);
+            info.netmask = ntohl(*(uint32_t*)&iface->ifa_netmask->sa_data[2]);
+            info.broadcast = info.address | (~info.netmask);
+            ifaces[iface->ifa_name] = info;
+        }
+
+        // Free iface list
+        freeifaddrs(addresses);
+#endif
+
+        return ifaces;
+    }
 
     std::shared_ptr<Listener> listen(const Address& addr) {
         // Init library if needed

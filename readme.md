@@ -21,6 +21,14 @@ SDR++ is a cross-platform and open source SDR software with the aim of being blo
 
 # Installing
 
+## Nightly Builds
+
+Nightly builds contain the very latest features and bugfixes. They are usually just stable as [normal releases](https://github.com/AlexandreRouma/SDRPlusPlus/releases) but are available basically minutes to hours after a change has been pushed to the code.
+
+You can download them [here](https://www.sdrpp.org/nightly). It'll redirect you to the latest nightly on GitHub, scroll down to "Artifacts" and click on the version for your OS.
+
+GitHub currently requires an account for the files to be downloadable so make sure you are logged in.
+
 ## Windows
 
 Download the latest release from [the Releases page](https://github.com/AlexandreRouma/SDRPlusPlus/releases) and extract to the directory of your choice.
@@ -277,7 +285,8 @@ Make sure to install portaudio as it'll be needed later.
 An example install command would be:
 
 ```sh
-brew install libusb fftw glfw airspy airspyhf portaudio hackrf rtl-sdr libbladerf codec2 && pip3 install mako zstd
+brew install libusb fftw glfw airspy airspyhf portaudio hackrf rtl-sdr libbladerf codec2 zstd
+pip3 install mako
 ```
 
 ### Install volk
@@ -331,7 +340,7 @@ Modules in beta are still included in releases for the most part but not enabled
 | sdrpp_server_source | Working    | -                 | OPT_BUILD_SDRPP_SERVER_SOURCE | ✅              | ✅                     | ✅                         |
 | soapy_source        | Working    | soapysdr          | OPT_BUILD_SOAPY_SOURCE        | ✅              | ✅                     | ✅                         |
 | spyserver_source    | Working    | -                 | OPT_BUILD_SPYSERVER_SOURCE    | ✅              | ✅                     | ✅                         |
-| usrp_source         | Beta       | libuhd            | OPT_BUILD_USRP_SOURCE         | ⛔              | ✅                     | ⛔                         |
+| usrp_source         | Beta       | libuhd            | OPT_BUILD_USRP_SOURCE         | ⛔              | ⛔                     | ⛔                         |
 
 ## Sinks
 

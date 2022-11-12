@@ -115,11 +115,9 @@ private:
             if (!_this->client) { return; }
         }
 
-        // TODO: Set configuration here
-        if (_this->client) {
-            _this->client->setFrequency(_this->freq);
-            _this->client->start();
-        }
+        // Set configuration
+        _this->client->setFrequency(_this->freq);
+        _this->client->start();
 
         _this->running = true;
         spdlog::info("SDRPPServerSourceModule '{0}': Start!", _this->name);

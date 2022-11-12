@@ -18,7 +18,7 @@ else ()
 endif ()
 
 if(WIN32)
-  target_link_libraries(hermes_source PRIVATE wsock32 ws2_32)
+    target_link_libraries(hermes_source PRIVATE wsock32 ws2_32 iphlpapi)
 endif()
 
 # Install directives

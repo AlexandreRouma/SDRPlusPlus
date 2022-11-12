@@ -2,10 +2,12 @@
 #include <stdint.h>
 #include <mutex>
 #include <memory>
+#include <map>
 
 #ifdef _WIN32
 #include <WinSock2.h>
 #include <WS2tcpip.h>
+#include <iphlpapi.h>
 #else
 #include <unistd.h>
 #include <strings.h>
@@ -16,6 +18,7 @@
 #include <signal.h>
 #include <poll.h>
 #include <fcntl.h>
+#include <ifaddrs.h>
 #endif
 
 namespace net {
@@ -29,6 +32,12 @@ namespace net {
 
     class Socket;
     class Listener;
+
+    struct InterfaceInfo {
+        IP_t address;
+        IP_t netmask;
+        IP_t broadcast;
+    };
 
     class Address {
         friend Socket;
@@ -197,6 +206,12 @@ namespace net {
         bool open = true;
 
     };
+
+    /**
+     * Get a list of the network interface.
+     * @return List of network interfaces and their addresses.
+     */
+    std::map<std::string, InterfaceInfo> listInterfaces();
 
     /**
      * Create TCP listener.

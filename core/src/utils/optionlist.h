@@ -6,6 +6,8 @@
 template <class K, class T>
 class OptionList {
 public:
+    OptionList() { updateText(); }
+
     void define(K key, std::string name, T value) {
         if (keyExists(key)) { throw std::runtime_error("Key already exists"); }
         if (nameExists(name)) { throw std::runtime_error("Name already exists"); }

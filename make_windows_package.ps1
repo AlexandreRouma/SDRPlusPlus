@@ -50,7 +50,7 @@ cp $build_dir/source_modules/soapy_source/Release/soapy_source.dll sdrpp_windows
 
 cp $build_dir/source_modules/spyserver_source/Release/spyserver_source.dll sdrpp_windows_x64/modules/
 
-cp $build_dir/source_modules/usrp_source/Release/usrp_source.dll sdrpp_windows_x64/modules/
+# cp $build_dir/source_modules/usrp_source/Release/usrp_source.dll sdrpp_windows_x64/modules/
 
 
 # Copy sink modules

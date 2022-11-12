@@ -30,8 +30,6 @@ public:
         this->name = name;
 
         sampleRate = 8000000.0;
-        // TODO: REMOVE
-        samplerates.define(8000000, "8MHz", 8000000.0);
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
@@ -41,15 +39,6 @@ public:
         handler.stopHandler = stop;
         handler.tuneHandler = tune;
         handler.stream = &stream;
-
-        // List devices
-        refresh();
-
-        // Select device
-        config.acquire();
-        selectedSer = config.conf["device"];
-        config.release();
-        select(selectedSer);
 
         sigpath::sourceManager.registerSource("USRP", &handler);
     }
@@ -212,6 +201,20 @@ private:
 
     static void menuSelected(void* ctx) {
         USRPSourceModule* _this = (USRPSourceModule*)ctx;
+
+        if (_this->firstSelect) {
+            _this->firstSelect = false;
+
+            // List devices
+            _this->refresh();
+
+            // Select device
+            config.acquire();
+            _this->selectedSer = config.conf["device"];
+            config.release();
+            _this->select(_this->selectedSer);
+        }
+
         core::setInputSampleRate(_this->sampleRate);
         spdlog::info("USRPSourceModule '{0}': Menu Select!", _this->name);
     }
@@ -405,6 +408,8 @@ private:
 
     uhd::usrp::multi_usrp::sptr dev;
     uhd::rx_streamer::sptr streamer;
+
+    bool firstSelect = true;
 
     std::thread workerThread;
 

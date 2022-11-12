@@ -37,7 +37,7 @@ namespace dsp::compression {
             if (pcmType == PCMType::PCM_TYPE_F32) {
                 *scaler = 0;
                 memcpy(dataBuf, in, count * sizeof(complex_t));
-                return count;
+                return 8 + (count * sizeof(complex_t));
             }
 
             // Find maximum value

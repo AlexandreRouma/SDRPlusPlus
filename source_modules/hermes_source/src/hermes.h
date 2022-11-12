@@ -7,8 +7,8 @@
 #include <string>
 #include <thread>
 
-#define HERMES_DISCOVER_REPEAT  5
-#define HERMES_DISCOVER_TIMEOUT 1000
+#define HERMES_METIS_REPEAT     5
+#define HERMES_METIS_TIMEOUT    1000
 #define HERMES_METIS_SIGNATURE  0xEFFE
 #define HERMES_HPSDR_USB_SYNC   0x7F
 
@@ -80,6 +80,11 @@ namespace hermes {
         HL_SAMP_RATE_384KHZ = 3
     };
 
+    enum I2CPort {
+        I2C_PORT_1 = 0,
+        I2C_PORT_2
+    };
+
 #pragma pack(push, 1)
     struct HPSDRUSBHeader {
         uint8_t sync[3];
@@ -130,6 +135,7 @@ namespace hermes {
         void setSamplerate(HermesLiteSamplerate samplerate);
         void setFrequency(double freq);
         void setGain(int gain);
+        void autoeFilters(double freq);
 
         dsp::stream<dsp::complex_t> out;
 
@@ -140,13 +146,19 @@ namespace hermes {
         uint32_t readReg(uint8_t addr);
         void writeReg(uint8_t addr, uint32_t val); 
 
+        void writeI2C(I2CPort port, uint8_t addr, uint8_t reg, uint8_t data);
+
+        
+
         void worker();
 
         bool open = true;
+        double freq = 0;
 
         std::thread workerThread;
         std::shared_ptr<net::Socket> sock;
         uint32_t usbSeq = 0;
+        uint8_t lastFilt = 0;
 
     };
 

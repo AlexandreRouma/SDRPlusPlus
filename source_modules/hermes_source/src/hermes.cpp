@@ -20,11 +20,15 @@ namespace hermes {
     }
 
     void Client::start() {
-        sendMetisControl((MetisControl)(METIS_CTRL_IQ | METIS_CTRL_NO_WD));
+        for (int i = 0; i < HERMES_METIS_REPEAT; i++) {
+            sendMetisControl((MetisControl)(METIS_CTRL_IQ | METIS_CTRL_NO_WD));
+        }
     }
 
     void Client::stop() {
-        sendMetisControl(METIS_CTRL_NONE);
+        for (int i = 0; i < HERMES_METIS_REPEAT; i++) {
+            sendMetisControl(METIS_CTRL_NONE);
+        }
     }
 
     void Client::setSamplerate(HermesLiteSamplerate samplerate) {
@@ -32,11 +36,42 @@ namespace hermes {
     }
 
     void Client::setFrequency(double freq) {
+        this->freq = freq;
         writeReg(HL_REG_TX1_NCO_FREQ, freq);
+        autoeFilters(freq);
     }
 
     void Client::setGain(int gain) {
         writeReg(HL_REG_RX_LNA, gain | (1 << 6));
+    }
+
+    void Client::autoeFilters(double freq) {
+        uint8_t filt = (freq >= 3000000.0) ? (1 << 6) : 0;
+        
+        if (freq <= 2000000.0) {
+            filt |= (1 << 0);
+        }
+        else if (freq <= 4000000.0) {
+            filt |= (1 << 1);
+        }
+        else if (freq <= 7300000.0) {
+            filt |= (1 << 2);
+        }
+        else if (freq <= 14350000.0) {
+            filt |= (1 << 3);
+        }
+        else if (freq <= 21450000.0) {
+            filt |= (1 << 4);
+        }
+        else if (freq <= 29700000.0) {
+            filt |= (1 << 5);
+        }
+
+        // Write only if the config actually changed
+        if (filt != lastFilt) {
+            lastFilt = filt;
+            writeI2C(I2C_PORT_2, 0x20, 0x0A, filt);
+        }
     }
 
     void Client::sendMetisUSB(uint8_t endpoint, void* frame0, void* frame1) {
@@ -79,6 +114,8 @@ namespace hermes {
 
         sendMetisUSB(2, frame);
 
+        // TODO: Wait for response
+
         return 0;
     }
 
@@ -94,6 +131,15 @@ namespace hermes {
         *(uint32_t*)hdr->c = htonl(val);
 
         sendMetisUSB(2, frame);
+    }
+
+    void Client::writeI2C(I2CPort port, uint8_t addr, uint8_t reg, uint8_t data) {
+        uint32_t wdata = data;
+        wdata |= reg << 8;
+        wdata |= (addr & 0x7F) << 16;
+        wdata |= 1 << 23;
+        wdata |= 0x06 << 24;
+        writeReg(HL_REG_I2C_1 + port, wdata);
     }
 
     void Client::worker() {
@@ -147,7 +193,7 @@ namespace hermes {
     }
 
     std::vector<Info> discover() {
-        auto sock = net::openudp("192.168.0.255", 1024);
+        auto sock = net::openudp("0.0.0.0", 1024);
         
         // Build discovery packet
         uint8_t discoveryPkt[64];
@@ -155,18 +201,23 @@ namespace hermes {
         *(uint16_t*)&discoveryPkt[0] = htons(HERMES_METIS_SIGNATURE);
         discoveryPkt[2] = METIS_PKT_DISCOVER;
 
+        // Get interface list
+        auto ifaces = net::listInterfaces();
+
         // Send the packet 5 times to make sure it's received
-        for (int i = 0; i < HERMES_DISCOVER_REPEAT; i++) {
-            sock->send(discoveryPkt, sizeof(discoveryPkt));
+        for (const auto& [name, iface] : ifaces) {
+            net::Address baddr(iface.broadcast, 1024);
+            for (int i = 0; i < HERMES_METIS_REPEAT; i++) {
+                sock->send(discoveryPkt, sizeof(discoveryPkt), &baddr);
+            }
         }
 
         std::vector<Info> devices;
-
         while (true) {
             // Wait for a response
             net::Address addr;
             uint8_t resp[1024];
-            int len = sock->recv(resp, sizeof(resp), false, HERMES_DISCOVER_TIMEOUT, &addr);
+            int len = sock->recv(resp, sizeof(resp), false, HERMES_METIS_TIMEOUT, &addr);
             
             // Give up if timeout or error
             if (len <= 0) { break; }
