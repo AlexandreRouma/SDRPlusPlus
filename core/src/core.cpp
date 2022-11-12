@@ -149,9 +149,6 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["menuElements"][4]["name"] = "VFO Color";
     defConfig["menuElements"][4]["open"] = true;
 
-    defConfig["menuElements"][5]["name"] = "Scripting";
-    defConfig["menuElements"][5]["open"] = false;
-
     defConfig["menuElements"][6]["name"] = "Band Plan";
     defConfig["menuElements"][6]["open"] = true;
 
@@ -272,11 +269,12 @@ int sdrpp_main(int argc, char* argv[]) {
     core::configManager.conf["modules"][modCount++] = "airspy_source.so";
     core::configManager.conf["modules"][modCount++] = "airspyhf_source.so";
     core::configManager.conf["modules"][modCount++] = "hackrf_source.so";
+    core::configManager.conf["modules"][modCount++] = "hermes_source.so";
     core::configManager.conf["modules"][modCount++] = "plutosdr_source.so";
-    core::configManager.conf["modules"][modCount++] = "sdrpp_server_source.so";
     core::configManager.conf["modules"][modCount++] = "rfspace_source.so";
     core::configManager.conf["modules"][modCount++] = "rtl_sdr_source.so";
     core::configManager.conf["modules"][modCount++] = "rtl_tcp_source.so";
+    core::configManager.conf["modules"][modCount++] = "sdrpp_server_source.so";
     core::configManager.conf["modules"][modCount++] = "spyserver_source.so";
 
     core::configManager.conf["modules"][modCount++] = "network_sink.so";
