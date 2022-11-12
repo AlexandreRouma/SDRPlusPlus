@@ -20,6 +20,7 @@ namespace hermes {
     }
 
     void Client::start() {
+        // Start metis stream
         for (int i = 0; i < HERMES_METIS_REPEAT; i++) {
             sendMetisControl((MetisControl)(METIS_CTRL_IQ | METIS_CTRL_NO_WD));
         }
@@ -38,14 +39,14 @@ namespace hermes {
     void Client::setFrequency(double freq) {
         this->freq = freq;
         writeReg(HL_REG_TX1_NCO_FREQ, freq);
-        autoeFilters(freq);
+        autoFilters(freq);
     }
 
     void Client::setGain(int gain) {
         writeReg(HL_REG_RX_LNA, gain | (1 << 6));
     }
 
-    void Client::autoeFilters(double freq) {
+    void Client::autoFilters(double freq) {
         uint8_t filt = (freq >= 3000000.0) ? (1 << 6) : 0;
         
         if (freq <= 2000000.0) {
@@ -70,6 +71,13 @@ namespace hermes {
         // Write only if the config actually changed
         if (filt != lastFilt) {
             lastFilt = filt;
+
+            spdlog::warn("Setting filters");
+
+            // Set direction and wait for things to be processed
+            writeI2C(I2C_PORT_2, 0x20, 0x00, 0x00);
+
+            // Set pins
             writeI2C(I2C_PORT_2, 0x20, 0x0A, filt);
         }
     }
@@ -140,6 +148,11 @@ namespace hermes {
         wdata |= 1 << 23;
         wdata |= 0x06 << 24;
         writeReg(HL_REG_I2C_1 + port, wdata);
+#ifdef _WIN32
+            Sleep(HERMES_I2C_DELAY);
+#else
+            usleep(HERMES_I2C_DELAY*1000);
+#endif
     }
 
     void Client::worker() {

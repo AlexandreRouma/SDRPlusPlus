@@ -11,6 +11,7 @@
 #define HERMES_METIS_TIMEOUT    1000
 #define HERMES_METIS_SIGNATURE  0xEFFE
 #define HERMES_HPSDR_USB_SYNC   0x7F
+#define HERMES_I2C_DELAY        50
 
 namespace hermes {
     enum MetisPacketType {
@@ -135,7 +136,7 @@ namespace hermes {
         void setSamplerate(HermesLiteSamplerate samplerate);
         void setFrequency(double freq);
         void setGain(int gain);
-        void autoeFilters(double freq);
+        void autoFilters(double freq);
 
         dsp::stream<dsp::complex_t> out;
 
