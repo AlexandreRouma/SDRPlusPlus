@@ -143,13 +143,13 @@ jobs:
 
         - name: Recover Deb Archive
           working-directory: ${{runner.workspace}}
-          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
+          run: docker cp build:/root/SDRPlusPlus/sdrpp_buster_amd64.deb ./
 
         - name: Save Deb Archive
           uses: actions/upload-artifact@v3
           with:
               name: sdrpp_debian_buster_amd64
-              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
+              path: ${{runner.workspace}}/sdrpp_buster_amd64.deb
 
     build_debian_bullseye:
         runs-on: ubuntu-latest
@@ -165,13 +165,13 @@ jobs:
 
         - name: Recover Deb Archive
           working-directory: ${{runner.workspace}}
-          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
+          run: docker cp build:/root/SDRPlusPlus/sdrpp_bullseye_amd64.deb ./
 
         - name: Save Deb Archive
           uses: actions/upload-artifact@v3
           with:
               name: sdrpp_debian_bullseye_amd64
-              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
+              path: ${{runner.workspace}}/sdrpp_bullseye_amd64.deb
 
     build_debian_sid:
         runs-on: ubuntu-latest
@@ -187,13 +187,13 @@ jobs:
 
         - name: Recover Deb Archive
           working-directory: ${{runner.workspace}}
-          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
+          run: docker cp build:/root/SDRPlusPlus/sdrpp_bookworm_amd64.deb ./
 
         - name: Save Deb Archive
           uses: actions/upload-artifact@v3
           with:
               name: sdrpp_debian_sid_amd64
-              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
+              path: ${{runner.workspace}}/sdrpp_bookworm_amd64.deb
 
     # build_ubuntu_bionic:
     #     runs-on: ubuntu-latest
@@ -231,13 +231,13 @@ jobs:
 
         - name: Recover Deb Archive
           working-directory: ${{runner.workspace}}
-          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
+          run: docker cp build:/root/SDRPlusPlus/sdrpp_focal_amd64.deb ./
 
         - name: Save Deb Archive
           uses: actions/upload-artifact@v3
           with:
               name: sdrpp_ubuntu_focal_amd64
-              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
+              path: ${{runner.workspace}}/sdrpp_focal_amd64.deb
 
     build_ubuntu_jammy:
         runs-on: ubuntu-latest
@@ -253,13 +253,13 @@ jobs:
 
         - name: Recover Deb Archive
           working-directory: ${{runner.workspace}}
-          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
+          run: docker cp build:/root/SDRPlusPlus/sdrpp_jammy_amd64.deb ./
 
         - name: Save Deb Archive
           uses: actions/upload-artifact@v3
           with:
               name: sdrpp_ubuntu_jammy_amd64
-              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
+              path: ${{runner.workspace}}/sdrpp_jammy_amd64.deb
 
     build_raspios_bullseye_armhf:
         runs-on: ARM
@@ -280,13 +280,13 @@ jobs:
 
         - name: Create Dev Archive
           working-directory: ${{runner.workspace}}
-          run: sh $GITHUB_WORKSPACE/make_debian_package.sh ./build 'libfftw3-dev, libglfw3-dev, libvolk2-dev, librtaudio-dev' && mv sdrpp_debian_amd64.deb sdrpp_debian_armhf.deb
+          run: sh $GITHUB_WORKSPACE/make_debian_package.sh ./build 'libfftw3-3, libglfw3, libvolk2.4, librtaudio6, libzstd1'
         
         - name: Save Deb Archive
           uses: actions/upload-artifact@v3
           with:
               name: sdrpp_raspios_bullseye_armhf
-              path: ${{runner.workspace}}/sdrpp_debian_armhf.deb
+              path: ${{runner.workspace}}/sdrpp_bullseye_armhf.deb
 
     build_android:
         runs-on: ubuntu-latest
@@ -328,12 +328,12 @@ jobs:
             mkdir sdrpp_all && 
             mv sdrpp_windows_x64/sdrpp_windows_x64.zip sdrpp_all/ && 
             mv sdrpp_macos_intel/sdrpp_macos_intel.zip sdrpp_all/ && 
-            mv sdrpp_debian_buster_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_buster_amd64.deb && 
-            mv sdrpp_debian_bullseye_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bullseye_amd64.deb && 
-            mv sdrpp_debian_sid_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_sid_amd64.deb && 
-            mv sdrpp_ubuntu_focal_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_focal_amd64.deb &&
-            mv sdrpp_ubuntu_jammy_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_jammy_amd64.deb &&
-            mv sdrpp_raspios_bullseye_armhf/sdrpp_debian_armhf.deb sdrpp_all/sdrpp_raspios_bullseye_armhf.deb &&
+            mv sdrpp_debian_buster_amd64/sdrpp_buster_amd64.deb sdrpp_all/ && 
+            mv sdrpp_debian_bullseye_amd64/sdrpp_bullseye_amd64.deb sdrpp_all/ && 
+            mv sdrpp_debian_sid_amd64/sdrpp_sid_amd64.deb sdrpp_all && 
+            mv sdrpp_ubuntu_focal_amd64/sdrpp_focal_amd64.deb sdrpp_all/ &&
+            mv sdrpp_ubuntu_jammy_amd64/sdrpp_jammy_amd64.deb sdrpp_all/ &&
+            mv sdrpp_raspios_bullseye_armhf/sdrpp_bullseye_armhf.deb sdrpp_all/ &&
             mv sdrpp_android/sdrpp.apk sdrpp_all/sdrpp.apk
 
         - uses: actions/upload-artifact@v3

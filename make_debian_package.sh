@@ -1,29 +1,37 @@
 #!/bin/sh
+set -e
+
+BUILDDIR=$1
+DEPENDS=$2
+DISTRO=$(lsb_release -sc)
+ARCH=$(dpkg --print-architecture)
 
 # Create directory structure
+PKGDIR="sdrpp_${DISTRO}_$ARCH"
 echo Create directory structure
-mkdir sdrpp_debian_amd64
-mkdir sdrpp_debian_amd64/DEBIAN
+mkdir -p "$PKGDIR/DEBIAN"
 
 # Create package info
 echo Create package info
-echo Package: sdrpp >> sdrpp_debian_amd64/DEBIAN/control
-echo Version: 1.1.0$BUILD_NO >> sdrpp_debian_amd64/DEBIAN/control
-echo Maintainer: Ryzerth >> sdrpp_debian_amd64/DEBIAN/control
-echo Architecture: all >> sdrpp_debian_amd64/DEBIAN/control
-echo Description: Bloat-free SDR receiver software >> sdrpp_debian_amd64/DEBIAN/control
-echo Depends: $2 >> sdrpp_debian_amd64/DEBIAN/control
+{
+    echo "Package: sdrpp"
+    echo "Version: 1.1.0$BUILD_NO"
+    echo "Maintainer: Ryzerth"
+    echo "Architecture: $ARCH"
+    echo "Description: Bloat-free SDR receiver software"
+    echo "Depends: $DEPENDS"
+} >> "$PKGDIR/DEBIAN/control"
 
 # Copying files
 ORIG_DIR=$PWD
-cd $1
-make install DESTDIR=$ORIG_DIR/sdrpp_debian_amd64
-cd $ORIG_DIR
+cd "$BUILDDIR"
+make install DESTDIR="$ORIG_DIR/$PKGDIR"
+cd "$ORIG_DIR"
 
 # Create package
 echo Create package
-dpkg-deb --build sdrpp_debian_amd64
+dpkg-deb --build "$PKGDIR"
 
 # Cleanup
 echo Cleanup
-rm -rf sdrpp_debian_amd64
+rm -rf "$PKGDIR"
