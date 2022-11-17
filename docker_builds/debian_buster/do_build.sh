@@ -3,8 +3,8 @@ set -e
 cd /root
 
 # Install dependencies and tools
-apt update
-apt install -y build-essential cmake git lsb-release libfftw3-dev libglfw3-dev libvolk1-dev libzstd-dev libsoapysdr-dev libairspyhf-dev libairspy-dev \
+apt-get update
+apt-get install -y build-essential cmake git lsb-release libfftw3-dev libglfw3-dev libvolk1-dev libzstd-dev libsoapysdr-dev libairspyhf-dev libairspy-dev \
             libiio-dev libad9361-dev librtaudio-dev libhackrf-dev librtlsdr-dev libbladerf-dev liblimesuite-dev p7zip-full wget portaudio19-dev \
             libcodec2-dev
 
@@ -19,7 +19,7 @@ cd SDRPlusPlus
 mkdir build
 cd build
 cmake .. -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_BLADERF_SOURCE=OFF -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON
-make VERBOSE=1 -j2
+make VERBOSE=1 -j$(nproc)
 
 cd ..
-sh make_debian_package.sh ./build 'libfftw3-dev, libglfw3-dev, libvolk1-dev, librtaudio-dev, libzstd-dev'
+sh make_debian_package.sh ./build 'libfftw3-3, libglfw3, libvolk1.4, librtaudio6, libzstd1'
