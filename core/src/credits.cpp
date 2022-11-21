@@ -39,6 +39,7 @@ namespace sdrpp_credits {
         "Airspy",
         "Analog Devices",
         "CaribouLabs",
+        "Ettus Research",
         "Howard Su",
         "MyriadRF",
         "Nuand",

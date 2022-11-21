@@ -11,7 +11,7 @@ jobs:
         runs-on: windows-latest
 
         steps:
-        - uses: actions/checkout@v2
+        - uses: actions/checkout@v3
         
         - name: Create Build Environment
           run: cmake -E make_directory ${{runner.workspace}}/build
@@ -69,7 +69,7 @@ jobs:
           run: '&($Env:GITHUB_WORKSPACE + "/make_windows_package.ps1") ./build ($Env:GITHUB_WORKSPACE + "/root")'
 
         - name: Save Archive
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
               name: sdrpp_windows_x64
               path: ${{runner.workspace}}/sdrpp_windows_x64.zip
@@ -78,7 +78,7 @@ jobs:
         runs-on: macos-11
 
         steps:
-        - uses: actions/checkout@v2
+        - uses: actions/checkout@v3
         
         - name: Create Build Environment
           run: cmake -E make_directory ${{runner.workspace}}/build
@@ -117,7 +117,7 @@ jobs:
           run: cd $GITHUB_WORKSPACE && sh make_macos_bundle.sh ${{runner.workspace}}/build ./SDR++.app && zip -r ${{runner.workspace}}/sdrpp_macos_intel.zip SDR++.app
 
         - name: Save Archive
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
               name: sdrpp_macos_intel
               path: ${{runner.workspace}}/sdrpp_macos_intel.zip
@@ -126,7 +126,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - uses: actions/checkout@v2
+        - uses: actions/checkout@v3
         
         - name: Create Docker Image
           run: cd $GITHUB_WORKSPACE/docker_builds/debian_buster && docker build . --tag sdrpp_build
@@ -139,7 +139,7 @@ jobs:
           run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
 
         - name: Save Deb Archive
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
               name: sdrpp_debian_buster_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
@@ -148,7 +148,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - uses: actions/checkout@v2
+        - uses: actions/checkout@v3
         
         - name: Create Docker Image
           run: cd $GITHUB_WORKSPACE/docker_builds/debian_bullseye && docker build . --tag sdrpp_build
@@ -161,7 +161,7 @@ jobs:
           run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
 
         - name: Save Deb Archive
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
               name: sdrpp_debian_bullseye_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
@@ -170,7 +170,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - uses: actions/checkout@v2
+        - uses: actions/checkout@v3
         
         - name: Create Docker Image
           run: cd $GITHUB_WORKSPACE/docker_builds/debian_sid && docker build . --tag sdrpp_build
@@ -183,7 +183,7 @@ jobs:
           run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
 
         - name: Save Deb Archive
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
               name: sdrpp_debian_sid_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
@@ -192,7 +192,7 @@ jobs:
     #     runs-on: ubuntu-latest
 
     #     steps:
-    #     - uses: actions/checkout@v2
+    #     - uses: actions/checkout@v3
         
     #     - name: Create Docker Image
     #       run: cd $GITHUB_WORKSPACE/docker_builds/ubuntu_bionic && docker build . --tag sdrpp_build
@@ -205,7 +205,7 @@ jobs:
     #       run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
 
     #     - name: Save Deb Archive
-    #       uses: actions/upload-artifact@v2
+    #       uses: actions/upload-artifact@v3
     #       with:
     #           name: sdrpp_ubuntu_bionic_amd64
     #           path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
@@ -214,7 +214,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - uses: actions/checkout@v2
+        - uses: actions/checkout@v3
         
         - name: Create Docker Image
           run: cd $GITHUB_WORKSPACE/docker_builds/ubuntu_focal && docker build . --tag sdrpp_build
@@ -227,7 +227,7 @@ jobs:
           run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
 
         - name: Save Deb Archive
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
               name: sdrpp_ubuntu_focal_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
@@ -236,7 +236,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - uses: actions/checkout@v2
+        - uses: actions/checkout@v3
         
         - name: Create Docker Image
           run: cd $GITHUB_WORKSPACE/docker_builds/ubuntu_jammy && docker build . --tag sdrpp_build
@@ -249,7 +249,7 @@ jobs:
           run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
 
         - name: Save Deb Archive
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
               name: sdrpp_ubuntu_jammy_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
@@ -258,7 +258,7 @@ jobs:
         runs-on: ARM
 
         steps:
-        - uses: actions/checkout@v2
+        - uses: actions/checkout@v3
 
         - name: Create Build Environment
           run: rm -rf ${{runner.workspace}}/build && cmake -E make_directory ${{runner.workspace}}/build
@@ -276,7 +276,7 @@ jobs:
           run: sh $GITHUB_WORKSPACE/make_debian_package.sh ./build 'libfftw3-dev, libglfw3-dev, libvolk2-dev, librtaudio-dev' && mv sdrpp_debian_amd64.deb sdrpp_debian_armhf.deb
         
         - name: Save Deb Archive
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
               name: sdrpp_raspios_bullseye_armhf
               path: ${{runner.workspace}}/sdrpp_debian_armhf.deb
@@ -285,7 +285,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - uses: actions/checkout@v2
+        - uses: actions/checkout@v3
 
         - name: Fetch container
           working-directory: ${{runner.workspace}}
@@ -303,7 +303,7 @@ jobs:
           run: docker cp build:/root/SDRPlusPlus/android/app/build/outputs/apk/debug/app-debug.apk ./ && mv app-debug.apk sdrpp.apk
 
         - name: Save APK
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
               name: sdrpp_android
               path: ${{runner.workspace}}/sdrpp.apk
@@ -314,7 +314,7 @@ jobs:
 
         steps:
         - name: Download All Builds
-          uses: actions/download-artifact@v2
+          uses: actions/download-artifact@v3
 
         - name: Create Archive
           run: >
@@ -329,7 +329,7 @@ jobs:
             mv sdrpp_raspios_bullseye_armhf/sdrpp_debian_armhf.deb sdrpp_all/sdrpp_raspios_bullseye_armhf.deb &&
             mv sdrpp_android/sdrpp.apk sdrpp_all/sdrpp.apk
 
-        - uses: actions/upload-artifact@v2
+        - uses: actions/upload-artifact@v3
           with:
             name: sdrpp_all
             path: sdrpp_all/
@@ -338,7 +338,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - uses: actions/checkout@v2
+        - uses: actions/checkout@v3
 
         - name: Install codespell
           run: sudo apt update -y && sudo apt install -y codespell
@@ -350,7 +350,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - uses: actions/checkout@v2
+        - uses: actions/checkout@v3
         
         - name: Run check_clang_format
           run: cd $GITHUB_WORKSPACE && chmod +x ./check_clang_format.sh && ./check_clang_format.sh || true
