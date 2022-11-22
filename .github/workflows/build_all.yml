@@ -1,6 +1,12 @@
 name: Build Binaries
 
-on: [push]
+on:
+    push:
+        branches-ignore:
+        - nightly
+    pull_request:
+        branches-ignore:
+        - nightly
 
 env:
     # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
