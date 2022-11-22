@@ -344,21 +344,8 @@ jobs:
         - name: Download All Builds
           uses: actions/download-artifact@v3
 
-        - name: Create Archive
-          run: >
-            mkdir sdrpp_nightly && 
-            mv sdrpp_windows_x64/sdrpp_windows_x64.zip sdrpp_nightly/ && 
-            mv sdrpp_macos_intel/sdrpp_macos_intel.zip sdrpp_nightly/ && 
-            mv sdrpp_debian_buster_amd64/sdrpp_debian_amd64.deb sdrpp_nightly/sdrpp_debian_buster_amd64.deb && 
-            mv sdrpp_debian_bullseye_amd64/sdrpp_debian_amd64.deb sdrpp_nightly/sdrpp_debian_bullseye_amd64.deb && 
-            mv sdrpp_debian_sid_amd64/sdrpp_debian_amd64.deb sdrpp_nightly/sdrpp_debian_sid_amd64.deb && 
-            mv sdrpp_ubuntu_focal_amd64/sdrpp_debian_amd64.deb sdrpp_nightly/sdrpp_ubuntu_focal_amd64.deb &&
-            mv sdrpp_ubuntu_jammy_amd64/sdrpp_debian_amd64.deb sdrpp_nightly/sdrpp_ubuntu_jammy_amd64.deb &&
-            mv sdrpp_raspios_bullseye_armhf/sdrpp_debian_armhf.deb sdrpp_nightly/sdrpp_raspios_bullseye_armhf.deb &&
-            mv sdrpp_android/sdrpp.apk sdrpp_nightly/sdrpp.apk
-
         - name: Update Nightly
-          run: gh release upload nightly sdrpp_nightly/* -R ${{github.repository}} --clobber
+          run: gh release upload nightly sdrpp_all/* -R ${{github.repository}} --clobber
 
     check_spelling:
         runs-on: ubuntu-latest
