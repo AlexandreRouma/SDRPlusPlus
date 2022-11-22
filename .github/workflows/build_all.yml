@@ -358,7 +358,7 @@ jobs:
             mv sdrpp_android/sdrpp.apk sdrpp_nightly/sdrpp.apk
 
         - name: Update Nightly
-          run: gh release upload nightly sdrpp_nightly/* --clobber
+          run: gh release upload nightly sdrpp_nightly/* -R ${{github.repository}} --clobber
 
     check_spelling:
         runs-on: ubuntu-latest
