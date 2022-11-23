@@ -42,7 +42,7 @@ public:
 
         // Define option lists
         formats.define("WAV", wav::FORMAT_WAV);
-        formats.define("RF64", wav::FORMAT_RF64);
+        // formats.define("RF64", wav::FORMAT_RF64); // Disabled for now
         sampleDepths.define(wav::SAMP_DEPTH_8BIT, "8-Bit", wav::SAMP_DEPTH_8BIT);
         sampleDepths.define(wav::SAMP_DEPTH_16BIT, "16-Bit", wav::SAMP_DEPTH_16BIT);
         sampleDepths.define(wav::SAMP_DEPTH_32BIT, "32-Bit", wav::SAMP_DEPTH_32BIT);
@@ -98,6 +98,22 @@ public:
     }
 
     void postInit() {
+        // Enumerate streams
+        audioStreams.clear();
+        auto names = sigpath::sinkManager.getStreamNames();
+        for (const auto& name : names) {
+            audioStreams.define(name, name, name);
+        }
+
+        // Bind stream register/unregister handlers
+        onStreamRegisteredHandler.ctx = this;
+        onStreamRegisteredHandler.handler = streamRegisteredHandler;
+        sigpath::sinkManager.onStreamRegistered.bindHandler(&onStreamRegisteredHandler);
+        onStreamUnregisterHandler.ctx = this;
+        onStreamUnregisterHandler.handler = streamUnregisterHandler;
+        sigpath::sinkManager.onStreamUnregister.bindHandler(&onStreamUnregisterHandler);
+
+        // Select the stream
         selectStream(selectedStreamName);
     }
 
@@ -138,10 +154,8 @@ public:
         }
 
         // Open audio stream or baseband
-        // TODO: DO NOT HARDCODE THE STREAM NAME
         if (recMode == RECORDER_MODE_AUDIO) {
-            // TODO: HAS TO BE DONE PROPERLY
-            stereoStream = sigpath::sinkManager.bindStream("Radio");
+            stereoStream = sigpath::sinkManager.bindStream(selectedStreamName);
             stereoSink.setInput(stereoStream);
             stereoSink.start();
         }
@@ -164,7 +178,7 @@ public:
         if (recMode == RECORDER_MODE_AUDIO) {
             // TODO: HAS TO BE DONE PROPERLY
             stereoSink.stop();
-            sigpath::sinkManager.unbindStream("Radio", stereoStream);
+            sigpath::sinkManager.unbindStream(selectedStreamName, stereoStream);
         }
         else {
             // Unbind and destroy IQ stream
@@ -231,7 +245,16 @@ private:
         }
 
         // Show additional audio options
-        if (_this->recMode == RECORDER_MODE_AUDIO) {            
+        if (_this->recMode == RECORDER_MODE_AUDIO) {
+            ImGui::LeftLabel("Stream");
+            ImGui::FillWidth();
+            if (ImGui::Combo(CONCAT("##_recorder_stream_", _this->name), &_this->streamId, _this->audioStreams.txt)) {
+                _this->selectStream(_this->audioStreams.value(_this->streamId));
+                config.acquire();
+                config.conf[_this->name]["audioStream"] = _this->audioStreams.key(_this->streamId);
+                config.release(true);
+            }
+
             _this->updateAudioMeter(_this->audioLvl);
             ImGui::FillWidth();
             ImGui::VolumeMeter(_this->audioLvl.l, _this->audioLvl.l, -60, 10);
@@ -240,13 +263,11 @@ private:
 
             ImGui::FillWidth();
             if (ImGui::SliderFloat(CONCAT("##_recorder_vol_", _this->name), &_this->audioVolume, 0, 1, "")) {
-                // TODO: ADD VOLUME CONTROL
                 _this->volume.setVolume(_this->audioVolume);
                 config.acquire();
                 config.conf[_this->name]["audioVolume"] = _this->audioVolume;
                 config.release(true);
             }
-            //ImGui::PopItemWidth();
 
             if (_this->recording) { style::beginDisabled(); }
             if (ImGui::Checkbox(CONCAT("Stereo##_recorder_stereo_", _this->name), &_this->stereo)) {
@@ -286,20 +307,34 @@ private:
     void selectStream(std::string name) {
         std::lock_guard<std::recursive_mutex> lck(recMtx);
         deselectStream();
+
+        if (audioStreams.empty()) {
+            selectedStreamName.clear();
+            return;
+        }
+        else if (!audioStreams.keyExists(name)) {
+            selectStream(audioStreams.key(0));
+            return;
+        }
+
         audioStream = sigpath::sinkManager.bindStream(name);
         if (!audioStream) { return; }
         selectedStreamName = name;
+        streamId = audioStreams.keyId(name);
         volume.setInput(audioStream);
         startAudioPath();
     }
 
     void deselectStream() {
         std::lock_guard<std::recursive_mutex> lck(recMtx);
-        if (selectedStreamName.empty() || !audioStream) { return; }
+        if (selectedStreamName.empty() || !audioStream) {
+            selectedStreamName.clear();
+            return;
+        }
         if (recording && recMode == RECORDER_MODE_AUDIO) { stop(); }
         stopAudioPath();
         sigpath::sinkManager.unbindStream(selectedStreamName, audioStream);
-        selectedStreamName = "";
+        selectedStreamName.clear();
         audioStream = NULL;
     }
 
@@ -313,6 +348,36 @@ private:
         volume.stop();
         splitter.stop();
         meter.stop();
+    }
+
+    static void streamRegisteredHandler(std::string name, void* ctx) {
+        RecorderModule* _this = (RecorderModule*)ctx;
+
+        // Add new stream to the list
+        _this->audioStreams.define(name, name, name);
+
+        // If no stream is selected, select new stream. If not, update the menu ID. 
+        if (_this->selectedStreamName.empty()) {
+            _this->selectStream(name);
+        }
+        else {
+            _this->streamId = _this->audioStreams.keyId(_this->selectedStreamName);
+        }
+    }
+
+    static void streamUnregisterHandler(std::string name, void* ctx) {
+        RecorderModule* _this = (RecorderModule*)ctx;
+
+        // Remove stream from list
+        _this->audioStreams.undefineKey(name);
+
+        // If the stream is in used, deselect it and reselect default. Otherwise, update ID.
+        if (_this->selectedStreamName == name) {
+            _this->selectStream("");
+        }
+        else {
+            _this->streamId = _this->audioStreams.keyId(_this->selectedStreamName);
+        }
     }
 
     void updateAudioMeter(dsp::stereo_t& lvl) {
@@ -385,6 +450,8 @@ private:
     dsp::sink::Handler<dsp::stereo_t> stereoSink;
     dsp::sink::Handler<float> monoSink;
 
+    OptionList<std::string, std::string> audioStreams;
+    int streamId = 0;
     dsp::stream<dsp::stereo_t>* audioStream = NULL;
     dsp::audio::Volume volume;
     dsp::routing::Splitter<dsp::stereo_t> splitter;
@@ -392,6 +459,9 @@ private:
     dsp::bench::PeakLevelMeter<dsp::stereo_t> meter;
 
     uint64_t samplerate = 48000;
+
+    EventHandler<std::string> onStreamRegisteredHandler;
+    EventHandler<std::string> onStreamUnregisterHandler;
 
 };
 
