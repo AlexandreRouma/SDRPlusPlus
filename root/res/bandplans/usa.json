@@ -66,33 +66,9 @@
             "end": 5060000
         },
         {
-            "name": "60m Channel 1",
+            "name": "60m Ham Band",
             "type": "amateur",
             "start": 5330500,
-            "end": 5333500
-        },
-        {
-            "name": "60m Channel 2",
-            "type": "amateur",
-            "start": 5346500,
-            "end": 5349500
-        },
-        {
-            "name": "60m Channel 3",
-            "type": "amateur",
-            "start": 5357000,
-            "end": 5360000
-        },
-        {
-            "name": "60m Channel 4",
-            "type": "amateur",
-            "start": 5371500,
-            "end": 5374500
-        },
-        {
-            "name": "60m Channel 5",
-            "type": "amateur",
-            "start": 5403500,
             "end": 5406500
         },
         {
