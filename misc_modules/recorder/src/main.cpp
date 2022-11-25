@@ -135,7 +135,8 @@ public:
 
         // Configure the wav writer
         if (recMode == RECORDER_MODE_AUDIO) {
-            samplerate = sigpath::sinkManager.getStreamSampleRate("Radio");
+            if (selectedStreamName.empty()) { return; }
+            samplerate = sigpath::sinkManager.getStreamSampleRate(selectedStreamName);
         }
         else {
             samplerate = sigpath::iqFrontEnd.getSampleRate();
@@ -155,6 +156,7 @@ public:
 
         // Open audio stream or baseband
         if (recMode == RECORDER_MODE_AUDIO) {
+            // TODO: Select the stereo to mono converter if needed
             stereoStream = sigpath::sinkManager.bindStream(selectedStreamName);
             stereoSink.setInput(stereoStream);
             stereoSink.start();
