@@ -1,0 +1,200 @@
+#include "spectran_http_client.h"
+#include <spdlog/spdlog.h>
+#include <module.h>
+#include <gui/gui.h>
+#include <signal_path/signal_path.h>
+#include <core.h>
+#include <gui/style.h>
+#include <config.h>
+#include <gui/smgui.h>
+#include <gui/widgets/stepped_slider.h>
+#include <utils/optionlist.h>
+
+#define CONCAT(a, b) ((std::string(a) + b).c_str())
+
+SDRPP_MOD_INFO{
+    /* Name:            */ "spectran_http_source",
+    /* Description:     */ "Spectran V6 HTTP source module for SDR++",
+    /* Author:          */ "Ryzerth",
+    /* Version:         */ 0, 1, 0,
+    /* Max instances    */ 1
+};
+
+ConfigManager config;
+
+class SpectranHTTPSourceModule : public ModuleManager::Instance {
+public:
+    SpectranHTTPSourceModule(std::string name) {
+        this->name = name;
+
+        strcpy(hostname, "localhost");
+        sampleRate = 5000000.0;
+
+        handler.ctx = this;
+        handler.selectHandler = menuSelected;
+        handler.deselectHandler = menuDeselected;
+        handler.menuHandler = menuHandler;
+        handler.startHandler = start;
+        handler.stopHandler = stop;
+        handler.tuneHandler = tune;
+        handler.stream = &stream;
+
+        sigpath::sourceManager.registerSource("Spectran HTTP", &handler);
+    }
+
+    ~SpectranHTTPSourceModule() {
+        stop(this);
+        sigpath::sourceManager.unregisterSource("Spectran HTTP");
+    }
+
+    void postInit() {}
+
+    void enable() {
+        enabled = true;
+    }
+
+    void disable() {
+        enabled = false;
+    }
+
+    bool isEnabled() {
+        return enabled;
+    }
+
+    // TODO: Implement select functions
+
+private:
+    static void menuSelected(void* ctx) {
+        SpectranHTTPSourceModule* _this = (SpectranHTTPSourceModule*)ctx;
+        core::setInputSampleRate(_this->sampleRate);
+        spdlog::info("SpectranHTTPSourceModule '{0}': Menu Select!", _this->name);
+    }
+
+    static void menuDeselected(void* ctx) {
+        SpectranHTTPSourceModule* _this = (SpectranHTTPSourceModule*)ctx;
+        gui::mainWindow.playButtonLocked = false;
+        spdlog::info("SpectranHTTPSourceModule '{0}': Menu Deselect!", _this->name);
+    }
+
+    static void start(void* ctx) {
+        SpectranHTTPSourceModule* _this = (SpectranHTTPSourceModule*)ctx;
+        bool connected = (_this->client && _this->client->isOpen());
+        if (_this->running && connected) { return; }
+
+        // TODO: Start
+        _this->client->streaming(true);
+
+        // TODO: Set options
+
+        _this->running = true;
+        spdlog::info("SpectranHTTPSourceModule '{0}': Start!", _this->name);
+    }
+
+    static void stop(void* ctx) {
+        SpectranHTTPSourceModule* _this = (SpectranHTTPSourceModule*)ctx;
+        if (!_this->running) { return; }
+        _this->running = false;
+        
+        // TODO: Implement stop
+        _this->client->streaming(false);
+
+        spdlog::info("SpectranHTTPSourceModule '{0}': Stop!", _this->name);
+    }
+
+    static void tune(double freq, void* ctx) {
+        SpectranHTTPSourceModule* _this = (SpectranHTTPSourceModule*)ctx;
+        if (_this->running) {
+            // TODO
+        }
+        _this->freq = freq;
+        spdlog::info("SpectranHTTPSourceModule '{0}': Tune: {1}!", _this->name, freq);
+    }
+
+    static void menuHandler(void* ctx) {
+        SpectranHTTPSourceModule* _this = (SpectranHTTPSourceModule*)ctx;
+        float menuWidth = ImGui::GetContentRegionAvail().x;
+        bool connected = (_this->client && _this->client->isOpen());
+        gui::mainWindow.playButtonLocked = !connected;
+
+        if (connected) { SmGui::BeginDisabled(); }
+
+        if (ImGui::InputText(CONCAT("##spectran_http_host_", _this->name), _this->hostname, 1023)) {
+            config.acquire();
+            config.conf["hostname"] = _this->hostname;
+            config.release(true);
+        }
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::InputInt(CONCAT("##spectran_http_port_", _this->name), &_this->port, 0, 0)) {
+            config.acquire();
+            config.conf["port"] = _this->port;
+            config.release(true);
+        }
+
+        if (connected) { SmGui::EndDisabled(); }
+
+        if (_this->running) { style::beginDisabled(); }
+        if (!connected && ImGui::Button("Connect##spectran_http_source", ImVec2(menuWidth, 0))) {
+            _this->tryConnect();
+        }
+        else if (connected && ImGui::Button("Disconnect##spectran_http_source", ImVec2(menuWidth, 0))) {
+            _this->client->close();
+        }
+        if (_this->running) { style::endDisabled(); }
+
+        ImGui::TextUnformatted("Status:");
+        ImGui::SameLine();
+        if (connected) {
+            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Connected");
+        }
+        else {
+            ImGui::TextUnformatted("Not connected");
+        }
+    }
+
+    void tryConnect() {
+        try {
+            client = std::make_shared<SpectranHTTPClient>(hostname, port, &stream);
+        }
+        catch (std::runtime_error e) {
+            spdlog::error("Could not connect: {0}", e.what());
+        }
+    }
+
+    std::string name;
+    bool enabled = true;
+    double sampleRate;
+    SourceManager::SourceHandler handler;
+    bool running = false;
+
+    std::shared_ptr<SpectranHTTPClient> client;
+
+    double freq;
+
+    char hostname[1024];
+    int port = 80;
+    dsp::stream<dsp::complex_t> stream;
+
+};
+
+MOD_EXPORT void _INIT_() {
+    json def = json({});
+    def["devices"] = json({});
+    def["device"] = "";
+    config.setPath(core::args["root"].s() + "/spectran_http_config.json");
+    config.load(def);
+    config.enableAutoSave();
+}
+
+MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
+    return new SpectranHTTPSourceModule(name);
+}
+
+MOD_EXPORT void _DELETE_INSTANCE_(ModuleManager::Instance* instance) {
+    delete (SpectranHTTPSourceModule*)instance;
+}
+
+MOD_EXPORT void _END_() {
+    config.disableAutoSave();
+    config.save();
+}

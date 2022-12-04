@@ -153,7 +153,6 @@ namespace hermes {
 
         void worker();
 
-        bool open = true;
         double freq = 0;
 
         std::thread workerThread;

@@ -10,13 +10,12 @@ namespace hermes {
     }
 
     void Client::close() {
-        if (!open) { return; }
         sock->close();
 
         // Wait for worker to exit
+        out.stopWriter();
         if (workerThread.joinable()) { workerThread.join(); }
-
-        open = false;
+        out.clearWriteStop();
     }
 
     void Client::start() {
@@ -195,7 +194,7 @@ namespace hermes {
                     si = (si << 8) >> 8;
                     sq = (sq << 8) >> 8;
 
-                    // Convert to float (IQ swapper for some reason... 'I' means in-phase... :facepalm:)
+                    // Convert to float (IQ swapped for some reason)
                     out.writeBuf[i].im = (float)si / (float)0x1000000;
                     out.writeBuf[i].re = (float)sq / (float)0x1000000;
                 }
