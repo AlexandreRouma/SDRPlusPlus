@@ -36,7 +36,7 @@ public:
             return;
         }
 
-        sampleRate = 122000000.0/1.0;
+        sampleRate = 245760000.0/1.0;
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
@@ -161,7 +161,7 @@ private:
         AARTSAAPI_ConfigSetString(&_this->dev, &config, L"iq");
 
         AARTSAAPI_ConfigFind(&_this->dev, &_this->croot, &config, L"device/receiverclock");
-        AARTSAAPI_ConfigSetString(&_this->dev, &config, L"122MHz");
+        AARTSAAPI_ConfigSetString(&_this->dev, &config, L"245MHz");
 
         AARTSAAPI_ConfigFind(&_this->dev, &_this->croot, &config, L"main/decimation");
         AARTSAAPI_ConfigSetString(&_this->dev, &config, L"Full");
@@ -285,18 +285,30 @@ private:
         while (true) {
             // Get next packet
             while ((res = AARTSAAPI_GetPacket(&dev, 0, 0, &pkt)) == AARTSAAPI_EMPTY) {
-                std::this_thread::sleep_for(std::chrono::microseconds(100));
+#ifdef _WIN32
+                Sleep(1);
+#else
+                usleep(1000);
+#endif
             }
 
             // If there was an error, return
             if (res != AARTSAAPI_OK) { break; }
 
-            // Consume packet
-            AARTSAAPI_ConsumePackets(&dev, 0, 1);
+            if (pkt.num > STREAM_BUFFER_SIZE) {
+                spdlog::error("Buffer too big!!!!");
+                continue;
+            }
 
             // Write data
             memcpy(stream.writeBuf, pkt.fp32, pkt.num * sizeof(dsp::complex_t));
-            if (!stream.swap(pkt.num)) { break; }
+            if (!stream.swap(pkt.num)) {
+                AARTSAAPI_ConsumePackets(&dev, 0, 1);
+                break;
+            }
+
+            // Consume packet
+            AARTSAAPI_ConsumePackets(&dev, 0, 1);
         }
     }
 
