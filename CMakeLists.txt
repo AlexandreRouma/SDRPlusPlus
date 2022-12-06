@@ -40,6 +40,7 @@ option(OPT_BUILD_RTL_SDR_SOURCE "Build RTL-SDR Source Module (Dependencies: libr
 option(OPT_BUILD_RTL_TCP_SOURCE "Build RTL-TCP Source Module (no dependencies required)" ON)
 option(OPT_BUILD_SDRPLAY_SOURCE "Build SDRplay Source Module (Dependencies: libsdrplay)" OFF)
 option(OPT_BUILD_SOAPY_SOURCE "Build SoapySDR Source Module (Dependencies: soapysdr)" ON)
+option(OPT_BUILD_SPECTRAN_SOURCE "Build Spectran Source Module (Dependencies: Aaronia RTSA Suite)" OFF)
 option(OPT_BUILD_SPECTRAN_HTTP_SOURCE "Build Spectran HTTP Source Module (no dependencies required)" ON)
 option(OPT_BUILD_SPYSERVER_SOURCE "Build SpyServer Source Module (no dependencies required)" ON)
 option(OPT_BUILD_PLUTOSDR_SOURCE "Build PlutoSDR Source Module (Dependencies: libiio, libad9361)" ON)
@@ -129,6 +130,10 @@ endif (OPT_BUILD_SDRPLAY_SOURCE)
 if (OPT_BUILD_SOAPY_SOURCE)
 add_subdirectory("source_modules/soapy_source")
 endif (OPT_BUILD_SOAPY_SOURCE)
+
+if (OPT_BUILD_SPECTRAN_SOURCE)
+add_subdirectory("source_modules/spectran_source")
+endif (OPT_BUILD_SPECTRAN_SOURCE)
 
 if (OPT_BUILD_SPECTRAN_HTTP_SOURCE)
 add_subdirectory("source_modules/spectran_http_source")

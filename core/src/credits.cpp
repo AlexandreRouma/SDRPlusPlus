@@ -36,6 +36,7 @@ namespace sdrpp_credits {
     };
 
     const char* hardwareDonators[] = {
+        "Aaronia AG",
         "Airspy",
         "Analog Devices",
         "CaribouLabs",

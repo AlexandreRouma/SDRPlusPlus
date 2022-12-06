@@ -28,7 +28,7 @@ public:
         this->name = name;
 
         strcpy(hostname, "localhost");
-        sampleRate = 5000000.0;
+        sampleRate = 41000000.0;
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
