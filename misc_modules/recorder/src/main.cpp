@@ -43,13 +43,14 @@ public:
         // Define option lists
         formats.define("WAV", wav::FORMAT_WAV);
         // formats.define("RF64", wav::FORMAT_RF64); // Disabled for now
-        sampleDepths.define(wav::SAMP_DEPTH_8BIT, "8-Bit", wav::SAMP_DEPTH_8BIT);
-        sampleDepths.define(wav::SAMP_DEPTH_16BIT, "16-Bit", wav::SAMP_DEPTH_16BIT);
-        sampleDepths.define(wav::SAMP_DEPTH_32BIT, "32-Bit", wav::SAMP_DEPTH_32BIT);
+        sampleTypes.define(wav::SAMP_TYPE_UINT8, "Uint8", wav::SAMP_TYPE_UINT8);
+        sampleTypes.define(wav::SAMP_TYPE_INT16, "Int16", wav::SAMP_TYPE_INT16);
+        sampleTypes.define(wav::SAMP_TYPE_INT32, "Int32", wav::SAMP_TYPE_INT32);
+        sampleTypes.define(wav::SAMP_TYPE_FLOAT32, "Float32", wav::SAMP_TYPE_FLOAT32);
 
         // Load default config for option lists
         formatId = formats.valueId(wav::FORMAT_WAV);
-        sampleDepthId = sampleDepths.valueId(wav::SAMP_DEPTH_16BIT);
+        sampleTypeId = sampleTypes.valueId(wav::SAMP_TYPE_INT16);
 
         // Load config
         config.acquire();
@@ -62,8 +63,8 @@ public:
         if (config.conf[name].contains("format") && formats.keyExists(config.conf[name]["format"])) {
             formatId = formats.keyId(config.conf[name]["format"]);
         }
-        if (config.conf[name].contains("sampleDepth") && sampleDepths.keyExists(config.conf[name]["sampleDepth"])) {
-            sampleDepthId = sampleDepths.keyId(config.conf[name]["sampleDepth"]);
+        if (config.conf[name].contains("sampleType") && sampleTypes.keyExists(config.conf[name]["sampleType"])) {
+            sampleTypeId = sampleTypes.keyId(config.conf[name]["sampleType"]);
         }
         if (config.conf[name].contains("audioStream")) {
             selectedStreamName = config.conf[name]["audioStream"];
@@ -143,7 +144,7 @@ public:
         }
         writer.setFormat(formats[formatId]);
         writer.setChannels((recMode == RECORDER_MODE_AUDIO && !stereo) ? 1 : 2);
-        writer.setSampleDepth(sampleDepths[sampleDepthId]);
+        writer.setSampleType(sampleTypes[sampleTypeId]);
         writer.setSamplerate(samplerate);
 
         // Open file
@@ -238,11 +239,11 @@ private:
             config.release(true);
         }
 
-        ImGui::LeftLabel("Sample depth");
+        ImGui::LeftLabel("Sample type");
         ImGui::FillWidth();
-        if (ImGui::Combo(CONCAT("##_recorder_bits_", _this->name), &_this->sampleDepthId, _this->sampleDepths.txt)) {
+        if (ImGui::Combo(CONCAT("##_recorder_st_", _this->name), &_this->sampleTypeId, _this->sampleTypes.txt)) {
             config.acquire();
-            config.conf[_this->name]["sampleDepth"] = _this->sampleDepths.key(_this->sampleDepthId);
+            config.conf[_this->name]["sampleType"] = _this->sampleTypes.key(_this->sampleTypeId);
             config.release(true);
         }
 
@@ -431,12 +432,12 @@ private:
     std::string root;
 
     OptionList<std::string, wav::Format> formats;
-    OptionList<int, wav::SampleDepth> sampleDepths;
+    OptionList<int, wav::SampleType> sampleTypes;
     FolderSelect folderSelect;
 
     int recMode = RECORDER_MODE_AUDIO;
     int formatId;
-    int sampleDepthId;
+    int sampleTypeId;
     bool stereo = true;
     std::string selectedStreamName = "";
     float audioVolume = 1.0f;

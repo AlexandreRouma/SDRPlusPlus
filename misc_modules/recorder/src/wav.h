@@ -12,7 +12,7 @@ namespace wav {
         char fileType[4];               // "WAVE"
         char formatMarker[4];           // "fmt "
         uint32_t formatHeaderLength;    // Always 16
-        uint16_t sampleType;            // PCM (1)
+        uint16_t codec;                 // PCM (1)
         uint16_t channelCount;
         uint32_t sampleRate;
         uint32_t bytesPerSecond;
@@ -28,15 +28,21 @@ namespace wav {
         FORMAT_RF64
     };
 
-    enum SampleDepth {
-        SAMP_DEPTH_8BIT     = 8,
-        SAMP_DEPTH_16BIT    = 16,
-        SAMP_DEPTH_32BIT    = 32
+    enum SampleType {
+        SAMP_TYPE_UINT8,
+        SAMP_TYPE_INT16,
+        SAMP_TYPE_INT32,
+        SAMP_TYPE_FLOAT32
+    };
+
+    enum Codec {
+        CODEC_PCM   = 1,
+        CODEC_FLOAT = 3
     };
 
     class Writer {
     public:
-        Writer(int channels = 2, uint64_t samplerate = 48000, Format format = FORMAT_WAV, SampleDepth depth = SAMP_DEPTH_16BIT);
+        Writer(int channels = 2, uint64_t samplerate = 48000, Format format = FORMAT_WAV, SampleType type = SAMP_TYPE_INT16);
         ~Writer();
 
         bool open(std::string path);
@@ -46,7 +52,7 @@ namespace wav {
         void setChannels(int channels);
         void setSamplerate(uint64_t samplerate);
         void setFormat(Format format);
-        void setSampleDepth(SampleDepth depth);
+        void setSampleType(SampleType type);
 
         size_t getSamplesWritten() { return samplesWritten; }
 
@@ -63,12 +69,12 @@ namespace wav {
         int _channels;
         uint64_t _samplerate;
         Format _format;
-        SampleDepth _depth;
+        SampleType _type;
         size_t bytesPerSamp;
 
-        int8_t* buf8;
-        int16_t* buf16;
-        int32_t* buf32;
+        uint8_t* bufU8 = NULL;
+        int16_t* bufI16 = NULL;
+        int32_t* bufI32 = NULL;
         size_t samplesWritten = 0;
     };
 }
