@@ -35,6 +35,14 @@ public:
             return;
         }
 
+        compList.define("Auto", L"auto");
+        compList.define("Raw", L"raw");
+        compList.define("Compressed", L"compressed");
+
+        agcModeList.define("Off", L"manual");
+        agcModeList.define("Peak", L"peak");
+        agcModeList.define("Power", L"power");
+
         samplerate.effective = 1000000.0;
 
         handler.ctx = this;
@@ -165,6 +173,13 @@ public:
 
         // Default config
         srId = 0;
+        compId = 0;
+        agcModeId = 0;
+        refLevel = -20.0;
+        amp = false;
+        preAmp = false;
+
+        // TODO: Load config
 
         // Set samplerate
         samplerate = sampleRateList.value(srId);
@@ -215,6 +230,12 @@ private:
         AARTSAAPI_Config config;
         AARTSAAPI_ConfigRoot(&_this->dev, &_this->croot);
 
+        AARTSAAPI_ConfigFind(&_this->dev, &_this->croot, &config, L"device/usbcompression");
+        AARTSAAPI_ConfigSetString(&_this->dev, &config, _this->compList[_this->compId].c_str());
+
+        AARTSAAPI_ConfigFind(&_this->dev, &_this->croot, &config, L"device/gaincontrol");
+        AARTSAAPI_ConfigSetString(&_this->dev, &config, _this->agcModeList[_this->agcModeId].c_str());
+
         AARTSAAPI_ConfigFind(&_this->dev, &_this->croot, &config, L"device/receiverchannel");
         AARTSAAPI_ConfigSetString(&_this->dev, &config, L"Rx1");
 
@@ -231,7 +252,7 @@ private:
         AARTSAAPI_ConfigSetFloat(&_this->dev, &config, _this->freq);
 
         AARTSAAPI_ConfigFind(&_this->dev, &_this->croot, &config, L"main/reflevel");
-        AARTSAAPI_ConfigSetFloat(&_this->dev, &config, -20.0);
+        AARTSAAPI_ConfigSetFloat(&_this->dev, &config, _this->refLevel);
 
         AARTSAAPI_ConfigFind(&_this->dev, &_this->croot, &config, L"calibration/rffilter");
         AARTSAAPI_ConfigSetString(&_this->dev, &config, L"Auto Extended");
@@ -250,7 +271,13 @@ private:
 
         // Wait for first packet
         AARTSAAPI_Packet pkt = { sizeof(AARTSAAPI_Packet) };
-        while (AARTSAAPI_GetPacket(&_this->dev, 0, 0, &pkt) == AARTSAAPI_EMPTY) { Sleep(1); }
+        while (AARTSAAPI_GetPacket(&_this->dev, 0, 0, &pkt) == AARTSAAPI_EMPTY) {
+#ifdef _WIN32
+                Sleep(1);
+#else
+                usleep(1000);
+#endif
+        }
 
         _this->workerThread = std::thread(&SpectranSourceModule::worker, _this);
 
@@ -315,31 +342,48 @@ private:
 
         if (_this->running) { SmGui::EndDisabled(); }
 
+        SmGui::LeftLabel("USB Compression");
+        SmGui::FillWidth();
+        if (ImGui::Combo(CONCAT("##_spectran_comp_", _this->name), &_this->compId, _this->compList.txt)) {
+            if (_this->running) {
+                AARTSAAPI_Config config;
+                AARTSAAPI_ConfigFind(&_this->dev, &_this->croot, &config, L"device/usbcompression");
+                AARTSAAPI_ConfigSetString(&_this->dev, &config, _this->compList[_this->compId].c_str());
+            }
+        }
+
+        SmGui::LeftLabel("AGC Mode");
+        SmGui::FillWidth();
+        if (ImGui::Combo(CONCAT("##_spectran_agc_", _this->name), &_this->agcModeId, _this->agcModeList.txt)) {
+            if (_this->running) {
+                AARTSAAPI_Config config;
+                AARTSAAPI_ConfigFind(&_this->dev, &_this->croot, &config, L"device/gaincontrol");
+                AARTSAAPI_ConfigSetString(&_this->dev, &config, _this->agcModeList[_this->agcModeId].c_str());
+            }
+        }
+        
+        if (_this->agcModeId) { SmGui::BeginDisabled(); }
+        SmGui::LeftLabel("Ref Level");
+        SmGui::FillWidth();
+        if (SmGui::SliderFloatWithSteps(CONCAT("##_spectran_ref_", _this->name), &_this->refLevel, -20.0f, 10.0f, 0.5f, SmGui::FMT_STR_FLOAT_DB_ONE_DECIMAL)) {
+            if (_this->running) {
+                AARTSAAPI_Config config;
+                AARTSAAPI_ConfigFind(&_this->dev, &_this->croot, &config, L"main/reflevel");
+                AARTSAAPI_ConfigSetFloat(&_this->dev, &config, _this->refLevel);
+            }
+        }
+        if (_this->agcModeId) { SmGui::EndDisabled(); }
+
         if (ImGui::Checkbox(CONCAT("Amp##_spectran_amp_", _this->name), &_this->amp)) {
-            _this->updateAmps();
+            if (_this->running) {
+                _this->updateAmps();
+            }
         }
 
-        if (ImGui::Checkbox(CONCAT("Preamp##_spectran_preamp_", _this->name), &_this->preamp)) {
-            _this->updateAmps();
-        }
-
-        // TODO: Device options
-    }
-
-    void updateAmps() {
-        AARTSAAPI_Config config;
-        AARTSAAPI_ConfigFind(&dev, &croot, &config, L"calibration/preamp");
-        if (amp && preamp) {
-            AARTSAAPI_ConfigSetString(&dev, &config, L"Both");
-        }
-        else if (amp) {
-            AARTSAAPI_ConfigSetString(&dev, &config, L"Amp");
-        }
-        else if (preamp) {
-            AARTSAAPI_ConfigSetString(&dev, &config, L"Preamp");
-        }
-        else {
-            AARTSAAPI_ConfigSetString(&dev, &config, L"None");
+        if (ImGui::Checkbox(CONCAT("Preamp##_spectran_preamp_", _this->name), &_this->preAmp)) {
+            if (_this->running) {
+                _this->updateAmps();
+            }
         }
     }
 
@@ -377,6 +421,23 @@ private:
         }
     }
 
+    void updateAmps() {
+        AARTSAAPI_Config config;
+        AARTSAAPI_ConfigFind(&dev, &croot, &config, L"calibration/preamp");
+        if (amp && preAmp) {
+            AARTSAAPI_ConfigSetString(&dev, &config, L"Both");
+        }
+        else if (amp) {
+            AARTSAAPI_ConfigSetString(&dev, &config, L"Amp");
+        }
+        else if (preAmp) {
+            AARTSAAPI_ConfigSetString(&dev, &config, L"Preamp");
+        }
+        else {
+            AARTSAAPI_ConfigSetString(&dev, &config, L"None");
+        }
+    }
+
     const double clockRates[4] = {
         92160000.0,
         122880000.0,
@@ -410,8 +471,11 @@ private:
     std::string selectedSerial;
     int devId = 0;
     int srId = 0;
+    int compId = 0;
+    int agcModeId = 0;
+    float refLevel = -20.0f;
     bool amp = false;
-    bool preamp = false;
+    bool preAmp = false;
 
     struct SRCombo {
         bool operator==(const SRCombo& b) {
@@ -427,6 +491,8 @@ private:
 
     OptionList<std::string, std::wstring> devList;
     OptionList<std::string, SRCombo> sampleRateList;
+    OptionList<std::string, std::wstring> compList;
+    OptionList<std::string, std::wstring> agcModeList;
 
     AARTSAAPI_Handle api;
     AARTSAAPI_Device dev;
