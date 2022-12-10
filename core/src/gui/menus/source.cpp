@@ -31,6 +31,7 @@ namespace sourcemenu {
         OFFSET_MODE_DK5AV_XB,
         OFFSET_MODE_KU_LNB_9750,
         OFFSET_MODE_KU_LNB_10700,
+        OFFSET_MODE_MMDS_CONVERTER_1998,
         _OFFSET_MODE_COUNT
     };
 
@@ -40,7 +41,8 @@ namespace sourcemenu {
                                  "Ham-It-Up\0"
                                  "DK5AV X-Band\0"
                                  "Ku LNB (9750MHz)\0"
-                                 "Ku LNB (10700MHz)\0";
+                                 "Ku LNB (10700MHz)\0"
+                                 "MMDS Converter (1998MHz)\0";
 
     const char* decimationStages = "None\0"
                                    "2\0"
@@ -67,6 +69,9 @@ namespace sourcemenu {
         else if (offsetMode == OFFSET_MODE_KU_LNB_10700) {
             effectiveOffset = -10700000000;
         } // 10.7GHz Down-conversion
+        else if (offsetMode == OFFSET_MODE_MMDS_CONVERTER_1998) {
+            effectiveOffset = -1998000000;
+        }
         else {
             effectiveOffset = 0;
         }
