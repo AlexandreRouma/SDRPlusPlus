@@ -112,20 +112,19 @@ private:
 
     static void menuHandler(void* ctx) {
         SpectranHTTPSourceModule* _this = (SpectranHTTPSourceModule*)ctx;
-        float menuWidth = ImGui::GetContentRegionAvail().x;
         bool connected = (_this->client && _this->client->isOpen());
         gui::mainWindow.playButtonLocked = !connected;
 
         if (connected) { SmGui::BeginDisabled(); }
 
-        if (ImGui::InputText(CONCAT("##spectran_http_host_", _this->name), _this->hostname, 1023)) {
+        if (SmGui::InputText(CONCAT("##spectran_http_host_", _this->name), _this->hostname, 1023)) {
             config.acquire();
             config.conf["hostname"] = _this->hostname;
             config.release(true);
         }
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::InputInt(CONCAT("##spectran_http_port_", _this->name), &_this->port, 0, 0)) {
+        SmGui::SameLine();
+        SmGui::FillWidth();
+        if (SmGui::InputInt(CONCAT("##spectran_http_port_", _this->name), &_this->port, 0, 0)) {
             config.acquire();
             config.conf["port"] = _this->port;
             config.release(true);
@@ -134,21 +133,22 @@ private:
         if (connected) { SmGui::EndDisabled(); }
 
         if (_this->running) { style::beginDisabled(); }
-        if (!connected && ImGui::Button("Connect##spectran_http_source", ImVec2(menuWidth, 0))) {
+        SmGui::FillWidth();
+        if (!connected && SmGui::Button("Connect##spectran_http_source")) {
             _this->tryConnect();
         }
-        else if (connected && ImGui::Button("Disconnect##spectran_http_source", ImVec2(menuWidth, 0))) {
+        else if (connected && SmGui::Button("Disconnect##spectran_http_source")) {
             _this->client->close();
         }
         if (_this->running) { style::endDisabled(); }
 
-        ImGui::TextUnformatted("Status:");
-        ImGui::SameLine();
+        SmGui::Text("Status:");
+        SmGui::SameLine();
         if (connected) {
-            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Connected");
+            SmGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Connected");
         }
         else {
-            ImGui::TextUnformatted("Not connected");
+            SmGui::Text("Not connected");
         }
     }
 

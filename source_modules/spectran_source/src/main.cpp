@@ -43,6 +43,12 @@ public:
         agcModeList.define("Peak", L"peak");
         agcModeList.define("Power", L"power");
 
+        clockList.define("Consumer", L"Consumer");
+        clockList.define("Internal", L"Oscillator");
+        clockList.define("GPSDO", L"GPS");
+        clockList.define("PPS", L"PPS");
+        clockList.define("10MHz Ref", L"10MHz");
+
         samplerate.effective = 1000000.0;
 
         handler.ctx = this;
@@ -322,11 +328,11 @@ private:
 
         SmGui::FillWidth();
         SmGui::ForceSync();
-        if (ImGui::Combo(CONCAT("##_spectran_dev_", _this->name), &_this->devId, _this->devList.txt)) {
+        if (SmGui::Combo(CONCAT("##_spectran_dev_", _this->name), &_this->devId, _this->devList.txt)) {
             
         }
         // TODO: SR sel
-        if (ImGui::Combo(CONCAT("##_spectran_sr_", _this->name), &_this->srId, _this->sampleRateList.txt)) {
+        if (SmGui::Combo(CONCAT("##_spectran_sr_", _this->name), &_this->srId, _this->sampleRateList.txt)) {
             _this->samplerate = _this->sampleRateList.value(_this->srId);
             core::setInputSampleRate(_this->samplerate.effective);
         }
@@ -344,7 +350,7 @@ private:
 
         SmGui::LeftLabel("USB Compression");
         SmGui::FillWidth();
-        if (ImGui::Combo(CONCAT("##_spectran_comp_", _this->name), &_this->compId, _this->compList.txt)) {
+        if (SmGui::Combo(CONCAT("##_spectran_comp_", _this->name), &_this->compId, _this->compList.txt)) {
             if (_this->running) {
                 AARTSAAPI_Config config;
                 AARTSAAPI_ConfigFind(&_this->dev, &_this->croot, &config, L"device/usbcompression");
@@ -354,7 +360,7 @@ private:
 
         SmGui::LeftLabel("AGC Mode");
         SmGui::FillWidth();
-        if (ImGui::Combo(CONCAT("##_spectran_agc_", _this->name), &_this->agcModeId, _this->agcModeList.txt)) {
+        if (SmGui::Combo(CONCAT("##_spectran_agc_", _this->name), &_this->agcModeId, _this->agcModeList.txt)) {
             if (_this->running) {
                 AARTSAAPI_Config config;
                 AARTSAAPI_ConfigFind(&_this->dev, &_this->croot, &config, L"device/gaincontrol");
@@ -374,13 +380,13 @@ private:
         }
         if (_this->agcModeId) { SmGui::EndDisabled(); }
 
-        if (ImGui::Checkbox(CONCAT("Amp##_spectran_amp_", _this->name), &_this->amp)) {
+        if (SmGui::Checkbox(CONCAT("Amp##_spectran_amp_", _this->name), &_this->amp)) {
             if (_this->running) {
                 _this->updateAmps();
             }
         }
 
-        if (ImGui::Checkbox(CONCAT("Preamp##_spectran_preamp_", _this->name), &_this->preAmp)) {
+        if (SmGui::Checkbox(CONCAT("Preamp##_spectran_preamp_", _this->name), &_this->preAmp)) {
             if (_this->running) {
                 _this->updateAmps();
             }
@@ -493,6 +499,7 @@ private:
     OptionList<std::string, SRCombo> sampleRateList;
     OptionList<std::string, std::wstring> compList;
     OptionList<std::string, std::wstring> agcModeList;
+    OptionList<std::string, std::wstring> clockList;
 
     AARTSAAPI_Handle api;
     AARTSAAPI_Device dev;
