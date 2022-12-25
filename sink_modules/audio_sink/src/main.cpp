@@ -186,8 +186,10 @@ private:
         stereoPacker.stop();
         monoPacker.out.stopReader();
         stereoPacker.out.stopReader();
-        audio.stopStream();
-        audio.closeStream();
+        if (audio.isStreamRunning())
+            audio.stopStream();
+        if (audio.isStreamOpen())
+            audio.closeStream();
         monoPacker.out.clearReadStop();
         stereoPacker.out.clearReadStop();
     }
