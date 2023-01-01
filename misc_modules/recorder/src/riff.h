@@ -1,4 +1,5 @@
 #pragma once
+#include <mutex>
 #include <fstream>
 #include <string>
 #include <stack>
@@ -19,22 +20,23 @@ namespace riff {
 
     class Writer {
     public:
-        bool open(std::string path, char form[4]);
+        bool open(std::string path, const char form[4]);
         bool isOpen();
         void close();
 
-        void beginList();
+        void beginList(const char id[4]);
         void endList();
 
-        void beginChunk(char id[4]);
+        void beginChunk(const char id[4]);
         void endChunk();
 
-        void write(void* data, size_t len);
+        void write(const uint8_t* data, size_t len);
 
     private:
-        void beginRIFF(char form[4]);
+        void beginRIFF(const char form[4]);
         void endRIFF();
 
+        std::recursive_mutex mtx;
         std::ofstream file;
         std::stack<ChunkDesc> chunks;
     };

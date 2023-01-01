@@ -3,23 +3,17 @@
 #include <fstream>
 #include <stdint.h>
 #include <mutex>
+#include "riff.h"
 
 namespace wav {    
     #pragma pack(push, 1)
-    struct Header {
-        char signature[4];              // "RIFF"
-        uint32_t fileSize;              // data bytes + sizeof(WavHeader_t) - 8
-        char fileType[4];               // "WAVE"
-        char formatMarker[4];           // "fmt "
-        uint32_t formatHeaderLength;    // Always 16
-        uint16_t codec;                 // PCM (1)
+    struct FormatHeader {
+        uint16_t codec;
         uint16_t channelCount;
         uint32_t sampleRate;
         uint32_t bytesPerSecond;
         uint16_t bytesPerSample;
         uint16_t bitDepth;
-        char dataMarker[4];             // "data"
-        uint32_t dataSize;
     };
     #pragma pack(pop)
 
@@ -59,12 +53,9 @@ namespace wav {
         void write(float* samples, int count);
 
     private:
-        void finalize();
-        
         std::recursive_mutex mtx;
-        std::ofstream file;
-        Header hdr;
-        bool _isOpen = false;
+        FormatHeader hdr;
+        riff::Writer rw;
 
         int _channels;
         uint64_t _samplerate;

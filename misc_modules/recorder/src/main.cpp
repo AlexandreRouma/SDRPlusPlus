@@ -7,6 +7,7 @@
 #include <dsp/sink/handler_sink.h>
 #include <dsp/routing/splitter.h>
 #include <dsp/audio/volume.h>
+#include <dsp/convert/stereo_to_mono.h>
 #include <thread>
 #include <ctime>
 #include <gui/gui.h>
@@ -41,15 +42,15 @@ public:
         root = (std::string)core::args["root"];
 
         // Define option lists
-        formats.define("WAV", wav::FORMAT_WAV);
-        // formats.define("RF64", wav::FORMAT_RF64); // Disabled for now
+        containers.define("WAV", wav::FORMAT_WAV);
+        // containers.define("RF64", wav::FORMAT_RF64); // Disabled for now
         sampleTypes.define(wav::SAMP_TYPE_UINT8, "Uint8", wav::SAMP_TYPE_UINT8);
         sampleTypes.define(wav::SAMP_TYPE_INT16, "Int16", wav::SAMP_TYPE_INT16);
         sampleTypes.define(wav::SAMP_TYPE_INT32, "Int32", wav::SAMP_TYPE_INT32);
         sampleTypes.define(wav::SAMP_TYPE_FLOAT32, "Float32", wav::SAMP_TYPE_FLOAT32);
 
         // Load default config for option lists
-        formatId = formats.valueId(wav::FORMAT_WAV);
+        containerId = containers.valueId(wav::FORMAT_WAV);
         sampleTypeId = sampleTypes.valueId(wav::SAMP_TYPE_INT16);
 
         // Load config
@@ -60,8 +61,8 @@ public:
         if (config.conf[name].contains("recPath")) {
             folderSelect.setPath(config.conf[name]["recPath"]);
         }
-        if (config.conf[name].contains("format") && formats.keyExists(config.conf[name]["format"])) {
-            formatId = formats.keyId(config.conf[name]["format"]);
+        if (config.conf[name].contains("format") && containers.keyExists(config.conf[name]["format"])) {
+            containerId = containers.keyId(config.conf[name]["format"]);
         }
         if (config.conf[name].contains("sampleType") && sampleTypes.keyExists(config.conf[name]["sampleType"])) {
             sampleTypeId = sampleTypes.keyId(config.conf[name]["sampleType"]);
@@ -82,11 +83,12 @@ public:
         splitter.init(&volume.out);
         splitter.bindStream(&meterStream);
         meter.init(&meterStream);
+        s2m.init(NULL);
 
         // Init sinks
         basebandSink.init(NULL, complexHandler, this);
         stereoSink.init(NULL, stereoHandler, this);
-        monoSink.init(NULL, monoHandler, this);
+        monoSink.init(&s2m.out, monoHandler, this);
 
         gui::menu.registerEntry(name, menuHandler, this);
     }
@@ -142,7 +144,7 @@ public:
         else {
             samplerate = sigpath::iqFrontEnd.getSampleRate();
         }
-        writer.setFormat(formats[formatId]);
+        writer.setFormat(containers[containerId]);
         writer.setChannels((recMode == RECORDER_MODE_AUDIO && !stereo) ? 1 : 2);
         writer.setSampleType(sampleTypes[sampleTypeId]);
         writer.setSamplerate(samplerate);
@@ -159,8 +161,15 @@ public:
         if (recMode == RECORDER_MODE_AUDIO) {
             // TODO: Select the stereo to mono converter if needed
             stereoStream = sigpath::sinkManager.bindStream(selectedStreamName);
-            stereoSink.setInput(stereoStream);
-            stereoSink.start();
+            if (stereo) {
+                stereoSink.setInput(stereoStream);
+                stereoSink.start();
+            }
+            else {
+                s2m.setInput(stereoStream);
+                s2m.start();
+                monoSink.start();
+            }
         }
         else {
             // Create and bind IQ stream
@@ -179,8 +188,10 @@ public:
 
         // Close audio stream or baseband
         if (recMode == RECORDER_MODE_AUDIO) {
-            // TODO: HAS TO BE DONE PROPERLY
+            // NOTE: Has to be done before the unbind since the stream is deleted...
+            monoSink.stop();
             stereoSink.stop();
+            s2m.stop();
             sigpath::sinkManager.unbindStream(selectedStreamName, stereoStream);
         }
         else {
@@ -231,11 +242,11 @@ private:
             }
         }
 
-        ImGui::LeftLabel("WAV Format");
+        ImGui::LeftLabel("Container");
         ImGui::FillWidth();
-        if (ImGui::Combo(CONCAT("##_recorder_wav_fmt_", _this->name), &_this->formatId, _this->formats.txt)) {
+        if (ImGui::Combo(CONCAT("##_recorder_container_", _this->name), &_this->containerId, _this->containers.txt)) {
             config.acquire();
-            config.conf[_this->name]["format"] = _this->formats.key(_this->formatId);
+            config.conf[_this->name]["container"] = _this->containers.key(_this->containerId);
             config.release(true);
         }
 
@@ -431,12 +442,12 @@ private:
     bool enabled = true;
     std::string root;
 
-    OptionList<std::string, wav::Format> formats;
+    OptionList<std::string, wav::Format> containers;
     OptionList<int, wav::SampleType> sampleTypes;
     FolderSelect folderSelect;
 
     int recMode = RECORDER_MODE_AUDIO;
-    int formatId;
+    int containerId;
     int sampleTypeId;
     bool stereo = true;
     std::string selectedStreamName = "";
@@ -460,6 +471,7 @@ private:
     dsp::routing::Splitter<dsp::stereo_t> splitter;
     dsp::stream<dsp::stereo_t> meterStream;
     dsp::bench::PeakLevelMeter<dsp::stereo_t> meter;
+    dsp::convert::StereoToMono s2m;
 
     uint64_t samplerate = 48000;
 

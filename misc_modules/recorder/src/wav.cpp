@@ -6,7 +6,6 @@
 #include <map>
 
 namespace wav {
-    const char* RIFF_SIGNATURE          = "RIFF";
     const char* WAVE_FILE_TYPE          = "WAVE";
     const char* FORMAT_MARKER           = "fmt ";
     const char* DATA_MARKER             = "data";
@@ -30,13 +29,6 @@ namespace wav {
         _samplerate = samplerate;
         _format = format;
         _type = type;
-
-        // Initialize header with constants
-        memcpy(hdr.signature, RIFF_SIGNATURE, 4);
-        memcpy(hdr.fileType, WAVE_FILE_TYPE, 4);
-        memcpy(hdr.formatMarker, FORMAT_MARKER, 4);
-        hdr.formatHeaderLength = FORMAT_HEADER_LEN;
-        memcpy(hdr.dataMarker, DATA_MARKER, 4);
     }
 
     Writer::~Writer() { close(); }
@@ -44,14 +36,21 @@ namespace wav {
     bool Writer::open(std::string path) {
         std::lock_guard<std::recursive_mutex> lck(mtx);
         // Close previous file
-        if (_isOpen) { close(); }
+        if (rw.isOpen()) { close(); }
 
         // Reset work values
         samplesWritten = 0;
 
+        // Fill header
+        bytesPerSamp = (SAMP_BITS[_type] / 8) * _channels;
+        hdr.codec = (_type == SAMP_TYPE_FLOAT32) ? CODEC_FLOAT : CODEC_PCM;
+        hdr.channelCount = _channels;
+        hdr.sampleRate = _samplerate;
+        hdr.bitDepth = SAMP_BITS[_type];
+        hdr.bytesPerSample = bytesPerSamp;
+        hdr.bytesPerSecond = bytesPerSamp * _samplerate;
+
         // Precompute sizes and allocate buffers
-        // TODO: Get number of bits for each sample type
-        bytesPerSamp = (SAMP_BITS[_type] / 8) * _channels; // THIS IS WRONG
         switch (_type) {
         case SAMP_TYPE_UINT8:
             bufU8 = dsp::buffer::alloc<uint8_t>(STREAM_BUFFER_SIZE * _channels);
@@ -69,36 +68,37 @@ namespace wav {
             break;
         }
 
-        // Open new file
-        file.open(path, std::ios::out | std::ios::binary);
-        if (!file.is_open()) { return false; }
+        // Open file
+        if (!rw.open(path, WAVE_FILE_TYPE)) { return false; }
 
-        // Skip header, it'll be written when finalizing the file
-        uint8_t dummy[sizeof(Header)];
-        memset(dummy, 0, sizeof(dummy));
-        file.write((char*)dummy, sizeof(dummy));
+        // Write format chunk
+        rw.beginChunk(FORMAT_MARKER);
+        rw.write((uint8_t*)&hdr, sizeof(FormatHeader));
+        rw.endChunk();
 
-        _isOpen = true;
+        // Begin data chunk
+        rw.beginChunk(DATA_MARKER);
+        
         return true;
     }
 
     bool Writer::isOpen() {
         std::lock_guard<std::recursive_mutex> lck(mtx);
-        return _isOpen;
+        return rw.isOpen();
     }
 
     void Writer::close() {
         std::lock_guard<std::recursive_mutex> lck(mtx);
         // Do nothing if the file is not open
-        if (!_isOpen) { return; }
+        if (!rw.isOpen()) { return; }
 
-        // Finilize wav
-        finalize();
+        // Finish data chunk
+        rw.endChunk();
 
         // Close the file
-        file.close();
+        rw.close();
 
-        // Destroy buffers
+        // Free buffers
         if (bufU8) {
             dsp::buffer::free(bufU8);
             bufU8 = NULL;
@@ -111,15 +111,12 @@ namespace wav {
             dsp::buffer::free(bufI32);
             bufI32 = NULL;
         }
-
-        // Mark as closed
-        _isOpen = false;
     }
 
     void Writer::setChannels(int channels) {
         std::lock_guard<std::recursive_mutex> lck(mtx);
         // Do not allow settings to change while open
-        if (_isOpen) { throw std::runtime_error("Cannot change parameters while file is open"); }
+        if (rw.isOpen()) { throw std::runtime_error("Cannot change parameters while file is open"); }
 
         // Validate channel count
         if (channels < 1) { throw std::runtime_error("Channel count must be greater or equal to 1"); }
@@ -129,7 +126,7 @@ namespace wav {
     void Writer::setSamplerate(uint64_t samplerate) {
         std::lock_guard<std::recursive_mutex> lck(mtx);
         // Do not allow settings to change while open
-        if (_isOpen) { throw std::runtime_error("Cannot change parameters while file is open"); }
+        if (rw.isOpen()) { throw std::runtime_error("Cannot change parameters while file is open"); }
 
         // Validate samplerate
         if (!samplerate) { throw std::runtime_error("Samplerate must be non-zero"); }
@@ -138,42 +135,42 @@ namespace wav {
     void Writer::setFormat(Format format) {
         std::lock_guard<std::recursive_mutex> lck(mtx);
         // Do not allow settings to change while open
-        if (_isOpen) { throw std::runtime_error("Cannot change parameters while file is open"); }
+        if (rw.isOpen()) { throw std::runtime_error("Cannot change parameters while file is open"); }
         _format = format;
     }
 
     void Writer::setSampleType(SampleType type) {
         std::lock_guard<std::recursive_mutex> lck(mtx);
         // Do not allow settings to change while open
-        if (_isOpen) { throw std::runtime_error("Cannot change parameters while file is open"); }
+        if (rw.isOpen()) { throw std::runtime_error("Cannot change parameters while file is open"); }
         _type = type;
     }
 
     void Writer::write(float* samples, int count) {
         std::lock_guard<std::recursive_mutex> lck(mtx);
-        if (!_isOpen) { return; }
+        if (!rw.isOpen()) { return; }
         
         // Select different writer function depending on the chose depth
-        int tcount;
+        int tcount = count * _channels;
+        int tbytes = count * bytesPerSamp;
         switch (_type) {
         case SAMP_TYPE_UINT8:
-            tcount = count * _channels;
-            // Volk doesn't support unsigned ints :/
+            // Volk doesn't support unsigned ints yet :/
             for (int i = 0; i < tcount; i++) {
                 bufU8[i] = (samples[i] * 127.0f) + 128.0f;
             }
-            file.write((char*)bufU8, count * bytesPerSamp);
+            rw.write(bufU8, tbytes);
             break;
         case SAMP_TYPE_INT16:
-            volk_32f_s32f_convert_16i(bufI16, samples, 32767.0f, count * _channels);
-            file.write((char*)bufI16, count * bytesPerSamp);
+            volk_32f_s32f_convert_16i(bufI16, samples, 32767.0f, tcount);
+            rw.write((uint8_t*)bufI16, tbytes);
             break;
         case SAMP_TYPE_INT32:
-            volk_32f_s32f_convert_32i(bufI32, samples, 2147483647.0f, count * _channels);
-            file.write((char*)bufI32, count * bytesPerSamp);
+            volk_32f_s32f_convert_32i(bufI32, samples, 2147483647.0f, tcount);
+            rw.write((uint8_t*)bufI32, tbytes);
             break;
         case SAMP_TYPE_FLOAT32:
-            file.write((char*)samples, count * bytesPerSamp);
+            rw.write((uint8_t*)samples, tbytes);
             break;
         default:
             break;
@@ -181,18 +178,5 @@ namespace wav {
 
         // Increment sample counter
         samplesWritten += count;
-    }
-
-    void Writer::finalize() {
-        file.seekp(file.beg);
-        hdr.codec = (_type == SAMP_TYPE_FLOAT32) ? CODEC_FLOAT : CODEC_PCM;
-        hdr.channelCount = _channels;
-        hdr.sampleRate = _samplerate;
-        hdr.bitDepth = SAMP_BITS[_type];
-        hdr.bytesPerSample = bytesPerSamp;
-        hdr.bytesPerSecond = bytesPerSamp * _samplerate;
-        hdr.dataSize = samplesWritten * bytesPerSamp;
-        hdr.fileSize = hdr.dataSize + sizeof(hdr) - 8;
-        file.write((char*)&hdr, sizeof(hdr));
     }
 }
