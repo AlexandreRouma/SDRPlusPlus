@@ -1,4 +1,5 @@
 #include "riff.h"
+#include <string.h>
 #include <stdexcept>
 
 namespace riff {
