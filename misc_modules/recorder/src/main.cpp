@@ -318,11 +318,11 @@ private:
             }
             if (_this->recording) { style::endDisabled(); }
 
-            if (ImGui::Checkbox(CONCAT("Ignore silence##_recorder_ignore_silence_", _this->name), &_this->ignoreSilence)) {
-                config.acquire();
-                config.conf[_this->name]["ignoreSilence"] = _this->ignoreSilence;
-                config.release(true);
-            }
+            // if (ImGui::Checkbox(CONCAT("Ignore silence##_recorder_ignore_silence_", _this->name), &_this->ignoreSilence)) {
+            //     config.acquire();
+            //     config.conf[_this->name]["ignoreSilence"] = _this->ignoreSilence;
+            //     config.release(true);
+            // }
         }
 
         // Record button
