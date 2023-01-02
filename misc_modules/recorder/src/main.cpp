@@ -24,6 +24,7 @@
 #include "wav.h"
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
+#define SILENCE_LVL 10e-20
 
 SDRPP_MOD_INFO{
     /* Name:            */ "recorder",
@@ -73,6 +74,9 @@ public:
         }
         if (config.conf[name].contains("audioVolume")) {
             audioVolume = config.conf[name]["audioVolume"];
+        }
+        if (config.conf[name].contains("stereo")) {
+            stereo = config.conf[name]["stereo"];
         }
         if (config.conf[name].contains("ignoreSilence")) {
             ignoreSilence = config.conf[name]["ignoreSilence"];
@@ -473,15 +477,19 @@ private:
     }
 
     static void complexHandler(dsp::complex_t* data, int count, void* ctx) {
-        monoHandler((float*)data, count, ctx);
+        RecorderModule* _this = (RecorderModule*)ctx;
+        _this->writer.write((float*)data, count);
     }
 
     static void stereoHandler(dsp::stereo_t* data, int count, void* ctx) {
-        monoHandler((float*)data, count, ctx);
+        RecorderModule* _this = (RecorderModule*)ctx;
+        // TODO: Ignore silence
+        _this->writer.write((float*)data, count);
     }
 
     static void monoHandler(float* data, int count, void* ctx) {
         RecorderModule* _this = (RecorderModule*)ctx;
+        // TODO: Ignore silence
         _this->writer.write(data, count);
     }
 
