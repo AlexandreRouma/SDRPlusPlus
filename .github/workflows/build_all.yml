@@ -94,7 +94,7 @@ jobs:
           run: brew update
 
         - name: Fix python
-          run: rm -f /usr/local/bin/2to3 /usr/local/bin/idle3 /usr/local/bin/pydoc3 /usr/local/bin/python3 /usr/local/bin/python3-config /usr/local/bin/2to3-3.11 /usr/local/bin/idle3-3.11 /usr/local/bin/pydoc3-3.11 /usr/local/bin/python3-3.11 /usr/local/bin/python3-config-3.11
+          run: rm -f /usr/local/bin/2to3* /usr/local/bin/idle3* /usr/local/bin/pydoc3* /usr/local/bin/python3* /usr/local/bin/python3-config*
 
         - name: Install dependencies
           run: brew install libusb fftw glfw airspy airspyhf portaudio hackrf rtl-sdr libbladerf codec2 zstd && pip3 install mako
