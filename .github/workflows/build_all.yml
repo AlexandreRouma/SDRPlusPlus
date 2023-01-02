@@ -93,6 +93,9 @@ jobs:
         - name: Update brew repositories
           run: brew update
 
+        - name: Fix python
+          run: rm -f /usr/local/bin/2to3
+
         - name: Install dependencies
           run: brew install libusb fftw glfw airspy airspyhf portaudio hackrf rtl-sdr libbladerf codec2 zstd && pip3 install mako
 
