@@ -1,66 +1,71 @@
 #pragma once
-#include <stdint.h>
+#include <string>
 #include <fstream>
+#include <stdint.h>
+#include <mutex>
+#include "riff.h"
 
-#define WAV_SIGNATURE       "RIFF"
-#define WAV_TYPE            "WAVE"
-#define WAV_FORMAT_MARK     "fmt "
-#define WAV_DATA_MARK       "data"
-#define WAV_SAMPLE_TYPE_PCM 1
-
-class WavWriter {
-public:
-    WavWriter(std::string path, uint16_t bitDepth, uint16_t channelCount, uint32_t sampleRate) {
-        file = std::ofstream(path.c_str(), std::ios::binary);
-        memcpy(hdr.signature, WAV_SIGNATURE, 4);
-        memcpy(hdr.fileType, WAV_TYPE, 4);
-        memcpy(hdr.formatMarker, WAV_FORMAT_MARK, 4);
-        memcpy(hdr.dataMarker, WAV_DATA_MARK, 4);
-        hdr.formatHeaderLength = 16;
-        hdr.sampleType = WAV_SAMPLE_TYPE_PCM;
-        hdr.channelCount = channelCount;
-        hdr.sampleRate = sampleRate;
-        hdr.bytesPerSecond = (bitDepth / 8) * channelCount * sampleRate;
-        hdr.bytesPerSample = (bitDepth / 8) * channelCount;
-        hdr.bitDepth = bitDepth;
-        file.write((char*)&hdr, sizeof(WavHeader_t));
-    }
-
-    bool isOpen() {
-        return file.is_open();
-    }
-
-    void writeSamples(void* data, size_t size) {
-        file.write((char*)data, size);
-        bytesWritten += size;
-    }
-
-    void close() {
-        hdr.fileSize = bytesWritten + sizeof(WavHeader_t) - 8;
-        hdr.dataSize = bytesWritten;
-        file.seekp(0);
-        file.write((char*)&hdr, sizeof(WavHeader_t));
-        file.close();
-    }
-
-private:
-    struct WavHeader_t {
-        char signature[4];           // "RIFF"
-        uint32_t fileSize;           // data bytes + sizeof(WavHeader_t) - 8
-        char fileType[4];            // "WAVE"
-        char formatMarker[4];        // "fmt "
-        uint32_t formatHeaderLength; // Always 16
-        uint16_t sampleType;         // PCM (1)
+namespace wav {    
+    #pragma pack(push, 1)
+    struct FormatHeader {
+        uint16_t codec;
         uint16_t channelCount;
         uint32_t sampleRate;
         uint32_t bytesPerSecond;
         uint16_t bytesPerSample;
         uint16_t bitDepth;
-        char dataMarker[4]; // "data"
-        uint32_t dataSize;
+    };
+    #pragma pack(pop)
+
+    enum Format {
+        FORMAT_WAV,
+        FORMAT_RF64
     };
 
-    std::ofstream file;
-    size_t bytesWritten = 0;
-    WavHeader_t hdr;
-};
+    enum SampleType {
+        SAMP_TYPE_UINT8,
+        SAMP_TYPE_INT16,
+        SAMP_TYPE_INT32,
+        SAMP_TYPE_FLOAT32
+    };
+
+    enum Codec {
+        CODEC_PCM   = 1,
+        CODEC_FLOAT = 3
+    };
+
+    class Writer {
+    public:
+        Writer(int channels = 2, uint64_t samplerate = 48000, Format format = FORMAT_WAV, SampleType type = SAMP_TYPE_INT16);
+        ~Writer();
+
+        bool open(std::string path);
+        bool isOpen();
+        void close();
+
+        void setChannels(int channels);
+        void setSamplerate(uint64_t samplerate);
+        void setFormat(Format format);
+        void setSampleType(SampleType type);
+
+        size_t getSamplesWritten() { return samplesWritten; }
+
+        void write(float* samples, int count);
+
+    private:
+        std::recursive_mutex mtx;
+        FormatHeader hdr;
+        riff::Writer rw;
+
+        int _channels;
+        uint64_t _samplerate;
+        Format _format;
+        SampleType _type;
+        size_t bytesPerSamp;
+
+        uint8_t* bufU8 = NULL;
+        int16_t* bufI16 = NULL;
+        int32_t* bufI32 = NULL;
+        size_t samplesWritten = 0;
+    };
+}

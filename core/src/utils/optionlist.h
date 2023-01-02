@@ -52,6 +52,10 @@ public:
         return keys.size();
     }
 
+    bool empty() {
+        return keys.empty();
+    }
+
     bool keyExists(K key) {
         if (std::find(keys.begin(), keys.end(), key) != keys.end()) { return true; }
         return false;
