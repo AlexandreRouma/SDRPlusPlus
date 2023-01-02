@@ -40,6 +40,7 @@ public:
     RecorderModule(std::string name) : folderSelect("%ROOT%/recordings") {
         this->name = name;
         root = (std::string)core::args["root"];
+        strcpy(nameTemplate, "$t_$f_$h-$m-$s_$d-$M-$y");
 
         // Define option lists
         containers.define("WAV", wav::FORMAT_WAV);
@@ -61,8 +62,8 @@ public:
         if (config.conf[name].contains("recPath")) {
             folderSelect.setPath(config.conf[name]["recPath"]);
         }
-        if (config.conf[name].contains("format") && containers.keyExists(config.conf[name]["format"])) {
-            containerId = containers.keyId(config.conf[name]["format"]);
+        if (config.conf[name].contains("container") && containers.keyExists(config.conf[name]["container"])) {
+            containerId = containers.keyId(config.conf[name]["container"]);
         }
         if (config.conf[name].contains("sampleType") && sampleTypes.keyExists(config.conf[name]["sampleType"])) {
             sampleTypeId = sampleTypes.keyId(config.conf[name]["sampleType"]);
@@ -75,6 +76,13 @@ public:
         }
         if (config.conf[name].contains("ignoreSilence")) {
             ignoreSilence = config.conf[name]["ignoreSilence"];
+        }
+        if (config.conf[name].contains("nameTemplate")) {
+            std::string _nameTemplate = config.conf[name]["nameTemplate"];
+            if (_nameTemplate.length() > sizeof(nameTemplate)-1) {
+                _nameTemplate = _nameTemplate.substr(0, sizeof(nameTemplate)-1);
+            }
+            strcpy(nameTemplate, _nameTemplate.c_str());
         }
         config.release();
 
@@ -91,13 +99,18 @@ public:
         monoSink.init(&s2m.out, monoHandler, this);
 
         gui::menu.registerEntry(name, menuHandler, this);
+        core::modComManager.registerInterface("recorder", name, moduleInterfaceHandler, this);
     }
 
     ~RecorderModule() {
+        std::lock_guard<std::recursive_mutex> lck(recMtx);
+        core::modComManager.unregisterInterface(name);
+        gui::menu.removeEntry(name);
         stop();
         deselectStream();
+        sigpath::sinkManager.onStreamRegistered.unbindHandler(&onStreamRegisteredHandler);
+        sigpath::sinkManager.onStreamUnregister.unbindHandler(&onStreamUnregisterHandler);
         meter.stop();
-        gui::menu.removeEntry(name);
     }
 
     void postInit() {
@@ -150,8 +163,10 @@ public:
         writer.setSamplerate(samplerate);
 
         // Open file
-        std::string prefix = (recMode == RECORDER_MODE_AUDIO) ? "/audio_" : "/baseband_";
-        std::string expandedPath = expandString(folderSelect.path + genFileName(prefix, false));
+        std::string type = (recMode == RECORDER_MODE_AUDIO) ? "audio" : "baseband";
+        std::string vfoName = (recMode == RECORDER_MODE_AUDIO) ? gui::waterfall.selectedVFO : "";
+        std::string extension = ".wav";
+        std::string expandedPath = expandString(folderSelect.path + "/" + genFileName(nameTemplate, type, vfoName) + extension);
         if (!writer.open(expandedPath)) {
             spdlog::error("Failed to open file for recording: {0}", expandedPath);
             return;
@@ -240,6 +255,14 @@ private:
                 config.conf[_this->name]["recPath"] = _this->folderSelect.path;
                 config.release(true);
             }
+        }
+
+        ImGui::LeftLabel("Name template");
+        ImGui::FillWidth();
+        if (ImGui::InputText(CONCAT("##_recorder_name_template_", _this->name), _this->nameTemplate, 1023)) {
+            config.acquire();
+            config.conf[_this->name]["nameTemplate"] = _this->nameTemplate;
+            config.release(true);
         }
 
         ImGui::LeftLabel("Container");
@@ -399,7 +422,6 @@ private:
         double frameTime = 1.0 / ImGui::GetIO().Framerate;
         lvl.l = std::clamp<float>(lvl.l - (frameTime * 50.0), -90.0f, 10.0f);
         lvl.r = std::clamp<float>(lvl.r - (frameTime * 50.0), -90.0f, 10.0f);
-        // TODO: FINISH METER
         dsp::stereo_t rawLvl = meter.getLevel();
         meter.resetLevel();
         dsp::stereo_t dbLvl = { 10.0f * logf(rawLvl.l), 10.0f * logf(rawLvl.r) };
@@ -407,19 +429,44 @@ private:
         if (dbLvl.r > lvl.r) { lvl.r = dbLvl.r; }
     }
 
-    // TODO: REPLACE WITH SOMETHING CLEAN
-    std::string genFileName(std::string prefix, bool isVfo, std::string name = "") {
+    std::string genFileName(std::string templ, std::string type, std::string name) {
+        // Get data
         time_t now = time(0);
         tm* ltm = localtime(&now);
         char buf[1024];
         double freq = gui::waterfall.getCenterFrequency();
-        ;
-        if (isVfo && gui::waterfall.vfos.find(name) != gui::waterfall.vfos.end()) {
+        if (gui::waterfall.vfos.find(name) != gui::waterfall.vfos.end()) {
             freq += gui::waterfall.vfos[name]->generalOffset;
         }
-        sprintf(buf, "%.0lfHz_%02d-%02d-%02d_%02d-%02d-%02d.wav", freq, ltm->tm_hour, ltm->tm_min, ltm->tm_sec, ltm->tm_mday, ltm->tm_mon + 1, ltm->tm_year + 1900);
-        return prefix + buf;
+
+        // Format to string
+        char freqStr[128];
+        char hourStr[128];
+        char minStr[128];
+        char secStr[128];
+        char dayStr[128];
+        char monStr[128];
+        char yearStr[128];
+        sprintf(freqStr, "%.0lfHz", freq);
+        sprintf(hourStr, "%02d", ltm->tm_hour);
+        sprintf(minStr, "%02d", ltm->tm_min);
+        sprintf(secStr, "%02d", ltm->tm_sec);
+        sprintf(dayStr, "%02d", ltm->tm_mday);
+        sprintf(monStr, "%02d", ltm->tm_mon + 1);
+        sprintf(yearStr, "%02d", ltm->tm_year + 1900);
+
+        // Replace in template
+        templ = std::regex_replace(templ, std::regex("\\$t"), type);
+        templ = std::regex_replace(templ, std::regex("\\$f"), freqStr);
+        templ = std::regex_replace(templ, std::regex("\\$h"), hourStr);
+        templ = std::regex_replace(templ, std::regex("\\$m"), minStr);
+        templ = std::regex_replace(templ, std::regex("\\$s"), secStr);
+        templ = std::regex_replace(templ, std::regex("\\$d"), dayStr);
+        templ = std::regex_replace(templ, std::regex("\\$M"), monStr);
+        templ = std::regex_replace(templ, std::regex("\\$y"), yearStr);
+        return templ;
     }
+
     std::string expandString(std::string input) {
         input = std::regex_replace(input, std::regex("%ROOT%"), root);
         return std::regex_replace(input, std::regex("//"), "/");
@@ -438,9 +485,30 @@ private:
         _this->writer.write(data, count);
     }
 
+    static void moduleInterfaceHandler(int code, void* in, void* out, void* ctx) {
+        RecorderModule* _this = (RecorderModule*)ctx;
+        std::lock_guard lck(_this->recMtx);
+        if (code == RECORDER_IFACE_CMD_GET_MODE) {
+            int* _out = (int*)out;
+            *_out = _this->recMode;
+        }
+        else if (code == RECORDER_IFACE_CMD_SET_MODE) {
+            if (_this->recording) { return; }
+            int* _in = (int*)in;
+            _this->recMode = std::clamp<int>(*_in, 0, 1);
+        }
+        else if (code == RECORDER_IFACE_CMD_START) {
+            if (!_this->recording) { _this->start(); }
+        }
+        else if (code == RECORDER_IFACE_CMD_STOP) {
+            if (_this->recording) { _this->stop(); }
+        }
+    }
+
     std::string name;
     bool enabled = true;
     std::string root;
+    char nameTemplate[1024];
 
     OptionList<std::string, wav::Format> containers;
     OptionList<int, wav::SampleType> sampleTypes;
