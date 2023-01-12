@@ -51,7 +51,7 @@ sudo dpkg -i sdrpp_debian_amd64.deb
 If `libvolk2-dev` is not available, use `libvolk1-dev`.
 
 ### Fedora Linux
-As of Fedora34, there is a Fedora Linux package avaiable. You can install it by running this:
+As of Fedora Linux 34, there is a  package avaiable. You can install it by running this:
 
 ```sh
 sudo dnf install sdrpp
