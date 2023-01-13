@@ -30,7 +30,7 @@ else (MSVC)
 
     # Include it because for some reason pkgconfig doesn't look here?
     if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        target_include_directories(airspyhf_source PRIVATE "/usr/local/include")
+        target_include_directories(limesdr_source PRIVATE "/usr/local/include")
     endif()
 endif ()
 
