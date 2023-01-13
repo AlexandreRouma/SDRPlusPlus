@@ -130,6 +130,7 @@ namespace wav {
 
         // Validate samplerate
         if (!samplerate) { throw std::runtime_error("Samplerate must be non-zero"); }
+        _samplerate = samplerate;
     }
 
     void Writer::setFormat(Format format) {
