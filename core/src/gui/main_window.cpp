@@ -548,22 +548,27 @@ void MainWindow::draw() {
     if (!lockWaterfallControls) {
         // Handle arrow keys
         if (vfo != NULL && (gui::waterfall.mouseInFFT || gui::waterfall.mouseInWaterfall)) {
+            bool freqChanged = false;
             if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow) && !gui::freqSelect.digitHovered) {
                 double nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset - vfo->snapInterval;
                 nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
                 tuner::tune(tuningMode, gui::waterfall.selectedVFO, nfreq);
+                freqChanged = true;
             }
             if (ImGui::IsKeyPressed(ImGuiKey_RightArrow) && !gui::freqSelect.digitHovered) {
                 double nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset + vfo->snapInterval;
                 nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
                 tuner::tune(tuningMode, gui::waterfall.selectedVFO, nfreq);
+                freqChanged = true;
             }
-            core::configManager.acquire();
-            core::configManager.conf["frequency"] = gui::waterfall.getCenterFrequency();
-            if (vfo != NULL) {
-                core::configManager.conf["vfoOffsets"][gui::waterfall.selectedVFO] = vfo->generalOffset;
+            if (freqChanged) {
+                core::configManager.acquire();
+                core::configManager.conf["frequency"] = gui::waterfall.getCenterFrequency();
+                if (vfo != NULL) {
+                    core::configManager.conf["vfoOffsets"][gui::waterfall.selectedVFO] = vfo->generalOffset;
+                }
+                core::configManager.release(true);
             }
-            core::configManager.release(true);
         }
 
         // Handle scrollwheel

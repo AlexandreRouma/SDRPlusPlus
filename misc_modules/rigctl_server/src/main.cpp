@@ -145,11 +145,11 @@ private:
             std::lock_guard lck(_this->vfoMtx);
             if (ImGui::Combo(CONCAT("##_rigctl_srv_rec_", _this->name), &_this->recorderId, _this->recorderNamesTxt.c_str())) {
                 _this->selectRecorderByName(_this->recorderNames[_this->recorderId], false);
-            }
-            if (!_this->selectedRecorder.empty()) {
-                config.acquire();
-                config.conf[_this->name]["recorder"] = _this->selectedRecorder;
-                config.release(true);
+                if (!_this->selectedRecorder.empty()) {
+                    config.acquire();
+                    config.conf[_this->name]["recorder"] = _this->selectedRecorder;
+                    config.release(true);
+                }
             }
         }
 
