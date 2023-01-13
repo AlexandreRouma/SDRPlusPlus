@@ -131,11 +131,11 @@ private:
             std::lock_guard lck(_this->vfoMtx);
             if (ImGui::Combo(CONCAT("##_rigctl_srv_vfo_", _this->name), &_this->vfoId, _this->vfoNamesTxt.c_str())) {
                 _this->selectVfoByName(_this->vfoNames[_this->vfoId], false);
-            }
-            if (!_this->selectedVfo.empty()) {
-                config.acquire();
-                config.conf[_this->name]["vfo"] = _this->selectedVfo;
-                config.release(true);
+                if (!_this->selectedVfo.empty()) {
+                    config.acquire();
+                    config.conf[_this->name]["vfo"] = _this->selectedVfo;
+                    config.release(true);
+                }
             }
         }
 

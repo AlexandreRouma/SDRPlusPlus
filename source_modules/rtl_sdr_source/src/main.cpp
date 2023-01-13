@@ -427,9 +427,10 @@ private:
         }
 
         if (_this->tunerAgc || _this->gainList.size() == 0) { SmGui::BeginDisabled(); }
+
+        SmGui::LeftLabel("Gain");
         SmGui::FillWidth();
         SmGui::ForceSync();
-
         // TODO: FIND ANOTHER WAY
         if (_this->serverMode) {
             if (SmGui::SliderInt(CONCAT("##_rtlsdr_gain_", _this->name), &_this->gainId, 0, _this->gainList.size() - 1, SmGui::FMT_STR_NONE)) {

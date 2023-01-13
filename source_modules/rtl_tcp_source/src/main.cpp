@@ -239,6 +239,7 @@ private:
         }
 
         if (_this->tunerAGC) { SmGui::BeginDisabled(); }
+        SmGui::LeftLabel("Gain");
         SmGui::FillWidth();
         if (SmGui::SliderInt(CONCAT("##_gain_select_", _this->name), &_this->gain, 0, 28, SmGui::FMT_STR_NONE)) {
             if (_this->running) {
