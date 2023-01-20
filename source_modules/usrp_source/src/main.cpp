@@ -164,14 +164,9 @@ public:
         bandwidths.define(0, "Auto", 0);
         uhd::meta_range_t bwRange = dev->get_rx_bandwidth_range(chanId);
         for (const auto& r : bwRange) {
-            // If a single value, add it to the list
-            if (r.step() == 0.0 || r.start() == r.stop()) {
-                bandwidths.define((int)r.start(), getBandwdithScaled(r.start()), r.start());
-                continue;
-            }
-
             // Otherwise, save all entries to the list
-            for (double i = r.start(); i <= r.stop(); i += r.step()) {
+            double step = (r.step() == 0.0) ? 100e3 : r.step();
+            for (double i = r.start(); i <= r.stop(); i += step) {
                 bandwidths.define((int)i, getBandwdithScaled(i), i);
             }
         }
