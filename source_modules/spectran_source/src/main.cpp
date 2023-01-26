@@ -279,9 +279,9 @@ private:
         AARTSAAPI_Packet pkt = { sizeof(AARTSAAPI_Packet) };
         while (AARTSAAPI_GetPacket(&_this->dev, 0, 0, &pkt) == AARTSAAPI_EMPTY) {
 #ifdef _WIN32
-                Sleep(1);
+            Sleep(1);
 #else
-                usleep(1000);
+            usleep(1000);
 #endif
         }
 
@@ -371,7 +371,7 @@ private:
         if (_this->agcModeId) { SmGui::BeginDisabled(); }
         SmGui::LeftLabel("Ref Level");
         SmGui::FillWidth();
-        if (SmGui::SliderFloatWithSteps(CONCAT("##_spectran_ref_", _this->name), &_this->refLevel, -20.0f, 10.0f, 0.5f, SmGui::FMT_STR_FLOAT_DB_ONE_DECIMAL)) {
+        if (SmGui::SliderFloatWithSteps(CONCAT("##_spectran_ref_", _this->name), &_this->refLevel, _this->minRef, _this->maxRef, _this->refStep, SmGui::FMT_STR_FLOAT_DB_ONE_DECIMAL)) {
             if (_this->running) {
                 AARTSAAPI_Config config;
                 AARTSAAPI_ConfigFind(&_this->dev, &_this->croot, &config, L"main/reflevel");
@@ -442,6 +442,22 @@ private:
         else {
             AARTSAAPI_ConfigSetString(&dev, &config, L"None");
         }
+        updateRef();
+    }
+
+    void updateRef() {
+        // Get and update bounds
+        AARTSAAPI_Config config;
+        AARTSAAPI_ConfigInfo refInfo;
+        AARTSAAPI_ConfigFind(&dev, &croot, &config, L"main/reflevel");
+        AARTSAAPI_ConfigGetInfo(&dev, &config, &refInfo);
+        minRef = refInfo.minValue;
+        maxRef = refInfo.maxValue;
+        refStep = refInfo.stepValue;
+        refLevel = std::clamp<float>(refLevel, minRef, maxRef);
+
+        // Apply new ref level
+        AARTSAAPI_ConfigSetFloat(&dev, &config, refLevel);
     }
 
     const double clockRates[4] = {
@@ -482,6 +498,9 @@ private:
     float refLevel = -20.0f;
     bool amp = false;
     bool preAmp = false;
+    float minRef = -20.0f;
+    float maxRef = 10.0f;
+    float refStep = 0.5;
 
     struct SRCombo {
         bool operator==(const SRCombo& b) {

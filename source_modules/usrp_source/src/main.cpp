@@ -136,7 +136,7 @@ public:
         // List samplerates
         samplerates.clear();
         auto srList = dev->get_rx_rates(chanId);
-        for (auto& l : srList) {
+        for (const auto& l : srList) {
             double step = (l.step() == 0.0) ? 100e3 : l.step();
             for (double f = l.start(); f <= l.stop(); f += step) {
                 samplerates.define(f, getBandwdithScaled(f), f);
@@ -173,7 +173,7 @@ public:
             clockSources.define(s, name, s);
             spdlog::warn(s);
         }
-
+        
         // Load settings
         srId = 0;
         antId = 0;

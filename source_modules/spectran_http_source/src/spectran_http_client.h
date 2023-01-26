@@ -3,7 +3,7 @@
 #include <dsp/types.h>
 #include <string>
 #include <thread>
-#include "proto/http.h"
+#include <utils/proto/http.h>
 
 class SpectranHTTPClient {
 public:

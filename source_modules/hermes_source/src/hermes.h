@@ -1,5 +1,5 @@
 #pragma once
-#include "net.h"
+#include <utils/net.h>
 #include <dsp/stream.h>
 #include <dsp/types.h>
 #include <memory>
