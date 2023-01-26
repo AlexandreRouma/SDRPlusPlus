@@ -101,7 +101,7 @@ if (MSVC)
     target_link_libraries(sdrpp_core PUBLIC FFTW3::fftw3f)
 
     # WinSock2
-    target_link_libraries(sdrpp_core PUBLIC wsock32 ws2_32)
+    target_link_libraries(sdrpp_core PUBLIC wsock32 ws2_32 iphlpapi)
 
     # ZSTD
     find_package(zstd CONFIG REQUIRED)

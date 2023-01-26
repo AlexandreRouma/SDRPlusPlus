@@ -256,6 +256,7 @@ namespace net::http {
 
     class Client {
     public:
+        Client() {}
         Client(std::shared_ptr<Socket> sock);
 
         int sendRequestHeader(RequestHeader& req);
