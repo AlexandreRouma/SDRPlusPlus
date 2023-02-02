@@ -303,7 +303,7 @@ private:
             ImGui::VolumeMeter(_this->audioLvl.r, _this->audioLvl.r, -60, 10);
 
             ImGui::FillWidth();
-            if (ImGui::SliderFloat(CONCAT("##_recorder_vol_", _this->name), &_this->audioVolume, 0, 1, "")) {
+            if (ImGui::SliderFloat(CONCAT("##_recorder_vol_", _this->name), &_this->audioVolume, 0.f, 2.f, "")) {
                 _this->volume.setVolume(_this->audioVolume);
                 config.acquire();
                 config.conf[_this->name]["audioVolume"] = _this->audioVolume;
@@ -484,13 +484,13 @@ private:
     static void stereoHandler(dsp::stereo_t* data, int count, void* ctx) {
         RecorderModule* _this = (RecorderModule*)ctx;
         // TODO: Ignore silence
-        _this->writer.write((float*)data, count);
+        _this->writer.write((float*)data, count, _this->audioVolume);
     }
 
     static void monoHandler(float* data, int count, void* ctx) {
         RecorderModule* _this = (RecorderModule*)ctx;
         // TODO: Ignore silence
-        _this->writer.write(data, count);
+        _this->writer.write(data, count, _this->audioVolume);
     }
 
     static void moduleInterfaceHandler(int code, void* in, void* out, void* ctx) {

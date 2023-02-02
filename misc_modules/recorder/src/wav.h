@@ -50,7 +50,7 @@ namespace wav {
 
         size_t getSamplesWritten() { return samplesWritten; }
 
-        void write(float* samples, int count);
+        void write(float* samples, int count, float volumefactor = 1.0f);
 
     private:
         std::recursive_mutex mtx;

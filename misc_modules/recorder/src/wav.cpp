@@ -147,7 +147,7 @@ namespace wav {
         _type = type;
     }
 
-    void Writer::write(float* samples, int count) {
+    void Writer::write(float* samples, int count, float volumefactor) {
         std::lock_guard<std::recursive_mutex> lck(mtx);
         if (!rw.isOpen()) { return; }
         
@@ -158,19 +158,20 @@ namespace wav {
         case SAMP_TYPE_UINT8:
             // Volk doesn't support unsigned ints yet :/
             for (int i = 0; i < tcount; i++) {
-                bufU8[i] = (samples[i] * 127.0f) + 128.0f;
+                bufU8[i] = (samples[i] * 127.0f * volumefactor) + 128.0f;
             }
             rw.write(bufU8, tbytes);
             break;
         case SAMP_TYPE_INT16:
-            volk_32f_s32f_convert_16i(bufI16, samples, 32767.0f, tcount);
+            volk_32f_s32f_convert_16i(bufI16, samples, 32767.0f * volumefactor, tcount);
             rw.write((uint8_t*)bufI16, tbytes);
             break;
         case SAMP_TYPE_INT32:
-            volk_32f_s32f_convert_32i(bufI32, samples, 2147483647.0f, tcount);
+            volk_32f_s32f_convert_32i(bufI32, samples, 2147483647.0f * volumefactor, tcount);
             rw.write((uint8_t*)bufI32, tbytes);
             break;
         case SAMP_TYPE_FLOAT32:
+            volk_32f_s32f_multiply_32f(samples, samples, volumefactor, tcount);
             rw.write((uint8_t*)samples, tbytes);
             break;
         default:
