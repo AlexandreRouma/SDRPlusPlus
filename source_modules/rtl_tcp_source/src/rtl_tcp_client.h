@@ -2,6 +2,7 @@
 #include <utils/net.h>
 #include <dsp/stream.h>
 #include <dsp/types.h>
+#include <thread>
 
 namespace rtltcp {
 #pragma pack(push, 1)
