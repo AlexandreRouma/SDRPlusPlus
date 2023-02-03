@@ -426,7 +426,7 @@ private:
         // Configure noise blanker
         nb.setRate(500.0 / ifSamplerate);
         setNBLevel(nbLevel);
-        setNBEnabled(nbAllowed&& nbEnabled);
+        setNBEnabled(nbAllowed && nbEnabled);
 
         // Configure FM IF Noise Reduction
         setIFNRPreset((selectedDemodID == RADIO_DEMOD_NFM) ? ifnrPresets[fmIFPresetId] : IFNR_PRESET_BROADCAST);

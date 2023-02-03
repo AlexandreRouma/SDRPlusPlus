@@ -95,11 +95,11 @@ public:
         splitter.init(&volume.out);
         splitter.bindStream(&meterStream);
         meter.init(&meterStream);
-        s2m.init(NULL);
+        s2m.init(&stereoStream);
 
         // Init sinks
         basebandSink.init(NULL, complexHandler, this);
-        stereoSink.init(NULL, stereoHandler, this);
+        stereoSink.init(&stereoStream, stereoHandler, this);
         monoSink.init(&s2m.out, monoHandler, this);
 
         gui::menu.registerEntry(name, menuHandler, this);
@@ -178,17 +178,15 @@ public:
 
         // Open audio stream or baseband
         if (recMode == RECORDER_MODE_AUDIO) {
-            // TODO: Select the stereo to mono converter if needed
-            stereoStream = sigpath::sinkManager.bindStream(selectedStreamName);
+            // Start correct path depending on 
             if (stereo) {
-                stereoSink.setInput(stereoStream);
                 stereoSink.start();
             }
             else {
-                s2m.setInput(stereoStream);
                 s2m.start();
                 monoSink.start();
             }
+            splitter.bindStream(&stereoStream);
         }
         else {
             // Create and bind IQ stream
@@ -207,11 +205,11 @@ public:
 
         // Close audio stream or baseband
         if (recMode == RECORDER_MODE_AUDIO) {
-            // NOTE: Has to be done before the unbind since the stream is deleted...
+            splitter.unbindStream(&stereoStream);
             monoSink.stop();
             stereoSink.stop();
             s2m.stop();
-            sigpath::sinkManager.unbindStream(selectedStreamName, stereoStream);
+            
         }
         else {
             // Unbind and destroy IQ stream
@@ -535,7 +533,7 @@ private:
     wav::Writer writer;
     std::recursive_mutex recMtx;
     dsp::stream<dsp::complex_t>* basebandStream;
-    dsp::stream<dsp::stereo_t>* stereoStream;
+    dsp::stream<dsp::stereo_t> stereoStream;
     dsp::sink::Handler<dsp::complex_t> basebandSink;
     dsp::sink::Handler<dsp::stereo_t> stereoSink;
     dsp::sink::Handler<float> monoSink;
