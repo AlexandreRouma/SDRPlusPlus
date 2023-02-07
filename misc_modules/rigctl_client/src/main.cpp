@@ -1,4 +1,4 @@
-#include <utils/networking.h>
+#include <utils/proto/rigctl.h>
 #include <imgui.h>
 #include <module.h>
 #include <gui/gui.h>
@@ -22,16 +22,11 @@ SDRPP_MOD_INFO{
     /* Max instances    */ 1
 };
 
-enum {
-    RECORDER_TYPE_RECORDER,
-    RECORDER_TYPE_METEOR_DEMODULATOR
-};
-
 ConfigManager config;
 
-class SigctlServerModule : public ModuleManager::Instance {
+class RigctlClientModule : public ModuleManager::Instance {
 public:
-    SigctlServerModule(std::string name) {
+    RigctlClientModule(std::string name) {
         this->name = name;
 
         strcpy(host, "127.0.0.1");
@@ -42,7 +37,7 @@ public:
         gui::menu.registerEntry(name, menuHandler, this, NULL);
     }
 
-    ~SigctlServerModule() {
+    ~RigctlClientModule() {
         stop();
         gui::menu.removeEntry(name);
     }
@@ -84,7 +79,7 @@ public:
 
 private:
     static void menuHandler(void* ctx) {
-        SigctlServerModule* _this = (SigctlServerModule*)ctx;
+        RigctlClientModule* _this = (RigctlClientModule*)ctx;
         float menuWidth = ImGui::GetContentRegionAvail().x;
 
         if (_this->running) { style::beginDisabled(); }
@@ -123,7 +118,11 @@ private:
     }
 
     static void retuneHandler(double freq, void* ctx) {
-        spdlog::warn("PAN RETUNE: {0}", freq);
+        RigctlClientModule* _this = (RigctlClientModule*)ctx;
+        if (!_this->client || !_this->client->isOpen()) { return; }
+        //spdlog::warn("PAN RETUNE: {0}", freq);
+        
+        _this->client->setFreq(freq);
     }
 
     std::string name;
@@ -133,6 +132,7 @@ private:
 
     char host[1024];
     int port = 4532;
+    std::shared_ptr<net::rigctl::Client> client;
 
     double ifFreq = 8830000.0;
 
@@ -146,11 +146,11 @@ MOD_EXPORT void _INIT_() {
 }
 
 MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
-    return new SigctlServerModule(name);
+    return new RigctlClientModule(name);
 }
 
 MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
-    delete (SigctlServerModule*)instance;
+    delete (RigctlClientModule*)instance;
 }
 
 MOD_EXPORT void _END_() {
