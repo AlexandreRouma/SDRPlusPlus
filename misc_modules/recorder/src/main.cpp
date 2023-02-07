@@ -1,6 +1,5 @@
 #include <imgui.h>
 #include <module.h>
-#include <wav.h>
 #include <dsp/types.h>
 #include <dsp/stream.h>
 #include <dsp/bench/peak_level_meter.h>
@@ -21,7 +20,7 @@
 #include <recorder_interface.h>
 #include <core.h>
 #include <utils/optionlist.h>
-#include "wav.h"
+#include <utils/wav.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 #define SILENCE_LVL 10e-20
