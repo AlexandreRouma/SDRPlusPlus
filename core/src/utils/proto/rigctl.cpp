@@ -1,4 +1,5 @@
 #include "rigctl.h"
+#include <math.h>
 
 namespace net::rigctl {
     Client::Client(std::shared_ptr<Socket> sock) {
