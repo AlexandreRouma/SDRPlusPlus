@@ -148,18 +148,21 @@ namespace net {
         // Create FD set
         fd_set set;
         FD_ZERO(&set);
-        FD_SET(sock, &set);
-
-        // Define timeout
-        timeval tv;
-        tv.tv_sec = 0;
-        tv.tv_usec = timeout * 1000;
-
+        
         int read = 0;
         bool blocking = (timeout != NONBLOCKING);
         do {
             // Wait for data or error if 
             if (blocking) {
+                // Enable FD in set
+                FD_SET(sock, &set);
+
+                // Set timeout
+                timeval tv;
+                tv.tv_sec = 0;
+                tv.tv_usec = timeout * 1000;
+
+                // Wait for data
                 int err = select(sock+1, &set, NULL, &set, (timeout > 0) ? &tv : NULL);
                 if (err <= 0) { return err; }
             }
