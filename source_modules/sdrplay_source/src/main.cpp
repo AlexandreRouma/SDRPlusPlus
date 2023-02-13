@@ -713,6 +713,7 @@ private:
                 _this->selectByName(_this->selectedName);
             }
 
+            SmGui::LeftLabel("Bandwidth");
             SmGui::FillWidth();
             if (SmGui::Combo(CONCAT("##sdrplay_bw", _this->name), &_this->bandwidthId, bandwidthsTxt)) {
                 _this->bandwidth = (_this->bandwidthId == 8) ? preferedBandwidth[_this->srId] : bandwidths[_this->bandwidthId];
