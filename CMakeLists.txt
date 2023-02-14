@@ -1,24 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 project(sdrpp)
 
-if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        set(CMAKE_INSTALL_PREFIX "/usr/local")
-    else()
-        set(CMAKE_INSTALL_PREFIX "/usr")
-    endif()
-endif()
-
-# Configure toolchain for android
-if (ANDROID)
-    set(CMAKE_SHARED_LINKER_FLAGS
-        "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate"
-    )
-    set(CMAKE_C_STANDARD 11)
-    set(CMAKE_CXX_STANDARD 14)
-    set(CMAKE_CXX14_EXTENSION_COMPILE_OPTION "-std=c++17")
-endif (ANDROID)
-
 # Backends
 option(OPT_BACKEND_GLFW "Use the GLFW backend" ON)
 option(OPT_BACKEND_ANDROID "Use the Android backend" OFF)
@@ -74,6 +56,41 @@ option(OPT_BUILD_SCHEDULER "Build the scheduler" OFF)
 # Other options
 option(USE_INTERNAL_LIBCORRECT "Use an internal version of libcorrect" ON)
 option(USE_BUNDLE_DEFAULTS "Set the default resource and module directories to the right ones for a MacOS .app" OFF)
+
+# Module cmake path
+set(SDRPP_MODULE_CMAKE "${CMAKE_SOURCE_DIR}/sdrpp_module.cmake")
+
+# Root source folder
+set(SDRPP_CORE_ROOT "${CMAKE_SOURCE_DIR}/core/src/")
+
+# Compiler flags
+if (MSVC)
+    set(SDRPP_COMPILER_ARGS /O2 /Ob2 /std:c++17 /EHsc)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(SDRPP_COMPILER_ARGS -O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
+else ()
+    set(SDRPP_COMPILER_ARGS -O3 -std=c++17)
+endif ()
+set(SDRPP_MODULE_COMPILER_ARGS ${SDRPP_COMPILER_ARGS})
+
+# Set a default install prefix
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        set(CMAKE_INSTALL_PREFIX "/usr/local")
+    else()
+        set(CMAKE_INSTALL_PREFIX "/usr")
+    endif()
+endif()
+
+# Configure toolchain for android
+if (ANDROID)
+    set(CMAKE_SHARED_LINKER_FLAGS
+        "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate"
+    )
+    set(CMAKE_C_STANDARD 11)
+    set(CMAKE_CXX_STANDARD 14)
+    set(CMAKE_CXX14_EXTENSION_COMPILE_OPTION "-std=c++17")
+endif (ANDROID)
 
 # Core of SDR++
 add_subdirectory("core")
@@ -236,15 +253,8 @@ endif (OPT_BUILD_SCHEDULER)
 add_executable(sdrpp "src/main.cpp" "win32/resources.rc")
 target_link_libraries(sdrpp PRIVATE sdrpp_core)
 
-# Compiler arguments for each platform
-if (MSVC)
-    target_compile_options(sdrpp PRIVATE /O2 /Ob2 /std:c++17 /EHsc)
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(sdrpp PRIVATE -O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
-else ()
-    target_compile_options(sdrpp PRIVATE -O3 -std=c++17)
-endif ()
-
+# Compiler arguments
+target_compile_options(sdrpp PRIVATE ${SDRPP_COMPILER_ARGS})
 
 # Copy dynamic libs over
 if (MSVC)
@@ -271,6 +281,9 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif ()
 
 # cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake" -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_M17_DECODER=ON -DOPT_BUILD_SCANNER=ON -DOPT_BUILD_SCHEDULER=ON -DOPT_BUILD_USRP_SOURCE=ON
+
+# Create module cmake file
+configure_file(${CMAKE_SOURCE_DIR}/sdrpp_module.cmake ${CMAKE_CURRENT_BINARY_DIR}/sdrpp_module.cmake @ONLY)
 
 # Install directives
 install(TARGETS sdrpp DESTINATION bin)

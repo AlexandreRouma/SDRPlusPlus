@@ -30,13 +30,7 @@ endif (OPT_BACKEND_ANDROID)
 add_library(sdrpp_core SHARED ${SRC} ${BACKEND_SRC})
 
 # Set compiler options
-if (MSVC)
-    target_compile_options(sdrpp_core PRIVATE /O2 /Ob2 /std:c++17 /EHsc)
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(sdrpp_core PRIVATE -O3 -std=c++17)
-else ()
-    target_compile_options(sdrpp_core PRIVATE -O3 -std=c++17)
-endif ()
+target_compile_options(sdrpp_core PRIVATE ${SDRPP_COMPILER_ARGS})
 
 # Set the install prefix
 target_compile_definitions(sdrpp_core PUBLIC INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")

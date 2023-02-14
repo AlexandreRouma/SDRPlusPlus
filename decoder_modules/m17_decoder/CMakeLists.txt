@@ -3,19 +3,9 @@ project(m17_decoder)
 
 file(GLOB_RECURSE SRC "src/*.cpp" "src/*.c")
 
-add_library(m17_decoder SHARED ${SRC})
-target_link_libraries(m17_decoder PRIVATE sdrpp_core)
-set_target_properties(m17_decoder PROPERTIES PREFIX "")
+include(${SDRPP_MODULE_CMAKE})
 
 target_include_directories(m17_decoder PRIVATE "src/")
-
-if (MSVC)
-    target_compile_options(m17_decoder PRIVATE /O2 /Ob2 /std:c++17 /EHsc)
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(m17_decoder PRIVATE -O3 -std=c++17 -Wno-unused-command-line-argument -undefined dynamic_lookup)
-else ()
-    target_compile_options(m17_decoder PRIVATE -O3 -std=c++17)
-endif ()
 
 if (MSVC)
     # Lib path
@@ -45,10 +35,4 @@ else ()
     if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         target_include_directories(m17_decoder PRIVATE "/usr/local/include")
     endif()
-
 endif ()
-
-
-
-# Install directives
-install(TARGETS m17_decoder DESTINATION lib/sdrpp/plugins)
