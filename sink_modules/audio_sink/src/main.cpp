@@ -59,20 +59,16 @@ public:
     }
 
     ~AudioSink() {
+        stop();
     }
 
     void start() {
-        if (running) {
-            return;
-        }
-        doStart();
-        running = true;
+        if (running) { return; }
+        running = doStart();
     }
 
     void stop() {
-        if (!running) {
-            return;
-        }
+        if (!running) { return; }
         doStop();
         running = false;
     }
@@ -157,7 +153,7 @@ public:
     }
 
 private:
-    void doStart() {
+    bool doStart() {
         RtAudio::StreamParameters parameters;
         parameters.deviceId = deviceIds[devId];
         parameters.nChannels = 2;
@@ -174,10 +170,11 @@ private:
         }
         catch (RtAudioError& e) {
             spdlog::error("Could not open audio device");
-            return;
+            return false;
         }
 
         spdlog::info("RtAudio stream open");
+        return true;
     }
 
     void doStop() {
