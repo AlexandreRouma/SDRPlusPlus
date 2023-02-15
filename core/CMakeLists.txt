@@ -30,7 +30,7 @@ endif (OPT_BACKEND_ANDROID)
 add_library(sdrpp_core SHARED ${SRC} ${BACKEND_SRC})
 
 # Set compiler options
-target_compile_options(sdrpp_core PRIVATE ${SDRPP_COMPILER_ARGS})
+target_compile_options(sdrpp_core PRIVATE ${SDRPP_COMPILER_FLAGS})
 
 # Set the install prefix
 target_compile_definitions(sdrpp_core PUBLIC INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
