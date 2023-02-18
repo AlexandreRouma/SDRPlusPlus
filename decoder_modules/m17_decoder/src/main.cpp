@@ -227,6 +227,15 @@ private:
             config.release(true);
         }
 
+        ImGui::TextUnformatted("Status:");
+        ImGui::SameLine();
+        if (_this->decoder.isReceiving()) {
+            ImGui::TextColored(ImVec4(0.0, 1.0, 0.0, 1.0), "Receiving");
+        }
+        else {
+            ImGui::TextUnformatted("Idle");
+        }
+
         if (!_this->enabled) { style::endDisabled(); }
     }
 
