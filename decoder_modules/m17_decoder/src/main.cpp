@@ -32,7 +32,7 @@ ConfigManager config;
 
 class M17DecoderModule : public ModuleManager::Instance {
 public:
-    M17DecoderModule(std::string name) : diag(0.8, 480) {
+    M17DecoderModule(std::string name) : diag(0.6, 480) {
         this->name = name;
         lsf.valid = false;
 
@@ -43,10 +43,10 @@ public:
         }
         showLines = config.conf[name]["showLines"];
         if (showLines) {
-            diag.lines.push_back(-0.75f);
-            diag.lines.push_back(-0.25f);
-            diag.lines.push_back(0.25f);
-            diag.lines.push_back(0.75f);
+            diag.lines.push_back(-1.0);
+            diag.lines.push_back(-1.0/3.0);
+            diag.lines.push_back(1.0/3.0);
+            diag.lines.push_back(1.0);
         }
         config.release(true);
 

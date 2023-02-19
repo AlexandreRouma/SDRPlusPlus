@@ -16,7 +16,7 @@ extern "C" {
 #define M17_DEVIATION     2400.0f
 #define M17_BAUDRATE      4800.0f
 #define M17_RRC_ALPHA     0.5f
-#define M17_4FSK_HIGH_CUT 0.5f
+#define M17_4FSK_HIGH_CUT ((1.0f + (1.0f/3.0f)) / 2.0f)
 
 #define M17_SYNC_SIZE            16
 #define M17_LICH_SIZE            96
@@ -123,6 +123,7 @@ namespace dsp {
             float val;
             for (int i = 0; i < count; i++) {
                 val = _in->readBuf[i];
+                printf("%f\n", val);
                 out.writeBuf[i * 2] = (val < 0.0f);
                 out.writeBuf[(i * 2) + 1] = (fabsf(val) > M17_4FSK_HIGH_CUT);
             }
