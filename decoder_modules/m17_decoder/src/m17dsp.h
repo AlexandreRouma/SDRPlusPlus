@@ -123,7 +123,6 @@ namespace dsp {
             float val;
             for (int i = 0; i < count; i++) {
                 val = _in->readBuf[i];
-                printf("%f\n", val);
                 out.writeBuf[i * 2] = (val < 0.0f);
                 out.writeBuf[(i * 2) + 1] = (fabsf(val) > M17_4FSK_HIGH_CUT);
             }
