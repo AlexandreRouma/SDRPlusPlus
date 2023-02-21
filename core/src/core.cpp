@@ -163,6 +163,8 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["moduleInstances"]["Airspy Source"]["enabled"] = true;
     defConfig["moduleInstances"]["AirspyHF+ Source"]["module"] = "airspyhf_source";
     defConfig["moduleInstances"]["AirspyHF+ Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["Audio Source"]["module"] = "audio_source";
+    defConfig["moduleInstances"]["Audio Source"]["enabled"] = true;
     defConfig["moduleInstances"]["BladeRF Source"]["module"] = "bladerf_source";
     defConfig["moduleInstances"]["BladeRF Source"]["enabled"] = true;
     defConfig["moduleInstances"]["File Source"]["module"] = "file_source";

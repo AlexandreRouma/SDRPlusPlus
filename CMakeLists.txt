@@ -11,6 +11,7 @@ option(OPT_OVERRIDE_STD_FILESYSTEM "Use a local version of std::filesystem on sy
 # Sources
 option(OPT_BUILD_AIRSPY_SOURCE "Build Airspy Source Module (Dependencies: libairspy)" ON)
 option(OPT_BUILD_AIRSPYHF_SOURCE "Build Airspy HF+ Source Module (Dependencies: libairspyhf)" ON)
+option(OPT_BUILD_AUDIO_SOURCE "Build Audio Source Module (Dependencies: rtaudio)" ON)
 option(OPT_BUILD_BLADERF_SOURCE "Build BladeRF Source Module (Dependencies: libbladeRF)" OFF)
 option(OPT_BUILD_FILE_SOURCE "Wav file source" ON)
 option(OPT_BUILD_HACKRF_SOURCE "Build HackRF Source Module (Dependencies: libhackrf)" ON)
@@ -115,6 +116,10 @@ endif (OPT_BUILD_AIRSPY_SOURCE)
 if (OPT_BUILD_AIRSPYHF_SOURCE)
 add_subdirectory("source_modules/airspyhf_source")
 endif (OPT_BUILD_AIRSPYHF_SOURCE)
+
+if (OPT_BUILD_AUDIO_SOURCE)
+add_subdirectory("source_modules/audio_source")
+endif (OPT_BUILD_AUDIO_SOURCE)
 
 if (OPT_BUILD_BLADERF_SOURCE)
 add_subdirectory("source_modules/bladerf_source")
