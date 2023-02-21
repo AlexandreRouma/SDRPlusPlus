@@ -17,6 +17,8 @@ cp 'C:/Program Files/PothosSDR/bin/airspy.dll' sdrpp_windows_x64/
 cp $build_dir/source_modules/airspyhf_source/Release/airspyhf_source.dll sdrpp_windows_x64/modules/
 cp 'C:/Program Files/PothosSDR/bin/airspyhf.dll' sdrpp_windows_x64/
 
+cp $build_dir/source_modules/audio_source/Release/audio_source.dll sdrpp_windows_x64/modules/
+
 cp $build_dir/source_modules/bladerf_source/Release/bladerf_source.dll sdrpp_windows_x64/modules/
 cp 'C:/Program Files/PothosSDR/bin/bladeRF.dll' sdrpp_windows_x64/
 
