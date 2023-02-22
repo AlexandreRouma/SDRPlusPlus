@@ -78,6 +78,8 @@ cp $build_dir/misc_modules/frequency_manager/Release/frequency_manager.dll sdrpp
 
 cp $build_dir/misc_modules/recorder/Release/recorder.dll sdrpp_windows_x64/modules/
 
+cp $build_dir/misc_modules/rigctl_client/Release/rigctl_client.dll sdrpp_windows_x64/modules/
+
 cp $build_dir/misc_modules/rigctl_server/Release/rigctl_server.dll sdrpp_windows_x64/modules/
 
 cp $build_dir/misc_modules/scanner/Release/scanner.dll sdrpp_windows_x64/modules/
