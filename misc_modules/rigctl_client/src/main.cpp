@@ -12,11 +12,9 @@
 #include <radio_interface.h>
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
-#define MAX_COMMAND_LENGTH 8192
-
 SDRPP_MOD_INFO{
     /* Name:            */ "rigctl_client",
-    /* Description:     */ "My fancy new module",
+    /* Description:     */ "Client for the RigCTL protocol",
     /* Author:          */ "Ryzerth",
     /* Version:         */ 0, 1, 0,
     /* Max instances    */ 1
@@ -29,7 +27,23 @@ public:
     RigctlClientModule(std::string name) {
         this->name = name;
 
+        // Load default
         strcpy(host, "127.0.0.1");
+
+        // Load config
+        config.acquire();
+        if (config.conf[name].contains("host")) {
+            std::string h = config.conf[name]["host"];
+            strcpy(host, h.c_str());
+        }
+        if (config.conf[name].contains("port")) {
+            port = config.conf[name]["port"];
+            port = std::clamp<int>(port, 1, 65535);
+        }
+        if (config.conf[name].contains("ifFreq")) {
+            ifFreq = config.conf[name]["ifFreq"];
+        }
+        config.release();
 
         _retuneHandler.ctx = this;
         _retuneHandler.handler = retuneHandler;
@@ -62,9 +76,20 @@ public:
         std::lock_guard<std::recursive_mutex> lck(mtx);
         if (running) { return; }
 
+        // Connect to rigctl server
+        try {
+            client = net::rigctl::connect(host, port);
+        }
+        catch (std::exception e) {
+            spdlog::error("Could not connect: {0}", e.what());
+            return;
+        }
+
+        // Switch source to panadapter mode
         sigpath::sourceManager.setPanadpterIF(ifFreq);
         sigpath::sourceManager.setTuningMode(SourceManager::TuningMode::PANADAPTER);
         sigpath::sourceManager.onRetune.bindHandler(&_retuneHandler);
+
         running = true;
     }
 
@@ -72,8 +97,13 @@ public:
         std::lock_guard<std::recursive_mutex> lck(mtx);
         if (!running) { return; }
 
+        // Switch source back to normal mode
         sigpath::sourceManager.onRetune.unbindHandler(&_retuneHandler);
         sigpath::sourceManager.setTuningMode(SourceManager::TuningMode::NORMAL);
+
+        // Disconnect from rigctl server
+        client->close();
+
         running = false;
     }
 
@@ -115,14 +145,26 @@ private:
         else if (!_this->running && ImGui::Button(CONCAT("Start##_rigctl_cli_stop_", _this->name), ImVec2(menuWidth, 0))) {
             _this->start();
         }
+
+        ImGui::TextUnformatted("Status:");
+        ImGui::SameLine();
+        if (_this->client && _this->client->isOpen() && _this->running) {
+            ImGui::TextColored(ImVec4(0.0, 1.0, 0.0, 1.0), "Connected");
+        }
+        else if (_this->client && _this->running) {
+            ImGui::TextColored(ImVec4(1.0, 1.0, 0.0, 1.0), "Disconnected");
+        }
+        else {
+            ImGui::TextUnformatted("Idle");
+        }
     }
 
     static void retuneHandler(double freq, void* ctx) {
         RigctlClientModule* _this = (RigctlClientModule*)ctx;
         if (!_this->client || !_this->client->isOpen()) { return; }
-        //spdlog::warn("PAN RETUNE: {0}", freq);
-        
-        _this->client->setFreq(freq);
+        if (_this->client->setFreq(freq)) {
+            spdlog::error("Could not set frequency");
+        }
     }
 
     std::string name;
