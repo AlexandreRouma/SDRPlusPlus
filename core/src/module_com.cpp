@@ -1,4 +1,5 @@
 #include <module_com.h>
+#include <spdlog/spdlog.h>
 
 bool ModuleComManager::registerInterface(std::string moduleName, std::string name, void (*handler)(int code, void* in, void* out, void* ctx), void* ctx) {
     std::lock_guard<std::mutex> lck(mtx);

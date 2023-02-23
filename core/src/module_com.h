@@ -2,7 +2,6 @@
 #include <map>
 #include <string>
 #include <mutex>
-#include <spdlog/spdlog.h>
 
 struct ModuleComInterface {
     std::string moduleName;
