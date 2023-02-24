@@ -134,12 +134,14 @@ namespace rds {
         std::string getPSName() { std::lock_guard<std::mutex> lck(groupMtx); return programServiceName; }
 
         bool radioTextValid() { std::lock_guard<std::mutex> lck(groupMtx); return group2Valid(); }
-        std::string getRadioText() { std::lock_guard<std::mutex> lck(groupMtx); return radioText; }
+        std::string getRadioText() { std::lock_guard<std::mutex> lck(groupMtx); return convertToUTF8(radioText); }
 
     private:
         static uint16_t calcSyndrome(uint32_t block);
         static uint32_t correctErrors(uint32_t block, BlockType type, bool& recovered);
         void decodeGroup();
+
+        std::string convertToUTF8(std::string RT);
 
         bool anyGroupValid();
         bool group0Valid();
