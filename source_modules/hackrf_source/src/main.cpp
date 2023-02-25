@@ -12,7 +12,6 @@
 #include <libhackrf/hackrf.h>
 #else
 #include <android_backend.h>
-#include <spdlog/sinks/android_sink.h>
 #include <hackrf.h>
 #endif
 
