@@ -1,17 +1,15 @@
-#include <backend.h>
+#include <backend.h>log
 #include "android_backend.h"
 #include <core.h>
 #include <gui/gui.h>
 #include "imgui.h"
 #include "imgui_impl_android.h"
 #include "imgui_impl_opengl3.h"
-#include <android/log.h>
 #include <android_native_app_glue.h>
 #include <android/asset_manager.h>
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
 #include <stdint.h>
-#include <spdlog/sinks/android_sink.h>
 #include <gui/icons.h>
 #include <gui/style.h>
 #include <gui/menus/theme.h>
@@ -472,11 +470,6 @@ extern "C" {
             return;
         }
         backend::initialized = true;
-       
-        // prepare spdlog
-        auto console_sink = std::make_shared<flog::sinks::android_sink_st>("SDR++");
-        auto logger = std::shared_ptr<flog::logger>(new flog::logger("", { console_sink }));
-        flog::set_default_logger(logger);
 
         // Grab files dir
         std::string appdir = backend::getAppFilesDir();
