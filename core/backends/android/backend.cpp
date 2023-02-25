@@ -173,7 +173,6 @@ namespace backend {
     void setMouseScreenPos(double x, double y) {}
 
     int renderLoop() {
-        flog::warn("BRUH: {0}", (void*)backend::app->window);
         while (true) {
             int out_events;
             struct android_poll_source* out_data;
