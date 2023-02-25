@@ -89,9 +89,9 @@ set(SDRPP_MODULE_COMPILER_FLAGS ${SDRPP_COMPILER_FLAGS})
 # Set a default install prefix
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        set(CMAKE_INSTALL_PREFIX "/usr/local")
+        set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "..." FORCE)
     else()
-        set(CMAKE_INSTALL_PREFIX "/usr")
+        set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "..." FORCE)
     endif()
 endif()
 
