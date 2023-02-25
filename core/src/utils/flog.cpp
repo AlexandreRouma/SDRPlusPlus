@@ -9,7 +9,7 @@
 #endif
 
 #ifdef __ANDROID__
-#include <log.h>
+#include <android/log.h>
 #ifndef FLOG_ANDROID_TAG
 #define FLOG_ANDROID_TAG    "flog"
 #endif
@@ -193,21 +193,9 @@ namespace flog {
         return buf;
     }
 
-    std::string __toString__(uint8_t value) {
-        char buf[8];
-        sprintf(buf, "%" PRIu8, value);
-        return buf;
-    }
-
     std::string __toString__(int16_t value) {
         char buf[16];
         sprintf(buf, "%" PRId16, value);
-        return buf;
-    }
-
-    std::string __toString__(uint16_t value) {
-        char buf[16];
-        sprintf(buf, "%" PRIu16, value);
         return buf;
     }
 
@@ -217,15 +205,27 @@ namespace flog {
         return buf;
     }
 
-    std::string __toString__(uint32_t value) {
-        char buf[32];
-        sprintf(buf, "%" PRIu32, value);
-        return buf;
-    }
-
     std::string __toString__(int64_t value) {
         char buf[64];
         sprintf(buf, "%" PRId64, value);
+        return buf;
+    }
+
+    std::string __toString__(uint8_t value) {
+        char buf[8];
+        sprintf(buf, "%" PRIu8, value);
+        return buf;
+    }
+
+    std::string __toString__(uint16_t value) {
+        char buf[16];
+        sprintf(buf, "%" PRIu16, value);
+        return buf;
+    }
+
+    std::string __toString__(uint32_t value) {
+        char buf[32];
+        sprintf(buf, "%" PRIu32, value);
         return buf;
     }
 

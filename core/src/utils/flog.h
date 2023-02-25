@@ -19,12 +19,12 @@ namespace flog {
     std::string __toString__(bool value);
     std::string __toString__(char value);
     std::string __toString__(int8_t value);
-    std::string __toString__(uint8_t value);
     std::string __toString__(int16_t value);
-    std::string __toString__(uint16_t value);
     std::string __toString__(int32_t value);
-    std::string __toString__(uint32_t value);
     std::string __toString__(int64_t value);
+    std::string __toString__(uint8_t value);
+    std::string __toString__(uint16_t value);
+    std::string __toString__(uint32_t value);
     std::string __toString__(uint64_t value);
     std::string __toString__(float value);
     std::string __toString__(double value);

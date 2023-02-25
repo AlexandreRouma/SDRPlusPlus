@@ -175,7 +175,6 @@ private:
         std::regex expr("[0-9]+Hz");
         std::smatch matches;
         std::regex_search(filename, matches, expr);
-        flog::warn("{0} {1}", filename, matches.size());
         if (matches.empty()) { return 0; }
         std::string freqStr = matches[0].str();
         return std::atof(freqStr.substr(0, freqStr.size() - 2).c_str());
