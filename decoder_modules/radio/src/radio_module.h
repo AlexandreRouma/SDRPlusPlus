@@ -12,6 +12,7 @@
 #include <dsp/multirate/rational_resampler.h>
 #include <dsp/filter/deephasis.h>
 #include <core.h>
+#include <stdint.h>
 #include <utils/optionlist.h>
 #include "radio_interface.h"
 #include "demod.h"
@@ -332,7 +333,7 @@ private:
         config.conf[name]["selectedDemodId"] = id;
         config.release(true);
         auto endTime = std::chrono::high_resolution_clock::now();
-        flog::warn("Demod switch took {0} us", (std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime)).count());
+        flog::warn("Demod switch took {0} us", (int64_t)((std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime)).count()));
     }
 
     void selectDemod(demod::Demodulator* demod) {
