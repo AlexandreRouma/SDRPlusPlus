@@ -1,5 +1,5 @@
 #include "spectran_http_client.h"
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <module.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
@@ -67,13 +67,13 @@ private:
     static void menuSelected(void* ctx) {
         SpectranHTTPSourceModule* _this = (SpectranHTTPSourceModule*)ctx;
         core::setInputSampleRate(_this->sampleRate);
-        spdlog::info("SpectranHTTPSourceModule '{0}': Menu Select!", _this->name);
+        flog::info("SpectranHTTPSourceModule '{0}': Menu Select!", _this->name);
     }
 
     static void menuDeselected(void* ctx) {
         SpectranHTTPSourceModule* _this = (SpectranHTTPSourceModule*)ctx;
         gui::mainWindow.playButtonLocked = false;
-        spdlog::info("SpectranHTTPSourceModule '{0}': Menu Deselect!", _this->name);
+        flog::info("SpectranHTTPSourceModule '{0}': Menu Deselect!", _this->name);
     }
 
     static void start(void* ctx) {
@@ -87,7 +87,7 @@ private:
         // TODO: Set options
 
         _this->running = true;
-        spdlog::info("SpectranHTTPSourceModule '{0}': Start!", _this->name);
+        flog::info("SpectranHTTPSourceModule '{0}': Start!", _this->name);
     }
 
     static void stop(void* ctx) {
@@ -98,7 +98,7 @@ private:
         // TODO: Implement stop
         _this->client->streaming(false);
 
-        spdlog::info("SpectranHTTPSourceModule '{0}': Stop!", _this->name);
+        flog::info("SpectranHTTPSourceModule '{0}': Stop!", _this->name);
     }
 
     static void tune(double freq, void* ctx) {
@@ -107,7 +107,7 @@ private:
             // TODO
         }
         _this->freq = freq;
-        spdlog::info("SpectranHTTPSourceModule '{0}': Tune: {1}!", _this->name, freq);
+        flog::info("SpectranHTTPSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
 
     static void menuHandler(void* ctx) {
@@ -157,7 +157,7 @@ private:
             client = std::make_shared<SpectranHTTPClient>(hostname, port, &stream);
         }
         catch (std::runtime_error e) {
-            spdlog::error("Could not connect: {0}", e.what());
+            flog::error("Could not connect: {0}", e.what());
         }
     }
 

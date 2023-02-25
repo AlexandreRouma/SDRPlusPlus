@@ -5,7 +5,7 @@
 #include <dsp/routing.h>
 #include <dsp/demodulator.h>
 #include <dsp/sink.h>
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 
 extern "C" {
 #include <correct.h>
@@ -156,7 +156,7 @@ namespace kgsstv {
 
                     // If full syncword was detected, switch to read mode
                     if (++match == KGSSTV_SYNC_WORD_SIZE) {
-                        spdlog::warn("Frame detected");
+                        flog::warn("Frame detected");
                         syncing = false;
                         readCount = 0;
                         writeCount = 0;
@@ -193,7 +193,7 @@ namespace kgsstv {
                         // Decode convolutional code
                         int convOutCount = correct_convolutional_decode_soft(conv, convTmp, 124, out.writeBuf);
 
-                        spdlog::warn("Frames written: {0}, frameBytes: {1}", ++framesWritten, convOutCount);
+                        flog::warn("Frames written: {0}, frameBytes: {1}", ++framesWritten, convOutCount);
                         if (!out.swap(7)) {
                             _in->flush();
                             return -1;

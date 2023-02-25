@@ -1,5 +1,5 @@
 #include "spectran_http_client.h"
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 
 SpectranHTTPClient::SpectranHTTPClient(std::string host, int port, dsp::stream<dsp::complex_t>* stream) {
     this->stream = stream;
@@ -48,7 +48,7 @@ void SpectranHTTPClient::worker() {
         std::string jsonData;
         int jlen = sock->recvline(jsonData, clen, 5000);
         if (jlen <= 0) {
-            spdlog::error("Couldn't read JSON metadata");
+            flog::error("Couldn't read JSON metadata");
             return;
         }
 
@@ -56,7 +56,7 @@ void SpectranHTTPClient::worker() {
         uint8_t rs;
         int rslen = sock->recv(&rs, 1, true, 5000);
         if (rslen != 1 || rs != 0x1E) {
-            spdlog::error("Missing record separator");
+            flog::error("Missing record separator");
             return;
         }
 
@@ -66,7 +66,7 @@ void SpectranHTTPClient::worker() {
         for (int i = jlen + 1; i < clen;) {
             int read = sock->recv(&buf[sampLen], clen - i, true);
             if (read <= 0) {
-                spdlog::error("Recv failed while reading data");
+                flog::error("Recv failed while reading data");
                 return;
             }
             i += read;
@@ -82,7 +82,7 @@ void SpectranHTTPClient::worker() {
         std::string dummy;
         sock->recvline(dummy, 2);
         if (dummy != "\r") {
-            spdlog::error("Missing trailing CRLF");
+            flog::error("Missing trailing CRLF");
             return;
         }
     }

@@ -1,7 +1,7 @@
 #include "sdrpp_server_client.h"
 #include <volk/volk.h>
 #include <cstring>
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <core.h>
 
 using namespace std::chrono_literals;
@@ -76,7 +76,7 @@ namespace server {
 
             // Send
             if (syncRequired) {
-                spdlog::warn("Action requires resync");
+                flog::warn("Action requires resync");
                 auto waiter = awaitCommandAck(COMMAND_UI_ACTION);
                 sendCommand(COMMAND_UI_ACTION, size);
                 if (waiter->await(PROTOCOL_TIMEOUT_MS)) {
@@ -84,13 +84,13 @@ namespace server {
                     dl.load(r_cmd_data, r_pkt_hdr->size - sizeof(PacketHeader) - sizeof(CommandHeader));
                 }
                 else {
-                    spdlog::error("Timeout out after asking for UI");
+                    flog::error("Timeout out after asking for UI");
                 }
                 waiter->handled();
-                spdlog::warn("Resync done");
+                flog::warn("Resync done");
             }
             else {
-                spdlog::warn("Action does not require resync");
+                flog::warn("Action does not require resync");
                 sendCommand(COMMAND_UI_ACTION, size);
             }
         }
@@ -166,7 +166,7 @@ namespace server {
                 core::setInputSampleRate(_this->currentSampleRate);
             }
             else if (_this->r_cmd_hdr->cmd == COMMAND_DISCONNECT) {
-                spdlog::error("Asked to disconnect by the server");
+                flog::error("Asked to disconnect by the server");
                 _this->serverBusy = true;
 
                 // Cancel waiters
@@ -207,10 +207,10 @@ namespace server {
             if (outCount) { _this->decompIn.swap(outCount); };
         }
         else if (_this->r_pkt_hdr->type == PACKET_TYPE_ERROR) {
-            spdlog::error("SDR++ Server Error: {0}", buf[sizeof(PacketHeader)]);
+            flog::error("SDR++ Server Error: {0}", buf[sizeof(PacketHeader)]);
         }
         else {
-            spdlog::error("Invalid packet type: {0}", _this->r_pkt_hdr->type);
+            flog::error("Invalid packet type: {0}", _this->r_pkt_hdr->type);
         }
 
         // Restart an async read
@@ -225,7 +225,7 @@ namespace server {
             dl.load(r_cmd_data, r_pkt_hdr->size - sizeof(PacketHeader) - sizeof(CommandHeader));
         }
         else {
-            if (!serverBusy) { spdlog::error("Timeout out after asking for UI"); };
+            if (!serverBusy) { flog::error("Timeout out after asking for UI"); };
             waiter->handled();
             return serverBusy ? -2 : -1;
         }

@@ -195,7 +195,7 @@ namespace SmGui {
                 i++;
             }
             else {
-                spdlog::error("Invalid widget in Drawlist");
+                flog::error("Invalid widget in Drawlist");
             }
 
             if (elem.step != DRAW_STEP_FILL_WIDTH) { nextItemFillWidth = false; }
@@ -293,7 +293,7 @@ namespace SmGui {
 
         // Validate and clear if invalid
         if (!validate()) {
-            spdlog::error("Drawlist validation failed");
+            flog::error("Drawlist validation failed");
             //elements.clear();
             return -1;
         }

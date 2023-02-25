@@ -201,7 +201,7 @@ private:
             listener->acceptAsync(clientHandler, this);
         }
         catch (std::exception e) {
-            spdlog::error("Could not start rigctl server: {0}", e.what());
+            flog::error("Could not start rigctl server: {0}", e.what());
         }
     }
 
@@ -306,14 +306,14 @@ private:
 
     static void clientHandler(net::Conn _client, void* ctx) {
         SigctlServerModule* _this = (SigctlServerModule*)ctx;
-        //spdlog::info("New client!");
+        //flog::info("New client!");
 
         _this->client = std::move(_client);
         _this->client->readAsync(1024, _this->dataBuf, dataHandler, _this, false);
         _this->client->waitForEnd();
         _this->client->close();
 
-        //spdlog::info("Client disconnected!");
+        //flog::info("Client disconnected!");
 
         _this->listener->acceptAsync(clientHandler, _this);
     }
@@ -371,7 +371,7 @@ private:
             return;
         }
 
-        spdlog::info("Rigctl command: '{0}'", cmd);
+        flog::info("Rigctl command: '{0}'", cmd);
 
         // Otherwise, execute the command
         if (parts[0] == "F" || parts[0] == "\\set_freq") {
@@ -692,7 +692,7 @@ private:
         }
         else {
             // If command is not recognized, return error
-            spdlog::error("Rigctl client sent invalid command: '{0}'", cmd);
+            flog::error("Rigctl client sent invalid command: '{0}'", cmd);
             resp = "RPRT 1\n";
             client->write(resp.size(), (uint8_t*)resp.c_str());
             return;

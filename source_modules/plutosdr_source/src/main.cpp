@@ -1,4 +1,4 @@
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <module.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
@@ -108,12 +108,12 @@ private:
     static void menuSelected(void* ctx) {
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
         core::setInputSampleRate(_this->sampleRate);
-        spdlog::info("PlutoSDRSourceModule '{0}': Menu Select!", _this->name);
+        flog::info("PlutoSDRSourceModule '{0}': Menu Select!", _this->name);
     }
 
     static void menuDeselected(void* ctx) {
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
-        spdlog::info("PlutoSDRSourceModule '{0}': Menu Deselect!", _this->name);
+        flog::info("PlutoSDRSourceModule '{0}': Menu Deselect!", _this->name);
     }
 
     static void start(void* ctx) {
@@ -123,18 +123,18 @@ private:
         // TODO: INIT CONTEXT HERE
         _this->ctx = iio_create_context_from_uri(_this->ip);
         if (_this->ctx == NULL) {
-            spdlog::error("Could not open pluto");
+            flog::error("Could not open pluto");
             return;
         }
         _this->phy = iio_context_find_device(_this->ctx, "ad9361-phy");
         if (_this->phy == NULL) {
-            spdlog::error("Could not connect to pluto phy");
+            flog::error("Could not connect to pluto phy");
             iio_context_destroy(_this->ctx);
             return;
         }
         _this->dev = iio_context_find_device(_this->ctx, "cf-ad9361-lpc");
         if (_this->dev == NULL) {
-            spdlog::error("Could not connect to pluto dev");
+            flog::error("Could not connect to pluto dev");
             iio_context_destroy(_this->ctx);
             return;
         }
@@ -152,7 +152,7 @@ private:
 
         _this->running = true;
         _this->workerThread = std::thread(worker, _this);
-        spdlog::info("PlutoSDRSourceModule '{0}': Start!", _this->name);
+        flog::info("PlutoSDRSourceModule '{0}': Start!", _this->name);
     }
 
     static void stop(void* ctx) {
@@ -169,7 +169,7 @@ private:
             _this->ctx = NULL;
         }
 
-        spdlog::info("PlutoSDRSourceModule '{0}': Stop!", _this->name);
+        flog::info("PlutoSDRSourceModule '{0}': Stop!", _this->name);
     }
 
     static void tune(double freq, void* ctx) {
@@ -179,7 +179,7 @@ private:
             // SET PLUTO FREQ HERE
             iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "altvoltage0", true), "frequency", round(freq));
         }
-        spdlog::info("PlutoSDRSourceModule '{0}': Tune: {1}!", _this->name, freq);
+        flog::info("PlutoSDRSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
 
     static void menuHandler(void* ctx) {
@@ -246,7 +246,7 @@ private:
 
         rxbuf = iio_device_create_buffer(_this->dev, blockSize, false);
         if (!rxbuf) {
-            spdlog::error("Could not create RX buffer");
+            flog::error("Could not create RX buffer");
             return;
         }
 

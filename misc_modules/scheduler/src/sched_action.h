@@ -1,7 +1,7 @@
 #pragma once
 #include <json.hpp>
 #include <memory>
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 
 using namespace nlohmann;
 

@@ -1,4 +1,4 @@
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <module.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
@@ -224,12 +224,12 @@ private:
     static void menuSelected(void* ctx) {
         HackRFSourceModule* _this = (HackRFSourceModule*)ctx;
         core::setInputSampleRate(_this->sampleRate);
-        spdlog::info("HackRFSourceModule '{0}': Menu Select!", _this->name);
+        flog::info("HackRFSourceModule '{0}': Menu Select!", _this->name);
     }
 
     static void menuDeselected(void* ctx) {
         HackRFSourceModule* _this = (HackRFSourceModule*)ctx;
-        spdlog::info("HackRFSourceModule '{0}': Menu Deselect!", _this->name);
+        flog::info("HackRFSourceModule '{0}': Menu Deselect!", _this->name);
     }
 
     int bandwidthIdToBw(int id) {
@@ -241,7 +241,7 @@ private:
         HackRFSourceModule* _this = (HackRFSourceModule*)ctx;
         if (_this->running) { return; }
         if (_this->selectedSerial == "") {
-            spdlog::error("Tried to start HackRF source with empty serial");
+            flog::error("Tried to start HackRF source with empty serial");
             return;
         }
 
@@ -251,7 +251,7 @@ private:
         hackrf_error err = (hackrf_error)hackrf_open_by_fd(_this->devFd, &_this->openDev);
 #endif
         if (err != HACKRF_SUCCESS) {
-            spdlog::error("Could not open HackRF {0}: {1}", _this->selectedSerial, hackrf_error_name(err));
+            flog::error("Could not open HackRF {0}: {1}", _this->selectedSerial, hackrf_error_name(err));
             return;
         }
 
@@ -267,7 +267,7 @@ private:
         hackrf_start_rx(_this->openDev, callback, _this);
 
         _this->running = true;
-        spdlog::info("HackRFSourceModule '{0}': Start!", _this->name);
+        flog::info("HackRFSourceModule '{0}': Start!", _this->name);
     }
 
     static void stop(void* ctx) {
@@ -278,10 +278,10 @@ private:
         // TODO: Stream stop
         hackrf_error err = (hackrf_error)hackrf_close(_this->openDev);
         if (err != HACKRF_SUCCESS) {
-            spdlog::error("Could not close HackRF {0}: {1}", _this->selectedSerial, hackrf_error_name(err));
+            flog::error("Could not close HackRF {0}: {1}", _this->selectedSerial, hackrf_error_name(err));
         }
         _this->stream.clearWriteStop();
-        spdlog::info("HackRFSourceModule '{0}': Stop!", _this->name);
+        flog::info("HackRFSourceModule '{0}': Stop!", _this->name);
     }
 
     static void tune(double freq, void* ctx) {
@@ -290,7 +290,7 @@ private:
             hackrf_set_freq(_this->openDev, freq);
         }
         _this->freq = freq;
-        spdlog::info("HackRFSourceModule '{0}': Tune: {1}!", _this->name, freq);
+        flog::info("HackRFSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
 
     static void menuHandler(void* ctx) {

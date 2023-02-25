@@ -1,5 +1,5 @@
 #include <imgui.h>
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <module.h>
 #include <gui/gui.h>
 #include <gui/style.h>
@@ -758,19 +758,19 @@ private:
         fs >> importBookmarks;
 
         if (!importBookmarks.contains("bookmarks")) {
-            spdlog::error("File does not contains any bookmarks");
+            flog::error("File does not contains any bookmarks");
             return;
         }
 
         if (!importBookmarks["bookmarks"].is_object()) {
-            spdlog::error("Bookmark attribute is invalid");
+            flog::error("Bookmark attribute is invalid");
             return;
         }
 
         // Load every bookmark
         for (auto const [_name, bm] : importBookmarks["bookmarks"].items()) {
             if (bookmarks.find(_name) != bookmarks.end()) {
-                spdlog::warn("Bookmark with the name '{0}' already exists in list, skipping", _name);
+                flog::warn("Bookmark with the name '{0}' already exists in list, skipping", _name);
                 continue;
             }
             FrequencyBookmark fbm;

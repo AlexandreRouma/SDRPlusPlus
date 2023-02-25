@@ -6,7 +6,7 @@
 #include <portaudio.h>
 #include <dsp/convert/stereo_to_mono.h>
 #include <dsp/sink/ring_buffer.h>
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <core.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
@@ -176,16 +176,16 @@ private:
         }
 
         if (err != 0) {
-            spdlog::error("Error while opening audio stream: ({0}) => {1}", err, Pa_GetErrorText(err));
+            flog::error("Error while opening audio stream: ({0}) => {1}", err, Pa_GetErrorText(err));
             return;
         }
 
         err = Pa_StartStream(stream);
         if (err != 0) {
-            spdlog::error("Error while starting audio stream: ({0}) => {1}", err, Pa_GetErrorText(err));
+            flog::error("Error while starting audio stream: ({0}) => {1}", err, Pa_GetErrorText(err));
             return;
         }
-        spdlog::info("Audio device open.");
+        flog::info("Audio device open.");
         running = true;
     }
 
@@ -241,7 +241,7 @@ private:
     // static int _stereo_cb(const void *input, void *output, unsigned long frameCount,
     //     const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData) {
     //     AudioSink* _this = (AudioSink*)userData;
-    //     if (_this->stereoPacker.out.read() < 0) { spdlog::warn("CB killed"); return 0; }
+    //     if (_this->stereoPacker.out.read() < 0) { flog::warn("CB killed"); return 0; }
     //     memcpy((dsp::stereo_t*)output, _this->stereoPacker.out.readBuf, frameCount * sizeof(dsp::stereo_t));
     //     _this->stereoPacker.out.flush();
     //     return 0;

@@ -69,7 +69,7 @@ namespace dsp::buffer {
                 writeCur = ((writeCur) % TEST_BUFFER_SIZE);
 
                 // if (((writeCur - readCur + TEST_BUFFER_SIZE) % TEST_BUFFER_SIZE) >= (TEST_BUFFER_SIZE-2)) {
-                //     spdlog::warn("Overflow");
+                //     flog::warn("Overflow");
                 // }
             }
             cnd.notify_all();

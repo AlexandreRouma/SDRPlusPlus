@@ -4,7 +4,7 @@
 #include <imutils.h>
 #include <algorithm>
 #include <volk/volk.h>
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <gui/gui.h>
 #include <gui/style.h>
 
@@ -1292,7 +1292,7 @@ namespace ImGui {
     void WaterFall::showWaterfall() {
         buf_mtx.lock();
         if (rawFFTs == NULL) {
-            spdlog::error("Null rawFFT");
+            flog::error("Null rawFFT");
         }
         waterfallVisible = true;
         onResize();

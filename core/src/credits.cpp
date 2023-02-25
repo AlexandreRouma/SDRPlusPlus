@@ -31,7 +31,6 @@ namespace sdrpp_credits {
         "fftw3 (fftw.org)",
         "glfw (Camilla Löwy)",
         "json (nlohmann)",
-        "spdlog (gabime)",
         "Portable File Dialogs"
     };
 

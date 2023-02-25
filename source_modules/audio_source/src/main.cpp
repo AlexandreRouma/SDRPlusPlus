@@ -1,4 +1,4 @@
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <module.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
@@ -97,7 +97,7 @@ public:
                 devices.define(info.name, info.name, dinfo);
             }
             catch (std::exception e) {
-                spdlog::error("Error getting audio device info: {0}", e.what());
+                flog::error("Error getting audio device info: {0}", e.what());
             }
         }
     }
@@ -162,12 +162,12 @@ private:
     static void menuSelected(void* ctx) {
         AudioSourceModule* _this = (AudioSourceModule*)ctx;
         core::setInputSampleRate(_this->sampleRate);
-        spdlog::info("AudioSourceModule '{0}': Menu Select!", _this->name);
+        flog::info("AudioSourceModule '{0}': Menu Select!", _this->name);
     }
 
     static void menuDeselected(void* ctx) {
         AudioSourceModule* _this = (AudioSourceModule*)ctx;
-        spdlog::info("AudioSourceModule '{0}': Menu Deselect!", _this->name);
+        flog::info("AudioSourceModule '{0}': Menu Deselect!", _this->name);
     }
 
     static void start(void* ctx) {
@@ -190,10 +190,10 @@ private:
             _this->running = true;
         }
         catch (std::exception e) {
-            spdlog::error("Error opening audio device: {0}", e.what());
+            flog::error("Error opening audio device: {0}", e.what());
         }
         
-        spdlog::info("AudioSourceModule '{0}': Start!", _this->name);
+        flog::info("AudioSourceModule '{0}': Start!", _this->name);
     }
 
     static void stop(void* ctx) {
@@ -204,7 +204,7 @@ private:
         _this->audio.stopStream();
         _this->audio.closeStream();
 
-        spdlog::info("AudioSourceModule '{0}': Stop!", _this->name);
+        flog::info("AudioSourceModule '{0}': Stop!", _this->name);
     }
 
     static void tune(double freq, void* ctx) {

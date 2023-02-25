@@ -1,4 +1,4 @@
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <module.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
@@ -132,14 +132,14 @@ public:
 #ifndef __ANDROID__
             int err = airspyhf_open_sn(&dev, serial);
 #else
-            spdlog::warn("====  CALLING airspyhf_open_fd  ====");
+            flog::warn("====  CALLING airspyhf_open_fd  ====");
             int err = airspyhf_open_fd(&dev, devFd);
-            spdlog::warn("====  CALLED airspyhf_open_fd  => ({0}) ====", err);
+            flog::warn("====  CALLED airspyhf_open_fd  => ({0}) ====", err);
 #endif
             if (err != 0) {
                 char buf[1024];
                 sprintf(buf, "%016" PRIX64, serial);
-                spdlog::error("Could not open Airspy HF+ {0}", buf);
+                flog::error("Could not open Airspy HF+ {0}", buf);
                 selectedSerial = 0;
                 return;
             }
@@ -147,7 +147,7 @@ public:
         catch (std::exception e) {
             char buf[1024];
             sprintf(buf, "%016" PRIX64, serial);
-            spdlog::error("Could not open Airspy HF+ {0}", buf);
+            flog::error("Could not open Airspy HF+ {0}", buf);
         }
 
         selectedSerial = serial;
@@ -227,19 +227,19 @@ private:
     static void menuSelected(void* ctx) {
         AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
         core::setInputSampleRate(_this->sampleRate);
-        spdlog::info("AirspyHFSourceModule '{0}': Menu Select!", _this->name);
+        flog::info("AirspyHFSourceModule '{0}': Menu Select!", _this->name);
     }
 
     static void menuDeselected(void* ctx) {
         AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
-        spdlog::info("AirspyHFSourceModule '{0}': Menu Deselect!", _this->name);
+        flog::info("AirspyHFSourceModule '{0}': Menu Deselect!", _this->name);
     }
 
     static void start(void* ctx) {
         AirspyHFSourceModule* _this = (AirspyHFSourceModule*)ctx;
         if (_this->running) { return; }
         if (_this->selectedSerial == 0) {
-            spdlog::error("Tried to start AirspyHF+ source with null serial");
+            flog::error("Tried to start AirspyHF+ source with null serial");
             return;
         }
 
@@ -251,7 +251,7 @@ private:
         if (err != 0) {
             char buf[1024];
             sprintf(buf, "%016" PRIX64, _this->selectedSerial);
-            spdlog::error("Could not open Airspy HF+ {0}", buf);
+            flog::error("Could not open Airspy HF+ {0}", buf);
             return;
         }
 
@@ -267,7 +267,7 @@ private:
         airspyhf_start(_this->openDev, callback, _this);
 
         _this->running = true;
-        spdlog::info("AirspyHFSourceModule '{0}': Start!", _this->name);
+        flog::info("AirspyHFSourceModule '{0}': Start!", _this->name);
     }
 
     static void stop(void* ctx) {
@@ -277,7 +277,7 @@ private:
         _this->stream.stopWriter();
         airspyhf_close(_this->openDev);
         _this->stream.clearWriteStop();
-        spdlog::info("AirspyHFSourceModule '{0}': Stop!", _this->name);
+        flog::info("AirspyHFSourceModule '{0}': Stop!", _this->name);
     }
 
     static void tune(double freq, void* ctx) {
@@ -286,7 +286,7 @@ private:
             airspyhf_set_freq(_this->openDev, freq);
         }
         _this->freq = freq;
-        spdlog::info("AirspyHFSourceModule '{0}': Tune: {1}!", _this->name, freq);
+        flog::info("AirspyHFSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
 
     static void menuHandler(void* ctx) {

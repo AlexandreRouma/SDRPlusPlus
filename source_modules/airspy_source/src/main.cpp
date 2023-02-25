@@ -1,5 +1,5 @@
 #include <imgui.h>
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <module.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
@@ -136,7 +136,7 @@ public:
             if (err != 0) {
                 char buf[1024];
                 sprintf(buf, "%016" PRIX64, serial);
-                spdlog::error("Could not open Airspy {0}", buf);
+                flog::error("Could not open Airspy {0}", buf);
                 selectedSerial = 0;
                 return;
             }
@@ -144,7 +144,7 @@ public:
         catch (std::exception e) {
             char buf[1024];
             sprintf(buf, "%016" PRIX64, serial);
-            spdlog::error("Could not open Airspy {0}", buf);
+            flog::error("Could not open Airspy {0}", buf);
         }
         selectedSerial = serial;
 
@@ -249,19 +249,19 @@ private:
     static void menuSelected(void* ctx) {
         AirspySourceModule* _this = (AirspySourceModule*)ctx;
         core::setInputSampleRate(_this->sampleRate);
-        spdlog::info("AirspySourceModule '{0}': Menu Select!", _this->name);
+        flog::info("AirspySourceModule '{0}': Menu Select!", _this->name);
     }
 
     static void menuDeselected(void* ctx) {
         AirspySourceModule* _this = (AirspySourceModule*)ctx;
-        spdlog::info("AirspySourceModule '{0}': Menu Deselect!", _this->name);
+        flog::info("AirspySourceModule '{0}': Menu Deselect!", _this->name);
     }
 
     static void start(void* ctx) {
         AirspySourceModule* _this = (AirspySourceModule*)ctx;
         if (_this->running) { return; }
         if (_this->selectedSerial == 0) {
-            spdlog::error("Tried to start Airspy source with null serial");
+            flog::error("Tried to start Airspy source with null serial");
             return;
         }
 
@@ -273,7 +273,7 @@ private:
         if (err != 0) {
             char buf[1024];
             sprintf(buf, "%016" PRIX64, _this->selectedSerial);
-            spdlog::error("Could not open Airspy {0}", buf);
+            flog::error("Could not open Airspy {0}", buf);
             return;
         }
 
@@ -313,7 +313,7 @@ private:
         airspy_start_rx(_this->openDev, callback, _this);
 
         _this->running = true;
-        spdlog::info("AirspySourceModule '{0}': Start!", _this->name);
+        flog::info("AirspySourceModule '{0}': Start!", _this->name);
     }
 
     static void stop(void* ctx) {
@@ -323,7 +323,7 @@ private:
         _this->stream.stopWriter();
         airspy_close(_this->openDev);
         _this->stream.clearWriteStop();
-        spdlog::info("AirspySourceModule '{0}': Stop!", _this->name);
+        flog::info("AirspySourceModule '{0}': Stop!", _this->name);
     }
 
     static void tune(double freq, void* ctx) {
@@ -332,7 +332,7 @@ private:
             airspy_set_freq(_this->openDev, freq);
         }
         _this->freq = freq;
-        spdlog::info("AirspySourceModule '{0}': Tune: {1}!", _this->name, freq);
+        flog::info("AirspySourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
 
     static void menuHandler(void* ctx) {

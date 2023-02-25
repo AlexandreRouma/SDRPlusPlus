@@ -1,5 +1,5 @@
 #include <imgui.h>
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <module.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
@@ -130,7 +130,7 @@ public:
 
         // Open device
         if (AARTSAAPI_OpenDevice(&api, &dev, L"spectranv6/raw", devList[devId].c_str()) != AARTSAAPI_OK) {
-            spdlog::error("Failed to open device");
+            flog::error("Failed to open device");
             selectedSerial.clear();
             return;
         }
@@ -145,7 +145,7 @@ public:
         AARTSAAPI_ConfigGetInfo(&dev, &config, &clockInfo);
 
         // Enumerate valid samplerates
-        spdlog::warn("{0}", clockInfo.disabledOptions);
+        flog::warn("{0}", clockInfo.disabledOptions);
         std::vector<SRCombo> srs;
         for (int i = 0; i < 4; i++) {
             if ((clockInfo.disabledOptions >> i) & 1) { continue; }
@@ -215,12 +215,12 @@ private:
     static void menuSelected(void* ctx) {
         SpectranSourceModule* _this = (SpectranSourceModule*)ctx;
         core::setInputSampleRate(_this->samplerate.effective);
-        spdlog::info("SpectranSourceModule '{0}': Menu Select!", _this->name);
+        flog::info("SpectranSourceModule '{0}': Menu Select!", _this->name);
     }
 
     static void menuDeselected(void* ctx) {
         SpectranSourceModule* _this = (SpectranSourceModule*)ctx;
-        spdlog::info("SpectranSourceModule '{0}': Menu Deselect!", _this->name);
+        flog::info("SpectranSourceModule '{0}': Menu Deselect!", _this->name);
     }
 
     static void start(void* ctx) {
@@ -229,7 +229,7 @@ private:
         if (_this->selectedSerial.empty()) { return; }
 
         if (AARTSAAPI_OpenDevice(&_this->api, &_this->dev, L"spectranv6/raw", _this->devList[_this->devId].c_str()) != AARTSAAPI_OK) {
-            spdlog::error("Failed to open device");
+            flog::error("Failed to open device");
             return;
         }
 
@@ -266,12 +266,12 @@ private:
         _this->updateAmps();
 
         if (AARTSAAPI_ConnectDevice(&_this->dev) != AARTSAAPI_OK) {
-            spdlog::error("Failed to connect device");
+            flog::error("Failed to connect device");
             return;
         }
 
         if (AARTSAAPI_StartDevice(&_this->dev) != AARTSAAPI_OK) {
-            spdlog::error("Failed to start device");
+            flog::error("Failed to start device");
             return;
         }
 
@@ -288,7 +288,7 @@ private:
         _this->workerThread = std::thread(&SpectranSourceModule::worker, _this);
 
         _this->running = true;
-        spdlog::info("SpectranSourceModule '{0}': Start!", _this->name);
+        flog::info("SpectranSourceModule '{0}': Start!", _this->name);
     }
 
     static void stop(void* ctx) {
@@ -307,7 +307,7 @@ private:
 
         _this->stream.clearWriteStop();
 
-        spdlog::info("SpectranSourceModule '{0}': Stop!", _this->name);
+        flog::info("SpectranSourceModule '{0}': Stop!", _this->name);
     }
 
     static void tune(double freq, void* ctx) {
@@ -318,7 +318,7 @@ private:
             AARTSAAPI_ConfigSetFloat(&_this->dev, &config, freq);
         }
         _this->freq = freq;
-        spdlog::info("SpectranSourceModule '{0}': Tune: {1}!", _this->name, freq);
+        flog::info("SpectranSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
 
     static void menuHandler(void* ctx) {
@@ -411,7 +411,7 @@ private:
             if (res != AARTSAAPI_OK) { break; }
 
             if (pkt.num > STREAM_BUFFER_SIZE) {
-                spdlog::error("Buffer too big!!!!");
+                flog::error("Buffer too big!!!!");
                 continue;
             }
 

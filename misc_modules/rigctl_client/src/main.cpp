@@ -81,7 +81,7 @@ public:
             client = net::rigctl::connect(host, port);
         }
         catch (std::exception e) {
-            spdlog::error("Could not connect: {0}", e.what());
+            flog::error("Could not connect: {0}", e.what());
             return;
         }
 
@@ -163,7 +163,7 @@ private:
         RigctlClientModule* _this = (RigctlClientModule*)ctx;
         if (!_this->client || !_this->client->isOpen()) { return; }
         if (_this->client->setFreq(freq)) {
-            spdlog::error("Could not set frequency");
+            flog::error("Could not set frequency");
         }
     }
 

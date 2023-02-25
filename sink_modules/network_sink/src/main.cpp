@@ -7,7 +7,7 @@
 #include <dsp/buffer/packer.h>
 #include <dsp/convert/stereo_to_mono.h>
 #include <dsp/sink/handler_sink.h>
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <config.h>
 #include <gui/style.h>
 #include <core.h>
@@ -203,7 +203,7 @@ private:
             stereoSink.start();
         }
         else {
-            spdlog::warn("Starting");
+            flog::warn("Starting");
             s2m.start();
             monoSink.start();
         }

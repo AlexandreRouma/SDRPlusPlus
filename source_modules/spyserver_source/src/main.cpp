@@ -1,6 +1,6 @@
 #include <spyserver_client.h>
 #include <imgui.h>
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <module.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
@@ -108,13 +108,13 @@ private:
         SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
         core::setInputSampleRate(_this->sampleRate);
         gui::mainWindow.playButtonLocked = !(_this->client && _this->client->isOpen());
-        spdlog::info("SpyServerSourceModule '{0}': Menu Select!", _this->name);
+        flog::info("SpyServerSourceModule '{0}': Menu Select!", _this->name);
     }
 
     static void menuDeselected(void* ctx) {
         SpyServerSourceModule* _this = (SpyServerSourceModule*)ctx;
         gui::mainWindow.playButtonLocked = false;
-        spdlog::info("SpyServerSourceModule '{0}': Menu Deselect!", _this->name);
+        flog::info("SpyServerSourceModule '{0}': Menu Deselect!", _this->name);
     }
 
     static void start(void* ctx) {
@@ -137,7 +137,7 @@ private:
         _this->client->startStream();
 
         _this->running = true;
-        spdlog::info("SpyServerSourceModule '{0}': Start!", _this->name);
+        flog::info("SpyServerSourceModule '{0}': Start!", _this->name);
     }
 
     static void stop(void* ctx) {
@@ -147,7 +147,7 @@ private:
         _this->client->stopStream();
 
         _this->running = false;
-        spdlog::info("SpyServerSourceModule '{0}': Stop!", _this->name);
+        flog::info("SpyServerSourceModule '{0}': Stop!", _this->name);
     }
 
     static void tune(double freq, void* ctx) {
@@ -156,7 +156,7 @@ private:
             _this->client->setSetting(SPYSERVER_SETTING_IQ_FREQUENCY, freq);
         }
         _this->freq = freq;
-        spdlog::info("SpyServerSourceModule '{0}': Tune: {1}!", _this->name, freq);
+        flog::info("SpyServerSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
 
     static void menuHandler(void* ctx) {
@@ -246,7 +246,7 @@ private:
             client = spyserver::connect(hostname, port, &stream);
 
             if (!client->waitForDevInfo(3000)) {
-                spdlog::error("SpyServer didn't respond with device information");
+                flog::error("SpyServer didn't respond with device information");
             }
             else {
                 char buf[1024];
@@ -280,11 +280,11 @@ private:
 
                 sampleRate = sampleRates[srId];
                 core::setInputSampleRate(sampleRate);
-                spdlog::info("Connected to server");
+                flog::info("Connected to server");
             }
         }
         catch (std::exception e) {
-            spdlog::error("Could not connect to spyserver {0}", e.what());
+            flog::error("Could not connect to spyserver {0}", e.what());
         }
     }
 

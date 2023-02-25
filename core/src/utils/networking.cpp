@@ -1,6 +1,6 @@
 #include <utils/networking.h>
 #include <assert.h>
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 
 namespace net {
 

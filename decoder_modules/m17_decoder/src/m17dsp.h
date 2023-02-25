@@ -227,7 +227,7 @@ namespace dsp {
                     detect = true;
                     outCount = 0;
                     type = 0;
-                    //spdlog::warn("Found sync frame");
+                    //flog::warn("Found sync frame");
                     continue;
                 }
 
@@ -236,7 +236,7 @@ namespace dsp {
                     detect = true;
                     outCount = 0;
                     type = 1;
-                    //spdlog::warn("Found stream frame");
+                    //flog::warn("Found stream frame");
                     continue;
                 }
 
@@ -245,7 +245,7 @@ namespace dsp {
                     detect = true;
                     outCount = 0;
                     type = 2;
-                    //spdlog::warn("Found packet frame");
+                    //flog::warn("Found packet frame");
                     continue;
                 }
 

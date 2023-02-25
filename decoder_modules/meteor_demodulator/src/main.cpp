@@ -197,11 +197,11 @@ private:
         std::string filename = genFileName(folderSelect.expandString(folderSelect.path) + "/meteor", ".s");
         recFile = std::ofstream(filename, std::ios::binary);
         if (recFile.is_open()) {
-            spdlog::info("Recording to '{0}'", filename);
+            flog::info("Recording to '{0}'", filename);
             recording = true;
         }
         else {
-            spdlog::error("Could not open file for recording!");
+            flog::error("Could not open file for recording!");
         }
     }
 
@@ -253,9 +253,9 @@ MOD_EXPORT void _INIT_() {
     // Create default recording directory
     std::string root = (std::string)core::args["root"];
     if (!std::filesystem::exists(root + "/recordings")) {
-        spdlog::warn("Recordings directory does not exist, creating it");
+        flog::warn("Recordings directory does not exist, creating it");
         if (!std::filesystem::create_directory(root + "/recordings")) {
-            spdlog::error("Could not create recordings directory");
+            flog::error("Could not create recordings directory");
         }
     }
     json def = json({});

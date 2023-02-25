@@ -1,6 +1,6 @@
 #include <rtl_tcp_client.h>
 #include <imgui.h>
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <module.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
@@ -116,12 +116,12 @@ private:
     static void menuSelected(void* ctx) {
         RTLTCPSourceModule* _this = (RTLTCPSourceModule*)ctx;
         core::setInputSampleRate(_this->sampleRate);
-        spdlog::info("RTLTCPSourceModule '{0}': Menu Select!", _this->name);
+        flog::info("RTLTCPSourceModule '{0}': Menu Select!", _this->name);
     }
 
     static void menuDeselected(void* ctx) {
         RTLTCPSourceModule* _this = (RTLTCPSourceModule*)ctx;
-        spdlog::info("RTLTCPSourceModule '{0}': Menu Deselect!", _this->name);
+        flog::info("RTLTCPSourceModule '{0}': Menu Deselect!", _this->name);
     }
 
     static void start(void* ctx) {
@@ -133,7 +133,7 @@ private:
             _this->client = rtltcp::connect(&_this->stream, _this->ip, _this->port);
         }
         catch (std::exception e) {
-            spdlog::error("Could connect to RTL-TCP server: {0}", e.what());
+            flog::error("Could connect to RTL-TCP server: {0}", e.what());
             return;
         }
         
@@ -154,7 +154,7 @@ private:
         }
 
         _this->running = true;
-        spdlog::info("RTLTCPSourceModule '{0}': Start!", _this->name);
+        flog::info("RTLTCPSourceModule '{0}': Start!", _this->name);
     }
 
     static void stop(void* ctx) {
@@ -162,7 +162,7 @@ private:
         if (!_this->running) { return; }
         _this->client->close();
         _this->running = false;
-        spdlog::info("RTLTCPSourceModule '{0}': Stop!", _this->name);
+        flog::info("RTLTCPSourceModule '{0}': Stop!", _this->name);
     }
 
     static void tune(double freq, void* ctx) {
@@ -171,7 +171,7 @@ private:
             _this->client->setFrequency(freq);
         }
         _this->freq = freq;
-        spdlog::info("RTLTCPSourceModule '{0}': Tune: {1}!", _this->name, freq);
+        flog::info("RTLTCPSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
 
     static void menuHandler(void* ctx) {

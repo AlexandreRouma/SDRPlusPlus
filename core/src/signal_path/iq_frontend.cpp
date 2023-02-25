@@ -1,7 +1,7 @@
 #include "iq_frontend.h"
 #include "../dsp/window/blackman.h"
 #include "../dsp/window/nuttall.h"
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <gui/gui.h>
 #include <core.h>
 
@@ -140,7 +140,7 @@ void IQFrontEnd::unbindIQStream(dsp::stream<dsp::complex_t>* stream) {
 dsp::channel::RxVFO* IQFrontEnd::addVFO(std::string name, double sampleRate, double bandwidth, double offset) {
     // Make sure no other VFO with that name already exists
     if (vfos.find(name) != vfos.end()) {
-        spdlog::error("[IQFrontEnd] Tried to add VFO with existing name.");
+        flog::error("[IQFrontEnd] Tried to add VFO with existing name.");
         return NULL;
     }
 
@@ -162,7 +162,7 @@ dsp::channel::RxVFO* IQFrontEnd::addVFO(std::string name, double sampleRate, dou
 void IQFrontEnd::removeVFO(std::string name) {
     // Make sure that a VFO with that name exists
     if (vfos.find(name) == vfos.end()) {
-        spdlog::error("[IQFrontEnd] Tried to remove a VFO that doesn't exist.");
+        flog::error("[IQFrontEnd] Tried to remove a VFO that doesn't exist.");
         return;
     }
 

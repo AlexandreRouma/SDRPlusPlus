@@ -1,4 +1,4 @@
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <module.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
@@ -171,7 +171,6 @@ public:
             std::string name = s;
             name[0] = std::toupper(name[0]);
             clockSources.define(s, name, s);
-            spdlog::warn(s);
         }
         
         // Load settings
@@ -261,12 +260,12 @@ private:
         }
 
         core::setInputSampleRate(_this->sampleRate);
-        spdlog::info("USRPSourceModule '{0}': Menu Select!", _this->name);
+        flog::info("USRPSourceModule '{0}': Menu Select!", _this->name);
     }
 
     static void menuDeselected(void* ctx) {
         USRPSourceModule* _this = (USRPSourceModule*)ctx;
-        spdlog::info("USRPSourceModule '{0}': Menu Deselect!", _this->name);
+        flog::info("USRPSourceModule '{0}': Menu Deselect!", _this->name);
     }
 
     static void start(void* ctx) {
@@ -295,7 +294,7 @@ private:
         _this->workerThread = std::thread(&USRPSourceModule::worker, _this);
 
         _this->running = true;
-        spdlog::info("USRPSourceModule '{0}': Start!", _this->name);
+        flog::info("USRPSourceModule '{0}': Start!", _this->name);
     }
 
     static void stop(void* ctx) {
@@ -311,7 +310,7 @@ private:
         _this->streamer.reset();
         _this->dev.reset();
 
-        spdlog::info("USRPSourceModule '{0}': Stop!", _this->name);
+        flog::info("USRPSourceModule '{0}': Stop!", _this->name);
     }
 
     static void tune(double freq, void* ctx) {
@@ -320,7 +319,7 @@ private:
             _this->dev->set_rx_freq(freq, _this->chanId);
         }
         _this->freq = freq;
-        spdlog::info("USRPSourceModule '{0}': Tune: {1}!", _this->name, freq);
+        flog::info("USRPSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
 
     static void menuHandler(void* ctx) {

@@ -6,7 +6,7 @@
 #include <portaudio.h>
 #include <dsp/buffer/packer.h>
 #include <dsp/convert/stereo_to_mono.h>
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <config.h>
 #include <algorithm>
 #include <core.h>
@@ -104,11 +104,11 @@ public:
 
         // In case of error, abort
         if (err) {
-            spdlog::error("PortAudio error {0}: {1}", err, Pa_GetErrorText(err));
+            flog::error("PortAudio error {0}: {1}", err, Pa_GetErrorText(err));
             return;
         }
 
-        spdlog::info("Starting PortAudio stream at {0} S/s", sampleRate);
+        flog::info("Starting PortAudio stream at {0} S/s", sampleRate);
 
         // Start stream
         Pa_StartStream(devStream);

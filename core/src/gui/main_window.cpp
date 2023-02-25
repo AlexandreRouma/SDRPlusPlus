@@ -49,19 +49,19 @@ void MainWindow::init() {
     gui::menu.order.clear();
     for (auto& elem : menuElements) {
         if (!elem.contains("name")) {
-            spdlog::error("Menu element is missing name key");
+            flog::error("Menu element is missing name key");
             continue;
         }
         if (!elem["name"].is_string()) {
-            spdlog::error("Menu element name isn't a string");
+            flog::error("Menu element name isn't a string");
             continue;
         }
         if (!elem.contains("open")) {
-            spdlog::error("Menu element is missing open key");
+            flog::error("Menu element is missing open key");
             continue;
         }
         if (!elem["open"].is_boolean()) {
-            spdlog::error("Menu element name isn't a string");
+            flog::error("Menu element name isn't a string");
             continue;
         }
         Menu::MenuOption_t opt;
@@ -95,7 +95,7 @@ void MainWindow::init() {
     vfoCreatedHandler.ctx = this;
     sigpath::vfoManager.onVfoCreated.bindHandler(&vfoCreatedHandler);
 
-    spdlog::info("Loading modules");
+    flog::info("Loading modules");
 
     // Load modules from /module directory
     if (std::filesystem::is_directory(modulesDir)) {
@@ -105,13 +105,13 @@ void MainWindow::init() {
                 continue;
             }
             if (!file.is_regular_file()) { continue; }
-            spdlog::info("Loading {0}", path);
+            flog::info("Loading {0}", path);
             LoadingScreen::show("Loading " + file.path().filename().string());
             core::moduleManager.loadModule(path);
         }
     }
     else {
-        spdlog::warn("Module directory {0} does not exist, not loading modules from directory", modulesDir);
+        flog::warn("Module directory {0} does not exist, not loading modules from directory", modulesDir);
     }
 
     // Read module config
@@ -124,7 +124,7 @@ void MainWindow::init() {
     for (auto const& path : modules) {
 #ifndef __ANDROID__
         std::string apath = std::filesystem::absolute(path).string();
-        spdlog::info("Loading {0}", apath);
+        flog::info("Loading {0}", apath);
         LoadingScreen::show("Loading " + std::filesystem::path(path).filename().string());
         core::moduleManager.loadModule(apath);
 #else
@@ -136,7 +136,7 @@ void MainWindow::init() {
     for (auto const& [name, _module] : modList) {
         std::string mod = _module["module"];
         bool enabled = _module["enabled"];
-        spdlog::info("Initializing {0} ({1})", name, mod);
+        flog::info("Initializing {0} ({1})", name, mod);
         LoadingScreen::show("Initializing " + name + " (" + mod + ")");
         core::moduleManager.createInstance(name, mod);
         if (!enabled) { core::moduleManager.disableInstance(name); }
@@ -144,12 +144,12 @@ void MainWindow::init() {
 
     // Load color maps
     LoadingScreen::show("Loading color maps");
-    spdlog::info("Loading color maps");
+    flog::info("Loading color maps");
     if (std::filesystem::is_directory(resourcesDir + "/colormaps")) {
         for (const auto& file : std::filesystem::directory_iterator(resourcesDir + "/colormaps")) {
             std::string path = file.path().generic_string();
             LoadingScreen::show("Loading " + file.path().filename().string());
-            spdlog::info("Loading {0}", path);
+            flog::info("Loading {0}", path);
             if (file.path().extension().generic_string() != ".json") {
                 continue;
             }
@@ -158,7 +158,7 @@ void MainWindow::init() {
         }
     }
     else {
-        spdlog::warn("Color map directory {0} does not exist, not loading modules from directory", modulesDir);
+        flog::warn("Color map directory {0} does not exist, not loading modules from directory", modulesDir);
     }
 
     gui::waterfall.updatePalletteFromArray(colormaps::maps["Turbo"].map, colormaps::maps["Turbo"].entryCount);
@@ -510,7 +510,7 @@ void MainWindow::draw() {
             // ImGui::Text("Buffering: %d", (sigpath::iqFrontEnd.inputBuffer.writeCur - sigpath::iqFrontEnd.inputBuffer.readCur + 32) % 32);
 
             if (ImGui::Button("Test Bug")) {
-                spdlog::error("Will this make the software crash?");
+                flog::error("Will this make the software crash?");
             }
 
             if (ImGui::Button("Testing something")) {

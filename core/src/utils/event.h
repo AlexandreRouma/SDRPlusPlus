@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 
 template <class T>
 struct EventHandler {
@@ -32,7 +32,7 @@ public:
 
     void unbindHandler(EventHandler<T>* handler) {
         if (std::find(handlers.begin(), handlers.end(), handler) == handlers.end()) {
-            spdlog::error("Tried to remove a non-existent event handler");
+            flog::error("Tried to remove a non-existent event handler");
             return;
         }
         handlers.erase(std::remove(handlers.begin(), handlers.end(), handler), handlers.end());

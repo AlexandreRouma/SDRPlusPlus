@@ -171,7 +171,7 @@ public:
         std::string extension = ".wav";
         std::string expandedPath = expandString(folderSelect.path + "/" + genFileName(nameTemplate, type, vfoName) + extension);
         if (!writer.open(expandedPath)) {
-            spdlog::error("Failed to open file for recording: {0}", expandedPath);
+            flog::error("Failed to open file for recording: {0}", expandedPath);
             return;
         }
 
@@ -557,9 +557,9 @@ MOD_EXPORT void _INIT_() {
     // Create default recording directory
     std::string root = (std::string)core::args["root"];
     if (!std::filesystem::exists(root + "/recordings")) {
-        spdlog::warn("Recordings directory does not exist, creating it");
+        flog::warn("Recordings directory does not exist, creating it");
         if (!std::filesystem::create_directory(root + "/recordings")) {
-            spdlog::error("Could not create recordings directory");
+            flog::error("Could not create recordings directory");
         }
     }
     json def = json({});

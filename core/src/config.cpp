@@ -1,5 +1,5 @@
 #include <config.h>
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <fstream>
 
 #include <filesystem>
@@ -18,16 +18,16 @@ void ConfigManager::setPath(std::string file) {
 void ConfigManager::load(json def, bool lock) {
     if (lock) { mtx.lock(); }
     if (path == "") {
-        spdlog::error("Config manager tried to load file with no path specified");
+        flog::error("Config manager tried to load file with no path specified");
         return;
     }
     if (!std::filesystem::exists(path)) {
-        spdlog::warn("Config file '{0}' does not exist, creating it", path);
+        flog::warn("Config file '{0}' does not exist, creating it", path);
         conf = def;
         save(false);
     }
     if (!std::filesystem::is_regular_file(path)) {
-        spdlog::error("Config file '{0}' isn't a file", path);
+        flog::error("Config file '{0}' isn't a file", path);
         return;
     }
 
@@ -37,7 +37,7 @@ void ConfigManager::load(json def, bool lock) {
         file.close();
     }
     catch (std::exception e) {
-        spdlog::error("Config file '{0}' is corrupted, resetting it", path);
+        flog::error("Config file '{0}' is corrupted, resetting it", path);
         conf = def;
         save(false);
     }
@@ -82,7 +82,7 @@ void ConfigManager::release(bool modified) {
 void ConfigManager::autoSaveWorker() {
     while (autoSaveEnabled) {
         if (!mtx.try_lock()) {
-            spdlog::warn("ConfigManager locked, waiting...");
+            flog::warn("ConfigManager locked, waiting...");
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
             continue;
         }

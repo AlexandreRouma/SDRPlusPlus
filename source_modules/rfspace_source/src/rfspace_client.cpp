@@ -1,7 +1,7 @@
 #include <rfspace_client.h>
 #include <volk/volk.h>
 #include <cstring>
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 
 using namespace std::chrono_literals;
 
@@ -170,7 +170,7 @@ namespace rfspace {
             _this->client->read(size - 2, &_this->rbuffer[2]);
         }
 
-        // spdlog::warn("TCP received: {0} {1}", type, size);
+        // flog::warn("TCP received: {0} {1}", type, size);
 
         // Check for a device ID
         uint16_t* controlItem = (uint16_t*)&_this->rbuffer[2];

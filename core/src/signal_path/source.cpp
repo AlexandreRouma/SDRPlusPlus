@@ -1,6 +1,6 @@
 #include <server.h>
 #include <signal_path/source.h>
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <signal_path/signal_path.h>
 #include <core.h>
 
@@ -9,7 +9,7 @@ SourceManager::SourceManager() {
 
 void SourceManager::registerSource(std::string name, SourceHandler* handler) {
     if (sources.find(name) != sources.end()) {
-        spdlog::error("Tried to register new source with existing name: {0}", name);
+        flog::error("Tried to register new source with existing name: {0}", name);
         return;
     }
     sources[name] = handler;
@@ -18,7 +18,7 @@ void SourceManager::registerSource(std::string name, SourceHandler* handler) {
 
 void SourceManager::unregisterSource(std::string name) {
     if (sources.find(name) == sources.end()) {
-        spdlog::error("Tried to unregister non existent source: {0}", name);
+        flog::error("Tried to unregister non existent source: {0}", name);
         return;
     }
     onSourceUnregister.emit(name);
@@ -41,7 +41,7 @@ std::vector<std::string> SourceManager::getSourceNames() {
 
 void SourceManager::selectSource(std::string name) {
     if (sources.find(name) == sources.end()) {
-        spdlog::error("Tried to select non existent source: {0}", name);
+        flog::error("Tried to select non existent source: {0}", name);
         return;
     }
     if (selectedHandler != NULL) {

@@ -4,7 +4,7 @@
 #include <signal_path/signal_path.h>
 #include <signal_path/sink.h>
 #include <dsp/buffer/packer.h>
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <config.h>
 #include <utils/optionlist.h>
 #include <aaudio/AAudio.h>

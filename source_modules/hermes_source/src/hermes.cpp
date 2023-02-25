@@ -1,5 +1,5 @@
 #include "hermes.h"
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 
 namespace hermes {
     Client::Client(std::shared_ptr<net::Socket> sock) {
@@ -71,7 +71,7 @@ namespace hermes {
         if (filt != lastFilt) {
             lastFilt = filt;
 
-            spdlog::warn("Setting filters");
+            flog::warn("Setting filters");
 
             // Set direction and wait for things to be processed
             writeI2C(I2C_PORT_2, 0x20, 0x00, 0x00);
@@ -180,7 +180,7 @@ namespace hermes {
                 // Check if this is a response
                 if (hdr->c0 & (1 << 7)) {
                     uint8_t reg = (hdr->c0 >> 1) & 0x3F;
-                    spdlog::warn("Got response! Reg={0}, Seq={1}", reg, htonl(pkt->seq));
+                    flog::warn("Got response! Reg={0}, Seq={1}", reg, (uint32_t)htonl(pkt->seq));
                 }
 
                 // Decode and send IQ to stream

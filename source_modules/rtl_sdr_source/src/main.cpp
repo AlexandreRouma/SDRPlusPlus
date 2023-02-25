@@ -1,4 +1,4 @@
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <module.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
@@ -176,7 +176,7 @@ public:
         
         if (oret < 0) {
             selectedDevName = "";
-            spdlog::error("Could not open RTL-SDR: {0}", oret);
+            flog::error("Could not open RTL-SDR: {0}", oret);
             return;
         }
 
@@ -266,19 +266,19 @@ private:
     static void menuSelected(void* ctx) {
         RTLSDRSourceModule* _this = (RTLSDRSourceModule*)ctx;
         core::setInputSampleRate(_this->sampleRate);
-        spdlog::info("RTLSDRSourceModule '{0}': Menu Select!", _this->name);
+        flog::info("RTLSDRSourceModule '{0}': Menu Select!", _this->name);
     }
 
     static void menuDeselected(void* ctx) {
         RTLSDRSourceModule* _this = (RTLSDRSourceModule*)ctx;
-        spdlog::info("RTLSDRSourceModule '{0}': Menu Deselect!", _this->name);
+        flog::info("RTLSDRSourceModule '{0}': Menu Deselect!", _this->name);
     }
 
     static void start(void* ctx) {
         RTLSDRSourceModule* _this = (RTLSDRSourceModule*)ctx;
         if (_this->running) { return; }
         if (_this->selectedDevName == "") {
-            spdlog::error("No device selected");
+            flog::error("No device selected");
             return;
         }
 
@@ -289,11 +289,11 @@ private:
 #endif
 
         if (oret < 0) {
-            spdlog::error("Could not open RTL-SDR");
+            flog::error("Could not open RTL-SDR");
             return;
         }
 
-        spdlog::info("RTL-SDR Sample Rate: {0}", _this->sampleRate);
+        flog::info("RTL-SDR Sample Rate: {0}", _this->sampleRate);
 
         rtlsdr_set_sample_rate(_this->openDev, _this->sampleRate);
         rtlsdr_set_center_freq(_this->openDev, _this->freq);
@@ -317,7 +317,7 @@ private:
         _this->workerThread = std::thread(&RTLSDRSourceModule::worker, _this);
 
         _this->running = true;
-        spdlog::info("RTLSDRSourceModule '{0}': Start!", _this->name);
+        flog::info("RTLSDRSourceModule '{0}': Start!", _this->name);
     }
 
     static void stop(void* ctx) {
@@ -329,7 +329,7 @@ private:
         if (_this->workerThread.joinable()) { _this->workerThread.join(); }
         _this->stream.clearWriteStop();
         rtlsdr_close(_this->openDev);
-        spdlog::info("RTLSDRSourceModule '{0}': Stop!", _this->name);
+        flog::info("RTLSDRSourceModule '{0}': Stop!", _this->name);
     }
 
     static void tune(double freq, void* ctx) {
@@ -342,11 +342,11 @@ private:
                 if (rtlsdr_get_center_freq(_this->openDev) == newFreq) { break; }
             }
             if (i > 1) {
-                spdlog::warn("RTL-SDR took {0} attempts to tune...", i);
+                flog::warn("RTL-SDR took {0} attempts to tune...", i);
             }
         }
         _this->freq = freq;
-        spdlog::info("RTLSDRSourceModule '{0}': Tune: {1}!", _this->name, freq);
+        flog::info("RTLSDRSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
 
     static void menuHandler(void* ctx) {

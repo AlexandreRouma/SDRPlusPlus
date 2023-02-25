@@ -1,5 +1,5 @@
 #include <imgui.h>
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <module.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
@@ -134,7 +134,7 @@ public:
 
         sdrplay_api_ErrT err = sdrplay_api_Open();
         if (err != sdrplay_api_Success) {
-            spdlog::error("Could not intiatialized the SDRplay API. Make sure that the service is running.");
+            flog::error("Could not intiatialized the SDRplay API. Make sure that the service is running.");
             return;
         }
 
@@ -266,7 +266,7 @@ public:
         err = sdrplay_api_SelectDevice(&openDev);
         if (err != sdrplay_api_Success) {
             const char* errStr = sdrplay_api_GetErrorString(err);
-            spdlog::error("Could not select RSP device: {0}", errStr);
+            flog::error("Could not select RSP device: {0}", errStr);
             selectedName = "";
             return;
         }
@@ -277,7 +277,7 @@ public:
         err = sdrplay_api_GetDeviceParams(openDev.dev, &openDevParams);
         if (err != sdrplay_api_Success) {
             const char* errStr = sdrplay_api_GetErrorString(err);
-            spdlog::error("Could not get device params for RSP device: {0}", errStr);
+            flog::error("Could not get device params for RSP device: {0}", errStr);
             selectedName = "";
             return;
         }
@@ -285,7 +285,7 @@ public:
         err = sdrplay_api_Init(openDev.dev, &cbFuncs, this);
         if (err != sdrplay_api_Success) {
             const char* errStr = sdrplay_api_GetErrorString(err);
-            spdlog::error("Could not init RSP device: {0}", errStr);
+            flog::error("Could not init RSP device: {0}", errStr);
             selectedName = "";
             return;
         }
@@ -479,10 +479,10 @@ public:
 
     void rspDuoSelectTuner(sdrplay_api_TunerSelectT tuner, sdrplay_api_RspDuo_AmPortSelectT amPort) {
         if (openDev.tuner != tuner) {
-            spdlog::info("Swapping tuners");
+            flog::info("Swapping tuners");
             auto ret = sdrplay_api_SwapRspDuoActiveTuner(openDev.dev, &openDev.tuner, amPort);
             if (ret != 0) {
-                spdlog::error("Error while swapping tuners: {0}", (int)ret);
+                flog::error("Error while swapping tuners: {0}", (int)ret);
             }
         }
 
@@ -522,12 +522,12 @@ private:
     static void menuSelected(void* ctx) {
         SDRPlaySourceModule* _this = (SDRPlaySourceModule*)ctx;
         core::setInputSampleRate(_this->sampleRate);
-        spdlog::info("SDRPlaySourceModule '{0}': Menu Select!", _this->name);
+        flog::info("SDRPlaySourceModule '{0}': Menu Select!", _this->name);
     }
 
     static void menuDeselected(void* ctx) {
         SDRPlaySourceModule* _this = (SDRPlaySourceModule*)ctx;
-        spdlog::info("SDRPlaySourceModule '{0}': Menu Deselect!", _this->name);
+        flog::info("SDRPlaySourceModule '{0}': Menu Deselect!", _this->name);
     }
 
     static void start(void* ctx) {
@@ -542,7 +542,7 @@ private:
         err = sdrplay_api_SelectDevice(&_this->openDev);
         if (err != sdrplay_api_Success) {
             const char* errStr = sdrplay_api_GetErrorString(err);
-            spdlog::error("Could not select RSP device: {0}", errStr);
+            flog::error("Could not select RSP device: {0}", errStr);
             _this->selectedName = "";
             return;
         }
@@ -553,7 +553,7 @@ private:
         err = sdrplay_api_GetDeviceParams(_this->openDev.dev, &_this->openDevParams);
         if (err != sdrplay_api_Success) {
             const char* errStr = sdrplay_api_GetErrorString(err);
-            spdlog::error("Could not get device params for RSP device: {0}", errStr);
+            flog::error("Could not get device params for RSP device: {0}", errStr);
             _this->selectedName = "";
             return;
         }
@@ -561,7 +561,7 @@ private:
         err = sdrplay_api_Init(_this->openDev.dev, &_this->cbFuncs, _this);
         if (err != sdrplay_api_Success) {
             const char* errStr = sdrplay_api_GetErrorString(err);
-            spdlog::error("Could not init RSP device: {0}", errStr);
+            flog::error("Could not init RSP device: {0}", errStr);
             _this->selectedName = "";
             return;
         }
@@ -652,7 +652,7 @@ private:
         sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Ctrl_Agc, sdrplay_api_Update_Ext1_None);
 
         _this->running = true;
-        spdlog::info("SDRPlaySourceModule '{0}': Start!", _this->name);
+        flog::info("SDRPlaySourceModule '{0}': Start!", _this->name);
     }
 
     static void stop(void* ctx) {
@@ -666,7 +666,7 @@ private:
         sdrplay_api_ReleaseDevice(&_this->openDev);
 
         _this->stream.clearWriteStop();
-        spdlog::info("SDRPlaySourceModule '{0}': Stop!", _this->name);
+        flog::info("SDRPlaySourceModule '{0}': Stop!", _this->name);
     }
 
     static void tune(double freq, void* ctx) {
@@ -676,7 +676,7 @@ private:
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_Frf, sdrplay_api_Update_Ext1_None);
         }
         _this->freq = freq;
-        spdlog::info("SDRPlaySourceModule '{0}': Tune: {1}!", _this->name, freq);
+        flog::info("SDRPlaySourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
 
     static void menuHandler(void* ctx) {

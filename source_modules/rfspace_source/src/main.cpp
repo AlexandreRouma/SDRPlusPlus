@@ -1,6 +1,6 @@
 #include <rfspace_client.h>
 #include <imgui.h>
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 #include <module.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
@@ -85,13 +85,13 @@ private:
         RFSpaceSourceModule* _this = (RFSpaceSourceModule*)ctx;
         core::setInputSampleRate(_this->sampleRate);
         gui::mainWindow.playButtonLocked = !(_this->client && _this->client->isOpen());
-        spdlog::info("RFSpaceSourceModule '{0}': Menu Select!", _this->name);
+        flog::info("RFSpaceSourceModule '{0}': Menu Select!", _this->name);
     }
 
     static void menuDeselected(void* ctx) {
         RFSpaceSourceModule* _this = (RFSpaceSourceModule*)ctx;
         gui::mainWindow.playButtonLocked = false;
-        spdlog::info("RFSpaceSourceModule '{0}': Menu Deselect!", _this->name);
+        flog::info("RFSpaceSourceModule '{0}': Menu Deselect!", _this->name);
     }
 
     static void start(void* ctx) {
@@ -102,7 +102,7 @@ private:
         if (_this->client) { _this->client->start(rfspace::RFSPACE_SAMP_FORMAT_COMPLEX, rfspace::RFSPACE_SAMP_FORMAT_16BIT); }
 
         _this->running = true;
-        spdlog::info("RFSpaceSourceModule '{0}': Start!", _this->name);
+        flog::info("RFSpaceSourceModule '{0}': Start!", _this->name);
     }
 
     static void stop(void* ctx) {
@@ -112,7 +112,7 @@ private:
         if (_this->client) { _this->client->stop(); }
 
         _this->running = false;
-        spdlog::info("RFSpaceSourceModule '{0}': Stop!", _this->name);
+        flog::info("RFSpaceSourceModule '{0}': Stop!", _this->name);
     }
 
     static void tune(double freq, void* ctx) {
@@ -121,7 +121,7 @@ private:
             _this->client->setFrequency(freq);
         }
         _this->freq = freq;
-        spdlog::info("RFSpaceSourceModule '{0}': Tune: {1}!", _this->name, freq);
+        flog::info("RFSpaceSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
 
     static void menuHandler(void* ctx) {
@@ -155,7 +155,7 @@ private:
                 _this->deviceInit();
             }
             catch (std::exception e) {
-                spdlog::error("Could not connect to SDR: {0}", e.what());
+                flog::error("Could not connect to SDR: {0}", e.what());
             }
         }
         else if (connected && SmGui::Button("Disconnect##rfspace_source")) {
@@ -284,7 +284,7 @@ private:
             client->setPort(rfPorts[rfPortId]);
         }
 
-        spdlog::warn("End");
+        flog::warn("End");
     }
 
     std::string name;

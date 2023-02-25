@@ -321,7 +321,7 @@ private:
         auto startTime = std::chrono::high_resolution_clock::now();
         demod::Demodulator* demod = instantiateDemod(id);
         if (!demod) {
-            spdlog::error("Demodulator {0} not implemented", id);
+            flog::error("Demodulator {0} not implemented", (int)id);
             return;
         }
         selectedDemodID = id;
@@ -332,7 +332,7 @@ private:
         config.conf[name]["selectedDemodId"] = id;
         config.release(true);
         auto endTime = std::chrono::high_resolution_clock::now();
-        spdlog::warn("Demod switch took {0} us", (std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime)).count());
+        flog::warn("Demod switch took {0} us", (std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime)).count());
     }
 
     void selectDemod(demod::Demodulator* demod) {

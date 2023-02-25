@@ -152,7 +152,7 @@ private:
 
                 // Check if we are waiting for a tune
                 if (tuning) {
-                    spdlog::warn("Tuning");
+                    flog::warn("Tuning");
                     if ((std::chrono::duration_cast<std::chrono::milliseconds>(now - lastTuneTime)).count() > tuningTime) {
                         tuning = false;
                     }
@@ -174,7 +174,7 @@ private:
                 double vfoWidth = sigpath::vfoManager.getBandwidth(gui::waterfall.selectedVFO);
 
                 if (receiving) {
-                    spdlog::warn("Receiving");
+                    flog::warn("Receiving");
                 
                     float maxLevel = getMaxLevel(data, current, vfoWidth, dataWidth, wfStart, wfWidth);
                     if (maxLevel >= level) {
@@ -185,7 +185,7 @@ private:
                     }
                 }
                 else {
-                    spdlog::warn("Seeking signal");
+                    flog::warn("Seeking signal");
                     double bottomLimit = current;
                     double topLimit = current;
                     

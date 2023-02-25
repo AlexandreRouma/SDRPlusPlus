@@ -5,7 +5,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <imgui/stb_image.h>
 #include <filesystem>
-#include <spdlog/spdlog.h>
+#include <utils/flog.h>
 
 namespace icons {
     ImTextureID LOGO;
@@ -33,7 +33,7 @@ namespace icons {
 
     bool load(std::string resDir) {
         if (!std::filesystem::is_directory(resDir)) {
-            spdlog::error("Invalid resource directory: {0}", resDir);
+            flog::error("Invalid resource directory: {0}", resDir);
             return false;
         }
 
