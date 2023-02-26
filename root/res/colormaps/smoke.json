@@ -1,0 +1,14 @@
+{
+    "name": "Smoke",
+    "author": "Yaroslav Andrianov",
+    "map": [
+        "#FFFFFF",
+        "#EEEEEE",
+        "#CCCCCC",
+        "#777777",
+        "#555555",
+        "#333333",
+        "#111111",
+        "#000000"
+    ]
+}
