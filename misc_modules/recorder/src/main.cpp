@@ -488,11 +488,14 @@ private:
     static void stereoHandler(dsp::stereo_t* data, int count, void* ctx) {
         RecorderModule* _this = (RecorderModule*)ctx;
         if (_this->ignoreSilence) {
-            uint32_t minId = 0;
-            uint32_t maxId = 0;
-            volk_32f_index_min_32u(&minId, (float*)data, count * 2);
-            volk_32f_index_max_32u(&maxId, (float*)data, count * 2);
-            _this->ignoringSilence = (std::max<float>(fabsf(((float*)data)[minId]), fabsf(((float*)data)[maxId])) < SILENCE_LVL);
+            float absMax = 0.0f;
+            float* _data = (float*)data;
+            int _count = count * 2;
+            for (int i = 0; i < _count; i++) {
+                float val = fabsf(_data[i]);
+                if (val > absMax) { absMax = val; }
+            }
+            _this->ignoringSilence = (absMax < SILENCE_LVL);
             if (_this->ignoringSilence) { return; }
         }
         _this->writer.write((float*)data, count);
@@ -501,11 +504,12 @@ private:
     static void monoHandler(float* data, int count, void* ctx) {
         RecorderModule* _this = (RecorderModule*)ctx;
         if (_this->ignoreSilence) {
-            uint32_t minId = 0;
-            uint32_t maxId = 0;
-            volk_32f_index_min_32u(&minId, data, count);
-            volk_32f_index_max_32u(&maxId, data, count);
-            _this->ignoringSilence = (std::max<float>(fabsf(data[minId]), fabsf(data[maxId])) < SILENCE_LVL);
+            float absMax = 0.0f;
+            for (int i = 0; i < count; i++) {
+                float val = fabsf(data[i]);
+                if (val > absMax) { absMax = val; }
+            }
+            _this->ignoringSilence = (absMax < SILENCE_LVL);
             if (_this->ignoringSilence) { return; }
         }
         _this->writer.write(data, count);
