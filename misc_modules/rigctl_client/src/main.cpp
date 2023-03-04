@@ -45,9 +45,6 @@ public:
         }
         config.release();
 
-        _retuneHandler.ctx = this;
-        _retuneHandler.handler = retuneHandler;
-
         gui::menu.registerEntry(name, menuHandler, this, NULL);
     }
 
@@ -87,8 +84,8 @@ public:
 
         // Switch source to panadapter mode
         sigpath::sourceManager.setPanadpterIF(ifFreq);
-        sigpath::sourceManager.setTuningMode(SourceManager::TuningMode::PANADAPTER);
-        sigpath::sourceManager.onRetune.bindHandler(&_retuneHandler);
+        sigpath::sourceManager.setTuningMode(TUNING_MODE_PANADAPTER);
+        retuneHandlerId = sigpath::sourceManager.onRetune.bind(retuneHandler, this);
 
         running = true;
     }
@@ -98,8 +95,8 @@ public:
         if (!running) { return; }
 
         // Switch source back to normal mode
-        sigpath::sourceManager.onRetune.unbindHandler(&_retuneHandler);
-        sigpath::sourceManager.setTuningMode(SourceManager::TuningMode::NORMAL);
+        sigpath::sourceManager.onRetune.unbind(retuneHandlerId);
+        sigpath::sourceManager.setTuningMode(TUNING_MODE_NORMAL);
 
         // Disconnect from rigctl server
         client->close();
@@ -159,10 +156,9 @@ private:
         }
     }
 
-    static void retuneHandler(double freq, void* ctx) {
-        RigctlClientModule* _this = (RigctlClientModule*)ctx;
-        if (!_this->client || !_this->client->isOpen()) { return; }
-        if (_this->client->setFreq(freq)) {
+    void retuneHandler(double freq) {
+        if (!client || !client->isOpen()) { return; }
+        if (client->setFreq(freq)) {
             flog::error("Could not set frequency");
         }
     }
@@ -178,7 +174,7 @@ private:
 
     double ifFreq = 8830000.0;
 
-    EventHandler<double> _retuneHandler;
+    HandlerID retuneHandlerId;
 };
 
 MOD_EXPORT void _INIT_() {

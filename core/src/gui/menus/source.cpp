@@ -15,10 +15,6 @@ namespace sourcemenu {
     bool iqCorrection = false;
     bool invertIQ = false;
 
-    EventHandler<std::string> sourceRegisteredHandler;
-    EventHandler<std::string> sourceUnregisterHandler;
-    EventHandler<std::string> sourceUnregisteredHandler;
-
     std::vector<std::string> sourceNames;
     std::string sourceNamesTxt;
     std::string selectedSource;
@@ -99,10 +95,10 @@ namespace sourcemenu {
         }
         sourceId = std::distance(sourceNames.begin(), it);
         selectedSource = sourceNames[sourceId];
-        sigpath::sourceManager.selectSource(sourceNames[sourceId]);
+        sigpath::sourceManager.select(sourceNames[sourceId]);
     }
 
-    void onSourceRegistered(std::string name, void* ctx) {
+    void onSourceRegistered(std::string name) {
         refreshSources();
 
         if (selectedSource.empty()) {
@@ -114,13 +110,13 @@ namespace sourcemenu {
         sourceId = std::distance(sourceNames.begin(), std::find(sourceNames.begin(), sourceNames.end(), selectedSource));
     }
 
-    void onSourceUnregister(std::string name, void* ctx) {
+    void onSourceUnregister(std::string name) {
         if (name != selectedSource) { return; }
 
         // TODO: Stop everything
     }
 
-    void onSourceUnregistered(std::string name, void* ctx) {
+    void onSourceUnregistered(std::string name) {
         refreshSources();
 
         if (sourceNames.empty()) {
@@ -153,12 +149,9 @@ namespace sourcemenu {
         selectSource(selected);
         sigpath::iqFrontEnd.setDecimation(1 << decimationPower);
 
-        sourceRegisteredHandler.handler = onSourceRegistered;
-        sourceUnregisterHandler.handler = onSourceUnregister;
-        sourceUnregisteredHandler.handler = onSourceUnregistered;
-        sigpath::sourceManager.onSourceRegistered.bindHandler(&sourceRegisteredHandler);
-        sigpath::sourceManager.onSourceUnregister.bindHandler(&sourceUnregisterHandler);
-        sigpath::sourceManager.onSourceUnregistered.bindHandler(&sourceUnregisteredHandler);
+        sigpath::sourceManager.onSourceRegistered.bind(onSourceRegistered);
+        sigpath::sourceManager.onSourceUnregister.bind(onSourceUnregister);
+        sigpath::sourceManager.onSourceUnregistered.bind(onSourceUnregistered);
 
         core::configManager.release();
     }
@@ -179,7 +172,7 @@ namespace sourcemenu {
 
         if (running) { style::endDisabled(); }
 
-        sigpath::sourceManager.showSelectedMenu();
+        sigpath::sourceManager.showMenu();
 
         if (ImGui::Checkbox("IQ Correction##_sdrpp_iq_corr", &iqCorrection)) {
             sigpath::iqFrontEnd.setDCBlocking(iqCorrection);

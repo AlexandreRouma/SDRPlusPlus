@@ -146,7 +146,7 @@ namespace server {
         // Load sourceId from config
         sourceId = 0;
         if (sourceList.keyExists(sourceName)) { sourceId = sourceList.keyId(sourceName); }
-        sigpath::sourceManager.selectSource(sourceList[sourceId]);
+        sigpath::sourceManager.select(sourceList[sourceId]);
 
         // TODO: Use command line option
         std::string host = (std::string)core::args["addr"];
@@ -280,8 +280,7 @@ namespace server {
             }
         }
         else if (cmd == COMMAND_START) {
-            sigpath::sourceManager.start();
-            running = true;
+            running = sigpath::sourceManager.start();
         }
         else if (cmd == COMMAND_STOP) {
             sigpath::sourceManager.stop();
@@ -309,14 +308,14 @@ namespace server {
         SmGui::FillWidth();
         SmGui::ForceSync();
         if (SmGui::Combo("##sdrpp_server_src_sel", &sourceId, sourceList.txt)) {
-            sigpath::sourceManager.selectSource(sourceList[sourceId]);
+            sigpath::sourceManager.select(sourceList[sourceId]);
             core::configManager.acquire();
             core::configManager.conf["source"] = sourceList.key(sourceId);
             core::configManager.release(true);
         }
         if (running) { SmGui::EndDisabled(); }
 
-        sigpath::sourceManager.showSelectedMenu();
+        sigpath::sourceManager.showMenu();
     }
 
     void renderUI(SmGui::DrawList* dl, std::string diffId, SmGui::DrawListElem diffValue) {

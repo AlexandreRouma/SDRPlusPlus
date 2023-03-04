@@ -1,43 +1,51 @@
 #pragma once
-#include <vector>
-#include <utils/flog.h>
+#include <functional>
+#include <stdexcept>
+#include <mutex>
+#include <map>
 
-template <class T>
-struct EventHandler {
-    EventHandler() {}
-    EventHandler(void (*handler)(T, void*), void* ctx) {
-        this->handler = handler;
-        this->ctx = ctx;
-    }
+typedef int HandlerID;
 
-    void (*handler)(T, void*);
-    void* ctx;
-};
-
-template <class T>
+template <typename... Args>
 class Event {
+    using Handler = std::function<void(Args...)>;
 public:
-    Event() {}
-    ~Event() {}
-
-    void emit(T value) {
-        for (auto const& handler : handlers) {
-            handler->handler(value, handler->ctx);
-        }
+    HandlerID bind(Handler handler) {
+        std::lock_guard<std::mutex> lck(mtx);
+        HandlerID id = genID();
+        handlers[id] = handler;
+        return id;
     }
 
-    void bindHandler(EventHandler<T>* handler) {
-        handlers.push_back(handler);
+    template<typename MHandler, class T>
+    HandlerID bind(MHandler handler, T* ctx) {
+        return bind([=](Args... args){
+            (ctx->*handler)(args...);
+        });
     }
 
-    void unbindHandler(EventHandler<T>* handler) {
-        if (std::find(handlers.begin(), handlers.end(), handler) == handlers.end()) {
-            flog::error("Tried to remove a non-existent event handler");
-            return;
+    void unbind(HandlerID id) {
+        std::lock_guard<std::mutex> lck(mtx);
+        if (handlers.find(id) == handlers.end()) {
+            throw std::runtime_error("Could not unbind handler, unknown ID");
         }
-        handlers.erase(std::remove(handlers.begin(), handlers.end(), handler), handlers.end());
+        handlers.erase(id);
+    }
+
+    void operator()(Args... args) {
+        std::lock_guard<std::mutex> lck(mtx);
+        for (const auto& [desc, handler] : handlers) {
+            handler(args...);
+        }
     }
 
 private:
-    std::vector<EventHandler<T>*> handlers;
+    HandlerID genID() {
+        int id;
+        for (id = 1; handlers.find(id) != handlers.end(); id++);
+        return id;
+    }
+
+    std::map<HandlerID, Handler> handlers;
+    std::mutex mtx;
 };

@@ -1,106 +1,186 @@
-#include <server.h>
-#include <signal_path/source.h>
+#include "source.h"
 #include <utils/flog.h>
-#include <signal_path/signal_path.h>
-#include <core.h>
 
-SourceManager::SourceManager() {
-}
+void SourceManager::registerSource(const std::string& name, Source* source) {
+    std::lock_guard<std::recursive_mutex> lck(mtx);
 
-void SourceManager::registerSource(std::string name, SourceHandler* handler) {
+    // Check arguments
+    if (source || name.empty()) {
+        flog::error("Invalid argument to register source", name);
+        return;
+    }
+
+    // Check that a source with that name doesn't already exist
     if (sources.find(name) != sources.end()) {
-        flog::error("Tried to register new source with existing name: {0}", name);
+        flog::error("Tried to register source with existing name: {}", name);
         return;
     }
-    sources[name] = handler;
-    onSourceRegistered.emit(name);
+
+    // Add source to map
+    sources[name] = source;
+
+    // Add source to lists
+    sourceNames.push_back(name);
+    onSourceRegistered(name);
 }
 
-void SourceManager::unregisterSource(std::string name) {
+void SourceManager::unregisterSource(const std::string& name) {
+    std::lock_guard<std::recursive_mutex> lck(mtx);
+
+    // Check that a source with that name exists
     if (sources.find(name) == sources.end()) {
-        flog::error("Tried to unregister non existent source: {0}", name);
+        flog::error("Tried to unregister a non-existent source: {}", name);
         return;
     }
-    onSourceUnregister.emit(name);
-    if (name == selectedName) {
-        if (selectedHandler != NULL) {
-            sources[selectedName]->deselectHandler(sources[selectedName]->ctx);
-        }
-        sigpath::iqFrontEnd.setInput(&nullSource);
-        selectedHandler = NULL;
-    }
+
+    // Notify event listeners of the imminent deletion
+    onSourceUnregister(name);
+
+    // Delete from lists
+    sourceNames.erase(std::find(sourceNames.begin(), sourceNames.end(), name));
     sources.erase(name);
-    onSourceUnregistered.emit(name);
+
+    // Notify event listeners of the deletion
+    onSourceUnregistered(name);
 }
 
-std::vector<std::string> SourceManager::getSourceNames() {
-    std::vector<std::string> names;
-    for (auto const& [name, src] : sources) { names.push_back(name); }
-    return names;
+const std::vector<std::string>& SourceManager::getSourceNames() {
+    std::lock_guard<std::recursive_mutex> lck(mtx);
+    return sourceNames;
 }
 
-void SourceManager::selectSource(std::string name) {
+void SourceManager::select(const std::string& name) {
+    std::lock_guard<std::recursive_mutex> lck(mtx);
+
+    // make sure that source isn't currently selected
+    if (selectedSourceName == name) { return; }
+
+    // Deselect current source
+    deselect();
+
+    // Check that a source with that name exists
     if (sources.find(name) == sources.end()) {
-        flog::error("Tried to select non existent source: {0}", name);
+        flog::error("Tried to select a non-existent source: {}", name);
         return;
     }
-    if (selectedHandler != NULL) {
-        sources[selectedName]->deselectHandler(sources[selectedName]->ctx);
-    }
-    selectedHandler = sources[name];
-    selectedHandler->selectHandler(selectedHandler->ctx);
-    selectedName = name;
-    if (core::args["server"].b()) {
-        server::setInput(selectedHandler->stream);
-    }
-    else {
-        sigpath::iqFrontEnd.setInput(selectedHandler->stream);
-    }
-    // Set server input here
+
+    // Select the source
+    selectedSourceName = name;
+    selectedSource = sources[name];
+
+    // Call the selected source
+    selectedSource->select();
+
+    // Retune to make sure the source has the latest frequency
+    tune(frequency);
 }
 
-void SourceManager::showSelectedMenu() {
-    if (selectedHandler == NULL) {
-        return;
-    }
-    selectedHandler->menuHandler(selectedHandler->ctx);
+const std::string& SourceManager::getSelected() {
+    std::lock_guard<std::recursive_mutex> lck(mtx);
+    return selectedSourceName;
 }
 
-void SourceManager::start() {
-    if (selectedHandler == NULL) {
-        return;
-    }
-    selectedHandler->startHandler(selectedHandler->ctx);
+bool SourceManager::start() {
+    std::lock_guard<std::recursive_mutex> lck(mtx);
+
+    // Check if not already running
+    if (running) { return true; }
+
+    // Call source if selected and save if started
+    running = (!selectedSource) ? false : selectedSource->start();
+
+    return running;
 }
 
 void SourceManager::stop() {
-    if (selectedHandler == NULL) {
-        return;
-    }
-    selectedHandler->stopHandler(selectedHandler->ctx);
+    std::lock_guard<std::recursive_mutex> lck(mtx);
+
+    // Check if running
+    if (!running) { return; }
+
+    // Call source if selected and save state
+    if (selectedSource) { selectedSource->stop(); }
+    running = false;
+}
+
+bool SourceManager::isRunning() {
+    std::lock_guard<std::recursive_mutex> lck(mtx);
+    return running;
 }
 
 void SourceManager::tune(double freq) {
-    if (selectedHandler == NULL) {
-        return;
+    std::lock_guard<std::recursive_mutex> lck(mtx);
+
+    // Save frequency
+    frequency = freq;
+    
+    // Call source if selected
+    if (selectedSource) {
+        selectedSource->tune(((mode == TUNING_MODE_NORMAL) ? freq : ifFrequency) + offset);
     }
-    // TODO: No need to always retune the hardware in panadpter mode
-    selectedHandler->tuneHandler(((tuneMode == TuningMode::NORMAL) ? freq : ifFreq) + tuneOffset, selectedHandler->ctx);
-    onRetune.emit(freq);
-    currentFreq = freq;
 }
 
+void SourceManager::showMenu() {
+    std::lock_guard<std::recursive_mutex> lck(mtx);
+    
+    // Call source if selected
+    if (selectedSource) { selectedSource->showMenu(); }
+}
+
+double SourceManager::getSamplerate() {
+    std::lock_guard<std::recursive_mutex> lck(mtx);
+    return samplerate;
+}
+
+// =========== TODO: These functions should not happen in this class ===========
+
 void SourceManager::setTuningOffset(double offset) {
-    tuneOffset = offset;
-    tune(currentFreq);
+    std::lock_guard<std::recursive_mutex> lck(mtx);
+
+    // Update offset
+    this->offset = offset;
+
+    // Retune to take affect
+    tune(frequency);
 }
 
 void SourceManager::setTuningMode(TuningMode mode) {
-    tuneMode = mode;
-    tune(currentFreq);
+    std::lock_guard<std::recursive_mutex> lck(mtx);
+
+    // Update mode
+    this->mode = mode;
+
+    // Retune to take affect
+    tune(frequency);
 }
 
 void SourceManager::setPanadpterIF(double freq) {
-    ifFreq = freq;
-    tune(currentFreq);
+    std::lock_guard<std::recursive_mutex> lck(mtx);
+
+    // Update offset
+    ifFrequency = freq;
+
+    // Return to take affect if in panadapter mode 
+    if (mode == TUNING_MODE_PANADAPTER) { tune(frequency); }
+}
+
+// =============================================================================
+
+void SourceManager::deselect() {
+    std::lock_guard<std::recursive_mutex> lck(mtx);
+
+    // Call source if selected
+    if (selectedSource) { selectedSource->deselect(); }
+
+    // Mark as deselected
+    selectedSourceName.clear();
+    selectedSource = NULL;
+}
+
+void SourceManager::setSamplerate(double samplerate) {
+    std::lock_guard<std::recursive_mutex> lck(mtx);
+
+    // Save samplerate and emit event
+    this->samplerate = samplerate;
+    onSamplerateChanged(samplerate);
 }
