@@ -108,11 +108,10 @@ namespace rfspace {
             }
             break;
         case RFSPACE_DEV_ID_NET_SDR:
+        default:
             for (int n = 80000000 / (4 * 25); n >= 32000; n /= 2) {
                 sr.push_back(n);
             }
-            break;
-        default:
             break;
         }
 
