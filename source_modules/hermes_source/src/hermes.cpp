@@ -205,6 +205,7 @@ namespace hermes {
     }
 
     std::vector<Info> discover() {
+        // TODO: Maybe try to instead detect on each interface as a work around for 0.0.0.0 not receiving anything?
         auto sock = net::openudp("0.0.0.0", 1024);
         
         // Build discovery packet
