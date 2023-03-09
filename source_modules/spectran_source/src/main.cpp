@@ -503,7 +503,7 @@ private:
     float refStep = 0.5;
 
     struct SRCombo {
-        bool operator==(const SRCombo& b) {
+        bool operator==(const SRCombo& b) const {
             return baseId == b.baseId && decimId == b.decimId;
         }
 

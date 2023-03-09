@@ -25,7 +25,7 @@ ConfigManager config;
 struct DeviceInfo {
     RtAudio::DeviceInfo info;
     int id;
-    bool operator==(const struct DeviceInfo& other) {
+    bool operator==(const struct DeviceInfo& other) const {
         return other.id == id;
     }
 };

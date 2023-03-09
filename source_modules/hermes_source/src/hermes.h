@@ -39,7 +39,7 @@ namespace hermes {
         uint8_t gatewareVerMin;
         BoardID boardId;
 
-        bool operator==(const Info& b) {
+        bool operator==(const Info& b) const {
             return !memcmp(mac, b.mac, 6);
         }
     };
