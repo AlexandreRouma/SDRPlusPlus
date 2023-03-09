@@ -5,7 +5,7 @@
 #include "../math/hz_to_rads.h"
 
 namespace dsp::mod {
-    class Quadrature : Processor<float, complex_t> {
+    class Quadrature : public Processor<float, complex_t> {
         using base_type = Processor<float, complex_t>;
     public:
         Quadrature() {}

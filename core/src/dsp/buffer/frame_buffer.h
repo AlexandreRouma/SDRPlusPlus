@@ -67,10 +67,6 @@ namespace dsp::buffer {
                 sizes[writeCur] = count;
                 writeCur++;
                 writeCur = ((writeCur) % TEST_BUFFER_SIZE);
-
-                // if (((writeCur - readCur + TEST_BUFFER_SIZE) % TEST_BUFFER_SIZE) >= (TEST_BUFFER_SIZE-2)) {
-                //     flog::warn("Overflow");
-                // }
             }
             cnd.notify_all();
             _in->flush();

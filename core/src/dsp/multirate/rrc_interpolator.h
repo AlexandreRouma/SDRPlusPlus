@@ -83,8 +83,6 @@ namespace dsp::multirate {
             int interp = OutSR / gcd;
             int decim = InSR / gcd;
 
-            flog::warn("interp: {0}, decim: {1}", interp, decim);
-
             // Configure resampler
             double tapSamplerate = _symbolrate * (double)interp;
             rrcTaps = taps::rootRaisedCosine<float>(_rrcTapCount * interp, _rrcBeta, _symbolrate, tapSamplerate);
