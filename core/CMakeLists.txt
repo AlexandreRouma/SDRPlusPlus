@@ -13,6 +13,7 @@ endif (USE_BUNDLE_DEFAULTS)
 file(GLOB_RECURSE SRC "src/*.cpp" "src/*.c")
 
 add_definitions(-DSDRPP_IS_CORE)
+add_definitions(-DFLOG_ANDROID_TAG="SDR++")
 if (MSVC)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif ()
