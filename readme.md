@@ -429,24 +429,33 @@ I will soon publish a contributing.md listing the code style to use.
 * Dale L Puckett (K0HYD)
 * [Daniele D'Agnelli](https://linkedin.com/in/dagnelli)
 * D. Jones
+* Dexruus
 * [EB3FRN](https://www.eb3frn.net/)
 * Eric Johnson
 * Ernest Murphy (NH7L)
 * Flinger Films
+* [Frank Werner (HB9FXQ)](twitter.com/HB9FXQ)
 * gringogrigio
+* Jeff Moe
 * Joe Cupano
+* KD1SQ
 * Kezza
 * Krys Kamieniecki
 * Lee Donaghy
 * Lee KD1SQ
 * .lozenge. (Hank Hill)
+* Martin Herren (HB9FXX)
 * ON4MU
 * [Passion-Radio.com](https://passion-radio.com/)
 * Paul Maine
+* Peter Betz
 * [Scanner School](https://scannerschool.com/)
+* Scott Palmer
 * [SignalsEverywhere](https://signalseverywhere.com/)
 * Syne Ardwin (WI9SYN)
 * [W4IPA](https://twitter.com/W4IPAstroke5)
+* William Arcand (W1WRA)
+* [Yves Rougy](https://www.twitch.tv/yorzian)
 * [Zipper](github.com/reppiZ)
 
 ## Contributors
