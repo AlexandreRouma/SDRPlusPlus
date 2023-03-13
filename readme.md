@@ -434,7 +434,7 @@ I will soon publish a contributing.md listing the code style to use.
 * Eric Johnson
 * Ernest Murphy (NH7L)
 * Flinger Films
-* [Frank Werner (HB9FXQ)](twitter.com/HB9FXQ)
+* [Frank Werner (HB9FXQ)](https://twitter.com/HB9FXQ)
 * gringogrigio
 * Jeff Moe
 * Joe Cupano
