@@ -1,0 +1,274 @@
+{
+  "name": "Belgium",
+  "country_name": "Belgium",
+  "country_code": "BE",
+  "author_name": "Bastien Cabay - ON4BCY",
+  "author_url": "https://qrz.com/db/ON4BCY",
+  "bands": [
+    {
+      "name": "2200m - Amateur",
+      "type": "amateur",
+      "start": 135700,
+      "end": 137800
+    },
+    {
+      "name": "630m - Amateur",
+      "type": "amateur",
+      "start": 472000,
+      "end": 479000
+    },
+    {
+      "name": "600m - Amateur",
+      "type": "amateur",
+      "start": 501000,
+      "end": 504000
+    },
+    {
+      "name": "AM Broadcast",
+      "type": "broadcast",
+      "start": 526500,
+      "end": 1606500
+    },
+    {
+      "name": "160m - Amateur",
+      "type": "amateur",
+      "start": 1810000,
+      "end": 2000000
+    },
+    {
+      "name": "80m - Amateur",
+      "type": "amateur",
+      "start": 3500000,
+      "end": 3800000
+    },
+    {
+      "name": "60m - Amateur",
+      "type": "amateur",
+      "start": 5351500,
+      "end": 5366500
+    },
+    {
+      "name": "AM Broadcast",
+      "type": "broadcast",
+      "start": 5950000,
+      "end": 6200000
+    },
+    {
+      "name": "40m - Amateur",
+      "type": "amateur",
+      "start": 7000000,
+      "end": 7200000
+    },
+    {
+      "name": "AM Broadcast",
+      "type": "broadcast",
+      "start": 7200000,
+      "end": 7300000
+    },
+    {
+      "name": "AM Broadcast",
+      "type": "broadcast",
+      "start": 9500000,
+      "end": 9900000
+    },
+    {
+      "name": "30m - Amateur",
+      "type": "amateur",
+      "start": 10100000,
+      "end": 10150000
+    },
+    {
+      "name": "AM Broadcast",
+      "type": "broadcast",
+      "start": 11650000,
+      "end": 12050000
+    },
+    {
+      "name": "AM Broadcast",
+      "type": "broadcast",
+      "start": 13600000,
+      "end": 13800000
+    },
+    {
+      "name": "20m - Amateur",
+      "type": "amateur",
+      "start": 14000000,
+      "end": 14350000
+    },
+    {
+      "name": "AM Broadcast",
+      "type": "broadcast",
+      "start": 15100000,
+      "end": 15600000
+    },
+    {
+      "name": "AM Broadcast",
+      "type": "broadcast",
+      "start": 17550000,
+      "end": 17900000
+    },
+    {
+      "name": "17m - Amateur",
+      "type": "amateur",
+      "start": 18068000,
+      "end": 18168000
+    },
+    {
+      "name": "15m - Amateur",
+      "type": "amateur",
+      "start": 21000000,
+      "end": 21450000
+    },
+    {
+      "name": "AM Broadcast",
+      "type": "broadcast",
+      "start": 21450000,
+      "end": 21850000
+    },
+    {
+      "name": "12m - Amateur",
+      "type": "amateur",
+      "start": 24890000,
+      "end": 24990000
+    },
+    {
+      "name": "AM Broadcast",
+      "type": "broadcast",
+      "start": 25670000,
+      "end": 26100000
+    },
+    {
+      "name": "11m - Citizen Band",
+      "type": "amateur",
+      "start": 26960000,
+      "end": 27410000
+    },
+    {
+      "name": "10m - Amateur",
+      "type": "amateur",
+      "start": 28000000,
+      "end": 29700000
+    },
+    {
+      "name": "6m - Amateur",
+      "type": "amateur",
+      "start": 50000000,
+      "end": 52000000
+    },
+    {
+      "name": "4m - Amateur",
+      "type": "amateur",
+      "start": 69945000,
+      "end": 69955000
+    },
+    {
+      "name": "4m - Amateur",
+      "type": "amateur",
+      "start": 70190000,
+      "end": 70412500
+    },
+    {
+      "name": "FM Broadcast",
+      "type": "broadcast",
+      "start": 87500000,
+      "end": 108000000
+    },
+    {
+      "name": "Space Exploration / Meteorology Sat. / S-PCS",
+      "type": "satellite",
+      "start": 137000000,
+      "end": 138000000
+    },
+    {
+      "name": "2m - Amateur",
+      "type": "amateur",
+      "start": 144000000,
+      "end": 146000000
+    },
+
+    {
+      "name": "T-DAB Broadcast",
+      "type": "broadcast",
+      "start": 174000000,
+      "end": 223000000
+    },
+    {
+      "name": "70cm - Amateur",
+      "type": "amateur",
+      "start": 430000000,
+      "end": 440000000
+    },
+    {
+      "name": "PMR446",
+      "type": "amateur",
+      "start": 446000000,
+      "end": 446200000
+    },
+    {
+      "name": "DVB-T - Broadcast",
+      "type": "broadcast",
+      "start": 470000000,
+      "end": 790000000
+    },
+    {
+      "name": "23cm - Amateur",
+      "type": "amateur",
+      "start": 1240000000,
+      "end": 1300000000
+    },
+    {
+      "name": "13cm - Amateur",
+      "type": "amateur",
+      "start": 2300000000,
+      "end": 2450000000
+    },
+    {
+      "name": "6cm - Amateur",
+      "type": "amateur",
+      "start": 5650000000,
+      "end": 5850000000
+    },
+    {
+      "name": "3cm - Amateur",
+      "type": "amateur",
+      "start": 10000000000,
+      "end": 10500000000
+    },
+    {
+      "name": "1.25cm - Amateur",
+      "type": "amateur",
+      "start": 24000000000,
+      "end": 24250000000
+    },
+    {
+      "name": "6mm - Amateur",
+      "type": "amateur",
+      "start": 47000000000,
+      "end": 47200000000
+    },
+    {
+      "name": "4mm - Amateur",
+      "type": "amateur",
+      "start": 75500000000,
+      "end": 81000000000
+    },
+    {
+      "name": "2.5mm - Amateur",
+      "type": "amateur",
+      "start": 122250000000,
+      "end": 123000000000
+    },
+    {
+      "name": "2mm - Amateur",
+      "type": "amateur",
+      "start": 142000000000,
+      "end": 149000000000
+    },
+    {
+      "name": "1mm - Amateur",
+      "type": "amateur",
+      "start": 241000000000,
+      "end": 250000000000
+    }
+  ]
+}
