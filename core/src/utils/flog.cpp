@@ -153,19 +153,24 @@ namespace flog {
             // Get output handle and return if invalid
             int wOutStream = (type == TYPE_ERROR) ? STD_ERROR_HANDLE  : STD_OUTPUT_HANDLE;
             HANDLE conHndl = GetStdHandle(wOutStream);
+            static CONSOLE_SCREEN_BUFFER_INFO console_info { 0 };
+            
             if (!conHndl || conHndl == INVALID_HANDLE_VALUE) { return; }
-
+            
+            if (console_info.wAttributes == 0)
+               GetConsoleScreenBufferInfo (conHndl, &console_info);
+            
             // Print beginning of log line
-            SetConsoleTextAttribute(conHndl, COLOR_WHITE);
+            SetConsoleTextAttribute(conHndl, (console_info.wAttributes & ~7) |COLOR_WHITE);
             fprintf(outStream, "[%02d/%02d/%02d %02d:%02d:%02d.%03d] [", nowc->tm_mday, nowc->tm_mon + 1, nowc->tm_year + 1900, nowc->tm_hour, nowc->tm_min, nowc->tm_sec, 0);
 
             // Switch color to the log color, print log type and 
-            SetConsoleTextAttribute(conHndl, TYPE_COLORS[type]);
+            SetConsoleTextAttribute(conHndl, (console_info.wAttributes & ~7) | TYPE_COLORS[type]);
             fputs(TYPE_STR[type], outStream);
             
 
             // Switch back to default color and print rest of log string
-            SetConsoleTextAttribute(conHndl, COLOR_WHITE);
+            SetConsoleTextAttribute(conHndl, (console_info.wAttributes & ~7) | COLOR_WHITE);
             fprintf(outStream, "] %s\n", out.c_str());
 #elif defined(__ANDROID__)
             // Print format string
