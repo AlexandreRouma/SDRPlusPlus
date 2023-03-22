@@ -214,10 +214,10 @@ private:
 
         if (ImGui::Checkbox(CONCAT("Show Reference Lines##m17_showlines_", _this->name), &_this->showLines)) {
             if (_this->showLines) {
-                _this->diag.lines.push_back(-0.75f);
-                _this->diag.lines.push_back(-0.25f);
-                _this->diag.lines.push_back(0.25f);
-                _this->diag.lines.push_back(0.75f);
+                diag.lines.push_back(-1.0);
+                diag.lines.push_back(-1.0/3.0);
+                diag.lines.push_back(1.0/3.0);
+                diag.lines.push_back(1.0);
             }
             else {
                 _this->diag.lines.clear();
