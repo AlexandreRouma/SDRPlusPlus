@@ -456,7 +456,7 @@ I will soon publish a contributing.md listing the code style to use.
 * [W4IPA](https://twitter.com/W4IPAstroke5)
 * William Arcand (W1WRA)
 * [Yves Rougy](https://www.twitch.tv/yorzian)
-* [Zipper](github.com/reppiZ)
+* [Zipper](https://github.com/reppiZ)
 
 ## Contributors
 
