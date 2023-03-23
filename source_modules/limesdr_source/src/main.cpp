@@ -330,7 +330,10 @@ private:
         if (err) {
             LMS_Close(_this->openDev);
             LMS_Open(&_this->openDev, _this->devList[_this->devId], NULL);
-            LMS_Init(_this->openDev);
+            if (err = LMS_Init(_this->openDev)) {
+                flog::error("Failed to re-initialize device ({})", err);
+                return;
+            }
         }
 
         flog::warn("Channel count: {0}", LMS_GetNumChannels(_this->openDev, false));
