@@ -7,6 +7,7 @@
 #include <config.h>
 #include <gui/smgui.h>
 #include <lime/LimeSuite.h>
+#include <string.h>
 
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
@@ -335,6 +336,15 @@ private:
 
         flog::warn("Channel count: {0}", LMS_GetNumChannels(_this->openDev, false));
 
+        // LimeSDR Mini v2 requires both receive and transmit channels to be
+        // enabled even for the receive-only applications.
+        // The name below is the inlined version of the lime::LMS_DEV_LIMESDRMINI_V2
+        // definition from the boards C++ API.
+        const lms_dev_info_t* info = LMS_GetDeviceInfo(_this->openDev);
+        if (info && strstr(info->deviceName, "LimeSDR-Mini_v2")) {
+            LMS_EnableChannel(_this->openDev, true, _this->chanId, true);
+        }
+
         // Set options
         LMS_EnableChannel(_this->openDev, false, _this->chanId, true);
         LMS_SetAntenna(_this->openDev, false, _this->chanId, _this->antennaId);
@@ -374,6 +384,7 @@ private:
         LMS_StopStream(&_this->devStream);
         LMS_DestroyStream(_this->openDev, &_this->devStream);
         LMS_EnableChannel(_this->openDev, false, _this->chanId, false);
+        LMS_EnableChannel(_this->openDev, true, _this->chanId, false);
 
         LMS_Close(_this->openDev);
 
