@@ -330,7 +330,8 @@ private:
         if (err) {
             LMS_Close(_this->openDev);
             LMS_Open(&_this->openDev, _this->devList[_this->devId], NULL);
-            if (LMS_Init(_this->openDev) != 0) {
+            if (err = LMS_Init(_this->openDev)) {
+                flog::error("Failed to re-initialize device ({})", err);
                 return;
             }
         }
