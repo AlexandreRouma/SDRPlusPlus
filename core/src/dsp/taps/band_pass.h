@@ -15,7 +15,7 @@ namespace dsp::taps {
         if (oddTapCount && !(count % 2)) { count++; }
         return windowedSinc<T>(count, (bandStop - bandStart) / 2.0, sampleRate, [=](double n, double N) {
             if constexpr (std::is_same_v<T, float>) {
-                return cosf(offsetOmega * (float)n) * window::nuttall(n, N);
+                return 2.0f * cosf(offsetOmega * (float)n) * window::nuttall(n, N);
             }
             if constexpr (std::is_same_v<T, complex_t>) {
                 // The offset is negative to flip the taps. Complex bandpass are asymetric
