@@ -19,15 +19,17 @@ namespace demod {
 
             // Load config
             _config->acquire();
-            bool modified = false;
             if (config->conf[name][getName()].contains("lowPass")) {
                 _lowPass = config->conf[name][getName()]["lowPass"];
             }
-            _config->release(modified);
+            if (config->conf[name][getName()].contains("highPass")) {
+                _highPass = config->conf[name][getName()]["highPass"];
+            }
+            _config->release();
 
 
             // Define structure
-            demod.init(input, getIFSampleRate(), bandwidth, _lowPass);
+            demod.init(input, getIFSampleRate(), bandwidth, _lowPass, _highPass);
         }
 
         void start() { demod.start(); }
@@ -39,6 +41,12 @@ namespace demod {
                 demod.setLowPass(_lowPass);
                 _config->acquire();
                 _config->conf[name][getName()]["lowPass"] = _lowPass;
+                _config->release(true);
+            }
+            if (ImGui::Checkbox(("High Pass##_radio_wfm_highpass_" + name).c_str(), &_highPass)) {
+                demod.setHighPass(_highPass);
+                _config->acquire();
+                _config->conf[name][getName()]["highPass"] = _highPass;
                 _config->release(true);
             }
         }
@@ -75,6 +83,7 @@ namespace demod {
         ConfigManager* _config = NULL;
 
         bool _lowPass = true;
+        bool _highPass = false;
 
         std::string name;
     };
