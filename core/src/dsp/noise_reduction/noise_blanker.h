@@ -37,21 +37,17 @@ namespace dsp::noise_reduction {
 
         inline int process(int count, complex_t* in, complex_t* out) {
             for (int i = 0; i < count; i++) {
-                // Get signal amplitude
+                // Get signal amplitude and pass value if null
                 float inAmp = in[i].amplitude();
-
-                // Update average amplitude
-                float gain = 1.0f;
-                if (inAmp != 0.0f) {
-                    amp = (amp * _invRate) + (inAmp * _rate);
-                    float excess = inAmp / amp;
-                    if (excess > _level) {
-                        gain = 1.0f / excess;
-                    }
+                if (!inAmp) {
+                    out[i] = in[i];
                 }
-                
-                // Scale output by gain
-                out[i] = in[i] * gain;
+
+                // Update running average of amplitude
+                amp = (_rate*inAmp) + (_invRate*amp);
+
+                // Null out if spike (Note: ideally, it should try to guess the real data)
+                out[i] = (inAmp > _level*amp) ? complex_t{0.0f,0.0f} : in[i];
             }
             return count;
         }

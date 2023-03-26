@@ -9,6 +9,7 @@
 #include <dsp/noise_reduction/noise_blanker.h>
 #include <dsp/noise_reduction/fm_if.h>
 #include <dsp/noise_reduction/squelch.h>
+#include <dsp/noise_reduction/audio.h>
 #include <dsp/multirate/rational_resampler.h>
 #include <dsp/filter/deephasis.h>
 #include <core.h>
@@ -83,9 +84,11 @@ public:
 
         resamp.init(NULL, 250000.0, 48000.0);
         deemp.init(NULL, 50e-6, 48000.0);
+        afNR.init(NULL, 1024);
 
         afChain.addBlock(&resamp, true);
         afChain.addBlock(&deemp, false);
+        afChain.addBlock(&afNR, false);
 
         // Initialize the sink
         srChangeHandler.ctx = this;
@@ -247,6 +250,12 @@ private:
             if (!_this->nbEnabled && _this->enabled) { style::endDisabled(); }
         }
         
+        // Noise reduction
+        if (_this->afNRAllowed) {
+            if (ImGui::Checkbox(("Audio Noise Reduction##_radio_afnr_ena_" + _this->name).c_str(), &_this->afNREnabled)) {
+                _this->setAFNREnabled(_this->afNREnabled);
+            }
+        }
 
         // Squelch
         if (ImGui::Checkbox(("Squelch##_radio_sqelch_ena_" + _this->name).c_str(), &_this->squelchEnabled)) {
@@ -370,6 +379,8 @@ private:
         fmIFPresetId = ifnrPresets.valueId(IFNR_PRESET_VOICE);
         nbAllowed = selectedDemod->getNBAllowed();
         nbEnabled = false;
+        afNRAllowed = selectedDemod->getAFNRAllowed();
+        afNREnabled = false;
         nbLevel = 0.0f;
         double ifSamplerate = selectedDemod->getIFSampleRate();
         config.acquire();
@@ -411,6 +422,9 @@ private:
         if (config.conf[name][selectedDemod->getName()].contains("noiseBlankerLevel")) {
             nbLevel = config.conf[name][selectedDemod->getName()]["noiseBlankerLevel"];
         }
+        if (config.conf[name][selectedDemod->getName()].contains("audioNoiseReductionEnabled")) {
+            nbEnabled = config.conf[name][selectedDemod->getName()]["audioNoiseReductionEnabled"];
+        }
         config.release();
 
         // Configure VFO
@@ -446,7 +460,10 @@ private:
             afChain.enableBlock(&resamp, [=](dsp::stream<dsp::stereo_t>* out){ stream.setInput(out); });
 
             // Configure deemphasis
-            setDeemphasisMode(deempModes[deempId]);
+            setDeemphasisMode(deempAllowed ? deempModes[deempId] : DEEMP_MODE_NONE);
+
+            // Configure AF NR
+            setAFNREnabled(afNRAllowed && afNREnabled);
         }
         else {
             // Disable everything if post processing is disabled
@@ -505,6 +522,17 @@ private:
         // Save config
         config.acquire();
         config.conf[name][selectedDemod->getName()]["deempMode"] = deempModes.key(deempId);
+        config.release(true);
+    }
+
+    void setAFNREnabled(bool enable) {
+        afNREnabled = enable;
+        if (!postProcEnabled || !selectedDemod) { return; }
+        afChain.setBlockEnabled(&afNR, afNREnabled, [=](dsp::stream<dsp::stereo_t>* out){ stream.setInput(out); });
+
+        // Save config
+        config.acquire();
+        config.conf[name][selectedDemod->getName()]["audioNoiseReductionEnabled"] = nbEnabled;
         config.release(true);
     }
 
@@ -660,6 +688,7 @@ private:
     dsp::chain<dsp::stereo_t> afChain;
     dsp::multirate::RationalResampler<dsp::stereo_t> resamp;
     dsp::filter::Deemphasis<dsp::stereo_t> deemp;
+    dsp::noise_reduction::Audio afNR;
 
     SinkManager::Stream stream;
 
@@ -682,6 +711,9 @@ private:
 
     int deempId = 0;
     bool deempAllowed;
+
+    bool afNREnabled = false;
+    bool afNRAllowed;
 
     bool FMIFNRAllowed;
     bool FMIFNREnabled = false;

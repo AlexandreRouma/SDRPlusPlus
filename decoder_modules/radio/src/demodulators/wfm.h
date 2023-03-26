@@ -130,6 +130,7 @@ namespace demod {
         int getDefaultDeemphasisMode() { return DEEMP_MODE_50US; }
         bool getFMIFNRAllowed() { return true; }
         bool getNBAllowed() { return false; }
+        bool getAFNRAllowed() { return false; }
         dsp::stream<dsp::stereo_t>* getOutput() { return &demod.out; }
 
         // ============= DEDICATED FUNCTIONS =============

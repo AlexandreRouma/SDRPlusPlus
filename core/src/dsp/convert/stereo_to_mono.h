@@ -9,7 +9,7 @@ namespace dsp::convert {
 
         StereoToMono(stream<stereo_t>* in) { base_type::init(in); }
         
-        inline int process(int count, const stereo_t* in, float* out) {
+        static inline int process(int count, const stereo_t* in, float* out) {
             for (int i = 0; i < count; i++) {
                 out[i] = (in[i].l + in[i].r) / 2.0f;
             }
