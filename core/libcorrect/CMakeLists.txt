@@ -92,8 +92,8 @@ add_subdirectory(tools)
 # add_subdirectory(benchmarks)
 
 # install(TARGETS correct correct_static
-#         DESTINATION lib)
-# install(FILES ${INSTALL_HEADERS} DESTINATION "${CMAKE_INSTALL_PREFIX}/include")
+#         DESTINATION ${CMAKE_INSTALL_LIBDIR})
+# install(FILES ${INSTALL_HEADERS} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 
 add_library(fec_shim_static EXCLUDE_FROM_ALL src/fec_shim.c ${correct_obj_files})
 set_target_properties(fec_shim_static PROPERTIES OUTPUT_NAME "fec")
@@ -103,6 +103,6 @@ add_custom_target(fec-shim-h COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_D
 add_custom_target(shim DEPENDS fec_shim_static fec_shim_shared fec-shim-h)
 
 # install(TARGETS fec_shim_static fec_shim_shared
-#         DESTINATION lib
+#         DESTINATION ${CMAKE_INSTALL_LIBDIR}
 #         OPTIONAL)
-# install(FILES ${PROJECT_BINARY_DIR}/include/fec.h DESTINATION "${CMAKE_INSTALL_PREFIX}/include" OPTIONAL)
+# install(FILES ${PROJECT_BINARY_DIR}/include/fec.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR} OPTIONAL)
