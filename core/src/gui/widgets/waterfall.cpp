@@ -689,6 +689,7 @@ namespace ImGui {
 
     void WaterFall::onResize() {
         std::lock_guard<std::recursive_mutex> lck(latestFFTMtx);
+        std::lock_guard<std::mutex> lck2(smoothingBufMtx);
         // return if widget is too small
         if (widgetSize.x < 100 || widgetSize.y < 100) {
             return;
@@ -740,14 +741,23 @@ namespace ImGui {
         }
         latestFFTHold = new float[dataWidth];
 
+        // Reallocate smoothing buffer
+        if (fftSmoothing) {
+            if (smoothingBuf) { delete[] smoothingBuf; }
+            smoothingBuf = new float[dataWidth];
+            for (int i = 0; i < dataWidth; i++) {
+                smoothingBuf[i] = -1000.0f; 
+            }
+        }
+
         if (waterfallVisible) {
             delete[] waterfallFb;
             waterfallFb = new uint32_t[dataWidth * waterfallHeight];
             memset(waterfallFb, 0, dataWidth * waterfallHeight * sizeof(uint32_t));
         }
         for (int i = 0; i < dataWidth; i++) {
-            latestFFT[i] = -1000.0; // Hide everything
-            latestFFTHold[i] = -1000.0;
+            latestFFT[i] = -1000.0f; // Hide everything
+            latestFFTHold[i] = -1000.0f;
         }
 
         fftAreaMin = ImVec2(widgetPos.x + (50.0f * style::uiScale), widgetPos.y + (9.0f * style::uiScale));
@@ -871,6 +881,15 @@ namespace ImGui {
         else {
             doZoom(drawDataStart, drawDataSize, dataWidth, rawFFTs, latestFFT);
             fftLines = 1;
+        }
+
+        // Apply smoothing if enabled
+        if (fftSmoothing && latestFFT != NULL && smoothingBuf != NULL && fftLines != 0) {
+            std::lock_guard<std::mutex> lck2(smoothingBufMtx);
+            volk_32f_s32f_multiply_32f(latestFFT, latestFFT, smoothingAlpha, dataWidth);
+            volk_32f_s32f_multiply_32f(smoothingBuf, smoothingBuf, smoothingBeta, dataWidth);
+            volk_32f_x2_add_32f(smoothingBuf, latestFFT, smoothingBuf, dataWidth);
+            memcpy(latestFFT, smoothingBuf, dataWidth * sizeof(float));
         }
 
         if (selectedVFO != "" && vfos.size() > 0) {
@@ -1108,6 +1127,36 @@ namespace ImGui {
 
     void WaterFall::setFFTHoldSpeed(float speed) {
         fftHoldSpeed = speed;
+    }
+
+    void WaterFall::setFFTSmoothing(bool enabled) {
+        std::lock_guard<std::mutex> lck(smoothingBufMtx);
+        fftSmoothing = enabled;
+
+        // Free buffer if not null
+        if (smoothingBuf) {delete[] smoothingBuf; }
+
+        // If disabled, stop here
+        if (!enabled) {
+            smoothingBuf = NULL;
+            return;
+        }
+
+        // Allocate and copy existing FFT into it
+        smoothingBuf = new float[dataWidth];
+        if (latestFFT) {
+            std::lock_guard<std::recursive_mutex> lck2(latestFFTMtx);
+            memcpy(smoothingBuf, latestFFT, dataWidth * sizeof(float));
+        }
+        else {
+            memset(smoothingBuf, 0, dataWidth * sizeof(float));
+        }
+    }
+
+    void WaterFall::setFFTSmoothingSpeed(float speed) {
+        std::lock_guard<std::mutex> lck(smoothingBufMtx);
+        smoothingAlpha = speed;
+        smoothingBeta = 1.0f - speed;
     }
 
     float* WaterFall::acquireLatestFFT(int& width) {
