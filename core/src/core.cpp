@@ -32,6 +32,14 @@
 #endif
 #endif
 
+#ifndef PLUGINS_PREFIX
+#ifdef __APPLE__
+#define PLUGINS_PREFIX "/usr/local/lib"
+#else
+#define PLUGINS_PREFIX "/usr/lib"
+#endif
+#endif
+
 namespace core {
     ConfigManager configManager;
     ModuleManager moduleManager;
@@ -254,7 +262,7 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["modulesDirectory"] = root + "/modules";
     defConfig["resourcesDirectory"] = root + "/res";
 #else
-    defConfig["modulesDirectory"] = INSTALL_PREFIX "/lib/sdrpp/plugins";
+    defConfig["modulesDirectory"] = PLUGINS_PREFIX "/sdrpp/plugins";
     defConfig["resourcesDirectory"] = INSTALL_PREFIX "/share/sdrpp";
 #endif
 
