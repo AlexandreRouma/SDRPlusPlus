@@ -12,7 +12,7 @@
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
 SDRPP_MOD_INFO{
-    /* Name:            */ "audio_sink",
+    /* Name:            */ "portaudio_sink",
     /* Description:     */ "Audio sink module for SDR++",
     /* Author:          */ "Ryzerth",
     /* Version:         */ 0, 1, 0,
