@@ -33,7 +33,7 @@ ModuleManager::Module_t ModuleManager::loadModule(std::string path) {
 #else
     mod.handle = dlopen(path.c_str(), RTLD_LAZY | RTLD_LOCAL);
     if (mod.handle == NULL) {
-        flog::error("Couldn't load {0}.", path);
+        flog::error("Couldn't load {0}: {1}", path, dlerror());
         mod.handle = NULL;
         return mod;
     }
