@@ -86,7 +86,19 @@ public:
 class StreamManager {
     friend AudioStream;
 public:
+    /**
+     * Register an audio stream.
+     * @param name Name of the stream.
+     * @param stream DSP stream that outputs the audio.
+     * @param samplerate Samplerate of the audio data.
+     * @return Audio stream instance.
+    */
     std::shared_ptr<AudioStream> registerStream(const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate);
+
+    /**
+     * Unregister an audio stream.
+     * 
+    */
     void unregisterStream(const std::string& name);
 
     void registerSinkProvider(const std::string& name, SinkProvider* provider);
