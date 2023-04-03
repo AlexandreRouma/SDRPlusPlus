@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <string>
 #include <mutex>
 #include <memory>
 #include <map>
