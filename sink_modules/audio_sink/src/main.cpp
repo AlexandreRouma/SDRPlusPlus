@@ -9,7 +9,7 @@
 #include <RtAudio.h>
 #include <config.h>
 #include <core.h>
-
+#include <string.h>
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
 SDRPP_MOD_INFO{
@@ -201,9 +201,13 @@ private:
         //     if (_this->stereoPacker.out.readBuf[i].l == INFINITY || _this->stereoPacker.out.readBuf[i].r == INFINITY) { flog::error("INFINITY in audio data"); }
         //     if (_this->stereoPacker.out.readBuf[i].l == -INFINITY || _this->stereoPacker.out.readBuf[i].r == -INFINITY) { flog::error("-INFINITY in audio data"); }
         // }
-
+        if(!gui::mainWindow.isPlaying()) {
+            memset(outputBuffer, 0, nBufferFrames * sizeof(dsp::stereo_t));
+            return 0;
+        }
         memcpy(outputBuffer, _this->stereoPacker.out.readBuf, nBufferFrames * sizeof(dsp::stereo_t));
         _this->stereoPacker.out.flush();
+        
         return 0;
     }
 
