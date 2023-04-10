@@ -52,7 +52,9 @@ If `libvolk2-dev` is not available, use `libvolk1-dev`.
 
 ### Arch-based
 
-Install the latest release from the [sdrpp-git](https://aur.archlinux.org/packages/sdrpp-git/) AUR package
+Install from source following the instructions below.
+
+**WARNING: The sdrpp-git AUR package is no longer official, it is not recommended to use it.**
 
 ### Other
 

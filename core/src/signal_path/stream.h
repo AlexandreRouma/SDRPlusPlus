@@ -24,6 +24,7 @@ private:
 class SinkEntry {
 public:
     SinkEntry(std::unique_ptr<Sink> sink);
+    ~SinkEntry();
 
     float getVolume();
     void setVolume(float volume);
@@ -34,6 +35,7 @@ public:
     float getPanning();
     void setPanning(float panning);
 private:
+    dsp::stream<dsp::stereo_t> stream;
     dsp::audio::Volume volumeAdjust;
     dsp::multirate::RationalResampler<dsp::stereo_t> resamp;
 
@@ -51,8 +53,16 @@ class AudioStream {
 public:
     AudioStream(StreamManager* manager, const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate);
 
+    /**
+     * Set DSP stream input.
+     * @param stream DSP stream.
+    */
     void setInput(dsp::stream<dsp::stereo_t>* stream);
 
+    /**
+     * Get the name of the stream.
+     * @return Name of the stream.
+    */
     const std::string& getName();
 
     void bindStream(dsp::stream<dsp::stereo_t>* stream);
@@ -64,7 +74,7 @@ public:
     int addSink(const std::string& type);
     void setSinkType(int index, const std::string& type);
     void removeSink(int index);
-    const std::vector<SinkEntry>& getSinks();
+    const std::vector<std::shared_ptr<SinkEntry>>& getSinks();
 
 private:
     void setSinkInputSamplerate(Sink* sink, double samplerate);
@@ -74,12 +84,22 @@ private:
     std::string name;
     double samplerate;
     dsp::routing::Splitter<dsp::stereo_t> split;
-    std::vector<SinkEntry> sinks;
+    std::vector<std::shared_ptr<SinkEntry>> sinks;
 };
 
 class SinkProvider {
 public:
+    /**
+     * Create a sink instance.
+     * @param name Name of the audio stream.
+     * @param index Index of the sink in the menu. Should be use to keep settings.
+    */
     std::unique_ptr<Sink> createSink(const std::string& name, int index);
+
+    /**
+     * Destroy a sink instance. This function is so that the provide knows at all times how many instances there are.
+     * @param sink Instance of the sink.
+    */
     void destroySink(std::unique_ptr<Sink> sink);
 };
 
@@ -87,23 +107,37 @@ class StreamManager {
     friend AudioStream;
 public:
     /**
-     * Register an audio stream.
+     * Create an audio stream.
      * @param name Name of the stream.
      * @param stream DSP stream that outputs the audio.
      * @param samplerate Samplerate of the audio data.
      * @return Audio stream instance.
     */
-    std::shared_ptr<AudioStream> registerStream(const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate);
+    std::shared_ptr<AudioStream> createStream(const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate);
 
     /**
-     * Unregister an audio stream.
-     * 
+     * Destroy an audio stream.
+     * @param name Name of the stream.
     */
-    void unregisterStream(const std::string& name);
+    void destroyStream(const std::string& name);
 
+    /**
+     * Register a sink provider.
+     * @param name Name of the sink type.
+     * @param provider Sink provider instance.
+    */
     void registerSinkProvider(const std::string& name, SinkProvider* provider);
+
+    /**
+     * Unregister a sink provider.
+     * @param name Name of the sink type.
+    */
     void unregisterSinkProvider(const std::string& name);
 
+    /**
+     * Get a list of streams and their associated names.
+     * @return Map of names to stream instance.
+    */
     const std::map<std::string, std::shared_ptr<AudioStream>>& getStreams();
 
 private:

@@ -73,7 +73,7 @@ int AudioStream::addSink(const std::string& type) {
 
     // Create sink instance
     int id = sinks.size();
-    auto sink = manager->providers[type]->createSink(this);
+    auto sink = manager->providers[type]->createSink(this, id);
 
     // Check that the sink was created succesfully
     if (!sink) {
@@ -82,7 +82,7 @@ int AudioStream::addSink(const std::string& type) {
     }
 
     // Create and save entry
-    sinks.push_back(SinkEntry(std::move(sink)));
+    sinks.push_back(std::make_shared<SinkEntry>(std::move(sink)));
 
     return id;
 }
@@ -97,14 +97,13 @@ void AudioStream::removeSink(int index) {
     }
 
     // TODO: Free stuff
-
 }
 
-const std::vector<SinkEntry>& AudioStream::getSinks() {
+const std::vector<std::shared_ptr<SinkEntry>>& AudioStream::getSinks() {
     return sinks;
 }
 
-std::shared_ptr<AudioStream> StreamManager::registerStream(const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate) {
+std::shared_ptr<AudioStream> StreamManager::createStream(const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate) {
     std::lock_guard<std::recursive_mutex> lck(mtx);
     
     // Check that an audio stream that name doesn't already exist
@@ -117,7 +116,7 @@ std::shared_ptr<AudioStream> StreamManager::registerStream(const std::string& na
     streams[name] = std::make_shared<AudioStream>(this, stream, samplerate);
 }
 
-void StreamManager::unregisterStream(const std::string& name) {
+void StreamManager::destroyStream(const std::string& name) {
     std::lock_guard<std::recursive_mutex> lck(mtx);
 
     // Check that stream exists
