@@ -48,7 +48,6 @@ private:
 class StreamManager;
 
 class AudioStream {
-    friend Sink;
     friend StreamManager;
 public:
     AudioStream(StreamManager* manager, const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate);
@@ -65,19 +64,40 @@ public:
     */
     const std::string& getName();
 
+    // TODO: Maybe instead we want to resample the data?
     void bindStream(dsp::stream<dsp::stereo_t>* stream);
     void unbindStream(dsp::stream<dsp::stereo_t>* stream);
 
     double getSamplerate();
     void setSamplerate(double samplerate);
 
+    /**
+     * Add a sink to the stream.
+     * @param type Type of the sink.
+     * @return Index of the new sink or -1 on error.
+    */
     int addSink(const std::string& type);
+
+    /**
+     * Change the type of a sink.
+     * @param index Index of the sink.
+     * @param type New sink type.
+    */
     void setSinkType(int index, const std::string& type);
+
+    /**
+     * Remove a sink from a stream.
+     * @param index Index of the sink.
+    */
     void removeSink(int index);
+
+    /**
+     * Get the list of all sinks belonging to this stream.
+     * @return Sink list.
+    */
     const std::vector<std::shared_ptr<SinkEntry>>& getSinks();
 
 private:
-    void setSinkInputSamplerate(Sink* sink, double samplerate);
 
     std::recursive_mutex mtx;
     StreamManager* manager;
@@ -134,6 +154,7 @@ public:
     */
     void unregisterSinkProvider(const std::string& name);
 
+    // TODO: Need a way to lock the list
     /**
      * Get a list of streams and their associated names.
      * @return Map of names to stream instance.
