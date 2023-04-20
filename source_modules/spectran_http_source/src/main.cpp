@@ -145,6 +145,7 @@ private:
         }
         else if (connected && SmGui::Button("Disconnect##spectran_http_source")) {
             _this->client->onCenterFrequencyChanged.unbind(_this->onFreqChangedId);
+            _this->client->onCenterFrequencyChanged.unbind(_this->onSamplerateChangedId);
             _this->client->close();
         }
         if (_this->running) { style::endDisabled(); }
@@ -164,6 +165,7 @@ private:
             gotReport = false;
             client = std::make_shared<SpectranHTTPClient>(hostname, port, &stream);
             onFreqChangedId = client->onCenterFrequencyChanged.bind(&SpectranHTTPSourceModule::onFreqChanged, this);
+            onSamplerateChangedId = client->onSamplerateChanged.bind(&SpectranHTTPSourceModule::onSamplerateChanged, this);
             client->startWorker();
         }
         catch (std::runtime_error e) {
@@ -178,6 +180,10 @@ private:
         gotReport = true;
     }
 
+    void onSamplerateChanged(double newSr) {
+        core::setInputSampleRate(newSr);
+    }
+
     std::string name;
     bool enabled = true;
     double sampleRate;
@@ -186,6 +192,7 @@ private:
 
     std::shared_ptr<SpectranHTTPClient> client;
     HandlerID onFreqChangedId;
+    HandlerID onSamplerateChangedId;
 
     double freq;
 

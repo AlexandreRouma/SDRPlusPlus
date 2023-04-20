@@ -8,8 +8,9 @@ typedef int HandlerID;
 
 template <typename... Args>
 class NewEvent {
-    using Handler = std::function<void(Args...)>;
 public:
+    using Handler = std::function<void(Args...)>;
+
     HandlerID bind(const Handler& handler) {
         std::lock_guard<std::mutex> lck(mtx);
         HandlerID id = genID();

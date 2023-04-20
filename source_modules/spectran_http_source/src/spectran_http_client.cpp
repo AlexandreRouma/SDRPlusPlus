@@ -50,7 +50,7 @@ void SpectranHTTPClient::setCenterFrequency(uint64_t freq) {
     // Make request
     net::http::RequestHeader rqhdr(net::http::METHOD_PUT, "/control", host);
     char buf[1024];
-    sprintf(buf, "{\"frequencyCenter\":%d,\"frequencySpan\":%d,\"type\":\"capture\"}", freq, _span);
+    sprintf(buf, "{\"frequencyCenter\":%d,\"frequencySpan\":%d,\"type\":\"capture\"}", freq, _samplerate);
     std::string data = buf;
     char lenBuf[16];
     sprintf(lenBuf, "%d", data.size());
@@ -93,13 +93,27 @@ void SpectranHTTPClient::worker() {
         std::string endFreqStr = jsonData.substr(endFreqBegin + 15, endFreqEnd - endFreqBegin - 15);
         int64_t endFreq = std::stoll(endFreqStr);
 
+        auto sampleFreqBegin = jsonData.find("\"sampleFrequency\":");
+        bool sampleFreqReceived = (sampleFreqBegin != -1);
+        int64_t sampleFreq;
+        if (sampleFreqReceived) {
+            auto sampleFreqEnd = jsonData.find(',', sampleFreqBegin);
+            std::string sampleFreqStr = jsonData.substr(sampleFreqBegin + 18, sampleFreqEnd - sampleFreqBegin - 18);
+            sampleFreq = std::stoll(sampleFreqStr);
+        }
+        
         // Calculate and update center freq
-        _span = endFreq - startFreq;
+        int64_t samplerate = sampleFreqReceived ? sampleFreq : (endFreq - startFreq);
         int64_t centerFreq = round(((double)endFreq + (double)startFreq) / 2.0);
         if (centerFreq != _centerFreq) {
-            flog::debug("{}, {}, {}", _span, centerFreq);
+            flog::debug("New center freq: {}", centerFreq);
             _centerFreq = centerFreq;
             onCenterFrequencyChanged(centerFreq);
+        }
+        if (samplerate != _samplerate) {
+            flog::debug("New samplerate: {}", samplerate);
+            _samplerate = samplerate;
+            onSamplerateChanged(samplerate);
         }
 
         // Read (and check for) record separator

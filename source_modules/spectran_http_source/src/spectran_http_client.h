@@ -19,6 +19,7 @@ public:
     void setCenterFrequency(uint64_t freq);
 
     NewEvent<uint64_t> onCenterFrequencyChanged;
+    NewEvent<uint64_t> onSamplerateChanged;
 
 private:
     void worker();
@@ -33,5 +34,5 @@ private:
 
     bool streamingEnabled = false;
     int64_t _centerFreq = 0;
-    uint64_t _span = 5000000;
+    uint64_t _samplerate = 0;
 };
