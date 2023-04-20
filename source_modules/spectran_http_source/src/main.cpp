@@ -28,7 +28,7 @@ public:
         this->name = name;
 
         strcpy(hostname, "localhost");
-        sampleRate = 41000000.0;
+        sampleRate = 5750000.0;
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
@@ -103,8 +103,14 @@ private:
 
     static void tune(double freq, void* ctx) {
         SpectranHTTPSourceModule* _this = (SpectranHTTPSourceModule*)ctx;
-        if (_this->running) {
-            // TODO
+        bool connected = (_this->client && _this->client->isOpen());
+        if (connected) {
+            int64_t newfreq = round(freq);
+            if (newfreq != _this->lastReportedFreq && _this->gotReport) {
+                flog::debug("Sending tuning command");
+                _this->lastReportedFreq = newfreq;
+                _this->client->setCenterFrequency(newfreq);
+            }
         }
         _this->freq = freq;
         flog::info("SpectranHTTPSourceModule '{0}': Tune: {1}!", _this->name, freq);
@@ -138,6 +144,8 @@ private:
             _this->tryConnect();
         }
         else if (connected && SmGui::Button("Disconnect##spectran_http_source")) {
+            _this->client->onCenterFrequencyChanged.unbind(_this->onFreqChangedId);
+            _this->client->onCenterFrequencyChanged.unbind(_this->onSamplerateChangedId);
             _this->client->close();
         }
         if (_this->running) { style::endDisabled(); }
@@ -154,11 +162,26 @@ private:
 
     void tryConnect() {
         try {
+            gotReport = false;
             client = std::make_shared<SpectranHTTPClient>(hostname, port, &stream);
+            onFreqChangedId = client->onCenterFrequencyChanged.bind(&SpectranHTTPSourceModule::onFreqChanged, this);
+            onSamplerateChangedId = client->onSamplerateChanged.bind(&SpectranHTTPSourceModule::onSamplerateChanged, this);
+            client->startWorker();
         }
         catch (std::runtime_error e) {
             flog::error("Could not connect: {0}", e.what());
         }
+    }
+
+    void onFreqChanged(double newFreq) {
+        if (lastReportedFreq == newFreq) { return; }
+        lastReportedFreq = newFreq;
+        tuner::tune(tuner::TUNER_MODE_IQ_ONLY, "", newFreq);
+        gotReport = true;
+    }
+
+    void onSamplerateChanged(double newSr) {
+        core::setInputSampleRate(newSr);
     }
 
     std::string name;
@@ -168,11 +191,16 @@ private:
     bool running = false;
 
     std::shared_ptr<SpectranHTTPClient> client;
+    HandlerID onFreqChangedId;
+    HandlerID onSamplerateChangedId;
 
     double freq;
 
+    int64_t lastReportedFreq = 0;
+    bool gotReport;
+
     char hostname[1024];
-    int port = 80;
+    int port = 54664;
     dsp::stream<dsp::complex_t> stream;
 
 };
