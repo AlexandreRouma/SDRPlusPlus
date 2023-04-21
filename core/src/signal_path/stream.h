@@ -7,6 +7,8 @@
 #include <dsp/routing/splitter.h>
 #include <dsp/multirate/rational_resampler.h>
 #include <dsp/audio/volume.h>
+#include <utils/new_event.h>
+#include <shared_mutex>
 
 class AudioStream;
 
@@ -22,24 +24,58 @@ private:
 };
 
 class SinkEntry {
+    friend AudioStream;
+    SinkEntry(dsp::stream<dsp::stereo_t>* stream, const std::string& type, int index);
 public:
-    SinkEntry(std::unique_ptr<Sink> sink);
     ~SinkEntry();
 
-    float getVolume();
+    /**
+     * Change the type of the sink.
+     * @param type New sink type.
+    */
+    void setType(const std::string& type);
+
+    /**
+     * Get sink volume.
+     * @return Volume as value between 0 and 1.
+    */
+    float getVolume() const;
+
+    /**
+     * Set sink volume.
+     * @param volume Volume as value between 0 and 1.
+    */
     void setVolume(float volume);
 
-    bool getMuted();
+    /**
+     * Check if the sink is muted.
+     * @return True if muted, false if not.
+    */
+    bool getMuted() const;
+
+    /**
+     * Set wether or not the sink is muted
+     * @param muted True to mute, false to unmute.
+    */
     void setMuted(bool muted);
 
-    float getPanning();
+    /**
+     * Get sink panning.
+     * @return Panning as value between -1 and 1 meaning panning to the left and right respectively.
+    */
+    float getPanning() const;
+
+    /**
+     * Set sink panning.
+     * @param panning Panning as value between -1 and 1 meaning panning to the left and right respectively.
+    */
     void setPanning(float panning);
+
 private:
-    dsp::stream<dsp::stereo_t> stream;
     dsp::audio::Volume volumeAdjust;
-    dsp::multirate::RationalResampler<dsp::stereo_t> resamp;
 
     std::unique_ptr<Sink> sink;
+    const int index;
     float volume = 1.0f;
     bool muted = false;
     float panning = 0.0f;
@@ -49,8 +85,8 @@ class StreamManager;
 
 class AudioStream {
     friend StreamManager;
-public:
     AudioStream(StreamManager* manager, const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate);
+public:
 
     /**
      * Set DSP stream input.
@@ -59,17 +95,16 @@ public:
     void setInput(dsp::stream<dsp::stereo_t>* stream);
 
     /**
+     * Set the samplerate of the input stream.
+     * @param samplerate Samplerate in Hz.
+    */
+    void setSamplerate(double samplerate);
+
+    /**
      * Get the name of the stream.
      * @return Name of the stream.
     */
-    const std::string& getName();
-
-    // TODO: Maybe instead we want to resample the data?
-    void bindStream(dsp::stream<dsp::stereo_t>* stream);
-    void unbindStream(dsp::stream<dsp::stereo_t>* stream);
-
-    double getSamplerate();
-    void setSamplerate(double samplerate);
+    const std::string& getName() const;
 
     /**
      * Add a sink to the stream.
@@ -79,32 +114,32 @@ public:
     int addSink(const std::string& type);
 
     /**
-     * Change the type of a sink.
-     * @param index Index of the sink.
-     * @param type New sink type.
-    */
-    void setSinkType(int index, const std::string& type);
-
-    /**
      * Remove a sink from a stream.
      * @param index Index of the sink.
     */
     void removeSink(int index);
 
     /**
+     * Aquire a lock for the sink list.
+     * @return Shared lock for the sink list.
+    */
+    std::shared_lock<std::shared_mutex> getSinksLock();
+
+    /**
      * Get the list of all sinks belonging to this stream.
      * @return Sink list.
     */
-    const std::vector<std::shared_ptr<SinkEntry>>& getSinks();
+    const std::vector<std::shared_ptr<SinkEntry>>& getSinks() const;
 
 private:
-
     std::recursive_mutex mtx;
     StreamManager* manager;
     std::string name;
     double samplerate;
     dsp::routing::Splitter<dsp::stereo_t> split;
+
     std::vector<std::shared_ptr<SinkEntry>> sinks;
+    std::shared_mutex sinksMtx;
 };
 
 class SinkProvider {
@@ -114,13 +149,13 @@ public:
      * @param name Name of the audio stream.
      * @param index Index of the sink in the menu. Should be use to keep settings.
     */
-    std::unique_ptr<Sink> createSink(const std::string& name, int index);
+    virtual std::unique_ptr<Sink> createSink(dsp::stream<dsp::stereo_t>* stream, const std::string& name, int index) = 0;
 
     /**
      * Destroy a sink instance. This function is so that the provide knows at all times how many instances there are.
      * @param sink Instance of the sink.
     */
-    void destroySink(std::unique_ptr<Sink> sink);
+    virtual void destroySink(std::unique_ptr<Sink> sink) = 0;
 };
 
 class StreamManager {
@@ -137,9 +172,23 @@ public:
 
     /**
      * Destroy an audio stream.
-     * @param name Name of the stream.
+     * @param stream Stream to destroy. The passed shared pointer will be automatically reset.
     */
-    void destroyStream(const std::string& name);
+    void destroyStream(std::shared_ptr<AudioStream>& stream);
+
+    /**
+     * Aquire a lock for the stream list.
+     * @return Shared lock for the stream list.
+    */
+    std::shared_lock<std::shared_mutex> getStreamsLock() {
+        return std::shared_lock<std::shared_mutex>(streamsMtx);
+    }
+
+    /**
+     * Get a list of streams and their associated names.
+     * @return Map of names to stream instance.
+    */
+    const std::map<std::string, std::shared_ptr<AudioStream>>& getStreams() const;
 
     /**
      * Register a sink provider.
@@ -152,17 +201,34 @@ public:
      * Unregister a sink provider.
      * @param name Name of the sink type.
     */
-    void unregisterSinkProvider(const std::string& name);
+    void unregisterSinkProvider(SinkProvider* provider);
 
-    // TODO: Need a way to lock the list
     /**
-     * Get a list of streams and their associated names.
-     * @return Map of names to stream instance.
+     * Aquire a lock for the sink type list.
+     * @return Shared lock for the sink type list.
     */
-    const std::map<std::string, std::shared_ptr<AudioStream>>& getStreams();
+    std::shared_lock<std::shared_mutex> getSinkTypesLock();
+
+    /**
+     * Get a list of sink types.
+     * @return List of sink type names.
+    */
+    const std::vector<std::string>& getSinkTypes() const;
+
+    // Emitted when a stream was created
+    NewEvent<std::shared_ptr<AudioStream>> onStreamCreated;
+    // Emitted when a stream is about to be destroyed
+    NewEvent<std::shared_ptr<AudioStream>> onStreamDestroy;
+    // Emitted when a sink provider was registered
+    NewEvent<std::string> onSinkProviderRegistered;
+    // Emitted when a sink provider is about to be unregistered
+    NewEvent<std::string> onSinkProviderUnregister;
 
 private:
-    std::recursive_mutex mtx;
     std::map<std::string, std::shared_ptr<AudioStream>> streams;
+    std::shared_mutex streamsMtx;
+
     std::map<std::string, SinkProvider*> providers;
+    std::vector<std::string> sinkTypes;
+    std::shared_mutex providersMtx;
 };
