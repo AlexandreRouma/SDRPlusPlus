@@ -37,7 +37,7 @@ jobs:
           run: 7z x libusb.7z -olibusb_old ; rm "C:/Program Files/PothosSDR/bin/libusb-1.0.dll" ; cp "libusb_old/MS64/dll/libusb-1.0.dll" "C:/Program Files/PothosSDR/bin/"
  
         - name: Download SDRPlay API
-          run: Invoke-WebRequest -Uri "https://drive.google.com/uc?id=12UHPMwkfa67A11QZDmpCT4iwHnyJHWuu" -OutFile ${{runner.workspace}}/SDRPlay.zip
+          run: Invoke-WebRequest -Uri "https://drive.google.com/uc?id=12UHPMwkfa67A11QZDmpCT4iwHnyJHWuu&confirm=t" -OutFile ${{runner.workspace}}/SDRPlay.zip
 
         - name: Install SDRPlay API
           run: 7z x ${{runner.workspace}}/SDRPlay.zip -o"C:/Program Files/"
