@@ -9,25 +9,41 @@
 #include <dsp/audio/volume.h>
 #include <utils/new_event.h>
 #include <shared_mutex>
+#include <stdexcept>
 
 class AudioStream;
 
+using SinkID = int;
+
 class Sink {
 public:
+    Sink(dsp::stream<dsp::stereo_t>* stream, const std::string& name, SinkID id);
+
     virtual void start() = 0;
     virtual void stop() = 0;
     virtual void showMenu();
 
 private:
-    dsp::stream<dsp::stereo_t>* stream;
-    AudioStream* audioStream = NULL;
+    dsp::stream<dsp::stereo_t>* const stream;
+    const std::string streamName;
+    const SinkID id;
+};
+
+class SinkEntryCreateException : public std::runtime_error {
+public:
+    SinkEntryCreateException(const char* what) : std::runtime_error(what) {}
 };
 
 class SinkEntry {
     friend AudioStream;
-    SinkEntry(dsp::stream<dsp::stereo_t>* stream, const std::string& type, int index);
+    SinkEntry(const std::string& type, SinkID id, double inputSamplerate);
 public:
-    ~SinkEntry();
+
+    /**
+     * Get the type of the sink.
+     * @return Type of the sink.
+    */
+    const std::string& getType();
 
     /**
      * Change the type of the sink.
@@ -36,14 +52,20 @@ public:
     void setType(const std::string& type);
 
     /**
+     * Get the ID of the sink.
+     * @return ID of the sink.
+    */
+    SinkID getID();
+
+    /**
      * Get sink volume.
-     * @return Volume as value between 0 and 1.
+     * @return Volume as value between 0.0 and 1.0.
     */
     float getVolume() const;
 
     /**
      * Set sink volume.
-     * @param volume Volume as value between 0 and 1.
+     * @param volume Volume as value between 0.0 and 1.0.
     */
     void setVolume(float volume);
 
@@ -61,21 +83,39 @@ public:
 
     /**
      * Get sink panning.
-     * @return Panning as value between -1 and 1 meaning panning to the left and right respectively.
+     * @return Panning as value between -1.0 and 1.0 meaning panning to the left and right respectively.
     */
     float getPanning() const;
 
     /**
      * Set sink panning.
-     * @param panning Panning as value between -1 and 1 meaning panning to the left and right respectively.
+     * @param panning Panning as value between -1.0 and 1.0 meaning panning to the left and right respectively.
     */
     void setPanning(float panning);
 
+    // Emitted when the type of the sink was changed
+    NewEvent<const std::string&> onTypeChanged;
+    // Emmited when volume of the sink was changed
+    NewEvent<float> onVolumeChanged;
+    // Emitted when the muted state of the sink was changed
+    NewEvent<bool> onMutedChanged;
+    // Emitted when the panning of the sink was changed
+    NewEvent<float> onPanningChanged;
+
 private:
+    void startSink();
+    void stopSink();
+    void startDSP();
+    void stopDSP();
+    void setInputSamplerate(double samplerate);
+
+    dsp::stream<dsp::stereo_t> input;
+    dsp::multirate::RationalResampler<dsp::stereo_t> resamp;
     dsp::audio::Volume volumeAdjust;
 
     std::unique_ptr<Sink> sink;
-    const int index;
+    double inputSamplerate;
+    const SinkID id;
     float volume = 1.0f;
     bool muted = false;
     float panning = 0.0f;
@@ -91,8 +131,9 @@ public:
     /**
      * Set DSP stream input.
      * @param stream DSP stream.
+     * @param samplerate New samplerate (optional, 0.0 if not used).
     */
-    void setInput(dsp::stream<dsp::stereo_t>* stream);
+    void setInput(dsp::stream<dsp::stereo_t>* stream, double samplerate = 0.0);
 
     /**
      * Set the samplerate of the input stream.
@@ -106,18 +147,23 @@ public:
     */
     const std::string& getName() const;
 
+    // TODO: USING AN INDEX IS BAD!
+    // THIS IS BECAUSE THEY WILL CHANGE AS SOME ARE REMOVED OR ADDED
+
     /**
      * Add a sink to the stream.
      * @param type Type of the sink.
-     * @return Index of the new sink or -1 on error.
+     * @param id ID of the sink. Optional, -1 if automatic.
+     * @return ID of the new sink or -1 on error.
     */
-    int addSink(const std::string& type);
+    SinkID addSink(const std::string& type, SinkID id = -1);
 
     /**
      * Remove a sink from a stream.
-     * @param index Index of the sink.
+     * @param id ID of the sink.
+     * @param forgetSettings Forget the settings for the sink.
     */
-    void removeSink(int index);
+    void removeSink(SinkID id, bool forgetSettings = true);
 
     /**
      * Aquire a lock for the sink list.
@@ -129,16 +175,23 @@ public:
      * Get the list of all sinks belonging to this stream.
      * @return Sink list.
     */
-    const std::vector<std::shared_ptr<SinkEntry>>& getSinks() const;
+    const std::map<SinkID, std::shared_ptr<SinkEntry>>& getSinks() const;
+
+    // Emitted when the samplerate of the stream was changed
+    NewEvent<double> onSamplerateChanged;
+    // Emitted when a sink was added
+    NewEvent<std::shared_ptr<SinkEntry>> onSinkAdded;
+    // Emitted when a sink is being removed
+    NewEvent<std::shared_ptr<SinkEntry>> onSinkRemove;
 
 private:
     std::recursive_mutex mtx;
-    StreamManager* manager;
-    std::string name;
+    const StreamManager* manager;
+    const std::string name;
     double samplerate;
     dsp::routing::Splitter<dsp::stereo_t> split;
 
-    std::vector<std::shared_ptr<SinkEntry>> sinks;
+    std::map<SinkID, std::shared_ptr<SinkEntry>> sinks;
     std::shared_mutex sinksMtx;
 };
 
@@ -159,7 +212,6 @@ public:
 };
 
 class StreamManager {
-    friend AudioStream;
 public:
     /**
      * Create an audio stream.
@@ -180,9 +232,7 @@ public:
      * Aquire a lock for the stream list.
      * @return Shared lock for the stream list.
     */
-    std::shared_lock<std::shared_mutex> getStreamsLock() {
-        return std::shared_lock<std::shared_mutex>(streamsMtx);
-    }
+    std::shared_lock<std::shared_mutex> getStreamsLock();
 
     /**
      * Get a list of streams and their associated names.
@@ -211,7 +261,7 @@ public:
 
     /**
      * Get a list of sink types.
-     * @return List of sink type names.
+     * @return List of sink type names in alphabetical order.
     */
     const std::vector<std::string>& getSinkTypes() const;
 
@@ -220,13 +270,16 @@ public:
     // Emitted when a stream is about to be destroyed
     NewEvent<std::shared_ptr<AudioStream>> onStreamDestroy;
     // Emitted when a sink provider was registered
-    NewEvent<std::string> onSinkProviderRegistered;
+    NewEvent<const std::string&> onSinkProviderRegistered;
     // Emitted when a sink provider is about to be unregistered
-    NewEvent<std::string> onSinkProviderUnregister;
+    NewEvent<const std::string&> onSinkProviderUnregister;
 
 private:
     std::map<std::string, std::shared_ptr<AudioStream>> streams;
     std::shared_mutex streamsMtx;
+
+    // TODO: Switch all this shit to a recursive mutex RW locks are shit
+    // Or maybe not actually
 
     std::map<std::string, SinkProvider*> providers;
     std::vector<std::string> sinkTypes;
