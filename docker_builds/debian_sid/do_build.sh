@@ -15,10 +15,19 @@ wget https://www.sdrplay.com/software/SDRplay_RSP_API-Linux-3.07.1.run
 cp x86_64/libsdrplay_api.so.3.07 /usr/lib/libsdrplay_api.so
 cp inc/* /usr/include/
 
+# Install libperseus
+git clone https://github.com/Microtelecom/libperseus-sdr
+cd libperseus-sdr
+./configure
+make
+make install
+ldconfig
+cd ..
+
 cd SDRPlusPlus
 mkdir build
 cd build
-cmake .. -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON
+cmake .. -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON -DOPT_BUILD_PERSEUS_SOURCE=ON
 make VERBOSE=1 -j2
 
 cd ..
