@@ -115,7 +115,7 @@ jobs:
           run: git clone https://github.com/myriadrf/LimeSuite && cd LimeSuite && mkdir builddir && cd builddir && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
 
         - name: Install libperseus
-          run: git clone https://github.com/Microtelecom/libperseus-sdr && cd libperseus-sdr && autoconf && ./configure && make && make install && cd ..
+          run: git clone https://github.com/Microtelecom/libperseus-sdr && cd libperseus-sdr && autoreconf -i && ./configure && make && make install && cd ..
 
         - name: Prepare CMake
           working-directory: ${{runner.workspace}}/build

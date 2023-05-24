@@ -44,7 +44,7 @@ cd ../../
 # Install libperseus
 git clone https://github.com/Microtelecom/libperseus-sdr
 cd libperseus-sdr
-autoconf
+autoreconf -i
 ./configure
 make
 make install
