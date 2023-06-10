@@ -97,7 +97,7 @@ jobs:
           run: rm -f /usr/local/bin/2to3* /usr/local/bin/idle3* /usr/local/bin/pydoc3* /usr/local/bin/python3* /usr/local/bin/python3-config* && brew reinstall gettext
 
         - name: Install dependencies
-          run: brew install pkg-config libusb fftw glfw airspy airspyhf portaudio hackrf rtl-sdr libbladerf codec2 zstd autoconf && pip3 install mako
+          run: brew install pkg-config libusb fftw glfw airspy airspyhf portaudio hackrf rtl-sdr libbladerf codec2 zstd autoconf automake libtool && pip3 install mako
 
         - name: Install volk
           run: git clone --recursive https://github.com/gnuradio/volk && cd volk && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
@@ -115,7 +115,7 @@ jobs:
           run: git clone https://github.com/myriadrf/LimeSuite && cd LimeSuite && mkdir builddir && cd builddir && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
 
         - name: Install libperseus
-          run: git clone https://github.com/Microtelecom/libperseus-sdr && cd libperseus-sdr && autoreconf -i && ./configure && make && make install && cd ..
+          run: git clone https://github.com/Microtelecom/libperseus-sdr && cd libperseus-sdr && autoreconf -i && ./configure --prefix=/usr/local && make && make install && cd ..
 
         - name: Prepare CMake
           working-directory: ${{runner.workspace}}/build
