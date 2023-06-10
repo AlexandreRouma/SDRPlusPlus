@@ -9,7 +9,7 @@ if (MSVC)
     # Lib path
     target_link_directories(perseus_source PRIVATE "C:/Program Files/PothosSDR/bin/")
 
-    target_include_directories(perseus_source PUBLIC "C:/Program Files/PothosSDR/include/")
+    target_include_directories(perseus_source PUBLIC "C:/Program Files/PothosSDR/include/perseus-sdr")
 
     target_link_libraries(perseus_source PRIVATE perseus-sdr)
 else (MSVC)
