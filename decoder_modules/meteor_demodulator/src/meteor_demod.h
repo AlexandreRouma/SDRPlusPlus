@@ -129,6 +129,12 @@ namespace dsp::demod {
             costas.setBrokenModulation(enabled);
         }
 
+        void setOQPSK(bool enabled) {
+            assert(base_type::_block_init);
+            std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
+            oqpsk = enabled;
+        }
+
         void reset() {
             assert(base_type::_block_init);
             std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
@@ -144,6 +150,18 @@ namespace dsp::demod {
             rrc.process(count, in, out);
             agc.process(count, out, out);
             costas.process(count, out, out);
+
+            if (oqpsk) {
+                // Single sample delay + deinterleave
+                for (int i = 0; i < count; i++) {
+                    float tmp = out[i].im;
+                    out[i].im = lastI;
+                    lastI = tmp;
+                }
+
+                // TODO: Additional 1/24th sample delay
+            }
+
             return recov.process(count, out, out);
         }
 
@@ -166,6 +184,8 @@ namespace dsp::demod {
         double _samplerate;
         int _rrcTapCount;
         double _rrcBeta;
+        float lastI = 0.0f;
+        bool oqpsk = false;
 
         tap<float> rrcTaps;
         filter::FIR<complex_t, float> rrc;
