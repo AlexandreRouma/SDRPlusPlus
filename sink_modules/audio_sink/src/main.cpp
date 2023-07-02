@@ -56,7 +56,7 @@ public:
                 txtDevList += '\0';
             }
             catch (std::exception e) {
-            flog::error("AudioSinkModule Error getting audio device info: {0}", e.what());
+                flog::error("AudioSinkModule Error getting audio device info: {0}", e.what());
             }
         }
         selectByName(device);
