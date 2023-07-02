@@ -45,16 +45,20 @@ public:
         int count = audio.getDeviceCount();
         RtAudio::DeviceInfo info;
         for (int i = 0; i < count; i++) {
-            info = audio.getDeviceInfo(i);
-            if (!info.probed) { continue; }
-            if (info.outputChannels == 0) { continue; }
-            if (info.isDefaultOutput) { defaultDevId = devList.size(); }
-            devList.push_back(info);
-            deviceIds.push_back(i);
-            txtDevList += info.name;
-            txtDevList += '\0';
+            try {
+                info = audio.getDeviceInfo(i);
+                if (!info.probed) { continue; }
+                if (info.outputChannels == 0) { continue; }
+                if (info.isDefaultOutput) { defaultDevId = devList.size(); }
+                devList.push_back(info);
+                deviceIds.push_back(i);
+                txtDevList += info.name;
+                txtDevList += '\0';
+            }
+            catch (std::exception e) {
+                flog::error("AudioSinkModule Error getting audio device info: {0}", e.what());
+            }
         }
-
         selectByName(device);
     }
 
