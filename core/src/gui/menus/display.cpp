@@ -114,10 +114,13 @@ namespace displaymenu {
         updateFFTSpeeds();
 
         // Define and load UI scales
-        uiScales.define(1.0f, "100%", 1.0f);
-        uiScales.define(2.0f, "200%", 2.0f);
-        uiScales.define(3.0f, "300%", 3.0f);
-        uiScales.define(4.0f, "400%", 4.0f);
+        uiScales.define(1.00f, "100%", 1.00f);
+        uiScales.define(1.25f, "125%", 1.25f);
+        uiScales.define(1.50f, "150%", 1.50f);
+        uiScales.define(1.75f, "175%", 1.75f);
+        uiScales.define(2.00f, "200%", 2.00f);
+        uiScales.define(3.00f, "300%", 3.00f);
+        uiScales.define(4.00f, "400%", 4.00f);
         uiScaleId = uiScales.valueId(style::uiScale);
     }
 
