@@ -81,29 +81,15 @@ public:
         // Initialize audio DSP chain
         afChain.init(&dummyAudioStream);
 
-        resamp.init(NULL, 250000.0, 48000.0);
         deemp.init(NULL, 50e-6, 48000.0);
 
-        afChain.addBlock(&resamp, true);
         afChain.addBlock(&deemp, false);
 
         // Initialize the sink
-        srChangeHandler.ctx = this;
-        srChangeHandler.handler = sampleRateChangeHandler;
-        stream.init(afChain.out, &srChangeHandler, audioSampleRate);
-        sigpath::sinkManager.registerStream(name, &stream);
+        stream = sigpath::streamManager.createStream(name, afChain.out, 48000);
 
         // Select the demodulator
         selectDemodByID((DemodID)selectedDemodID);
-
-        // Start IF chain
-        ifChain.start();
-
-        // Start AF chain
-        afChain.start();
-
-        // Start stream, the rest was started when selecting the demodulator
-        stream.start();
 
         // Register the menu
         gui::menu.registerEntry(name, menuHandler, this, this);
@@ -115,11 +101,10 @@ public:
     ~RadioModule() {
         core::modComManager.unregisterInterface(name);
         gui::menu.removeEntry(name);
-        stream.stop();
         if (enabled) {
             disable();
         }
-        sigpath::sinkManager.unregisterStream(name);
+        sigpath::streamManager.destroyStream(stream);
     }
 
     void postInit() {}
@@ -131,9 +116,7 @@ public:
             vfo->wtfVFO->onUserChangedBandwidth.bindHandler(&onUserChangedBandwidthHandler);
         }
         ifChain.setInput(vfo->output, [=](dsp::stream<dsp::complex_t>* out){ ifChainOutputChangeHandler(out, this); });
-        ifChain.start();
         selectDemodByID((DemodID)selectedDemodID);
-        afChain.start();
     }
 
     void disable() {
@@ -141,6 +124,7 @@ public:
         ifChain.stop();
         if (selectedDemod) { selectedDemod->stop(); }
         afChain.stop();
+        stream->stopDSP();
         if (vfo) { sigpath::vfoManager.deleteVFO(vfo); }
         vfo = NULL;
     }
@@ -313,7 +297,7 @@ private:
         bw = std::clamp<double>(bw, demod->getMinBandwidth(), demod->getMaxBandwidth());
 
         // Initialize
-        demod->init(name, &config, ifChain.out, bw, stream.getSampleRate());
+        demod->init(name, &config, ifChain.out, bw);
 
         return demod;
     }
@@ -337,22 +321,34 @@ private:
     }
 
     void selectDemod(demod::Demodulator* demod) {
-        // Stopcurrently selected demodulator and select new
-        afChain.setInput(&dummyAudioStream, [=](dsp::stream<dsp::stereo_t>* out){ stream.setInput(out); });
+        // Stop the IF chain
+        ifChain.stop();
+
+        // Stop the current demodulator
         if (selectedDemod) {
             selectedDemod->stop();
+        }
+
+        // Stop AF chain
+        afChain.stop();
+
+        // Stop audio stream's DSP
+        stream->stopDSP();
+
+        // Destroy the old demodulator
+        afChain.setInput(&dummyAudioStream, [=](dsp::stream<dsp::stereo_t>* out){ stream->setInput(out); });
+        if (selectedDemod) {
             delete selectedDemod;
         }
-        selectedDemod = demod;
 
-        // Give the demodulator the most recent audio SR
-        selectedDemod->AFSampRateChanged(audioSampleRate);
+        // Select the new demodulator
+        selectedDemod = demod;
 
         // Set the demodulator's input
         selectedDemod->setInput(ifChain.out);
 
         // Set AF chain's input
-        afChain.setInput(selectedDemod->getOutput(), [=](dsp::stream<dsp::stereo_t>* out){ stream.setInput(out); });
+        afChain.setInput(selectedDemod->getOutput(), [=](dsp::stream<dsp::stereo_t>* out){ stream->setInput(out); });
 
         // Load config
         bandwidth = selectedDemod->getDefaultBandwidth();
@@ -440,21 +436,27 @@ private:
         // Configure AF chain
         if (postProcEnabled) {
             // Configure resampler
-            afChain.stop();
-            resamp.setInSamplerate(selectedDemod->getAFSampleRate());
-            setAudioSampleRate(audioSampleRate);
-            afChain.enableBlock(&resamp, [=](dsp::stream<dsp::stereo_t>* out){ stream.setInput(out); });
+            deemp.setSamplerate(selectedDemod->getAFSampleRate());
 
             // Configure deemphasis
             setDeemphasisMode(deempModes[deempId]);
         }
         else {
             // Disable everything if post processing is disabled
-            afChain.disableAllBlocks([=](dsp::stream<dsp::stereo_t>* out){ stream.setInput(out); });
+            afChain.disableAllBlocks([=](dsp::stream<dsp::stereo_t>* out){ stream->setInput(out); });
         }
+
+        // Start the IF chain
+        ifChain.start();
 
         // Start new demodulator
         selectedDemod->start();
+
+        // Start the AF chain
+        afChain.start();
+
+        // Start the audio stream
+        stream->startDSP();
     }
 
 
@@ -470,37 +472,12 @@ private:
         config.release(true);
     }
 
-    void setAudioSampleRate(double sr) {
-        audioSampleRate = sr;
-        if (!selectedDemod) { return; }
-        selectedDemod->AFSampRateChanged(audioSampleRate);
-        if (!postProcEnabled && vfo) {
-            // If postproc is disabled, IF SR = AF SR
-            minBandwidth = selectedDemod->getMinBandwidth();
-            maxBandwidth = selectedDemod->getMaxBandwidth();
-            bandwidth = selectedDemod->getIFSampleRate();
-            vfo->setBandwidthLimits(minBandwidth, maxBandwidth, selectedDemod->getBandwidthLocked());
-            vfo->setSampleRate(selectedDemod->getIFSampleRate(), bandwidth);
-            return;
-        }
-
-        afChain.stop();
-
-        // Configure resampler
-        resamp.setOutSamplerate(audioSampleRate);
-
-        // Configure deemphasis sample rate
-        deemp.setSamplerate(audioSampleRate);
-
-        afChain.start();
-    }
-
     void setDeemphasisMode(DeemphasisMode mode) {
         deempId = deempModes.valueId(mode);
         if (!postProcEnabled || !selectedDemod) { return; }
         bool deempEnabled = (mode != DEEMP_MODE_NONE);
         if (deempEnabled) { deemp.setTau(deempTaus[mode]); }
-        afChain.setBlockEnabled(&deemp, deempEnabled, [=](dsp::stream<dsp::stereo_t>* out){ stream.setInput(out); });
+        afChain.setBlockEnabled(&deemp, deempEnabled, [=](dsp::stream<dsp::stereo_t>* out){ stream->setInput(out); });
 
         // Save config
         config.acquire();
@@ -584,11 +561,6 @@ private:
         _this->setBandwidth(newBw);
     }
 
-    static void sampleRateChangeHandler(float sampleRate, void* ctx) {
-        RadioModule* _this = (RadioModule*)ctx;
-        _this->setAudioSampleRate(sampleRate);
-    }
-
     static void ifChainOutputChangeHandler(dsp::stream<dsp::complex_t>* output, void* ctx) {
         RadioModule* _this = (RadioModule*)ctx;
         if (!_this->selectedDemod) { return; }
@@ -643,7 +615,6 @@ private:
 
     // Handlers
     EventHandler<double> onUserChangedBandwidthHandler;
-    EventHandler<float> srChangeHandler;
     EventHandler<dsp::stream<dsp::complex_t>*> ifChainOutputChanged;
     EventHandler<dsp::stream<dsp::stereo_t>*> afChainOutputChanged;
 
@@ -658,10 +629,9 @@ private:
     // Audio chain
     dsp::stream<dsp::stereo_t> dummyAudioStream;
     dsp::chain<dsp::stereo_t> afChain;
-    dsp::multirate::RationalResampler<dsp::stereo_t> resamp;
     dsp::filter::Deemphasis<dsp::stereo_t> deemp;
 
-    SinkManager::Stream stream;
+    std::shared_ptr<AudioStream> stream;
 
     demod::Demodulator* selectedDemod = NULL;
 

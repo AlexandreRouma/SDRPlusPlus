@@ -7,17 +7,18 @@ namespace demod {
     public:
         RAW() {}
 
-        RAW(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, double audioSR) {
-            init(name, config, input, bandwidth, audioSR);
+        RAW(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth) {
+            init(name, config, input, bandwidth);
         }
 
         ~RAW() {
             stop();
         }
 
-        void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, double audioSR) {
+        void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth) {
             this->name = name;
-            audioSampleRate = audioSR;
+            audioSampleRate = 48000;
+            // TODO: This needs to be selectable
 
             // Define structure
             c2s.init(input);
@@ -37,10 +38,6 @@ namespace demod {
 
         void setInput(dsp::stream<dsp::complex_t>* input) {
             c2s.setInput(input);
-        }
-
-        void AFSampRateChanged(double newSR) {
-            audioSampleRate = newSR;
         }
 
         // ============= INFO =============

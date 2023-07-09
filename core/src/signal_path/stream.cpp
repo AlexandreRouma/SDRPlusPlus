@@ -144,7 +144,6 @@ AudioStream::AudioStream(StreamManager* manager, const std::string& name, dsp::s
 
     // Initialize DSP
     split.init(stream);
-    split.start();
 }
 
 AudioStream::~AudioStream() {
@@ -173,10 +172,13 @@ void AudioStream::setInput(dsp::stream<dsp::stereo_t>* stream, double samplerate
     this->samplerate = samplerate;
 
     // Stop DSP
-    split.stop();
-    for (auto& [id, sink] : sinks) {
-        sink->stopDSP();
+    if (running) {
+        split.stop();
+        for (auto& [id, sink] : sinks) {
+            sink->stopDSP();
+        }
     }
+
 
     // Set input and samplerate
     split.setInput(stream);
@@ -185,10 +187,12 @@ void AudioStream::setInput(dsp::stream<dsp::stereo_t>* stream, double samplerate
     }
 
     // Start DSP
-    for (auto& [id, sink] : sinks) {
-        sink->startDSP();
+    if (running) {
+        for (auto& [id, sink] : sinks) {
+            sink->startDSP();
+        }
+        split.start();
     }
-    split.start();
 }
 
 void AudioStream::setSamplerate(double samplerate) {
@@ -198,9 +202,11 @@ void AudioStream::setSamplerate(double samplerate) {
     this->samplerate = samplerate;
 
     // Stop DSP
-    split.stop();
-    for (auto& [id, sink] : sinks) {
-        sink->stopDSP();
+    if (running) {
+        split.stop();
+        for (auto& [id, sink] : sinks) {
+            sink->stopDSP();
+        }
     }
 
     // Set samplerate
@@ -209,10 +215,12 @@ void AudioStream::setSamplerate(double samplerate) {
     }
 
     // Start DSP
-    for (auto& [id, sink] : sinks) {
-        sink->startDSP();
+    if (running) {
+        for (auto& [id, sink] : sinks) {
+            sink->startDSP();
+        }
+        split.start();
     }
-    split.start();
 }
 
 const std::string& AudioStream::getName() const {
@@ -246,7 +254,7 @@ SinkID AudioStream::addSink(const std::string& type, SinkID id) {
 
     // Start the sink and DSP
     sink->startSink();
-    sink->startDSP();
+    if (running) { sink->startDSP(); }
 
     // Bind the sinks's input
     split.bindStream(&sink->input);
@@ -311,6 +319,36 @@ std::shared_lock<std::shared_mutex> AudioStream::getSinksLock() {
 
 const std::map<SinkID, std::shared_ptr<SinkEntry>>& AudioStream::getSinks() const {
     return sinks;
+}
+
+void AudioStream::startDSP() {
+    // TODO: Maybe add a different mutex for the stream?
+    std::unique_lock<std::shared_mutex> lck(sinksMtx);
+
+    // Check if already running
+    if (running) { return; }
+
+    // Start all DSP
+    split.start();
+    for (auto& [id, sink] : sinks) {
+        sink->startDSP();
+    }
+    running = true;
+}
+
+void AudioStream::stopDSP() {
+    // TODO: Maybe add a different mutex for the stream?
+    std::unique_lock<std::shared_mutex> lck(sinksMtx);
+
+    // Check if already running
+    if (!running) { return; }
+
+    // Start all DSP
+    split.stop();
+    for (auto& [id, sink] : sinks) {
+        sink->stopDSP();
+    }
+    running = false;
 }
 
 std::shared_ptr<AudioStream> StreamManager::createStream(const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate) {

@@ -146,7 +146,6 @@ private:
     dsp::multirate::RationalResampler<dsp::stereo_t> resamp;
     dsp::audio::Volume volumeAdjust;
 
-
     SinkProvider* provider = NULL;
     std::unique_ptr<Sink> sink;
     std::string type;
@@ -216,6 +215,18 @@ public:
     */
     const std::map<SinkID, std::shared_ptr<SinkEntry>>& getSinks() const;
 
+    // TODO: This should only be callable by the module that created the stream
+
+    /**
+     * Start the DSP.
+    */
+    void startDSP();
+
+    /**
+     * Stop the DSP.
+    */
+    void stopDSP();
+
     // Emitted when the samplerate of the stream was changed
     NewEvent<double> onSamplerateChanged;
     // Emitted when a sink was added
@@ -228,6 +239,7 @@ private:
     const std::string name;
     double samplerate;
     dsp::routing::Splitter<dsp::stereo_t> split;
+    bool running = false;
 
     std::map<SinkID, std::shared_ptr<SinkEntry>> sinks;
     std::shared_mutex sinksMtx;

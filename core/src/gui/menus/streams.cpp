@@ -35,6 +35,9 @@ namespace streamsmenu {
                     
                     sink->showMenu();
 
+                    // Volume slider + mute button
+
+
                     ImGui::FillWidth();
                     if (ImGui::Button(CONCAT("Remove##sdrpp_streams_remove_type_", name))) {
                         sinksToBeRemoved.push_back(id);
@@ -50,7 +53,7 @@ namespace streamsmenu {
                 ImGui::SameLine();
                 ImGui::FillWidth();
                 if (ImGui::Button(CONCAT("Add##sdrpp_streams_add_btn_", name))) {
-                    stream->addSink("Sink 2");
+                    stream->addSink("Audio");
                 }
 
                 ImGui::EndTable();

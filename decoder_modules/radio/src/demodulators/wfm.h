@@ -16,8 +16,8 @@ namespace demod {
     public:
         WFM() {}
 
-        WFM(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, double audioSR) {
-            init(name, config, input, bandwidth, audioSR);
+        WFM(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth) {
+            init(name, config, input, bandwidth);
         }
 
         ~WFM() {
@@ -25,7 +25,7 @@ namespace demod {
             gui::waterfall.onFFTRedraw.unbindHandler(&fftRedrawHandler);
         }
 
-        void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, double audioSR) {
+        void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth) {
             this->name = name;
             _config = config;
 
@@ -111,8 +111,6 @@ namespace demod {
         void setInput(dsp::stream<dsp::complex_t>* input) {
             demod.setInput(input);
         }
-
-        void AFSampRateChanged(double newSR) {}
 
         // ============= INFO =============
 

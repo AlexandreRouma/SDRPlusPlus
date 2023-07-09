@@ -24,13 +24,12 @@ namespace demod {
     class Demodulator {
     public:
         virtual ~Demodulator() {}
-        virtual void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, double audioSR) = 0;
+        virtual void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth) = 0;
         virtual void start() = 0;
         virtual void stop() = 0;
         virtual void showMenu() = 0;
         virtual void setBandwidth(double bandwidth) = 0;
         virtual void setInput(dsp::stream<dsp::complex_t>* input) = 0;
-        virtual void AFSampRateChanged(double newSR) = 0;
         virtual const char* getName() = 0;
         virtual double getIFSampleRate() = 0;
         virtual double getAFSampleRate() = 0;

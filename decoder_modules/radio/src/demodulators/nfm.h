@@ -7,13 +7,13 @@ namespace demod {
     public:
         NFM() {}
 
-        NFM(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, double audioSR) {
-            init(name, config, input, bandwidth, audioSR);
+        NFM(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth) {
+            init(name, config, input, bandwidth);
         }
 
         ~NFM() { stop(); }
 
-        void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, double audioSR) {
+        void init(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth) {
             this->name = name;
             this->_config = config;
 
@@ -56,8 +56,6 @@ namespace demod {
         }
 
         void setInput(dsp::stream<dsp::complex_t>* input) { demod.setInput(input); }
-
-        void AFSampRateChanged(double newSR) {}
 
         // ============= INFO =============
 
