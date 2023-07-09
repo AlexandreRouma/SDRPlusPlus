@@ -3,6 +3,7 @@
 #include "vfo_manager.h"
 #include "source.h"
 #include "sink.h"
+#include "stream.h"
 #include <module.h>
 
 namespace sigpath {
@@ -10,4 +11,5 @@ namespace sigpath {
     SDRPP_EXPORT VFOManager vfoManager;
     SDRPP_EXPORT SourceManager sourceManager;
     SDRPP_EXPORT SinkManager sinkManager;
+    SDRPP_EXPORT StreamManager streamManager;
 };

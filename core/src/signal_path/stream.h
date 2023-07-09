@@ -15,18 +15,41 @@ class AudioStream;
 
 using SinkID = int;
 
+class SinkEntry;
+
 class Sink {
 public:
-    Sink(dsp::stream<dsp::stereo_t>* stream, const std::string& name, SinkID id);
+    Sink(SinkEntry* entry, dsp::stream<dsp::stereo_t>* stream, const std::string& name, SinkID id);
+    virtual ~Sink() {}
 
     virtual void start() = 0;
     virtual void stop() = 0;
     virtual void showMenu();
 
-private:
+protected:
+    SinkEntry* const entry;
     dsp::stream<dsp::stereo_t>* const stream;
     const std::string streamName;
     const SinkID id;
+};
+
+class SinkProvider {
+    friend Sink;
+public:
+    /**
+     * Create a sink instance.
+     * @param name Name of the audio stream.
+     * @param index Index of the sink in the menu. Should be use to keep settings.
+    */
+    virtual std::unique_ptr<Sink> createSink(SinkEntry* entry, dsp::stream<dsp::stereo_t>* stream, const std::string& name, SinkID index) = 0;
+
+    /**
+     * Destroy a sink instance. This function is so that the provide knows at all times how many instances there are.
+     * @param sink Instance of the sink.
+    */
+    virtual void destroySink(std::unique_ptr<Sink> sink) {
+        sink.reset();
+    }
 };
 
 class SinkEntryCreateException : public std::runtime_error {
@@ -34,16 +57,19 @@ public:
     SinkEntryCreateException(const char* what) : std::runtime_error(what) {}
 };
 
+class StreamManager;
+
+// TODO: Would be cool to have data and audio sinks instead of just audio.
 class SinkEntry {
     friend AudioStream;
-    SinkEntry(const std::string& type, SinkID id, double inputSamplerate);
 public:
-
+    SinkEntry(StreamManager* manager, AudioStream* parentStream, const std::string& type, SinkID id, double inputSamplerate);
+    
     /**
      * Get the type of the sink.
      * @return Type of the sink.
     */
-    const std::string& getType();
+    std::string getType();
 
     /**
      * Change the type of the sink.
@@ -55,13 +81,13 @@ public:
      * Get the ID of the sink.
      * @return ID of the sink.
     */
-    SinkID getID();
+    SinkID getID() const;
 
     /**
      * Get sink volume.
      * @return Volume as value between 0.0 and 1.0.
     */
-    float getVolume() const;
+    float getVolume();
 
     /**
      * Set sink volume.
@@ -73,7 +99,7 @@ public:
      * Check if the sink is muted.
      * @return True if muted, false if not.
     */
-    bool getMuted() const;
+    bool getMuted();
 
     /**
      * Set wether or not the sink is muted
@@ -85,13 +111,18 @@ public:
      * Get sink panning.
      * @return Panning as value between -1.0 and 1.0 meaning panning to the left and right respectively.
     */
-    float getPanning() const;
+    float getPanning();
 
     /**
      * Set sink panning.
      * @param panning Panning as value between -1.0 and 1.0 meaning panning to the left and right respectively.
     */
     void setPanning(float panning);
+
+    /**
+     * Show the sink type-specific menu.
+    */
+    void showMenu();
 
     // Emitted when the type of the sink was changed
     NewEvent<const std::string&> onTypeChanged;
@@ -107,15 +138,23 @@ private:
     void stopSink();
     void startDSP();
     void stopDSP();
+    void destroy(bool forgetSettings);
     void setInputSamplerate(double samplerate);
 
+    std::recursive_mutex mtx;
     dsp::stream<dsp::stereo_t> input;
     dsp::multirate::RationalResampler<dsp::stereo_t> resamp;
     dsp::audio::Volume volumeAdjust;
 
+
+    SinkProvider* provider = NULL;
     std::unique_ptr<Sink> sink;
-    double inputSamplerate;
+    std::string type;
     const SinkID id;
+    double inputSamplerate;
+    AudioStream* const parentStream;
+    StreamManager* const manager;
+    
     float volume = 1.0f;
     bool muted = false;
     float panning = 0.0f;
@@ -125,8 +164,9 @@ class StreamManager;
 
 class AudioStream {
     friend StreamManager;
-    AudioStream(StreamManager* manager, const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate);
 public:
+    AudioStream(StreamManager* manager, const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate);
+    ~AudioStream();
 
     /**
      * Set DSP stream input.
@@ -134,6 +174,8 @@ public:
      * @param samplerate New samplerate (optional, 0.0 if not used).
     */
     void setInput(dsp::stream<dsp::stereo_t>* stream, double samplerate = 0.0);
+
+    // TODO: There must be a way to pre-stop things to avoid having weird shit happen
 
     /**
      * Set the samplerate of the input stream.
@@ -146,9 +188,6 @@ public:
      * @return Name of the stream.
     */
     const std::string& getName() const;
-
-    // TODO: USING AN INDEX IS BAD!
-    // THIS IS BECAUSE THEY WILL CHANGE AS SOME ARE REMOVED OR ADDED
 
     /**
      * Add a sink to the stream.
@@ -185,8 +224,7 @@ public:
     NewEvent<std::shared_ptr<SinkEntry>> onSinkRemove;
 
 private:
-    std::recursive_mutex mtx;
-    const StreamManager* manager;
+    StreamManager* const manager;
     const std::string name;
     double samplerate;
     dsp::routing::Splitter<dsp::stereo_t> split;
@@ -195,23 +233,8 @@ private:
     std::shared_mutex sinksMtx;
 };
 
-class SinkProvider {
-public:
-    /**
-     * Create a sink instance.
-     * @param name Name of the audio stream.
-     * @param index Index of the sink in the menu. Should be use to keep settings.
-    */
-    virtual std::unique_ptr<Sink> createSink(dsp::stream<dsp::stereo_t>* stream, const std::string& name, int index) = 0;
-
-    /**
-     * Destroy a sink instance. This function is so that the provide knows at all times how many instances there are.
-     * @param sink Instance of the sink.
-    */
-    virtual void destroySink(std::unique_ptr<Sink> sink) = 0;
-};
-
 class StreamManager {
+    friend SinkEntry;
 public:
     /**
      * Create an audio stream.
@@ -277,9 +300,6 @@ public:
 private:
     std::map<std::string, std::shared_ptr<AudioStream>> streams;
     std::shared_mutex streamsMtx;
-
-    // TODO: Switch all this shit to a recursive mutex RW locks are shit
-    // Or maybe not actually
 
     std::map<std::string, SinkProvider*> providers;
     std::vector<std::string> sinkTypes;
