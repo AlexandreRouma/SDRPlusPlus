@@ -5,6 +5,12 @@
     "author_name": "John Donkersley",
     "author_url": "",
     "bands": [
+    {
+            "name": "2200m Ham Band",
+            "type": "amateur",
+            "start": 135700,
+            "end": 137800
+        },
         {
             "name": "Long Wave",
             "type": "broadcast",
@@ -210,16 +216,16 @@
             "end": 15100000
         },
         {
-            "name": "Maritime",
-            "type": "marine",
-            "start": 16360000,
-            "end": 17410000
-        },
-        {
             "name": "19m Broadcast",
             "type": "broadcast",
             "start": 15100000,
             "end": 15800000
+        },
+        {
+            "name": "Maritime",
+            "type": "marine",
+            "start": 16360000,
+            "end": 17410000
         },
         {
             "name": "16m Broadcast",
@@ -345,7 +351,7 @@
             "name": "Air Band TACAN/ILS",
             "type": "aviation",
             "start": 108000000,
-            "end": 118000000
+            "end": 117975000
         },
         {
             "name": "Air Band Voice",
@@ -370,6 +376,12 @@
             "type": "PMR",
             "start": 147343750,
             "end": 147500000
+        },
+        {
+            "name": "Satellites",
+            "type": "satellite",
+            "start": 148000000,
+            "end": 150050000
         },
         {
             "name": "Pagers - Flex/POCSAG",
@@ -426,6 +438,18 @@
             "end": 400000000
         },
         {
+            "name": "Satellites",
+            "type": "satellite",
+            "start": 399900000,
+            "end": 401000000
+        },
+        {
+            "name": "Weather Balloons",
+            "type": "aviation",
+            "start": 401000000,
+            "end": 406000000
+        },
+        {
             "name": "Private Mobile Radio inc trams",
             "type": "PMR",
             "start": 422000000,
@@ -462,22 +486,34 @@
             "end": 455000000
         },
         {
-            "name": "Private Mobile Radio",
+            "name": "Private Mobile Radio inc OB",
             "type": "PMR",
             "start": 455000000,
-            "end": 467200000
-        },
-        {
-            "name": "Outside Broadcast Talkback",
-            "type": "PMR",
-            "start": 467200000,
-            "end": 468600000
+            "end": 470000000
         },
         {
             "name": "Digital TV Broadcast",
             "type": "broadcast",
             "start": 470000000,
-            "end": 790000000
+            "end": 700000000
+        },
+        {
+            "name": "Cell phones",
+            "type": "cellular",
+            "start": 703000000,
+            "end": 788000000
+        },
+        {
+            "name": "Band 20 Cell phone downlink",
+            "type": "cellular",
+            "start": 791000000,
+            "end": 821000000
+        },
+        {
+            "name": "Band 20 Cell phone uplink",
+            "type": "cellular",
+            "start": 832000000,
+            "end": 862000000
         },
         {
             "name": "Licence Exempt Short Range",
@@ -486,10 +522,82 @@
             "end": 875800000
         },
         {
+            "name": "Band 8 Cell phone uplink",
+            "type": "cellular",
+            "start": 880100000,
+            "end": 914900000
+        },
+        {
+            "name": "Band 8 Cell phone downlink",
+            "type": "cellular",
+            "start": 925100000,
+            "end": 929500000
+        },
+        {
             "name": "23cm Ham Band",
             "type": "amateur",
             "start": 1240000000,
             "end": 1325000000
+        },
+        {
+            "name": "Band 32 Cell phone",
+            "type": "cellular",
+            "start": 1452000000,
+            "end": 1492000000
+        },
+        {
+            "name": "Satellite L-band",
+            "type": "satellite",
+            "start": 1518000000,
+            "end": 1559000000
+        },
+        {
+            "name": "Satellite L-band",
+            "type": "satellite",
+            "start": 1626500000,
+            "end": 1660500000
+        },
+        {
+            "name": "Satellite L-band",
+            "type": "satellite",
+            "start": 1668000000,
+            "end": 1675000000
+        },
+        {
+            "name": "Band 3 Cell phone uplink",
+            "type": "cellular",
+            "start": 1710000000,
+            "end": 1785000000
+        },
+        {
+            "name": "Band 3 Cell phone downlink",
+            "type": "cellular",
+            "start": 1805100000,
+            "end": 1880000000
+        },
+        {
+            "name": "DECT cordless phones",
+            "type": "cellular",
+            "start": 1880000000,
+            "end": 1900000000
+        },
+        {
+            "name": "Band 3 Cell phones",
+            "type": "cellular",
+            "start": 1900000000,
+            "end": 1920000000
+        },
+        {
+            "name": "Band 1 Cell phone uplink",
+            "type": "cellular",
+            "start": 1920000000,
+            "end": 1979700000
+        },
+        {
+            "name": "Band 1 Cell phone downlink",
+            "type": "cellular",
+            "start": 2110300000,
+            "end": 2169700000
         },
         {
             "name": "13cm Ham Band",
@@ -498,10 +606,28 @@
             "end": 2302000000
         },
         {
-            "name": "13cm Ham Band",
-            "type": "amateur",
-            "start": 2310000000,
-            "end": 2450000000
+            "name": "ISM - wifi and bluettoth",
+            "type": "ISM",
+            "start": 2400000000,
+            "end": 2483000000
+        },
+        {
+            "name": "Band 38 Cell phones",
+            "type": "cellular",
+            "start": 2500000000,
+            "end": 269000000
+        },
+                {
+            "name": "Band 42 5G Cell phones",
+            "type": "cellular",
+            "start": 3410000000,
+            "end": 3720000000
+        },
+        {
+            "name": "ISM - wifi",
+            "type": "ISM",
+            "start": 5150000000,
+            "end": 5850000000
         }
-    ]
+            ]
 }

@@ -168,7 +168,7 @@ public:
 
         // Open file
         std::string type = (recMode == RECORDER_MODE_AUDIO) ? "audio" : "baseband";
-        std::string vfoName = (recMode == RECORDER_MODE_AUDIO) ? gui::waterfall.selectedVFO : "";
+        std::string vfoName = (recMode == RECORDER_MODE_AUDIO) ? selectedStreamName : "";
         std::string extension = ".wav";
         std::string expandedPath = expandString(folderSelect.path + "/" + genFileName(nameTemplate, type, vfoName) + extension);
         if (!writer.open(expandedPath)) {

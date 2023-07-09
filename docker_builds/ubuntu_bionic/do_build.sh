@@ -12,7 +12,7 @@ apt update
 # Install dependencies and tools
 apt install -y build-essential cmake git libfftw3-dev libglfw3-dev libvolk1-dev libzstd-dev libsoapysdr-dev libairspy-dev \
             libiio-dev libad9361-dev librtaudio-dev libhackrf-dev librtlsdr-dev libbladerf-dev liblimesuite-dev p7zip-full wget portaudio19-dev \
-            libcodec2-dev libudev-dev
+            libcodec2-dev libudev-dev autoconf libtool xxd
 
 # Install SDRPlay libraries
 wget https://www.sdrplay.com/software/SDRplay_RSP_API-Linux-3.07.1.run
@@ -41,6 +41,16 @@ make install
 ldconfig
 cd ../../
 
+# Install libperseus
+git clone https://github.com/Microtelecom/libperseus-sdr
+cd libperseus-sdr
+autoreconf -i
+./configure
+make
+make install
+ldconfig
+cd ..
+
 # Fix missing .pc file for codec2
 echo 'prefix=/usr/' >> /usr/share/pkgconfig/codec2.pc
 echo 'libdir=/usr/include/x86_64-linux-gnu/' >> /usr/share/pkgconfig/codec2.pc
@@ -56,7 +66,7 @@ echo 'Cflags: -I/usr/include/codec2' >> /usr/share/pkgconfig/codec2.pc
 cd SDRPlusPlus
 mkdir build
 cd build
-cmake .. -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_BLADERF_SOURCE=OFF -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_OVERRIDE_STD_FILESYSTEM=ON -DOPT_BUILD_M17_DECODER=ON
+cmake .. -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_BLADERF_SOURCE=OFF -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_OVERRIDE_STD_FILESYSTEM=ON -DOPT_BUILD_M17_DECODER=ON -DOPT_BUILD_PERSEUS_SOURCE=ON
 make VERBOSE=1 -j2
 
 # Generate package

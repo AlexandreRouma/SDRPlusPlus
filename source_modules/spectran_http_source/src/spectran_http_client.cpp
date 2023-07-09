@@ -100,10 +100,11 @@ void SpectranHTTPClient::worker() {
             auto sampleFreqEnd = jsonData.find(',', sampleFreqBegin);
             std::string sampleFreqStr = jsonData.substr(sampleFreqBegin + 18, sampleFreqEnd - sampleFreqBegin - 18);
             sampleFreq = std::stoll(sampleFreqStr);
+            //flog::debug("{}", jsonData);
         }
         
         // Calculate and update center freq
-        int64_t samplerate = sampleFreqReceived ? sampleFreq : (endFreq - startFreq);
+        int64_t samplerate = /* sampleFreqReceived ? sampleFreq :  */(endFreq - startFreq);
         int64_t centerFreq = round(((double)endFreq + (double)startFreq) / 2.0);
         if (centerFreq != _centerFreq) {
             flog::debug("New center freq: {}", centerFreq);

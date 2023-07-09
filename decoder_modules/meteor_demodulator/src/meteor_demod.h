@@ -11,8 +11,8 @@ namespace dsp::demod {
     public:
         Meteor() {}
 
-        Meteor(stream<complex_t>* in, double symbolrate, double samplerate, int rrcTapCount, double rrcBeta, double agcRate, double costasBandwidth, bool brokenModulation, double omegaGain, double muGain, double omegaRelLimit = 0.01) {
-            init(in, symbolrate, samplerate, rrcTapCount, rrcBeta, agcRate, costasBandwidth, brokenModulation, omegaGain, muGain);
+        Meteor(stream<complex_t>* in, double symbolrate, double samplerate, int rrcTapCount, double rrcBeta, double agcRate, double costasBandwidth, bool brokenModulation, bool oqpsk, double omegaGain, double muGain, double omegaRelLimit = 0.01) {
+            init(in, symbolrate, samplerate, rrcTapCount, rrcBeta, agcRate, costasBandwidth, brokenModulation, oqpsk, omegaGain, muGain);
         }
 
         ~Meteor() {
@@ -21,11 +21,12 @@ namespace dsp::demod {
             taps::free(rrcTaps);
         }
 
-        void init(stream<complex_t>* in, double symbolrate, double samplerate, int rrcTapCount, double rrcBeta, double agcRate, double costasBandwidth, bool brokenModulation, double omegaGain, double muGain, double omegaRelLimit = 0.01) {
+        void init(stream<complex_t>* in, double symbolrate, double samplerate, int rrcTapCount, double rrcBeta, double agcRate, double costasBandwidth, bool brokenModulation, bool oqpsk, double omegaGain, double muGain, double omegaRelLimit = 0.01) {
             _symbolrate = symbolrate;
             _samplerate = samplerate;
             _rrcTapCount = rrcTapCount;
             _rrcBeta = rrcBeta;
+            _oqpsk = oqpsk;
             
             rrcTaps = taps::rootRaisedCosine<float>(_rrcTapCount, _rrcBeta, _symbolrate, _samplerate);
             rrc.init(NULL, rrcTaps);
@@ -129,6 +130,12 @@ namespace dsp::demod {
             costas.setBrokenModulation(enabled);
         }
 
+        void setOQPSK(bool enabled) {
+            assert(base_type::_block_init);
+            std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
+            _oqpsk = enabled;
+        }
+
         void reset() {
             assert(base_type::_block_init);
             std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
@@ -144,6 +151,18 @@ namespace dsp::demod {
             rrc.process(count, in, out);
             agc.process(count, out, out);
             costas.process(count, out, out);
+
+            if (_oqpsk) {
+                // Single sample delay + deinterleave
+                for (int i = 0; i < count; i++) {
+                    float tmp = out[i].im;
+                    out[i].im = lastI;
+                    lastI = tmp;
+                }
+
+                // TODO: Additional 1/24th sample delay
+            }
+
             return recov.process(count, out, out);
         }
 
@@ -166,6 +185,8 @@ namespace dsp::demod {
         double _samplerate;
         int _rrcTapCount;
         double _rrcBeta;
+        float lastI = 0.0f;
+        bool _oqpsk = false;
 
         tap<float> rrcTaps;
         filter::FIR<complex_t, float> rrc;

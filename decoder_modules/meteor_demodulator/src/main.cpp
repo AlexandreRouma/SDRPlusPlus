@@ -57,10 +57,13 @@ public:
         if (config.conf[name].contains("brokenModulation")) {
             brokenModulation = config.conf[name]["brokenModulation"];
         }
+        if (config.conf[name].contains("oqpsk")) {
+            oqpsk = config.conf[name]["oqpsk"];
+        }
         config.release();
 
-        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 150000, INPUT_SAMPLE_RATE, 150000, 150000, true);
-        demod.init(vfo->output, 72000.0f, INPUT_SAMPLE_RATE, 33, 0.6f, 0.1f, 0.005f, brokenModulation, 1e-6, 0.01);
+        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, INPUT_SAMPLE_RATE, INPUT_SAMPLE_RATE, INPUT_SAMPLE_RATE, INPUT_SAMPLE_RATE, true);
+        demod.init(vfo->output, 72000.0f, INPUT_SAMPLE_RATE, 33, 0.6f, 0.1f, 0.005f, brokenModulation, oqpsk, 1e-6, 0.01);
         split.init(&demod.out);
         split.bindStream(&symSinkStream);
         split.bindStream(&sinkStream);
@@ -99,6 +102,7 @@ public:
         double bw = gui::waterfall.getBandwidth();
         vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, std::clamp<double>(0, -bw / 2.0, bw / 2.0), 150000, INPUT_SAMPLE_RATE, 150000, 150000, true);
 
+        demod.setBrokenModulation(brokenModulation);
         demod.setInput(vfo->output);
 
         demod.start();
@@ -148,6 +152,13 @@ private:
             _this->demod.setBrokenModulation(_this->brokenModulation);
             config.acquire();
             config.conf[_this->name]["brokenModulation"] = _this->brokenModulation;
+            config.release(true);
+        }
+
+        if (ImGui::Checkbox(CONCAT("OQPSK##oqpsk", _this->name), &_this->oqpsk)) {
+            _this->demod.setOQPSK(_this->oqpsk);
+            config.acquire();
+            config.conf[_this->name]["oqpsk"] = _this->oqpsk;
             config.release(true);
         }
 
@@ -245,7 +256,7 @@ private:
     uint64_t dataWritten = 0;
     std::ofstream recFile;
     bool brokenModulation = false;
-
+    bool oqpsk = false;
     int8_t* writeBuffer;
 };
 
