@@ -529,9 +529,9 @@
         },
         {
             "name": "Train communications",
-            "type": "aviation",
-            "start": 151775000,
-            "end": 151875000
+            "type": "railway",
+            "start": 151712500,
+            "end": 156012500
         },
         {
             "name": "Marine",
@@ -556,12 +556,6 @@
             "type": "military",
             "start": 270000000,
             "end": 380000000
-        },
-        {
-            "name": "Train communications",
-            "type": "aviation",
-            "start": 299999000,
-            "end": 300001000
         },
         {
             "name": "70cm",
