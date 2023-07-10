@@ -690,6 +690,11 @@ private:
                 "0\n" /* RIG_PARM_NONE */;
             client->write(resp.size(), (uint8_t*)resp.c_str());
         }
+        // This get_powerstat stuff is a wordaround for WSJT-X 2.7.0
+        else if (parts[0] == "\\get_powerstat") {
+            resp = "1\n";
+            client->write(resp.size(), (uint8_t*)resp.c_str());
+        }
         else {
             // If command is not recognized, return error
             flog::error("Rigctl client sent invalid command: '{0}'", cmd);
