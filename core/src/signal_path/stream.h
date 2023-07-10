@@ -19,7 +19,7 @@ class SinkEntry;
 
 class Sink {
 public:
-    Sink(SinkEntry* entry, dsp::stream<dsp::stereo_t>* stream, const std::string& name, SinkID id);
+    Sink(SinkEntry* entry, dsp::stream<dsp::stereo_t>* stream, const std::string& name, SinkID id, const std::string& stringId);
     virtual ~Sink() {}
 
     virtual void start() = 0;
@@ -31,6 +31,7 @@ protected:
     dsp::stream<dsp::stereo_t>* const stream;
     const std::string streamName;
     const SinkID id;
+    const std::string stringId;
 };
 
 class SinkProvider {
@@ -41,7 +42,7 @@ public:
      * @param name Name of the audio stream.
      * @param index Index of the sink in the menu. Should be use to keep settings.
     */
-    virtual std::unique_ptr<Sink> createSink(SinkEntry* entry, dsp::stream<dsp::stereo_t>* stream, const std::string& name, SinkID index) = 0;
+    virtual std::unique_ptr<Sink> createSink(SinkEntry* entry, dsp::stream<dsp::stereo_t>* stream, const std::string& name, SinkID id, const std::string& stringId) = 0;
 
     /**
      * Destroy a sink instance. This function is so that the provide knows at all times how many instances there are.
@@ -62,6 +63,7 @@ class StreamManager;
 // TODO: Would be cool to have data and audio sinks instead of just audio.
 class SinkEntry {
     friend AudioStream;
+    friend Sink;
 public:
     SinkEntry(StreamManager* manager, AudioStream* parentStream, const std::string& type, SinkID id, double inputSamplerate);
     
@@ -124,6 +126,12 @@ public:
     */
     void showMenu();
 
+    /**
+     * Get the string form ID unique to both the sink and stream. Be used to reference settings.
+     * @return Unique string ID.
+    */
+    std::string getStringID();
+
     // Emitted when the type of the sink was changed
     NewEvent<const std::string&> onTypeChanged;
     // Emmited when volume of the sink was changed
@@ -133,11 +141,17 @@ public:
     // Emitted when the panning of the sink was changed
     NewEvent<float> onPanningChanged;
 
+    // TODO: Need to allow the sink to change the entry samplerate and start/stop the DSP
+    //       This will also require allowing it to get a lock on the sink so others don't attempt to mess with it.
+    std::lock_guard<std::recursive_mutex> getLock();
+    void startDSP();
+    void stopDSP();
+    void setSamplerate(double samplerate);
+
 private:
     void startSink();
     void stopSink();
-    void startDSP();
-    void stopDSP();
+    
     void destroy(bool forgetSettings);
     void setInputSamplerate(double samplerate);
 
@@ -153,6 +167,8 @@ private:
     double inputSamplerate;
     AudioStream* const parentStream;
     StreamManager* const manager;
+
+    std::string stringId;
     
     float volume = 1.0f;
     bool muted = false;

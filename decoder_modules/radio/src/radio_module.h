@@ -446,6 +446,9 @@ private:
             afChain.disableAllBlocks([=](dsp::stream<dsp::stereo_t>* out){ stream->setInput(out); });
         }
 
+        // Update audo samplerate
+        stream->setSamplerate(selectedDemod->getAFSampleRate());
+
         // Start the IF chain
         ifChain.start();
 

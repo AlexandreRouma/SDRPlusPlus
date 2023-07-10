@@ -1,11 +1,12 @@
 #include "stream.h"
 #include <utils/flog.h>
 
-Sink::Sink(SinkEntry* entry, dsp::stream<dsp::stereo_t>* stream,  const std::string& name, SinkID id) :
+Sink::Sink(SinkEntry* entry, dsp::stream<dsp::stereo_t>* stream,  const std::string& name, SinkID id, const std::string& stringId) :
     entry(entry),
     stream(stream),
     streamName(name),
-    id(id)
+    id(id),
+    stringId(stringId)
 {}
 
 void Sink::showMenu() {}
@@ -17,6 +18,12 @@ SinkEntry::SinkEntry(StreamManager* manager, AudioStream* parentStream, const st
 {
     this->type = type;
     this->inputSamplerate = inputSamplerate;
+
+    // Generate string ID
+    stringId = parentStream->getName();
+    char buf[16];
+    sprintf(buf, "%d", (int)id);
+    stringId += buf;
     
     // Initialize DSP
     resamp.init(&input, inputSamplerate, inputSamplerate);
@@ -44,7 +51,7 @@ void SinkEntry::setType(const std::string& type) {
     auto lck2 = manager->getSinkTypesLock();
 
     // Get the provider or throw error
-    auto types = manager->getSinkTypes();
+    const auto& types = manager->getSinkTypes();
     if (std::find(types.begin(), types.end(), type) == types.end()) {
         this->type.clear();
         throw SinkEntryCreateException("Invalid sink type");
@@ -53,7 +60,7 @@ void SinkEntry::setType(const std::string& type) {
     // Create sink
     this->type = type;
     provider = manager->providers[type];
-    sink = provider->createSink(this, &volumeAdjust.out, parentStream->getName(), id);
+    sink = provider->createSink(this, &volumeAdjust.out, parentStream->getName(), id, stringId);
 }
 
 SinkID SinkEntry::getID() const {
@@ -111,6 +118,15 @@ void SinkEntry::stopSink() {
     sink->stop();
 }
 
+std::lock_guard<std::recursive_mutex> SinkEntry::getLock() {
+    return std::lock_guard<std::recursive_mutex>(mtx);
+}
+
+void SinkEntry::setSamplerate(double samplerate) {
+    std::lock_guard<std::recursive_mutex> lck(mtx);
+    resamp.setOutSamplerate(samplerate);
+}
+
 void SinkEntry::startDSP() {
     std::lock_guard<std::recursive_mutex> lck(mtx);
     resamp.start();
@@ -134,6 +150,10 @@ void SinkEntry::destroy(bool forgetSettings) {
 void SinkEntry::setInputSamplerate(double samplerate) {
     std::lock_guard<std::recursive_mutex> lck(mtx);
     resamp.setInSamplerate(samplerate);
+}
+
+std::string SinkEntry::getStringID() {
+    return stringId;
 }
 
 AudioStream::AudioStream(StreamManager* manager, const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate) :
@@ -449,7 +469,7 @@ void StreamManager::unregisterSinkProvider(SinkProvider* provider) {
         for (auto& [name, stream] : streams) {
             // Aquire lock on sink list
             auto sLock = stream->getSinksLock();
-            auto sinks = stream->getSinks();
+            const auto& sinks = stream->getSinks();
 
             // Find all sinks with the type that is about to be removed
             std::vector<SinkID> toRemove;

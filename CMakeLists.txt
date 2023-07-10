@@ -1,5 +1,3 @@
-set(CMAKE_BUILD_TYPE "Debug") # TODO: Make sure this gets properly disabled when going back to normal builds
-
 cmake_minimum_required(VERSION 3.13)
 project(sdrpp)
 

@@ -2,10 +2,10 @@
 #include <module.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
-#include <signal_path/sink.h>
 #include <dsp/buffer/packer.h>
 #include <dsp/convert/stereo_to_mono.h>
 #include <utils/flog.h>
+#include <utils/optionlist.h>
 #include <RtAudio.h>
 #include <config.h>
 #include <core.h>
@@ -22,26 +22,37 @@ SDRPP_MOD_INFO{
 
 ConfigManager config;
 
-class AudioSink : SinkManager::Sink {
+bool operator==(const RtAudio::DeviceInfo& a, const RtAudio::DeviceInfo& b) {
+    return a.name == b.name;
+}
+
+class AudioSink : public Sink {
 public:
-    AudioSink(SinkManager::Stream* stream, std::string streamName) {
-        _stream = stream;
-        _streamName = streamName;
-        s2m.init(_stream->sinkOut);
+    AudioSink(SinkEntry* entry, dsp::stream<dsp::stereo_t>* stream, const std::string& name, SinkID id, const std::string& stringId) :
+        Sink(entry, stream, name, id, stringId)
+    {
+        s2m.init(stream);
         monoPacker.init(&s2m.out, 512);
-        stereoPacker.init(_stream->sinkOut, 512);
+        stereoPacker.init(stream, 512);
 
-        bool created = false;
+        // Convert config to the new format and get selected device
+        bool modified = false;
         std::string device = "";
-        config.acquire();
-        if (!config.conf.contains(_streamName)) {
-            created = true;
-            config.conf[_streamName]["device"] = "";
-            config.conf[_streamName]["devices"] = json({});
-        }
-        device = config.conf[_streamName]["device"];
-        config.release(created);
+        // config.acquire();
+        // if (config.conf.contains(streamName)) {
+        //     if (!config.conf[streamName].is_array()) {
+        //         json tmp = config.conf[streamName];
+        //         config.conf[streamName] = json::array();
+        //         config.conf[streamName][0] = tmp;
+        //         modified = true;
+        //     }
+        //     if (config.conf[streamName].contains((int)id)) {
+        //         device = config.conf[streamName][(int)id]["device"];
+        //     }
+        // }
+        // config.release(modified);
 
+        // List devices
         int count = audio.getDeviceCount();
         RtAudio::DeviceInfo info;
         for (int i = 0; i < count; i++) {
@@ -50,15 +61,13 @@ public:
                 if (!info.probed) { continue; }
                 if (info.outputChannels == 0) { continue; }
                 if (info.isDefaultOutput) { defaultDevId = devList.size(); }
-                devList.push_back(info);
-                deviceIds.push_back(i);
-                txtDevList += info.name;
-                txtDevList += '\0';
+                devList.define(i, info.name, info);
             }
             catch (std::exception e) {
                 flog::error("AudioSinkModule Error getting audio device info: {0}", e.what());
             }
         }
+
         selectByName(device);
     }
 
@@ -92,79 +101,104 @@ public:
     }
 
     void selectById(int id) {
+        // Update ID
         devId = id;
-        bool created = false;
-        config.acquire();
-        if (!config.conf[_streamName]["devices"].contains(devList[id].name)) {
-            created = true;
-            config.conf[_streamName]["devices"][devList[id].name] = devList[id].preferredSampleRate;
-        }
-        sampleRate = config.conf[_streamName]["devices"][devList[id].name];
-        config.release(created);
+        selectedDevName = devList[id].name;
 
-        sampleRates = devList[id].sampleRates;
-        sampleRatesTxt = "";
+        // List samplerates and select default SR
         char buf[256];
-        bool found = false;
-        unsigned int defaultId = 0;
+        sampleRates.clear();
+        const auto& srList = devList[id].sampleRates;
         unsigned int defaultSr = devList[id].preferredSampleRate;
-        for (int i = 0; i < sampleRates.size(); i++) {
-            if (sampleRates[i] == sampleRate) {
-                found = true;
-                srId = i;
+        for (auto& sr : srList) {
+            if (sr == defaultSr) {
+                srId = sampleRates.size();
+                sampleRate = sr;
             }
-            if (sampleRates[i] == defaultSr) {
-                defaultId = i;
-            }
-            sprintf(buf, "%d", sampleRates[i]);
-            sampleRatesTxt += buf;
-            sampleRatesTxt += '\0';
+            sprintf(buf, "%d", sr);
+            sampleRates.define(sr, buf, sr);
         }
-        if (!found) {
-            sampleRate = defaultSr;
-            srId = defaultId;
-        }
+    
+        // // Load config
+        // config.acquire();
+        // if (config.conf[streamName][(int)id].contains(selectedDevName)) {
+        //     unsigned int wantedSr = config.conf[streamName][id][selectedDevName];
+        //     if (sampleRates.keyExists(wantedSr)) {
+        //         srId = sampleRates.keyId(wantedSr);
+        //         sampleRate = sampleRates[srId];
+        //     }
+        // }
+        // config.release();
 
-        _stream->setSampleRate(sampleRate);
+        // Lock the sink
+        auto lck = entry->getLock();
 
+        // Stop the sink DSP
+        // TODO: Only if the sink DSP is running, otherwise you risk starting it when  it shouldn't
+        entry->stopDSP();
+
+        // Stop the sink
         if (running) { doStop(); }
+
+        // Update stream samplerate
+        entry->setSamplerate(sampleRate);
+
+        // Start the DSP
+        entry->startDSP();
+
+        // Start the sink
         if (running) { doStart(); }
     }
 
-    void menuHandler() {
+    void showMenu() {
         float menuWidth = ImGui::GetContentRegionAvail().x;
 
         ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::Combo(("##_audio_sink_dev_" + _streamName).c_str(), &devId, txtDevList.c_str())) {
+        if (ImGui::Combo(("##_audio_sink_dev_" + stringId).c_str(), &devId, devList.txt)) {
             selectById(devId);
-            config.acquire();
-            config.conf[_streamName]["device"] = devList[devId].name;
-            config.release(true);
+            // config.acquire();
+            // config.conf[streamName]["device"] = devList[devId].name;
+            // config.release(true);
         }
 
         ImGui::SetNextItemWidth(menuWidth);
-        if (ImGui::Combo(("##_audio_sink_sr_" + _streamName).c_str(), &srId, sampleRatesTxt.c_str())) {
+        if (ImGui::Combo(("##_audio_sink_sr_" + stringId).c_str(), &srId, sampleRates.txt)) {
             sampleRate = sampleRates[srId];
-            _stream->setSampleRate(sampleRate);
-            if (running) {
-                doStop();
-                doStart();
-            }
-            config.acquire();
-            config.conf[_streamName]["devices"][devList[devId].name] = sampleRate;
-            config.release(true);
+            
+            // Lock the sink
+            auto lck = entry->getLock();
+
+            // Stop the sink DSP
+            // TODO: Only if the sink DSP is running, otherwise you risk starting it when  it shouldn't
+            entry->stopDSP();
+
+            // Stop the sink
+            if (running) { doStop(); }
+
+            // Update stream samplerate
+            entry->setSamplerate(sampleRate);
+
+            // Start the DSP
+            entry->startDSP();
+
+            // Start the sink
+            if (running) { doStart(); }
+
+            // config.acquire();
+            // config.conf[streamName]["devices"][devList[devId].name] = sampleRate;
+            // config.release(true);
         }
     }
 
 private:
     bool doStart() {
         RtAudio::StreamParameters parameters;
-        parameters.deviceId = deviceIds[devId];
+        parameters.deviceId = devList.key(devId);
         parameters.nChannels = 2;
         unsigned int bufferFrames = sampleRate / 60;
         RtAudio::StreamOptions opts;
         opts.flags = RTAUDIO_MINIMIZE_LATENCY;
-        opts.streamName = _streamName;
+        opts.streamName = streamName;
 
         try {
             audio.openStream(&parameters, NULL, RTAUDIO_FLOAT32, sampleRate, &bufferFrames, &callback, this, &opts);
@@ -198,57 +232,39 @@ private:
         int count = _this->stereoPacker.out.read();
         if (count < 0) { return 0; }
 
-        // For debug purposes only...
-        // if (nBufferFrames != count) { flog::warn("Buffer size mismatch, wanted {0}, was asked for {1}", count, nBufferFrames); }
-        // for (int i = 0; i < count; i++) {
-        //     if (_this->stereoPacker.out.readBuf[i].l == NAN || _this->stereoPacker.out.readBuf[i].r == NAN) { flog::error("NAN in audio data"); }
-        //     if (_this->stereoPacker.out.readBuf[i].l == INFINITY || _this->stereoPacker.out.readBuf[i].r == INFINITY) { flog::error("INFINITY in audio data"); }
-        //     if (_this->stereoPacker.out.readBuf[i].l == -INFINITY || _this->stereoPacker.out.readBuf[i].r == -INFINITY) { flog::error("-INFINITY in audio data"); }
-        // }
-
         memcpy(outputBuffer, _this->stereoPacker.out.readBuf, nBufferFrames * sizeof(dsp::stereo_t));
         _this->stereoPacker.out.flush();
         return 0;
     }
 
-    SinkManager::Stream* _stream;
     dsp::convert::StereoToMono s2m;
     dsp::buffer::Packer<float> monoPacker;
     dsp::buffer::Packer<dsp::stereo_t> stereoPacker;
 
-    std::string _streamName;
-
     int srId = 0;
-    int devCount;
     int devId = 0;
     bool running = false;
+    std::string selectedDevName;
 
     unsigned int defaultDevId = 0;
 
-    std::vector<RtAudio::DeviceInfo> devList;
-    std::vector<unsigned int> deviceIds;
-    std::string txtDevList;
+    OptionList<unsigned int, RtAudio::DeviceInfo> devList;
+    OptionList<unsigned int, unsigned int> sampleRates;
 
-    std::vector<unsigned int> sampleRates;
-    std::string sampleRatesTxt;
     unsigned int sampleRate = 48000;
 
     RtAudio audio;
 };
 
-class AudioSinkModule : public ModuleManager::Instance {
+class AudioSinkModule : public ModuleManager::Instance, public SinkProvider {
 public:
     AudioSinkModule(std::string name) {
         this->name = name;
-        provider.create = create_sink;
-        provider.ctx = this;
-
-        sigpath::sinkManager.registerSinkProvider("Audio", provider);
+        sigpath::streamManager.registerSinkProvider("Audio", this);
     }
 
     ~AudioSinkModule() {
-        // Unregister sink, this will automatically stop and delete all instances of the audio sink
-        sigpath::sinkManager.unregisterSinkProvider("Audio");
+        sigpath::streamManager.unregisterSinkProvider(this);
     }
 
     void postInit() {}
@@ -265,14 +281,13 @@ public:
         return enabled;
     }
 
-private:
-    static SinkManager::Sink* create_sink(SinkManager::Stream* stream, std::string streamName, void* ctx) {
-        return (SinkManager::Sink*)(new AudioSink(stream, streamName));
+    std::unique_ptr<Sink> createSink(SinkEntry* entry, dsp::stream<dsp::stereo_t>* stream, const std::string& name, SinkID id, const std::string& stringId) {
+        return std::make_unique<AudioSink>(entry, stream, name, id, stringId);
     }
 
+private:
     std::string name;
     bool enabled = true;
-    SinkManager::SinkProvider provider;
 };
 
 MOD_EXPORT void _INIT_() {
