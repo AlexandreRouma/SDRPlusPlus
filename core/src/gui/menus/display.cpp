@@ -25,6 +25,8 @@ namespace displaymenu {
     int fftHoldSpeed = 60;
     bool fftSmoothing = false;
     int fftSmoothingSpeed = 100;
+    bool snrSmoothing = false;
+    int snrSmoothingSpeed = 20;
 
     OptionList<float, float> uiScales;
 
@@ -63,6 +65,7 @@ namespace displaymenu {
     void updateFFTSpeeds() {
         gui::waterfall.setFFTHoldSpeed((float)fftHoldSpeed / ((float)fftRate * 10.0f));
         gui::waterfall.setFFTSmoothingSpeed(std::min<float>((float)fftSmoothingSpeed / (float)(fftRate * 10.0f), 1.0f));
+        gui::waterfall.setSNRSmoothingSpeed(std::min<float>((float)snrSmoothingSpeed / (float)(fftRate * 10.0f), 1.0f));
     }
 
     void init() {
@@ -111,6 +114,9 @@ namespace displaymenu {
         fftSmoothing = core::configManager.conf["fftSmoothing"];
         fftSmoothingSpeed = core::configManager.conf["fftSmoothingSpeed"];
         gui::waterfall.setFFTSmoothing(fftSmoothing);
+        snrSmoothing = core::configManager.conf["snrSmoothing"];
+        snrSmoothingSpeed = core::configManager.conf["snrSmoothingSpeed"];
+        gui::waterfall.setSNRSmoothing(snrSmoothing);
         updateFFTSpeeds();
 
         // Define and load UI scales
@@ -151,15 +157,7 @@ namespace displaymenu {
             core::configManager.conf["fftHold"] = fftHold;
             core::configManager.release(true);
         }
-
-        if (ImGui::Checkbox("FFT Smoothing##_sdrpp", &fftSmoothing)) {
-            gui::waterfall.setFFTSmoothing(fftSmoothing);
-            core::configManager.acquire();
-            core::configManager.conf["fftSmoothing"] = fftSmoothing;
-            core::configManager.release(true);
-        }
-
-        ImGui::LeftLabel("FFT Hold Speed");
+        ImGui::SameLine();
         ImGui::FillWidth();
         if (ImGui::InputInt("##sdrpp_fft_hold_speed", &fftHoldSpeed)) {
             updateFFTSpeeds();
@@ -168,13 +166,35 @@ namespace displaymenu {
             core::configManager.release(true);
         }
 
-        ImGui::LeftLabel("FFT Smoothing Speed");
+        if (ImGui::Checkbox("FFT Smoothing##_sdrpp", &fftSmoothing)) {
+            gui::waterfall.setFFTSmoothing(fftSmoothing);
+            core::configManager.acquire();
+            core::configManager.conf["fftSmoothing"] = fftSmoothing;
+            core::configManager.release(true);
+        }
+        ImGui::SameLine();
         ImGui::FillWidth();
         if (ImGui::InputInt("##sdrpp_fft_smoothing_speed", &fftSmoothingSpeed)) {
             fftSmoothingSpeed = std::max<int>(fftSmoothingSpeed, 1);
             updateFFTSpeeds();
             core::configManager.acquire();
             core::configManager.conf["fftSmoothingSpeed"] = fftSmoothingSpeed;
+            core::configManager.release(true);
+        }
+
+        if (ImGui::Checkbox("SNR Smoothing##_sdrpp", &snrSmoothing)) {
+            gui::waterfall.setSNRSmoothing(snrSmoothing);
+            core::configManager.acquire();
+            core::configManager.conf["snrSmoothing"] = snrSmoothing;
+            core::configManager.release(true);
+        }
+        ImGui::SameLine();
+        ImGui::FillWidth();
+        if (ImGui::InputInt("##sdrpp_snr_smoothing_speed", &snrSmoothingSpeed)) {
+            snrSmoothingSpeed = std::max<int>(snrSmoothingSpeed, 1);
+            updateFFTSpeeds();
+            core::configManager.acquire();
+            core::configManager.conf["snrSmoothingSpeed"] = snrSmoothingSpeed;
             core::configManager.release(true);
         }
 

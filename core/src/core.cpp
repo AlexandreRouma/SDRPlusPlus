@@ -119,6 +119,8 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["fftHoldSpeed"] = 60;
     defConfig["fftSmoothing"] = false;
     defConfig["fftSmoothingSpeed"] = 100;
+    defConfig["snrSmoothing"] = false;
+    defConfig["snrSmoothingSpeed"] = 20;
     defConfig["fastFFT"] = false;
     defConfig["fftHeight"] = 300;
     defConfig["fftRate"] = 20;

@@ -172,6 +172,9 @@ namespace ImGui {
         void setFFTSmoothing(bool enabled);
         void setFFTSmoothingSpeed(float speed);
 
+        void setSNRSmoothing(bool enabled);
+        void setSNRSmoothingSpeed(float speed);
+
         float* acquireLatestFFT(int& width);
         void releaseLatestFFT();
 
@@ -185,7 +188,7 @@ namespace ImGui {
         bool mouseInFFT = false;
         bool mouseInWaterfall = false;
 
-        float selectedVFOSNR = NAN;
+        float selectedVFOSNR = 0.0f;
 
         bool centerFrequencyLocked = false;
 
@@ -331,8 +334,12 @@ namespace ImGui {
         float fftHoldSpeed = 0.3f;
 
         bool fftSmoothing = false;
-        float smoothingAlpha = 0.5;
-        float smoothingBeta = 0.5;
+        float fftSmoothingAlpha = 0.5;
+        float fftSmoothingBeta = 0.5;
+
+        bool snrSmoothing = false;
+        float snrSmoothingAlpha = 0.5;
+        float snrSmoothingBeta = 0.5;
 
         // UI Select elements
         bool fftResizeSelect = false;
