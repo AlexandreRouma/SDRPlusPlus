@@ -886,15 +886,22 @@ namespace ImGui {
         // Apply smoothing if enabled
         if (fftSmoothing && latestFFT != NULL && smoothingBuf != NULL && fftLines != 0) {
             std::lock_guard<std::mutex> lck2(smoothingBufMtx);
-            volk_32f_s32f_multiply_32f(latestFFT, latestFFT, smoothingAlpha, dataWidth);
-            volk_32f_s32f_multiply_32f(smoothingBuf, smoothingBuf, smoothingBeta, dataWidth);
+            volk_32f_s32f_multiply_32f(latestFFT, latestFFT, fftSmoothingAlpha, dataWidth);
+            volk_32f_s32f_multiply_32f(smoothingBuf, smoothingBuf, fftSmoothingBeta, dataWidth);
             volk_32f_x2_add_32f(smoothingBuf, latestFFT, smoothingBuf, dataWidth);
             memcpy(latestFFT, smoothingBuf, dataWidth * sizeof(float));
         }
 
         if (selectedVFO != "" && vfos.size() > 0) {
             float dummy;
-            calculateVFOSignalInfo(waterfallVisible ? &rawFFTs[currentFFTLine * rawFFTSize] : rawFFTs, vfos[selectedVFO], dummy, selectedVFOSNR);
+            if (snrSmoothing) {
+                float newSNR = 0.0f;
+                calculateVFOSignalInfo(waterfallVisible ? &rawFFTs[currentFFTLine * rawFFTSize] : rawFFTs, vfos[selectedVFO], dummy, newSNR);
+                selectedVFOSNR = (snrSmoothingBeta*selectedVFOSNR) + (snrSmoothingAlpha*newSNR);
+            }
+            else {
+                calculateVFOSignalInfo(waterfallVisible ? &rawFFTs[currentFFTLine * rawFFTSize] : rawFFTs, vfos[selectedVFO], dummy, selectedVFOSNR);
+            }
         }
 
         // If FFT hold is enabled, update it
@@ -1155,8 +1162,17 @@ namespace ImGui {
 
     void WaterFall::setFFTSmoothingSpeed(float speed) {
         std::lock_guard<std::mutex> lck(smoothingBufMtx);
-        smoothingAlpha = speed;
-        smoothingBeta = 1.0f - speed;
+        fftSmoothingAlpha = speed;
+        fftSmoothingBeta = 1.0f - speed;
+    }
+
+    void WaterFall::setSNRSmoothing(bool enabled) {
+        snrSmoothing = enabled;
+    }
+
+    void WaterFall::setSNRSmoothingSpeed(float speed) {
+        snrSmoothingAlpha = speed;
+        snrSmoothingBeta = 1.0f - speed;
     }
 
     float* WaterFall::acquireLatestFFT(int& width) {
