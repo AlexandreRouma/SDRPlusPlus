@@ -60,10 +60,13 @@ public:
         if (config.conf[name].contains("oqpsk")) {
             oqpsk = config.conf[name]["oqpsk"];
         }
+        if (config.conf[name].contains("symbolrate")) {
+            symbolrate = config.conf[name]["symbolrate"];
+        }
         config.release();
 
         vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, INPUT_SAMPLE_RATE, INPUT_SAMPLE_RATE, INPUT_SAMPLE_RATE, INPUT_SAMPLE_RATE, true);
-        demod.init(vfo->output, 72000.0f, INPUT_SAMPLE_RATE, 33, 0.6f, 0.1f, 0.005f, brokenModulation, oqpsk, 1e-6, 0.01);
+        demod.init(vfo->output, (double)symbolrate, INPUT_SAMPLE_RATE, 33, 0.6f, 0.1f, 0.005f, brokenModulation, oqpsk, 1e-6, 0.01);
         split.init(&demod.out);
         split.bindStream(&symSinkStream);
         split.bindStream(&sinkStream);
@@ -162,6 +165,26 @@ private:
             config.release(true);
         }
 
+        ImGui::BeginGroup();
+        ImGui::Columns(2, CONCAT("Symbolrate##_", _this->name), false);
+        if (ImGui::RadioButton(CONCAT("72k##_", _this->name), _this->symbolrate == 72000) && _this->symbolrate != 72000) {
+            _this->symbolrate = 72000;
+            _this->demod.setSymbolrate((double)_this->symbolrate);
+            config.acquire();
+            config.conf[_this->name]["symbolrate"] = _this->symbolrate;
+            config.release(true);
+        }
+        ImGui::NextColumn();
+        if (ImGui::RadioButton(CONCAT("80k##_", _this->name), _this->symbolrate == 80000) && _this->symbolrate != 80000) {
+            _this->symbolrate = 80000;
+            _this->demod.setSymbolrate((double)_this->symbolrate);
+            config.acquire();
+            config.conf[_this->name]["symbolrate"] = _this->symbolrate;
+            config.release(true);
+        }
+        ImGui::Columns(1, CONCAT("EndSymbolrate##_", _this->name), false);
+        ImGui::EndGroup();
+
         if (!_this->folderSelect.pathIsValid() && _this->enabled) { style::beginDisabled(); }
 
         if (_this->recording) {
@@ -257,6 +280,7 @@ private:
     std::ofstream recFile;
     bool brokenModulation = false;
     bool oqpsk = false;
+    uint64_t symbolrate = 72000;
     int8_t* writeBuffer;
 };
 
