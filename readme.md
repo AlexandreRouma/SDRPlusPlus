@@ -473,6 +473,7 @@ I will soon publish a contributing.md listing the code style to use.
 * [Howard0su](https://github.com/howard0su)
 * John Donkersley
 * [Joshua Kimsey](https://github.com/JoshuaKimsey)
+* [Manawyrm](https://github.com/Manawyrm)
 * [Martin Hauke](https://github.com/mnhauke)
 * [Marvin Sinister](https://github.com/marvin-sinister)
 * [Maxime Biette](https://github.com/mbiette)
@@ -482,7 +483,6 @@ I will soon publish a contributing.md listing the code style to use.
 * [Shuyuan Liu](https://github.com/shuyuan-liu)
 * [Syne Ardwin (WI9SYN)](https://esaille.me/)
 * [Szymon Zakrent](https://github.com/zakrent)
-* [Tobias Mädel](https://github.com/Manawyrm)
 * Youssef Touil
 * [Zimm](https://github.com/invader-zimm)
 
