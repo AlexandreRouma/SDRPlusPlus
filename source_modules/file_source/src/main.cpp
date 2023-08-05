@@ -9,6 +9,15 @@
 #include <filesystem>
 #include <regex>
 #include <gui/tuner.h>
+#include <algorithm>
+
+// TODO: figure out where exactly these macros are from (only happens on windows so probably from Windows.h somewhere)
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -121,7 +130,7 @@ private:
                 }
                 try {
                     _this->reader = new WavReader(_this->fileSelect.path);
-                    _this->sampleRate = _this->reader->getSampleRate();
+                    _this->sampleRate = std::max(_this->reader->getSampleRate(), (uint32_t)1);
                     core::setInputSampleRate(_this->sampleRate);
                     std::string filename = std::filesystem::path(_this->fileSelect.path).filename().string();
                     _this->centerFreq = _this->getFrequency(filename);
@@ -144,8 +153,8 @@ private:
 
     static void worker(void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
-        double sampleRate = _this->reader->getSampleRate();
-        int blockSize = sampleRate / 200.0f;
+        double sampleRate = std::max(_this->reader->getSampleRate(), (uint32_t)1);
+        int blockSize = std::min((int)(sampleRate / 200.0f), (int)STREAM_BUFFER_SIZE);
         int16_t* inBuf = new int16_t[blockSize * 2];
 
         while (true) {
@@ -159,8 +168,8 @@ private:
 
     static void floatWorker(void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
-        double sampleRate = _this->reader->getSampleRate();
-        int blockSize = sampleRate / 200.0f;
+        double sampleRate = std::max(_this->reader->getSampleRate(), (uint32_t)1);
+        int blockSize = std::min((int)(sampleRate / 200.0f), (int)STREAM_BUFFER_SIZE);
         dsp::complex_t* inBuf = new dsp::complex_t[blockSize];
 
         while (true) {
