@@ -1,5 +1,6 @@
 #include "rds.h"
 #include <string.h>
+#include <cstddef>
 #include <map>
 #include <algorithm>
 
@@ -28,6 +29,24 @@ namespace rds {
     const int DATA_LEN = 16;
     const int POLY_LEN = 10;
 
+    const wchar_t EBU_REPERTOIRE[257] = L"                "
+                                         "                "
+                                         " !\"#¤%&'()*+,-./"
+                                         "0123456789:;<=>?"
+                                         "@ABCDEFGHIJKLMNO"
+                                         "PQRSTUVWXYZ[\\]―_"
+                                         "║abcdefghijklmno"
+                                         "pqrstuvwxyz{|}¯-"
+                                         "áàéèíìóòúùÑÇŞß¡Ĳ"
+                                         "âäêëîïôöûüñçşğıĳ"
+                                         "ªα©‰Ğěňőπ€£$←↑→↓"
+                                         "º¹²³±İńűμ¿÷°¼½¾§"
+                                         "ÁÀÉÈÍÌÓÒÚÙŘČŠŽÐĿ"
+                                         "ÂÄÊËÎÏÔÖÛÜřčšžđŀ"
+                                         "ÃÅÆŒŷÝÕØÞŊŔĆŚŹŦð"
+                                         "ãåæœŵýõøþŋŕćśźŧ?";
+
+
     void RDSDecoder::process(uint8_t* symbols, int count) {
         for (int i = 0; i < count; i++) {
             // Shift in the bit
@@ -41,7 +60,7 @@ namespace rds {
             auto synIt = SYNDROMES.find(syn);
             bool knownSyndrome = synIt != SYNDROMES.end();
             sync = std::clamp<int>(knownSyndrome ? ++sync : --sync, 0, 4);
-            
+
             // If we're still no longer in sync, try to resync
             if (!sync) { continue; }
 
@@ -95,7 +114,7 @@ namespace rds {
         return syn;
     }
 
-    uint32_t RDSDecoder::correctErrors(uint32_t block, BlockType type, bool& recovered) {        
+    uint32_t RDSDecoder::correctErrors(uint32_t block, BlockType type, bool& recovered) {
         // Subtract the offset from block
         block ^= (uint32_t)OFFSETS[type];
         uint32_t out = block;
@@ -144,7 +163,7 @@ namespace rds {
         // Decode traffic program and program type
         trafficProgram = (blocks[BLOCK_TYPE_B] >> 20) & 1;
         programType = (ProgramType)((blocks[BLOCK_TYPE_B] >> 15) & 0x1F);
-        
+
         if (groupType == 0) {
             group0LastUpdate = now;
             trafficAnnouncement = (blocks[BLOCK_TYPE_B] >> 14) & 1;
@@ -164,8 +183,8 @@ namespace rds {
 
             // Write chars at offset the PSName
             if (blockAvail[BLOCK_TYPE_D]) {
-                programServiceName[psOffset] = (blocks[BLOCK_TYPE_D] >> 18) & 0xFF;
-                programServiceName[psOffset + 1] = (blocks[BLOCK_TYPE_D] >> 10) & 0xFF;
+                programServiceName[psOffset] = EBU_REPERTOIRE[((blocks[BLOCK_TYPE_D] >> 18) & 0xFF)];
+                programServiceName[psOffset + 1] = EBU_REPERTOIRE[((blocks[BLOCK_TYPE_D] >> 10) & 0xFF)];
             }
         }
         else if (groupType == 2) {
@@ -176,7 +195,7 @@ namespace rds {
 
             // Clear text field if the A/B flag changed
             if (nAB != rtAB) {
-                radioText = "                                                                ";
+                radioText = L"                                                                ";
             }
             rtAB = nAB;
 
@@ -184,19 +203,19 @@ namespace rds {
             if (groupVer == GROUP_VER_A) {
                 uint8_t rtOffset = offset * 4;
                 if (blockAvail[BLOCK_TYPE_C]) {
-                    radioText[rtOffset] = (blocks[BLOCK_TYPE_C] >> 18) & 0xFF;
-                    radioText[rtOffset + 1] = (blocks[BLOCK_TYPE_C] >> 10) & 0xFF;
+                    radioText[rtOffset] = EBU_REPERTOIRE[((blocks[BLOCK_TYPE_C] >> 18) & 0xFF)];
+                    radioText[rtOffset + 1] = EBU_REPERTOIRE[((blocks[BLOCK_TYPE_C] >> 10) & 0xFF)];
                 }
                 if (blockAvail[BLOCK_TYPE_D]) {
-                    radioText[rtOffset + 2] = (blocks[BLOCK_TYPE_D] >> 18) & 0xFF;
-                    radioText[rtOffset + 3] = (blocks[BLOCK_TYPE_D] >> 10) & 0xFF;
+                    radioText[rtOffset + 2] = EBU_REPERTOIRE[((blocks[BLOCK_TYPE_D] >> 18) & 0xFF)];
+                    radioText[rtOffset + 3] = EBU_REPERTOIRE[((blocks[BLOCK_TYPE_D] >> 10) & 0xFF)];
                 }
             }
             else {
                 uint8_t rtOffset = offset * 2;
                 if (blockAvail[BLOCK_TYPE_D]) {
-                    radioText[rtOffset] = (blocks[BLOCK_TYPE_D] >> 18) & 0xFF;
-                    radioText[rtOffset + 1] = (blocks[BLOCK_TYPE_D] >> 10) & 0xFF;
+                    radioText[rtOffset] = EBU_REPERTOIRE[((blocks[BLOCK_TYPE_D] >> 18) & 0xFF)];
+                    radioText[rtOffset + 1] = EBU_REPERTOIRE[((blocks[BLOCK_TYPE_D] >> 10) & 0xFF)];
                 }
             }
         }

@@ -131,10 +131,10 @@ namespace rds {
         bool musicValid() { std::lock_guard<std::mutex> lck(groupMtx); return group0Valid(); }
         bool getMusic() { std::lock_guard<std::mutex> lck(groupMtx); return music; }
         bool PSNameValid() { std::lock_guard<std::mutex> lck(groupMtx); return group0Valid(); }
-        std::string getPSName() { std::lock_guard<std::mutex> lck(groupMtx); return programServiceName; }
+        std::wstring getPSName() { std::lock_guard<std::mutex> lck(groupMtx); return programServiceName; }
 
         bool radioTextValid() { std::lock_guard<std::mutex> lck(groupMtx); return group2Valid(); }
-        std::string getRadioText() { std::lock_guard<std::mutex> lck(groupMtx); return radioText; }
+        std::wstring getRadioText() { std::lock_guard<std::mutex> lck(groupMtx); return radioText; }
 
     private:
         static uint16_t calcSyndrome(uint32_t block);
@@ -169,12 +169,12 @@ namespace rds {
         bool music;
         uint8_t decoderIdent;
         uint16_t alternateFrequency;
-        std::string programServiceName = "        ";
+        std::wstring programServiceName = L"        ";
 
         // Group type 2
         std::chrono::time_point<std::chrono::high_resolution_clock> group2LastUpdate;
         bool rtAB = false;
-        std::string radioText = "                                                                ";
+        std::wstring radioText = L"                                                                ";
 
     };
 }

@@ -9,6 +9,8 @@
 #include <dsp/digital/differential_decoder.h>
 #include <gui/widgets/symbol_diagram.h>
 #include <fstream>
+#include <codecvt>
+#include <locale>
 #include <rds.h>
 
 namespace demod {
@@ -150,19 +152,24 @@ namespace demod {
             if (!_this->_rds) { return; }
 
             // Generate string depending on RDS mode
-            char buf[256];
+            std::wstring rdsStr = L"RDS: ";
             if (_this->rdsDecode.PSNameValid() && _this->rdsDecode.radioTextValid()) {
-                sprintf(buf, "RDS: %s - %s", _this->rdsDecode.getPSName().c_str(), _this->rdsDecode.getRadioText().c_str());
+                rdsStr += _this->rdsDecode.getPSName();
+                rdsStr += L" - ";
+                rdsStr += _this->rdsDecode.getRadioText();
             }
             else if (_this->rdsDecode.PSNameValid()) {
-                sprintf(buf, "RDS: %s", _this->rdsDecode.getPSName().c_str());
+                rdsStr += _this->rdsDecode.getPSName();
             }
             else if (_this->rdsDecode.radioTextValid()) {
-                sprintf(buf, "RDS: %s", _this->rdsDecode.getRadioText().c_str());
+                rdsStr += _this->rdsDecode.getRadioText();
             }
             else {
                 return;
             }
+
+            std::wstring_convert<std::codecvt_utf8<wchar_t>> utf8_conv;
+            std::string utf8 = utf8_conv.to_bytes(rdsStr);
 
             // Calculate paddings
             ImVec2 min = args.min;
@@ -171,7 +178,7 @@ namespace demod {
             ImVec2 tmin = min;
             tmin.x += 5.0f * style::uiScale;
             tmin.y += 5.0f * style::uiScale;
-            ImVec2 tmax = ImGui::CalcTextSize(buf);
+            ImVec2 tmax = ImGui::CalcTextSize(utf8.c_str());
             tmax.x += tmin.x;
             tmax.y += tmin.y;
             ImVec2 max = tmax;
@@ -182,7 +189,7 @@ namespace demod {
             args.window->DrawList->AddRectFilled(min, max, IM_COL32(0, 0, 0, 128));
 
             // Draw text
-            args.window->DrawList->AddText(tmin, IM_COL32(255, 255, 0, 255), buf);
+            args.window->DrawList->AddText(tmin, IM_COL32(255, 255, 0, 255), utf8.c_str());
         }
 
         dsp::demod::BroadcastFM demod;
