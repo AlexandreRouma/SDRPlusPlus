@@ -21,6 +21,7 @@
 #include <core.h>
 #include <utils/optionlist.h>
 #include <utils/wav.h>
+#include <radio_interface.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -463,6 +464,43 @@ private:
         sprintf(monStr, "%02d", ltm->tm_mon + 1);
         sprintf(yearStr, "%02d", ltm->tm_year + 1900);
 
+        // Demodulation type
+        char radiomode[32];
+        std::string selectedName = gui::waterfall.selectedVFO;
+        strcpy(radiomode, "IQ");
+        if (recMode == RECORDER_MODE_AUDIO) {
+            if (core::modComManager.interfaceExists(selectedName)) {
+                if (core::modComManager.getModuleName(selectedName) == "radio") {
+                    int modeNum;
+                    core::modComManager.callInterface(selectedName, RADIO_IFACE_CMD_GET_MODE, NULL, &modeNum);
+                    if (modeNum == RADIO_IFACE_MODE_NFM) {
+                        strcpy(radiomode, "NFM");
+                    }
+                    else if (modeNum == RADIO_IFACE_MODE_WFM) {
+                        strcpy(radiomode, "WFM");
+                    }
+                    else if (modeNum == RADIO_IFACE_MODE_AM) {
+                        strcpy(radiomode, "AM");
+                    }
+                    else if (modeNum == RADIO_IFACE_MODE_DSB) {
+                        strcpy(radiomode, "DSB");
+                    }
+                    else if (modeNum == RADIO_IFACE_MODE_USB) {
+                        strcpy(radiomode, "USB");
+                    }
+                    else if (modeNum == RADIO_IFACE_MODE_CW) {
+                        strcpy(radiomode, "CW");
+                    }
+                    else if (modeNum == RADIO_IFACE_MODE_LSB) {
+                        strcpy(radiomode, "LSB");
+                    }
+                    else if (modeNum == RADIO_IFACE_MODE_RAW) {
+                        strcpy(radiomode, "RAW");
+                    }
+                }
+            }
+        }
+
         // Replace in template
         templ = std::regex_replace(templ, std::regex("\\$t"), type);
         templ = std::regex_replace(templ, std::regex("\\$f"), freqStr);
@@ -472,6 +510,7 @@ private:
         templ = std::regex_replace(templ, std::regex("\\$d"), dayStr);
         templ = std::regex_replace(templ, std::regex("\\$M"), monStr);
         templ = std::regex_replace(templ, std::regex("\\$y"), yearStr);
+        templ = std::regex_replace(templ, std::regex("\\$r"), radiomode);
         return templ;
     }
 
