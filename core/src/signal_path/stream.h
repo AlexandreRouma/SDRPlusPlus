@@ -71,7 +71,7 @@ public:
      * Get the type of the sink.
      * @return Type of the sink.
     */
-    std::string getType();
+    std::string getType() const;
 
     /**
      * Change the type of the sink.
@@ -89,7 +89,7 @@ public:
      * Get sink volume.
      * @return Volume as value between 0.0 and 1.0.
     */
-    float getVolume();
+    float getVolume() const;
 
     /**
      * Set sink volume.
@@ -101,7 +101,7 @@ public:
      * Check if the sink is muted.
      * @return True if muted, false if not.
     */
-    bool getMuted();
+    bool getMuted() const;
 
     /**
      * Set wether or not the sink is muted
@@ -113,7 +113,7 @@ public:
      * Get sink panning.
      * @return Panning as value between -1.0 and 1.0 meaning panning to the left and right respectively.
     */
-    float getPanning();
+    float getPanning() const;
 
     /**
      * Set sink panning.
@@ -130,7 +130,7 @@ public:
      * Get the string form ID unique to both the sink and stream. Be used to reference settings.
      * @return Unique string ID.
     */
-    std::string getStringID();
+    std::string getStringID() const;
 
     // Emitted when the type of the sink was changed
     NewEvent<const std::string&> onTypeChanged;
@@ -143,7 +143,7 @@ public:
 
     // TODO: Need to allow the sink to change the entry samplerate and start/stop the DSP
     //       This will also require allowing it to get a lock on the sink so others don't attempt to mess with it.
-    std::lock_guard<std::recursive_mutex> getLock();
+    std::lock_guard<std::recursive_mutex> getLock() const;
     void startDSP();
     void stopDSP();
     void setSamplerate(double samplerate);
@@ -155,7 +155,7 @@ private:
     void destroy(bool forgetSettings);
     void setInputSamplerate(double samplerate);
 
-    std::recursive_mutex mtx;
+    mutable std::recursive_mutex mtx;
     dsp::stream<dsp::stereo_t> input;
     dsp::multirate::RationalResampler<dsp::stereo_t> resamp;
     dsp::audio::Volume volumeAdjust;

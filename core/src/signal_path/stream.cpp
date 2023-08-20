@@ -33,7 +33,7 @@ SinkEntry::SinkEntry(StreamManager* manager, AudioStream* parentStream, const st
     setType(type);
 }
 
-std::string SinkEntry::getType() {
+std::string SinkEntry::getType() const {
     std::lock_guard<std::recursive_mutex> lck(mtx);
     return type;
 }
@@ -67,7 +67,7 @@ SinkID SinkEntry::getID() const {
     return id;
 }
 
-float SinkEntry::getVolume() {
+float SinkEntry::getVolume() const {
     std::lock_guard<std::recursive_mutex> lck(mtx);
     return volume;
 }
@@ -79,7 +79,7 @@ void SinkEntry::setVolume(float volume) {
     onVolumeChanged(volume);
 }
 
-bool SinkEntry::getMuted() {
+bool SinkEntry::getMuted() const {
     std::lock_guard<std::recursive_mutex> lck(mtx);
     return muted;
 }
@@ -91,7 +91,7 @@ void SinkEntry::setMuted(bool muted) {
     onMutedChanged(muted);
 }
 
-float SinkEntry::getPanning() {
+float SinkEntry::getPanning() const {
     std::lock_guard<std::recursive_mutex> lck(mtx);
     return panning;
 }
@@ -118,7 +118,7 @@ void SinkEntry::stopSink() {
     sink->stop();
 }
 
-std::lock_guard<std::recursive_mutex> SinkEntry::getLock() {
+std::lock_guard<std::recursive_mutex> SinkEntry::getLock() const {
     return std::lock_guard<std::recursive_mutex>(mtx);
 }
 
@@ -152,7 +152,7 @@ void SinkEntry::setInputSamplerate(double samplerate) {
     resamp.setInSamplerate(samplerate);
 }
 
-std::string SinkEntry::getStringID() {
+std::string SinkEntry::getStringID() const {
     return stringId;
 }
 
