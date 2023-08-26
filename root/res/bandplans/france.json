@@ -115,7 +115,7 @@
             "end": 4995000
         },
         {
-			"name": "60m - radiodiffusion",
+	    "name": "60m - radiodiffusion",
             "type": "broadcast",
             "start": 5005000,
             "end": 5060000
@@ -340,7 +340,7 @@
             "name": "11m - CB",
             "type": "amateur",
             "start": 26960000,
-            "end": 27230000
+            "end": 27410000
         },
         {
             "name": "10m - Radioamateur",
