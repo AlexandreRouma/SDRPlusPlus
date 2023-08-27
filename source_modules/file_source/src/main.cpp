@@ -10,6 +10,7 @@
 #include <regex>
 #include <gui/tuner.h>
 #include <algorithm>
+#include <stdexcept>
 
 // TODO: figure out where exactly these macros are from (only happens on windows so probably from Windows.h somewhere)
 #ifdef min
@@ -130,7 +131,13 @@ private:
                 }
                 try {
                     _this->reader = new WavReader(_this->fileSelect.path);
-                    _this->sampleRate = std::max(_this->reader->getSampleRate(), (uint32_t)1);
+                    if (_this->reader->getSampleRate() == 0) {
+                        _this->reader->close();
+                        delete _this->reader;
+                        _this->reader = NULL;
+                        throw std::runtime_error("Sample rate may not be zero");
+                    }
+                    _this->sampleRate = _this->reader->getSampleRate();
                     core::setInputSampleRate(_this->sampleRate);
                     std::string filename = std::filesystem::path(_this->fileSelect.path).filename().string();
                     _this->centerFreq = _this->getFrequency(filename);
@@ -139,7 +146,7 @@ private:
                     //gui::freqSelect.maxFreq = _this->centerFreq + (_this->sampleRate/2);
                     //gui::freqSelect.limitFreq = true;
                 }
-                catch (std::exception e) {
+                catch (std::exception& e) {
                     flog::error("Error: {0}", e.what());
                 }
                 config.acquire();
