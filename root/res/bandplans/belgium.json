@@ -150,6 +150,12 @@
       "end": 29700000
     },
     {
+      "name": "8m - Amateur",
+      "type": "amateur",
+      "start": 40660000,
+      "end": 40690000
+    },
+    {
       "name": "6m - Amateur",
       "type": "amateur",
       "start": 50000000,
