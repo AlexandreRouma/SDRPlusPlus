@@ -92,6 +92,9 @@ jobs:
         
         - name: Create Build Environment
           run: cmake -E make_directory ${{runner.workspace}}/build
+
+        - name: Remove packages that may break brew
+          run: brew uninstall selenium-server sbt php composer kotlin openjdk ant gradle maven && brew autoremove
           
         - name: Update brew repositories
           run: brew update
@@ -100,11 +103,14 @@ jobs:
           run: rm -f /usr/local/bin/2to3* /usr/local/bin/idle3* /usr/local/bin/pydoc3* /usr/local/bin/python3* /usr/local/bin/python3-config* && brew reinstall gettext
 
         - name: Install dependencies
-          run: brew install pkg-config libusb fftw glfw airspy airspyhf portaudio hackrf rtl-sdr libbladerf codec2 zstd autoconf automake libtool && pip3 install mako
+          run: brew install pkg-config libusb fftw glfw airspy airspyhf portaudio hackrf libbladerf codec2 zstd autoconf automake libtool && pip3 install mako
 
         - name: Install volk
           run: git clone --recursive https://github.com/gnuradio/volk && cd volk && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
 
+        - name: Install Osmocom RTL-SDR Drivers
+          run: git clone git://git.osmocom.org/rtl-sdr.git && cd rtl-sdr/ && mkdir build && cd build/ && cmake ../ && make -j3 LIBRARY_PATH=/opt/homebrew/Cellar/libusb/1.0.26/lib/ && sudo make install && cd ../../
+          
         - name: Install SDRplay API
           run: wget https://www.sdrplay.com/software/SDRplay_RSP_API-MacOSX-3.07.3.pkg && sudo installer -pkg SDRplay_RSP_API-MacOSX-3.07.3.pkg -target /
 
