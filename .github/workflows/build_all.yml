@@ -93,7 +93,7 @@ jobs:
         - name: Create Build Environment
           run: cmake -E make_directory ${{runner.workspace}}/build
 
-        - name: Remove packages that may break brew
+        - name: Remove ununused brew packages
           run: brew uninstall selenium-server sbt php composer kotlin openjdk ant gradle maven && brew autoremove
           
         - name: Update brew repositories
