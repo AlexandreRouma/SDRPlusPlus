@@ -82,7 +82,7 @@ namespace dsp {
 
         inline float fastAmplitude() {
             float re_abs = fabsf(re);
-            float im_abs = fabsf(re);
+            float im_abs = fabsf(im);
             if (re_abs > im_abs) { return re_abs + 0.4f * im_abs; }
             return im_abs + 0.4f * re_abs;
         }
