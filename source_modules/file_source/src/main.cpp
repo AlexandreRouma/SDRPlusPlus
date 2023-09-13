@@ -94,6 +94,8 @@ private:
         _this->running = true;
         _this->workerThread = _this->float32Mode ? std::thread(floatWorker, _this) : std::thread(worker, _this);
         flog::info("FileSourceModule '{0}': Start!", _this->name);
+
+        secondsToTime(_this->reader->getLength(), _this->totalHours, _this->totalMinutes, _this->totalSeconds);
     }
 
     static void stop(void* ctx) {
@@ -148,6 +150,72 @@ private:
             }
         }
 
+        if (_this->running) {
+            uint32_t hours, minutes, seconds;
+            secondsToTime(_this->reader->getPosition(), hours, minutes, seconds);
+            // snprintf(_this->playTimeBuf, 32, "02%d:02%d:02%d / 02%d:02%d:02%d",
+            //     _this->totalHours, _this->totalMinutes, _this->totalSeconds,
+            //     hours, minutes, seconds
+            // );
+            ImGui::Text("%02d:%02d:%02d / %02d:%02d:%02d",
+                hours, minutes, seconds,
+                _this->totalHours, _this->totalMinutes, _this->totalSeconds
+            );
+
+            ImGui::BeginGroup();
+            ImGui::Columns(6, "RewindButtons", false);
+            
+            if (ImGui::Button("<< 30s")) {
+                _this->reader->rewindBySeconds(-30);
+            }
+            if (ImGui::Button("<< 30m")) {
+                _this->reader->rewindBySeconds(-1800);
+            }
+            
+            ImGui::NextColumn();
+            if (ImGui::Button("<< 10s")) {
+                _this->reader->rewindBySeconds(-10);
+            }
+            if (ImGui::Button("<< 10m")) {
+                _this->reader->rewindBySeconds(-600);
+            }
+
+            ImGui::NextColumn();
+            if (ImGui::Button("<< 5s")) {
+                _this->reader->rewindBySeconds(-5);
+            }
+            if (ImGui::Button("<< 5m")) {
+                _this->reader->rewindBySeconds(-300);
+            }
+
+            ImGui::NextColumn();
+            if (ImGui::Button("5s >>")) {
+                _this->reader->rewindBySeconds(5);
+            }
+            if (ImGui::Button("5m >>")) {
+                _this->reader->rewindBySeconds(300);
+            }
+
+            ImGui::NextColumn();
+            if (ImGui::Button("10s >>")) {
+                _this->reader->rewindBySeconds(10);
+            }
+            if (ImGui::Button("10m >>")) {
+                _this->reader->rewindBySeconds(600);
+            }
+
+            ImGui::NextColumn();
+            if (ImGui::Button("30s >>")) {
+                _this->reader->rewindBySeconds(30);
+            }
+            if (ImGui::Button("30m >>")) {
+                _this->reader->rewindBySeconds(1800);
+            }
+
+            ImGui::Columns(1, "EndRewindButtons", false);
+            ImGui::EndGroup();
+        }
+
         ImGui::Checkbox("Float32 Mode##_file_source", &_this->float32Mode);
     }
 
@@ -189,6 +257,14 @@ private:
         return std::atof(freqStr.substr(0, freqStr.size() - 2).c_str());
     }
 
+    static void secondsToTime(uint32_t seconds, uint32_t& hours, uint32_t& minutes, uint32_t& remainingSeconds) {
+        remainingSeconds = seconds;
+        hours = remainingSeconds / 3600;
+        remainingSeconds %= 3600;
+        minutes = remainingSeconds / 60;
+        remainingSeconds %= 60;
+    }
+
     FileSelect fileSelect;
     std::string name;
     dsp::stream<dsp::complex_t> stream;
@@ -202,6 +278,10 @@ private:
     double centerFreq = 100000000;
 
     bool float32Mode = false;
+
+    uint32_t totalHours;
+    uint32_t totalMinutes;
+    uint32_t totalSeconds;
 };
 
 MOD_EXPORT void _INIT_() {

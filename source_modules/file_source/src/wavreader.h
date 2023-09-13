@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <fstream>
+#include <iostream>
 
 #define WAV_SIGNATURE       "RIFF"
 #define WAV_TYPE            "WAVE"
@@ -19,6 +20,13 @@ public:
         valid = false;
         if (memcmp(hdr.signature, "RIFF", 4) != 0) { return; }
         if (memcmp(hdr.fileType, "WAVE", 4) != 0) { return; }
+
+        file.seekg(0, std::ios::end);
+        lengthBytes = (uint64_t)file.tellg() - (uint64_t)sizeof(WavHeader_t);
+        lengthSeconds = lengthBytes / hdr.bytesPerSecond;
+
+        rewind();
+
         valid = true;
     }
 
@@ -54,6 +62,30 @@ public:
         file.seekg(sizeof(WavHeader_t));
     }
 
+    auto getLength() {
+        return lengthSeconds;
+    }
+
+    uint32_t getPosition() {
+        return (uint32_t)(((uint64_t)file.tellg() - (uint64_t)sizeof(WavHeader_t)) / hdr.bytesPerSecond);
+    }
+
+    void rewindBySeconds(int32_t seconds) {
+        int64_t rewindBytes = ((int32_t)hdr.bytesPerSecond) * seconds;
+        int64_t curPos = file.tellg();
+        int64_t newPos = curPos + rewindBytes;
+
+        if (newPos > (lengthBytes + sizeof(WavHeader_t))) {
+            newPos = lengthBytes + sizeof(WavHeader_t);
+        } else if (newPos < sizeof(WavHeader_t)) {
+            newPos = sizeof(WavHeader_t);
+        }
+
+        std::cout << "Rewind by seconds. newPos: " << newPos << ", rewindByts: " << rewindBytes << std::endl;
+
+        file.seekg(newPos);
+    }
+
     void close() {
         file.close();
     }
@@ -79,4 +111,6 @@ private:
     std::ifstream file;
     size_t bytesRead = 0;
     WavHeader_t hdr;
+    uint32_t lengthSeconds = 0;
+    uint64_t lengthBytes = 0;
 };
