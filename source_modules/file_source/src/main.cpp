@@ -12,14 +12,6 @@
 #include <algorithm>
 #include <stdexcept>
 
-// TODO: figure out where exactly these macros are from (only happens on windows so probably from Windows.h somewhere)
-#ifdef min
-#undef min
-#endif
-#ifdef max
-#undef max
-#endif
-
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
 SDRPP_MOD_INFO{
