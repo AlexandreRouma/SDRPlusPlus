@@ -1,3 +1,4 @@
+#define NOMINMAX
 #include <imgui.h>
 #include <utils/flog.h>
 #include <module.h>
@@ -9,6 +10,8 @@
 #include <filesystem>
 #include <regex>
 #include <gui/tuner.h>
+#include <algorithm>
+#include <stdexcept>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -121,6 +124,12 @@ private:
                 }
                 try {
                     _this->reader = new WavReader(_this->fileSelect.path);
+                    if (_this->reader->getSampleRate() == 0) {
+                        _this->reader->close();
+                        delete _this->reader;
+                        _this->reader = NULL;
+                        throw std::runtime_error("Sample rate may not be zero");
+                    }
                     _this->sampleRate = _this->reader->getSampleRate();
                     core::setInputSampleRate(_this->sampleRate);
                     std::string filename = std::filesystem::path(_this->fileSelect.path).filename().string();
@@ -130,7 +139,7 @@ private:
                     //gui::freqSelect.maxFreq = _this->centerFreq + (_this->sampleRate/2);
                     //gui::freqSelect.limitFreq = true;
                 }
-                catch (std::exception e) {
+                catch (std::exception& e) {
                     flog::error("Error: {0}", e.what());
                 }
                 config.acquire();
@@ -144,8 +153,8 @@ private:
 
     static void worker(void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
-        double sampleRate = _this->reader->getSampleRate();
-        int blockSize = sampleRate / 200.0f;
+        double sampleRate = std::max(_this->reader->getSampleRate(), (uint32_t)1);
+        int blockSize = std::min((int)(sampleRate / 200.0f), (int)STREAM_BUFFER_SIZE);
         int16_t* inBuf = new int16_t[blockSize * 2];
 
         while (true) {
@@ -159,8 +168,8 @@ private:
 
     static void floatWorker(void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
-        double sampleRate = _this->reader->getSampleRate();
-        int blockSize = sampleRate / 200.0f;
+        double sampleRate = std::max(_this->reader->getSampleRate(), (uint32_t)1);
+        int blockSize = std::min((int)(sampleRate / 200.0f), (int)STREAM_BUFFER_SIZE);
         dsp::complex_t* inBuf = new dsp::complex_t[blockSize];
 
         while (true) {
