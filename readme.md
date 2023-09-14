@@ -76,7 +76,7 @@ The preferred IDE is [VS Code](https://code.visualstudio.com/) in order to have 
 
 * [cmake](https://cmake.org)
 * [vcpkg](https://vcpkg.io)
-* [PothosSDR](https://github.com/pothosware/PothosSDR) (This will install libraries for most SDRs)
+* [PothosSDR](https://github.com/pothosware/PothosSDR) (This will install libraries for most SDRs. You have to install it in `C:/Program Files/PothosSDR`)
 * [RtAudio](https://www.music.mcgill.ca/~gary/rtaudio/) (You have to build and install it in `C:/Program Files (x86)/RtAudio/`)
 
 After this, install the following dependencies using vcpkg:
@@ -115,16 +115,16 @@ You will next need to edit the `root_dev/config.json` file to point to the modul
 From the top directory, you can simply run:
 
 ```bat
-./build/Release/sdrpp.exe -r root_dev -s
+./build/Release/sdrpp.exe -r root_dev -c
 ```
 
 Or, if you wish to run from the build directory e.g. `build/Release` and adapt the relative path to the `root_dev` folder:
 
 ```bat
-./sdrpp.exe -r ../../root_dev -s
+./sdrpp.exe -r ../../root_dev -c
 ```
 
-The optional `-s` argument is for keeping the console active in order to see the error messages.
+The optional `-c` argument is for keeping the console active in order to see the error messages.
 
 Because all the paths are relative, for the rest of the command line instructions we are going to assume you are running from the top directory using the former command.
 As mentioned previously you need to edit `root_dev/config.json` to add the modules that were built. From the default configuration file you need to add the paths in the `modules` section. Add to this list all the modules you wish to use.
