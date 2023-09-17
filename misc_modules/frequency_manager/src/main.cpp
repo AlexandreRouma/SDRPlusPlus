@@ -33,7 +33,12 @@ struct WaterfallBookmark {
     std::string listName;
     std::string bookmarkName;
     FrequencyBookmark bookmark;
+    float xmin;
+    float xmax;
+    int row;
 };
+
+#define MAX_WFBOOKMARKS_ROWS 8
 
 ConfigManager config;
 
@@ -297,6 +302,9 @@ private:
                 wbm.bookmark.bandwidth = config.conf["lists"][listName]["bookmarks"][bookmarkName]["bandwidth"];
                 wbm.bookmark.mode = config.conf["lists"][listName]["bookmarks"][bookmarkName]["mode"];
                 wbm.bookmark.selected = false;
+                wbm.row = -1;
+                wbm.xmin = -1.0;
+                wbm.xmax = -1.0;
                 waterfallBookmarks.push_back(wbm);
             }
         }
@@ -607,24 +615,52 @@ private:
         if (_this->bookmarkDisplayMode == BOOKMARK_DISP_MODE_OFF) { return; }
 
         if (_this->bookmarkDisplayMode == BOOKMARK_DISP_MODE_TOP) {
-            for (auto const bm : _this->waterfallBookmarks) {
-                double centerXpos = args.min.x + std::round((bm.bookmark.frequency - args.lowFreq) * args.freqToPixelRatio);
+            int count = _this->waterfallBookmarks.size();
+            for (int j = 0; j < count; j++) {
+                _this->waterfallBookmarks[j].xmin = -1.0;
+                _this->waterfallBookmarks[j].xmax = -1.0;                                
+                _this->waterfallBookmarks[j].row = -1;
+            }
+            
+            for (int i = 0; i < count; i++) {
+                double centerXpos = args.min.x + std::round((_this->waterfallBookmarks[i].bookmark.frequency - args.lowFreq) * args.freqToPixelRatio);
 
-                if (bm.bookmark.frequency >= args.lowFreq && bm.bookmark.frequency <= args.highFreq) {
-                    args.window->DrawList->AddLine(ImVec2(centerXpos, args.min.y), ImVec2(centerXpos, args.max.y), IM_COL32(255, 255, 0, 255));
-                }
-
-                ImVec2 nameSize = ImGui::CalcTextSize(bm.bookmarkName.c_str());
+                ImVec2 nameSize = ImGui::CalcTextSize(_this->waterfallBookmarks[i].bookmarkName.c_str());
                 ImVec2 rectMin = ImVec2(centerXpos - (nameSize.x / 2) - 5, args.min.y);
                 ImVec2 rectMax = ImVec2(centerXpos + (nameSize.x / 2) + 5, args.min.y + nameSize.y);
                 ImVec2 clampedRectMin = ImVec2(std::clamp<double>(rectMin.x, args.min.x, args.max.x), rectMin.y);
                 ImVec2 clampedRectMax = ImVec2(std::clamp<double>(rectMax.x, args.min.x, args.max.x), rectMax.y);
 
                 if (clampedRectMax.x - clampedRectMin.x > 0) {
+                    count = _this->waterfallBookmarks.size();
+                    int linedraw = 0;
+                    for (int checklinedraw = 0; checklinedraw < MAX_WFBOOKMARKS_ROWS; checklinedraw++) {
+                        for (int j = 0; j < count; j++) {
+                            if (_this->waterfallBookmarks[j].bookmark.frequency >= args.lowFreq && _this->waterfallBookmarks[j].bookmark.frequency <= args.highFreq) {
+                                if (_this->waterfallBookmarks[j].row == checklinedraw) {
+                                    // check if there is overlap with previously drawn bookmark
+                                    if (((clampedRectMin.x >= _this->waterfallBookmarks[j].xmin && clampedRectMin.x <= _this->waterfallBookmarks[j].xmax) || (clampedRectMax.x >= _this->waterfallBookmarks[j].xmin && clampedRectMax.x <= _this->waterfallBookmarks[j].xmax)) || (_this->waterfallBookmarks[j].xmax <= clampedRectMax.x && _this->waterfallBookmarks[j].xmin >= clampedRectMin.x)) {
+                                        linedraw = checklinedraw + 1;
+                                        // next row
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    args.window->DrawList->AddLine(ImVec2(centerXpos, args.min.y + nameSize.y*linedraw), ImVec2(centerXpos, args.max.y), IM_COL32(255, 255, 0, 255));
+
+                    clampedRectMin.y = clampedRectMin.y + nameSize.y*linedraw;
+                    clampedRectMax.y = clampedRectMax.y + nameSize.y*linedraw;
                     args.window->DrawList->AddRectFilled(clampedRectMin, clampedRectMax, IM_COL32(255, 255, 0, 255));
-                }
-                if (rectMin.x >= args.min.x && rectMax.x <= args.max.x) {
-                    args.window->DrawList->AddText(ImVec2(centerXpos - (nameSize.x / 2), args.min.y), IM_COL32(0, 0, 0, 255), bm.bookmarkName.c_str());
+                    _this->waterfallBookmarks[i].xmin = clampedRectMin.x;
+                    _this->waterfallBookmarks[i].xmax = clampedRectMax.x;
+                    _this->waterfallBookmarks[i].row = linedraw;
+
+                    if (rectMin.x >= args.min.x && rectMax.x <= args.max.x) {
+                        args.window->DrawList->AddText(ImVec2(centerXpos - (nameSize.x / 2), args.min.y + nameSize.y*linedraw), IM_COL32(0, 0, 0, 255), _this->waterfallBookmarks[i].bookmarkName.c_str());
+                    }
                 }
             }
         }
@@ -681,6 +717,9 @@ private:
                 ImVec2 rectMax = ImVec2(centerXpos + (nameSize.x / 2) + 5, args.fftRectMin.y + nameSize.y);
                 ImVec2 clampedRectMin = ImVec2(std::clamp<double>(rectMin.x, args.fftRectMin.x, args.fftRectMax.x), rectMin.y);
                 ImVec2 clampedRectMax = ImVec2(std::clamp<double>(rectMax.x, args.fftRectMin.x, args.fftRectMax.x), rectMax.y);
+
+                clampedRectMin.y = clampedRectMin.y + bm.row*nameSize.y;
+                clampedRectMax.y = clampedRectMax.y + bm.row*nameSize.y;
 
                 if (ImGui::IsMouseHoveringRect(clampedRectMin, clampedRectMax)) {
                     inALabel = true;
