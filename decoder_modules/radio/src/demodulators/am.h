@@ -73,7 +73,7 @@ namespace demod {
         // ============= INFO =============
 
         const char* getName() { return "AM"; }
-        double getIFSampleRate() { return 15000.0; }
+        double getIFSampleRate() { return 60000.0; }
         double getAFSampleRate() { return getIFSampleRate(); }
         double getDefaultBandwidth() { return 10000.0; }
         double getMinBandwidth() { return 1000.0; }
