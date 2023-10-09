@@ -139,7 +139,7 @@ jobs:
               path: ${{runner.workspace}}/sdrpp_macos_intel.zip
 
     build_macos_arm:
-        runs-on: macos-latest-xlarge
+        runs-on: macos-13-xlarge
 
         steps:
         - uses: actions/checkout@v3
