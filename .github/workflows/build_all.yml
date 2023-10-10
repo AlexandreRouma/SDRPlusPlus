@@ -138,6 +138,28 @@ jobs:
               name: sdrpp_macos_intel
               path: ${{runner.workspace}}/sdrpp_macos_intel.zip
 
+    build_debian_buster:
+        runs-on: ubuntu-latest
+
+        steps:
+        - uses: actions/checkout@v3
+
+        - name: Create Docker Image
+          run: cd $GITHUB_WORKSPACE/docker_builds/debian_buster && docker build . --tag sdrpp_build
+
+        - name: Run Container
+          run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
+
+        - name: Recover Deb Archive
+          working-directory: ${{runner.workspace}}
+          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
+
+        - name: Save Deb Archive
+          uses: actions/upload-artifact@v3
+          with:
+              name: sdrpp_debian_buster_amd64
+              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
+
     build_debian_bullseye:
         runs-on: ubuntu-latest
 
