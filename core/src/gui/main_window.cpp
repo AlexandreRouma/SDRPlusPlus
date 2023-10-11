@@ -574,10 +574,22 @@ void MainWindow::draw() {
         // Handle scrollwheel
         int wheel = ImGui::GetIO().MouseWheel;
         if (wheel != 0 && (gui::waterfall.mouseInFFT || gui::waterfall.mouseInWaterfall)) {
+            // Select factor depending on modifier keys
+            double interval;
+            if (ImGui::IsKeyDown(ImGuiKey_LeftShift)) {
+                interval = vfo->snapInterval * 10.0;
+            }
+            else if (ImGui::IsKeyDown(ImGuiKey_LeftAlt)) {
+                interval = vfo->snapInterval * 0.1;
+            }
+            else {
+                interval = vfo->snapInterval;
+            }
+
             double nfreq;
             if (vfo != NULL) {
-                nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset + (vfo->snapInterval * wheel);
-                nfreq = roundl(nfreq / vfo->snapInterval) * vfo->snapInterval;
+                nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset + (interval * wheel);
+                nfreq = roundl(nfreq / interval) * interval;
             }
             else {
                 nfreq = gui::waterfall.getCenterFrequency() - (gui::waterfall.getViewBandwidth() * wheel / 20.0);
