@@ -37,7 +37,7 @@ namespace bandplan {
     void from_json(const json& j, BandPlanColor_t& ct);
 
     void loadBandPlan(std::string path);
-    void loadFromDir(std::string path);
+    void loadFromDir(std::string path, bool append = false);
     void loadColorTable(json table);
 
     extern std::map<std::string, BandPlan_t> bandplans;

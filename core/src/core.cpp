@@ -362,6 +362,9 @@ int sdrpp_main(int argc, char* argv[]) {
     LoadingScreen::show("Loading band plans");
     flog::info("Loading band plans");
     bandplan::loadFromDir(resDir + "/bandplans");
+#if !defined(_WIN32) && !defined(IS_MACOS_BUNDLE) && !defined(__ANDROID__)
+    bandplan::loadFromDir(root + "/bandplans", true);
+#endif
 
     LoadingScreen::show("Loading band plan colors");
     flog::info("Loading band plans color table");

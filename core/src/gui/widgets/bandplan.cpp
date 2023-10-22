@@ -89,7 +89,7 @@ namespace bandplan {
         generateTxt();
     }
 
-    void loadFromDir(std::string path) {
+    void loadFromDir(std::string path, bool append) {
         if (!std::filesystem::exists(path)) {
             flog::error("Band Plan directory does not exist");
             return;
@@ -98,7 +98,9 @@ namespace bandplan {
             flog::error("Band Plan directory isn't a directory...");
             return;
         }
-        bandplans.clear();
+        if (!append) {
+            bandplans.clear();
+        }
         for (const auto& file : std::filesystem::directory_iterator(path)) {
             std::string path = file.path().generic_string();
             if (file.path().extension().generic_string() != ".json") {
