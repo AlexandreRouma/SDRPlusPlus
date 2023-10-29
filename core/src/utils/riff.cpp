@@ -91,9 +91,9 @@ namespace riff {
         file.write((char*)&desc.hdr.size, sizeof(desc.hdr.size));
         file.seekp(pos);
 
-        // If parent chunk, increment its size by the size of the subchunk (adding the size of its header)
+        // If parent chunk, increment its size by the size of the sub-chunk plus the size of its header)
         if (!chunks.empty()) {
-            chunks.top().hdr.size += desc.hdr.size + 8;
+            chunks.top().hdr.size += desc.hdr.size + sizeof(ChunkHeader);
         }
     }
 
