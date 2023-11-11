@@ -682,6 +682,8 @@ void MainWindow::setPlayState(bool _playing) {
         playing = false;
         onPlayStateChange.emit(false);
         sigpath::sourceManager.stop();
+        sigpath::sinkManager.stopStream("Radio");
+        sigpath::sinkManager.startStream("Radio");
         sigpath::iqFrontEnd.flushInputBuffer();
     }
 }
