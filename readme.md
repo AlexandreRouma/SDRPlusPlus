@@ -64,6 +64,8 @@ There are currently no existing packages for other distributions, for these syst
 
 Download the app bundle from the latest [nightly build](https://www.sdrpp.org/nightly)
 
+Note: On modern MacOS's the downloaded app will require (this)[https://github.com/AlexandreRouma/SDRPlusPlus/issues/557#issuecomment-1407393061] in order to successfully run. I.e. Control-click the app icon, then choose Open to override the security warning.
+
 ## BSD
 
 There are currently no BSD packages, refer to [Building on Linux / BSD](https://github.com/AlexandreRouma/SDRPlusPlus#building-on-linux--bsd) for instructions on building from source.
