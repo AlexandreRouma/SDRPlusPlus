@@ -20,22 +20,42 @@ namespace rds {
     };
 
     enum AreaCoverage {
-        AREA_COVERAGE_LOCAL,
-        AREA_COVERAGE_INTERNATIONAL,
-        AREA_COVERAGE_NATIONAL,
-        AREA_COVERAGE_SUPRA_NATIONAL,
-        AREA_COVERAGE_REGIONAL1,
-        AREA_COVERAGE_REGIONAL2,
-        AREA_COVERAGE_REGIONAL3,
-        AREA_COVERAGE_REGIONAL4,
-        AREA_COVERAGE_REGIONAL5,
-        AREA_COVERAGE_REGIONAL6,
-        AREA_COVERAGE_REGIONAL7,
-        AREA_COVERAGE_REGIONAL8,
-        AREA_COVERAGE_REGIONAL9,
-        AREA_COVERAGE_REGIONAL10,
-        AREA_COVERAGE_REGIONAL11,
-        AREA_COVERAGE_REGIONAL12
+        AREA_COVERAGE_INVALID           = -1,
+        AREA_COVERAGE_LOCAL             = 0,
+        AREA_COVERAGE_INTERNATIONAL     = 1,
+        AREA_COVERAGE_NATIONAL          = 2,
+        AREA_COVERAGE_SUPRA_NATIONAL    = 3,
+        AREA_COVERAGE_REGIONAL1         = 4,
+        AREA_COVERAGE_REGIONAL2         = 5,
+        AREA_COVERAGE_REGIONAL3         = 6,
+        AREA_COVERAGE_REGIONAL4         = 7,
+        AREA_COVERAGE_REGIONAL5         = 8,
+        AREA_COVERAGE_REGIONAL6         = 9,
+        AREA_COVERAGE_REGIONAL7         = 10,
+        AREA_COVERAGE_REGIONAL8         = 11,
+        AREA_COVERAGE_REGIONAL9         = 12,
+        AREA_COVERAGE_REGIONAL10        = 13,
+        AREA_COVERAGE_REGIONAL11        = 14,
+        AREA_COVERAGE_REGIONAL12        = 15  
+    };
+
+    inline const char* AREA_COVERAGE_TO_STR[] = {
+        "Local",
+        "International",
+        "National",
+        "Supra-National",
+        "Regional 1",
+        "Regional 2",
+        "Regional 3",
+        "Regional 4",
+        "Regional 5",
+        "Regional 6",
+        "Regional 7",
+        "Regional 8",
+        "Regional 9",
+        "Regional 10",
+        "Regional 11",
+        "Regional 12",
     };
 
     enum ProgramType {
@@ -108,6 +128,76 @@ namespace rds {
         PROGRAM_TYPE_EU_ALARM = 31
     };
 
+    inline const char* PROGRAM_TYPE_EU_TO_STR[] = {
+        "None",
+        "News",
+        "Current Affairs",
+        "Information",
+        "Sports",
+        "Education",
+        "Drama",
+        "Culture",
+        "Science",
+        "Varied",
+        "Pop Music",
+        "Rock Music",
+        "Easy Listening Music",
+        "Light Classical",
+        "Serious Classical",
+        "Other Music",
+        "Weather",
+        "Finance",
+        "Children Program",
+        "Social Affairs",
+        "Religion",
+        "Phone-in",
+        "Travel",
+        "Leisure",
+        "Jazz Music",
+        "Country Music",
+        "National Music",
+        "Oldies Music",
+        "Folk Music",
+        "Documentary",
+        "Alarm Test",
+        "Alarm",
+    };
+
+    inline const char* PROGRAM_TYPE_US_TO_STR[] = {
+        "None",
+        "News",
+        "Information",
+        "Sports",
+        "Talk",
+        "Rock",
+        "Classic Rock",
+        "Adult Hits",
+        "Soft Rock",
+        "Top 40",
+        "Country",
+        "Oldies",
+        "Soft",
+        "Nostalgia",
+        "Jazz",
+        "Classical",
+        "Rythm and Blues",
+        "Soft Rythm and Blues",
+        "Foreign Language",
+        "Religious Music",
+        "Religious Talk",
+        "Personality",
+        "Public",
+        "College",
+        "Unassigned",
+        "Unassigned",
+        "Unassigned",
+        "Unassigned",
+        "Unassigned",
+        "Weather",
+        "Emergency Test",
+        "Emergency",
+    };
+
     enum DecoderIdentification {
         DECODER_IDENT_STEREO = (1 << 0),
         DECODER_IDENT_ARTIFICIAL_HEAD = (1 << 1),
@@ -119,13 +209,14 @@ namespace rds {
     public:
         void process(uint8_t* symbols, int count);
 
-        bool countryCodeValid() { std::lock_guard<std::mutex> lck(groupMtx); return anyGroupValid(); }
+        bool piCodeValid() { std::lock_guard<std::mutex> lck(groupMtx); return blockAValid(); }
+        uint16_t getPICode() { std::lock_guard<std::mutex> lck(groupMtx); return piCode; }
         uint8_t getCountryCode() { std::lock_guard<std::mutex> lck(groupMtx); return countryCode; }
-        bool programCoverageValid() { std::lock_guard<std::mutex> lck(groupMtx); return anyGroupValid(); }
         uint8_t getProgramCoverage() { std::lock_guard<std::mutex> lck(groupMtx); return programCoverage; }
-        bool programRefNumberValid() { std::lock_guard<std::mutex> lck(groupMtx); return anyGroupValid(); }
         uint8_t getProgramRefNumber() { std::lock_guard<std::mutex> lck(groupMtx); return programRefNumber; }
-        bool programTypeValid() { std::lock_guard<std::mutex> lck(groupMtx); return anyGroupValid(); }
+        std::string getCallsign() { std::lock_guard<std::mutex> lck(groupMtx); return callsign; }
+        
+        bool programTypeValid() { std::lock_guard<std::mutex> lck(groupMtx); return blockBValid(); }
         ProgramType getProgramType() { std::lock_guard<std::mutex> lck(groupMtx); return programType; }
 
         bool musicValid() { std::lock_guard<std::mutex> lck(groupMtx); return group0Valid(); }
@@ -139,9 +230,14 @@ namespace rds {
     private:
         static uint16_t calcSyndrome(uint32_t block);
         static uint32_t correctErrors(uint32_t block, BlockType type, bool& recovered);
+        void decodeBlockA();
+        void decodeBlockB();
         void decodeGroup();
 
-        bool anyGroupValid();
+        void decodeCallsign();
+
+        bool blockAValid();
+        bool blockBValid();
         bool group0Valid();
         bool group2Valid();
 
@@ -154,17 +250,24 @@ namespace rds {
         uint32_t blocks[_BLOCK_TYPE_COUNT];
         bool blockAvail[_BLOCK_TYPE_COUNT];
 
-        // All groups
+        // Block A (All groups)
         std::mutex groupMtx;
-        std::chrono::time_point<std::chrono::high_resolution_clock> anyGroupLastUpdate;
+        std::chrono::time_point<std::chrono::high_resolution_clock> blockALastUpdate{};  // 1970-01-01
+        uint16_t piCode;
         uint8_t countryCode;
         AreaCoverage programCoverage;
         uint8_t programRefNumber;
+        std::string callsign;
+
+        // Block B (All groups)
+        std::chrono::time_point<std::chrono::high_resolution_clock> blockBLastUpdate{};  // 1970-01-01
+        uint8_t groupType;
+        GroupVersion groupVer;
         bool trafficProgram;
         ProgramType programType;
 
         // Group type 0
-        std::chrono::time_point<std::chrono::high_resolution_clock> group0LastUpdate;
+        std::chrono::time_point<std::chrono::high_resolution_clock> group0LastUpdate{};  // 1970-01-01
         bool trafficAnnouncement;
         bool music;
         uint8_t decoderIdent;
@@ -172,7 +275,7 @@ namespace rds {
         std::string programServiceName = "        ";
 
         // Group type 2
-        std::chrono::time_point<std::chrono::high_resolution_clock> group2LastUpdate;
+        std::chrono::time_point<std::chrono::high_resolution_clock> group2LastUpdate{};  // 1970-01-01
         bool rtAB = false;
         std::string radioText = "                                                                ";
 

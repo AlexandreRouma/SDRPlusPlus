@@ -3,6 +3,8 @@
 #include <map>
 #include <algorithm>
 
+#include <utils/flog.h>
+
 namespace rds {
     std::map<uint16_t, BlockType> SYNDROMES = {
         { 0b1111011000, BLOCK_TYPE_A  },
@@ -54,18 +56,26 @@ namespace rds {
                 type = (BlockType)((lastType + 1) % _BLOCK_TYPE_COUNT);
             }
 
-            // Save block while correcting errors (NOT YET)
+            // Save block while correcting errors (NOT YET) <- idk why the "not yet is here", TODO: find why
             blocks[type] = correctErrors(shiftReg, type, blockAvail[type]);
 
-            // Update continous group count
-            if (type == BLOCK_TYPE_A) { contGroup = 1; }
-            else if (type == BLOCK_TYPE_B && lastType == BLOCK_TYPE_A) { contGroup++; }
+            // If block type is A, decode it directly, otherwise, update continous count
+            if (type == BLOCK_TYPE_A) {
+                decodeBlockA();
+            }
+            else if (type == BLOCK_TYPE_B) { contGroup = 1; }
             else if ((type == BLOCK_TYPE_C || type == BLOCK_TYPE_CP) && lastType == BLOCK_TYPE_B) { contGroup++; }
             else if (type == BLOCK_TYPE_D && (lastType == BLOCK_TYPE_C || lastType == BLOCK_TYPE_CP)) { contGroup++; }
-            else { contGroup = 0; }
+            else {
+                // If block B is available, decode it alone.
+                if (contGroup == 1) {
+                    decodeBlockB();
+                }
+                contGroup = 0;
+            }
 
             // If we've got an entire group, process it
-            if (contGroup >= 4) {
+            if (contGroup >= 3) {
                 contGroup = 0;
                 decodeGroup();
             }
@@ -124,26 +134,45 @@ namespace rds {
         return out;
     }
 
-    void RDSDecoder::decodeGroup() {
+    void RDSDecoder::decodeBlockA() {
+        // If it didn't decode properly return
+        if (!blockAvail[BLOCK_TYPE_A]) { return; }
+
+        // Update timeout
         std::lock_guard<std::mutex> lck(groupMtx);
         auto now = std::chrono::high_resolution_clock::now();
-        anyGroupLastUpdate = now;
-
-        // Make sure blocks A and B are available
-        if (!blockAvail[BLOCK_TYPE_A] || !blockAvail[BLOCK_TYPE_B]) { return; }
+        blockALastUpdate = now;
 
         // Decode PI code
+        piCode = (blocks[BLOCK_TYPE_A] >> 10) & 0xFFFF;
         countryCode = (blocks[BLOCK_TYPE_A] >> 22) & 0xF;
         programCoverage = (AreaCoverage)((blocks[BLOCK_TYPE_A] >> 18) & 0xF);
         programRefNumber = (blocks[BLOCK_TYPE_A] >> 10) & 0xFF;
+        decodeCallsign();
+    }
+
+    void RDSDecoder::decodeBlockB() {
+        // If it didn't decode properly return
+        if (!blockAvail[BLOCK_TYPE_B]) { return; }
 
         // Decode group type and version
-        uint8_t groupType = (blocks[BLOCK_TYPE_B] >> 22) & 0xF;
-        GroupVersion groupVer = (GroupVersion)((blocks[BLOCK_TYPE_B] >> 21) & 1);
+        groupType = (blocks[BLOCK_TYPE_B] >> 22) & 0xF;
+        groupVer = (GroupVersion)((blocks[BLOCK_TYPE_B] >> 21) & 1);
 
         // Decode traffic program and program type
         trafficProgram = (blocks[BLOCK_TYPE_B] >> 20) & 1;
         programType = (ProgramType)((blocks[BLOCK_TYPE_B] >> 15) & 0x1F);
+    }
+
+    void RDSDecoder::decodeGroup() {
+        std::lock_guard<std::mutex> lck(groupMtx);
+        auto now = std::chrono::high_resolution_clock::now();
+
+        // Make sure blocks B is available
+        if (!blockAvail[BLOCK_TYPE_B]) { return; }
+
+        // Decode block B
+        decodeBlockB();
         
         if (groupType == 0) {
             group0LastUpdate = now;
@@ -202,9 +231,33 @@ namespace rds {
         }
     }
 
-    bool RDSDecoder::anyGroupValid() {
+    void RDSDecoder::decodeCallsign() {
+        // Determin first better based on offset
+        bool w = (piCode >= 21672);
+        callsign =  w ? 'W' : 'K';
+
+        // Base25 decode the rest
+        std::string restStr;
+        int rest = piCode - (w ? 21672 : 4096);
+        while (rest) {
+            restStr += 'A' + (rest % 26);
+            rest /= 26;
+        }
+
+        // Reorder chars
+        for (int i = restStr.size() - 1; i >= 0; i--) {
+            callsign += restStr[i];
+        }
+    }
+
+    bool RDSDecoder::blockAValid() {
         auto now = std::chrono::high_resolution_clock::now();
-        return (std::chrono::duration_cast<std::chrono::milliseconds>(now - anyGroupLastUpdate)).count() < 5000.0;
+        return (std::chrono::duration_cast<std::chrono::milliseconds>(now - blockALastUpdate)).count() < 5000.0;
+    }
+
+    bool RDSDecoder::blockBValid() {
+        auto now = std::chrono::high_resolution_clock::now();
+        return (std::chrono::duration_cast<std::chrono::milliseconds>(now - blockALastUpdate)).count() < 5000.0;
     }
 
     bool RDSDecoder::group0Valid() {

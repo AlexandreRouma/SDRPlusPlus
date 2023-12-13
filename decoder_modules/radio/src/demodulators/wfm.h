@@ -2,11 +2,13 @@
 #include "../demod.h"
 #include <dsp/demod/broadcast_fm.h>
 #include <dsp/clock_recovery/mm.h>
-#include <dsp/clock_recovery/fd.h>
+#include <dsp/loop/fast_agc.h>
+#include <dsp/loop/costas.h>
 #include <dsp/taps/root_raised_cosine.h>
 #include <dsp/digital/binary_slicer.h>
 #include <dsp/digital/manchester_decoder.h>
 #include <dsp/digital/differential_decoder.h>
+#include <dsp/routing/doubler.h>
 #include <gui/widgets/symbol_diagram.h>
 #include <fstream>
 #include <rds.h>
@@ -14,9 +16,9 @@
 namespace demod {
     class WFM : public Demodulator {
     public:
-        WFM() {}
+        WFM() : diag(0.5, 4096)  {}
 
-        WFM(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, double audioSR) {
+        WFM(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, double audioSR) : diag(0.5, 4096) {
             init(name, config, input, bandwidth, audioSR);
         }
 
@@ -45,33 +47,66 @@ namespace demod {
             if (config->conf[name][getName()].contains("rds")) {
                 _rds = config->conf[name][getName()]["rds"];
             }
+            if (config->conf[name][getName()].contains("rdsInfo")) {
+                _rdsInfo = config->conf[name][getName()]["rdsInfo"];
+            }
             _config->release(modified);
 
             // Define structure
             demod.init(input, bandwidth / 2.0f, getIFSampleRate(), _stereo, _lowPass, _rds);
-            recov.init(&demod.rdsOut, 5000.0 / 2375, omegaGain, muGain, 0.01);
-            slice.init(&recov.out);
-            manch.init(&slice.out);
-            diff.init(&manch.out, 2);
+            agc.init(&demod.rdsOut, 1.0, 1e6, 0.1);
+            costas.init(&agc.out,  0.005f);
+
+            taps = dsp::taps::bandPass<dsp::complex_t>(0, 2375, 100, 5000);
+            fir.init(&costas.out, taps);
+            double baudfreq = dsp::math::hzToRads(2375.0/2.0, 5000);
+            costas2.init(&fir.out, 0.01, 0.0, baudfreq, baudfreq - (baudfreq*0.1), baudfreq + (baudfreq*0.1));
+
+            c2r.init(&costas2.out);
+            recov.init(&c2r.out, 5000.0 / (2375.0 / 2.0), 1e-6, 0.01, 0.01);
+            slice.init(&doubler.outA);
+            diff.init(&slice.out, 2);
             hs.init(&diff.out, rdsHandler, this);
+
+            doubler.init(&recov.out);
+            reshape.init(&doubler.outB, 4096, (1187 / 30) - 4096);
+            diagHandler.init(&reshape.out, _diagHandler, this);
+            diag.lines.push_back(-0.8);
+            diag.lines.push_back(0.8);
         }
 
         void start() {
+            agc.start();
+            costas.start();
+            fir.start();
+            costas2.start();
+            c2r.start();
             demod.start();
             recov.start();
             slice.start();
-            manch.start();
             diff.start();
             hs.start();
+
+            doubler.start();
+            reshape.start();
+            diagHandler.start();
         }
 
         void stop() {
+            agc.stop();
+            costas.stop();
+            fir.stop();
+            costas2.stop();
+            c2r.stop();
             demod.stop();
             recov.stop();
             slice.stop();
-            manch.stop();
             diff.stop();
             hs.stop();
+
+            c2r.stop();
+            reshape.stop();
+            diagHandler.stop();
         }
 
         void showMenu() {
@@ -94,14 +129,105 @@ namespace demod {
                 _config->release(true);
             }
 
-            // if (_rds) {
-            //     if (rdsDecode.countryCodeValid()) { ImGui::Text("Country code: %d", rdsDecode.getCountryCode()); }
-            //     if (rdsDecode.programCoverageValid()) { ImGui::Text("Program coverage: %d", rdsDecode.getProgramCoverage()); }
-            //     if (rdsDecode.programRefNumberValid()) { ImGui::Text("Reference number: %d", rdsDecode.getProgramRefNumber()); }
-            //     if (rdsDecode.programTypeValid()) { ImGui::Text("Program type: %d", rdsDecode.getProgramType()); }
-            //     if (rdsDecode.PSNameValid()) { ImGui::Text("Program name: [%s]", rdsDecode.getPSName().c_str()); }
-            //     if (rdsDecode.radioTextValid()) { ImGui::Text("Radiotext: [%s]", rdsDecode.getRadioText().c_str()); }
-            // }
+            // TODO: This will break when the entire radio module is disabled
+            if (!_rds) { ImGui::BeginDisabled(); }
+            if (ImGui::Checkbox(("Advanced RDS Info##_radio_wfm_rds_info_" + name).c_str(), &_rdsInfo)) {
+                _config->acquire();
+                _config->conf[name][getName()]["rdsInfo"] = _rdsInfo;
+                _config->release(true);
+            }
+            if (!_rds) { ImGui::EndDisabled(); }
+
+            float menuWidth = ImGui::GetContentRegionAvail().x;
+
+            if (_rds && _rdsInfo) {
+                ImGui::BeginTable(("##radio_wfm_rds_info_tbl_" + name).c_str(), 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders);
+                if (rdsDecode.piCodeValid()) {
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::TextUnformatted("PI Code");
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::Text("0x%04X (%s)", rdsDecode.getPICode(), rdsDecode.getCallsign().c_str());
+                    
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::TextUnformatted("Country Code");
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::Text("%d", rdsDecode.getCountryCode());
+
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::TextUnformatted("Program Coverage");
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::Text("%s (%d)", rds::AREA_COVERAGE_TO_STR[rdsDecode.getProgramCoverage()], rdsDecode.getProgramCoverage());
+
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::TextUnformatted("Reference Number");
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::Text("%d", rdsDecode.getProgramRefNumber());
+                }
+                else {
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::TextUnformatted("PI Code");
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::TextUnformatted("0x---- (----)");
+                    
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::TextUnformatted("Country Code");
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::TextUnformatted("--");  // TODO: String
+
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::TextUnformatted("Program Coverage");
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::TextUnformatted("------- (--)");
+
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::TextUnformatted("Reference Number");
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::TextUnformatted("--");
+                }
+
+                if (rdsDecode.programTypeValid()) {
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::TextUnformatted("Program Type");
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::Text("%s (%d)", rds::PROGRAM_TYPE_US_TO_STR[rdsDecode.getProgramType()], rdsDecode.getProgramType());
+                }
+                else {
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::TextUnformatted("Program Type");
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::TextUnformatted("------- (--)");  // TODO: String
+                }
+
+                if (rdsDecode.musicValid()) {
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::TextUnformatted("Music");
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::Text("%s", rdsDecode.getMusic() ? "Yes":"No");
+                }
+                else {
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::TextUnformatted("Music");
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::TextUnformatted("---");
+                }
+
+                ImGui::EndTable();
+
+                ImGui::SetNextItemWidth(menuWidth);
+                diag.draw();
+            }
         }
 
         void setBandwidth(double bandwidth) {
@@ -145,6 +271,14 @@ namespace demod {
             _this->rdsDecode.process(data, count);
         }
 
+        // DEBUGGING ONLY
+        static void _diagHandler(float* data, int count, void* ctx) {
+            WFM* _this = (WFM*)ctx;
+            float* buf = _this->diag.acquireBuffer();
+            memcpy(buf, data, count * sizeof(float));
+            _this->diag.releaseBuffer();
+        }
+
         static void fftRedraw(ImGui::WaterFall::FFTRedrawArgs args, void* ctx) {
             WFM* _this = (WFM*)ctx;
             if (!_this->_rds) { return; }
@@ -186,12 +320,22 @@ namespace demod {
         }
 
         dsp::demod::BroadcastFM demod;
-        dsp::clock_recovery::FD recov;
+        dsp::loop::FastAGC<dsp::complex_t> agc;
+        dsp::loop::Costas<2> costas;
+        dsp::tap<dsp::complex_t> taps;
+        dsp::filter::FIR<dsp::complex_t, dsp::complex_t> fir;
+        dsp::loop::Costas<2> costas2;
+        dsp::convert::ComplexToReal c2r;
+        dsp::clock_recovery::MM<float> recov;
         dsp::digital::BinarySlicer slice;
-        dsp::digital::ManchesterDecoder manch;
         dsp::digital::DifferentialDecoder diff;
         dsp::sink::Handler<uint8_t> hs;
         EventHandler<ImGui::WaterFall::FFTRedrawArgs> fftRedrawHandler;
+
+        dsp::routing::Doubler<float> doubler;
+        dsp::buffer::Reshaper<float> reshape;
+        dsp::sink::Handler<float> diagHandler;
+        ImGui::SymbolDiagram diag;
 
         rds::RDSDecoder rdsDecode;
 
@@ -200,6 +344,7 @@ namespace demod {
         bool _stereo = false;
         bool _lowPass = true;
         bool _rds = false;
+        bool _rdsInfo = false;
         float muGain = 0.01;
         float omegaGain = (0.01*0.01)/4.0;
 
