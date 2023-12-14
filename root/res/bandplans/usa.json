@@ -228,6 +228,18 @@
             "end": 148000000
         },
         {
+            "name": "MURS (lower)",
+            "type": "amateur",
+            "start": 151820000,
+            "end": 151940000
+        },
+        {
+            "name": "MURS (upper)",
+            "type": "amateur",
+            "start": 154570000,
+            "end": 154600000
+        },
+        {
             "name": "Marine",
             "type": "marine",
             "start": 156000000,

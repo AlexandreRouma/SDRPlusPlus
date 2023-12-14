@@ -333,6 +333,17 @@ private:
         _this->client->readAsync(1024, _this->dataBuf, dataHandler, _this, false);
     }
 
+    std::map<int, const char*> radioModeToString = {
+        { RADIO_IFACE_MODE_NFM, "NFM" },
+        { RADIO_IFACE_MODE_WFM, "WFM" },
+        { RADIO_IFACE_MODE_AM,  "AM"  },
+        { RADIO_IFACE_MODE_DSB, "DSB" },
+        { RADIO_IFACE_MODE_USB, "USB" },
+        { RADIO_IFACE_MODE_CW,  "CW"  },
+        { RADIO_IFACE_MODE_LSB, "LSB" },
+        { RADIO_IFACE_MODE_RAW, "RAW" }
+    };
+
     void commandHandler(std::string cmd) {
         std::string corr = "";
         std::vector<std::string> parts;
@@ -442,38 +453,18 @@ private:
                 pos++;
             }
 
+            const std::string& newModeStr = parts[1];
             float newBandwidth = std::atoi(parts[2].c_str());
-
-            int newMode;
-            if (parts[1] == "FM") {
-                newMode = RADIO_IFACE_MODE_NFM;
-            }
-            else if (parts[1] == "WFM") {
-                newMode = RADIO_IFACE_MODE_WFM;
-            }
-            else if (parts[1] == "AM") {
-                newMode = RADIO_IFACE_MODE_AM;
-            }
-            else if (parts[1] == "DSB") {
-                newMode = RADIO_IFACE_MODE_DSB;
-            }
-            else if (parts[1] == "USB") {
-                newMode = RADIO_IFACE_MODE_USB;
-            }
-            else if (parts[1] == "CW") {
-                newMode = RADIO_IFACE_MODE_CW;
-            }
-            else if (parts[1] == "LSB") {
-                newMode = RADIO_IFACE_MODE_LSB;
-            }
-            else if (parts[1] == "RAW") {
-                newMode = RADIO_IFACE_MODE_RAW;
-            }
-            else {
+            
+            auto it = std::find_if(radioModeToString.begin(), radioModeToString.end(), [&newModeStr](const auto& e) {
+                return e.second == newModeStr;
+            });
+            if (it == radioModeToString.end()) {
                 resp = "RPRT 1\n";
                 client->write(resp.size(), (uint8_t*)resp.c_str());
                 return;
             }
+            int newMode = it->first;
 
             // If tuning is enabled, set the mode and optionally the bandwidth
             if (!selectedVfo.empty() && core::modComManager.getModuleName(selectedVfo) == "radio" && tuningEnabled) {
@@ -492,31 +483,9 @@ private:
             if (!selectedVfo.empty() && core::modComManager.getModuleName(selectedVfo) == "radio") {
                 int mode;
                 core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_GET_MODE, NULL, &mode);
-
-                if (mode == RADIO_IFACE_MODE_NFM) {
-                    resp = "FM\n";
-                }
-                else if (mode == RADIO_IFACE_MODE_WFM) {
-                    resp = "WFM\n";
-                }
-                else if (mode == RADIO_IFACE_MODE_AM) {
-                    resp = "AM\n";
-                }
-                else if (mode == RADIO_IFACE_MODE_DSB) {
-                    resp = "DSB\n";
-                }
-                else if (mode == RADIO_IFACE_MODE_USB) {
-                    resp = "USB\n";
-                }
-                else if (mode == RADIO_IFACE_MODE_CW) {
-                    resp = "CW\n";
-                }
-                else if (mode == RADIO_IFACE_MODE_LSB) {
-                    resp = "LSB\n";
-                }
+                resp = std::string(radioModeToString[mode]) + "\n";
             }
-
-            if (!selectedVfo.empty()) {
+            else if (!selectedVfo.empty()) {
                 resp += std::to_string((int)sigpath::vfoManager.getBandwidth(selectedVfo)) + "\n";
             }
             else {

@@ -12,6 +12,7 @@ namespace sdrpp_credits {
         "Howard0su",
         "John Donkersley",
         "Joshua Kimsey",
+        "Manawyrm",
         "Martin Hauke",
         "Marvin Sinister",
         "Maxime Biette",
@@ -21,7 +22,6 @@ namespace sdrpp_credits {
         "Shuyuan Liu",
         "Syne Ardwin (WI9SYN)",
         "Szymon Zakrent",
-        "Tobias Mädel",
         "Youssef Touil",
         "Zimm"
     };

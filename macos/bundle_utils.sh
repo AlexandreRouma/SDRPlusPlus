@@ -81,7 +81,7 @@ bundle_find_full_path() {
 
         # Correct dep path
         echo $RPATH/$RPATH_NEXT
-        return
+        return -1
     done
 
     # Search other common paths

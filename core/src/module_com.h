@@ -18,6 +18,6 @@ public:
     bool callInterface(std::string name, int code, void* in, void* out);
 
 private:
-    std::mutex mtx;
+    std::recursive_mutex mtx;
     std::map<std::string, ModuleComInterface> interfaces;
 };
