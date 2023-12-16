@@ -75,7 +75,11 @@ namespace streamsmenu {
                     ImGui::Spacing();
 
                     // Sink type
-
+                    int ttttt = 0;
+                    ImGui::FillWidth();
+                    if (ImGui::Combo(CONCAT("##sdrpp_streams_type_", sid), &ttttt, sinkTypes.txt)) {
+                        
+                    }
 
                     sink->showMenu();
                     float vol = sink->getVolume();
