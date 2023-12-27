@@ -523,8 +523,8 @@ private:
         RTLSDRSourceModule* _this = (RTLSDRSourceModule*)ctx;
         int sampCount = len / 2;
         for (int i = 0; i < sampCount; i++) {
-            _this->stream.writeBuf[i].re = (float)(buf[i * 2] - 127) / 128.0f;
-            _this->stream.writeBuf[i].im = (float)(buf[(i * 2) + 1] - 127) / 128.0f;
+            _this->stream.writeBuf[i].re = ((float)buf[i * 2] - 127.4) / 128.0f;
+            _this->stream.writeBuf[i].im = ((float)buf[(i * 2) + 1] - 127.4) / 128.0f;
         }
         if (!_this->stream.swap(sampCount)) { return; }
     }
