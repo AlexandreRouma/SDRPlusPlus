@@ -137,6 +137,10 @@ public:
         hackrf_device_list_t* _devList = hackrf_device_list();
 
         for (int i = 0; i < _devList->devicecount; i++) {
+            // Skip devices that are in use
+            if (_devList->serial_numbers[i] == NULL) { continue; }
+
+            // Save the device serial number
             devList.push_back(_devList->serial_numbers[i]);
             devListTxt += (char*)(_devList->serial_numbers[i] + 16);
             devListTxt += '\0';
