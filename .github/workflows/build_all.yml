@@ -34,7 +34,7 @@ jobs:
 
         - name: Patch Pothos with earlier libusb version
           working-directory: ${{runner.workspace}}
-          run: 7z x libusb.7z -olibusb_old ; rm "C:/Program Files/PothosSDR/bin/libusb-1.0.dll" ; cp "libusb_old/MS64/dll/libusb-1.0.dll" "C:/Program Files/PothosSDR/bin/"
+          run: 7z x libusb.7z -olibusb_old ; rm "C:/Program Files/PothosSDR/bin/libusb-1.0.dll" ; cp "libusb_old/MS64/dll/libusb-1.0.dll" "C:/Program Files/PothosSDR/bin/" ; rm "C:/Program Files/PothosSDR/lib/libusb-1.0.lib" ; cp "libusb_old/MS64/dll/libusb-1.0.lib" "C:/Program Files/PothosSDR/lib/"
  
         - name: Download SDRPlay API
           run: Invoke-WebRequest -Uri "https://drive.google.com/uc?id=12UHPMwkfa67A11QZDmpCT4iwHnyJHWuu&confirm=t" -OutFile ${{runner.workspace}}/SDRPlay.zip
@@ -64,7 +64,7 @@ jobs:
           run: git clone https://github.com/thestk/rtaudio ; cd rtaudio ; git checkout 2f2fca4502d506abc50f6d4473b2836d24cfb1e3 ; mkdir build ; cd build ; cmake .. ; cmake --build . --config Release ; cmake --install .
 
         - name: Install libperseus-sdr
-          run: git clone https://github.com/AlexandreRouma/libperseus-sdr ; cd libperseus-sdr ; mkdir build ; cd build ; cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake" ; cmake --build . --config Release  ; mkdir "C:/Program Files/PothosSDR/include/perseus-sdr" ; cp Release/perseus-sdr.dll "C:/Program Files/PothosSDR/bin" ; cp Release/perseus-sdr.lib "C:/Program Files/PothosSDR/bin" ; cd .. ; xcopy "src" "C:/Program Files/PothosSDR/include/perseus-sdr"
+          run: git clone https://github.com/AlexandreRouma/libperseus-sdr ; cd libperseus-sdr ; mkdir build ; cd build ; cmake "-DLIBUSB_LIBRARIES=C:/Program Files/PothosSDR/lib/libusb-1.0.lib" "-DLIBUSB_INCLUDE_DIRS=C:/Program Files/PothosSDR/include/libusb-1.0" .. "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake" ; cmake --build . --config Release  ; mkdir "C:/Program Files/PothosSDR/include/perseus-sdr" ; cp Release/perseus-sdr.dll "C:/Program Files/PothosSDR/bin" ; cp Release/perseus-sdr.lib "C:/Program Files/PothosSDR/bin" ; cd .. ; xcopy "src" "C:/Program Files/PothosSDR/include/perseus-sdr"
 
         - name: Prepare CMake
           working-directory: ${{runner.workspace}}/build
