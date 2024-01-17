@@ -171,7 +171,7 @@ public:
 #ifndef __ANDROID__
         int oret = rtlsdr_open(&openDev, id);
 #else
-        int oret = rtlsdr_open_fd(&openDev, devFd);
+        int oret = rtlsdr_open_sys_dev(&openDev, devFd);
 #endif
         
         if (oret < 0) {
