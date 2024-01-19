@@ -10,7 +10,7 @@ bundle_is_not_to_be_installed() {
     # NOTE: Customize this list to exclude libraries you don't want copied into the bundle
     if [ "$1" = "libsdrpp_core.dylib" ]; then echo 1; fi
     if [ "$1" = "OpenGL" ]; then echo 1; fi
-    if [ "$1" = "libc++.1.dylib" ]; then echo 1; fi
+    # if [ "$1" = "libc++.1.dylib" ]; then echo 1; fi
     if [ "$1" = "libSystem.B.dylib" ]; then echo 1; fi
     if [ "$1" = "Cocoa" ]; then echo 1; fi
     if [ "$1" = "IOKit" ]; then echo 1; fi
