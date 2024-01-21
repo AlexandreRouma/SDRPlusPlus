@@ -164,8 +164,7 @@ public:
     }
 
 #if RTAUDIO_VERSION_MAJOR >= 6
-    static void reportErrorsAsException(RtAudioErrorType type,
-                                        const std::string& errorText) {
+    static void reportErrorsAsException(RtAudioErrorType type, const std::string& errorText) {
         switch (type) {
         case RtAudioErrorType::RTAUDIO_NO_ERROR:
             return;
