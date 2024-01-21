@@ -32,7 +32,7 @@ public:
         stereoPacker.init(_stream->sinkOut, 512);
 
 #if RTAUDIO_VERSION_MAJOR >= 6
-        audio.setErrorCallback(&reportErrorsAsException);
+        audio.setErrorCallback(&errorCallback);
 #endif
 
         bool created = false;
@@ -55,6 +55,9 @@ public:
 #endif
             try {
                 info = audio.getDeviceInfo(i);
+#if !defined(RTAUDIO_VERSION_MAJOR) || RTAUDIO_VERSION_MAJOR < 6
+                if (!info.probed) { continue; }
+#endif
                 if (info.outputChannels == 0) { continue; }
                 if (info.isDefaultOutput) { defaultDevId = devList.size(); }
                 devList.push_back(info);
@@ -63,7 +66,7 @@ public:
                 txtDevList += '\0';
             }
             catch (const std::exception& e) {
-                flog::error("AudioSinkModule Error getting audio device info: id={0}: {1}", i, e.what());
+                flog::error("AudioSinkModule Error getting audio device ({}) info: {}", i, e.what());
             }
         }
         selectByName(device);
@@ -164,14 +167,14 @@ public:
     }
 
 #if RTAUDIO_VERSION_MAJOR >= 6
-    static void reportErrorsAsException(RtAudioErrorType type, const std::string& errorText) {
+    static void errorCallback(RtAudioErrorType type, const std::string& errorText) {
         switch (type) {
         case RtAudioErrorType::RTAUDIO_NO_ERROR:
             return;
         case RtAudioErrorType::RTAUDIO_WARNING:
         case RtAudioErrorType::RTAUDIO_NO_DEVICES_FOUND:
         case RtAudioErrorType::RTAUDIO_DEVICE_DISCONNECT:
-            flog::warn("AudioSink: {0} ({1})", errorText, (int)type);
+            flog::warn("AudioSinkModule Warning: {} ({})", errorText, (int)type);
             break;
         default:
             throw std::runtime_error(errorText);

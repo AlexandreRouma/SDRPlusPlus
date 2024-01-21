@@ -36,7 +36,7 @@ public:
         this->name = name;
 
 #if RTAUDIO_VERSION_MAJOR >= 6
-        audio.setErrorCallback(&reportErrorsAsException);
+        audio.setErrorCallback(&errorCallback);
 #endif
 
         sampleRate = 48000.0;
@@ -97,6 +97,9 @@ public:
                 // Get info
                 auto info = audio.getDeviceInfo(i);
 
+#if !defined(RTAUDIO_VERSION_MAJOR) || RTAUDIO_VERSION_MAJOR < 6
+                if (!info.probed) { continue; }
+#endif
                 // Check that it has a stereo input
                 if (info.inputChannels < 2) { continue; }
 
@@ -105,7 +108,7 @@ public:
                 devices.define(info.name, info.name, dinfo);
             }
             catch (const std::exception& e) {
-                flog::error("Error getting audio device info: id={0}: {1}", i, e.what());
+                flog::error("Error getting audio device ({}) info: {}", i, e.what());
             }
         }
     }
@@ -263,14 +266,14 @@ private:
     }
 
 #if RTAUDIO_VERSION_MAJOR >= 6
-    static void reportErrorsAsException(RtAudioErrorType type, const std::string& errorText) {
+    static void errorCallback(RtAudioErrorType type, const std::string& errorText) {
         switch (type) {
         case RtAudioErrorType::RTAUDIO_NO_ERROR:
             return;
         case RtAudioErrorType::RTAUDIO_WARNING:
         case RtAudioErrorType::RTAUDIO_NO_DEVICES_FOUND:
         case RtAudioErrorType::RTAUDIO_DEVICE_DISCONNECT:
-            flog::warn("AudioSource: {0} ({1})", errorText, (int)type);
+            flog::warn("AudioSourceModule Warning: {} ({})", errorText, (int)type);
             break;
         default:
             throw std::runtime_error(errorText);
