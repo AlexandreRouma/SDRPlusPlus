@@ -163,10 +163,12 @@ namespace dsp {
 
     private:
         Processor<T, T>* blockBefore(Processor<T, T>* block) {
+            // TODO: This is wrong and must be fixed when I get more time
             for (auto& ln : links) {
                 if (ln == block) { return NULL; }
                 if (states[ln]) { return ln; }
             }
+            return NULL;
         }
 
         Processor<T, T>* blockAfter(Processor<T, T>* block) {
