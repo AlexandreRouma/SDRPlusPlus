@@ -200,11 +200,11 @@ private:
             _this->audio.startStream();
             _this->running = true;
         }
-        catch (std::exception e) {
-            flog::error("Error opening audio device: {0}", e.what());
+        catch (const std::exception& e) {
+            flog::error("Error opening audio device: {}", e.what());
         }
         
-        flog::info("AudioSourceModule '{0}': Start!", _this->name);
+        flog::info("AudioSourceModule '{}': Start!", _this->name);
     }
 
     static void stop(void* ctx) {

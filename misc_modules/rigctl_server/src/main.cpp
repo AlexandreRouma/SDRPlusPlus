@@ -200,8 +200,8 @@ private:
             listener = net::listen(hostname, port);
             listener->acceptAsync(clientHandler, this);
         }
-        catch (std::exception e) {
-            flog::error("Could not start rigctl server: {0}", e.what());
+        catch (const std::exception& e) {
+            flog::error("Could not start rigctl server: {}", e.what());
         }
     }
 

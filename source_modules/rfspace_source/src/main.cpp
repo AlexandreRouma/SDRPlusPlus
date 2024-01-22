@@ -154,8 +154,8 @@ private:
                 _this->client = rfspace::connect(_this->hostname, _this->port, &_this->stream);
                 _this->deviceInit();
             }
-            catch (std::exception e) {
-                flog::error("Could not connect to SDR: {0}", e.what());
+            catch (const std::exception& e) {
+                flog::error("Could not connect to SDR: {}", e.what());
             }
         }
         else if (connected && SmGui::Button("Disconnect##rfspace_source")) {

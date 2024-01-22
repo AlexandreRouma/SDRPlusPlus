@@ -283,8 +283,8 @@ private:
                 flog::info("Connected to server");
             }
         }
-        catch (std::exception e) {
-            flog::error("Could not connect to spyserver {0}", e.what());
+        catch (const std::exception& e) {
+            flog::error("Could not connect to spyserver {}", e.what());
         }
     }
 

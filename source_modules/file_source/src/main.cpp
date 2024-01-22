@@ -139,8 +139,8 @@ private:
                     //gui::freqSelect.maxFreq = _this->centerFreq + (_this->sampleRate/2);
                     //gui::freqSelect.limitFreq = true;
                 }
-                catch (std::exception& e) {
-                    flog::error("Error: {0}", e.what());
+                catch (const std::exception& e) {
+                    flog::error("Error: {}", e.what());
                 }
                 config.acquire();
                 config.conf["path"] = _this->fileSelect.path;

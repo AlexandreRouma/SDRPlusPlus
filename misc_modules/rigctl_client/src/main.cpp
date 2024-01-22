@@ -80,8 +80,8 @@ public:
         try {
             client = net::rigctl::connect(host, port);
         }
-        catch (std::exception e) {
-            flog::error("Could not connect: {0}", e.what());
+        catch (const std::exception& e) {
+            flog::error("Could not connect: {}", e.what());
             return;
         }
 

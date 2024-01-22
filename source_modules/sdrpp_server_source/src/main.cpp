@@ -233,8 +233,8 @@ private:
             client = server::connect(hostname, port, &stream);
             deviceInit();
         }
-        catch (std::exception e) {
-            flog::error("Could not connect to SDR: {0}", e.what());
+        catch (const std::exception& e) {
+            flog::error("Could not connect to SDR: {}", e.what());
             if (!strcmp(e.what(), "Server busy")) { serverBusy = true; }
         }
     }
