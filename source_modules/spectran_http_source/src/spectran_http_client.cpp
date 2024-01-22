@@ -1,5 +1,6 @@
 #include "spectran_http_client.h"
 #include <utils/flog.h>
+#include <inttypes.h>
 
 SpectranHTTPClient::SpectranHTTPClient(std::string host, int port, dsp::stream<dsp::complex_t>* stream) {
     this->stream = stream;
@@ -50,10 +51,10 @@ void SpectranHTTPClient::setCenterFrequency(uint64_t freq) {
     // Make request
     net::http::RequestHeader rqhdr(net::http::METHOD_PUT, "/control", host);
     char buf[1024];
-    sprintf(buf, "{\"frequencyCenter\":%d,\"frequencySpan\":%d,\"type\":\"capture\"}", freq, _samplerate);
+    sprintf(buf, "{\"frequencyCenter\":%" PRIu64 ",\"frequencySpan\":%" PRIu64 ",\"type\":\"capture\"}", freq, _samplerate);
     std::string data = buf;
     char lenBuf[16];
-    sprintf(lenBuf, "%d", data.size());
+    sprintf(lenBuf, "%" PRIu64, data.size());
     rqhdr.setField("Content-Length", lenBuf);
     controlHttp.sendRequestHeader(rqhdr);
     controlSock->sendstr(data);

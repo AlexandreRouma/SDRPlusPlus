@@ -63,6 +63,7 @@ namespace net::http {
 
     std::string MessageHeader::getField(const std::string name) {
         // TODO: Check if exists
+        // TODO: Maybe declare the set/get field functions to do type conversions automatically?
         return fields[name];
     }
 
