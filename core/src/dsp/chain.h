@@ -93,7 +93,7 @@ namespace dsp {
         void disableBlock(Processor<T, T>* block, Func onOutputChange) {
             // Check that the block is part of the chain
             if (!blockExists(block)) {
-                throw std::runtime_error("[chain] Tried to enable a block that isn't part of the chain");
+                throw std::runtime_error("[chain] Tried to disable a block that isn't part of the chain");
             }
             
             // If already disabled, don't do anything
