@@ -54,7 +54,7 @@ void SpectranHTTPClient::setCenterFrequency(uint64_t freq) {
     sprintf(buf, "{\"frequencyCenter\":%" PRIu64 ",\"frequencySpan\":%" PRIu64 ",\"type\":\"capture\"}", freq, _samplerate);
     std::string data = buf;
     char lenBuf[16];
-    sprintf(lenBuf, "%" PRIu64, data.size());
+    sprintf(lenBuf, "%" PRIu64, (uint64_t)data.size());
     rqhdr.setField("Content-Length", lenBuf);
     controlHttp.sendRequestHeader(rqhdr);
     controlSock->sendstr(data);
