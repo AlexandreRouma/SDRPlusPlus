@@ -109,11 +109,6 @@ namespace net {
         addr.sin_port = htons(port);
     }
 
-    bool Address::isMulticast() const {
-        IP_t ip = getIP();
-        return (ip >> 28) == 0b1110;
-    }
-
     // === Socket functions ===
 
     Socket::Socket(SockHandle_t sock, const Address* raddr) {
@@ -380,7 +375,7 @@ namespace net {
         return connect(Address(host, port));
     }
 
-    std::shared_ptr<Socket> openudp(const Address& raddr, const Address& laddr) {
+    std::shared_ptr<Socket> openudp(const Address& raddr, const Address& laddr, bool allowBroadcast) {
         // Init library if needed
         init();
 
@@ -388,12 +383,12 @@ namespace net {
         SockHandle_t s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
         // If the remote address is multicast, allow multicast connections
-#ifdef _WIN32
-        const char enable = raddr.isMulticast();
-#else
-        int enable = raddr.isMulticast();
-#endif
-        if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
+        #ifdef _WIN32
+                const char enable = allowBroadcast;
+        #else
+                int enable = allowBroadcast;
+        #endif
+        if (setsockopt(s, SOL_SOCKET, SO_BROADCAST, &enable, sizeof(int)) < 0) {
             closeSocket(s);
             throw std::runtime_error("Could not configure socket");
             return NULL;
@@ -410,15 +405,15 @@ namespace net {
         return std::make_shared<Socket>(s, &raddr);
     }
 
-    std::shared_ptr<Socket> openudp(std::string rhost, int rport, const Address& laddr) {
-        return openudp(Address(rhost, rport), laddr);
+    std::shared_ptr<Socket> openudp(std::string rhost, int rport, const Address& laddr, bool allowBroadcast) {
+        return openudp(Address(rhost, rport), laddr, allowBroadcast);
     }
 
-    std::shared_ptr<Socket> openudp(const Address& raddr, std::string lhost, int lport) {
-        return openudp(raddr, Address(lhost, lport));
+    std::shared_ptr<Socket> openudp(const Address& raddr, std::string lhost, int lport, bool allowBroadcast) {
+        return openudp(raddr, Address(lhost, lport), allowBroadcast);
     }
 
-    std::shared_ptr<Socket> openudp(std::string rhost, int rport, std::string lhost, int lport) {
-        return openudp(Address(rhost, rport), Address(lhost, lport));
+    std::shared_ptr<Socket> openudp(std::string rhost, int rport, std::string lhost, int lport, bool allowBroadcast) {
+        return openudp(Address(rhost, rport), Address(lhost, lport), allowBroadcast);
     }
 }
