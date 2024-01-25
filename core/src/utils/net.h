@@ -67,13 +67,13 @@ namespace net {
          * Get the IP address.
          * @return IP address in standard string format.
          */
-        std::string getIPStr();
+        std::string getIPStr() const;
 
         /**
          * Get the IP address.
          * @return IP address in host byte order.
          */
-        IP_t getIP();
+        IP_t getIP() const;
 
         /**
          * Set the IP address.
@@ -85,13 +85,19 @@ namespace net {
          * Get the TCP/UDP port.
          * @return TCP/UDP port number.
          */
-        int getPort();
+        int getPort() const;
 
         /**
          * Set the TCP/UDP port.
          * @param port TCP/UDP port number.
          */
         void setPort(int port);
+
+        /**
+         * Check if the address is multicast.
+         * @return True if multicast, false if not.
+        */
+        bool isMulticast() const;
 
         struct sockaddr_in addr;
     };
@@ -246,7 +252,7 @@ namespace net {
 
     /**
      * Create UDP socket.
-     * @param raddr Remote address.
+     * @param raddr Remote address. Set to a multicast address to allow multicast.
      * @param laddr Local address to bind the socket to.
      * @return Socket instance on success, Throws runtime_error otherwise.
      */
@@ -254,7 +260,7 @@ namespace net {
 
     /**
      * Create UDP socket.
-     * @param rhost Remote hostname or IP address.
+     * @param rhost Remote hostname or IP address. Set to a multicast address to allow multicast.
      * @param rport Remote port.
      * @param laddr Local address to bind the socket to.
      * @return Socket instance on success, Throws runtime_error otherwise.
@@ -263,7 +269,7 @@ namespace net {
 
     /**
      * Create UDP socket.
-     * @param raddr Remote address.
+     * @param raddr Remote address. Set to a multicast address to allow multicast.
      * @param lhost Local hostname or IP used to bind the socket (optional, "0.0.0.0" for Any).
      * @param lpost Local port used to bind the socket to (optional, 0 to allocate automatically).
      * @return Socket instance on success, Throws runtime_error otherwise.
@@ -272,7 +278,7 @@ namespace net {
 
     /**
      * Create UDP socket.
-     * @param rhost Remote hostname or IP address.
+     * @param rhost Remote hostname or IP address. Set to a multicast address to allow multicast.
      * @param rport Remote port.
      * @param lhost Local hostname or IP used to bind the socket (optional, "0.0.0.0" for Any).
      * @param lpost Local port used to bind the socket to (optional, 0 to allocate automatically).
