@@ -205,8 +205,8 @@ namespace hermes {
     }
 
     std::vector<Info> discover() {
-        // TODO: Maybe try to instead detect on each interface as a work around for 0.0.0.0 not receiving anything?
-        auto sock = net::openudp("0.0.0.0", 1024);
+        // Open a UDP broadcast socket (TODO: Figure out why 255.255.255.255 doesn't work on windows with local = 0.0.0.0)
+        auto sock = net::openudp("255.255.255.255", 1024, "0.0.0.0", 0, true);
         
         // Build discovery packet
         uint8_t discoveryPkt[64];
@@ -225,6 +225,7 @@ namespace hermes {
             }
         }
 
+        // Await all responses
         std::vector<Info> devices;
         while (true) {
             // Wait for a response
@@ -258,7 +259,9 @@ namespace hermes {
 
             devices.push_back(info);
         }
-        
+
+        // Close broadcast socket
+        sock->close();        
 
         return devices;
     }

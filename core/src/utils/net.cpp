@@ -390,7 +390,7 @@ namespace net {
         #endif
         if (setsockopt(s, SOL_SOCKET, SO_BROADCAST, &enable, sizeof(int)) < 0) {
             closeSocket(s);
-            throw std::runtime_error("Could not configure socket");
+            throw std::runtime_error("Could not enable broadcast on socket");
             return NULL;
         }
 
