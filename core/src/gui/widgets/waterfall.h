@@ -90,33 +90,6 @@ namespace ImGui {
         float* getFFTBuffer();
         void pushFFT();
 
-        inline void doZoom(int offset, int width, int outWidth, float* data, float* out) {
-            // NOTE: REMOVE THAT SHIT, IT'S JUST A HACKY FIX
-            if (offset < 0) {
-                offset = 0;
-            }
-            if (width > 524288) {
-                width = 524288;
-            }
-
-            float factor = (float)width / (float)outWidth;
-            float sFactor = ceilf(factor);
-            float uFactor;
-            float id = offset;
-            float maxVal;
-            int sId;
-            for (int i = 0; i < outWidth; i++) {
-                maxVal = -INFINITY;
-                sId = (int)id;
-                uFactor = (sId + sFactor > rawFFTSize) ? sFactor - ((sId + sFactor) - rawFFTSize) : sFactor;
-                for (int j = 0; j < uFactor; j++) {
-                    if (data[sId + j] > maxVal) { maxVal = data[sId + j]; }
-                }
-                out[i] = maxVal;
-                id += factor;
-            }
-        }
-
         void updatePallette(float colors[][3], int colorCount);
         void updatePalletteFromArray(float* colors, int colorCount);
 
