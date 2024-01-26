@@ -9,10 +9,10 @@ apt install -y build-essential cmake git libfftw3-dev libglfw3-dev libvolk1-dev 
             libcodec2-dev autoconf libtool xxd
 
 # Install SDRPlay libraries
-wget https://www.sdrplay.com/software/SDRplay_RSP_API-Linux-3.07.1.run
-7z x ./SDRplay_RSP_API-Linux-3.07.1.run
-7z x ./SDRplay_RSP_API-Linux-3.07.1
-cp x86_64/libsdrplay_api.so.3.07 /usr/lib/libsdrplay_api.so
+wget https://www.sdrplay.com/software/SDRplay_RSP_API-Linux-3.12.1.run
+7z x ./SDRplay_RSP_API-Linux-3.12.1.run
+7z x ./SDRplay_RSP_API-Linux-3.12.1
+cp x86_64/libsdrplay_api.so.3.12 /usr/lib/libsdrplay_api.so
 cp inc/* /usr/include/
 
 # Install libperseus
