@@ -173,6 +173,7 @@ namespace hermes {
             if (len <= 0) { break; }
 
             // Ignore anything that's not a USB packet
+            // TODO: Gotta check the endpoint
             if (htons(pkt->hdr.signature) != HERMES_METIS_SIGNATURE || pkt->hdr.type != METIS_PKT_USB) {
                 continue;
             }

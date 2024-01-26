@@ -231,7 +231,7 @@ private:
         }
         
         // Create samplerate list
-        auto srs = client->getValidSampleRates();
+        auto srs = client->getSamplerates();
         sampleRates.clear();
         for (auto& sr : srs) {
             sampleRates.define(sr, getBandwdithScaled(sr), sr);
@@ -317,7 +317,7 @@ private:
     dsp::stream<dsp::complex_t> stream;
     SourceManager::SourceHandler handler;
 
-    rfspace::RFspaceClient client;
+    std::shared_ptr<rfspace::Client> client;
 };
 
 MOD_EXPORT void _INIT_() {
