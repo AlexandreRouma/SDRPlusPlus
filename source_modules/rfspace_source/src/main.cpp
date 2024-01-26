@@ -17,7 +17,7 @@ SDRPP_MOD_INFO{
     /* Name:            */ "rfspace_source",
     /* Description:     */ "RFspace source module for SDR++",
     /* Author:          */ "Ryzerth",
-    /* Version:         */ 0, 1, 0,
+    /* Version:         */ 0, 1, 1,
     /* Max instances    */ 1
 };
 
