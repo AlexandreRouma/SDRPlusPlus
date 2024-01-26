@@ -103,6 +103,24 @@
         },
         {
             "start": 283500,
+            "end": 472000,
+            "type": "aviation",
+            "name": "Aeronautical Radionavigation / Maritime"
+        },
+        {
+            "start": 472000,
+            "end": 475000,
+            "type": "amateur",
+            "name": "635m Ham Band CW"
+        },
+        {
+            "start": 475000,
+            "end": 479000,
+            "type": "amateur1",
+            "name": "635m Ham Band CW, Digimodes"
+        },
+        {
+            "start": 479000,
             "end": 526500,
             "type": "aviation",
             "name": "Aeronautical Radionavigation / Maritime"
@@ -284,7 +302,7 @@
         {
             "start": 3754500,
             "end": 3757500,
-            "type": "amateur1",
+            "type": "utility",
             "name": "The Pip (Night)"
         },
         {
@@ -729,7 +747,7 @@
             "start": 5330500,
             "end": 5333400,
             "type": "amateur",
-            "name": "|60m Ham Band Ch. 1 (Not NL)"
+            "name": "60m Ham Band Ch. 1 (Not NL)"
         },
         {
             "start": 5333400,
@@ -744,19 +762,31 @@
             "name": "Ch. 2 (60m) (Not NL)"
         },
         {
-            "start": 5351500,
-            "end": 5366500,
+            "start": 5349400,
+            "end": 5351500,
             "type": "amateur1",
-            "name": "60m Ham Band NL"
+            "name": "60m Ham Band (Not NL)"
         },
         {
-            "start": 5357000,
-            "end": 5359900,
+            "start": 5351500,
+            "end": 5354000,
             "type": "amateur",
-            "name": "Ch. 3 (60m) (Not NL)"
+            "name": "60m Ham Band CW"
         },
         {
-            "start": 5359900,
+            "start": 5354000,
+            "end": 5366000,
+            "type": "amateur1",
+            "name": "60m HAM Alle modes (USB)"
+        },
+        {
+            "start": 5366000,
+            "end": 5366500,
+            "type": "amateur",
+            "name": "60m HAM Weak NB modes"
+        },
+        {
+            "start": 5366500,
             "end": 5371500,
             "type": "amateur1",
             "name": "60m Ham Band (Not NL)"
@@ -777,7 +807,7 @@
             "start": 5403500,
             "end": 5406400,
             "type": "amateur",
-            "name": "Ch. 5 60m Ham Band (Not NL)|"
+            "name": "Ch. 5 60m Ham Band (Not NL)"
         },
         {
             "start": 5406400,
@@ -3048,16 +3078,10 @@
             "name": "Radio Astronomy"
         },
         {
-            "start": 2300000000,
-            "end": 2310000000,
-            "type": "amateur",
-            "name": "|13cm Ham Band"
-        },
-        {
             "start": 2320000000,
             "end": 2332500000,
-            "type": "satellite",
-            "name": "Satellite Digital Audio Radio Service (SDARS)"
+            "type": "amateur",
+            "name": "|13cm Ham Band Satellite  Digital Audio Radio Service (SDARS)"
         },
         {
             "start": 2332500000,
@@ -3067,21 +3091,9 @@
         },
         {
             "start": 2345000000,
-            "end": 2360000000,
-            "type": "aviation",
-            "name": "Aviation Service and the Wireless Communications Service (WCS)"
-        },
-        {
-            "start": 2360000000,
-            "end": 2390000000,
-            "type": "aviation",
-            "name": "Aviation"
-        },
-        {
-            "start": 2390000000,
             "end": 2393750000,
             "type": "amateur",
-            "name": "13cm Ham Band (Upper)|  Analog and Digital"
+            "name": "13cm Ham Band Analog and Digital"
         },
         {
             "start": 2393750000,
@@ -3093,25 +3105,25 @@
             "start": 2394750000,
             "end": 2400000000,
             "type": "amateur",
-            "name": "Analog and Digital 13 cm HAM Band|"
+            "name": "Analog and Digital 13cm HAM Band"
         },
         {
             "start": 2400000000,
             "end": 2401000000,
             "type": "utility",
-            "name": "Shared Satellite and 13cm ISM"
+            "name": "Shared Satellite, 13cm ISM and Ham"
         },
         {
             "start": 2401000000,
             "end": 2410000000,
             "type": "utility",
-            "name": "WiFi shared with Satellite and 13cm ISM"
+            "name": "WiFi shared with Satellite, 13cm ISM and Ham"
         },
         {
             "start": 2410000000,
             "end": 2411900000,
             "type": "utility",
-            "name": "WiFi shared with Broadband Modes and 13cm ISM"
+            "name": "WiFi shared with Broadband Modes, 13cm ISM and Ham"
         },
         {
             "start": 2411900000,
@@ -3122,8 +3134,8 @@
         {
             "start": 2412100000,
             "end": 2450000000,
-            "type": "utility",
-            "name": "WiFi shared with Broadband Modes 13cm ISM  |13cm Ham Band"
+            "type": "amateur",
+            "name": "WiFi shared with Broadband Modes 13cm ISM, 13cm Ham Band|"
         },
         {
             "start": 2450000000,
@@ -3172,6 +3184,366 @@
             "end": 2500000000,
             "type": "utility",
             "name": "ISM Band (13cm)"
+        },
+        {
+            "name": "IMT",
+            "type": "cellular",
+            "start": 2500000000,
+            "end": 2544500000
+        },
+        {
+            "name": "Radioastronomy",
+            "type": "utility",
+            "start": 2690000000,
+            "end": 2700000000
+        },
+        {
+            "name": "Radar meteo",
+            "type": "military",
+            "start": 2700000000,
+            "end": 2900000000
+        },
+        {
+            "name": "Maritime Radar",
+            "type": "marine",
+            "start": 2900000000,
+            "end": 3400000000
+        },
+        {
+            "name": "Radio Ham 9 cm band",
+            "type": "amateur",
+            "start": 3400000000,
+            "end": 3475000000
+        },
+        {
+            "name": "Digital Networks",
+            "type": "utility",
+            "start": 3475000000,
+            "end": 4200000000
+        },
+        {
+            "name": "Altimeters",
+            "type": "aviation",
+            "start": 4200000000,
+            "end": 4400000000
+        },
+        {
+            "name": "Feeder link",
+            "type": "satellite",
+            "start": 5150000000,
+            "end": 5250000000
+        },
+        {
+            "name": "Digital networks and 802.11",
+            "type": "utility",
+            "start": 5250000000,
+            "end": 5650000000
+        },
+        {
+            "name": "Radio Ham 6 cm band",
+            "type": "amateur",
+            "start": 5650000000,
+            "end": 5850000000
+        },
+        {
+            "name": "Digital Networks and LPR",
+            "type": "utility",
+            "start": 5925000000,
+            "end": 7750000000
+        },
+        {
+            "name": "LPR",
+            "type": "utility",
+            "start": 7750000000,
+            "end": 7975000000
+        },
+        {
+            "name": "Remote sensing",
+            "type": "utility",
+            "start": 7975000000,
+            "end": 8215000000
+        },
+        {
+            "name": "TLPR and SRD",
+            "type": "utility",
+            "start": 8215000000,
+            "end": 8650000000
+        },
+        {
+            "name": "Radar Doppler",
+            "type": "aviation",
+            "start": 8650000000,
+            "end": 8850000000
+        },
+        {
+            "name": "Maritime Radar",
+            "type": "marine",
+            "start": 8850000000,
+            "end": 9000000000
+        },
+        {
+            "name": "Radar and transponder SART",
+            "type": "marine",
+            "start": 9000000000,
+            "end": 9500000000
+        },
+        {
+            "name": "TLPR and SRD",
+            "type": "utility",
+            "start": 9500000000,
+            "end": 10000000000
+        },
+        {
+            "name": "Radio Ham 3 cm band",
+            "type": "amateur",
+            "start": 10000000000,
+            "end": 10500000000
+        },
+        {
+            "name": "Point to point TV networks",
+            "type": "utility",
+            "start": 10500000000,
+            "end": 10680000000
+        },
+        {
+            "name": "Digital network (fixed)",
+            "type": "utility",
+            "start": 10680000000,
+            "end": 11700000000
+        },
+        {
+            "name": "TV satellite",
+            "type": "satellite",
+            "start": 11700000000,
+            "end": 12500000000
+        },
+        {
+            "name": "Digital network (fixed)",
+            "type": "utility",
+            "start": 12500000000,
+            "end": 13250000000
+        },
+        {
+            "name": "Satellite Uplink",
+            "type": "satellite",
+            "start": 14000000000,
+            "end": 14500000000
+        },
+        {
+            "name": "Digital network (fixed)",
+            "type": "utility",
+            "start": 14500000000,
+            "end": 14620000000
+        },
+        {
+            "name": "Digital network (fixed)",
+            "type": "utility",
+            "start": 15230000000,
+            "end": 15350000000
+        },
+        {
+            "name": "Digital network (poit to point)",
+            "type": "utility",
+            "start": 17100000000,
+            "end": 19300000000
+        },
+        {
+            "name": "Feeder link",
+            "type": "satellite",
+            "start": 19300000000,
+            "end": 19700000000
+        },
+        {
+            "name": "HEST, LEST, ESIM, ESOMP",
+            "type": "satellite",
+            "start": 19700000000,
+            "end": 20200000000
+        },
+        {
+            "name": "Digital network (fixed)",
+            "type": "utility",
+            "start": 22000000000,
+            "end": 22330000000
+        },
+        {
+            "name": "Digital network (fixed)",
+            "type": "utility",
+            "start": 22674750000,
+            "end": 2283350000
+        },
+        {
+            "name": "Digital network (fixed), SAP/SAB",
+            "type": "utility",
+            "start": 22926750000,
+            "end": 23150000000
+        },
+        {
+            "name": "Digital network (fixed)",
+            "type": "utility",
+            "start": 23150000000,
+            "end": 23338000000
+        },
+        {
+            "name": "ISM, SRD and LPR",
+            "type": "utility",
+            "start": 24000000000,
+            "end": 24450000000
+        },
+        {
+            "name": "Digital network (point to point, multipoint)",
+            "type": "utility",
+            "start": 24450000000,
+            "end": 25109000000
+        },
+        {
+            "name": "LPR, SRD and SRR",
+            "type": "utility",
+            "start": 25109000000,
+            "end": 2544500000
+        },
+        {
+            "name": "Network (point to point, multipoint)",
+            "type": "utility",
+            "start": 2544500000,
+            "end": 2611700000
+        },
+        {
+            "name": "LPR, SRD and SRR",
+            "type": "utility",
+            "start": 2611700000,
+            "end": 2650000000
+        },
+        {
+            "name": "Terrestrial electric utility",
+            "type": "utility",
+            "start": 26500000000,
+            "end": 27500000000
+        },
+        {
+            "name": "Network (point to point, multipoint)",
+            "type": "utility",
+            "start": 27500000000,
+            "end": 29100000000
+        },
+        {
+            "name": "Network (point to point, multipoint)",
+            "type": "utility",
+            "start": 29100000000,
+            "end": 29500000000
+        },
+        {
+            "name": "Network (point to point, multipoint)",
+            "type": "utility",
+            "start": 31000000000,
+            "end": 31300000000
+        },
+        {
+            "name": "Network (high density, fixed)",
+            "type": "utility",
+            "start": 31983000000,
+            "end": 32599000000
+        },
+        {
+            "name": "Network (high density, fixed)",
+            "type": "utility",
+            "start": 32795000000,
+            "end": 33400000000
+        },
+        {
+            "name": "Network (high density, fixed)",
+            "type": "utility",
+            "start": 37338000000,
+            "end": 38300000000
+        },
+        {
+            "name": "Network (high density, fixed)",
+            "type": "utility",
+            "start": 38590000000,
+            "end": 39500000000
+        },
+        {
+            "name": "FWS systems (fixed)",
+            "type": "utility",
+            "start": 40500000000,
+            "end": 43500000000
+        },
+        {
+            "name": "Radio Ham 6 mm band",
+            "type": "amateur",
+            "start": 47000000000,
+            "end": 47200000000
+        },
+        {
+            "name": "Network (high density, fixed)",
+            "type": "utility",
+            "start": 51400000000,
+            "end": 52600000000
+        },
+        {
+            "name": "Network (high density, fixed)",
+            "type": "utility",
+            "start": 55780000000,
+            "end": 61000000000
+        },
+        {
+            "name": "ISM",
+            "type": "utility",
+            "start": 61000000000,
+            "end": 64000000000
+        },
+        {
+            "name": "Network (high density, fixed)",
+            "type": "utility",
+            "start": 64000000000,
+            "end": 66000000000
+        },
+        {
+            "name": "Links (high density, fixed)",
+            "type": "utility",
+            "start": 71000000000,
+            "end": 74000000000
+        },
+        {
+            "name": "LPR, SRD, SRR, TLPR, vehichle radar",
+            "type": "utility",
+            "start": 74000000000,
+            "end": 76500000000
+        },
+        {
+            "name": "Radio Ham 4 mm band",
+            "type": "amateur",
+            "start": 76500000000,
+            "end": 81500000000
+        },
+        {
+            "name": "Links (high density, fixed)",
+            "type": "utility",
+            "start": 84000000000,
+            "end": 86000000000
+        },
+        {
+            "name": "ISM",
+            "type": "utility",
+            "start": 120200000000,
+            "end": 122250000000
+        },
+        {
+            "name": "Radio Ham 2.5 mm band",
+            "type": "amateur",
+            "start": 122250000000,
+            "end": 123000000000
+        },
+        {
+            "name": "Radio Ham 2 mm band",
+            "type": "amateur",
+            "start": 134000000000,
+            "end": 141000000000
+        },
+        {
+            "name": "Radio Ham 1 mm band",
+            "type": "amateur",
+            "start": 241000000000,
+            "end": 250000000000
         }
     ]
 }
