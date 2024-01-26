@@ -7,6 +7,8 @@ assignees: ''
 
 ---
 
+# WARNING: Filling out the template below is NOT optional. Issues not filling out this template will be closed without review.
+
 FIRST: Before reporting any bug, make sure that the bug you are reporting has not been reported before. Also, try to use the [nightly version](https://www.sdrpp.org/nightly) if possible in case I've already fixed the bug.
 
 **Hardware**
