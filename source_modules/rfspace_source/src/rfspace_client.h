@@ -2,6 +2,7 @@
 #include <utils/net.h>
 #include <dsp/stream.h>
 #include <dsp/types.h>
+#include <thread>
 #include <vector>
 #include <mutex>
 
