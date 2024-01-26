@@ -111,21 +111,21 @@
             "start": 472000,
             "end": 475000,
             "type": "amateur",
-            "name": "|635m Ham Band CW"
-        },		
+            "name": "635m Ham Band CW"
+        },
         {
             "start": 475000,
             "end": 479000,
             "type": "amateur1",
-            "name": "635m Ham Band CW, Digimodes|"
-        },		
+            "name": "635m Ham Band CW, Digimodes"
+        },
         {
             "start": 479000,
             "end": 526500,
             "type": "aviation",
             "name": "Aeronautical Radionavigation / Maritime"
         },
-		{
+        {
             "start": 526500,
             "end": 1606500,
             "type": "broadcast",
@@ -747,7 +747,7 @@
             "start": 5330500,
             "end": 5333400,
             "type": "amateur",
-            "name": "|60m Ham Band Ch. 1 (Not NL)"
+            "name": "60m Ham Band Ch. 1 (Not NL)"
         },
         {
             "start": 5333400,
@@ -766,12 +766,12 @@
             "end": 5351500,
             "type": "amateur1",
             "name": "60m Ham Band (Not NL)"
-        },		
+        },
         {
             "start": 5351500,
             "end": 5354000,
             "type": "amateur",
-            "name": "| 60m Ham Band CW"
+            "name": "60m Ham Band CW"
         },
         {
             "start": 5354000,
@@ -783,7 +783,7 @@
             "start": 5366000,
             "end": 5366500,
             "type": "amateur",
-            "name": "60m HAM Weak NB modes |"
+            "name": "60m HAM Weak NB modes"
         },
         {
             "start": 5366500,
@@ -807,7 +807,7 @@
             "start": 5403500,
             "end": 5406400,
             "type": "amateur",
-            "name": "Ch. 5 60m Ham Band (Not NL)|"
+            "name": "Ch. 5 60m Ham Band (Not NL)"
         },
         {
             "start": 5406400,
@@ -3545,5 +3545,5 @@
             "start": 241000000000,
             "end": 250000000000
         }
-	]
+    ]
 }
