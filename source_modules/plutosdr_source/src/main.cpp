@@ -19,12 +19,6 @@ SDRPP_MOD_INFO{
     /* Max instances    */ 1
 };
 
-const char* gainModes[] = {
-    "manual", "fast_attack", "slow_attack", "hybrid"
-};
-
-const char* gainModesTxt = "Manual\0Fast Attack\0Slow Attack\0Hybrid\0";
-
 ConfigManager config;
 
 class PlutoSDRSourceModule : public ModuleManager::Instance {
@@ -55,6 +49,12 @@ public:
             srId = 0;
             sampleRate = samplerates.value(srId);
         }
+
+        // Define gain modes
+        gainModes.define(0, "Manual", "manual");
+        gainModes.define(1, "Fast Attack", "fast_attack");
+        gainModes.define(2, "Slow Attack", "slow_attack");
+        gainModes.define(3, "Hybrid", "hybrid");
 
         // Register source
         handler.ctx = this;
@@ -142,10 +142,10 @@ private:
 
         // Configure RX channel
         iio_channel_attr_write(iio_device_find_channel(_this->phy, "voltage0", false), "rf_port_select", "A_BALANCED");
-        iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "altvoltage0", true), "frequency", round(_this->freq));              // Freq
-        iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "voltage0", false), "sampling_frequency", round(_this->sampleRate)); // Sample rate
-        iio_channel_attr_write(iio_device_find_channel(_this->phy, "voltage0", false), "gain_control_mode", gainModes[_this->gainMode]);         // manual gain
-        iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "voltage0", false), "hardwaregain", round(_this->gain));             // gain
+        iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "altvoltage0", true), "frequency", round(_this->freq));                             // Freq
+        iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "voltage0", false), "sampling_frequency", round(_this->sampleRate));                // Sample rate
+        iio_channel_attr_write(iio_device_find_channel(_this->phy, "voltage0", false), "gain_control_mode", _this->gainModes.value(_this->gainMode).c_str());   // Gain mode
+        iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "voltage0", false), "hardwaregain", round(_this->gain));                            // gain
         ad9361_set_bb_rate(_this->phy, round(_this->sampleRate));
 
         // Start worker thread
@@ -209,9 +209,9 @@ private:
         SmGui::LeftLabel("Gain Mode");
         SmGui::FillWidth();
         SmGui::ForceSync();
-        if (SmGui::Combo(CONCAT("##_gainmode_select_", _this->name), &_this->gainMode, gainModesTxt)) {
+        if (SmGui::Combo(CONCAT("##_gainmode_select_", _this->name), &_this->gainMode, _this->gainModes.txt)) {
             if (_this->running) {
-                iio_channel_attr_write(iio_device_find_channel(_this->phy, "voltage0", false), "gain_control_mode", gainModes[_this->gainMode]);
+                iio_channel_attr_write(iio_device_find_channel(_this->phy, "voltage0", false), "gain_control_mode", _this->gainModes.value(_this->gainMode).c_str());
             }
             config.acquire();
             config.conf["gainMode"] = _this->gainMode;
@@ -292,6 +292,7 @@ private:
     int srId = 0;
 
     OptionList<int, double> samplerates;
+    OptionList<int, std::string> gainModes;
 };
 
 MOD_EXPORT void _INIT_() {
