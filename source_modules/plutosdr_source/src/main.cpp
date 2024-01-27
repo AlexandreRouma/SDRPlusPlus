@@ -285,7 +285,7 @@ private:
             iio_channel_attr_write_longlong(rxChan, "rf_bandwidth", bw);
         }
         else {
-            iio_channel_attr_write_longlong(rxChan, "rf_bandwidth", sampleRate);
+            iio_channel_attr_write_longlong(rxChan, "rf_bandwidth", std::min<int>(sampleRate, 52000000));
         }
     }
 
