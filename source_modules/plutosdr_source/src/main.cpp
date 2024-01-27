@@ -153,12 +153,18 @@ private:
             std::string desc = iio_context_info_get_description(info);
             std::string uri = iio_context_info_get_uri(info);
 
-            devices.define(uri, name, uri);
+            devices.define(uri, desc, uri);
         }
         iio_context_info_list_free(ctxInfoList);
         
         // Destroy scan context
         iio_scan_context_destroy(sctx);
+
+#ifdef __ANDROID__
+        // On Android, a default IP entry must be made (TODO: This is not ideal since the IP cannot be changed)
+        const char* androidURI = "ip:192.168.2.1";
+        devices.define(androidURI, "Default (192.168.2.1)", androidURI);
+#endif
     }
 
     void select(const std::string& nuri) {
