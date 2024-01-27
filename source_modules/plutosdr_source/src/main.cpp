@@ -144,8 +144,8 @@ private:
         iio_channel_attr_write(iio_device_find_channel(_this->phy, "voltage0", false), "rf_port_select", "A_BALANCED");
         iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "altvoltage0", true), "frequency", round(_this->freq));                             // Freq
         iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "voltage0", false), "sampling_frequency", round(_this->sampleRate));                // Sample rate
-        iio_channel_attr_write(iio_device_find_channel(_this->phy, "voltage0", false), "gain_control_mode", _this->gainModes.value(_this->gainMode).c_str());   // Gain mode
         iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "voltage0", false), "hardwaregain", round(_this->gain));                            // gain
+        iio_channel_attr_write(iio_device_find_channel(_this->phy, "voltage0", false), "gain_control_mode", _this->gainModes.value(_this->gainMode).c_str());   // Gain mode
         ad9361_set_bb_rate(_this->phy, round(_this->sampleRate));
 
         // Start worker thread
