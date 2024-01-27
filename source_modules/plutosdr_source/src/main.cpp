@@ -28,10 +28,6 @@ public:
 
         // Load configuration
         config.acquire();
-        if (config.conf.contains("IP")) {
-            std::string _ip = config.conf["IP"];
-            strcpy(&ip[3], _ip.c_str());
-        }
         if (config.conf.contains("sampleRate")) {
             sampleRate = config.conf["sampleRate"];
         }
@@ -82,6 +78,12 @@ public:
         gainModes.define(2, "Slow Attack", "slow_attack");
         gainModes.define(3, "Hybrid", "hybrid");
 
+        // Enumerate devices
+        refresh();
+
+        // Select device
+        // TODO
+
         // Register source
         handler.ctx = this;
         handler.selectHandler = menuSelected;
@@ -128,6 +130,41 @@ private:
         return std::string(buf);
     }
 
+    void refresh() {
+        // Clear device list
+        devices.clear();
+
+        // Create scan context
+        iio_scan_context* sctx = iio_create_scan_context(NULL, 0);
+        if (!sctx) {
+            flog::error("Failed get scan context");
+            return;
+        }
+
+        // Enumerate devices
+        iio_context_info** ctxInfoList;
+        ssize_t count = iio_scan_context_get_info_list(sctx, &ctxInfoList);
+        if (count < 0) {
+            flog::error("Failed to enumerate contexts");
+            return;
+        }
+        for (ssize_t i = 0; i < count; i++) {
+            iio_context_info* info = ctxInfoList[i];
+            std::string desc = iio_context_info_get_description(info);
+            std::string uri = iio_context_info_get_uri(info);
+
+            devices.define(uri, name, uri);
+        }
+        iio_context_info_list_free(ctxInfoList);
+        
+        // Destroy scan context
+        iio_scan_context_destroy(sctx);
+    }
+
+    void select(const std::string& nuri) {
+        uri = nuri;
+    }
+
     static void menuSelected(void* ctx) {
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
         core::setInputSampleRate(_this->sampleRate);
@@ -144,9 +181,9 @@ private:
         if (_this->running) { return; }
 
         // Open context
-        _this->ctx = iio_create_context_from_uri(_this->ip);
+        _this->ctx = iio_create_context_from_uri(_this->uri.c_str());
         if (_this->ctx == NULL) {
-            flog::error("Could not open pluto");
+            flog::error("Could not open pluto ({})", _this->uri);
             return;
         }
 
@@ -223,22 +260,29 @@ private:
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
 
         if (_this->running) { SmGui::BeginDisabled(); }
-        SmGui::LeftLabel("IP");
         SmGui::FillWidth();
-        if (SmGui::InputText(CONCAT("##_pluto_ip_", _this->name), &_this->ip[3], 16)) {
-            config.acquire();
-            config.conf["IP"] = &_this->ip[3];
-            config.release(true);
+        SmGui::ForceSync();
+        if (SmGui::Combo("##plutosdr_dev_sel", &_this->devId, _this->devices.txt)) {
+            _this->select(_this->devices.value(_this->devId));
+            // TODO: Save
         }
 
-        SmGui::LeftLabel("Samplerate");
-        SmGui::FillWidth();
         if (SmGui::Combo(CONCAT("##_pluto_sr_", _this->name), &_this->srId, _this->samplerates.txt)) {
             _this->sampleRate = _this->samplerates.value(_this->srId);
             core::setInputSampleRate(_this->sampleRate);
             config.acquire();
             config.conf["sampleRate"] = _this->sampleRate;
             config.release(true);
+        }
+
+        // Refresh button
+        SmGui::SameLine();
+        SmGui::FillWidth();
+        SmGui::ForceSync();
+        if (SmGui::Button(CONCAT("Refresh##_pluto_refr_", _this->name))) {
+            _this->refresh();
+            _this->select(_this->uri);
+
         }
         if (_this->running) { SmGui::EndDisabled(); }
 
@@ -343,16 +387,19 @@ private:
     iio_channel* rxChan = NULL;
     bool running = false;
 
+    std::string uri = "";
+
     double freq;
-    char ip[1024] = "ip:192.168.2.1";
     float sampleRate = 4000000;
     int bandwidth = 0;
     int gainMode = 0;
     float gain = 0;
 
+    int devId = 0;
     int srId = 0;
     int bwId = 0;
 
+    OptionList<std::string, std::string> devices;
     OptionList<int, double> samplerates;
     OptionList<int, double> bandwidths;
     OptionList<int, std::string> gainModes;
