@@ -117,12 +117,14 @@ private:
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
         if (_this->running) { return; }
 
-        // Open device
+        // Open context
         _this->ctx = iio_create_context_from_uri(_this->ip);
         if (_this->ctx == NULL) {
             flog::error("Could not open pluto");
             return;
         }
+
+        // Get phy and device handle
         _this->phy = iio_context_find_device(_this->ctx, "ad9361-phy");
         if (_this->phy == NULL) {
             flog::error("Could not connect to pluto phy");
@@ -136,16 +138,19 @@ private:
             return;
         }
 
+        // Get RX channel
+        _this->rxChan = iio_device_find_channel(_this->phy, "voltage0", false);
+
         // Enable RX channel and disable TX
         iio_channel_attr_write_bool(iio_device_find_channel(_this->phy, "altvoltage1", true), "powerdown", true);
         iio_channel_attr_write_bool(iio_device_find_channel(_this->phy, "altvoltage0", true), "powerdown", false);
 
         // Configure RX channel
-        iio_channel_attr_write(iio_device_find_channel(_this->phy, "voltage0", false), "rf_port_select", "A_BALANCED");
-        iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "altvoltage0", true), "frequency", round(_this->freq));                             // Freq
-        iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "voltage0", false), "sampling_frequency", round(_this->sampleRate));                // Sample rate
-        iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "voltage0", false), "hardwaregain", round(_this->gain));                            // gain
-        iio_channel_attr_write(iio_device_find_channel(_this->phy, "voltage0", false), "gain_control_mode", _this->gainModes.value(_this->gainMode).c_str());   // Gain mode
+        iio_channel_attr_write(_this->rxChan, "rf_port_select", "A_BALANCED");
+        iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "altvoltage0", true), "frequency", round(_this->freq)); // Freq
+        iio_channel_attr_write_longlong(_this->rxChan, "sampling_frequency", round(_this->sampleRate));                             // Sample rate
+        iio_channel_attr_write_longlong(_this->rxChan, "hardwaregain", round(_this->gain));                                         // Gain
+        iio_channel_attr_write(_this->rxChan, "gain_control_mode", _this->gainModes.value(_this->gainMode).c_str());                // Gain mode
         ad9361_set_bb_rate(_this->phy, round(_this->sampleRate));
 
         // Start worker thread
@@ -211,7 +216,7 @@ private:
         SmGui::ForceSync();
         if (SmGui::Combo(CONCAT("##_gainmode_select_", _this->name), &_this->gainMode, _this->gainModes.txt)) {
             if (_this->running) {
-                iio_channel_attr_write(iio_device_find_channel(_this->phy, "voltage0", false), "gain_control_mode", _this->gainModes.value(_this->gainMode).c_str());
+                iio_channel_attr_write(_this->rxChan, "gain_control_mode", _this->gainModes.value(_this->gainMode).c_str());
             }
             config.acquire();
             config.conf["gainMode"] = _this->gainMode;
@@ -223,7 +228,7 @@ private:
         SmGui::FillWidth();
         if (SmGui::SliderFloat(CONCAT("##_gain_select_", _this->name), &_this->gain, 0, 76)) {
             if (_this->running) {
-                iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "voltage0", false), "hardwaregain", round(_this->gain));
+                iio_channel_attr_write_longlong(_this->rxChan, "hardwaregain", round(_this->gain));
             }
             config.acquire();
             config.conf["gain"] = _this->gain;
@@ -282,6 +287,7 @@ private:
     iio_context* ctx = NULL;
     iio_device* phy = NULL;
     iio_device* dev = NULL;
+    iio_channel* rxChan = NULL;
     bool running = false;
 
     bool ipMode = true;
