@@ -7,7 +7,7 @@
 #include <gui/smgui.h>
 #include <iio.h>
 #include <ad9361.h>
-
+#include <utils/optionlist.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -32,6 +32,7 @@ public:
     PlutoSDRSourceModule(std::string name) {
         this->name = name;
 
+        // Load configuration
         config.acquire();
         std::string _ip = config.conf["IP"];
         strcpy(&ip[3], _ip.c_str());
@@ -40,26 +41,22 @@ public:
         gain = config.conf["gain"];
         config.release();
 
-        // Generate the samplerate list and find srId
-        bool found = false;
-        int id = 0;
-        for (double sr = 1000000; sr <= 20000000; sr += 500000) {
-            sampleRates.push_back(sr);
-            sampleRatesTxt += getBandwdithScaled(sr);
-            sampleRatesTxt += '\0';
-
-            if (sr == sampleRate) {
-                found = true;
-                srId = id;
-            }
-
-            id++;
+        // Define valid samplerates
+        for (double sr = 1000000.0; sr <= 61440000.0; sr += 500000.0) {
+            samplerates.define(sr, getBandwdithScaled(sr), sr);
         }
-        if (!found) {
+        samplerates.define(61440000, getBandwdithScaled(61440000.0), 61440000.0);
+
+        // Set samplerate ID
+        if (samplerates.keyExists(sampleRate)) {
+            srId = samplerates.keyId(sampleRate);
+        }
+        else {
             srId = 0;
-            sampleRate = sampleRates[0];
+            sampleRate = samplerates.value(srId);
         }
 
+        // Register source
         handler.ctx = this;
         handler.selectHandler = menuSelected;
         handler.deselectHandler = menuDeselected;
@@ -120,7 +117,7 @@ private:
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
         if (_this->running) { return; }
 
-        // TODO: INIT CONTEXT HERE
+        // Open device
         _this->ctx = iio_create_context_from_uri(_this->ip);
         if (_this->ctx == NULL) {
             flog::error("Could not open pluto");
@@ -139,10 +136,11 @@ private:
             return;
         }
 
-        // Configure pluto
+        // Enable RX channel and disable TX
         iio_channel_attr_write_bool(iio_device_find_channel(_this->phy, "altvoltage1", true), "powerdown", true);
         iio_channel_attr_write_bool(iio_device_find_channel(_this->phy, "altvoltage0", true), "powerdown", false);
 
+        // Configure RX channel
         iio_channel_attr_write(iio_device_find_channel(_this->phy, "voltage0", false), "rf_port_select", "A_BALANCED");
         iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "altvoltage0", true), "frequency", round(_this->freq));              // Freq
         iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "voltage0", false), "sampling_frequency", round(_this->sampleRate)); // Sample rate
@@ -150,6 +148,7 @@ private:
         iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "voltage0", false), "hardwaregain", round(_this->gain));             // gain
         ad9361_set_bb_rate(_this->phy, round(_this->sampleRate));
 
+        // Start worker thread
         _this->running = true;
         _this->workerThread = std::thread(worker, _this);
         flog::info("PlutoSDRSourceModule '{0}': Start!", _this->name);
@@ -158,12 +157,14 @@ private:
     static void stop(void* ctx) {
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
         if (!_this->running) { return; }
+
+        // Stop worker thread
         _this->running = false;
         _this->stream.stopWriter();
         _this->workerThread.join();
         _this->stream.clearWriteStop();
 
-        // DESTROY CONTEXT HERE
+        // Close device
         if (_this->ctx != NULL) {
             iio_context_destroy(_this->ctx);
             _this->ctx = NULL;
@@ -176,7 +177,7 @@ private:
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
         _this->freq = freq;
         if (_this->running) {
-            // SET PLUTO FREQ HERE
+            // Tune device
             iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "altvoltage0", true), "frequency", round(freq));
         }
         flog::info("PlutoSDRSourceModule '{0}': Tune: {1}!", _this->name, freq);
@@ -196,8 +197,8 @@ private:
 
         SmGui::LeftLabel("Samplerate");
         SmGui::FillWidth();
-        if (SmGui::Combo(CONCAT("##_pluto_sr_", _this->name), &_this->srId, _this->sampleRatesTxt.c_str())) {
-            _this->sampleRate = _this->sampleRates[_this->srId];
+        if (SmGui::Combo(CONCAT("##_pluto_sr_", _this->name), &_this->srId, _this->samplerates.txt)) {
+            _this->sampleRate = _this->samplerates.value(_this->srId);
             core::setInputSampleRate(_this->sampleRate);
             config.acquire();
             config.conf["sampleRate"] = _this->sampleRate;
@@ -235,38 +236,40 @@ private:
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
         int blockSize = _this->sampleRate / 200.0f;
 
-        struct iio_channel *rx0_i, *rx0_q;
-        struct iio_buffer* rxbuf;
+        // Acquire channels
+        iio_channel* rx0_i = iio_device_find_channel(_this->dev, "voltage0", 0);
+        iio_channel* rx0_q = iio_device_find_channel(_this->dev, "voltage1", 0);
 
-        rx0_i = iio_device_find_channel(_this->dev, "voltage0", 0);
-        rx0_q = iio_device_find_channel(_this->dev, "voltage1", 0);
-
+        // Start streaming
         iio_channel_enable(rx0_i);
         iio_channel_enable(rx0_q);
 
-        rxbuf = iio_device_create_buffer(_this->dev, blockSize, false);
+        // Allocate buffer
+        iio_buffer* rxbuf = iio_device_create_buffer(_this->dev, blockSize, false);
         if (!rxbuf) {
             flog::error("Could not create RX buffer");
             return;
         }
 
         while (true) {
-            // Read samples here
-            // TODO: RECEIVE HERE
+            // Read samples
             iio_buffer_refill(rxbuf);
 
+            // Get buffer pointer
             int16_t* buf = (int16_t*)iio_buffer_first(rxbuf, rx0_i);
 
-            for (int i = 0; i < blockSize; i++) {
-                _this->stream.writeBuf[i].re = (float)buf[i * 2] / 32768.0f;
-                _this->stream.writeBuf[i].im = (float)buf[(i * 2) + 1] / 32768.0f;
-            }
-
+            // Convert samples to CF32
             volk_16i_s32f_convert_32f((float*)_this->stream.writeBuf, buf, 32768.0f, blockSize * 2);
 
+            // Send out the samples
             if (!_this->stream.swap(blockSize)) { break; };
         }
 
+        // Stop streaming
+        iio_channel_disable(rx0_i);
+        iio_channel_disable(rx0_q);
+
+        // Free buffer
         iio_buffer_destroy(rxbuf);
     }
 
@@ -276,10 +279,11 @@ private:
     float sampleRate;
     SourceManager::SourceHandler handler;
     std::thread workerThread;
-    struct iio_context* ctx = NULL;
-    struct iio_device* phy = NULL;
-    struct iio_device* dev = NULL;
+    iio_context* ctx = NULL;
+    iio_device* phy = NULL;
+    iio_device* dev = NULL;
     bool running = false;
+
     bool ipMode = true;
     double freq;
     char ip[1024] = "ip:192.168.2.1";
@@ -287,8 +291,7 @@ private:
     float gain = 0;
     int srId = 0;
 
-    std::vector<double> sampleRates;
-    std::string sampleRatesTxt;
+    OptionList<int, double> samplerates;
 };
 
 MOD_EXPORT void _INIT_() {
