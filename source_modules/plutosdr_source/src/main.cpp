@@ -15,7 +15,7 @@ SDRPP_MOD_INFO{
     /* Name:            */ "plutosdr_source",
     /* Description:     */ "PlutoSDR source module for SDR++",
     /* Author:          */ "Ryzerth",
-    /* Version:         */ 0, 1, 0,
+    /* Version:         */ 0, 2, 0,
     /* Max instances    */ 1
 };
 
@@ -28,15 +28,26 @@ public:
 
         // Load configuration
         config.acquire();
-        std::string _ip = config.conf["IP"];
-        strcpy(&ip[3], _ip.c_str());
-        sampleRate = config.conf["sampleRate"];
-        gainMode = config.conf["gainMode"];
-        gain = config.conf["gain"];
+        if (config.conf.contains("IP")) {
+            std::string _ip = config.conf["IP"];
+            strcpy(&ip[3], _ip.c_str());
+        }
+        if (config.conf.contains("sampleRate")) {
+            sampleRate = config.conf["sampleRate"];
+        }
+        if (config.conf.contains("bandwidth")) {
+            bandwidth = config.conf["bandwidth"];
+        }
+        if (config.conf.contains("gainMode")) {
+            gainMode = config.conf["gainMode"];
+        }
+        if (config.conf.contains("gain")) {
+            gain = config.conf["gain"];
+        }
         config.release();
 
         // Define valid samplerates
-        for (double sr = 1000000.0; sr <= 61440000.0; sr += 500000.0) {
+        for (int sr = 1000000; sr <= 61440000; sr += 500000) {
             samplerates.define(sr, getBandwdithScaled(sr), sr);
         }
         samplerates.define(61440000, getBandwdithScaled(61440000.0), 61440000.0);
@@ -48,6 +59,21 @@ public:
         else {
             srId = 0;
             sampleRate = samplerates.value(srId);
+        }
+
+        // Define valid bandwidths
+        bandwidths.define(0, "Auto", 0);
+        for (int bw = 1000000.0; bw <= 52000000; bw += 500000) {
+            bandwidths.define(bw, getBandwdithScaled(bw), bw);
+        }
+
+        // Set bandwidth ID
+        if (bandwidths.keyExists(bandwidth)) {
+            bwId = bandwidths.keyId(bandwidth);
+        }
+        else {
+            bwId = 0;
+            bandwidth = bandwidths.value(bwId);
         }
 
         // Define gain modes
@@ -138,19 +164,24 @@ private:
             return;
         }
 
-        // Get RX channel
+        // Get RX channels
         _this->rxChan = iio_device_find_channel(_this->phy, "voltage0", false);
+        _this->rxLO = iio_device_find_channel(_this->phy, "altvoltage0", true);
 
-        // Enable RX channel and disable TX
+        // Enable RX LO and disable TX
         iio_channel_attr_write_bool(iio_device_find_channel(_this->phy, "altvoltage1", true), "powerdown", true);
-        iio_channel_attr_write_bool(iio_device_find_channel(_this->phy, "altvoltage0", true), "powerdown", false);
+        iio_channel_attr_write_bool(_this->rxLO, "powerdown", false);
 
         // Configure RX channel
         iio_channel_attr_write(_this->rxChan, "rf_port_select", "A_BALANCED");
-        iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "altvoltage0", true), "frequency", round(_this->freq)); // Freq
-        iio_channel_attr_write_longlong(_this->rxChan, "sampling_frequency", round(_this->sampleRate));                             // Sample rate
-        iio_channel_attr_write_longlong(_this->rxChan, "hardwaregain", round(_this->gain));                                         // Gain
-        iio_channel_attr_write(_this->rxChan, "gain_control_mode", _this->gainModes.value(_this->gainMode).c_str());                // Gain mode
+        iio_channel_attr_write_longlong(_this->rxLO, "frequency", round(_this->freq));                                  // Freq
+        iio_channel_attr_write_bool(_this->rxChan, "filter_fir_en", true);                                              // Digital filter
+        iio_channel_attr_write_longlong(_this->rxChan, "sampling_frequency", round(_this->sampleRate));                 // Sample rate
+        iio_channel_attr_write_longlong(_this->rxChan, "hardwaregain", round(_this->gain));                             // Gain
+        iio_channel_attr_write(_this->rxChan, "gain_control_mode", _this->gainModes.value(_this->gainMode).c_str());    // Gain mode
+        _this->setBandwidth(_this->bandwidth);
+        
+        // Configure the ADC filters
         ad9361_set_bb_rate(_this->phy, round(_this->sampleRate));
 
         // Start worker thread
@@ -211,6 +242,18 @@ private:
         }
         if (_this->running) { SmGui::EndDisabled(); }
 
+        SmGui::LeftLabel("Bandwidth");
+        SmGui::FillWidth();
+        if (SmGui::Combo(CONCAT("##_pluto_bw_", _this->name), &_this->bwId, _this->bandwidths.txt)) {
+            _this->bandwidth = _this->bandwidths.value(_this->bwId);
+            if (_this->running) {
+                _this->setBandwidth(_this->bandwidth);
+            }
+            config.acquire();
+            config.conf["bandwidth"] = _this->bandwidth;
+            config.release(true);
+        }
+
         SmGui::LeftLabel("Gain Mode");
         SmGui::FillWidth();
         SmGui::ForceSync();
@@ -237,6 +280,15 @@ private:
         if (_this->gainMode) { SmGui::EndDisabled(); }
     }
 
+    void setBandwidth(int bw) {
+        if (bw > 0) {
+            iio_channel_attr_write_longlong(rxChan, "rf_bandwidth", bw);
+        }
+        else {
+            iio_channel_attr_write_longlong(rxChan, "rf_bandwidth", sampleRate);
+        }
+    }
+
     static void worker(void* ctx) {
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
         int blockSize = _this->sampleRate / 200.0f;
@@ -256,6 +308,7 @@ private:
             return;
         }
 
+        // Receive loop
         while (true) {
             // Read samples
             iio_buffer_refill(rxbuf);
@@ -281,32 +334,32 @@ private:
     std::string name;
     bool enabled = true;
     dsp::stream<dsp::complex_t> stream;
-    float sampleRate;
     SourceManager::SourceHandler handler;
     std::thread workerThread;
     iio_context* ctx = NULL;
     iio_device* phy = NULL;
     iio_device* dev = NULL;
+    iio_channel* rxLO = NULL;
     iio_channel* rxChan = NULL;
     bool running = false;
 
-    bool ipMode = true;
     double freq;
     char ip[1024] = "ip:192.168.2.1";
+    float sampleRate = 4000000;
+    int bandwidth = 0;
     int gainMode = 0;
     float gain = 0;
+
     int srId = 0;
+    int bwId = 0;
 
     OptionList<int, double> samplerates;
+    OptionList<int, double> bandwidths;
     OptionList<int, std::string> gainModes;
 };
 
 MOD_EXPORT void _INIT_() {
-    json defConf;
-    defConf["IP"] = "192.168.2.1";
-    defConf["sampleRate"] = 4000000.0f;
-    defConf["gainMode"] = 0;
-    defConf["gain"] = 0.0f;
+    json defConf = {};
     config.setPath(core::args["root"].s() + "/plutosdr_source_config.json");
     config.load(defConf);
     config.enableAutoSave();
