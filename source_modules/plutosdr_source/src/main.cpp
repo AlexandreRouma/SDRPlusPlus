@@ -380,6 +380,10 @@ private:
         // Acquire channels
         iio_channel* rx0_i = iio_device_find_channel(_this->dev, "voltage0", 0);
         iio_channel* rx0_q = iio_device_find_channel(_this->dev, "voltage1", 0);
+        if (!rx0_i || !rx0_q) {
+            flog::error("Failed to acquire RX channels");
+            return;
+        }
 
         // Start streaming
         iio_channel_enable(rx0_i);
@@ -399,6 +403,7 @@ private:
 
             // Get buffer pointer
             int16_t* buf = (int16_t*)iio_buffer_first(rxbuf, rx0_i);
+            if (!buf) { break; }
 
             // Convert samples to CF32
             volk_16i_s32f_convert_32f((float*)_this->stream.writeBuf, buf, 32768.0f, blockSize * 2);
