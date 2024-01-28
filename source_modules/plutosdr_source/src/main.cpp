@@ -8,6 +8,7 @@
 #include <iio.h>
 #include <ad9361.h>
 #include <utils/optionlist.h>
+#include <algorithm>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -26,36 +27,11 @@ public:
     PlutoSDRSourceModule(std::string name) {
         this->name = name;
 
-        // Load configuration
-        config.acquire();
-        if (config.conf.contains("sampleRate")) {
-            sampleRate = config.conf["sampleRate"];
-        }
-        if (config.conf.contains("bandwidth")) {
-            bandwidth = config.conf["bandwidth"];
-        }
-        if (config.conf.contains("gainMode")) {
-            gainMode = config.conf["gainMode"];
-        }
-        if (config.conf.contains("gain")) {
-            gain = config.conf["gain"];
-        }
-        config.release();
-
         // Define valid samplerates
         for (int sr = 1000000; sr <= 61440000; sr += 500000) {
             samplerates.define(sr, getBandwdithScaled(sr), sr);
         }
         samplerates.define(61440000, getBandwdithScaled(61440000.0), 61440000.0);
-
-        // Set samplerate ID
-        if (samplerates.keyExists(sampleRate)) {
-            srId = samplerates.keyId(sampleRate);
-        }
-        else {
-            srId = 0;
-            sampleRate = samplerates.value(srId);
-        }
 
         // Define valid bandwidths
         bandwidths.define(0, "Auto", 0);
@@ -63,26 +39,20 @@ public:
             bandwidths.define(bw, getBandwdithScaled(bw), bw);
         }
 
-        // Set bandwidth ID
-        if (bandwidths.keyExists(bandwidth)) {
-            bwId = bandwidths.keyId(bandwidth);
-        }
-        else {
-            bwId = 0;
-            bandwidth = bandwidths.value(bwId);
-        }
-
         // Define gain modes
-        gainModes.define(0, "Manual", "manual");
-        gainModes.define(1, "Fast Attack", "fast_attack");
-        gainModes.define(2, "Slow Attack", "slow_attack");
-        gainModes.define(3, "Hybrid", "hybrid");
+        gainModes.define("manual", "Manual", "manual");
+        gainModes.define("fast_attack", "Fast Attack", "fast_attack");
+        gainModes.define("slow_attack", "Slow Attack", "slow_attack");
+        gainModes.define("hybrid", "Hybrid", "hybrid");
 
         // Enumerate devices
         refresh();
 
         // Select device
-        // TODO
+        config.acquire();
+        uri = config.conf["device"];
+        config.release();
+        select(uri);
 
         // Register source
         handler.ctx = this;
@@ -168,12 +138,66 @@ private:
     }
 
     void select(const std::string& nuri) {
+        // If no device is available, give up
+        if (devices.empty()) {
+            uri.clear();
+            return;
+        }
+
+        // If the device is not available, select the first one
+        if (!devices.keyExists(nuri)) {
+            select(devices.key(0));
+        }
+
+        // Update URI
         uri = nuri;
+
+        // TODO: Enumerate capabilities
+
+        // Load device config
+        config.acquire();
+        if (config.conf["devices"][uri.c_str()].contains("samplerate")) {
+            // Select given samplerate or default if invalid
+            samplerate = config.conf["devices"][uri]["samplerate"];
+            if (samplerates.keyExists(samplerate)) {
+                srId = samplerates.keyId(samplerate);
+            }
+            else {
+                srId = 0;
+                samplerate = samplerates.value(srId);
+            }
+        }
+        if (config.conf["devices"][uri].contains("bandwidth")) {
+            // Select given bandwidth or default if invalid
+            bandwidth = config.conf["devices"][uri]["bandwidth"];
+            if (bandwidths.keyExists(bandwidth)) {
+                bwId = bandwidths.keyId(bandwidth);
+            }
+            else {
+                bwId = 0;
+                bandwidth = bandwidths.value(bwId);
+            }
+        }
+        if (config.conf["devices"][uri].contains("gainMode")) {
+            // Select given gain mode or default if invalid
+            std::string gm = config.conf["devices"][uri]["gainMode"];
+            if (gainModes.keyExists(gm)) {
+                gmId = gainModes.keyId(gm);
+            }
+            else {
+                gmId = 0;
+            }
+        }
+        if (config.conf["devices"][uri].contains("gain")) {
+            gain = config.conf["devices"][uri]["gain"];
+            gain = std::clamp<int>(gain, -1.0f, 73.0f);
+        }
+        config.release();
     }
 
     static void menuSelected(void* ctx) {
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
-        core::setInputSampleRate(_this->sampleRate);
+        core::setInputSampleRate(_this->samplerate);
         flog::info("PlutoSDRSourceModule '{0}': Menu Select!", _this->name);
     }
 
@@ -217,15 +241,15 @@ private:
 
         // Configure RX channel
         iio_channel_attr_write(_this->rxChan, "rf_port_select", "A_BALANCED");
-        iio_channel_attr_write_longlong(_this->rxLO, "frequency", round(_this->freq));                                  // Freq
-        iio_channel_attr_write_bool(_this->rxChan, "filter_fir_en", true);                                              // Digital filter
-        iio_channel_attr_write_longlong(_this->rxChan, "sampling_frequency", round(_this->sampleRate));                 // Sample rate
-        iio_channel_attr_write_longlong(_this->rxChan, "hardwaregain", round(_this->gain));                             // Gain
-        iio_channel_attr_write(_this->rxChan, "gain_control_mode", _this->gainModes.value(_this->gainMode).c_str());    // Gain mode
+        iio_channel_attr_write_longlong(_this->rxLO, "frequency", round(_this->freq));                              // Freq
+        iio_channel_attr_write_bool(_this->rxChan, "filter_fir_en", true);                                          // Digital filter
+        iio_channel_attr_write_longlong(_this->rxChan, "sampling_frequency", round(_this->samplerate));             // Sample rate
+        iio_channel_attr_write_double(_this->rxChan, "hardwaregain", _this->gain);                                  // Gain
+        iio_channel_attr_write(_this->rxChan, "gain_control_mode", _this->gainModes.value(_this->gmId).c_str());    // Gain mode
         _this->setBandwidth(_this->bandwidth);
         
         // Configure the ADC filters
-        ad9361_set_bb_rate(_this->phy, round(_this->sampleRate));
+        ad9361_set_bb_rate(_this->phy, round(_this->samplerate));
 
         // Start worker thread
         _this->running = true;
@@ -257,7 +281,7 @@ private:
         _this->freq = freq;
         if (_this->running) {
             // Tune device
-            iio_channel_attr_write_longlong(iio_device_find_channel(_this->phy, "altvoltage0", true), "frequency", round(freq));
+            iio_channel_attr_write_longlong(_this->rxLO, "frequency", round(freq));
         }
         flog::info("PlutoSDRSourceModule '{0}': Tune: {1}!", _this->name, freq);
     }
@@ -270,15 +294,19 @@ private:
         SmGui::ForceSync();
         if (SmGui::Combo("##plutosdr_dev_sel", &_this->devId, _this->devices.txt)) {
             _this->select(_this->devices.value(_this->devId));
-            // TODO: Save
+            config.acquire();
+            config.conf["device"] = _this->devices.key(_this->devId);
+            config.release(true);
         }
 
         if (SmGui::Combo(CONCAT("##_pluto_sr_", _this->name), &_this->srId, _this->samplerates.txt)) {
-            _this->sampleRate = _this->samplerates.value(_this->srId);
-            core::setInputSampleRate(_this->sampleRate);
-            config.acquire();
-            config.conf["sampleRate"] = _this->sampleRate;
-            config.release(true);
+            _this->samplerate = _this->samplerates.value(_this->srId);
+            core::setInputSampleRate(_this->samplerate);
+            if (!_this->uri.empty()) {
+                config.acquire();
+                config.conf["devices"][_this->uri]["samplerate"] = _this->samplerate;
+                config.release(true);
+            }
         }
 
         // Refresh button
@@ -299,35 +327,41 @@ private:
             if (_this->running) {
                 _this->setBandwidth(_this->bandwidth);
             }
-            config.acquire();
-            config.conf["bandwidth"] = _this->bandwidth;
-            config.release(true);
+            if (!_this->uri.empty()) {
+                config.acquire();
+                config.conf["devices"][_this->uri]["bandwidth"] = _this->bandwidth;
+                config.release(true);
+            }
         }
 
         SmGui::LeftLabel("Gain Mode");
         SmGui::FillWidth();
         SmGui::ForceSync();
-        if (SmGui::Combo(CONCAT("##_gainmode_select_", _this->name), &_this->gainMode, _this->gainModes.txt)) {
+        if (SmGui::Combo(CONCAT("##_pluto_gainmode_select_", _this->name), &_this->gmId, _this->gainModes.txt)) {
             if (_this->running) {
-                iio_channel_attr_write(_this->rxChan, "gain_control_mode", _this->gainModes.value(_this->gainMode).c_str());
+                iio_channel_attr_write(_this->rxChan, "gain_control_mode", _this->gainModes.value(_this->gmId).c_str());
             }
-            config.acquire();
-            config.conf["gainMode"] = _this->gainMode;
-            config.release(true);
+            if (!_this->uri.empty()) {
+                config.acquire();
+                config.conf["devices"][_this->uri]["gainMode"] = _this->gainModes.key(_this->gmId);
+                config.release(true);
+            }
         }
 
-        SmGui::LeftLabel("PGA Gain");
-        if (_this->gainMode) { SmGui::BeginDisabled(); }
+        SmGui::LeftLabel("Gain");
+        if (_this->gmId) { SmGui::BeginDisabled(); }
         SmGui::FillWidth();
-        if (SmGui::SliderFloat(CONCAT("##_gain_select_", _this->name), &_this->gain, 0, 76)) {
+        if (SmGui::SliderFloatWithSteps(CONCAT("##_pluto_gain__", _this->name), &_this->gain, -1.0f, 73.0f, 1.0f, SmGui::FMT_STR_FLOAT_DB_NO_DECIMAL)) {
             if (_this->running) {
-                iio_channel_attr_write_longlong(_this->rxChan, "hardwaregain", round(_this->gain));
+                iio_channel_attr_write_double(_this->rxChan, "hardwaregain", _this->gain);
             }
-            config.acquire();
-            config.conf["gain"] = _this->gain;
-            config.release(true);
+            if (!_this->uri.empty()) {
+                config.acquire();
+                config.conf["devices"][_this->uri]["gain"] = _this->gain;
+                config.release(true);
+            }
         }
-        if (_this->gainMode) { SmGui::EndDisabled(); }
+        if (_this->gmId) { SmGui::EndDisabled(); }
     }
 
     void setBandwidth(int bw) {
@@ -335,13 +369,13 @@ private:
             iio_channel_attr_write_longlong(rxChan, "rf_bandwidth", bw);
         }
         else {
-            iio_channel_attr_write_longlong(rxChan, "rf_bandwidth", std::min<int>(sampleRate, 52000000));
+            iio_channel_attr_write_longlong(rxChan, "rf_bandwidth", std::min<int>(samplerate, 52000000));
         }
     }
 
     static void worker(void* ctx) {
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
-        int blockSize = _this->sampleRate / 200.0f;
+        int blockSize = _this->samplerate / 200.0f;
 
         // Acquire channels
         iio_channel* rx0_i = iio_device_find_channel(_this->dev, "voltage0", 0);
@@ -396,26 +430,38 @@ private:
     std::string uri = "";
 
     double freq;
-    float sampleRate = 4000000;
+    int samplerate = 4000000;
     int bandwidth = 0;
-    int gainMode = 0;
-    float gain = 0;
+    float gain = -1;
 
     int devId = 0;
     int srId = 0;
     int bwId = 0;
+    int gmId = 0;
 
     OptionList<std::string, std::string> devices;
     OptionList<int, double> samplerates;
     OptionList<int, double> bandwidths;
-    OptionList<int, std::string> gainModes;
+    OptionList<std::string, std::string> gainModes;
 };
 
 MOD_EXPORT void _INIT_() {
     json defConf = {};
+    defConf["device"] = "";
+    defConf["devices"] = {};
     config.setPath(core::args["root"].s() + "/plutosdr_source_config.json");
     config.load(defConf);
     config.enableAutoSave();
+
+    // Reset the configuration if the old format is still used
+    config.acquire();
+    if (!config.conf.contains("device") || !config.conf.contains("devices")) {
+        config.conf = defConf;
+        config.release(true);
+    }
+    else {
+        config.release();
+    }
 }
 
 MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
