@@ -50,9 +50,9 @@ public:
 
         // Select device
         config.acquire();
-        uri = config.conf["device"];
+        devName = config.conf["device"];
         config.release();
-        select(uri);
+        select(devName);
 
         // Register source
         handler.ctx = this;
@@ -121,9 +121,9 @@ private:
         for (ssize_t i = 0; i < count; i++) {
             iio_context_info* info = ctxInfoList[i];
             std::string desc = iio_context_info_get_description(info);
-            std::string uri = iio_context_info_get_uri(info);
+            std::string duri = iio_context_info_get_uri(info);
 
-            devices.define(uri, desc, uri);
+            devices.define(desc, desc, duri);
         }
         iio_context_info_list_free(ctxInfoList);
         
@@ -133,54 +133,46 @@ private:
 #ifdef __ANDROID__
         // On Android, a default IP entry must be made (TODO: This is not ideal since the IP cannot be changed)
         const char* androidURI = "ip:192.168.2.1";
-        devices.define(androidURI, "Default (192.168.2.1)", androidURI);
+        const char* androidName = "Default (192.168.2.1)";
+        devices.define(androidName, androidName, androidURI);
 #endif
     }
 
-    void select(const std::string& nuri) {
+    void select(const std::string& name) {
         // If no device is available, give up
         if (devices.empty()) {
-            uri.clear();
+            devName.clear();
             return;
         }
 
         // If the device is not available, select the first one
-        if (!devices.keyExists(nuri)) {
+        if (!devices.keyExists(name)) {
             select(devices.key(0));
         }
 
         // Update URI
-        uri = nuri;
+        devName = name;
+        uri = devices.value(devices.keyId(name));
 
         // TODO: Enumerate capabilities
 
+        // Load defaults
+        samplerate = 4000000;
+        bandwidth = 0;
+        gmId = 0;
+        gain = -1.0f;
+
         // Load device config
         config.acquire();
-        if (config.conf["devices"][uri.c_str()].contains("samplerate")) {
-            // Select given samplerate or default if invalid
-            samplerate = config.conf["devices"][uri]["samplerate"];
-            if (samplerates.keyExists(samplerate)) {
-                srId = samplerates.keyId(samplerate);
-            }
-            else {
-                srId = 0;
-                samplerate = samplerates.value(srId);
-            }
+        if (config.conf["devices"][devName].contains("samplerate")) {
+            samplerate = config.conf["devices"][devName]["samplerate"];
         }
-        if (config.conf["devices"][uri].contains("bandwidth")) {
-            // Select given bandwidth or default if invalid
-            bandwidth = config.conf["devices"][uri]["bandwidth"];
-            if (bandwidths.keyExists(bandwidth)) {
-                bwId = bandwidths.keyId(bandwidth);
-            }
-            else {
-                bwId = 0;
-                bandwidth = bandwidths.value(bwId);
-            }
+        if (config.conf["devices"][devName].contains("bandwidth")) {
+            bandwidth = config.conf["devices"][devName]["bandwidth"];
         }
-        if (config.conf["devices"][uri].contains("gainMode")) {
+        if (config.conf["devices"][devName].contains("gainMode")) {
             // Select given gain mode or default if invalid
-            std::string gm = config.conf["devices"][uri]["gainMode"];
+            std::string gm = config.conf["devices"][devName]["gainMode"];
             if (gainModes.keyExists(gm)) {
                 gmId = gainModes.keyId(gm);
             }
@@ -188,11 +180,29 @@ private:
                 gmId = 0;
             }
         }
-        if (config.conf["devices"][uri].contains("gain")) {
-            gain = config.conf["devices"][uri]["gain"];
+        if (config.conf["devices"][devName].contains("gain")) {
+            gain = config.conf["devices"][devName]["gain"];
             gain = std::clamp<int>(gain, -1.0f, 73.0f);
         }
         config.release();
+
+        // Update samplerate ID
+        if (samplerates.keyExists(samplerate)) {
+            srId = samplerates.keyId(samplerate);
+        }
+        else {
+            srId = 0;
+            samplerate = samplerates.value(srId);
+        }
+
+        // Update bandwidth ID
+        if (bandwidths.keyExists(bandwidth)) {
+            bwId = bandwidths.keyId(bandwidth);
+        }
+        else {
+            bwId = 0;
+            bandwidth = bandwidths.value(bwId);
+        }
         
         // Update core samplerate
         core::setInputSampleRate(samplerate);
@@ -212,6 +222,9 @@ private:
     static void start(void* ctx) {
         PlutoSDRSourceModule* _this = (PlutoSDRSourceModule*)ctx;
         if (_this->running) { return; }
+
+        // If no device is selected, give up
+        if (_this->devName.empty() || _this->uri.empty()) { return; }
 
         // Open context
         _this->ctx = iio_create_context_from_uri(_this->uri.c_str());
@@ -296,7 +309,7 @@ private:
         SmGui::FillWidth();
         SmGui::ForceSync();
         if (SmGui::Combo("##plutosdr_dev_sel", &_this->devId, _this->devices.txt)) {
-            _this->select(_this->devices.value(_this->devId));
+            _this->select(_this->devices.key(_this->devId));
             config.acquire();
             config.conf["device"] = _this->devices.key(_this->devId);
             config.release(true);
@@ -305,9 +318,9 @@ private:
         if (SmGui::Combo(CONCAT("##_pluto_sr_", _this->name), &_this->srId, _this->samplerates.txt)) {
             _this->samplerate = _this->samplerates.value(_this->srId);
             core::setInputSampleRate(_this->samplerate);
-            if (!_this->uri.empty()) {
+            if (!_this->devName.empty()) {
                 config.acquire();
-                config.conf["devices"][_this->uri]["samplerate"] = _this->samplerate;
+                config.conf["devices"][_this->devName]["samplerate"] = _this->samplerate;
                 config.release(true);
             }
         }
@@ -318,7 +331,7 @@ private:
         SmGui::ForceSync();
         if (SmGui::Button(CONCAT("Refresh##_pluto_refr_", _this->name))) {
             _this->refresh();
-            _this->select(_this->uri);
+            _this->select(_this->devName);
 
         }
         if (_this->running) { SmGui::EndDisabled(); }
@@ -330,9 +343,9 @@ private:
             if (_this->running) {
                 _this->setBandwidth(_this->bandwidth);
             }
-            if (!_this->uri.empty()) {
+            if (!_this->devName.empty()) {
                 config.acquire();
-                config.conf["devices"][_this->uri]["bandwidth"] = _this->bandwidth;
+                config.conf["devices"][_this->devName]["bandwidth"] = _this->bandwidth;
                 config.release(true);
             }
         }
@@ -344,9 +357,9 @@ private:
             if (_this->running) {
                 iio_channel_attr_write(_this->rxChan, "gain_control_mode", _this->gainModes.value(_this->gmId).c_str());
             }
-            if (!_this->uri.empty()) {
+            if (!_this->devName.empty()) {
                 config.acquire();
-                config.conf["devices"][_this->uri]["gainMode"] = _this->gainModes.key(_this->gmId);
+                config.conf["devices"][_this->devName]["gainMode"] = _this->gainModes.key(_this->gmId);
                 config.release(true);
             }
         }
@@ -358,9 +371,9 @@ private:
             if (_this->running) {
                 iio_channel_attr_write_double(_this->rxChan, "hardwaregain", _this->gain);
             }
-            if (!_this->uri.empty()) {
+            if (!_this->devName.empty()) {
                 config.acquire();
-                config.conf["devices"][_this->uri]["gain"] = _this->gain;
+                config.conf["devices"][_this->devName]["gain"] = _this->gain;
                 config.release(true);
             }
         }
@@ -435,6 +448,7 @@ private:
     iio_channel* rxChan = NULL;
     bool running = false;
 
+    std::string devName = "";
     std::string uri = "";
 
     double freq;
