@@ -17,7 +17,7 @@ SDRPP_MOD_INFO{
     /* Name:            */ "sdrpp_server_source",
     /* Description:     */ "SDR++ Server source module for SDR++",
     /* Author:          */ "Ryzerth",
-    /* Version:         */ 0, 1, 0,
+    /* Version:         */ 0, 2, 0,
     /* Max instances    */ 1
 };
 
@@ -109,10 +109,10 @@ private:
         SDRPPServerSourceModule* _this = (SDRPPServerSourceModule*)ctx;
         if (_this->running) { return; }
 
-        // Try to connect if not already connected
-        if (!_this->client) {
+        // Try to connect if not already connected (Play button is locked anyway so not sure why I put this here)
+        if (!_this->connected()) {
             _this->tryConnect();
-            if (!_this->client) { return; }
+            if (!_this->connected()) { return; }
         }
 
         // Set configuration
@@ -127,7 +127,7 @@ private:
         SDRPPServerSourceModule* _this = (SDRPPServerSourceModule*)ctx;
         if (!_this->running) { return; }
 
-        if (_this->client) { _this->client->stop(); }
+        if (_this->connected()) { _this->client->stop(); }
 
         _this->running = false;
         flog::info("SDRPPServerSourceModule '{0}': Stop!", _this->name);
@@ -135,7 +135,7 @@ private:
 
     static void tune(double freq, void* ctx) {
         SDRPPServerSourceModule* _this = (SDRPPServerSourceModule*)ctx;
-        if (_this->running && _this->client) {
+        if (_this->running && _this->connected()) {
             _this->client->setFrequency(freq);
         }
         _this->freq = freq;
@@ -146,7 +146,7 @@ private:
         SDRPPServerSourceModule* _this = (SDRPPServerSourceModule*)ctx;
         float menuWidth = ImGui::GetContentRegionAvail().x;
 
-        bool connected = (_this->client && _this->client->isOpen());
+        bool connected = _this->connected();
         gui::mainWindow.playButtonLocked = !connected;
 
         ImGui::GenericDialog("##sdrpp_srv_src_err_dialog", _this->serverBusy, GENERIC_DIALOG_BUTTONS_OK, [=](){
@@ -227,6 +227,10 @@ private:
         }
     }
 
+    bool connected() {
+        return client && client->isOpen();
+    }
+
     void tryConnect() {
         try {
             if (client) { client.reset(); }
@@ -281,7 +285,7 @@ private:
     int sampleTypeId;
     bool compression = false;
 
-    server::Client client;
+    std::shared_ptr<server::Client> client;
 };
 
 MOD_EXPORT void _INIT_() {
