@@ -79,7 +79,7 @@ jobs:
           run: '&($Env:GITHUB_WORKSPACE + "/make_windows_package.ps1") ./build ($Env:GITHUB_WORKSPACE + "/root")'
 
         - name: Save Archive
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: sdrpp_windows_x64
               path: ${{runner.workspace}}/sdrpp_windows_x64.zip
@@ -133,7 +133,7 @@ jobs:
           run: cd $GITHUB_WORKSPACE && sh make_macos_bundle.sh ${{runner.workspace}}/build ./SDR++.app && zip -r ${{runner.workspace}}/sdrpp_macos_intel.zip SDR++.app
 
         - name: Save Archive
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: sdrpp_macos_intel
               path: ${{runner.workspace}}/sdrpp_macos_intel.zip
@@ -155,7 +155,7 @@ jobs:
           run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
 
         - name: Save Deb Archive
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: sdrpp_debian_buster_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
@@ -177,7 +177,7 @@ jobs:
           run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
 
         - name: Save Deb Archive
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: sdrpp_debian_bullseye_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
@@ -199,7 +199,7 @@ jobs:
           run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
 
         - name: Save Deb Archive
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: sdrpp_debian_bookworm_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
@@ -221,7 +221,7 @@ jobs:
           run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
 
         - name: Save Deb Archive
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: sdrpp_debian_sid_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
@@ -243,7 +243,7 @@ jobs:
           run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
 
         - name: Save Deb Archive
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: sdrpp_ubuntu_focal_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
@@ -265,7 +265,7 @@ jobs:
           run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
 
         - name: Save Deb Archive
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: sdrpp_ubuntu_jammy_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
@@ -287,7 +287,7 @@ jobs:
           run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
 
         - name: Save Deb Archive
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: sdrpp_ubuntu_mantic_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
@@ -314,7 +314,7 @@ jobs:
           run: sh $GITHUB_WORKSPACE/make_debian_package.sh ./build 'libfftw3-dev, libglfw3-dev, libvolk2-dev, librtaudio-dev' && mv sdrpp_debian_amd64.deb sdrpp_debian_armhf.deb
         
         - name: Save Deb Archive
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: sdrpp_raspios_bullseye_armhf
               path: ${{runner.workspace}}/sdrpp_debian_armhf.deb
@@ -341,7 +341,7 @@ jobs:
           run: docker cp build:/root/SDRPlusPlus/android/app/build/outputs/apk/debug/app-debug.apk ./ && mv app-debug.apk sdrpp.apk
 
         - name: Save APK
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: sdrpp_android
               path: ${{runner.workspace}}/sdrpp.apk
@@ -352,7 +352,7 @@ jobs:
 
         steps:
         - name: Download All Builds
-          uses: actions/download-artifact@v3
+          uses: actions/download-artifact@v4
 
         - name: Create Archive
           run: >
@@ -369,7 +369,7 @@ jobs:
             mv sdrpp_raspios_bullseye_armhf/sdrpp_debian_armhf.deb sdrpp_all/sdrpp_raspios_bullseye_armhf.deb &&
             mv sdrpp_android/sdrpp.apk sdrpp_all/sdrpp.apk
 
-        - uses: actions/upload-artifact@v3
+        - uses: actions/upload-artifact@v4
           with:
             name: sdrpp_all
             path: sdrpp_all/
@@ -381,7 +381,7 @@ jobs:
 
         steps:
         - name: Download All Builds
-          uses: actions/download-artifact@v3
+          uses: actions/download-artifact@v4
 
         - name: Update Nightly
           run: gh release upload nightly sdrpp_all/* -R ${{github.repository}} --clobber
