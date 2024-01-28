@@ -193,6 +193,9 @@ private:
             gain = std::clamp<int>(gain, -1.0f, 73.0f);
         }
         config.release();
+        
+        // Update core samplerate
+        core::setInputSampleRate(samplerate);
     }
 
     static void menuSelected(void* ctx) {
