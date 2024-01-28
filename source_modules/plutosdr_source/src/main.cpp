@@ -9,6 +9,7 @@
 #include <ad9361.h>
 #include <utils/optionlist.h>
 #include <algorithm>
+#include <regex>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -50,9 +51,9 @@ public:
 
         // Select device
         config.acquire();
-        devName = config.conf["device"];
+        devDesc = config.conf["device"];
         config.release();
-        select(devName);
+        select(devDesc);
 
         // Register source
         handler.ctx = this;
@@ -111,6 +112,11 @@ private:
             return;
         }
 
+        // Create parsing regexes
+        std::regex backendRgx(".+(?=:)", std::regex::ECMAScript);
+        std::regex modelRgx("\\(.+(?=\\),)", std::regex::ECMAScript);
+        std::regex serialRgx("serial=[0-9A-Za-z]+", std::regex::ECMAScript);
+
         // Enumerate devices
         iio_context_info** ctxInfoList;
         ssize_t count = iio_scan_context_get_info_list(sctx, &ctxInfoList);
@@ -123,7 +129,42 @@ private:
             std::string desc = iio_context_info_get_description(info);
             std::string duri = iio_context_info_get_uri(info);
 
-            devices.define(desc, desc, duri);
+            // If the device is not a plutosdr, don't include it
+            if (desc.find("PlutoSDR") == std::string::npos) {
+                flog::warn("Ignored IIO device: [{}] {}", duri, desc);
+                continue;
+            }
+
+            // Extract the backend
+            std::string backend = "unknown";
+            std::smatch backendMatch;
+            if (std::regex_search(duri, backendMatch, backendRgx)) {
+                backend = backendMatch[0];
+            }
+
+            // Extract the model
+            std::string model = "Unknown";
+            std::smatch modelMatch;
+            if (std::regex_search(desc, modelMatch, modelRgx)) {
+                model = modelMatch[0];
+                int parenthPos = model.find('(');
+                if (parenthPos != std::string::npos) {
+                    model = model.substr(parenthPos+1);
+                }
+            }
+
+            // Extract the serial
+            std::string serial = "unknown";
+            std::smatch serialMatch;
+            if (std::regex_search(desc, serialMatch, serialRgx)) {
+                serial = serialMatch[0].str().substr(7);
+            }
+
+            // Construct the device name
+            std::string devName = '(' + backend + ") " + model + " [" + serial + ']';
+
+            // Save device
+            devices.define(desc, devName, duri);
         }
         iio_context_info_list_free(ctxInfoList);
         
@@ -138,21 +179,21 @@ private:
 #endif
     }
 
-    void select(const std::string& name) {
+    void select(const std::string& desc) {
         // If no device is available, give up
         if (devices.empty()) {
-            devName.clear();
+            devDesc.clear();
             return;
         }
 
         // If the device is not available, select the first one
-        if (!devices.keyExists(name)) {
+        if (!devices.keyExists(desc)) {
             select(devices.key(0));
         }
 
         // Update URI
-        devName = name;
-        uri = devices.value(devices.keyId(name));
+        devDesc = desc;
+        uri = devices.value(devices.keyId(desc));
 
         // TODO: Enumerate capabilities
 
@@ -164,15 +205,15 @@ private:
 
         // Load device config
         config.acquire();
-        if (config.conf["devices"][devName].contains("samplerate")) {
-            samplerate = config.conf["devices"][devName]["samplerate"];
+        if (config.conf["devices"][devDesc].contains("samplerate")) {
+            samplerate = config.conf["devices"][devDesc]["samplerate"];
         }
-        if (config.conf["devices"][devName].contains("bandwidth")) {
-            bandwidth = config.conf["devices"][devName]["bandwidth"];
+        if (config.conf["devices"][devDesc].contains("bandwidth")) {
+            bandwidth = config.conf["devices"][devDesc]["bandwidth"];
         }
-        if (config.conf["devices"][devName].contains("gainMode")) {
+        if (config.conf["devices"][devDesc].contains("gainMode")) {
             // Select given gain mode or default if invalid
-            std::string gm = config.conf["devices"][devName]["gainMode"];
+            std::string gm = config.conf["devices"][devDesc]["gainMode"];
             if (gainModes.keyExists(gm)) {
                 gmId = gainModes.keyId(gm);
             }
@@ -180,8 +221,8 @@ private:
                 gmId = 0;
             }
         }
-        if (config.conf["devices"][devName].contains("gain")) {
-            gain = config.conf["devices"][devName]["gain"];
+        if (config.conf["devices"][devDesc].contains("gain")) {
+            gain = config.conf["devices"][devDesc]["gain"];
             gain = std::clamp<int>(gain, -1.0f, 73.0f);
         }
         config.release();
@@ -224,7 +265,7 @@ private:
         if (_this->running) { return; }
 
         // If no device is selected, give up
-        if (_this->devName.empty() || _this->uri.empty()) { return; }
+        if (_this->devDesc.empty() || _this->uri.empty()) { return; }
 
         // Open context
         _this->ctx = iio_create_context_from_uri(_this->uri.c_str());
@@ -318,9 +359,9 @@ private:
         if (SmGui::Combo(CONCAT("##_pluto_sr_", _this->name), &_this->srId, _this->samplerates.txt)) {
             _this->samplerate = _this->samplerates.value(_this->srId);
             core::setInputSampleRate(_this->samplerate);
-            if (!_this->devName.empty()) {
+            if (!_this->devDesc.empty()) {
                 config.acquire();
-                config.conf["devices"][_this->devName]["samplerate"] = _this->samplerate;
+                config.conf["devices"][_this->devDesc]["samplerate"] = _this->samplerate;
                 config.release(true);
             }
         }
@@ -331,7 +372,7 @@ private:
         SmGui::ForceSync();
         if (SmGui::Button(CONCAT("Refresh##_pluto_refr_", _this->name))) {
             _this->refresh();
-            _this->select(_this->devName);
+            _this->select(_this->devDesc);
 
         }
         if (_this->running) { SmGui::EndDisabled(); }
@@ -343,9 +384,9 @@ private:
             if (_this->running) {
                 _this->setBandwidth(_this->bandwidth);
             }
-            if (!_this->devName.empty()) {
+            if (!_this->devDesc.empty()) {
                 config.acquire();
-                config.conf["devices"][_this->devName]["bandwidth"] = _this->bandwidth;
+                config.conf["devices"][_this->devDesc]["bandwidth"] = _this->bandwidth;
                 config.release(true);
             }
         }
@@ -357,9 +398,9 @@ private:
             if (_this->running) {
                 iio_channel_attr_write(_this->rxChan, "gain_control_mode", _this->gainModes.value(_this->gmId).c_str());
             }
-            if (!_this->devName.empty()) {
+            if (!_this->devDesc.empty()) {
                 config.acquire();
-                config.conf["devices"][_this->devName]["gainMode"] = _this->gainModes.key(_this->gmId);
+                config.conf["devices"][_this->devDesc]["gainMode"] = _this->gainModes.key(_this->gmId);
                 config.release(true);
             }
         }
@@ -371,9 +412,9 @@ private:
             if (_this->running) {
                 iio_channel_attr_write_double(_this->rxChan, "hardwaregain", _this->gain);
             }
-            if (!_this->devName.empty()) {
+            if (!_this->devDesc.empty()) {
                 config.acquire();
-                config.conf["devices"][_this->devName]["gain"] = _this->gain;
+                config.conf["devices"][_this->devDesc]["gain"] = _this->gain;
                 config.release(true);
             }
         }
@@ -448,7 +489,7 @@ private:
     iio_channel* rxChan = NULL;
     bool running = false;
 
-    std::string devName = "";
+    std::string devDesc = "";
     std::string uri = "";
 
     double freq;
