@@ -45,7 +45,7 @@ uint8_t *history_buffer_get_slice(history_buffer *buf) { return buf->history[buf
 
 shift_register_t history_buffer_search(history_buffer *buf, const distance_t *distances,
                                        unsigned int search_every) {
-    shift_register_t bestpath;
+    shift_register_t bestpath = 0;
     distance_t leasterror = USHRT_MAX;
     // search for a state with the least error
     for (shift_register_t state = 0; state < buf->num_states; state += search_every) {
