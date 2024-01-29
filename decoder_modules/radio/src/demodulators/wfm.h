@@ -1,14 +1,7 @@
 #pragma once
 #include "../demod.h"
 #include <dsp/demod/broadcast_fm.h>
-#include <dsp/clock_recovery/mm.h>
-#include <dsp/loop/fast_agc.h>
-#include <dsp/loop/costas.h>
-#include <dsp/taps/root_raised_cosine.h>
-#include <dsp/digital/binary_slicer.h>
-#include <dsp/digital/manchester_decoder.h>
-#include <dsp/digital/differential_decoder.h>
-#include <dsp/routing/doubler.h>
+#include "../rds_demod.h"
 #include <gui/widgets/symbol_diagram.h>
 #include <fstream>
 #include <rds.h>
@@ -52,59 +45,30 @@ namespace demod {
             }
             _config->release(modified);
 
-            // Define structure
+            // Init DSP
             demod.init(input, bandwidth / 2.0f, getIFSampleRate(), _stereo, _lowPass, _rds);
-            agc.init(&demod.rdsOut, 1.0, 1e6, 0.1);
-            costas.init(&agc.out,  0.005f);
-
-            taps = dsp::taps::bandPass<dsp::complex_t>(0, 2375, 100, 5000);
-            fir.init(&costas.out, taps);
-            double baudfreq = dsp::math::hzToRads(2375.0/2.0, 5000);
-            costas2.init(&fir.out, 0.01, 0.0, baudfreq, baudfreq - (baudfreq*0.1), baudfreq + (baudfreq*0.1));
-
-            c2r.init(&costas2.out);
-            recov.init(&c2r.out, 5000.0 / (2375.0 / 2.0), 1e-6, 0.01, 0.01);
-            slice.init(&doubler.outA);
-            diff.init(&slice.out, 2);
-            hs.init(&diff.out, rdsHandler, this);
-
-            doubler.init(&recov.out);
-            reshape.init(&doubler.outB, 4096, (1187 / 30) - 4096);
+            rdsDemod.init(&demod.rdsOut);
+            hs.init(&rdsDemod.out, rdsHandler, this);
+            reshape.init(&rdsDemod.soft, 4096, (1187 / 30) - 4096);
             diagHandler.init(&reshape.out, _diagHandler, this);
+
+            // Init RDS display
             diag.lines.push_back(-0.8);
             diag.lines.push_back(0.8);
         }
 
         void start() {
-            agc.start();
-            costas.start();
-            fir.start();
-            costas2.start();
-            c2r.start();
             demod.start();
-            recov.start();
-            slice.start();
-            diff.start();
+            rdsDemod.start();
             hs.start();
-
-            doubler.start();
             reshape.start();
             diagHandler.start();
         }
 
         void stop() {
-            agc.stop();
-            costas.stop();
-            fir.stop();
-            costas2.stop();
-            c2r.stop();
             demod.stop();
-            recov.stop();
-            slice.stop();
-            diff.stop();
+            rdsDemod.stop();
             hs.stop();
-
-            c2r.stop();
             reshape.stop();
             diagHandler.stop();
         }
@@ -320,24 +284,15 @@ namespace demod {
         }
 
         dsp::demod::BroadcastFM demod;
-        dsp::loop::FastAGC<dsp::complex_t> agc;
-        dsp::loop::Costas<2> costas;
-        dsp::tap<dsp::complex_t> taps;
-        dsp::filter::FIR<dsp::complex_t, dsp::complex_t> fir;
-        dsp::loop::Costas<2> costas2;
-        dsp::convert::ComplexToReal c2r;
-        dsp::clock_recovery::MM<float> recov;
-        dsp::digital::BinarySlicer slice;
-        dsp::digital::DifferentialDecoder diff;
+        RDSDemod rdsDemod;
         dsp::sink::Handler<uint8_t> hs;
         EventHandler<ImGui::WaterFall::FFTRedrawArgs> fftRedrawHandler;
 
-        dsp::routing::Doubler<float> doubler;
         dsp::buffer::Reshaper<float> reshape;
         dsp::sink::Handler<float> diagHandler;
         ImGui::SymbolDiagram diag;
 
-        rds::RDSDecoder rdsDecode;
+        rds::Decoder rdsDecode;
 
         ConfigManager* _config = NULL;
 

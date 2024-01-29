@@ -4,6 +4,11 @@
 #include <chrono>
 #include <mutex>
 
+#define RDS_BLOCK_A_TIMEOUT_MS  5000.0
+#define RDS_BLOCK_B_TIMEOUT_MS  5000.0
+#define RDS_GROUP_0_TIMEOUT_MS  5000.0
+#define RDS_GROUP_2_TIMEOUT_MS  5000.0
+
 namespace rds {
     enum BlockType {
         BLOCK_TYPE_A,
@@ -205,33 +210,35 @@ namespace rds {
         DECODER_IDENT_VARIABLE_PTY = (1 << 0)
     };
 
-    class RDSDecoder {
+    class Decoder {
     public:
         void process(uint8_t* symbols, int count);
 
-        bool piCodeValid() { std::lock_guard<std::mutex> lck(groupMtx); return blockAValid(); }
-        uint16_t getPICode() { std::lock_guard<std::mutex> lck(groupMtx); return piCode; }
-        uint8_t getCountryCode() { std::lock_guard<std::mutex> lck(groupMtx); return countryCode; }
-        uint8_t getProgramCoverage() { std::lock_guard<std::mutex> lck(groupMtx); return programCoverage; }
-        uint8_t getProgramRefNumber() { std::lock_guard<std::mutex> lck(groupMtx); return programRefNumber; }
-        std::string getCallsign() { std::lock_guard<std::mutex> lck(groupMtx); return callsign; }
+        bool piCodeValid() { std::lock_guard<std::mutex> lck(blockAMtx); return blockAValid(); }
+        uint16_t getPICode() { std::lock_guard<std::mutex> lck(blockAMtx); return piCode; }
+        uint8_t getCountryCode() { std::lock_guard<std::mutex> lck(blockAMtx); return countryCode; }
+        uint8_t getProgramCoverage() { std::lock_guard<std::mutex> lck(blockAMtx); return programCoverage; }
+        uint8_t getProgramRefNumber() { std::lock_guard<std::mutex> lck(blockAMtx); return programRefNumber; }
+        std::string getCallsign() { std::lock_guard<std::mutex> lck(blockAMtx); return callsign; }
         
-        bool programTypeValid() { std::lock_guard<std::mutex> lck(groupMtx); return blockBValid(); }
-        ProgramType getProgramType() { std::lock_guard<std::mutex> lck(groupMtx); return programType; }
+        bool programTypeValid() { std::lock_guard<std::mutex> lck(blockBMtx); return blockBValid(); }
+        ProgramType getProgramType() { std::lock_guard<std::mutex> lck(blockBMtx); return programType; }
 
-        bool musicValid() { std::lock_guard<std::mutex> lck(groupMtx); return group0Valid(); }
-        bool getMusic() { std::lock_guard<std::mutex> lck(groupMtx); return music; }
-        bool PSNameValid() { std::lock_guard<std::mutex> lck(groupMtx); return group0Valid(); }
-        std::string getPSName() { std::lock_guard<std::mutex> lck(groupMtx); return programServiceName; }
+        bool musicValid() { std::lock_guard<std::mutex> lck(group0Mtx); return group0Valid(); }
+        bool getMusic() { std::lock_guard<std::mutex> lck(group0Mtx); return music; }
+        bool PSNameValid() { std::lock_guard<std::mutex> lck(group0Mtx); return group0Valid(); }
+        std::string getPSName() { std::lock_guard<std::mutex> lck(group0Mtx); return programServiceName; }
 
-        bool radioTextValid() { std::lock_guard<std::mutex> lck(groupMtx); return group2Valid(); }
-        std::string getRadioText() { std::lock_guard<std::mutex> lck(groupMtx); return radioText; }
+        bool radioTextValid() { std::lock_guard<std::mutex> lck(group2Mtx); return group2Valid(); }
+        std::string getRadioText() { std::lock_guard<std::mutex> lck(group2Mtx); return radioText; }
 
     private:
         static uint16_t calcSyndrome(uint32_t block);
         static uint32_t correctErrors(uint32_t block, BlockType type, bool& recovered);
         void decodeBlockA();
         void decodeBlockB();
+        void decodeGroup0();
+        void decodeGroup2();
         void decodeGroup();
 
         void decodeCallsign();
@@ -251,7 +258,7 @@ namespace rds {
         bool blockAvail[_BLOCK_TYPE_COUNT];
 
         // Block A (All groups)
-        std::mutex groupMtx;
+        std::mutex blockAMtx;
         std::chrono::time_point<std::chrono::high_resolution_clock> blockALastUpdate{};  // 1970-01-01
         uint16_t piCode;
         uint8_t countryCode;
@@ -260,6 +267,7 @@ namespace rds {
         std::string callsign;
 
         // Block B (All groups)
+        std::mutex blockBMtx;
         std::chrono::time_point<std::chrono::high_resolution_clock> blockBLastUpdate{};  // 1970-01-01
         uint8_t groupType;
         GroupVersion groupVer;
@@ -267,6 +275,7 @@ namespace rds {
         ProgramType programType;
 
         // Group type 0
+        std::mutex group0Mtx;
         std::chrono::time_point<std::chrono::high_resolution_clock> group0LastUpdate{};  // 1970-01-01
         bool trafficAnnouncement;
         bool music;
@@ -275,6 +284,7 @@ namespace rds {
         std::string programServiceName = "        ";
 
         // Group type 2
+        std::mutex group2Mtx;
         std::chrono::time_point<std::chrono::high_resolution_clock> group2LastUpdate{};  // 1970-01-01
         bool rtAB = false;
         std::string radioText = "                                                                ";
