@@ -1,5 +1,5 @@
 #pragma once
-#include <utils/networking.h>
+#include <utils/net.h>
 #include <dsp/stream.h>
 #include <dsp/types.h>
 #include <atomic>
@@ -12,10 +12,6 @@
 #include <dsp/sink.h>
 #include <dsp/routing/stream_link.h>
 #include <zstd.h>
-
-#define RFSPACE_MAX_SIZE                8192
-#define RFSPACE_HEARTBEAT_INTERVAL_MS   1000
-#define RFSPACE_TIMEOUT_MS              3000
 
 #define PROTOCOL_TIMEOUT_MS             10000
 
@@ -75,10 +71,10 @@ namespace server {
         std::mutex handledMtx;
     };
 
-    class ClientClass {
+    class Client {
     public:
-        ClientClass(net::Conn conn, dsp::stream<dsp::complex_t>* out);
-        ~ClientClass();
+        Client(std::shared_ptr<net::Socket> sock, dsp::stream<dsp::complex_t>* out);
+        ~Client();
 
         void showMenu();
 
@@ -98,7 +94,7 @@ namespace server {
         bool serverBusy = false;
 
     private:
-        static void tcpHandler(int count, uint8_t* buf, void* ctx);
+        void worker();
 
         int getUI();
 
@@ -112,7 +108,7 @@ namespace server {
 
         static void dHandler(dsp::complex_t *data, int count, void *ctx);
 
-        net::Conn client;
+        std::shared_ptr<net::Socket> sock;
 
         dsp::stream<uint8_t> decompIn;
         dsp::compression::SampleStreamDecompressor decomp;
@@ -137,10 +133,10 @@ namespace server {
 
         ZSTD_DCtx* dctx;
 
+        std::thread workerThread;
+
         double currentSampleRate = 1000000.0;
     };
 
-    typedef std::unique_ptr<ClientClass> Client;
-
-    Client connect(std::string host, uint16_t port, dsp::stream<dsp::complex_t>* out);
+    std::shared_ptr<Client> connect(std::string host, uint16_t port, dsp::stream<dsp::complex_t>* out);
 }

@@ -7,11 +7,12 @@
 #include <string>
 #include <thread>
 
-#define HERMES_METIS_REPEAT     5
-#define HERMES_METIS_TIMEOUT    1000
-#define HERMES_METIS_SIGNATURE  0xEFFE
-#define HERMES_HPSDR_USB_SYNC   0x7F
-#define HERMES_I2C_DELAY        50
+#define HERMES_METIS_REPEAT         5
+#define HERMES_METIS_TIMEOUT        1000
+#define HERMES_METIS_SIGNATURE      0xEFFE
+#define HERMES_HPSDR_USB_SYNC       0x7F
+#define HERMES_I2C_DELAY            50
+#define HERMES_SAMPLES_PER_FRAME    63
 
 namespace hermes {
     enum MetisPacketType {
@@ -140,7 +141,7 @@ namespace hermes {
 
         dsp::stream<dsp::complex_t> out;
 
-    //private:
+    private:
         void sendMetisUSB(uint8_t endpoint, void* frame0, void* frame1 = NULL);
         void sendMetisControl(MetisControl ctrl);
 
@@ -149,11 +150,11 @@ namespace hermes {
 
         void writeI2C(I2CPort port, uint8_t addr, uint8_t reg, uint8_t data);
 
-        
-
         void worker();
 
         double freq = 0;
+
+        int blockSize = 63;
 
         std::thread workerThread;
         std::shared_ptr<net::Socket> sock;

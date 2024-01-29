@@ -132,8 +132,8 @@ private:
         try {
             _this->client = rtltcp::connect(&_this->stream, _this->ip, _this->port);
         }
-        catch (std::exception e) {
-            flog::error("Could connect to RTL-TCP server: {0}", e.what());
+        catch (const std::exception& e) {
+            flog::error("Could connect to RTL-TCP server: {}", e.what());
             return;
         }
         
