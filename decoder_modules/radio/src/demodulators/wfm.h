@@ -7,6 +7,11 @@
 #include <rds.h>
 
 namespace demod {
+    enum RDSRegion {
+        RDS_REGION_EUROPE,
+        RDS_REGION_NORTH_AMERICA
+    };
+
     class WFM : public Demodulator {
     public:
         WFM() : diag(0.5, 4096)  {}
@@ -24,9 +29,17 @@ namespace demod {
             this->name = name;
             _config = config;
 
+            // Define RDS regions
+            rdsRegions.define("eu", "Europe", RDS_REGION_EUROPE);
+            rdsRegions.define("na", "North America", RDS_REGION_NORTH_AMERICA);
+
+            // Register FFT draw handler
             fftRedrawHandler.handler = fftRedraw;
             fftRedrawHandler.ctx = this;
             gui::waterfall.onFFTRedraw.bindHandler(&fftRedrawHandler);
+
+            // Default
+            std::string rdsRegionStr = "eu";
 
             // Load config
             _config->acquire();
@@ -43,7 +56,20 @@ namespace demod {
             if (config->conf[name][getName()].contains("rdsInfo")) {
                 _rdsInfo = config->conf[name][getName()]["rdsInfo"];
             }
+            if (config->conf[name][getName()].contains("rdsRegion")) {
+                rdsRegionStr = config->conf[name][getName()]["rdsRegion"];
+            }
             _config->release(modified);
+
+            // Load RDS region
+            if (rdsRegions.keyExists(rdsRegionStr)) {
+                rdsRegionId = rdsRegions.keyId(rdsRegionStr);
+                rdsRegion = rdsRegions.value(rdsRegionId);
+            }
+            else {
+                rdsRegion = RDS_REGION_EUROPE;
+                rdsRegionId = rdsRegions.valueId(rdsRegion);
+            }
 
             // Init DSP
             demod.init(input, bandwidth / 2.0f, getIFSampleRate(), _stereo, _lowPass, _rds);
@@ -93,12 +119,20 @@ namespace demod {
                 _config->release(true);
             }
 
-            // TODO: This will break when the entire radio module is disabled
+            // TODO: This might break when the entire radio module is disabled
             if (!_rds) { ImGui::BeginDisabled(); }
             if (ImGui::Checkbox(("Advanced RDS Info##_radio_wfm_rds_info_" + name).c_str(), &_rdsInfo)) {
                 setAdvancedRds(_rdsInfo);
                 _config->acquire();
                 _config->conf[name][getName()]["rdsInfo"] = _rdsInfo;
+                _config->release(true);
+            }
+            ImGui::SameLine();
+            ImGui::FillWidth();
+            if (ImGui::Combo(("##_radio_wfm_rds_region_" + name).c_str(), &rdsRegionId, rdsRegions.txt)) {
+                rdsRegion = rdsRegions.value(rdsRegionId);
+                _config->acquire();
+                _config->conf[name][getName()]["rdsRegion"] = rdsRegions.key(rdsRegionId);
                 _config->release(true);
             }
             if (!_rds) { ImGui::EndDisabled(); }
@@ -112,7 +146,12 @@ namespace demod {
                     ImGui::TableSetColumnIndex(0);
                     ImGui::TextUnformatted("PI Code");
                     ImGui::TableSetColumnIndex(1);
-                    ImGui::Text("0x%04X (%s)", rdsDecode.getPICode(), rdsDecode.getCallsign().c_str());
+                    if (rdsRegion == RDS_REGION_NORTH_AMERICA) {
+                        ImGui::Text("0x%04X (%s)", rdsDecode.getPICode(), rdsDecode.getCallsign().c_str());
+                    }
+                    else {
+                        ImGui::Text("0x%04X", rdsDecode.getPICode());
+                    }
                     
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
@@ -137,7 +176,12 @@ namespace demod {
                     ImGui::TableSetColumnIndex(0);
                     ImGui::TextUnformatted("PI Code");
                     ImGui::TableSetColumnIndex(1);
-                    ImGui::TextUnformatted("0x---- (----)");
+                    if (rdsRegion == RDS_REGION_NORTH_AMERICA) {
+                        ImGui::TextUnformatted("0x---- (----)");
+                    }
+                    else {
+                        ImGui::TextUnformatted("0x----");
+                    }
                     
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
@@ -163,7 +207,12 @@ namespace demod {
                     ImGui::TableSetColumnIndex(0);
                     ImGui::TextUnformatted("Program Type");
                     ImGui::TableSetColumnIndex(1);
-                    ImGui::Text("%s (%d)", rds::PROGRAM_TYPE_US_TO_STR[rdsDecode.getProgramType()], rdsDecode.getProgramType());
+                    if (rdsRegion == RDS_REGION_NORTH_AMERICA) {
+                        ImGui::Text("%s (%d)", rds::PROGRAM_TYPE_US_TO_STR[rdsDecode.getProgramType()], rdsDecode.getProgramType());
+                    }
+                    else {
+                        ImGui::Text("%s (%d)", rds::PROGRAM_TYPE_EU_TO_STR[rdsDecode.getProgramType()], rdsDecode.getProgramType());
+                    }
                 }
                 else {
                     ImGui::TableNextRow();
@@ -307,6 +356,12 @@ namespace demod {
         bool _rdsInfo = false;
         float muGain = 0.01;
         float omegaGain = (0.01*0.01)/4.0;
+
+        int rdsRegionId = 0;
+        RDSRegion rdsRegion = RDS_REGION_EUROPE;
+
+        OptionList<std::string, RDSRegion> rdsRegions;
+
 
         std::string name;
     };
