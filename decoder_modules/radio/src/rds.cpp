@@ -276,8 +276,6 @@ namespace rds {
             }
         }
 
-        flog::debug("PTN: '{}'", programTypeName);
-
         // Update timeout
         group10LastUpdate = std::chrono::high_resolution_clock::now();
     }
