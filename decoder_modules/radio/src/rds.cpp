@@ -156,7 +156,7 @@ namespace rds {
         // Acquire lock
         std::lock_guard<std::mutex> lck(blockBMtx);
 
-        // If it didn't decode properly return
+        // If it didn't decode properly return (TODO: Make sure this is not needed)
         if (!blockAvail[BLOCK_TYPE_B]) { return; }
 
         // Decode group type and version
@@ -240,12 +240,56 @@ namespace rds {
         group2LastUpdate = std::chrono::high_resolution_clock::now();
     }
 
+    void Decoder::decodeGroup10() {
+        // Acquire lock
+        std::lock_guard<std::mutex> lck(group10Mtx);
+
+        // Check if the text needs to be cleared
+        bool ab = (blocks[BLOCK_TYPE_B] >> 14) & 1;
+        if (ab != ptnAB) {
+            programTypeName = "        ";
+        }
+        ptnAB = ab;
+
+        // Decode segment address
+        bool addr = (blocks[BLOCK_TYPE_B] >> 10) & 1;
+
+        // Save text depending on address
+        if (addr) {
+            if (blockAvail[BLOCK_TYPE_C]) {
+                programTypeName[4] = (blocks[BLOCK_TYPE_C] >> 18) & 0xFF;
+                programTypeName[5] = (blocks[BLOCK_TYPE_C] >> 10) & 0xFF;
+            }
+            if (blockAvail[BLOCK_TYPE_D]) {
+                programTypeName[6] = (blocks[BLOCK_TYPE_D] >> 18) & 0xFF;
+                programTypeName[7] = (blocks[BLOCK_TYPE_D] >> 10) & 0xFF;
+            }
+        }
+        else {
+            if (blockAvail[BLOCK_TYPE_C]) {
+                programTypeName[0] = (blocks[BLOCK_TYPE_C] >> 18) & 0xFF;
+                programTypeName[1] = (blocks[BLOCK_TYPE_C] >> 10) & 0xFF;
+            }
+            if (blockAvail[BLOCK_TYPE_D]) {
+                programTypeName[2] = (blocks[BLOCK_TYPE_D] >> 18) & 0xFF;
+                programTypeName[3] = (blocks[BLOCK_TYPE_D] >> 10) & 0xFF;
+            }
+        }
+
+        flog::debug("PTN: '{}'", programTypeName);
+
+        // Update timeout
+        group10LastUpdate = std::chrono::high_resolution_clock::now();
+    }
+
     void Decoder::decodeGroup() {
         // Make sure blocks B is available
         if (!blockAvail[BLOCK_TYPE_B]) { return; }
 
         // Decode block B
         decodeBlockB();
+
+        //flog::debug("RDS Group {}{}", groupType, (groupVer == GROUP_VER_A) ? 'A':'B');
 
         // Decode depending on group type
         switch (groupType) {
@@ -254,6 +298,9 @@ namespace rds {
             break;
         case 2:
             decodeGroup2();
+            break;
+        case 10:
+            decodeGroup10();
             break;
         default:
             break;
@@ -297,5 +344,10 @@ namespace rds {
     bool Decoder::group2Valid() {
         auto now = std::chrono::high_resolution_clock::now();
         return (std::chrono::duration_cast<std::chrono::milliseconds>(now - group2LastUpdate)).count() < RDS_GROUP_2_TIMEOUT_MS;
+    }
+
+    bool Decoder::group10Valid() {
+        auto now = std::chrono::high_resolution_clock::now();
+        return (std::chrono::duration_cast<std::chrono::milliseconds>(now - group10LastUpdate)).count() < RDS_GROUP_10_TIMEOUT_MS;
     }
 }

@@ -8,6 +8,7 @@
 #define RDS_BLOCK_B_TIMEOUT_MS  5000.0
 #define RDS_GROUP_0_TIMEOUT_MS  5000.0
 #define RDS_GROUP_2_TIMEOUT_MS  5000.0
+#define RDS_GROUP_10_TIMEOUT_MS 5000.0
 
 namespace rds {
     enum BlockType {
@@ -232,6 +233,9 @@ namespace rds {
         bool radioTextValid() { std::lock_guard<std::mutex> lck(group2Mtx); return group2Valid(); }
         std::string getRadioText() { std::lock_guard<std::mutex> lck(group2Mtx); return radioText; }
 
+        bool programTypeNameValid() { std::lock_guard<std::mutex> lck(group10Mtx); return group10Valid(); }
+        std::string getProgramTypeName() { std::lock_guard<std::mutex> lck(group10Mtx); return programTypeName; }
+
     private:
         static uint16_t calcSyndrome(uint32_t block);
         static uint32_t correctErrors(uint32_t block, BlockType type, bool& recovered);
@@ -239,6 +243,7 @@ namespace rds {
         void decodeBlockB();
         void decodeGroup0();
         void decodeGroup2();
+        void decodeGroup10();
         void decodeGroup();
 
         void decodeCallsign();
@@ -247,6 +252,7 @@ namespace rds {
         bool blockBValid();
         bool group0Valid();
         bool group2Valid();
+        bool group10Valid();
 
         // State machine
         uint32_t shiftReg = 0;
@@ -288,6 +294,12 @@ namespace rds {
         std::chrono::time_point<std::chrono::high_resolution_clock> group2LastUpdate{};  // 1970-01-01
         bool rtAB = false;
         std::string radioText = "                                                                ";
+
+        // Group type 10
+        std::mutex group10Mtx;
+        std::chrono::time_point<std::chrono::high_resolution_clock> group10LastUpdate{};  // 1970-01-01
+        bool ptnAB = false;
+        std::string programTypeName = "        ";
 
     };
 }
