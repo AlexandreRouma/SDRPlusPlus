@@ -379,8 +379,6 @@ namespace rds {
         // Decode block B
         decodeBlockB();
 
-        flog::debug("RDS Group {}{}", groupType, (groupVer == GROUP_VER_A) ? 'A':'B');
-
         // Decode depending on group type
         switch (groupType) {
         case 0:
