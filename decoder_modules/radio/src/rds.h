@@ -246,7 +246,8 @@ namespace rds {
         void decodeGroup10();
         void decodeGroup();
 
-        void decodeCallsign();
+        static std::string base26ToCall(uint16_t pi);
+        static std::string decodeCallsign(uint16_t pi);
 
         bool blockAValid();
         bool blockBValid();
