@@ -7,6 +7,14 @@ namespace riff {
     const char* LIST_SIGNATURE      = "LIST";
     const size_t RIFF_LABEL_SIZE    = 4;
 
+    // Writer::Writer(const Writer&& b) {
+    //     //file = std::move(b.file);
+    // }
+
+    Writer::~Writer() {
+        close();
+    }
+
     bool Writer::open(std::string path, const char form[4]) {
         std::lock_guard<std::recursive_mutex> lck(mtx);
 

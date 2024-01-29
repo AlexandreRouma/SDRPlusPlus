@@ -3,6 +3,8 @@
 #include <map>
 #include <algorithm>
 
+#include <utils/flog.h>
+
 namespace rds {
     std::map<uint16_t, BlockType> SYNDROMES = {
         { 0b1111011000, BLOCK_TYPE_A  },
@@ -28,7 +30,7 @@ namespace rds {
     const int DATA_LEN = 16;
     const int POLY_LEN = 10;
 
-    void RDSDecoder::process(uint8_t* symbols, int count) {
+    void Decoder::process(uint8_t* symbols, int count) {
         for (int i = 0; i < count; i++) {
             // Shift in the bit
             shiftReg = ((shiftReg << 1) & 0x3FFFFFF) | (symbols[i] & 1);
@@ -54,18 +56,26 @@ namespace rds {
                 type = (BlockType)((lastType + 1) % _BLOCK_TYPE_COUNT);
             }
 
-            // Save block while correcting errors (NOT YET)
+            // Save block while correcting errors (NOT YET) <- idk why the "not yet is here", TODO: find why
             blocks[type] = correctErrors(shiftReg, type, blockAvail[type]);
 
-            // Update continous group count
-            if (type == BLOCK_TYPE_A) { contGroup = 1; }
-            else if (type == BLOCK_TYPE_B && lastType == BLOCK_TYPE_A) { contGroup++; }
+            // If block type is A, decode it directly, otherwise, update continous count
+            if (type == BLOCK_TYPE_A) {
+                decodeBlockA();
+            }
+            else if (type == BLOCK_TYPE_B) { contGroup = 1; }
             else if ((type == BLOCK_TYPE_C || type == BLOCK_TYPE_CP) && lastType == BLOCK_TYPE_B) { contGroup++; }
             else if (type == BLOCK_TYPE_D && (lastType == BLOCK_TYPE_C || lastType == BLOCK_TYPE_CP)) { contGroup++; }
-            else { contGroup = 0; }
+            else {
+                // If block B is available, decode it alone.
+                if (contGroup == 1) {
+                    decodeBlockB();
+                }
+                contGroup = 0;
+            }
 
             // If we've got an entire group, process it
-            if (contGroup >= 4) {
+            if (contGroup >= 3) {
                 contGroup = 0;
                 decodeGroup();
             }
@@ -76,7 +86,7 @@ namespace rds {
         }
     }
 
-    uint16_t RDSDecoder::calcSyndrome(uint32_t block) {
+    uint16_t Decoder::calcSyndrome(uint32_t block) {
         uint16_t syn = 0;
 
         // Calculate the syndrome using a LFSR
@@ -95,7 +105,7 @@ namespace rds {
         return syn;
     }
 
-    uint32_t RDSDecoder::correctErrors(uint32_t block, BlockType type, bool& recovered) {        
+    uint32_t Decoder::correctErrors(uint32_t block, BlockType type, bool& recovered) {        
         // Subtract the offset from block
         block ^= (uint32_t)OFFSETS[type];
         uint32_t out = block;
@@ -124,96 +134,168 @@ namespace rds {
         return out;
     }
 
-    void RDSDecoder::decodeGroup() {
-        std::lock_guard<std::mutex> lck(groupMtx);
-        auto now = std::chrono::high_resolution_clock::now();
-        anyGroupLastUpdate = now;
+    void Decoder::decodeBlockA() {
+        // Acquire lock
+        std::lock_guard<std::mutex> lck(blockAMtx);
 
-        // Make sure blocks A and B are available
-        if (!blockAvail[BLOCK_TYPE_A] || !blockAvail[BLOCK_TYPE_B]) { return; }
+        // If it didn't decode properly return
+        if (!blockAvail[BLOCK_TYPE_A]) { return; }
 
         // Decode PI code
+        piCode = (blocks[BLOCK_TYPE_A] >> 10) & 0xFFFF;
         countryCode = (blocks[BLOCK_TYPE_A] >> 22) & 0xF;
         programCoverage = (AreaCoverage)((blocks[BLOCK_TYPE_A] >> 18) & 0xF);
         programRefNumber = (blocks[BLOCK_TYPE_A] >> 10) & 0xFF;
+        decodeCallsign();
+
+        // Update timeout
+        blockALastUpdate = std::chrono::high_resolution_clock::now();;
+    }
+
+    void Decoder::decodeBlockB() {
+        // Acquire lock
+        std::lock_guard<std::mutex> lck(blockBMtx);
+
+        // If it didn't decode properly return
+        if (!blockAvail[BLOCK_TYPE_B]) { return; }
 
         // Decode group type and version
-        uint8_t groupType = (blocks[BLOCK_TYPE_B] >> 22) & 0xF;
-        GroupVersion groupVer = (GroupVersion)((blocks[BLOCK_TYPE_B] >> 21) & 1);
+        groupType = (blocks[BLOCK_TYPE_B] >> 22) & 0xF;
+        groupVer = (GroupVersion)((blocks[BLOCK_TYPE_B] >> 21) & 1);
 
         // Decode traffic program and program type
         trafficProgram = (blocks[BLOCK_TYPE_B] >> 20) & 1;
         programType = (ProgramType)((blocks[BLOCK_TYPE_B] >> 15) & 0x1F);
-        
-        if (groupType == 0) {
-            group0LastUpdate = now;
-            trafficAnnouncement = (blocks[BLOCK_TYPE_B] >> 14) & 1;
-            music = (blocks[BLOCK_TYPE_B] >> 13) & 1;
-            uint8_t diBit = (blocks[BLOCK_TYPE_B] >> 12) & 1;
-            uint8_t offset = ((blocks[BLOCK_TYPE_B] >> 10) & 0b11);
-            uint8_t diOffset = 3 - offset;
-            uint8_t psOffset = offset * 2;
 
-            if (groupVer == GROUP_VER_A && blockAvail[BLOCK_TYPE_C]) {
-                alternateFrequency = (blocks[BLOCK_TYPE_C] >> 10) & 0xFFFF;
+        // Update timeout
+        blockBLastUpdate = std::chrono::high_resolution_clock::now();
+    }
+
+    void Decoder::decodeGroup0() {
+        // Acquire lock
+        std::lock_guard<std::mutex> lck(group0Mtx);
+
+        // Decode Block B data
+        trafficAnnouncement = (blocks[BLOCK_TYPE_B] >> 14) & 1;
+        music = (blocks[BLOCK_TYPE_B] >> 13) & 1;
+        uint8_t diBit = (blocks[BLOCK_TYPE_B] >> 12) & 1;
+        uint8_t offset = ((blocks[BLOCK_TYPE_B] >> 10) & 0b11);
+        uint8_t diOffset = 3 - offset;
+        uint8_t psOffset = offset * 2;
+
+        // Decode Block C data
+        if (groupVer == GROUP_VER_A && blockAvail[BLOCK_TYPE_C]) {
+            alternateFrequency = (blocks[BLOCK_TYPE_C] >> 10) & 0xFFFF;
+        }
+
+        // Write DI bit to the decoder identification
+        decoderIdent &= ~(1 << diOffset);
+        decoderIdent |= (diBit << diOffset);
+
+        // Write chars at offset the PSName
+        if (blockAvail[BLOCK_TYPE_D]) {
+            programServiceName[psOffset] = (blocks[BLOCK_TYPE_D] >> 18) & 0xFF;
+            programServiceName[psOffset + 1] = (blocks[BLOCK_TYPE_D] >> 10) & 0xFF;
+        }
+
+        // Update timeout
+        group0LastUpdate = std::chrono::high_resolution_clock::now();
+    }
+
+    void Decoder::decodeGroup2() {
+        // Acquire lock
+        std::lock_guard<std::mutex> lck(group2Mtx);
+
+        // Get char offset and write chars in the Radiotext
+        bool nAB = (blocks[BLOCK_TYPE_B] >> 14) & 1;
+        uint8_t offset = (blocks[BLOCK_TYPE_B] >> 10) & 0xF;
+
+        // Clear text field if the A/B flag changed
+        if (nAB != rtAB) {
+            radioText = "                                                                ";
+        }
+        rtAB = nAB;
+
+        // Write char at offset in Radiotext
+        if (groupVer == GROUP_VER_A) {
+            uint8_t rtOffset = offset * 4;
+            if (blockAvail[BLOCK_TYPE_C]) {
+                radioText[rtOffset] = (blocks[BLOCK_TYPE_C] >> 18) & 0xFF;
+                radioText[rtOffset + 1] = (blocks[BLOCK_TYPE_C] >> 10) & 0xFF;
             }
-
-            // Write DI bit to the decoder identification
-            decoderIdent &= ~(1 << diOffset);
-            decoderIdent |= (diBit << diOffset);
-
-            // Write chars at offset the PSName
             if (blockAvail[BLOCK_TYPE_D]) {
-                programServiceName[psOffset] = (blocks[BLOCK_TYPE_D] >> 18) & 0xFF;
-                programServiceName[psOffset + 1] = (blocks[BLOCK_TYPE_D] >> 10) & 0xFF;
+                radioText[rtOffset + 2] = (blocks[BLOCK_TYPE_D] >> 18) & 0xFF;
+                radioText[rtOffset + 3] = (blocks[BLOCK_TYPE_D] >> 10) & 0xFF;
             }
         }
-        else if (groupType == 2) {
-            group2LastUpdate = now;
-            // Get char offset and write chars in the Radiotext
-            bool nAB = (blocks[BLOCK_TYPE_B] >> 14) & 1;
-            uint8_t offset = (blocks[BLOCK_TYPE_B] >> 10) & 0xF;
+        else {
+            uint8_t rtOffset = offset * 2;
+            if (blockAvail[BLOCK_TYPE_D]) {
+                radioText[rtOffset] = (blocks[BLOCK_TYPE_D] >> 18) & 0xFF;
+                radioText[rtOffset + 1] = (blocks[BLOCK_TYPE_D] >> 10) & 0xFF;
+            }
+        }
 
-            // Clear text field if the A/B flag changed
-            if (nAB != rtAB) {
-                radioText = "                                                                ";
-            }
-            rtAB = nAB;
+        // Update timeout
+        group2LastUpdate = std::chrono::high_resolution_clock::now();
+    }
 
-            // Write char at offset in Radiotext
-            if (groupVer == GROUP_VER_A) {
-                uint8_t rtOffset = offset * 4;
-                if (blockAvail[BLOCK_TYPE_C]) {
-                    radioText[rtOffset] = (blocks[BLOCK_TYPE_C] >> 18) & 0xFF;
-                    radioText[rtOffset + 1] = (blocks[BLOCK_TYPE_C] >> 10) & 0xFF;
-                }
-                if (blockAvail[BLOCK_TYPE_D]) {
-                    radioText[rtOffset + 2] = (blocks[BLOCK_TYPE_D] >> 18) & 0xFF;
-                    radioText[rtOffset + 3] = (blocks[BLOCK_TYPE_D] >> 10) & 0xFF;
-                }
-            }
-            else {
-                uint8_t rtOffset = offset * 2;
-                if (blockAvail[BLOCK_TYPE_D]) {
-                    radioText[rtOffset] = (blocks[BLOCK_TYPE_D] >> 18) & 0xFF;
-                    radioText[rtOffset + 1] = (blocks[BLOCK_TYPE_D] >> 10) & 0xFF;
-                }
-            }
+    void Decoder::decodeGroup() {
+        // Make sure blocks B is available
+        if (!blockAvail[BLOCK_TYPE_B]) { return; }
+
+        // Decode block B
+        decodeBlockB();
+
+        // Decode depending on group type
+        switch (groupType) {
+        case 0:
+            decodeGroup0();
+            break;
+        case 2:
+            decodeGroup2();
+            break;
+        default:
+            break;
         }
     }
 
-    bool RDSDecoder::anyGroupValid() {
-        auto now = std::chrono::high_resolution_clock::now();
-        return (std::chrono::duration_cast<std::chrono::milliseconds>(now - anyGroupLastUpdate)).count() < 5000.0;
+    void Decoder::decodeCallsign() {
+        // Determin first better based on offset
+        bool w = (piCode >= 21672);
+        callsign =  w ? 'W' : 'K';
+
+        // Base25 decode the rest
+        std::string restStr;
+        int rest = piCode - (w ? 21672 : 4096);
+        while (rest) {
+            restStr += 'A' + (rest % 26);
+            rest /= 26;
+        }
+
+        // Reorder chars
+        for (int i = restStr.size() - 1; i >= 0; i--) {
+            callsign += restStr[i];
+        }
     }
 
-    bool RDSDecoder::group0Valid() {
+    bool Decoder::blockAValid() {
         auto now = std::chrono::high_resolution_clock::now();
-        return (std::chrono::duration_cast<std::chrono::milliseconds>(now - group0LastUpdate)).count() < 5000.0;
+        return (std::chrono::duration_cast<std::chrono::milliseconds>(now - blockALastUpdate)).count() < RDS_BLOCK_A_TIMEOUT_MS;
     }
 
-    bool RDSDecoder::group2Valid() {
+    bool Decoder::blockBValid() {
         auto now = std::chrono::high_resolution_clock::now();
-        return (std::chrono::duration_cast<std::chrono::milliseconds>(now - group2LastUpdate)).count() < 5000.0;
+        return (std::chrono::duration_cast<std::chrono::milliseconds>(now - blockBLastUpdate)).count() < RDS_BLOCK_B_TIMEOUT_MS;
+    }
+
+    bool Decoder::group0Valid() {
+        auto now = std::chrono::high_resolution_clock::now();
+        return (std::chrono::duration_cast<std::chrono::milliseconds>(now - group0LastUpdate)).count() < RDS_GROUP_0_TIMEOUT_MS;
+    }
+
+    bool Decoder::group2Valid() {
+        auto now = std::chrono::high_resolution_clock::now();
+        return (std::chrono::duration_cast<std::chrono::milliseconds>(now - group2LastUpdate)).count() < RDS_GROUP_2_TIMEOUT_MS;
     }
 }
