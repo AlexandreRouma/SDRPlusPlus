@@ -13,10 +13,13 @@ class RDSDemod : public dsp::Processor<dsp::complex_t, uint8_t> {
     using base_type = dsp::Processor<dsp::complex_t, uint8_t>;
 public:
     RDSDemod() {}
-    RDSDemod(dsp::stream<dsp::complex_t>* in) { init(in); }
+    RDSDemod(dsp::stream<dsp::complex_t>* in, bool enableSoft) { init(in, enableSoft); }
     ~RDSDemod() {}
 
-    void init(dsp::stream<dsp::complex_t>* in) {
+    void init(dsp::stream<dsp::complex_t>* in, bool enableSoft) {
+        // Save config
+        this->enableSoft = enableSoft;
+
         // Initialize the DSP
         agc.init(NULL, 1.0, 1e6, 0.1);
         costas.init(NULL, 0.005f);
@@ -35,6 +38,14 @@ public:
 
         // Init the rest
         base_type::init(in);
+    }
+
+    void setSoftEnabled(bool enable) {
+        assert(base_type::_block_init);
+        std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
+        base_type::tempStop();
+        enableSoft = enable;
+        base_type::tempStart();
     }
 
     void reset() {
@@ -70,13 +81,17 @@ public:
 
         base_type::_in->flush();
         if (!base_type::out.swap(count)) { return -1; }
-        if (!soft.swap(count)) { return -1; }
+        if (enableSoft) {
+            if (!soft.swap(count)) { return -1; }
+        }
         return count;
     }
 
     dsp::stream<float> soft;
 
 private:
+    bool enableSoft = false;
+    
     dsp::loop::FastAGC<dsp::complex_t> agc;
     dsp::loop::Costas<2> costas;
     dsp::tap<dsp::complex_t> taps;

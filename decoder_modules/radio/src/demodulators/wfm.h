@@ -47,7 +47,7 @@ namespace demod {
 
             // Init DSP
             demod.init(input, bandwidth / 2.0f, getIFSampleRate(), _stereo, _lowPass, _rds);
-            rdsDemod.init(&demod.rdsOut);
+            rdsDemod.init(&demod.rdsOut, _rdsInfo);
             hs.init(&rdsDemod.out, rdsHandler, this);
             reshape.init(&rdsDemod.soft, 4096, (1187 / 30) - 4096);
             diagHandler.init(&reshape.out, _diagHandler, this);
@@ -96,6 +96,7 @@ namespace demod {
             // TODO: This will break when the entire radio module is disabled
             if (!_rds) { ImGui::BeginDisabled(); }
             if (ImGui::Checkbox(("Advanced RDS Info##_radio_wfm_rds_info_" + name).c_str(), &_rdsInfo)) {
+                setAdvancedRds(_rdsInfo);
                 _config->acquire();
                 _config->conf[name][getName()]["rdsInfo"] = _rdsInfo;
                 _config->release(true);
@@ -229,13 +230,17 @@ namespace demod {
             demod.setStereo(_stereo);
         }
 
+        void setAdvancedRds(bool enabled) {
+            rdsDemod.setSoftEnabled(enabled);
+            _rdsInfo = enabled;
+        }
+
     private:
         static void rdsHandler(uint8_t* data, int count, void* ctx) {
             WFM* _this = (WFM*)ctx;
             _this->rdsDecode.process(data, count);
         }
 
-        // DEBUGGING ONLY
         static void _diagHandler(float* data, int count, void* ctx) {
             WFM* _this = (WFM*)ctx;
             float* buf = _this->diag.acquireBuffer();
