@@ -408,6 +408,11 @@ namespace rds {
             rest /= 26;
         }
 
+        // Pad with As
+        while (restStr.size() < 3) {
+            restStr += 'A';
+        }
+
         // Reorder chars
         for (int i = restStr.size() - 1; i >= 0; i--) {
             callsign += restStr[i];
