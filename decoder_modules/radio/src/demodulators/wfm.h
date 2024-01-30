@@ -16,8 +16,8 @@ namespace demod {
     public:
         WFM() : diag(0.5, 4096)  {}
 
-        WFM(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth, double audioSR) : diag(0.5, 4096) {
-            init(name, config, input, bandwidth, audioSR);
+        WFM(std::string name, ConfigManager* config, dsp::stream<dsp::complex_t>* input, double bandwidth) : diag(0.5, 4096) {
+            init(name, config, input, bandwidth);
         }
 
         ~WFM() {

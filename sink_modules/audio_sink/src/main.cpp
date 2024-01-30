@@ -43,6 +43,7 @@ public:
         audio.setErrorCallback(&errorCallback);
 #endif
 
+        // Load config (TODO)
         bool created = false;
         std::string device = "";
         // config.acquire();
@@ -59,6 +60,7 @@ public:
         // }
         // config.release(modified);
 
+        // List devices
         RtAudio::DeviceInfo info;
 #if RTAUDIO_VERSION_MAJOR >= 6
         for (int i : audio.getDeviceIds()) {
