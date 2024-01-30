@@ -18,7 +18,7 @@ jobs:
         runs-on: windows-latest
 
         steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
         
         - name: Create Build Environment
           run: cmake -E make_directory ${{runner.workspace}}/build
@@ -34,7 +34,7 @@ jobs:
 
         - name: Patch Pothos with earlier libusb version
           working-directory: ${{runner.workspace}}
-          run: 7z x libusb.7z -olibusb_old ; rm "C:/Program Files/PothosSDR/bin/libusb-1.0.dll" ; cp "libusb_old/MS64/dll/libusb-1.0.dll" "C:/Program Files/PothosSDR/bin/"
+          run: 7z x libusb.7z -olibusb_old ; rm "C:/Program Files/PothosSDR/bin/libusb-1.0.dll" ; cp "libusb_old/MS64/dll/libusb-1.0.dll" "C:/Program Files/PothosSDR/bin/" ; rm "C:/Program Files/PothosSDR/lib/libusb-1.0.lib" ; cp "libusb_old/MS64/dll/libusb-1.0.lib" "C:/Program Files/PothosSDR/lib/"
  
         - name: Download SDRPlay API
           run: Invoke-WebRequest -Uri "https://drive.google.com/uc?id=12UHPMwkfa67A11QZDmpCT4iwHnyJHWuu&confirm=t" -OutFile ${{runner.workspace}}/SDRPlay.zip
@@ -64,7 +64,7 @@ jobs:
           run: git clone https://github.com/thestk/rtaudio ; cd rtaudio ; git checkout 2f2fca4502d506abc50f6d4473b2836d24cfb1e3 ; mkdir build ; cd build ; cmake .. ; cmake --build . --config Release ; cmake --install .
 
         - name: Install libperseus-sdr
-          run: git clone https://github.com/AlexandreRouma/libperseus-sdr ; cd libperseus-sdr ; mkdir build ; cd build ; cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake" ; cmake --build . --config Release  ; mkdir "C:/Program Files/PothosSDR/include/perseus-sdr" ; cp Release/perseus-sdr.dll "C:/Program Files/PothosSDR/bin" ; cp Release/perseus-sdr.lib "C:/Program Files/PothosSDR/bin" ; cd .. ; xcopy "src" "C:/Program Files/PothosSDR/include/perseus-sdr"
+          run: git clone https://github.com/AlexandreRouma/libperseus-sdr ; cd libperseus-sdr ; mkdir build ; cd build ; cmake "-DLIBUSB_LIBRARIES=C:/Program Files/PothosSDR/lib/libusb-1.0.lib" "-DLIBUSB_INCLUDE_DIRS=C:/Program Files/PothosSDR/include/libusb-1.0" .. "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake" ; cmake --build . --config Release  ; mkdir "C:/Program Files/PothosSDR/include/perseus-sdr" ; cp Release/perseus-sdr.dll "C:/Program Files/PothosSDR/bin" ; cp Release/perseus-sdr.lib "C:/Program Files/PothosSDR/bin" ; cd .. ; xcopy "src" "C:/Program Files/PothosSDR/include/perseus-sdr"
 
         - name: Prepare CMake
           working-directory: ${{runner.workspace}}/build
@@ -79,16 +79,16 @@ jobs:
           run: '&($Env:GITHUB_WORKSPACE + "/make_windows_package.ps1") ./build ($Env:GITHUB_WORKSPACE + "/root")'
 
         - name: Save Archive
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: sdrpp_windows_x64
               path: ${{runner.workspace}}/sdrpp_windows_x64.zip
 
     build_macos:
-        runs-on: macos-11
+        runs-on: macos-latest
 
         steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
         
         - name: Create Build Environment
           run: cmake -E make_directory ${{runner.workspace}}/build
@@ -100,29 +100,29 @@ jobs:
           run: brew install pkg-config libusb fftw glfw airspy airspyhf portaudio hackrf libbladerf codec2 zstd autoconf automake libtool && pip3 install mako
 
         - name: Install volk
-          run: git clone --recursive https://github.com/gnuradio/volk && cd volk && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
+          run: git clone --recursive https://github.com/gnuradio/volk && cd volk && mkdir build && cd build && cmake -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
 
         - name: Install SDRplay API
-          run: wget https://www.sdrplay.com/software/SDRplay_RSP_API-MacOSX-3.07.3.pkg && sudo installer -pkg SDRplay_RSP_API-MacOSX-3.07.3.pkg -target /
+          run: wget https://www.sdrplay.com/software/SDRplayAPI-macos-installer-universal-3.12.1.pkg && sudo installer -pkg SDRplayAPI-macos-installer-universal-3.12.1.pkg -target /
 
         - name: Install libiio
-          run: wget https://github.com/analogdevicesinc/libiio/archive/refs/tags/v0.25.zip && 7z x v0.25.zip && cd libiio-0.25 && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
+          run: wget https://github.com/analogdevicesinc/libiio/archive/refs/tags/v0.25.zip && 7z x v0.25.zip && cd libiio-0.25 && mkdir build && cd build && cmake -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
 
         - name: Install libad9361
-          run: git clone https://github.com/analogdevicesinc/libad9361-iio && cd libad9361-iio && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
+          run: git clone https://github.com/analogdevicesinc/libad9361-iio && cd libad9361-iio && mkdir build && cd build && cmake -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
 
         - name: Install LimeSuite
-          run: git clone https://github.com/myriadrf/LimeSuite && cd LimeSuite && mkdir builddir && cd builddir && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
+          run: git clone https://github.com/myriadrf/LimeSuite && cd LimeSuite && mkdir builddir && cd builddir && cmake -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
 
         - name: Install libperseus
           run: git clone https://github.com/Microtelecom/libperseus-sdr && cd libperseus-sdr && autoreconf -i && ./configure --prefix=/usr/local && make && make install && cd ..
 
         - name: Install more recent librtlsdr
-          run: git clone https://github.com/osmocom/rtl-sdr && cd rtl-sdr && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j3 LIBRARY_PATH=$(pkg-config --libs-only-L libusb-1.0 | sed 's/\-L//') && sudo make install && cd ../../
+          run: git clone https://github.com/osmocom/rtl-sdr && cd rtl-sdr && mkdir build && cd build && cmake -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_BUILD_TYPE=Release .. && make -j3 LIBRARY_PATH=$(pkg-config --libs-only-L libusb-1.0 | sed 's/\-L//') && sudo make install && cd ../../
 
         - name: Prepare CMake
           working-directory: ${{runner.workspace}}/build
-          run: cmake $GITHUB_WORKSPACE -DOPT_BUILD_PLUTOSDR_SOURCE=ON -DOPT_BUILD_SOAPY_SOURCE=OFF -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_AUDIO_SINK=OFF -DOPT_BUILD_PORTAUDIO_SINK=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON -DOPT_BUILD_PERSEUS_SOURCE=ON -DOPT_BUILD_AUDIO_SOURCE=OFF -DUSE_BUNDLE_DEFAULTS=ON -DCMAKE_BUILD_TYPE=Release
+          run: cmake -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 $GITHUB_WORKSPACE -DOPT_BUILD_PLUTOSDR_SOURCE=ON -DOPT_BUILD_SOAPY_SOURCE=OFF -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_AUDIO_SINK=OFF -DOPT_BUILD_PORTAUDIO_SINK=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON -DOPT_BUILD_PERSEUS_SOURCE=ON -DOPT_BUILD_AUDIO_SOURCE=OFF -DUSE_BUNDLE_DEFAULTS=ON -DCMAKE_BUILD_TYPE=Release
 
         - name: Build
           working-directory: ${{runner.workspace}}/build
@@ -133,7 +133,7 @@ jobs:
           run: cd $GITHUB_WORKSPACE && sh make_macos_bundle.sh ${{runner.workspace}}/build ./SDR++.app && zip -r ${{runner.workspace}}/sdrpp_macos_intel.zip SDR++.app
 
         - name: Save Archive
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: sdrpp_macos_intel
               path: ${{runner.workspace}}/sdrpp_macos_intel.zip
@@ -142,7 +142,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
 
         - name: Create Docker Image
           run: cd $GITHUB_WORKSPACE/docker_builds/debian_buster && docker build . --tag sdrpp_build
@@ -155,7 +155,7 @@ jobs:
           run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
 
         - name: Save Deb Archive
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: sdrpp_debian_buster_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
@@ -164,7 +164,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
         
         - name: Create Docker Image
           run: cd $GITHUB_WORKSPACE/docker_builds/debian_bullseye && docker build . --tag sdrpp_build
@@ -177,7 +177,7 @@ jobs:
           run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
 
         - name: Save Deb Archive
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: sdrpp_debian_bullseye_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
@@ -186,7 +186,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
         
         - name: Create Docker Image
           run: cd $GITHUB_WORKSPACE/docker_builds/debian_bookworm && docker build . --tag sdrpp_build
@@ -199,7 +199,7 @@ jobs:
           run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
 
         - name: Save Deb Archive
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: sdrpp_debian_bookworm_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
@@ -208,7 +208,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
         
         - name: Create Docker Image
           run: cd $GITHUB_WORKSPACE/docker_builds/debian_sid && docker build . --tag sdrpp_build
@@ -221,7 +221,7 @@ jobs:
           run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
 
         - name: Save Deb Archive
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: sdrpp_debian_sid_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
@@ -230,7 +230,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
         
         - name: Create Docker Image
           run: cd $GITHUB_WORKSPACE/docker_builds/ubuntu_focal && docker build . --tag sdrpp_build
@@ -243,7 +243,7 @@ jobs:
           run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
 
         - name: Save Deb Archive
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: sdrpp_ubuntu_focal_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
@@ -252,7 +252,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
         
         - name: Create Docker Image
           run: cd $GITHUB_WORKSPACE/docker_builds/ubuntu_jammy && docker build . --tag sdrpp_build
@@ -265,16 +265,38 @@ jobs:
           run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
 
         - name: Save Deb Archive
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: sdrpp_ubuntu_jammy_amd64
+              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
+    
+    build_ubuntu_mantic:
+        runs-on: ubuntu-latest
+
+        steps:
+        - uses: actions/checkout@v4
+        
+        - name: Create Docker Image
+          run: cd $GITHUB_WORKSPACE/docker_builds/ubuntu_mantic && docker build . --tag sdrpp_build
+
+        - name: Run Container
+          run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
+
+        - name: Recover Deb Archive
+          working-directory: ${{runner.workspace}}
+          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
+
+        - name: Save Deb Archive
+          uses: actions/upload-artifact@v4
+          with:
+              name: sdrpp_ubuntu_mantic_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
     build_raspios_bullseye_armhf:
         runs-on: ARM
 
         steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
 
         - name: Create Build Environment
           run: rm -rf ${{runner.workspace}}/build && cmake -E make_directory ${{runner.workspace}}/build
@@ -292,7 +314,7 @@ jobs:
           run: sh $GITHUB_WORKSPACE/make_debian_package.sh ./build 'libfftw3-dev, libglfw3-dev, libvolk2-dev, librtaudio-dev' && mv sdrpp_debian_amd64.deb sdrpp_debian_armhf.deb
         
         - name: Save Deb Archive
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: sdrpp_raspios_bullseye_armhf
               path: ${{runner.workspace}}/sdrpp_debian_armhf.deb
@@ -301,7 +323,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
 
         - name: Fetch container
           working-directory: ${{runner.workspace}}
@@ -319,18 +341,18 @@ jobs:
           run: docker cp build:/root/SDRPlusPlus/android/app/build/outputs/apk/debug/app-debug.apk ./ && mv app-debug.apk sdrpp.apk
 
         - name: Save APK
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
               name: sdrpp_android
               path: ${{runner.workspace}}/sdrpp.apk
 
     create_full_archive:
-        needs: ['build_windows', 'build_macos', 'build_debian_buster', 'build_debian_bullseye', 'build_debian_bookworm', 'build_debian_sid', 'build_ubuntu_focal', 'build_ubuntu_jammy', 'build_raspios_bullseye_armhf', 'build_android']
+        needs: ['build_windows', 'build_macos', 'build_debian_buster', 'build_debian_bullseye', 'build_debian_bookworm', 'build_debian_sid', 'build_ubuntu_focal', 'build_ubuntu_jammy', 'build_ubuntu_mantic', 'build_raspios_bullseye_armhf', 'build_android']
         runs-on: ubuntu-latest
 
         steps:
         - name: Download All Builds
-          uses: actions/download-artifact@v3
+          uses: actions/download-artifact@v4
 
         - name: Create Archive
           run: >
@@ -343,10 +365,11 @@ jobs:
             mv sdrpp_debian_sid_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_sid_amd64.deb && 
             mv sdrpp_ubuntu_focal_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_focal_amd64.deb &&
             mv sdrpp_ubuntu_jammy_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_jammy_amd64.deb &&
+            mv sdrpp_ubuntu_mantic_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_mantic_amd64.deb &&
             mv sdrpp_raspios_bullseye_armhf/sdrpp_debian_armhf.deb sdrpp_all/sdrpp_raspios_bullseye_armhf.deb &&
             mv sdrpp_android/sdrpp.apk sdrpp_all/sdrpp.apk
 
-        - uses: actions/upload-artifact@v3
+        - uses: actions/upload-artifact@v4
           with:
             name: sdrpp_all
             path: sdrpp_all/
@@ -358,7 +381,7 @@ jobs:
 
         steps:
         - name: Download All Builds
-          uses: actions/download-artifact@v3
+          uses: actions/download-artifact@v4
 
         - name: Update Nightly
           run: gh release upload nightly sdrpp_all/* -R ${{github.repository}} --clobber
@@ -367,7 +390,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
 
         - name: Install codespell
           run: sudo apt update -y && sudo apt install -y codespell
@@ -379,7 +402,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
         
         - name: Run check_clang_format
           run: cd $GITHUB_WORKSPACE && chmod +x ./check_clang_format.sh && ./check_clang_format.sh || true

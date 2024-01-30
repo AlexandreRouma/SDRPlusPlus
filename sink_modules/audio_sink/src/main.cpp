@@ -39,6 +39,10 @@ public:
         audio.setErrorCallback(&errorCallback);
 #endif
 
+#if RTAUDIO_VERSION_MAJOR >= 6
+        audio.setErrorCallback(&errorCallback);
+#endif
+
         bool created = false;
         std::string device = "";
         // config.acquire();
@@ -56,16 +60,23 @@ public:
         // config.release(modified);
 
         RtAudio::DeviceInfo info;
+#if RTAUDIO_VERSION_MAJOR >= 6
+        for (int i : audio.getDeviceIds()) {
+#else
+        int count = audio.getDeviceCount();
         for (int i = 0; i < count; i++) {
+#endif
             try {
                 info = audio.getDeviceInfo(i);
+#if !defined(RTAUDIO_VERSION_MAJOR) || RTAUDIO_VERSION_MAJOR < 6
                 if (!info.probed) { continue; }
+#endif
                 if (info.outputChannels == 0) { continue; }
                 if (info.isDefaultOutput) { defaultDevId = devList.size(); }
                 devList.define(i, info.name, info);
             }
-            catch (std::exception e) {
-                flog::error("AudioSinkModule Error getting audio device info: {0}", e.what());
+            catch (const std::exception& e) {
+                flog::error("AudioSinkModule Error getting audio device ({}) info: {}", i, e.what());
             }
         }
 
@@ -191,6 +202,22 @@ public:
         }
     }
 
+#if RTAUDIO_VERSION_MAJOR >= 6
+    static void errorCallback(RtAudioErrorType type, const std::string& errorText) {
+        switch (type) {
+        case RtAudioErrorType::RTAUDIO_NO_ERROR:
+            return;
+        case RtAudioErrorType::RTAUDIO_WARNING:
+        case RtAudioErrorType::RTAUDIO_NO_DEVICES_FOUND:
+        case RtAudioErrorType::RTAUDIO_DEVICE_DISCONNECT:
+            flog::warn("AudioSinkModule Warning: {} ({})", errorText, (int)type);
+            break;
+        default:
+            throw std::runtime_error(errorText);
+        }
+    }
+#endif
+
 private:
     bool doStart() {
         RtAudio::StreamParameters parameters;
@@ -207,8 +234,8 @@ private:
             audio.startStream();
             stereoPacker.start();
         }
-        catch (RtAudioError& e) {
-            flog::error("Could not open audio device");
+        catch (const std::exception& e) {
+            flog::error("Could not open audio device {0}", e.what());
             return false;
         }
 

@@ -1,9 +1,10 @@
 #pragma once
-#include <utils/networking.h>
+#include <utils/net.h>
 #include <dsp/stream.h>
 #include <dsp/types.h>
-#include <atomic>
-#include <queue>
+#include <thread>
+#include <vector>
+#include <mutex>
 
 #define RFSPACE_MAX_SIZE                8192
 #define RFSPACE_HEARTBEAT_INTERVAL_MS   1000
@@ -96,10 +97,10 @@ namespace rfspace {
         RFSPACE_CTRL_ITEM_ERROR_LOG     = 0x0410
     };
 
-    class RFspaceClientClass {
+    class Client {
     public:
-        RFspaceClientClass(net::Conn conn, net::Conn udpConn, dsp::stream<dsp::complex_t>* out);
-        ~RFspaceClientClass();
+        Client(std::shared_ptr<net::Socket> tcp, std::shared_ptr<net::Socket> udp, dsp::stream<dsp::complex_t>* out);
+        ~Client();
 
         void sendDummyUDP();
 
@@ -107,7 +108,7 @@ namespace rfspace {
         void setControlItem(ControlItem item, void* param, int len);
         void setControlItemWithChanID(ControlItem item, uint8_t chanId, void* param, int len);
 
-        std::vector<uint32_t> getValidSampleRates();
+        std::vector<uint32_t> getSamplerates();
 
         void setFrequency(uint64_t freq);
         void setPort(RFPort port);
@@ -123,21 +124,22 @@ namespace rfspace {
         DeviceID deviceId;
 
     private:
-        static void tcpHandler(int count, uint8_t* buf, void* ctx);
-        static void udpHandler(int count, uint8_t* buf, void* ctx);
+        void tcpWorker();
+        void udpWorker();
         void heartBeatWorker();
 
-        net::Conn client;
-        net::Conn udpClient;
+        std::shared_ptr<net::Socket> tcp;
+        std::shared_ptr<net::Socket> udp;
 
         dsp::stream<dsp::complex_t>* output;
 
         uint16_t tcpHeader;
         uint16_t udpHeader;
 
-        uint8_t* rbuffer = NULL;
         uint8_t* sbuffer = NULL;
-        uint8_t* ubuffer = NULL;
+
+        std::thread tcpWorkerThread;
+        std::thread udpWorkerThread;
 
         std::thread heartBeatThread;
         std::mutex heartBeatMtx;
@@ -147,10 +149,12 @@ namespace rfspace {
         bool devIdAvailable = false;
         std::condition_variable devIdCnd;
         std::mutex devIdMtx;
+
+        std::mutex bufferMtx;
+        int blockSize = 256;
+        int inBuffer = 0;
     };
 
-    typedef std::unique_ptr<RFspaceClientClass> RFspaceClient;
-
-    RFspaceClient connect(std::string host, uint16_t port, dsp::stream<dsp::complex_t>* out);
+    std::shared_ptr<Client> connect(std::string host, uint16_t port, dsp::stream<dsp::complex_t>* out);
 
 }

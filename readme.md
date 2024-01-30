@@ -15,7 +15,7 @@ SDR++ is a cross-platform and open source SDR software with the aim of being blo
 * Multi VFO
 * Wide hardware support (both through SoapySDR and dedicated modules)
 * SIMD accelerated DSP
-* Cross-platform (Windows, Linux, OSX and BSD)
+* Cross-platform (Windows, Linux, MacOS and BSD)
 * Full waterfall update when possible. Makes browsing signals easier and more pleasant
 * Modular design (easily write your own plugins)
 
@@ -44,7 +44,7 @@ Download the latest release from [the Releases page](https://github.com/Alexandr
 Then, run:
 
 ```sh
-sudo apt install libfftw3-dev libglfw3-dev libvolk2-dev libsoapysdr-dev libairspyhf-dev libiio-dev libad9361-dev librtaudio-dev libhackrf-dev
+sudo apt install libfftw3-dev libglfw3-dev libvolk2-dev libzstd-dev libsoapysdr-dev libairspyhf-dev libiio-dev libad9361-dev librtaudio-dev libhackrf-dev
 sudo dpkg -i sdrpp_debian_amd64.deb
 ```
 

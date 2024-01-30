@@ -35,6 +35,10 @@ public:
     AudioSourceModule(std::string name) {
         this->name = name;
 
+#if RTAUDIO_VERSION_MAJOR >= 6
+        audio.setErrorCallback(&errorCallback);
+#endif
+
         sampleRate = 48000.0;
 
         handler.ctx = this;
@@ -83,21 +87,28 @@ public:
     void refresh() {
         devices.clear();
 
+#if RTAUDIO_VERSION_MAJOR >= 6
+        for (int i : audio.getDeviceIds()) {
+#else
         int count = audio.getDeviceCount();
         for (int i = 0; i < count; i++) {
+#endif
             try {
                 // Get info
                 auto info = audio.getDeviceInfo(i);
 
+#if !defined(RTAUDIO_VERSION_MAJOR) || RTAUDIO_VERSION_MAJOR < 6
+                if (!info.probed) { continue; }
+#endif
                 // Check that it has a stereo input
-                if (info.probed && info.inputChannels < 2) { continue; }
+                if (info.inputChannels < 2) { continue; }
 
                 // Save info
                 DeviceInfo dinfo = { info, i };
                 devices.define(info.name, info.name, dinfo);
             }
-            catch (std::exception e) {
-                flog::error("Error getting audio device info: {0}", e.what());
+            catch (const std::exception& e) {
+                flog::error("Error getting audio device ({}) info: {}", i, e.what());
             }
         }
     }
@@ -189,11 +200,11 @@ private:
             _this->audio.startStream();
             _this->running = true;
         }
-        catch (std::exception e) {
-            flog::error("Error opening audio device: {0}", e.what());
+        catch (const std::exception& e) {
+            flog::error("Error opening audio device: {}", e.what());
         }
         
-        flog::info("AudioSourceModule '{0}': Start!", _this->name);
+        flog::info("AudioSourceModule '{}': Start!", _this->name);
     }
 
     static void stop(void* ctx) {
@@ -253,6 +264,22 @@ private:
         _this->stream.swap(nBufferFrames);
         return 0;
     }
+
+#if RTAUDIO_VERSION_MAJOR >= 6
+    static void errorCallback(RtAudioErrorType type, const std::string& errorText) {
+        switch (type) {
+        case RtAudioErrorType::RTAUDIO_NO_ERROR:
+            return;
+        case RtAudioErrorType::RTAUDIO_WARNING:
+        case RtAudioErrorType::RTAUDIO_NO_DEVICES_FOUND:
+        case RtAudioErrorType::RTAUDIO_DEVICE_DISCONNECT:
+            flog::warn("AudioSourceModule Warning: {} ({})", errorText, (int)type);
+            break;
+        default:
+            throw std::runtime_error(errorText);
+        }
+    }
+#endif
 
     std::string name;
     bool enabled = true;

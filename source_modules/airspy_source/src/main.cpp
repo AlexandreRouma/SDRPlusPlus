@@ -141,10 +141,10 @@ public:
                 return;
             }
         }
-        catch (std::exception e) {
+        catch (const std::exception& e) {
             char buf[1024];
             sprintf(buf, "%016" PRIX64, serial);
-            flog::error("Could not open Airspy {0}", buf);
+            flog::error("Could not open Airspy {}", buf);
         }
         selectedSerial = serial;
 

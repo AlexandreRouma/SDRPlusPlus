@@ -7,8 +7,8 @@
 using namespace std::chrono_literals;
 
 namespace server {
-    ClientClass::ClientClass(net::Conn conn, dsp::stream<dsp::complex_t>* out) {
-        client = std::move(conn);
+    Client::Client(std::shared_ptr<net::Socket> sock, dsp::stream<dsp::complex_t>* out) {
+        this->sock = sock;
         output = out;
 
         // Allocate buffers
@@ -37,8 +37,8 @@ namespace server {
         decomp.start();
         link.start();
 
-        // Start readers
-        client->readAsync(sizeof(PacketHeader), rbuffer, tcpHandler, this);
+        // Start worker thread
+        workerThread = std::thread(&Client::worker, this);
 
         // Ask for a UI
         int res = getUI();
@@ -46,14 +46,14 @@ namespace server {
         else if (res == -2) { throw std::runtime_error("Server busy"); }
     }
 
-    ClientClass::~ClientClass() {
+    Client::~Client() {
         close();
         ZSTD_freeDCtx(dctx);
         delete[] rbuffer;
         delete[] sbuffer;
     }
 
-    void ClientClass::showMenu() {
+    void Client::showMenu() {
         std::string diffId = "";
         SmGui::DrawListElem diffValue;
         bool syncRequired = false;
@@ -96,8 +96,8 @@ namespace server {
         }
     }
 
-    void ClientClass::setFrequency(double freq) {
-        if (!client || !client->isOpen()) { return; }
+    void Client::setFrequency(double freq) {
+        if (!isOpen()) { return; }
         *(double*)s_cmd_data = freq;
         sendCommand(COMMAND_SET_FREQUENCY, sizeof(double));
         auto waiter = awaitCommandAck(COMMAND_SET_FREQUENCY);
@@ -105,119 +105,126 @@ namespace server {
         waiter->handled();
     }
 
-    double ClientClass::getSampleRate() {
+    double Client::getSampleRate() {
         return currentSampleRate;
     }
 
-    void ClientClass::setSampleType(dsp::compression::PCMType type) {
+    void Client::setSampleType(dsp::compression::PCMType type) {
+        if (!isOpen()) { return; }
         s_cmd_data[0] = type;
         sendCommand(COMMAND_SET_SAMPLE_TYPE, 1);
     }
 
-    void ClientClass::setCompression(bool enabled) {
+    void Client::setCompression(bool enabled) {
+        if (!isOpen()) { return; }
          s_cmd_data[0] = enabled;
         sendCommand(COMMAND_SET_COMPRESSION, 1);
     }
 
-    void ClientClass::start() {
-        if (!client || !client->isOpen()) { return; }
+    void Client::start() {
+        if (!isOpen()) { return; }
         sendCommand(COMMAND_START, 0);
         getUI();
     }
 
-    void ClientClass::stop() {
-        if (!client || !client->isOpen()) { return; }
+    void Client::stop() {
+        if (!isOpen()) { return; }
         sendCommand(COMMAND_STOP, 0);
         getUI();
     }
 
-    void ClientClass::close() {
+    void Client::close() {
+        // Stop worker
+        decompIn.stopWriter();
+        if (sock) { sock->close(); }
+        if (workerThread.joinable()) { workerThread.join(); }
+        decompIn.clearWriteStop();
+
+        // Stop DSP
         decomp.stop();
         link.stop();
-        decompIn.stopWriter();
-        client->close();
-        decompIn.clearWriteStop();
     }
 
-    bool ClientClass::isOpen() {
-        return client->isOpen();
+    bool Client::isOpen() {
+        return sock && sock->isOpen();
     }
 
-    void ClientClass::tcpHandler(int count, uint8_t* buf, void* ctx) {
-        ClientClass* _this = (ClientClass*)ctx;
-        
-        // Read the rest of the data (TODO: CHECK SIZE OR SHIT WILL BE FUCKED)
-        int len = 0;
-        int read = 0;
-        int goal = _this->r_pkt_hdr->size - sizeof(PacketHeader);
-        while (len < goal) {
-            read = _this->client->read(goal - len, &buf[sizeof(PacketHeader) + len]);
-            if (read < 0) {
-                return; 
-            };
-            len += read;
-        }
-        _this->bytes += _this->r_pkt_hdr->size;
-        
-        if (_this->r_pkt_hdr->type == PACKET_TYPE_COMMAND) {
-            // TODO: Move to command handler
-            if (_this->r_cmd_hdr->cmd == COMMAND_SET_SAMPLERATE && _this->r_pkt_hdr->size == sizeof(PacketHeader) + sizeof(CommandHeader) + sizeof(double)) {
-                _this->currentSampleRate = *(double*)_this->r_cmd_data;
-                core::setInputSampleRate(_this->currentSampleRate);
+    void Client::worker() {
+        while (true) {
+            // Receive header
+            if (sock->recv(rbuffer, sizeof(PacketHeader), true) <= 0) {
+                break;
             }
-            else if (_this->r_cmd_hdr->cmd == COMMAND_DISCONNECT) {
-                flog::error("Asked to disconnect by the server");
-                _this->serverBusy = true;
 
-                // Cancel waiters
+            // Receive remaining data
+            if (sock->recv(&rbuffer[sizeof(PacketHeader)], r_pkt_hdr->size - sizeof(PacketHeader), true, PROTOCOL_TIMEOUT_MS) <= 0) {
+                break;
+            }
+
+            // Increment data counter
+            bytes += r_pkt_hdr->size;
+
+            // Decode packet
+            if (r_pkt_hdr->type == PACKET_TYPE_COMMAND) {
+                // TODO: Move to command handler
+                if (r_cmd_hdr->cmd == COMMAND_SET_SAMPLERATE && r_pkt_hdr->size == sizeof(PacketHeader) + sizeof(CommandHeader) + sizeof(double)) {
+                    currentSampleRate = *(double*)r_cmd_data;
+                    core::setInputSampleRate(currentSampleRate);
+                }
+                else if (r_cmd_hdr->cmd == COMMAND_DISCONNECT) {
+                    flog::error("Asked to disconnect by the server");
+                    serverBusy = true;
+
+                    // Cancel waiters
+                    std::vector<PacketWaiter*> toBeRemoved;
+                    for (auto& [waiter, cmd] : commandAckWaiters) {
+                        waiter->cancel();
+                        toBeRemoved.push_back(waiter);
+                    }
+
+                    // Remove handled waiters
+                    for (auto& waiter : toBeRemoved) {
+                        commandAckWaiters.erase(waiter);
+                        delete waiter;
+                    }
+                }
+            }
+            else if (r_pkt_hdr->type == PACKET_TYPE_COMMAND_ACK) {
+                // Notify waiters
                 std::vector<PacketWaiter*> toBeRemoved;
-                for (auto& [waiter, cmd] : _this->commandAckWaiters) {
-                    waiter->cancel();
+                for (auto& [waiter, cmd] : commandAckWaiters) {
+                    if (cmd != r_cmd_hdr->cmd) { continue; }
+                    waiter->notify();
                     toBeRemoved.push_back(waiter);
                 }
 
                 // Remove handled waiters
                 for (auto& waiter : toBeRemoved) {
-                    _this->commandAckWaiters.erase(waiter);
+                    commandAckWaiters.erase(waiter);
                     delete waiter;
                 }
             }
-        }
-        else if (_this->r_pkt_hdr->type == PACKET_TYPE_COMMAND_ACK) {
-            // Notify waiters
-            std::vector<PacketWaiter*> toBeRemoved;
-            for (auto& [waiter, cmd] : _this->commandAckWaiters) {
-                if (cmd != _this->r_cmd_hdr->cmd) { continue; }
-                waiter->notify();
-                toBeRemoved.push_back(waiter);
+            else if (r_pkt_hdr->type == PACKET_TYPE_BASEBAND) {
+                memcpy(decompIn.writeBuf, &rbuffer[sizeof(PacketHeader)], r_pkt_hdr->size - sizeof(PacketHeader));
+                if (!decompIn.swap(r_pkt_hdr->size - sizeof(PacketHeader))) { break; }
             }
-
-            // Remove handled waiters
-            for (auto& waiter : toBeRemoved) {
-                _this->commandAckWaiters.erase(waiter);
-                delete waiter;
+            else if (r_pkt_hdr->type == PACKET_TYPE_BASEBAND_COMPRESSED) {
+                size_t outCount = ZSTD_decompressDCtx(dctx, decompIn.writeBuf, STREAM_BUFFER_SIZE, r_pkt_data, r_pkt_hdr->size - sizeof(PacketHeader));
+                if (outCount) {
+                    if (!decompIn.swap(outCount)) { break; }
+                };
+            }
+            else if (r_pkt_hdr->type == PACKET_TYPE_ERROR) {
+                flog::error("SDR++ Server Error: {0}", rbuffer[sizeof(PacketHeader)]);
+            }
+            else {
+                flog::error("Invalid packet type: {0}", r_pkt_hdr->type);
             }
         }
-        else if (_this->r_pkt_hdr->type == PACKET_TYPE_BASEBAND) {
-            memcpy(_this->decompIn.writeBuf, &buf[sizeof(PacketHeader)], _this->r_pkt_hdr->size - sizeof(PacketHeader));
-            _this->decompIn.swap(_this->r_pkt_hdr->size - sizeof(PacketHeader));
-        }
-        else if (_this->r_pkt_hdr->type == PACKET_TYPE_BASEBAND_COMPRESSED) {
-            size_t outCount = ZSTD_decompressDCtx(_this->dctx, _this->decompIn.writeBuf, STREAM_BUFFER_SIZE, _this->r_pkt_data, _this->r_pkt_hdr->size - sizeof(PacketHeader));
-            if (outCount) { _this->decompIn.swap(outCount); };
-        }
-        else if (_this->r_pkt_hdr->type == PACKET_TYPE_ERROR) {
-            flog::error("SDR++ Server Error: {0}", buf[sizeof(PacketHeader)]);
-        }
-        else {
-            flog::error("Invalid packet type: {0}", _this->r_pkt_hdr->type);
-        }
-
-        // Restart an async read
-        _this->client->readAsync(sizeof(PacketHeader), _this->rbuffer, tcpHandler, _this);
     }
 
-    int ClientClass::getUI() {
+    int Client::getUI() {
+        if (!isOpen()) { return -1; }
         auto waiter = awaitCommandAck(COMMAND_GET_UI);
         sendCommand(COMMAND_GET_UI, 0);
         if (waiter->await(PROTOCOL_TIMEOUT_MS)) {
@@ -233,37 +240,35 @@ namespace server {
         return 0;
     }
 
-    void ClientClass::sendPacket(PacketType type, int len) {
+    void Client::sendPacket(PacketType type, int len) {
         s_pkt_hdr->type = type;
         s_pkt_hdr->size = sizeof(PacketHeader) + len;
-        client->write(s_pkt_hdr->size, sbuffer);
+        sock->send(sbuffer, s_pkt_hdr->size);
     }
 
-    void ClientClass::sendCommand(Command cmd, int len) {
+    void Client::sendCommand(Command cmd, int len) {
         s_cmd_hdr->cmd = cmd;
         sendPacket(PACKET_TYPE_COMMAND, sizeof(CommandHeader) + len);
     }
 
-    void ClientClass::sendCommandAck(Command cmd, int len) {
+    void Client::sendCommandAck(Command cmd, int len) {
         s_cmd_hdr->cmd = cmd;
         sendPacket(PACKET_TYPE_COMMAND_ACK, sizeof(CommandHeader) + len);
     }
 
-    PacketWaiter* ClientClass::awaitCommandAck(Command cmd) {
+    PacketWaiter* Client::awaitCommandAck(Command cmd) {
         PacketWaiter* waiter = new PacketWaiter;
         commandAckWaiters[waiter] = cmd;
         return waiter;
     }
 
-    void ClientClass::dHandler(dsp::complex_t *data, int count, void *ctx) {
-        ClientClass* _this = (ClientClass*)ctx;
+    void Client::dHandler(dsp::complex_t *data, int count, void *ctx) {
+        Client* _this = (Client*)ctx;
         memcpy(_this->output->writeBuf, data, count * sizeof(dsp::complex_t));
         _this->output->swap(count);
     }
 
-    Client connect(std::string host, uint16_t port, dsp::stream<dsp::complex_t>* out) {
-        net::Conn conn = net::connect(host, port);
-        if (!conn) { return NULL; }
-        return Client(new ClientClass(std::move(conn), out));
+    std::shared_ptr<Client> connect(std::string host, uint16_t port, dsp::stream<dsp::complex_t>* out) {
+        return std::make_shared<Client>(net::connect(host, port), out);
     }
 }

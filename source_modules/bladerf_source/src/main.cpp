@@ -347,7 +347,7 @@ private:
     static void start(void* ctx) {
         BladeRFSourceModule* _this = (BladeRFSourceModule*)ctx;
         if (_this->running) { return; }
-        if (_this->devCount == 0) { return; }
+        if (_this->devCount <= 0) { return; }
 
         // Open device
         bladerf_devinfo info = _this->devInfoList[_this->devId];

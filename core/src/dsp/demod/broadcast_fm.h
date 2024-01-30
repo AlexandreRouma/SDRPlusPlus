@@ -49,6 +49,7 @@ namespace dsp::demod {
             audioFirTaps = taps::lowPass(15000.0, 4000.0, _samplerate);
             alFir.init(NULL, audioFirTaps);
             arFir.init(NULL, audioFirTaps);
+            xlator.init(NULL, -57000.0, samplerate);
             rdsResamp.init(NULL, samplerate, 5000.0);
 
             lmr = buffer::alloc<float>(STREAM_BUFFER_SIZE);
@@ -56,9 +57,9 @@ namespace dsp::demod {
             r = buffer::alloc<float>(STREAM_BUFFER_SIZE);
 
             lprDelay.out.free();
-            lmrDelay.out.free();
             arFir.out.free();
             alFir.out.free();
+            xlator.out.free();
             rdsResamp.out.free();
 
             base_type::init(in);
@@ -92,6 +93,7 @@ namespace dsp::demod {
             alFir.setTaps(audioFirTaps);
             arFir.setTaps(audioFirTaps);
 
+            xlator.setOffset(-57000.0, samplerate);
             rdsResamp.setInSamplerate(samplerate);
 
             reset();
@@ -139,7 +141,7 @@ namespace dsp::demod {
             base_type::tempStart();
         }
 
-        inline int process(int count, complex_t* in, stereo_t* out, int& rdsOutCount, float* rdsout = NULL) {
+        inline int process(int count, complex_t* in, stereo_t* out, int& rdsOutCount, complex_t* rdsout = NULL) {
             // Demodulate
             demod.process(count, in, demod.out.writeBuf);
             if (_stereo) {
@@ -152,24 +154,24 @@ namespace dsp::demod {
 
                 // Delay
                 lprDelay.process(count, demod.out.writeBuf, demod.out.writeBuf);
-                lmrDelay.process(count, rtoc.out.writeBuf, rtoc.out.writeBuf);
+                lmrDelay.process(count, rtoc.out.writeBuf, lmrDelay.out.writeBuf);
                 
                 // conjugate PLL output to down convert twice the L-R signal
                 math::Conjugate::process(count, pilotPLL.out.writeBuf, pilotPLL.out.writeBuf);
-                math::Multiply<dsp::complex_t>::process(count, rtoc.out.writeBuf, pilotPLL.out.writeBuf, rtoc.out.writeBuf);
-                math::Multiply<dsp::complex_t>::process(count, rtoc.out.writeBuf, pilotPLL.out.writeBuf, rtoc.out.writeBuf);
+                math::Multiply<dsp::complex_t>::process(count, lmrDelay.out.writeBuf, pilotPLL.out.writeBuf, lmrDelay.out.writeBuf);
+                math::Multiply<dsp::complex_t>::process(count, lmrDelay.out.writeBuf, pilotPLL.out.writeBuf, lmrDelay.out.writeBuf);
 
                 // Do RDS demod
                 if (_rdsOut) {
-                    // Since the PLL output is no longer needed after this, use it as the output
-                    math::Multiply<dsp::complex_t>::process(count, rtoc.out.writeBuf, pilotPLL.out.writeBuf, pilotPLL.out.writeBuf);
-                    convert::ComplexToReal::process(count, pilotPLL.out.writeBuf, rdsout);
-                    volk_32f_s32f_multiply_32f(rdsout, rdsout, 100.0, count);
-                    rdsOutCount = rdsResamp.process(count, rdsout, rdsout);
+                    // Translate to 0Hz
+                    xlator.process(count, rtoc.out.writeBuf, rtoc.out.writeBuf);
+
+                    // Resample to the output samplerate
+                    rdsOutCount = rdsResamp.process(count, rtoc.out.writeBuf, rdsout);
                 }
 
                 // Convert output back to real for further processing
-                convert::ComplexToReal::process(count, rtoc.out.writeBuf, lmr);
+                convert::ComplexToReal::process(count, lmrDelay.out.writeBuf, lmr);
 
                 // Amplify by 2x
                 volk_32f_s32f_multiply_32f(lmr, lmr, 2.0f, count);
@@ -193,24 +195,11 @@ namespace dsp::demod {
                     // Convert to complex
                     rtoc.process(count, demod.out.writeBuf, rtoc.out.writeBuf);
 
-                    // Filter out pilot and run through PLL
-                    pilotFir.process(count, rtoc.out.writeBuf, pilotFir.out.writeBuf);
-                    pilotPLL.process(count, pilotFir.out.writeBuf, pilotPLL.out.writeBuf);
+                    // Translate to 0Hz
+                    xlator.process(count, rtoc.out.writeBuf, rtoc.out.writeBuf);
 
-                    // Delay
-                    lprDelay.process(count, demod.out.writeBuf, demod.out.writeBuf);
-                    lmrDelay.process(count, rtoc.out.writeBuf, rtoc.out.writeBuf);
-                    
-                    // conjugate PLL output to down convert twice the L-R signal
-                    math::Conjugate::process(count, pilotPLL.out.writeBuf, pilotPLL.out.writeBuf);
-                    math::Multiply<dsp::complex_t>::process(count, rtoc.out.writeBuf, pilotPLL.out.writeBuf, rtoc.out.writeBuf);
-                    math::Multiply<dsp::complex_t>::process(count, rtoc.out.writeBuf, pilotPLL.out.writeBuf, rtoc.out.writeBuf);
-
-                    // Since the PLL output is no longer needed after this, use it as the output
-                    math::Multiply<dsp::complex_t>::process(count, rtoc.out.writeBuf, pilotPLL.out.writeBuf, pilotPLL.out.writeBuf);
-                    convert::ComplexToReal::process(count, pilotPLL.out.writeBuf, rdsout);
-                    volk_32f_s32f_multiply_32f(rdsout, rdsout, 100.0, count);
-                    rdsOutCount = rdsResamp.process(count, rdsout, rdsout);
+                    // Resample to the output samplerate
+                    rdsOutCount = rdsResamp.process(count, rtoc.out.writeBuf, rdsout);
                 }
 
                 // Filter if needed
@@ -240,7 +229,7 @@ namespace dsp::demod {
             return count;
         }
 
-        stream<float> rdsOut;
+        stream<complex_t> rdsOut;
 
     protected:
         double _deviation;
@@ -253,13 +242,14 @@ namespace dsp::demod {
         tap<complex_t> pilotFirTaps;
         filter::FIR<complex_t, complex_t> pilotFir;
         convert::RealToComplex rtoc;
+        channel::FrequencyXlator xlator;
         loop::PLL pilotPLL;
         math::Delay<float> lprDelay;
         math::Delay<complex_t> lmrDelay;
         tap<float> audioFirTaps;
         filter::FIR<float, float> arFir;
         filter::FIR<float, float> alFir;
-        multirate::RationalResampler<float> rdsResamp;
+        multirate::RationalResampler<dsp::complex_t> rdsResamp;
 
         float* lmr;
         float* l;

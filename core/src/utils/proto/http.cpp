@@ -258,6 +258,7 @@ namespace net::http {
 
         // Deserialize
         req.deserialize(respData);
+        return 0; // Might wanna return size instead
     }
 
     int Client::sendResponseHeader(ResponseHeader& resp) {
@@ -275,6 +276,7 @@ namespace net::http {
 
         // Deserialize
         resp.deserialize(respData);
+        return 0; // Might wanna return size instead
     }
 
     int Client::sendChunkHeader(ChunkHeader& chdr) {

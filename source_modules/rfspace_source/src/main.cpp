@@ -17,7 +17,7 @@ SDRPP_MOD_INFO{
     /* Name:            */ "rfspace_source",
     /* Description:     */ "RFspace source module for SDR++",
     /* Author:          */ "Ryzerth",
-    /* Version:         */ 0, 1, 0,
+    /* Version:         */ 0, 1, 1,
     /* Max instances    */ 1
 };
 
@@ -154,8 +154,8 @@ private:
                 _this->client = rfspace::connect(_this->hostname, _this->port, &_this->stream);
                 _this->deviceInit();
             }
-            catch (std::exception e) {
-                flog::error("Could not connect to SDR: {0}", e.what());
+            catch (const std::exception& e) {
+                flog::error("Could not connect to SDR: {}", e.what());
             }
         }
         else if (connected && SmGui::Button("Disconnect##rfspace_source")) {
@@ -231,7 +231,7 @@ private:
         }
         
         // Create samplerate list
-        auto srs = client->getValidSampleRates();
+        auto srs = client->getSamplerates();
         sampleRates.clear();
         for (auto& sr : srs) {
             sampleRates.define(sr, getBandwdithScaled(sr), sr);
@@ -317,7 +317,7 @@ private:
     dsp::stream<dsp::complex_t> stream;
     SourceManager::SourceHandler handler;
 
-    rfspace::RFspaceClient client;
+    std::shared_ptr<rfspace::Client> client;
 };
 
 MOD_EXPORT void _INIT_() {

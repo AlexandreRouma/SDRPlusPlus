@@ -88,7 +88,7 @@ int CommandArgsParser::parse(int argc, char* argv[]) {
             try {
                 carg.ival = std::stoi(arg);
             }
-            catch (std::exception e) {
+            catch (const std::exception& e) {
                 printf("Invalid argument, failed to parse integer\n");
                 showHelp();
                 return -1;
@@ -98,7 +98,7 @@ int CommandArgsParser::parse(int argc, char* argv[]) {
             try {
                 carg.fval = std::stod(arg);
             }
-            catch (std::exception e) {
+            catch (const std::exception& e) {
                 printf("Invalid argument, failed to parse float\n");
                 showHelp();
                 return -1;

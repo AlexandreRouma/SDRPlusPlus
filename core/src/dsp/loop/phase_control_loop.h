@@ -65,6 +65,11 @@ namespace dsp::loop {
             if constexpr(CLAMP_PHASE) { clampPhase(); }
         }
 
+        inline void advancePhase() {
+            phase += freq;
+            if constexpr(CLAMP_PHASE) { clampPhase(); }
+        }
+
         T freq;
         T phase;
 

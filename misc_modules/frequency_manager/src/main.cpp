@@ -531,7 +531,7 @@ private:
         ImGui::TableSetColumnIndex(0);
         if (ImGui::Button(("Import##_freq_mgr_imp_" + _this->name).c_str(), ImVec2(ImGui::GetContentRegionAvail().x, 0)) && !_this->importOpen) {
             _this->importOpen = true;
-            _this->importDialog = new pfd::open_file("Import bookmarks", "", { "JSON Files (*.json)", "*.json", "All Files", "*" }, true);
+            _this->importDialog = new pfd::open_file("Import bookmarks", "", { "JSON Files (*.json)", "*.json", "All Files", "*" }, pfd::opt::multiselect);
         }
 
         ImGui::TableSetColumnIndex(1);
@@ -544,7 +544,7 @@ private:
             }
             config.release();
             _this->exportOpen = true;
-            _this->exportDialog = new pfd::save_file("Export bookmarks", "", { "JSON Files (*.json)", "*.json", "All Files", "*" }, true);
+            _this->exportDialog = new pfd::save_file("Export bookmarks", "", { "JSON Files (*.json)", "*.json", "All Files", "*" });
         }
         if (selectedNames.size() == 0 && _this->selectedListName != "") { style::endDisabled(); }
         ImGui::EndTable();
@@ -787,7 +787,7 @@ private:
 
     void exportBookmarks(std::string path) {
         std::ofstream fs(path);
-        exportedBookmarks >> fs;
+        fs << exportedBookmarks;
         fs.close();
     }
 

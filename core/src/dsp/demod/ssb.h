@@ -110,7 +110,7 @@ namespace dsp::demod {
             else if (_mode == Mode::LSB) {
                 return -_bandwidth / 2.0;
             }
-            else if (_mode == Mode::DSB) {
+            else {
                 return 0.0;
             }
         }
