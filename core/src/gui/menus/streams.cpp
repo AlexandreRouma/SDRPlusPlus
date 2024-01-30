@@ -17,6 +17,8 @@ namespace streamsmenu {
     std::map<std::string, int> selectedSinkTypeId;
     std::map<std::string, int> addSinkTypeId;
 
+    int addType = 0;
+
     void updateSinkTypeList(const std::string& removed = "") {
         std::lock_guard<std::recursive_mutex> lck1(sinkTypesMtx);
         auto lck2 = sigpath::streamManager.getSinkTypesLock();
@@ -32,6 +34,9 @@ namespace streamsmenu {
         // Update the list
         updateSinkTypeList();
 
+        // Update the ID of the Add dropdown
+        // TODO
+
         // Update the selected ID of each drop down
         // TODO
     }
@@ -39,6 +44,9 @@ namespace streamsmenu {
     void onSinkProviderUnregister(const std::string& type) {
         // Update the list
         updateSinkTypeList(type);
+
+        // Update the ID of the Add dropdown
+        // TODO
 
         // Update the selected ID of each drop down
         // TODO
@@ -137,18 +145,16 @@ namespace streamsmenu {
                 float tableWidth = ImGui::GetContentRegionAvail().x;
 
                 ImGui::Spacing();
-                int ssds = 0;
                 int startCur = ImGui::GetCursorPosX();
                 {
                     std::lock_guard<std::recursive_mutex> lck(sinkTypesMtx);
-                    ImGui::Combo(CONCAT("##sdrpp_streams_add_type_", name), &ssds, sinkTypes.txt);
+                    ImGui::Combo(CONCAT("##sdrpp_streams_add_type_", name), &addType, sinkTypes.txt);
+                    ImGui::SameLine();
+                    if (ImGui::Button(CONCAT("Add##sdrpp_streams_add_btn_", name), ImVec2(tableWidth - (ImGui::GetCursorPosX() - startCur), 0))) {
+                        stream->addSink(sinkTypes.value(addType));
+                    }
+                    ImGui::Spacing();
                 }
-                
-                ImGui::SameLine();
-                if (ImGui::Button(CONCAT("Add##sdrpp_streams_add_btn_", name), ImVec2(tableWidth - (ImGui::GetCursorPosX() - startCur), 0))) {
-                    stream->addSink("Audio");
-                }
-                ImGui::Spacing();
 
                 ImGui::EndTable();
 

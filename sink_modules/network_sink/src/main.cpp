@@ -3,13 +3,14 @@
 #include <module.h>
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
-#include <signal_path/sink.h>
+#include <signal_path/stream.h>
 #include <dsp/buffer/packer.h>
 #include <dsp/convert/stereo_to_mono.h>
 #include <dsp/sink/handler_sink.h>
 #include <utils/flog.h>
 #include <config.h>
 #include <gui/style.h>
+#include <utils/optionlist.h>
 #include <core.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
@@ -18,84 +19,97 @@ SDRPP_MOD_INFO{
     /* Name:            */ "network_sink",
     /* Description:     */ "Network sink module for SDR++",
     /* Author:          */ "Ryzerth",
-    /* Version:         */ 0, 1, 0,
+    /* Version:         */ 0, 2, 0,
     /* Max instances    */ 1
 };
 
 ConfigManager config;
 
-enum {
+enum SinkMode {
     SINK_MODE_TCP,
     SINK_MODE_UDP
 };
 
 const char* sinkModesTxt = "TCP\0UDP\0";
 
-class NetworkSink : SinkManager::Sink {
+class NetworkSink : public Sink {
 public:
-    NetworkSink(SinkManager::Stream* stream, std::string streamName) {
-        _stream = stream;
-        _streamName = streamName;
+    NetworkSink(SinkEntry* entry, dsp::stream<dsp::stereo_t>* stream, const std::string& name, SinkID id, const std::string& stringId) :
+        Sink(entry, stream, name, id, stringId)
+    {
+        // Define modes
+        modes.define("TCP", SINK_MODE_TCP);
+        modes.define("UDP", SINK_MODE_UDP);
 
-        // Load config
-        config.acquire();
-        if (!config.conf.contains(_streamName)) {
-            config.conf[_streamName]["hostname"] = "localhost";
-            config.conf[_streamName]["port"] = 7355;
-            config.conf[_streamName]["protocol"] = SINK_MODE_UDP; // UDP
-            config.conf[_streamName]["sampleRate"] = 48000.0;
-            config.conf[_streamName]["stereo"] = false;
-            config.conf[_streamName]["listening"] = false;
+        // Create a list of sample rates
+        std::vector<int> srList;
+        for (int sr = 12000; sr <= 200000; sr += 12000) {
+            srList.push_back(sr);
         }
-        std::string host = config.conf[_streamName]["hostname"];
-        strcpy(hostname, host.c_str());
-        port = config.conf[_streamName]["port"];
-        modeId = config.conf[_streamName]["protocol"];
-        sampleRate = config.conf[_streamName]["sampleRate"];
-        stereo = config.conf[_streamName]["stereo"];
-        bool startNow = config.conf[_streamName]["listening"];
-        config.release(true);
+        for (int sr = 11025; sr <= 192000; sr += 11025) {
+            srList.push_back(sr);
+        }
 
+        // Sort sample rate list
+        std::sort(srList.begin(), srList.end(), [](double a, double b) { return (a < b); });
+
+        // Define samplerate options
+        for (int sr : srList) {
+            char buf[16];
+            sprintf(buf, "%d", sr);
+            samplerates.define(sr, buf, sr);
+        }
+
+        // Allocate buffer
         netBuf = new int16_t[STREAM_BUFFER_SIZE];
 
-        packer.init(_stream->sinkOut, 512);
+        // Init DSP
+        packer.init(stream, 512);
         s2m.init(&packer.out);
         monoSink.init(&s2m.out, monoHandler, this);
         stereoSink.init(&packer.out, stereoHandler, this);
 
-
-        // Create a list of sample rates
-        for (int sr = 12000; sr < 200000; sr += 12000) {
-            sampleRates.push_back(sr);
+        // Load config
+        config.acquire();
+        bool startNow = false;
+        if (config.conf[stringId].contains("hostname")) {
+            std::string host = config.conf[stringId]["hostname"];
+            strcpy(hostname, host.c_str());
         }
-        for (int sr = 11025; sr < 192000; sr += 11025) {
-            sampleRates.push_back(sr);
+        if (config.conf[stringId].contains("port")) {
+            port = config.conf[stringId]["port"];
         }
-
-        // Sort sample rate list
-        std::sort(sampleRates.begin(), sampleRates.end(), [](double a, double b) { return (a < b); });
-
-        // Generate text list for UI
-        char buffer[128];
-        int id = 0;
-        int _48kId;
-        bool found = false;
-        for (auto sr : sampleRates) {
-            sprintf(buffer, "%d", (int)sr);
-            sampleRatesTxt += buffer;
-            sampleRatesTxt += '\0';
-            if (sr == sampleRate) {
-                srId = id;
-                found = true;
+        if (config.conf[stringId].contains("mode")) {
+            std::string modeStr = config.conf[stringId]["mode"];
+            if (modes.keyExists(modeStr)) {
+                mode = modes.value(modes.keyId(modeStr));
             }
-            if (sr == 48000.0) { _48kId = id; }
-            id++;
+            else {
+                mode = SINK_MODE_TCP;
+            }
         }
-        if (!found) {
-            srId = _48kId;
-            sampleRate = 48000.0;
+        if (config.conf[stringId].contains("samplerate")) {
+            int nSr = config.conf[stringId]["samplerate"];
+            if (samplerates.keyExists(nSr)) {
+                sampleRate = samplerates.value(samplerates.keyId(nSr));
+            }
+            else {
+                sampleRate = 48000;
+            }
         }
-        _stream->setSampleRate(sampleRate);
+        if (config.conf[stringId].contains("stereo")) {
+            stereo = config.conf[stringId]["stereo"];
+        }
+        if (config.conf[stringId].contains("running")) {
+            startNow = config.conf[stringId]["running"];
+        }
+        config.release();
+
+        // Set mode ID
+        modeId = modes.valueId(mode);
+
+        // Set samplerate ID
+        srId = samplerates.valueId(sampleRate);
 
         // Start if needed
         if (startNow) { startServer(); }
@@ -122,30 +136,30 @@ public:
         running = false;
     }
 
-    void menuHandler() {
+    void showMenu() {
         float menuWidth = ImGui::GetContentRegionAvail().x;
 
         bool listening = (listener && listener->isListening()) || (conn && conn->isOpen());
 
         if (listening) { style::beginDisabled(); }
-        if (ImGui::InputText(CONCAT("##_network_sink_host_", _streamName), hostname, 1023)) {
+        if (ImGui::InputText(CONCAT("##_network_sink_host_", stringId), hostname, 1023)) {
             config.acquire();
-            config.conf[_streamName]["hostname"] = hostname;
+            config.conf[stringId]["hostname"] = hostname;
             config.release(true);
         }
         ImGui::SameLine();
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::InputInt(CONCAT("##_network_sink_port_", _streamName), &port, 0, 0)) {
+        if (ImGui::InputInt(CONCAT("##_network_sink_port_", stringId), &port, 0, 0)) {
             config.acquire();
-            config.conf[_streamName]["port"] = port;
+            config.conf[stringId]["port"] = port;
             config.release(true);
         }
 
         ImGui::LeftLabel("Protocol");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::Combo(CONCAT("##_network_sink_mode_", _streamName), &modeId, sinkModesTxt)) {
+        if (ImGui::Combo(CONCAT("##_network_sink_mode_", stringId), &modeId, sinkModesTxt)) {
             config.acquire();
-            config.conf[_streamName]["protocol"] = modeId;
+            config.conf[stringId]["mode"] = modeId;
             config.release(true);
         }
 
@@ -153,33 +167,33 @@ public:
 
         ImGui::LeftLabel("Samplerate");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        if (ImGui::Combo(CONCAT("##_network_sink_sr_", _streamName), &srId, sampleRatesTxt.c_str())) {
-            sampleRate = sampleRates[srId];
-            _stream->setSampleRate(sampleRate);
+        if (ImGui::Combo(CONCAT("##_network_sink_sr_", stringId), &srId, samplerates.txt)) {
+            sampleRate = samplerates.value(srId);
+            entry->setSamplerate(sampleRate);
             packer.setSampleCount(sampleRate / 60);
             config.acquire();
-            config.conf[_streamName]["sampleRate"] = sampleRate;
+            config.conf[stringId]["samplerate"] = sampleRate;
             config.release(true);
         }
 
-        if (ImGui::Checkbox(CONCAT("Stereo##_network_sink_stereo_", _streamName), &stereo)) {
+        if (ImGui::Checkbox(CONCAT("Stereo##_network_sink_stereo_", stringId), &stereo)) {
             stop();
             start();
             config.acquire();
-            config.conf[_streamName]["stereo"] = stereo;
+            config.conf[stringId]["stereo"] = stereo;
             config.release(true);
         }
 
-        if (listening && ImGui::Button(CONCAT("Stop##_network_sink_stop_", _streamName), ImVec2(menuWidth, 0))) {
+        if (listening && ImGui::Button(CONCAT("Stop##_network_sink_stop_", stringId), ImVec2(menuWidth, 0))) {
             stopServer();
             config.acquire();
-            config.conf[_streamName]["listening"] = false;
+            config.conf[stringId]["running"] = false;
             config.release(true);
         }
-        else if (!listening && ImGui::Button(CONCAT("Start##_network_sink_stop_", _streamName), ImVec2(menuWidth, 0))) {
+        else if (!listening && ImGui::Button(CONCAT("Start##_network_sink_stop_", stringId), ImVec2(menuWidth, 0))) {
             startServer();
             config.acquire();
-            config.conf[_streamName]["listening"] = true;
+            config.conf[stringId]["running"] = true;
             config.release(true);
         }
 
@@ -271,47 +285,40 @@ private:
         _this->listener->acceptAsync(clientHandler, _this);
     }
 
-    SinkManager::Stream* _stream;
+    // DSP
     dsp::buffer::Packer<dsp::stereo_t> packer;
     dsp::convert::StereoToMono s2m;
     dsp::sink::Handler<float> monoSink;
     dsp::sink::Handler<dsp::stereo_t> stereoSink;
 
-    std::string _streamName;
-
-    int srId = 0;
-    bool running = false;
+    OptionList<std::string, SinkMode> modes;
+    OptionList<int, double> samplerates;
 
     char hostname[1024];
-    int port = 4242;
-
-    int modeId = 1;
-
-    std::vector<unsigned int> sampleRates;
-    std::string sampleRatesTxt;
-    unsigned int sampleRate = 48000;
+    int port = 7355;
+    SinkMode mode = SINK_MODE_TCP;
+    int modeId;
+    int sampleRate = 48000;
+    int srId;
     bool stereo = false;
+    bool running = false;
 
     int16_t* netBuf;
-
     net::Listener listener;
     net::Conn conn;
     std::mutex connMtx;
 };
 
-class NetworkSinkModule : public ModuleManager::Instance {
+class NetworkSinkModule : public ModuleManager::Instance, SinkProvider {
 public:
     NetworkSinkModule(std::string name) {
-        this->name = name;
-        provider.create = create_sink;
-        provider.ctx = this;
-
-        sigpath::sinkManager.registerSinkProvider("Network", provider);
+        // Register self as provider
+        sigpath::streamManager.registerSinkProvider("Network", this);
     }
 
     ~NetworkSinkModule() {
-        // Unregister sink, this will automatically stop and delete all instances of the audio sink
-        sigpath::sinkManager.unregisterSinkProvider("Network");
+        // Unregister self
+        sigpath::streamManager.unregisterSinkProvider(this);
     }
 
     void postInit() {}
@@ -328,14 +335,13 @@ public:
         return enabled;
     }
 
-private:
-    static SinkManager::Sink* create_sink(SinkManager::Stream* stream, std::string streamName, void* ctx) {
-        return (SinkManager::Sink*)(new NetworkSink(stream, streamName));
+    std::unique_ptr<Sink> createSink(SinkEntry* entry, dsp::stream<dsp::stereo_t>* stream, const std::string& name, SinkID id, const std::string& stringId) {
+        return std::make_unique<NetworkSink>(entry, stream, name, id, stringId);
     }
 
+private:
     std::string name;
     bool enabled = true;
-    SinkManager::SinkProvider provider;
 };
 
 MOD_EXPORT void _INIT_() {
