@@ -35,8 +35,11 @@ public:
         monoPacker.init(&s2m.out, 512);
         stereoPacker.init(stream, 512);
 
-        // Convert config to the new format and get selected device
-        bool modified = false;
+#if RTAUDIO_VERSION_MAJOR >= 6
+        audio.setErrorCallback(&errorCallback);
+#endif
+
+        bool created = false;
         std::string device = "";
         // config.acquire();
         // if (config.conf.contains(streamName)) {
