@@ -55,8 +55,6 @@ public:
         // }
         // config.release(modified);
 
-        // List devices
-        int count = audio.getDeviceCount();
         RtAudio::DeviceInfo info;
         for (int i = 0; i < count; i++) {
             try {
