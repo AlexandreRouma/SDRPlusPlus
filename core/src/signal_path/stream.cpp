@@ -11,7 +11,7 @@ Sink::Sink(SinkEntry* entry, dsp::stream<dsp::stereo_t>* stream,  const std::str
 
 void Sink::showMenu() {}
 
-SinkEntry::SinkEntry(StreamManager* manager, AudioStream* parentStream, const std::string& type, SinkID id, double inputSamplerate) :
+SinkEntry::SinkEntry(StreamManager* manager, Stream* parentStream, const std::string& type, SinkID id, double inputSamplerate) :
     manager(manager),
     parentStream(parentStream),
     id(id)
@@ -156,7 +156,7 @@ std::string SinkEntry::getStringID() const {
     return stringId;
 }
 
-AudioStream::AudioStream(StreamManager* manager, const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate) :
+Stream::Stream(StreamManager* manager, const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate) :
     manager(manager),
     name(name)
 {
@@ -166,7 +166,7 @@ AudioStream::AudioStream(StreamManager* manager, const std::string& name, dsp::s
     split.init(stream);
 }
 
-AudioStream::~AudioStream() {
+Stream::~Stream() {
     // Copy sink IDs
     std::vector<SinkID> ids;
     for (auto& [id, sink] : sinks) {
@@ -179,75 +179,11 @@ AudioStream::~AudioStream() {
     }
 }
 
-void AudioStream::setInput(dsp::stream<dsp::stereo_t>* stream, double samplerate) {
-    std::unique_lock<std::shared_mutex> lck(sinksMtx);
-
-    // If all that's needed is to set the input, do it and return
-    if (samplerate == 0.0) {
-        split.setInput(stream);
-        return;
-    }
-
-    // Update samplerate
-    this->samplerate = samplerate;
-
-    // Stop DSP
-    if (running) {
-        split.stop();
-        for (auto& [id, sink] : sinks) {
-            sink->stopDSP();
-        }
-    }
-
-
-    // Set input and samplerate
-    split.setInput(stream);
-    for (auto& [id, sink] : sinks) {
-        sink->setInputSamplerate(samplerate);
-    }
-
-    // Start DSP
-    if (running) {
-        for (auto& [id, sink] : sinks) {
-            sink->startDSP();
-        }
-        split.start();
-    }
-}
-
-void AudioStream::setSamplerate(double samplerate) {
-    std::unique_lock<std::shared_mutex> lck(sinksMtx);
-
-    // Update samplerate
-    this->samplerate = samplerate;
-
-    // Stop DSP
-    if (running) {
-        split.stop();
-        for (auto& [id, sink] : sinks) {
-            sink->stopDSP();
-        }
-    }
-
-    // Set samplerate
-    for (auto& [id, sink] : sinks) {
-        sink->setInputSamplerate(samplerate);
-    }
-
-    // Start DSP
-    if (running) {
-        for (auto& [id, sink] : sinks) {
-            sink->startDSP();
-        }
-        split.start();
-    }
-}
-
-const std::string& AudioStream::getName() const {
+const std::string& Stream::getName() const {
     return name;
 }
 
-SinkID AudioStream::addSink(const std::string& type, SinkID id) {
+SinkID Stream::addSink(const std::string& type, SinkID id) {
     std::unique_lock<std::shared_mutex> lck(sinksMtx);
 
     // Find a free ID if not provided
@@ -289,7 +225,7 @@ SinkID AudioStream::addSink(const std::string& type, SinkID id) {
     return id;
 }
 
-void AudioStream::removeSink(SinkID id, bool forgetSettings) {
+void Stream::removeSink(SinkID id, bool forgetSettings) {
     // Acquire shared lock
     std::shared_ptr<SinkEntry> sink;
     {
@@ -333,15 +269,85 @@ void AudioStream::removeSink(SinkID id, bool forgetSettings) {
     }
 }
 
-std::shared_lock<std::shared_mutex> AudioStream::getSinksLock() {
+std::shared_lock<std::shared_mutex> Stream::getSinksLock() {
     return std::shared_lock<std::shared_mutex>(sinksMtx);
 }
 
-const std::map<SinkID, std::shared_ptr<SinkEntry>>& AudioStream::getSinks() const {
+const std::map<SinkID, std::shared_ptr<SinkEntry>>& Stream::getSinks() const {
     return sinks;
 }
 
-void AudioStream::startDSP() {
+MasterStream::MasterStream(StreamManager* manager, const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate) :
+    Stream(manager, name, stream, samplerate)
+{}
+
+void MasterStream::setInput(dsp::stream<dsp::stereo_t>* stream, double samplerate) {
+    std::unique_lock<std::shared_mutex> lck(sinksMtx);
+
+    // If all that's needed is to set the input, do it and return
+    if (samplerate == 0.0) {
+        split.setInput(stream);
+        return;
+    }
+
+    // Update samplerate
+    this->samplerate = samplerate;
+
+    // Stop DSP
+    if (running) {
+        split.stop();
+        for (auto& [id, sink] : sinks) {
+            sink->stopDSP();
+        }
+    }
+
+
+    // Set input and samplerate
+    split.setInput(stream);
+    for (auto& [id, sink] : sinks) {
+        sink->setInputSamplerate(samplerate);
+    }
+
+    // Start DSP
+    if (running) {
+        for (auto& [id, sink] : sinks) {
+            sink->startDSP();
+        }
+        split.start();
+    }
+}
+
+void MasterStream::setSamplerate(double samplerate) {
+    std::unique_lock<std::shared_mutex> lck(sinksMtx);
+
+    // Update samplerate
+    this->samplerate = samplerate;
+
+    // TODO: Maybe simply disallow while running?
+
+    // Stop DSP if it was running
+    if (running) {
+        split.stop();
+        for (auto& [id, sink] : sinks) {
+            sink->stopDSP();
+        }
+    }
+
+    // Set samplerate
+    for (auto& [id, sink] : sinks) {
+        sink->setInputSamplerate(samplerate);
+    }
+
+    // Start DSP if it was running
+    if (running) {
+        for (auto& [id, sink] : sinks) {
+            sink->startDSP();
+        }
+        split.start();
+    }
+}
+
+void MasterStream::startDSP() {
     // TODO: Maybe add a different mutex for the stream?
     std::unique_lock<std::shared_mutex> lck(sinksMtx);
 
@@ -356,7 +362,7 @@ void AudioStream::startDSP() {
     running = true;
 }
 
-void AudioStream::stopDSP() {
+void MasterStream::stopDSP() {
     // TODO: Maybe add a different mutex for the stream?
     std::unique_lock<std::shared_mutex> lck(sinksMtx);
 
@@ -371,7 +377,7 @@ void AudioStream::stopDSP() {
     running = false;
 }
 
-std::shared_ptr<AudioStream> StreamManager::createStream(const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate) {
+std::shared_ptr<MasterStream> StreamManager::createStream(const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate) {
     std::unique_lock<std::shared_mutex> lck(streamsMtx);
 
     // Check that no stream with that name already exists
@@ -381,7 +387,7 @@ std::shared_ptr<AudioStream> StreamManager::createStream(const std::string& name
     }
 
     // Create and save stream
-    auto newStream = std::make_shared<AudioStream>(this, name, stream, samplerate);
+    std::shared_ptr<MasterStream> newStream(new MasterStream(this, name, stream, samplerate));
     streams[name] = newStream;
 
     // Release lock and emit event
@@ -391,7 +397,7 @@ std::shared_ptr<AudioStream> StreamManager::createStream(const std::string& name
     return newStream;
 }
 
-void StreamManager::destroyStream(std::shared_ptr<AudioStream>& stream) {
+void StreamManager::destroyStream(std::shared_ptr<MasterStream>& stream) {
     // Emit event
     onStreamDestroy(stream);
 
@@ -400,7 +406,7 @@ void StreamManager::destroyStream(std::shared_ptr<AudioStream>& stream) {
         std::unique_lock<std::shared_mutex> lck(streamsMtx);
 
         // Get iterator of the stream
-        auto it = std::find_if(streams.begin(), streams.end(), [&stream](std::pair<const std::string, std::shared_ptr<AudioStream>> e) {
+        auto it = std::find_if(streams.begin(), streams.end(), [&stream](std::pair<const std::string, std::shared_ptr<Stream>> e) {
             return e.second == stream;
         });
         if (it == streams.end()) {
@@ -421,7 +427,7 @@ std::shared_lock<std::shared_mutex> StreamManager::getStreamsLock() {
     return std::shared_lock<std::shared_mutex>(streamsMtx);
 }
 
-const std::map<std::string, std::shared_ptr<AudioStream>>& StreamManager::getStreams() const {
+const std::map<std::string, std::shared_ptr<Stream>>& StreamManager::getStreams() const {
     return streams;
 }
 

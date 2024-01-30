@@ -11,11 +11,12 @@
 #include <shared_mutex>
 #include <stdexcept>
 
-class AudioStream;
+class SinkEntry;
+class Stream;
+class MasterStream;
+class StreamManager;
 
 using SinkID = int;
-
-class SinkEntry;
 
 class Sink {
 public:
@@ -58,14 +59,13 @@ public:
     SinkEntryCreateException(const char* what) : std::runtime_error(what) {}
 };
 
-class StreamManager;
-
 // TODO: Would be cool to have data and audio sinks instead of just audio.
 class SinkEntry {
-    friend AudioStream;
     friend Sink;
+    friend Stream;
+    friend MasterStream;
 public:
-    SinkEntry(StreamManager* manager, AudioStream* parentStream, const std::string& type, SinkID id, double inputSamplerate);
+    SinkEntry(StreamManager* manager, Stream* parentStream, const std::string& type, SinkID id, double inputSamplerate);
     
     /**
      * Get the type of the sink.
@@ -165,7 +165,7 @@ private:
     std::string type;
     const SinkID id;
     double inputSamplerate;
-    AudioStream* const parentStream;
+    Stream* const parentStream;
     StreamManager* const manager;
 
     std::string stringId;
@@ -175,28 +175,11 @@ private:
     float panning = 0.0f;
 };
 
-class StreamManager;
-
-class AudioStream {
-    friend StreamManager;
+class Stream {
+protected:
+    Stream(StreamManager* manager, const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate);
 public:
-    AudioStream(StreamManager* manager, const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate);
-    ~AudioStream();
-
-    /**
-     * Set DSP stream input.
-     * @param stream DSP stream.
-     * @param samplerate New samplerate (optional, 0.0 if not used).
-    */
-    void setInput(dsp::stream<dsp::stereo_t>* stream, double samplerate = 0.0);
-
-    // TODO: There must be a way to pre-stop things to avoid having weird shit happen
-
-    /**
-     * Set the samplerate of the input stream.
-     * @param samplerate Samplerate in Hz.
-    */
-    void setSamplerate(double samplerate);
+    ~Stream();
 
     /**
      * Get the name of the stream.
@@ -231,7 +214,40 @@ public:
     */
     const std::map<SinkID, std::shared_ptr<SinkEntry>>& getSinks() const;
 
-    // TODO: This should only be callable by the module that created the stream
+    // Emitted when the samplerate of the stream was changed
+    NewEvent<double> onSamplerateChanged;
+    // Emitted when a sink was added
+    NewEvent<std::shared_ptr<SinkEntry>> onSinkAdded;
+    // Emitted when a sink is being removed
+    NewEvent<std::shared_ptr<SinkEntry>> onSinkRemove;
+
+protected:
+    StreamManager* const manager;
+    const std::string name;
+    double samplerate;
+    dsp::routing::Splitter<dsp::stereo_t> split;
+    bool running = false;
+
+    std::map<SinkID, std::shared_ptr<SinkEntry>> sinks;
+    std::shared_mutex sinksMtx;
+};
+
+class MasterStream : public Stream {
+    friend StreamManager;
+    MasterStream(StreamManager* manager, const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate);
+public:
+    /**
+     * Set DSP stream input.
+     * @param stream DSP stream.
+     * @param samplerate New samplerate (optional, 0.0 if not used).
+    */
+    void setInput(dsp::stream<dsp::stereo_t>* stream, double samplerate = 0.0);
+
+    /**
+     * Set the samplerate of the input stream.
+     * @param samplerate Samplerate in Hz.
+    */
+    void setSamplerate(double samplerate);
 
     /**
      * Start the DSP.
@@ -242,23 +258,6 @@ public:
      * Stop the DSP.
     */
     void stopDSP();
-
-    // Emitted when the samplerate of the stream was changed
-    NewEvent<double> onSamplerateChanged;
-    // Emitted when a sink was added
-    NewEvent<std::shared_ptr<SinkEntry>> onSinkAdded;
-    // Emitted when a sink is being removed
-    NewEvent<std::shared_ptr<SinkEntry>> onSinkRemove;
-
-private:
-    StreamManager* const manager;
-    const std::string name;
-    double samplerate;
-    dsp::routing::Splitter<dsp::stereo_t> split;
-    bool running = false;
-
-    std::map<SinkID, std::shared_ptr<SinkEntry>> sinks;
-    std::shared_mutex sinksMtx;
 };
 
 class StreamManager {
@@ -271,13 +270,13 @@ public:
      * @param samplerate Samplerate of the audio data.
      * @return Audio stream instance.
     */
-    std::shared_ptr<AudioStream> createStream(const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate);
+    std::shared_ptr<MasterStream> createStream(const std::string& name, dsp::stream<dsp::stereo_t>* stream, double samplerate);
 
     /**
      * Destroy an audio stream.
      * @param stream Stream to destroy. The passed shared pointer will be automatically reset.
     */
-    void destroyStream(std::shared_ptr<AudioStream>& stream);
+    void destroyStream(std::shared_ptr<MasterStream>& stream);
 
     /**
      * Aquire a lock for the stream list.
@@ -289,7 +288,7 @@ public:
      * Get a list of streams and their associated names.
      * @return Map of names to stream instance.
     */
-    const std::map<std::string, std::shared_ptr<AudioStream>>& getStreams() const;
+    const std::map<std::string, std::shared_ptr<Stream>>& getStreams() const;
 
     /**
      * Register a sink provider.
@@ -317,16 +316,16 @@ public:
     const std::vector<std::string>& getSinkTypes() const;
 
     // Emitted when a stream was created
-    NewEvent<std::shared_ptr<AudioStream>> onStreamCreated;
+    NewEvent<std::shared_ptr<Stream>> onStreamCreated;
     // Emitted when a stream is about to be destroyed
-    NewEvent<std::shared_ptr<AudioStream>> onStreamDestroy;
+    NewEvent<std::shared_ptr<Stream>> onStreamDestroy;
     // Emitted when a sink provider was registered
     NewEvent<const std::string&> onSinkProviderRegistered;
     // Emitted when a sink provider is about to be unregistered
     NewEvent<const std::string&> onSinkProviderUnregister;
 
 private:
-    std::map<std::string, std::shared_ptr<AudioStream>> streams;
+    std::map<std::string, std::shared_ptr<Stream>> streams;
     std::shared_mutex streamsMtx;
 
     std::map<std::string, SinkProvider*> providers;

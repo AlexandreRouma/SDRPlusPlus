@@ -634,7 +634,7 @@ private:
     dsp::chain<dsp::stereo_t> afChain;
     dsp::filter::Deemphasis<dsp::stereo_t> deemp;
 
-    std::shared_ptr<AudioStream> stream;
+    std::shared_ptr<MasterStream> stream;
 
     demod::Demodulator* selectedDemod = NULL;
 
