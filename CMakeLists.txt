@@ -43,6 +43,7 @@ option(OPT_BUILD_FALCON9_DECODER "Build the falcon9 live decoder (Dependencies: 
 option(OPT_BUILD_KG_SSTV_DECODER "Build the KG SSTV (KG-STV) decoder module (no dependencies required)" OFF)
 option(OPT_BUILD_M17_DECODER "Build the M17 decoder module (Dependencies: codec2)" OFF)
 option(OPT_BUILD_METEOR_DEMODULATOR "Build the meteor demodulator module (no dependencies required)" ON)
+option(OPT_BUILD_PAGER_DECODER "Build the pager decoder module (no dependencies required)" OFF)
 option(OPT_BUILD_RADIO "Main audio modulation decoder (AM, FM, SSB, etc...)" ON)
 option(OPT_BUILD_WEATHER_SAT_DECODER "Build the HRPT decoder module (no dependencies required)" OFF)
 
@@ -234,6 +235,10 @@ if (OPT_BUILD_METEOR_DEMODULATOR)
 add_subdirectory("decoder_modules/meteor_demodulator")
 endif (OPT_BUILD_METEOR_DEMODULATOR)
 
+if (OPT_BUILD_PAGER_DECODER)
+add_subdirectory("decoder_modules/pager_decoder")
+endif (OPT_BUILD_PAGER_DECODER)
+
 if (OPT_BUILD_RADIO)
 add_subdirectory("decoder_modules/radio")
 endif (OPT_BUILD_RADIO)
@@ -242,6 +247,7 @@ if (OPT_BUILD_WEATHER_SAT_DECODER)
 add_subdirectory("decoder_modules/weather_sat_decoder")
 endif (OPT_BUILD_WEATHER_SAT_DECODER)
 
+add_subdirectory("decoder_modules/pager_decoder")
 
 # Misc
 if (OPT_BUILD_DISCORD_PRESENCE)
@@ -302,7 +308,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_custom_target(do_always ALL cp \"$<TARGET_FILE_DIR:sdrpp_core>/libsdrpp_core.dylib\" \"$<TARGET_FILE_DIR:sdrpp>\")
 endif ()
 
-# cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake" -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_M17_DECODER=ON -DOPT_BUILD_SCANNER=ON -DOPT_BUILD_SCHEDULER=ON -DOPT_BUILD_USRP_SOURCE=ON
+# cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake" -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_M17_DECODER=ON -DOPT_BUILD_SCANNER=ON -DOPT_BUILD_SCHEDULER=ON -DOPT_BUILD_USRP_SOURCE=ON -DOPT_BUILD_PAGER_DECODER=ON
 
 # Create module cmake file
 configure_file(${CMAKE_SOURCE_DIR}/sdrpp_module.cmake ${CMAKE_CURRENT_BINARY_DIR}/sdrpp_module.cmake @ONLY)
