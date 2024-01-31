@@ -5,24 +5,11 @@
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
 #include <module.h>
-#include <filesystem>
-#include <dsp/stream.h>
-#include <dsp/buffer/reshaper.h>
-#include <dsp/multirate/rational_resampler.h>
-#include <dsp/sink/handler_sink.h>
 #include <gui/widgets/folder_select.h>
-#include <gui/widgets/symbol_diagram.h>
-#include <fstream>
-#include <chrono>
-#include <dsp/demod/quadrature.h>
-#include <dsp/clock_recovery/mm.h>
-#include <dsp/taps/root_raised_cosine.h>
-#include <dsp/correction/dc_blocker.h>
-#include <dsp/loop/fast_agc.h>
 #include <utils/optionlist.h>
-#include <dsp/digital/binary_slicer.h>
-#include <dsp/routing/doubler.h>
-#include "pocsag/pocsag.h"
+#include "decoder.h"
+#include "pocsag/decoder.h"
+#include "flex/decoder.h"
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -34,77 +21,29 @@ SDRPP_MOD_INFO{
     /* Max instances    */ -1
 };
 
-const char* msgTypes[] = {
-    "Numeric",
-    "Unknown (0b01)",
-    "Unknown (0b10)",
-    "Alphanumeric",
-};
-
 ConfigManager config;
 
-#define INPUT_SAMPLE_RATE   24000.0
-#define INPUT_BANDWIDTH     12500.0
-#define INPUT_BAUD_RATE     2400.0
-
 enum Protocol {
+    PROTOCOL_INVALID = -1,
     PROTOCOL_POCSAG,
     PROTOCOL_FLEX
 };
 
 class PagerDecoderModule : public ModuleManager::Instance {
 public:
-    PagerDecoderModule(std::string name) : diag(0.6, 2400) {
+    PagerDecoderModule(std::string name) {
         this->name = name;
 
         // Define protocols
         protocols.define("POCSAG", PROTOCOL_POCSAG);
         protocols.define("FLEX", PROTOCOL_FLEX);
 
-        // Load config
-        config.acquire();
-        if (!config.conf.contains(name)) {
-            config.conf[name]["showLines"] = false;
-        }
-        showLines = config.conf[name]["showLines"];
-        if (showLines) {
-            diag.lines.push_back(-1.0);
-            diag.lines.push_back(-1.0/3.0);
-            diag.lines.push_back(1.0/3.0);
-            diag.lines.push_back(1.0);
-        }
-        config.release(true);
-
-        // Initialize VFO
-        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, INPUT_BANDWIDTH, INPUT_SAMPLE_RATE, INPUT_BANDWIDTH, INPUT_BANDWIDTH, true);
+        // Initialize VFO with default values
+        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 12500, 24000, 12500, 12500, true);
         vfo->setSnapInterval(1);
 
-        // Initialize DSP here (negative dev to invert signal)
-        demod.init(vfo->output, -4500.0, INPUT_SAMPLE_RATE);
-        dcBlock.init(&demod.out, 0.001);
-        float taps[] = { 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f };
-        shape = dsp::taps::fromArray<float>(10, taps);
-        fir.init(&dcBlock.out, shape);
-        recov.init(&fir.out, INPUT_SAMPLE_RATE/INPUT_BAUD_RATE, 1e5, 0.1, 0.05);
-        doubler.init(&recov.out);
-        slicer.init(&doubler.outB);
-        dataHandler.init(&slicer.out, _dataHandler, this);
-        reshape.init(&doubler.outA, 2400.0, (INPUT_BAUD_RATE / 30.0) - 2400.0);
-        diagHandler.init(&reshape.out, _diagHandler, this);
-
-        // Initialize decode
-        decoder.onMessage.bind(&PagerDecoderModule::messageHandler, this);
-
-        // Start DSP Here
-        demod.start();
-        dcBlock.start();
-        fir.start();
-        recov.start();
-        doubler.start();
-        slicer.start();
-        dataHandler.start();
-        reshape.start();
-        diagHandler.start();
+        // Select the protocol
+        selectProtocol(PROTOCOL_POCSAG);
 
         gui::menu.registerEntry(name, menuHandler, this, this);
     }
@@ -113,15 +52,8 @@ public:
         gui::menu.removeEntry(name);
         // Stop DSP
         if (enabled) {
-            demod.stop();
-            dcBlock.stop();
-            fir.stop();
-            recov.stop();
-            doubler.stop();
-            slicer.stop();
-            dataHandler.stop();
-            reshape.stop();
-            diagHandler.stop();
+            decoder->stop();
+            decoder.reset();
             sigpath::vfoManager.deleteVFO(vfo);
         }
 
@@ -132,42 +64,53 @@ public:
 
     void enable() {
         double bw = gui::waterfall.getBandwidth();
-        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, std::clamp<double>(0, -bw / 2.0, bw / 2.0), INPUT_BANDWIDTH, INPUT_SAMPLE_RATE, INPUT_BANDWIDTH, INPUT_BANDWIDTH, true);
-        vfo->setSnapInterval(250);
+        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, std::clamp<double>(0, -bw / 2.0, bw / 2.0), 12500, 24000, 12500, 12500, true);
+        vfo->setSnapInterval(1);
 
-        // Start DSP
-        demod.start();
-        dcBlock.start();
-        fir.start();
-        recov.start();
-        doubler.start();
-        slicer.start();
-        dataHandler.start();
-        reshape.start();
-        diagHandler.start();
+        decoder->setVFO(vfo);
+        decoder->start();
 
         enabled = true;
     }
 
     void disable() {
-        demod.stop();
-        dcBlock.stop();
-        fir.stop();
-        recov.stop();
-        doubler.stop();
-        slicer.stop();
-        dataHandler.stop();
-        reshape.stop();
-        diagHandler.stop();
-        reshape.stop();
-        diagHandler.stop();
-
+        decoder->stop();
         sigpath::vfoManager.deleteVFO(vfo);
         enabled = false;
     }
 
     bool isEnabled() {
         return enabled;
+    }
+
+    void selectProtocol(Protocol newProto) {
+        // Cannot change while disabled
+        if (!enabled) { return; }
+
+        // If the protocol hasn't changed, no need to do anything
+        if (newProto == proto) { return; }
+
+        // Delete current decoder
+        decoder.reset();
+
+        // Create a new decoder
+        switch (newProto) {
+        case PROTOCOL_POCSAG:
+            decoder = std::make_unique<POCSAGDecoder>(name, vfo);
+            break;
+        case PROTOCOL_FLEX:
+            decoder = std::make_unique<FLEXDecoder>(name, vfo);
+            break;
+        default:
+            flog::error("Tried to select unknown pager protocol");
+            return;
+        }
+
+        // Start the new decoder
+        decoder->start();
+
+        // Save selected protocol
+        proto = newProto;
     }
 
 private:
@@ -181,54 +124,28 @@ private:
         ImGui::LeftLabel("Protocol");
         ImGui::FillWidth();
         if (ImGui::Combo(("##pager_decoder_proto_" + _this->name).c_str(), &_this->protoId, _this->protocols.txt)) {
-            // TODO
+            _this->selectProtocol(_this->protocols.value(_this->protoId));
         }
 
-        ImGui::SetNextItemWidth(menuWidth);
-        _this->diag.draw();
+        if (_this->decoder) { _this->decoder->showMenu(); }
+
+        ImGui::Button(("Record##pager_decoder_show_" + _this->name).c_str(), ImVec2(menuWidth, 0));
+        ImGui::Button(("Show Messages##pager_decoder_show_" + _this->name).c_str(), ImVec2(menuWidth, 0));
 
         if (!_this->enabled) { style::endDisabled(); }
-    }
-
-    static void _dataHandler(uint8_t* data, int count, void* ctx) {
-        PagerDecoderModule* _this = (PagerDecoderModule*)ctx;
-        _this->decoder.process(data, count);
-    }
-
-    static void _diagHandler(float* data, int count, void* ctx) {
-        PagerDecoderModule* _this = (PagerDecoderModule*)ctx;
-        float* buf = _this->diag.acquireBuffer();
-        memcpy(buf, data, count * sizeof(float));
-        _this->diag.releaseBuffer();
-    }
-
-    void messageHandler(pocsag::Address addr, pocsag::MessageType type, const std::string& msg) {
-        flog::debug("[{}]: '{}'", (uint32_t)addr, msg);
     }
 
     std::string name;
     bool enabled = true;
 
+    Protocol proto = PROTOCOL_INVALID;
     int protoId = 0;
 
     OptionList<std::string, Protocol> protocols;
 
-    pocsag::Decoder decoder;
-
     // DSP Chain
     VFOManager::VFO* vfo;
-    dsp::demod::Quadrature demod;
-    dsp::correction::DCBlocker<float> dcBlock;
-    dsp::tap<float> shape;
-    dsp::filter::FIR<float, float> fir;
-    dsp::clock_recovery::MM<float> recov;
-    dsp::routing::Doubler<float> doubler;
-    dsp::digital::BinarySlicer slicer;
-    dsp::buffer::Reshaper<float> reshape;
-    dsp::sink::Handler<uint8_t> dataHandler;
-    dsp::sink::Handler<float> diagHandler;
-
-    ImGui::SymbolDiagram diag;
+    std::unique_ptr<Decoder> decoder;
 
     bool showLines = false;
 };

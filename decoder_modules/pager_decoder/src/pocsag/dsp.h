@@ -11,7 +11,7 @@
 #include <dsp/digital/binary_slicer.h>
 #include <dsp/routing/doubler.h>
 
-class POCSAGDSP : dsp::Processor<dsp::complex_t, uint8_t> {
+class POCSAGDSP : public dsp::Processor<dsp::complex_t, uint8_t> {
     using base_type = dsp::Processor<dsp::complex_t, uint8_t>;
 public:
     POCSAGDSP() {}
