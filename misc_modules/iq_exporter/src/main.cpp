@@ -21,6 +21,7 @@ SDRPP_MOD_INFO{
 ConfigManager config;
 
 enum Mode {
+    MODE_NONE = -1,
     MODE_BASEBAND,
     MODE_VFO
 };
@@ -46,6 +47,20 @@ public:
         modes.define("Baseband", MODE_BASEBAND);
         modes.define("VFO", MODE_VFO);
 
+        // Define VFO samplerates
+        for (int i = 3000; i <= 192000; i <<= 1) {
+            samplerates.define(i, getSrScaled(i), i);
+        }
+        for (int i = 250000; i < 1000000; i += 250000) {
+            samplerates.define(i, getSrScaled(i), i);
+        }
+        for (int i = 1000000; i < 10000000; i += 500000) {
+            samplerates.define(i, getSrScaled(i), i);
+        }
+        for (int i = 10000000; i <= 100000000; i += 5000000) {
+            samplerates.define(i, getSrScaled(i), i);
+        }
+
         // Define protocols
         protocols.define("TCP", PROTOCOL_TCP);
         protocols.define("UDP", PROTOCOL_UDP);
@@ -58,10 +73,15 @@ public:
 
         // Load config
         bool autoStart = false;
+        Mode nMode = MODE_BASEBAND;
         config.acquire();
         if (config.conf[name].contains("mode")) {
             std::string modeStr = config.conf[name]["mode"];
-            if (modes.keyExists(modeStr)) { mode = modes.value(modes.keyId(modeStr)); }
+            if (modes.keyExists(modeStr)) { nMode = modes.value(modes.keyId(modeStr)); }
+        }
+        if (config.conf[name].contains("samplerate")) {
+            int sr = config.conf[name]["samplerate"];
+            if (samplerates.keyExists(sr)) { samplerate = samplerates.value(samplerates.keyId(sr)); }
         }
         if (config.conf[name].contains("protocol")) {
             std::string protoStr = config.conf[name]["protocol"];
@@ -85,7 +105,8 @@ public:
         config.release();
 
         // Set menu IDs
-        modeId = modes.valueId(mode);
+        modeId = modes.valueId(nMode);
+        srId = samplerates.valueId(samplerate);
         protoId = protocols.valueId(proto);
         sampTypeId = sampleTypes.valueId(sampType);
 
@@ -93,7 +114,13 @@ public:
         buffer = dsp::buffer::alloc<uint8_t>(STREAM_BUFFER_SIZE * sizeof(dsp::complex_t));
 
         // Init DSP
-        handler.init(NULL, dataHandler, this);
+        handler.init(&iqStream, dataHandler, this);
+
+        // Set operating mode
+        setMode(nMode);
+
+        // Start if needed
+        if (autoStart) { start(); }
 
         // Register menu entry
         gui::menu.registerEntry(name, menuHandler, this, this);
@@ -102,6 +129,12 @@ public:
     ~IQExporterModule() {
         // Un-register menu entry
         gui::menu.removeEntry(name);
+
+        // Stop networking
+        stop();
+
+        // Stop DSP
+        setMode(MODE_NONE);
 
         // Free buffer
         dsp::buffer::free(buffer);
@@ -124,7 +157,26 @@ public:
     void start() {
         if (running) { return; }
 
-        // TODO
+        // Acquire lock on the socket
+        std::lock_guard lck1(sockMtx);
+
+        // Start listening or open UDP socket
+        try {
+            if (proto == PROTOCOL_TCP) {
+                // Create listener
+                listener = net::listen(hostname, port);
+
+                // Start listen worker
+                listenWorkerThread = std::thread(&IQExporterModule::listenWorker, this);
+            }
+            else {
+                // Open UDP socket
+                sock = net::openudp(hostname, port, "0.0.0.0", 0, true);
+            }
+        }
+        catch (const std::exception& e) {
+            flog::error("[IQExporter] Could not start socket: {}", e.what());
+        }
 
         running = true;
     }
@@ -132,12 +184,54 @@ public:
     void stop() {
         if (!running) { return; }
 
-        // TODO
+        // Acquire lock on the socket
+        std::lock_guard lck1(sockMtx);
+
+        // Stop listening or close UDP socket
+        if (proto == PROTOCOL_TCP) {
+            // Stop listener
+            if (listener) {
+                listener->stop();
+            }
+
+            // Wait for worker to stop
+            if (listenWorkerThread.joinable()) { listenWorkerThread.join(); }
+
+            // Free listener
+            listener.reset();
+
+            // Close socket and free it
+            if (sock) {
+                sock->close();
+                sock.reset();
+            }
+        }
+        else {
+            // Close UDP socket and free it
+            if (sock) {
+                sock->close();
+                sock.reset();
+            }
+        }
 
         running = false;
     }
 
 private:
+    std::string getSrScaled(double sr) {
+        char buf[1024];
+        if (sr >= 1000000.0) {
+            sprintf(buf, "%.1lf MS/s", sr / 1000000.0);
+        }
+        else if (sr >= 1000.0) {
+            sprintf(buf, "%.1lf KS/s", sr / 1000.0);
+        }
+        else {
+            sprintf(buf, "%.1lf S/s", sr);
+        }
+        return std::string(buf);
+    }
+
     static void menuHandler(void* ctx) {
         IQExporterModule* _this = (IQExporterModule*)ctx;
         float menuWidth = ImGui::GetContentRegionAvail().x;
@@ -156,10 +250,27 @@ private:
             config.release(true);
         }
 
+        // In VFO mode, show samplerate selector
+        if (_this->mode == MODE_VFO) {
+            ImGui::LeftLabel("Samplerate");
+            ImGui::FillWidth();
+            if (ImGui::Combo(("##iq_exporter_sr_" + _this->name).c_str(), &_this->srId, _this->samplerates.txt)) {
+                _this->samplerate = _this->samplerates.value(_this->srId);
+                if (_this->vfo) {
+                    _this->vfo->setBandwidthLimits(_this->samplerate, _this->samplerate, true);
+                    _this->vfo->setSampleRate(_this->samplerate, _this->samplerate);
+                }
+                config.acquire();
+                config.conf[_this->name]["samplerate"] = _this->samplerates.key(_this->srId);
+                config.release(true);
+            }
+        }
+
         // Mode protocol selector
         ImGui::LeftLabel("Protocol");
         ImGui::FillWidth();
         if (ImGui::Combo(("##iq_exporter_proto_" + _this->name).c_str(), &_this->protoId, _this->protocols.txt)) {
+            _this->proto = _this->protocols.value(_this->protoId);
             config.acquire();
             config.conf[_this->name]["protocol"] = _this->protocols.key(_this->protoId);
             config.release(true);
@@ -169,6 +280,7 @@ private:
         ImGui::LeftLabel("Sample type");
         ImGui::FillWidth();
         if (ImGui::Combo(("##iq_exporter_samp_" + _this->name).c_str(), &_this->sampTypeId, _this->sampleTypes.txt)) {
+            _this->sampType = _this->sampleTypes.value(_this->sampTypeId);
             config.acquire();
             config.conf[_this->name]["sampleType"] = _this->sampleTypes.key(_this->sampTypeId);
             config.release(true);
@@ -209,12 +321,94 @@ private:
             }
         }
 
+        // Status text
+        ImGui::TextUnformatted("Status:");
+        ImGui::SameLine();
+        if (_this->sock && _this->sock->isOpen()) {
+            ImGui::TextColored(ImVec4(0.0, 1.0, 0.0, 1.0), (_this->proto == PROTOCOL_TCP) ? "Connected" : "Sending");
+        }
+        else if (_this->listener && _this->listener->listening()) {
+            ImGui::TextColored(ImVec4(1.0, 1.0, 0.0, 1.0), "Listening");
+        }
+        else {
+            ImGui::TextUnformatted("Idle");
+        }
+
         if (!_this->enabled) { ImGui::EndDisabled(); }
     }
 
     void setMode(Mode newMode) {
-        // Delete VFO or unbind IQ stream
+        // If there is no mode to change, do nothing
+        flog::debug("Mode change");
+        if (mode == newMode) {
+            flog::debug("New mode same as existing mode, doing nothing");
+            return;
+        }
 
+        // Stop the DSP
+        flog::debug("Stopping DSP");
+        handler.stop();
+
+        // Delete VFO or unbind IQ stream
+        if (vfo) {
+            flog::debug("Deleting old VFO");
+            sigpath::vfoManager.deleteVFO(vfo);
+            vfo = NULL;
+        }
+        if (mode == MODE_BASEBAND) {
+            flog::debug("Unbinding old stream");
+            sigpath::iqFrontEnd.unbindIQStream(&iqStream);
+        }
+
+        // If the mode was none, we're done
+        if (newMode == MODE_NONE) {
+            flog::debug("Exiting, new mode is NONE");
+            return;
+        }
+
+        // Create VFO or bind IQ stream
+        if (newMode == MODE_VFO) {
+            flog::debug("Creating new VFO");
+            // Create VFO
+            vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, samplerate, samplerate, samplerate, samplerate, true);
+
+            // Set its output as the input to the DSP
+            handler.setInput(vfo->output);
+        }
+        else {
+            flog::debug("Binding IQ stream");
+            // Bind IQ stream
+            sigpath::iqFrontEnd.bindIQStream(&iqStream);
+
+            // Set its output as the input to the DSP
+            handler.setInput(&iqStream);
+        }
+
+        // Start DSP
+        flog::debug("Starting DSP");
+        handler.start();
+
+        // Update mode
+        flog::debug("Updating mode");
+        mode = newMode;
+        modeId = modes.valueId(newMode);
+    }
+
+    void listenWorker() {
+        while (true) {
+            // Accept a client
+            auto newSock = listener->accept();
+            if (!newSock) { break; }
+
+            // Update socket
+            {
+                std::lock_guard lck(sockMtx);
+                sock = newSock;
+            }
+
+            // Wait until disconnection
+            // TODO
+        }
     }
 
     static void dataHandler(dsp::complex_t* data, int count, void* ctx) {
@@ -254,8 +448,10 @@ private:
     std::string name;
     bool enabled = true;
 
-    Mode mode = MODE_BASEBAND;
+    Mode mode = MODE_NONE;
     int modeId;
+    int samplerate = 1000000.0;
+    int srId;
     Protocol proto = PROTOCOL_TCP;
     int protoId;
     SampleType sampType = SAMPLE_TYPE_INT16;
@@ -265,15 +461,20 @@ private:
     bool running = false;
 
     OptionList<std::string, Mode> modes;
+    OptionList<int, int> samplerates;
     OptionList<std::string, Protocol> protocols;
     OptionList<std::string, SampleType> sampleTypes;
 
     VFOManager::VFO* vfo = NULL;
+    dsp::stream<dsp::complex_t> iqStream;
     dsp::sink::Handler<dsp::complex_t> handler;
     uint8_t* buffer = NULL;
 
+    std::thread listenWorkerThread;
+
     std::mutex sockMtx;
     std::shared_ptr<net::Socket> sock;
+    std::shared_ptr<net::Listener> listener;
 };
 
 MOD_EXPORT void _INIT_() {
