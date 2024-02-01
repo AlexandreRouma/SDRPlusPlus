@@ -247,7 +247,6 @@ if (OPT_BUILD_WEATHER_SAT_DECODER)
 add_subdirectory("decoder_modules/weather_sat_decoder")
 endif (OPT_BUILD_WEATHER_SAT_DECODER)
 
-add_subdirectory("decoder_modules/pager_decoder")
 
 # Misc
 if (OPT_BUILD_DISCORD_PRESENCE)
