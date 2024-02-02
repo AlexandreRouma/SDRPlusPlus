@@ -377,7 +377,7 @@ Modules in beta are still included in releases for the most part but not enabled
 |---------------------|------------|--------------|-----------------------------|:----------------:|:----------------:|:---------------------------:|
 | discord_integration | Working    | -            | OPT_BUILD_DISCORD_PRESENCE  | ✅              | ✅               | ⛔                         |
 | frequency_manager   | Working    | -            | OPT_BUILD_FREQUENCY_MANAGER | ✅              | ✅               | ✅                         |
-| iq_exporter         | Unfinished | -            | OPT_BUILD_IQ_EXPORTER       | ✅              | ✅               | ⛔                         |
+| iq_exporter         | Beta       | -            | OPT_BUILD_IQ_EXPORTER       | ✅              | ✅               | ⛔                         |
 | recorder            | Working    | -            | OPT_BUILD_RECORDER          | ✅              | ✅               | ✅                         |
 | rigctl_client       | Unfinished | -            | OPT_BUILD_RIGCTL_CLIENT     | ✅              | ✅               | ⛔                         |
 | rigctl_server       | Working    | -            | OPT_BUILD_RIGCTL_SERVER     | ✅              | ✅               | ✅                         |
