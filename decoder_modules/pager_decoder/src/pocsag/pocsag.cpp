@@ -5,6 +5,7 @@
 #define POCSAG_FRAME_SYNC_CODEWORD  ((uint32_t)(0b01111100110100100001010111011000))
 #define POCSAG_IDLE_CODEWORD_DATA   ((uint32_t)(0b011110101100100111000))
 #define POCSAG_BATCH_BIT_COUNT      (POCSAG_BATCH_CODEWORD_COUNT*32)
+#define POCSAG_DATA_BITS_PER_CW     20
 
 #define POCSAG_GEN_POLY             ((uint32_t)(0b11101101001))
 
@@ -27,6 +28,11 @@ namespace pocsag {
         ']',
         '['
     };
+
+    Decoder::Decoder() {
+        // Zero out batch
+        memset(batch, 0, sizeof(batch));
+    }
 
     void Decoder::process(uint8_t* symbols, int count) {
         for (int i = 0; i < count; i++) {
@@ -78,8 +84,37 @@ namespace pocsag {
 
     void Decoder::flushMessage() {
         if (!msg.empty()) {
-            onMessage(addr, msgType, msg);
+
+            // Unpack bits
+            std::string outStr = "";
+
+            for (int i = 0; (i+7) <= msg.size(); i += 7) {
+                uint8_t b0 = msg[i];
+                uint8_t b1 = msg[i+1];
+                uint8_t b2 = msg[i+2];
+                uint8_t b3 = msg[i+3];
+                uint8_t b4 = msg[i+4];
+                uint8_t b5 = msg[i+5];
+                uint8_t b6 = msg[i+6];
+                outStr += (char)((b6<<6) | (b5<<5) | (b4<<4) | (b3<<3) | (b2<<2) | (b1<<1) | b0);
+            }
+
+            onMessage(addr, msgType, outStr);
             msg.clear();
+            leftInLast = 0;
+        }
+    }
+
+    void printbin(uint32_t cw) {
+        for (int i = 31; i >= 0; i--) {
+            printf("%c", ((cw >> i) & 1) ? '1':'0');
+        }
+    }
+
+    void bitswapChar(char in, char& out) {
+        out = 0;
+        for (int i = 0; i < 7; i++) {
+            out |= ((in >> (6-i)) & 1) << i;
         }
     }
 
@@ -102,14 +137,14 @@ namespace pocsag {
             if (type == CODEWORD_TYPE_IDLE) {
                 // If a non-empty message is available, send it out and clear
                 flushMessage();
-                flog::debug("[{}:{}]: IDLE", (i >> 1), i&1);
             }
             else if (type == CODEWORD_TYPE_ADDRESS) {
                 // If a non-empty message is available, send it out and clear
                 flushMessage();
 
                 // Decode message type
-                msgType = (MessageType)((cw >> 11) & 0b11);
+                msgType = MESSAGE_TYPE_ALPHANUMERIC;
+                // msgType = (MessageType)((cw >> 11) & 0b11);
 
                 // Decode address and append lower 8 bits from position
                 addr = ((cw >> 13) & 0b111111111111111111) << 3;
@@ -122,14 +157,38 @@ namespace pocsag {
                 // Decode data depending on message type
                 if (msgType == MESSAGE_TYPE_NUMERIC) {
                     // Numeric messages pack 5 characters per message codeword
-                    msg += NUMERIC_CHARSET[(data >> 16) & 0b1111];
-                    msg += NUMERIC_CHARSET[(data >> 12) & 0b1111];
-                    msg += NUMERIC_CHARSET[(data >> 8) & 0b1111];
-                    msg += NUMERIC_CHARSET[(data >> 4) & 0b1111];
-                    msg += NUMERIC_CHARSET[data & 0b1111];
+                    //msg += NUMERIC_CHARSET[(data >> 16) & 0b1111];
+                    //msg += NUMERIC_CHARSET[(data >> 12) & 0b1111];
+                    //msg += NUMERIC_CHARSET[(data >> 8) & 0b1111];
+                    //msg += NUMERIC_CHARSET[(data >> 4) & 0b1111];
+                    //msg += NUMERIC_CHARSET[data & 0b1111];
                 }
                 else if (msgType == MESSAGE_TYPE_ALPHANUMERIC) {
-                    
+                    // Alpha messages pack 7bit characters in the entire codeword stream
+                    // int lasti;
+                    // for (int i = -leftInLast; i <= POCSAG_DATA_BITS_PER_CW-7; i += 7) {
+                    //     // Read 7 bits
+                    //     char c = 0;
+                    //     if (i < 0) {
+                    //         c = (lastMsgData & ((1 << (-i)) - 1)) << (7+i);
+                    //     }
+                    //     c |= (data >> (13 - i)) & 0b1111111;
+
+                    //     // Save character
+                    //     bitswapChar(c, c);
+                    //     msg += c;
+
+                    //     // Update last successful unpack
+                    //     lasti = i;
+                    // }
+
+                    // Pack the bits backwards
+                    for (int i = 19; i >= 0; i--) {
+                        msg += (char)((data >> i) & 1);
+                    }
+
+                    // Save how much is still left to read
+                    //leftInLast = 20 - (lasti + 7);
                 }
 
                 // Save last data

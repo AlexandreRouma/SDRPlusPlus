@@ -15,9 +15,12 @@ const char* msgTypes[] = {
     "Alphanumeric",
 };
 
+#define BAUDRATE    2400
+#define SAMPLERATE  (BAUDRATE*10)
+
 class POCSAGDecoder : public Decoder {
 public:
-    POCSAGDecoder(const std::string& name, VFOManager::VFO* vfo) : diag(0.6, 2400) {
+    POCSAGDecoder(const std::string& name, VFOManager::VFO* vfo) : diag(0.6, BAUDRATE) {
         this->name = name;
         this->vfo = vfo;
 
@@ -28,9 +31,9 @@ public:
 
         // Init DSP
         vfo->setBandwidthLimits(12500, 12500, true);
-        vfo->setSampleRate(24000, 12500);
-        dsp.init(vfo->output, 24000, 2400);
-        reshape.init(&dsp.soft, 2400.0, (2400 / 30.0) - 2400.0);
+        vfo->setSampleRate(SAMPLERATE, 12500);
+        dsp.init(vfo->output, SAMPLERATE, BAUDRATE);
+        reshape.init(&dsp.soft, BAUDRATE, (BAUDRATE / 30.0) - BAUDRATE);
         dataHandler.init(&dsp.out, _dataHandler, this);
         diagHandler.init(&reshape.out, _diagHandler, this);
 
@@ -47,6 +50,10 @@ public:
         ImGui::FillWidth();
         if (ImGui::Combo(("##pager_decoder_pocsag_br_" + name).c_str(), &brId, baudrates.txt)) {
             // TODO
+        }
+
+        if (ImGui::Button("Detune")) {
+            dsp.detune();
         }
 
         ImGui::FillWidth();
