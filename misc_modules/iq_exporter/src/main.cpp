@@ -8,6 +8,8 @@
 #include <dsp/sink/handler_sink.h>
 #include <volk/volk.h>
 #include <signal_path/signal_path.h>
+#include <dsp/buffer/reshaper.h>
+#include <gui/dialogs/dialog_box.h>
 #include <core.h>
 
 SDRPP_MOD_INFO{
@@ -27,7 +29,8 @@ enum Mode {
 };
 
 enum Protocol {
-    PROTOCOL_TCP,
+    PROTOCOL_TCP_SERVER,
+    PROTOCOL_TCP_CLIENT,
     PROTOCOL_UDP
 };
 
@@ -62,7 +65,8 @@ public:
         }
 
         // Define protocols
-        protocols.define("TCP", PROTOCOL_TCP);
+        protocols.define("TCP (Server)", PROTOCOL_TCP_SERVER);
+        protocols.define("TCP (Client)", PROTOCOL_TCP_CLIENT);
         protocols.define("UDP", PROTOCOL_UDP);
 
         // Define sample types
@@ -70,6 +74,13 @@ public:
         sampleTypes.define("Int16", SAMPLE_TYPE_INT16);
         sampleTypes.define("Int32", SAMPLE_TYPE_INT32);
         sampleTypes.define("Float32", SAMPLE_TYPE_FLOAT32);
+
+        // Define packet sizes
+        for (int i = 8; i <= 32768; i <<= 1) {
+            char buf[16];
+            sprintf(buf, "%d Bytes", i);
+            packetSizes.define(i, buf, i);
+        }
 
         // Load config
         bool autoStart = false;
@@ -91,6 +102,10 @@ public:
             std::string sampTypeStr = config.conf[name]["sampleType"];
             if (sampleTypes.keyExists(sampTypeStr)) { sampType = sampleTypes.value(sampleTypes.keyId(sampTypeStr)); }
         }
+        if (config.conf[name].contains("packetSize")) {
+            int size = config.conf[name]["packetSize"];
+            if (packetSizes.keyExists(size)) { packetSize = packetSizes.value(packetSizes.keyId(size)); }
+        }
         if (config.conf[name].contains("host")) {
             std::string hostStr = config.conf[name]["host"];
             strcpy(hostname, hostStr.c_str());
@@ -109,12 +124,14 @@ public:
         srId = samplerates.valueId(samplerate);
         protoId = protocols.valueId(proto);
         sampTypeId = sampleTypes.valueId(sampType);
+        packetSizeId = packetSizes.valueId(packetSize);
 
         // Allocate buffer
         buffer = dsp::buffer::alloc<uint8_t>(STREAM_BUFFER_SIZE * sizeof(dsp::complex_t));
 
         // Init DSP
-        handler.init(&iqStream, dataHandler, this);
+        reshape.init(&iqStream, packetSize/sampleSize(), 0);
+        handler.init(&reshape.out, dataHandler, this);
 
         // Set operating mode
         setMode(nMode);
@@ -143,10 +160,27 @@ public:
     void postInit() {}
 
     void enable() {
+        // Rebind streams and start DSP
+        setMode(mode, true);
+
+        // Restart networking if it was running
+        if (wasRunning) { start(); }
+
+        // Mark as running
         enabled = true;
     }
 
     void disable() {
+        // Save running state
+        wasRunning = running;
+
+        // Stop networking
+        stop();
+
+        // Stop the DSP and unbind streams
+        setMode(MODE_NONE);
+
+        // Mark as disabled
         enabled = false;
     }
 
@@ -162,12 +196,16 @@ public:
 
         // Start listening or open UDP socket
         try {
-            if (proto == PROTOCOL_TCP) {
+            if (proto == PROTOCOL_TCP_SERVER) {
                 // Create listener
                 listener = net::listen(hostname, port);
 
                 // Start listen worker
                 listenWorkerThread = std::thread(&IQExporterModule::listenWorker, this);
+            }
+            else if (proto == PROTOCOL_TCP_CLIENT) {
+                // Connect to TCP server
+                sock = net::connect(hostname, port);
             }
             else {
                 // Open UDP socket
@@ -176,6 +214,9 @@ public:
         }
         catch (const std::exception& e) {
             flog::error("[IQExporter] Could not start socket: {}", e.what());
+            errorStr = e.what();
+            showError = true;
+            return;
         }
 
         running = true;
@@ -188,7 +229,7 @@ public:
         std::lock_guard lck1(sockMtx);
 
         // Stop listening or close UDP socket
-        if (proto == PROTOCOL_TCP) {
+        if (proto == PROTOCOL_TCP_SERVER) {
             // Stop listener
             if (listener) {
                 listener->stop();
@@ -207,7 +248,7 @@ public:
             }
         }
         else {
-            // Close UDP socket and free it
+            // Close socket and free it
             if (sock) {
                 sock->close();
                 sock.reset();
@@ -235,6 +276,11 @@ private:
     static void menuHandler(void* ctx) {
         IQExporterModule* _this = (IQExporterModule*)ctx;
         float menuWidth = ImGui::GetContentRegionAvail().x;
+
+        // Error message box
+        ImGui::GenericDialog("##iq_exporter_err_", _this->showError, GENERIC_DIALOG_BUTTONS_OK, [=](){
+            ImGui::Text("Error: %s", _this->errorStr.c_str());
+        });
         
         if (!_this->enabled) { ImGui::BeginDisabled(); }
         
@@ -281,8 +327,20 @@ private:
         ImGui::FillWidth();
         if (ImGui::Combo(("##iq_exporter_samp_" + _this->name).c_str(), &_this->sampTypeId, _this->sampleTypes.txt)) {
             _this->sampType = _this->sampleTypes.value(_this->sampTypeId);
+            _this->reshape.setKeep(_this->packetSize/_this->sampleSize());
             config.acquire();
             config.conf[_this->name]["sampleType"] = _this->sampleTypes.key(_this->sampTypeId);
+            config.release(true);
+        }
+
+        // Packet size selector
+        ImGui::LeftLabel("Packet size");
+        ImGui::FillWidth();
+        if (ImGui::Combo(("##iq_exporter_pkt_sz_" + _this->name).c_str(), &_this->packetSizeId, _this->packetSizes.txt)) {
+            _this->packetSize = _this->packetSizes.value(_this->packetSizeId);
+            _this->reshape.setKeep(_this->packetSize/_this->sampleSize());
+            config.acquire();
+            config.conf[_this->name]["packetSize"] = _this->packetSizes.key(_this->packetSizeId);
             config.release(true);
         }
 
@@ -304,7 +362,7 @@ private:
         if (_this->running) { ImGui::EndDisabled(); }
 
         // Start/Stop buttons
-        if (_this->running) {
+        if (_this->running || (!_this->enabled && _this->wasRunning)) {
             if (ImGui::Button(("Stop##iq_exporter_stop_" + _this->name).c_str(), ImVec2(menuWidth, 0))) {
                 _this->stop();
                 config.acquire();
@@ -321,75 +379,78 @@ private:
             }
         }
 
+        // Check if the socket is open by attempting a read
+        bool sockOpen;
+        {
+            uint8_t dummy;
+            sockOpen = !(!_this->sock || !_this->sock->isOpen() || (_this->proto != PROTOCOL_UDP && _this->sock->recv(&dummy, 1, false, net::NONBLOCKING) == 0));
+        }
+
         // Status text
         ImGui::TextUnformatted("Status:");
         ImGui::SameLine();
-        if (_this->sock && _this->sock->isOpen()) {
-            ImGui::TextColored(ImVec4(0.0, 1.0, 0.0, 1.0), (_this->proto == PROTOCOL_TCP) ? "Connected" : "Sending");
+        if (sockOpen) {
+            ImGui::TextColored(ImVec4(0.0, 1.0, 0.0, 1.0), (_this->proto == PROTOCOL_TCP_SERVER || _this->proto == PROTOCOL_TCP_CLIENT) ? "Connected" : "Sending");
         }
         else if (_this->listener && _this->listener->listening()) {
             ImGui::TextColored(ImVec4(1.0, 1.0, 0.0, 1.0), "Listening");
         }
+        else if (!_this->enabled) {
+            ImGui::TextUnformatted("Disabled");
+        }
         else {
+            // If we're idle and still supposed to be running, the server has closed the connection (TODO: kinda jank...)
+            if (_this->running) { _this->stop(); }
+
             ImGui::TextUnformatted("Idle");
         }
 
         if (!_this->enabled) { ImGui::EndDisabled(); }
     }
 
-    void setMode(Mode newMode) {
+    void setMode(Mode newMode, bool fromDisabled = false) {
         // If there is no mode to change, do nothing
-        flog::debug("Mode change");
-        if (mode == newMode) {
-            flog::debug("New mode same as existing mode, doing nothing");
-            return;
-        }
+        if (!fromDisabled && mode == newMode) { return; }
 
         // Stop the DSP
-        flog::debug("Stopping DSP");
+        reshape.stop();
         handler.stop();
 
         // Delete VFO or unbind IQ stream
         if (vfo) {
-            flog::debug("Deleting old VFO");
             sigpath::vfoManager.deleteVFO(vfo);
             vfo = NULL;
         }
-        if (mode == MODE_BASEBAND) {
-            flog::debug("Unbinding old stream");
+        if (mode == MODE_BASEBAND && !fromDisabled) {
             sigpath::iqFrontEnd.unbindIQStream(&iqStream);
         }
 
         // If the mode was none, we're done
         if (newMode == MODE_NONE) {
-            flog::debug("Exiting, new mode is NONE");
             return;
         }
 
         // Create VFO or bind IQ stream
         if (newMode == MODE_VFO) {
-            flog::debug("Creating new VFO");
             // Create VFO
             vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, samplerate, samplerate, samplerate, samplerate, true);
 
             // Set its output as the input to the DSP
-            handler.setInput(vfo->output);
+            reshape.setInput(vfo->output);
         }
         else {
-            flog::debug("Binding IQ stream");
             // Bind IQ stream
             sigpath::iqFrontEnd.bindIQStream(&iqStream);
 
             // Set its output as the input to the DSP
-            handler.setInput(&iqStream);
+            reshape.setInput(&iqStream);
         }
 
         // Start DSP
-        flog::debug("Starting DSP");
+        reshape.start();
         handler.start();
 
         // Update mode
-        flog::debug("Updating mode");
         mode = newMode;
         modeId = modes.valueId(newMode);
     }
@@ -405,21 +466,37 @@ private:
                 std::lock_guard lck(sockMtx);
                 sock = newSock;
             }
+        }
+    }
 
-            // Wait until disconnection
-            // TODO
+    int sampleSize() {
+        switch (sampType) {
+        case SAMPLE_TYPE_INT8:
+            return sizeof(int8_t)*2;
+        case SAMPLE_TYPE_INT16:
+            return sizeof(int16_t)*2;
+        case SAMPLE_TYPE_INT32:
+            return sizeof(int32_t)*2;
+        case SAMPLE_TYPE_FLOAT32:
+            return sizeof(dsp::complex_t);
+        default:
+            return -1;
         }
     }
 
     static void dataHandler(dsp::complex_t* data, int count, void* ctx) {
         IQExporterModule* _this = (IQExporterModule*)ctx;
 
-        // Acquire lock on socket
-        std::lock_guard lck(_this->sockMtx);
+        // Try to cquire lock on socket
+        if (!_this->sockMtx.try_lock()) { return; }
 
         // If not valid or open, give uo
-        if (!_this->sock || !_this->sock->isOpen()) { return; }
-
+        if (!_this->sock || !_this->sock->isOpen()) {
+            // Unlock socket mutex
+            _this->sockMtx.unlock();
+            return;
+        }
+        
         // Convert the samples or send directory for float32
         int size;
         switch (_this->sampType) {
@@ -428,7 +505,7 @@ private:
             size = sizeof(int8_t)*2;
             break;
         case SAMPLE_TYPE_INT16:
-            volk_32fc_convert_16ic((lv_16sc_t*)_this->buffer, (lv_32fc_t*)data, count);
+            volk_32f_s32f_convert_16i((int16_t*)_this->buffer, (float*)data, 32768.0f, count*2);
             size = sizeof(int16_t)*2;
             break;
         case SAMPLE_TYPE_INT32:
@@ -438,11 +515,16 @@ private:
         case SAMPLE_TYPE_FLOAT32:
             _this->sock->send((uint8_t*)data, count*sizeof(dsp::complex_t));
         default:
+            // Unlock socket mutex
+            _this->sockMtx.unlock();
             return;
         }
 
         // Send converted samples
         _this->sock->send(_this->buffer, count*size);
+
+        // Unlock socket mutex
+        _this->sockMtx.unlock();
     }
 
     std::string name;
@@ -452,21 +534,29 @@ private:
     int modeId;
     int samplerate = 1000000.0;
     int srId;
-    Protocol proto = PROTOCOL_TCP;
+    Protocol proto = PROTOCOL_TCP_SERVER;
     int protoId;
     SampleType sampType = SAMPLE_TYPE_INT16;
     int sampTypeId;
+    int packetSize = 1024;
+    int packetSizeId;
     char hostname[1024] = "localhost";
     int port = 1234;
     bool running = false;
+    bool wasRunning = false;
+
+    bool showError = false;
+    std::string errorStr = "";
 
     OptionList<std::string, Mode> modes;
     OptionList<int, int> samplerates;
     OptionList<std::string, Protocol> protocols;
     OptionList<std::string, SampleType> sampleTypes;
+    OptionList<int, int> packetSizes;
 
     VFOManager::VFO* vfo = NULL;
     dsp::stream<dsp::complex_t> iqStream;
+    dsp::buffer::Reshaper<dsp::complex_t> reshape;
     dsp::sink::Handler<dsp::complex_t> handler;
     uint8_t* buffer = NULL;
 

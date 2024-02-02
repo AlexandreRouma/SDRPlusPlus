@@ -138,7 +138,16 @@ namespace net {
     }
 
     int Socket::send(const uint8_t* data, size_t len, const Address* dest) {
-        return sendto(sock, (const char*)data, len, 0, (sockaddr*)(dest ? &dest->addr : (raddr ? &raddr->addr : NULL)), sizeof(sockaddr_in));
+        // Send data
+        int err = sendto(sock, (const char*)data, len, 0, (sockaddr*)(dest ? &dest->addr : (raddr ? &raddr->addr : NULL)), sizeof(sockaddr_in));
+
+        // On error, close socket
+        if (err <= 0 && !WOULD_BLOCK) {
+            close();
+            return err;
+        }
+
+        return err;
     }
 
     int Socket::sendstr(const std::string& str, const Address* dest) {
