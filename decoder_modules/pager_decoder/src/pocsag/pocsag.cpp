@@ -85,21 +85,24 @@ namespace pocsag {
     void Decoder::flushMessage() {
         if (!msg.empty()) {
 
-            // Unpack bits
-            std::string outStr = "";
+            // // Unpack bits
+            // std::string outStr = "";
+            // for (int i = 0; (i+7) <= msg.size(); i += 7) {
+            //     uint8_t b0 = msg[i];
+            //     uint8_t b1 = msg[i+1];
+            //     uint8_t b2 = msg[i+2];
+            //     uint8_t b3 = msg[i+3];
+            //     uint8_t b4 = msg[i+4];
+            //     uint8_t b5 = msg[i+5];
+            //     uint8_t b6 = msg[i+6];
+            //     outStr += (char)((b6<<6) | (b5<<5) | (b4<<4) | (b3<<3) | (b2<<2) | (b1<<1) | b0);
+            // }
+            // onMessage(addr, msgType, outStr);
 
-            for (int i = 0; (i+7) <= msg.size(); i += 7) {
-                uint8_t b0 = msg[i];
-                uint8_t b1 = msg[i+1];
-                uint8_t b2 = msg[i+2];
-                uint8_t b3 = msg[i+3];
-                uint8_t b4 = msg[i+4];
-                uint8_t b5 = msg[i+5];
-                uint8_t b6 = msg[i+6];
-                outStr += (char)((b6<<6) | (b5<<5) | (b4<<4) | (b3<<3) | (b2<<2) | (b1<<1) | b0);
-            }
+            // Send out message
+            onMessage(addr, msgType, msg);
 
-            onMessage(addr, msgType, outStr);
+            // Reset state
             msg.clear();
             leftInLast = 0;
         }
@@ -165,30 +168,30 @@ namespace pocsag {
                 }
                 else if (msgType == MESSAGE_TYPE_ALPHANUMERIC) {
                     // Alpha messages pack 7bit characters in the entire codeword stream
-                    // int lasti;
-                    // for (int i = -leftInLast; i <= POCSAG_DATA_BITS_PER_CW-7; i += 7) {
-                    //     // Read 7 bits
-                    //     char c = 0;
-                    //     if (i < 0) {
-                    //         c = (lastMsgData & ((1 << (-i)) - 1)) << (7+i);
-                    //     }
-                    //     c |= (data >> (13 - i)) & 0b1111111;
+                    int lasti;
+                    for (int i = -leftInLast; i <= POCSAG_DATA_BITS_PER_CW-7; i += 7) {
+                        // Read 7 bits
+                        char c = 0;
+                        if (i < 0) {
+                            c = (lastMsgData & ((1 << (-i)) - 1)) << (7+i);
+                        }
+                        c |= (data >> (13 - i)) & 0b1111111;
 
-                    //     // Save character
-                    //     bitswapChar(c, c);
-                    //     msg += c;
+                        // Save character
+                        bitswapChar(c, c);
+                        msg += c;
 
-                    //     // Update last successful unpack
-                    //     lasti = i;
-                    // }
-
-                    // Pack the bits backwards
-                    for (int i = 19; i >= 0; i--) {
-                        msg += (char)((data >> i) & 1);
+                        // Update last successful unpack
+                        lasti = i;
                     }
 
                     // Save how much is still left to read
-                    //leftInLast = 20 - (lasti + 7);
+                    leftInLast = 20 - (lasti + 7);
+
+                    // // Pack the bits backwards
+                    // for (int i = 19; i >= 0; i--) {
+                    //     msg += (char)((data >> i) & 1);
+                    // }
                 }
 
                 // Save last data
