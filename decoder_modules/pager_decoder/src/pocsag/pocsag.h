@@ -45,7 +45,7 @@ namespace pocsag {
         MessageType msgType;
         std::string msg;
 
-        uint32_t lastMsgData;
-        bool leftInLast = 0;
+        char currChar = 0;
+        int currOffset = 0;
     };
 }
