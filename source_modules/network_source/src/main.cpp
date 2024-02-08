@@ -1,3 +1,4 @@
+#include <utils/net.h>
 #include <utils/flog.h>
 #include <module.h>
 #include <gui/gui.h>
@@ -8,7 +9,6 @@
 #include <gui/smgui.h>
 #include <gui/widgets/stepped_slider.h>
 #include <utils/optionlist.h>
-#include <utils/net.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
