@@ -43,6 +43,7 @@ namespace dsp {
             this->sampsPerSym = sampsPerSym;
             this->threshold = threshold;
             this->patternLen = patternLen;
+            this->frameLen = frameLen;
 
             // Plan FFT
             plan = fftwf_plan_dft_r2c_1d(fftSize, fftIn, (fftwf_complex*)fftOut, FFTW_ESTIMATE);
@@ -59,10 +60,15 @@ namespace dsp {
 
             // Normalize the amplitudes
             float maxAmp = 0.0f;
-            for (int i = 0; i < patternLen; i++) {
+            for (int i = 0; i < fftSize/2; i++) {
                 if (patternFFTAmps[i] > maxAmp) { maxAmp = patternFFTAmps[i]; }
             }
             volk_32f_s32f_multiply_32f(patternFFTAmps, patternFFTAmps, 1.0f/maxAmp, fftSize);
+
+            // Initialize the phase control loop
+            float omegaRelLimit = 0.05;
+            pcl.init(1, 10e-4, 0.0, 0.0, 1.0, sampsPerSym, sampsPerSym * (1.0 - omegaRelLimit), sampsPerSym * (1.0 + omegaRelLimit));
+            generateInterpTaps();
 
             // Init base
             base_type::init(in);
@@ -72,21 +78,55 @@ namespace dsp {
             // Copy to buffer
             memcpy(bufferStart, in, count * sizeof(float));
 
-           int outCount = 0;
-           bool first = true;
+            int outCount = 0;
 
-            for (int i = 0; i < count; i++) {
+            for (int i = 0; i < count;) {
+                // Run clock recovery if needed
+                while (toRead) {
+                    // Interpolate symbol
+                    float symbol;
+                    int phase = std::clamp<int>(floorf(pcl.phase * (float)interpPhaseCount), 0, interpPhaseCount - 1);
+                    volk_32f_x2_dot_prod_32f(&symbol, &buffer[offsetInt], interpBank.phases[phase], interpTapCount);
+                    out[outCount++] = symbol;
+
+                    // Compute symbol phase error
+                    float error = (math::step(lastSymbol) * symbol) - (lastSymbol * math::step(symbol));
+                    lastSymbol = symbol;
+
+                    // Clamp symbol phase error
+                    if (error > 1.0f) { error = 1.0f; }
+                    if (error < -1.0f) { error = -1.0f; }
+
+                    // Advance symbol offset and phase
+                    pcl.advance(error);
+                    float delta = floorf(pcl.phase);
+                    offsetInt += delta;
+                    i = offsetInt;
+                    pcl.phase -= delta;
+
+                    // Decrement read counter
+                    toRead--;
+
+                    if (offsetInt >= count) {
+                        offsetInt -= count;
+                        break;
+                    }
+                }
+
+
                 // Measure correlation to the sync pattern
                 float corr;
                 volk_32f_x2_dot_prod_32f(&corr, &buffer[i], pattern, patternLen);
 
                 // If not correlated enough, go to next sample. Otherwise continue with fine detection
-                if (corr/(float)patternLen < threshold) { continue; }
+                if (corr/(float)patternLen < threshold) {
+                    i++;
+                    continue;
+                }
 
                 // Copy samples into FFT input (only the part where we think the pattern is located)
                 // TODO: Instead, check the interval onto which correlation occurs to determine where the pattern is located (IMPORTANT)
                 memcpy(fftIn, &buffer[i], patternLen*sizeof(float));
-                memset(&fftIn[patternLen], 0, (fftSize-patternLen)*sizeof(float)); // TODO, figure out why we need this
 
                 // Compute FFT
                 fftwf_execute(plan);
@@ -113,15 +153,15 @@ namespace dsp {
 
                 // Compute the total offset
                 float offset = (float)i - avgRate*(float)fftSize/(2.0f*FL_M_PI);
+                flog::debug("Detected: {} -> {}", i, offset);
 
-                if (first) {
-                    outCount = 320;
-                    memcpy(out, &buffer[(int)roundf(offset)], 320*sizeof(float));
-                    first = false;
-                }
-                
+                // Initialize clock recovery
+                offsetInt = floorf(offset) - 3; // TODO: Will be negative sometimes, has to be taken into account
+                pcl.phase = offset - (float)floorf(offset);
+                pcl.freq = sampsPerSym;
 
-                flog::debug("Detected: {} -> {} ({})", i, offset, avgRate);
+                // Start reading symbols
+                toRead = frameLen;
             }
 
             // Move unused data
@@ -137,11 +177,20 @@ namespace dsp {
             count = process(count, base_type::_in->readBuf, base_type::out.writeBuf);
 
             base_type::_in->flush();
-            //if (!base_type::out.swap(count)) { return -1; }
+            if (count) {
+                if (!base_type::out.swap(count)) { return -1; }
+            }
             return count;
         }
 
     private:
+        void generateInterpTaps() {
+            double bw = 0.5 / (double)interpPhaseCount;
+            dsp::tap<float> lp = dsp::taps::windowedSinc<float>(interpPhaseCount * interpTapCount, dsp::math::hzToRads(bw, 1.0), dsp::window::nuttall, interpPhaseCount);
+            interpBank = dsp::multirate::buildPolyphaseBank<float>(interpPhaseCount, lp);
+            taps::free(lp);
+        }
+
         int delayLen;
         float* buffer = NULL;
         float* bufferStart = NULL;
@@ -149,7 +198,7 @@ namespace dsp {
         int patternLen;
         bool locked;
         int fftSize;
-
+        int frameLen;
         float threshold;
 
         float* fftIn = NULL;
@@ -160,5 +209,13 @@ namespace dsp {
         float* patternFFTAmps;
 
         float sampsPerSym;
+        int toRead = 0;
+
+        loop::PhaseControlLoop<float, false> pcl;
+        dsp::multirate::PolyphaseBank<float> interpBank;
+        int interpTapCount = 8;
+        int interpPhaseCount = 128;
+        float lastSymbol = 0.0f;
+        int offsetInt;
     };
 }

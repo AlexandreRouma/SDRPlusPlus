@@ -112,7 +112,7 @@ public:
         fir.init(NULL, shape);
         //recov.init(NULL, samplerate/baudrate, 1e-4, 1.0, 0.05);
 
-        cs.init(NULL, PATTERN_DSDSDZED, sizeof(PATTERN_DSDSDZED)/sizeof(float), 0, 10);
+        cs.init(NULL, PATTERN_DSDSDZED, sizeof(PATTERN_DSDSDZED)/sizeof(float), 544, 10);
 
         // Free useless buffers
         // dcBlock.out.free();
