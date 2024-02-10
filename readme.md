@@ -433,6 +433,7 @@ I will soon publish a contributing.md listing the code style to use.
 * Croccydile
 * Dale L Puckett (K0HYD)
 * [Daniele D'Agnelli](https://linkedin.com/in/dagnelli)
+* [David Taylor (GM8ARV)](https://twitter.com/gm8arv)
 * D. Jones
 * Dexruus
 * [EB3FRN](https://www.eb3frn.net/)
@@ -460,6 +461,7 @@ I will soon publish a contributing.md listing the code style to use.
 * Syne Ardwin (WI9SYN)
 * [W4IPA](https://twitter.com/W4IPAstroke5)
 * William Arcand (W1WRA)
+* William Pitchford
 * [Yves Rougy](https://www.twitch.tv/yorzian)
 * [Zipper](https://github.com/reppiZ)
 
