@@ -334,7 +334,7 @@ private:
     }
 
     std::map<int, const char*> radioModeToString = {
-        { RADIO_IFACE_MODE_NFM, "NFM" },
+        { RADIO_IFACE_MODE_NFM, "FM" },
         { RADIO_IFACE_MODE_WFM, "WFM" },
         { RADIO_IFACE_MODE_AM,  "AM"  },
         { RADIO_IFACE_MODE_DSB, "DSB" },
