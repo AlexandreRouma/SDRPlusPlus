@@ -408,9 +408,9 @@ private:
         if (!_this->enabled) { ImGui::EndDisabled(); }
     }
 
-    void setMode(Mode newMode, bool fromDisabled = false) {
+    void setMode(Mode newMode, bool forceSet = false) {
         // If there is no mode to change, do nothing
-        if (!fromDisabled && mode == newMode) { return; }
+        if (!forceSet && mode == newMode) { return; }
 
         // Stop the DSP
         reshape.stop();
@@ -421,14 +421,13 @@ private:
             sigpath::vfoManager.deleteVFO(vfo);
             vfo = NULL;
         }
-        if (mode == MODE_BASEBAND && !fromDisabled) {
+        if (streamBound) {
             sigpath::iqFrontEnd.unbindIQStream(&iqStream);
+            streamBound = false;
         }
 
         // If the mode was none, we're done
-        if (newMode == MODE_NONE) {
-            return;
-        }
+        if (newMode == MODE_NONE) { return; }
 
         // Create VFO or bind IQ stream
         if (newMode == MODE_VFO) {
@@ -441,6 +440,7 @@ private:
         else {
             // Bind IQ stream
             sigpath::iqFrontEnd.bindIQStream(&iqStream);
+            streamBound = true;
 
             // Set its output as the input to the DSP
             reshape.setInput(&iqStream);
@@ -555,6 +555,7 @@ private:
     OptionList<int, int> packetSizes;
 
     VFOManager::VFO* vfo = NULL;
+    bool streamBound = false;
     dsp::stream<dsp::complex_t> iqStream;
     dsp::buffer::Reshaper<dsp::complex_t> reshape;
     dsp::sink::Handler<dsp::complex_t> handler;
