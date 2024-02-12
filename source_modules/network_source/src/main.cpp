@@ -35,6 +35,13 @@ enum SampleType {
     SAMPLE_TYPE_FLOAT32
 };
 
+const size_t SAMPLE_TYPE_SIZE[] {
+    sizeof(int8_t)*2,
+    sizeof(int16_t)*2,
+    sizeof(int32_t)*2,
+    sizeof(float)*2,
+};
+
 class NetworkSourceModule : public ModuleManager::Instance {
 public:
     NetworkSourceModule(std::string name) {
@@ -237,40 +244,28 @@ private:
     }
 
     void worker() {
-        int frameSize = samplerate / 200;
-        switch (sampType) {
-        case SAMPLE_TYPE_INT8:
-            frameSize *= 2*sizeof(int8_t);;
-            break;
-        case SAMPLE_TYPE_INT16:
-            frameSize *= 2*sizeof(int16_t);
-            break;
-        case SAMPLE_TYPE_INT32:
-            frameSize *= 2*sizeof(int32_t);
-            break;
-        case SAMPLE_TYPE_FLOAT32:
-            frameSize *= sizeof(dsp::complex_t);
-            break;
-        default:
-            return;
-        }
-        uint8_t* buffer = dsp::buffer::alloc<uint8_t>(STREAM_BUFFER_SIZE*sizeof(uint32_t));
+        int blockSize = samplerate / 200;
+        int frameSize = blockSize*SAMPLE_TYPE_SIZE[sampType];
+        uint8_t* buffer = dsp::buffer::alloc<uint8_t>(frameSize);
 
         while (true) {
             // Read samples from socket
-            int bytes = sock->recv(buffer, frameSize, true);
+            {
+                std::lock_guard lck(sockMtx);
+                int bytes = sock->recv(buffer, frameSize, true);
+            }
 
             // Convert to CF32
             int count;
             switch (sampType) {
             case SAMPLE_TYPE_INT8:
-                frameSize *= 2*sizeof(int8_t);;
+                
                 break;
             case SAMPLE_TYPE_INT16:
-                frameSize *= 2*sizeof(int16_t);
+                
                 break;
             case SAMPLE_TYPE_INT32:
-                frameSize *= 2*sizeof(int32_t);
+                
                 break;
             case SAMPLE_TYPE_FLOAT32:
                 //memcpy(stream.writeBuf, buffer, )
@@ -280,7 +275,7 @@ private:
             }
 
             // Send out converted samples
-            //if (!stream.swap(bufferSize))
+            if (!stream.swap(count)) { break; }
         }
 
         dsp::buffer::free(buffer);
