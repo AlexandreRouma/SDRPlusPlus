@@ -73,7 +73,7 @@ public:
         }
 
         // Define protocols
-        protocols.define("TCP (Server)", PROTOCOL_TCP_SERVER);
+        // protocols.define("TCP (Server)", PROTOCOL_TCP_SERVER);
         protocols.define("TCP (Client)", PROTOCOL_TCP_CLIENT);
         protocols.define("UDP", PROTOCOL_UDP);
 
@@ -164,7 +164,31 @@ private:
         NetworkSourceModule* _this = (NetworkSourceModule*)ctx;
         if (_this->running) { return; }
         
-        // TODO
+        // Depends on protocol
+        try {
+            if (_this->proto == PROTOCOL_TCP_SERVER) {
+                // Create TCP listener
+                // TODO
+
+                // Start listen worker
+                // TODO
+            }
+            else if (_this->proto == PROTOCOL_TCP_CLIENT) {
+                // Connect to TCP server
+                _this->sock = net::connect(_this->hostname, _this->port);
+            }
+            else if (_this->proto == PROTOCOL_UDP) {
+                // Open UDP socket
+                _this->sock = net::openudp("0.0.0.0", _this->port, _this->hostname, _this->port, true);
+            }
+        }
+        catch (const std::exception& e) {
+            flog::error("Could not start Network Source: {}", e.what());
+            return;
+        }
+
+        // Start receive worker
+        _this->workerThread = std::thread(&NetworkSourceModule::worker, _this);
 
         _this->running = true;
         flog::info("NetworkSourceModule '{0}': Start!", _this->name);
@@ -174,7 +198,16 @@ private:
         NetworkSourceModule* _this = (NetworkSourceModule*)ctx;
         if (!_this->running) { return; }
 
+        // Stop listen worker
         // TODO
+
+        // Close connection
+        if (_this->sock) { _this->sock->close(); }
+
+        // Stop worker thread
+        _this->stream.stopWriter();
+        if (_this->workerThread.joinable()) { _this->workerThread.join(); }
+        _this->stream.clearWriteStop();
 
         _this->running = false;
         flog::info("NetworkSourceModule '{0}': Stop!", _this->name);
@@ -254,12 +287,8 @@ private:
 
         while (true) {
             // Read samples from socket
-            int bytes;
-            {
-                std::lock_guard lck(sockMtx);
-                bytes = sock->recv(buffer, frameSize, true);
-                if (bytes <= 0) { break; }
-            }
+            int bytes = sock->recv(buffer, frameSize, true);
+            if (bytes <= 0) { break; }
 
             // Convert to CF32 (note: problem if partial sample)
             int count = bytes / sampleSize;
@@ -297,7 +326,7 @@ private:
     
     int samplerate = 1000000;
     int srId;
-    Protocol proto = PROTOCOL_TCP_SERVER;
+    Protocol proto = PROTOCOL_UDP;
     int protoId;
     SampleType sampType = SAMPLE_TYPE_INT16;
     int sampTypeId;
@@ -308,6 +337,7 @@ private:
     OptionList<std::string, Protocol> protocols;
     OptionList<std::string, SampleType> sampleTypes;
 
+    std::thread workerThread;
     std::thread listenWorkerThread;
 
     std::mutex sockMtx;
