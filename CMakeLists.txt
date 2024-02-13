@@ -287,7 +287,12 @@ if (OPT_BUILD_SCHEDULER)
 add_subdirectory("misc_modules/scheduler")
 endif (OPT_BUILD_SCHEDULER)
 
-add_executable(sdrpp "src/main.cpp" "win32/resources.rc")
+if (MSVC)
+    add_executable(sdrpp "src/main.cpp" "win32/resources.rc")
+else ()
+    add_executable(sdrpp "src/main.cpp")
+endif ()
+
 target_link_libraries(sdrpp PRIVATE sdrpp_core)
 
 # Compiler arguments
