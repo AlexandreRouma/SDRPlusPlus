@@ -30,7 +30,7 @@ namespace server {
         dctx = ZSTD_createDCtx();
 
         // Initialize DSP
-        decompIn.setBufferSize((sizeof(dsp::complex_t) * STREAM_BUFFER_SIZE) + 8);
+        decompIn.setBufferSize(STREAM_BUFFER_SIZE*sizeof(dsp::complex_t) + 8);
         decompIn.clearWriteStop();
         decomp.init(&decompIn);
         link.init(&decomp.out, output);
@@ -209,7 +209,7 @@ namespace server {
                 if (!decompIn.swap(r_pkt_hdr->size - sizeof(PacketHeader))) { break; }
             }
             else if (r_pkt_hdr->type == PACKET_TYPE_BASEBAND_COMPRESSED) {
-                size_t outCount = ZSTD_decompressDCtx(dctx, decompIn.writeBuf, STREAM_BUFFER_SIZE, r_pkt_data, r_pkt_hdr->size - sizeof(PacketHeader));
+                size_t outCount = ZSTD_decompressDCtx(dctx, decompIn.writeBuf, STREAM_BUFFER_SIZE*sizeof(dsp::complex_t)+8, r_pkt_data, r_pkt_hdr->size - sizeof(PacketHeader));
                 if (outCount) {
                     if (!decompIn.swap(outCount)) { break; }
                 };

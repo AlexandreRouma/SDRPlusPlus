@@ -12,6 +12,10 @@ namespace dsp::compression {
 
         void init(stream<complex_t>* in, PCMType pcmType) {
             _pcmType = pcmType;
+
+            // Set the output buffer size to the max size of a complex buffer + 8 bytes for the header
+            out.setBufferSize(STREAM_BUFFER_SIZE*sizeof(complex_t) + 8);
+
             base_type::init(in);
         }
 

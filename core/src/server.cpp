@@ -230,7 +230,7 @@ namespace server {
         // Compress data if needed and fill out header fields
         if (compression) {
             bb_pkt_hdr->type = PACKET_TYPE_BASEBAND_COMPRESSED;
-            bb_pkt_hdr->size = sizeof(PacketHeader) + (uint32_t)ZSTD_compressCCtx(cctx, &bbuf[sizeof(PacketHeader)], SERVER_MAX_PACKET_SIZE, data, count, 1);
+            bb_pkt_hdr->size = sizeof(PacketHeader) + (uint32_t)ZSTD_compressCCtx(cctx, &bbuf[sizeof(PacketHeader)], SERVER_MAX_PACKET_SIZE-sizeof(PacketHeader), data, count, 1);
         }
         else {
             bb_pkt_hdr->type = PACKET_TYPE_BASEBAND;
