@@ -244,31 +244,37 @@ private:
     }
 
     void worker() {
+        // Compute sizes
         int blockSize = samplerate / 200;
-        int frameSize = blockSize*SAMPLE_TYPE_SIZE[sampType];
+        int sampleSize = SAMPLE_TYPE_SIZE[sampType];
+        int frameSize = blockSize*sampleSize;
+
+        // Allocate receive buffer
         uint8_t* buffer = dsp::buffer::alloc<uint8_t>(frameSize);
 
         while (true) {
             // Read samples from socket
+            int bytes;
             {
                 std::lock_guard lck(sockMtx);
-                int bytes = sock->recv(buffer, frameSize, true);
+                bytes = sock->recv(buffer, frameSize, true);
+                if (bytes <= 0) { break; }
             }
 
-            // Convert to CF32
-            int count;
+            // Convert to CF32 (note: problem if partial sample)
+            int count = bytes / sampleSize;
             switch (sampType) {
             case SAMPLE_TYPE_INT8:
-                
+                volk_8i_s32f_convert_32f((float*)stream.writeBuf, (int8_t*)buffer, 128.0f, count*2);
                 break;
             case SAMPLE_TYPE_INT16:
-                
+                volk_16i_s32f_convert_32f((float*)stream.writeBuf, (int16_t*)buffer, 32768.0f, count*2);
                 break;
             case SAMPLE_TYPE_INT32:
-                
+                volk_32i_s32f_convert_32f((float*)stream.writeBuf, (int32_t*)buffer, 2147483647.0f, count*2);
                 break;
             case SAMPLE_TYPE_FLOAT32:
-                //memcpy(stream.writeBuf, buffer, )
+                memcpy(stream.writeBuf, buffer, bytes);
                 break;
             default:
                 break;
@@ -278,6 +284,7 @@ private:
             if (!stream.swap(count)) { break; }
         }
 
+        // Free receive buffer
         dsp::buffer::free(buffer);
     }
 

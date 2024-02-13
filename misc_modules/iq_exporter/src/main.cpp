@@ -509,7 +509,7 @@ private:
             size = sizeof(int16_t)*2;
             break;
         case SAMPLE_TYPE_INT32:
-            volk_32f_s32f_convert_32i((int32_t*)_this->buffer, (float*)data, (float)2147483647.0f, count*2);
+            volk_32f_s32f_convert_32i((int32_t*)_this->buffer, (float*)data, 2147483647.0f, count*2);
             size = sizeof(int32_t)*2;
             break;
         case SAMPLE_TYPE_FLOAT32:
