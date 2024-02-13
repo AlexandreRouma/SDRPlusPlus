@@ -13,7 +13,7 @@
 
 class POCSAGDecoder : public Decoder {
 public:
-    POCSAGDecoder(const std::string& name, VFOManager::VFO* vfo) : diag(0.6, 544) {
+    POCSAGDecoder(const std::string& name, VFOManager::VFO* vfo) : diag(0.6, BAUDRATE) {
         this->name = name;
         this->vfo = vfo;
 
@@ -26,7 +26,7 @@ public:
         vfo->setBandwidthLimits(12500, 12500, true);
         vfo->setSampleRate(SAMPLERATE, 12500);
         dsp.init(vfo->output, SAMPLERATE, BAUDRATE);
-        reshape.init(&dsp.soft, 544, 0);
+        reshape.init(&dsp.soft, BAUDRATE, (BAUDRATE / 30.0) - BAUDRATE);
         dataHandler.init(&dsp.out, _dataHandler, this);
         diagHandler.init(&reshape.out, _diagHandler, this);
 
