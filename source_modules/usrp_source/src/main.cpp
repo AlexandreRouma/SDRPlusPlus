@@ -78,6 +78,10 @@ public:
             std::string serial = devAddr["serial"];
             std::string model = devAddr.has_key("product") ? devAddr["product"] : devAddr["type"];
             sprintf(buf, "USRP %s [%s]", model.c_str(), serial.c_str());
+
+            // Work-around for UHD sometimes reporting the same device twice
+            if (devices.keyExists(serial)) { continue; }
+
             devices.define(serial, buf, devAddr);
         }
     }
