@@ -111,7 +111,7 @@ public:
         channels.clear();
         auto subdevs = dev->get_rx_subdev_spec();
         for (int i = 0; i < subdevs.size(); i++) {
-            std::string slot = subdevs[i].db_name;
+            std::string slot = subdevs[i].db_name + ',' + subdevs[i].sd_name;
             sprintf(buf, "%s [%s]", dev->get_rx_subdev_name(i).c_str(), slot.c_str());
             channels.define(buf, buf, buf);
         }
