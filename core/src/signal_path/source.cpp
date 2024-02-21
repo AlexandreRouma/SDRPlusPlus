@@ -84,7 +84,7 @@ void SourceManager::tune(double freq) {
     if (selectedHandler == NULL) {
         return;
     }
-    // TODO: No need to always retune the hardware in panadpter mode
+    // TODO: No need to always retune the hardware in Panadapter mode
     selectedHandler->tuneHandler(((tuneMode == TuningMode::NORMAL) ? freq : ifFreq) + tuneOffset, selectedHandler->ctx);
     onRetune.emit(freq);
     currentFreq = freq;
@@ -100,7 +100,7 @@ void SourceManager::setTuningMode(TuningMode mode) {
     tune(currentFreq);
 }
 
-void SourceManager::setPanadpterIF(double freq) {
+void SourceManager::setPanadapterIF(double freq) {
     ifFreq = freq;
     tune(currentFreq);
 }

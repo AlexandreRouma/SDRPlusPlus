@@ -86,7 +86,7 @@ public:
         }
 
         // Switch source to panadapter mode
-        sigpath::sourceManager.setPanadpterIF(ifFreq);
+        sigpath::sourceManager.setPanadapterIF(ifFreq);
         sigpath::sourceManager.setTuningMode(SourceManager::TuningMode::PANADAPTER);
         sigpath::sourceManager.onRetune.bindHandler(&_retuneHandler);
 
@@ -131,7 +131,7 @@ private:
         ImGui::FillWidth();
         if (ImGui::InputDouble(CONCAT("##_rigctl_if_freq_", _this->name), &_this->ifFreq, 100.0, 100000.0, "%.0f")) {
             if (_this->running) {
-                sigpath::sourceManager.setPanadpterIF(_this->ifFreq);
+                sigpath::sourceManager.setPanadapterIF(_this->ifFreq);
             }
             config.acquire();
             config.conf[_this->name]["ifFreq"] = _this->ifFreq;
