@@ -2,74 +2,290 @@
     "name": "Germany",
     "country_name": "Germany",
     "country_code": "DE",
-    "author_name": "Manawyrm",
+    "author_name": "Manawyrm, LEDFlighter",
     "author_url": "https://tbspace.de",
     "bands": [
         {
-            "name": "LW",
+            "name": "LW-Amateur",
             "type": "amateur",
             "start": 135700,
             "end": 137800
         },
+		{
+            "name": "LW-Broadcast",
+            "type": "broadcast",
+            "start": 148500,
+            "end": 283500
+        },
         {
-            "name": "630m",
+            "name": "630m-Amateur",
             "type": "amateur",
             "start": 472000,
             "end": 479000
         },
+		{
+            "name": "MW-Broadcast",
+            "type": "broadcast",
+            "start": 526500,
+            "end": 1606500
+        },
         {
-            "name": "160m",
+            "name": "160m-Amateur",
             "type": "amateur",
             "start": 1810000,
             "end": 2000000
         },
-        {
-            "name": "80m",
+		{
+            "name": "Maritime",
+            "type": "marine",
+            "start": 2045000,
+            "end": 2300000
+        },
+		{
+            "name": "120m-Broadcast",
+            "type": "broadcast",
+            "start": 2300000,
+            "end": 2495000
+        },
+		{
+            "name": "Aeronautical HF",
+            "type": "aviation",
+            "start": 2850000,
+            "end": 3155000
+        },
+		{
+            "name": "90m-Broadcast",
+            "type": "broadcast",
+            "start": 3200000,
+            "end": 3400000
+        },
+		{
+            "name": "Aeronautical HF",
+            "type": "aviation",
+            "start": 3400000,
+            "end": 3500000
+        },
+		{
+            "name": "80m-Amateur",
             "type": "amateur",
             "start": 3500000,
             "end": 3800000
         },
+		{
+            "name": "75m-Broadcast",
+            "type": "broadcast",
+            "start": 3900000,
+            "end": 4000000
+        },
+		{
+            "name": "Maritime",
+            "type": "marine",
+            "start": 4063000,
+            "end": 4438000
+        },
+		{
+            "name": "Aeronautical HF",
+            "type": "aviation",
+            "start": 4650000,
+            "end": 4750000
+        },
+		{
+            "name": "60m-Broadcast",
+            "type": "broadcast",
+            "start": 4750000,
+            "end": 5060000
+        },
         {
-            "name": "60m",
+            "name": "60m-Amateur",
             "type": "amateur",
             "start": 5351500,
             "end": 5366500
         },
-        {
-            "name": "40m",
+		{
+            "name": "Aeronautical HF",
+            "type": "aviation",
+            "start": 5480000,
+            "end": 5730000
+        },
+		{
+            "name": "49m-Broadcast",
+            "type": "broadcast",
+            "start": 5900000,
+            "end": 6200000
+        },
+		{
+            "name": "Maritime",
+            "type": "marine",
+            "start": 6200000,
+            "end": 6525000
+        },
+		{
+            "name": "Aeronautical HF",
+            "type": "aviation",
+            "start": 6525000,
+            "end": 6765000
+        },
+		{
+            "name": "40m-Amateur",
             "type": "amateur",
             "start": 7000000,
             "end": 7200000
         },
+		{
+            "name": "41m-Broadcast",
+            "type": "broadcast",
+            "start": 7200000,
+            "end": 7450000
+        },
+		{
+            "name": "Maritime",
+            "type": "marine",
+            "start": 8195000,
+            "end": 8815000
+        },
+		{
+            "name": "31m-Broadcast",
+            "type": "broadcast",
+            "start": 9400000,
+            "end": 9900000
+        },
+		{
+            "name": "Aeronautical HF",
+            "type": "aviation",
+            "start": 8815000,
+            "end": 9040000
+        },
         {
-            "name": "30m",
+            "name": "Aeronautical HF",
+            "type": "aviation",
+            "start": 10005000,
+            "end": 10100000
+        },
+		{
+            "name": "30m-Amateur",
             "type": "amateur",
             "start": 10100000,
             "end": 10150000
         },
+		{
+            "name": "Aeronautical HF",
+            "type": "aviation",
+            "start": 11175000,
+            "end": 11400000
+        },
+		{
+            "name": "25m-Broadcast",
+            "type": "broadcast",
+            "start": 11600000,
+            "end": 12100000
+        },
+		{
+            "name": "Maritime",
+            "type": "marine",
+            "start": 12230000,
+            "end": 13200000
+        },
+		{
+            "name": "Aeronautical HF",
+            "type": "aviation",
+            "start": 13200000,
+            "end": 13360000
+        },
+		{
+            "name": "22m-Broadcast",
+            "type": "broadcast",
+            "start": 13570000,
+            "end": 13870000
+        },
         {
-            "name": "20m",
+            "name": "20m-Amateur",
             "type": "amateur",
             "start": 14000000,
             "end": 14350000
         },
+		{
+            "name": "Aeronautical HF",
+            "type": "aviation",
+            "start": 15010000,
+            "end": 15100000
+        },
+		{
+            "name": "Maritime",
+            "type": "marine",
+            "start": 16360000,
+            "end": 17410000
+        },
+		{
+            "name": "19m-Broadcast",
+            "type": "broadcast",
+            "start": 15100000,
+            "end": 15800000
+        },
+		{
+            "name": "16m-Broadcast",
+            "type": "broadcast",
+            "start": 17480000,
+            "end": 17900000
+        },
         {
-            "name": "17m",
+            "name": "17m-Amateur",
             "type": "amateur",
             "start": 18068000,
             "end": 18168000
         },
-        {
-            "name": "15m",
+		{
+            "name": "Maritime - ship tx",
+            "type": "marine",
+            "start": 18780000,
+            "end": 18900000
+        },
+		{
+            "name": "15m-Broadcast",
+            "type": "broadcast",
+            "start": 18900000,
+            "end": 19020000
+        },
+		{
+            "name": "Maritime - coast tx",
+            "type": "marine",
+            "start": 19680000,
+            "end": 19990000
+        },
+		{
+            "name": "15m-Amateur",
             "type": "amateur",
             "start": 21000000,
             "end": 21450000
         },
+		{
+            "name": "13m-Broadcast",
+            "type": "broadcast",
+            "start": 21450000,
+            "end": 21850000
+        },
+		{
+            "name": "Aeronautical HF",
+            "type": "aviation",
+            "start": 21870000,
+            "end": 22000000
+        },
+		{
+            "name": "Aeronautical HF",
+            "type": "aviation",
+            "start": 23200000,
+            "end": 23350000
+        },
         {
-            "name": "12m",
+            "name": "12m-Amateur",
             "type": "amateur",
             "start": 24890000,
             "end": 24990000
+        },
+		{
+            "name": "11m-Broadcast",
+            "type": "broadcast",
+            "start": 25670000,
+            "end": 26100000
         },
         {
             "name": "CB",
@@ -78,31 +294,55 @@
             "end": 27405000
         },
         {
-            "name": "10m",
+            "name": "10m-Amateur",
             "type": "amateur",
             "start": 28000000,
             "end": 29700000
         },
         {
-            "name": "6m",
+            "name": "6m-Amateur",
             "type": "amateur",
             "start": 50030000,
             "end": 51000000
         },
         {
-            "name": "4m",
+            "name": "4m-Amateur",
             "type": "amateur",
             "start": 70150000,
             "end": 70200000
         },
         {
-            "name": "FM",
+            "name": "FM-Broadcast",
             "type": "broadcast",
             "start": 87500000,
             "end": 108000000
         },
+		{
+            "name": "Air Band VOR/ILS",
+            "type": "aviation",
+            "start": 108000000,
+            "end": 118000000
+        },
+		{
+            "name": "Air Band Voice",
+            "type": "aviation",
+            "start": 118000000,
+            "end": 136700000
+        },
+		{
+            "name": "Air Band CPDLC/Datalink",
+            "type": "aviation",
+            "start": 136700000,
+            "end": 137000000
+        },
+		{
+            "name": "Earth orbiting Satellites",
+            "type": "satellite",
+            "start": 137000000,
+            "end": 138000000
+        },
         {
-            "name": "2m",
+            "name": "2m-Amateur",
             "type": "amateur",
             "start": 144000000,
             "end": 146000000
@@ -113,8 +353,50 @@
             "start": 149025000,
             "end": 149115625
         },
+		{
+            "name": "Marine",
+            "type": "marine",
+            "start": 156000000,
+            "end": 162025000
+        },
+		{
+            "name": "Pager BOS",
+            "type": "other",
+            "start": 163000000,
+            "end": 174000000
+        },
+		{
+            "name": "DAB+ (digital broadcast)",
+            "type": "broadcast",
+            "start": 174000000,
+            "end": 225000000
+        },
+		{
+            "name": "Air Band Military",
+            "type": "military",
+            "start": 225000000,
+            "end": 380000000
+        },
+		{
+            "name": "TETRA BOS",
+            "type": "other",
+            "start": 388000000,
+            "end": 397000000
+        },
+		{
+            "name": "Weathersondes",
+            "type": "other",
+            "start": 401000000,
+            "end": 410000000
+        },
+		{
+            "name": "TETRA Civil",
+            "type": "other",
+            "start": 423000000,
+            "end": 430000000
+        },
         {
-            "name": "70cm",
+            "name": "70cm-Amateur",
             "type": "amateur",
             "start": 430000000,
             "end": 440000000
@@ -125,17 +407,59 @@
             "start": 446006250,
             "end": 446196875
         },
+		{
+            "name": "Pager Civil",
+            "type": "other",
+            "start": 446500000,
+            "end": 470000000
+        },
+		{
+            "name": "DVB-T2 (TV)",
+            "type": "broadcast",
+            "start": 470000000,
+            "end": 690000000
+        },
+		{
+            "name": "868 MHz ISM-Devices",
+            "type": "other",
+            "start": 866500000,
+            "end": 871000000
+        },
         {
-            "name": "23cm",
+            "name": "23cm-Amateur",
             "type": "amateur",
             "start": 1240000000,
             "end": 1300000000
         },
+		{
+            "name": "L-Band",
+            "type": "other",
+            "start": 1300000000,
+            "end": 2000000000
+        },
         {
-            "name": "13cm",
+            "name": "13cm-Amateur",
             "type": "amateur",
             "start": 2320000000,
             "end": 2450000000
+        },
+		{
+            "name": "9cm-Amateur",
+            "type": "amateur",
+            "start": 3400000000,
+            "end": 3475000000
+        },
+		{
+            "name": "6cm-Amateur",
+            "type": "amateur",
+            "start": 5650000000,
+            "end": 5850000000
+        },
+		{
+            "name": "3cm-Amateur",
+            "type": "amateur",
+            "start": 10000000000,
+            "end": 10500000000
         }
     ]
 }
