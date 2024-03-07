@@ -9,7 +9,7 @@
 
 class SpectranHTTPClient {
 public:
-    SpectranHTTPClient(std::string host, int port, dsp::stream<dsp::complex_t>* stream);
+    SpectranHTTPClient(std::string host, int port, dsp::stream<dsp::complex_t>* stream, double sampleRateRequested, std::string demodulatorBlockApiName);
 
     void startWorker();
     void streaming(bool enabled);
@@ -24,8 +24,9 @@ public:
 private:
     void worker();
 
-    std::string host;
-    int port;
+    std::string _host;
+    int _port;
+    std::string _demodulatorBlockApiName;
 
     std::shared_ptr<net::Socket> sock;
     net::http::Client http;
@@ -35,4 +36,6 @@ private:
     bool streamingEnabled = false;
     int64_t _centerFreq = 0;
     uint64_t _samplerate = 0;
+    uint64_t _sampleRateRequested = 1000000;
+    
 };

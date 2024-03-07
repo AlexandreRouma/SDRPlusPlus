@@ -2,12 +2,16 @@
 #include <utils/flog.h>
 #include <inttypes.h>
 
-SpectranHTTPClient::SpectranHTTPClient(std::string host, int port, dsp::stream<dsp::complex_t>* stream) {
+SpectranHTTPClient::SpectranHTTPClient(std::string host, int port, dsp::stream<dsp::complex_t>* stream, double sampleRateRequested, std::string demodulatorBlockApiName){
     this->stream = stream;
 
     // Connect to server
-    this->host = host;
-    this->port = port;
+    this->_host = host;
+    this->_port = port;
+    this->_demodulatorBlockApiName = demodulatorBlockApiName;
+    //flog::debug("Creating SpectranHTTPClient, sampleRateRequested: {}", sampleRateRequested);
+
+    this->_sampleRateRequested = sampleRateRequested;
     sock = net::connect(host, port);
     http = net::http::Client(sock);
 
@@ -44,23 +48,30 @@ void SpectranHTTPClient::close() {
 }
 
 void SpectranHTTPClient::setCenterFrequency(uint64_t freq) {
-    // Connect to control endpoint (TODO: Switch to an always connected endpoint)
-    auto controlSock = net::connect(host, port);
+    auto controlSock = net::connect(_host, _port);
     auto controlHttp = net::http::Client(controlSock);
 
     // Make request
-    net::http::RequestHeader rqhdr(net::http::METHOD_PUT, "/control", host);
-    char buf[1024];
-    sprintf(buf, "{\"frequencyCenter\":%" PRIu64 ",\"frequencySpan\":%" PRIu64 ",\"type\":\"capture\"}", freq, _samplerate);
+    net::http::RequestHeader rqhdr(net::http::METHOD_PUT, "/remoteconfig", _host);
+
+    char buf[2048]; 
+    sprintf(buf, "{\"receiverName\":\"%s\",\"simpleconfig\":{\"main\":{\"centerfreq\":%" PRId64 ",\"samplerate\":%u,\"spanfreq\":%u}}}",
+        _demodulatorBlockApiName.c_str(),
+        freq,
+        _sampleRateRequested,
+        _sampleRateRequested);
+    
     std::string data = buf;
     char lenBuf[16];
-    sprintf(lenBuf, "%" PRIu64, (uint64_t)data.size());
+    sprintf(lenBuf, "%" PRIu64, static_cast<uint64_t>(data.size()));
+
+    flog::debug("Sending tuning command data: {}", data);
     rqhdr.setField("Content-Length", lenBuf);
     controlHttp.sendRequestHeader(rqhdr);
     controlSock->sendstr(data);
     net::http::ResponseHeader rshdr;
     controlHttp.recvResponseHeader(rshdr, 5000);
-
+    
     flog::debug("Response: {}", rshdr.getStatusString());
 }
 

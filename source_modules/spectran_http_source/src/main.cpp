@@ -22,13 +22,71 @@ SDRPP_MOD_INFO{
 
 ConfigManager config;
 
+const uint64_t sampleRates[] = {
+    100000,
+    250000,
+    500000,
+    1000000,
+    1500000,
+    2000000,
+    3000000,
+    4000000,
+    5000000,
+    6000000,
+    10000000
+};
+
+const char* sampleRatesTxt[] = {
+    "100KHz",
+    "250KHz",
+    "500KHz",
+    "1MHz",
+    "1.5MHz",
+    "2MHz",
+    "3MHz",
+    "4MHz",
+    "5MHz",
+    "6MHz",
+    "10MHz"
+};
+
 class SpectranHTTPSourceModule : public ModuleManager::Instance {
 public:
     SpectranHTTPSourceModule(std::string name) {
         this->name = name;
 
         strcpy(hostname, "localhost");
-        sampleRate = 5750000.0;
+        strcpy(demodulatorBlockApiName, "Block_IQDemodulator_0");
+
+        sampleRate = 100000;
+
+        // Load config
+        config.acquire();
+        
+        if (config.conf[name].contains("hostname")) {
+            std::string hostStr = config.conf[name]["hostname"] ;
+            strcpy(hostname, hostStr.c_str());
+        }
+
+        if (config.conf[name].contains("port")) {
+            port = config.conf[name]["port"];
+            port = std::clamp<int>(port, 1, 65535);
+        }
+
+        if (config.conf[name].contains("sampleRate")) {
+            int sr = config.conf[name]["sampleRate"];
+            sampleRate = sampleRates[sr]; 
+            srId = sr;
+        }
+       
+        config.release();
+
+        sampleRateRequested  = sampleRate;
+
+        for (int i = 0; i < 11; i++) {
+            sampleRateListTxt += sampleRatesTxt[i];
+            sampleRateListTxt += '\0';
+        }
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
@@ -106,7 +164,7 @@ private:
         bool connected = (_this->client && _this->client->isOpen());
         if (connected) {
             int64_t newfreq = round(freq);
-            if (newfreq != _this->lastReportedFreq && _this->gotReport) {
+            if (newfreq != _this->lastReportedFreq /*&& _this->gotReport*/) {
                 flog::debug("Sending tuning command");
                 _this->lastReportedFreq = newfreq;
                 _this->client->setCenterFrequency(newfreq);
@@ -123,18 +181,35 @@ private:
 
         if (connected) { SmGui::BeginDisabled(); }
 
+        if (SmGui::Combo(CONCAT("##spectran_sr_sel_", _this->name), &_this->srId, _this->sampleRateListTxt.c_str())) {
+            flog::debug("Setting requested sample rate: {}", sampleRates[_this->srId]);
+            _this->sampleRateRequested = sampleRates[_this->srId];
+            //core::setInputSampleRate(_this->sampleRate);          
+            config.acquire();
+            config.conf[_this->name]["sampleRate"] = _this->srId;
+            config.release(true);
+        }        
+        
         if (SmGui::InputText(CONCAT("##spectran_http_host_", _this->name), _this->hostname, 1023)) {
             config.acquire();
-            config.conf["hostname"] = _this->hostname;
+            config.conf[_this->name]["hostname"] = _this->hostname;
             config.release(true);
         }
         SmGui::SameLine();
+
         SmGui::FillWidth();
         if (SmGui::InputInt(CONCAT("##spectran_http_port_", _this->name), &_this->port, 0, 0)) {
             config.acquire();
-            config.conf["port"] = _this->port;
+            config.conf[_this->name]["port"] = _this->port;
             config.release(true);
         }
+
+        if (SmGui::InputText(CONCAT("##spectran_demodulator_block_api_name_", _this->name), _this->demodulatorBlockApiName, 1023)) {
+            config.acquire();
+            config.conf[_this->name]["demodulatorBlockApiName"] = _this->demodulatorBlockApiName;
+            config.release(true);
+        }
+
 
         if (connected) { SmGui::EndDisabled(); }
 
@@ -145,7 +220,7 @@ private:
         }
         else if (connected && SmGui::Button("Disconnect##spectran_http_source")) {
             _this->client->onCenterFrequencyChanged.unbind(_this->onFreqChangedId);
-            _this->client->onCenterFrequencyChanged.unbind(_this->onSamplerateChangedId);
+            _this->client->onSamplerateChanged.unbind(_this->onSamplerateChangedId);
             _this->client->close();
         }
         if (_this->running) { style::endDisabled(); }
@@ -163,10 +238,13 @@ private:
     void tryConnect() {
         try {
             gotReport = false;
-            client = std::make_shared<SpectranHTTPClient>(hostname, port, &stream);
+            client = std::make_shared<SpectranHTTPClient>(hostname, port, &stream, sampleRateRequested, demodulatorBlockApiName);
             onFreqChangedId = client->onCenterFrequencyChanged.bind(&SpectranHTTPSourceModule::onFreqChanged, this);
             onSamplerateChangedId = client->onSamplerateChanged.bind(&SpectranHTTPSourceModule::onSamplerateChanged, this);
             client->startWorker();
+            client->setCenterFrequency(round(freq));
+
+
         }
         catch (std::runtime_error e) {
             flog::error("Could not connect: {0}", e.what());
@@ -185,8 +263,10 @@ private:
     }
 
     std::string name;
+    int srId = 0;
     bool enabled = true;
-    double sampleRate;
+    uint64_t sampleRate;
+    uint64_t sampleRateRequested;
     SourceManager::SourceHandler handler;
     bool running = false;
 
@@ -200,9 +280,11 @@ private:
     bool gotReport;
 
     char hostname[1024];
+    char demodulatorBlockApiName[1024];
     int port = 54664;
     dsp::stream<dsp::complex_t> stream;
 
+     std::string sampleRateListTxt;
 };
 
 MOD_EXPORT void _INIT_() {
