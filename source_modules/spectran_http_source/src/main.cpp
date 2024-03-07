@@ -68,6 +68,11 @@ public:
             strcpy(hostname, hostStr.c_str());
         }
 
+        if (config.conf[name].contains("demodulatorBlockApiName")) {
+            std::string demodulatorBlockApiNameStr = config.conf[name]["demodulatorBlockApiName"] ;
+            strcpy(demodulatorBlockApiName, demodulatorBlockApiNameStr.c_str());
+        }
+
         if (config.conf[name].contains("port")) {
             port = config.conf[name]["port"];
             port = std::clamp<int>(port, 1, 65535);
