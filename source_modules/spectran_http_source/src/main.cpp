@@ -186,7 +186,7 @@ private:
 
         if (connected) { SmGui::BeginDisabled(); }
 
-        ImGui::LeftLabel("rate");
+        ImGui::LeftLabel("Rate");
         if (SmGui::Combo(CONCAT("##spectran_sr_sel_", _this->name), &_this->srId, _this->sampleRateListTxt.c_str())) {
             flog::debug("Setting requested sample rate: {}", sampleRates[_this->srId]);
             _this->sampleRateRequested = sampleRates[_this->srId];
@@ -196,23 +196,23 @@ private:
             config.release(true);
         }        
         
-        ImGui::LeftLabel("host");
+        ImGui::LeftLabel("Host");
         if (SmGui::InputText(CONCAT("##spectran_http_host_", _this->name), _this->hostname, 1023)) {
             config.acquire();
             config.conf[_this->name]["hostname"] = _this->hostname;
             config.release(true);
         }
-        
+
         SmGui::SameLine();
         SmGui::FillWidth();
-        ImGui::LeftLabel("port");
+        ImGui::LeftLabel("Port");
         if (SmGui::InputInt(CONCAT("##spectran_http_port_", _this->name), &_this->port, 0, 0)) {
             config.acquire();
             config.conf[_this->name]["port"] = _this->port;
             config.release(true);
         }
 
-        ImGui::LeftLabel("demod block");
+        ImGui::LeftLabel("Demod Block");
         if (SmGui::InputText(CONCAT("##spectran_demodulator_block_api_name_", _this->name), _this->demodulatorBlockApiName, 1023)) {
             config.acquire();
             config.conf[_this->name]["demodulatorBlockApiName"] = _this->demodulatorBlockApiName;
