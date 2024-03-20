@@ -9,9 +9,9 @@ apt install -y build-essential cmake git libfftw3-dev libglfw3-dev libvolk2-dev 
             libcodec2-dev autoconf libtool xxd
 
 # Install SDRPlay libraries
-wget https://www.sdrplay.com/software/SDRplay_RSP_API-Linux-3.12.1.run
-7z x ./SDRplay_RSP_API-Linux-3.12.1.run
-7z x ./SDRplay_RSP_API-Linux-3.12.1
+wget https://www.sdrplay.com/software/SDRplay_RSP_API-Linux-3.14.0.run
+7z x ./SDRplay_RSP_API-Linux-3.14.0.run
+7z x ./SDRplay_RSP_API-Linux-3.14.0
 cp x86_64/libsdrplay_api.so.3.12 /usr/lib/libsdrplay_api.so
 cp inc/* /usr/include/
 
