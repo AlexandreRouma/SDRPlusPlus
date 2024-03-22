@@ -96,6 +96,9 @@ jobs:
         - name: Update brew repositories
           run: brew update
 
+        - name: Fix stuff
+          run: rm -f /usr/local/bin/2to3* /usr/local/bin/idle3* /usr/local/bin/pydoc3* /usr/local/bin/python3* /usr/local/bin/python3-config* && brew reinstall gettext
+
         - name: Install dependencies
           run: brew install pkg-config libusb fftw glfw airspy airspyhf portaudio hackrf libbladerf codec2 zstd autoconf automake libtool && pip3 install mako
 
@@ -149,6 +152,9 @@ jobs:
           
         - name: Update brew repositories
           run: brew update
+
+        - name: Fix stuff
+          run: rm -f /usr/local/bin/2to3* /usr/local/bin/idle3* /usr/local/bin/pydoc3* /usr/local/bin/python3* /usr/local/bin/python3-config* && brew reinstall gettext
 
         - name: Install dependencies
           run: brew install pkg-config libusb fftw glfw airspy airspyhf portaudio hackrf libbladerf codec2 zstd autoconf automake libtool && pip3 install mako
