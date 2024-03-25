@@ -92,30 +92,6 @@ jobs:
         
         - name: Create Build Environment
           run: cmake -E make_directory ${{runner.workspace}}/build
-          
-        - name: Update brew repositories
-          run: brew update
-
-        - name: Fix stuff
-          run: |
-            # Workaround for https://github.com/actions/runner-images/issues/4020
-            brew unlink python@3.12
-            brew uninstall --force azure-cli
-            brew uninstall --force aws-sam-cli
-            brew uninstall --force pipx
-            brew uninstall --force python@3.11
-            brew uninstall --force python@3.12
-            rm -f '/usr/local/bin/2to3'
-            rm -f '/usr/local/bin/2to3-3.12'
-            rm -f '/usr/local/bin/idle3'
-            rm -f '/usr/local/bin/idle3.12'
-            rm -f '/usr/local/bin/pydoc3'
-            rm -f '/usr/local/bin/pydoc3.12'
-            rm -f '/usr/local/bin/python3'
-            rm -f '/usr/local/bin/python3-config'
-            rm -f '/usr/local/bin/python3.12'
-            rm -f '/usr/local/bin/python3.12-config'
-            brew install python@3 || brew link --overwrite python@3
 
         - name: Install dependencies
           run: brew install pkg-config libusb fftw glfw airspy airspyhf portaudio hackrf libbladerf codec2 zstd autoconf automake libtool && pip3 install mako
@@ -167,30 +143,6 @@ jobs:
         
         - name: Create Build Environment
           run: cmake -E make_directory ${{runner.workspace}}/build
-          
-        - name: Update brew repositories
-          run: brew update
-
-        - name: Fix stuff
-          run: |
-            # Workaround for https://github.com/actions/runner-images/issues/4020
-            brew unlink python@3.12
-            brew uninstall --force azure-cli
-            brew uninstall --force aws-sam-cli
-            brew uninstall --force pipx
-            brew uninstall --force python@3.11
-            brew uninstall --force python@3.12
-            rm -f '/usr/local/bin/2to3'
-            rm -f '/usr/local/bin/2to3-3.12'
-            rm -f '/usr/local/bin/idle3'
-            rm -f '/usr/local/bin/idle3.12'
-            rm -f '/usr/local/bin/pydoc3'
-            rm -f '/usr/local/bin/pydoc3.12'
-            rm -f '/usr/local/bin/python3'
-            rm -f '/usr/local/bin/python3-config'
-            rm -f '/usr/local/bin/python3.12'
-            rm -f '/usr/local/bin/python3.12-config'
-            brew install python@3 || brew link --overwrite python@3
 
         - name: Install dependencies
           run: brew install pkg-config libusb fftw glfw airspy airspyhf portaudio hackrf libbladerf codec2 zstd autoconf automake libtool && pip3 install mako
