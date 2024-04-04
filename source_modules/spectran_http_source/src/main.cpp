@@ -144,9 +144,7 @@ private:
             _this->tryConnect();
         }
         else if (connected && SmGui::Button("Disconnect##spectran_http_source")) {
-            _this->client->onCenterFrequencyChanged.unbind(_this->onFreqChangedId);
-            _this->client->onCenterFrequencyChanged.unbind(_this->onSamplerateChangedId);
-            _this->client->close();
+            _this->disconnect();
         }
         if (_this->running) { style::endDisabled(); }
 
@@ -171,6 +169,12 @@ private:
         catch (std::runtime_error e) {
             flog::error("Could not connect: {0}", e.what());
         }
+    }
+
+    void disconnect() {
+        client->onCenterFrequencyChanged.unbind(onFreqChangedId);
+        client->onSamplerateChanged.unbind(onSamplerateChangedId);
+        client->close();
     }
 
     void onFreqChanged(double newFreq) {
