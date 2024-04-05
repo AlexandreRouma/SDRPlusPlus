@@ -45,10 +45,6 @@ public:
             // TODO
         }
 
-        if (ImGui::Button("Detune")) {
-            dsp.detune();
-        }
-
         ImGui::FillWidth();
         diag.draw();
     }
