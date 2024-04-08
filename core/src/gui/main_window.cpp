@@ -433,6 +433,9 @@ void MainWindow::draw() {
         showCredits = false;
     }
 
+    // Reset waterfall lock
+    lockWaterfallControls = showCredits;
+
     // Handle menu resize
     ImVec2 winSize = ImGui::GetWindowSize();
     ImVec2 mousePos = ImGui::GetMousePos();
@@ -467,7 +470,6 @@ void MainWindow::draw() {
     displaymenu::checkKeybinds();
 
     // Left Column
-    lockWaterfallControls = false;
     if (showMenu) {
         ImGui::Columns(3, "WindowColumns", false);
         ImGui::SetColumnWidth(0, menuWidth);
