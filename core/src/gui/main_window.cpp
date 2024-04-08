@@ -433,6 +433,9 @@ void MainWindow::draw() {
         showCredits = false;
     }
 
+    // Reset waterfall lock
+    lockWaterfallControls = showCredits;
+
     // Handle menu resize
     ImVec2 winSize = ImGui::GetWindowSize();
     ImVec2 mousePos = ImGui::GetMousePos();
@@ -467,7 +470,6 @@ void MainWindow::draw() {
     displaymenu::checkKeybinds();
 
     // Left Column
-    lockWaterfallControls = false;
     if (showMenu) {
         ImGui::Columns(3, "WindowColumns", false);
         ImGui::SetColumnWidth(0, menuWidth);
@@ -576,20 +578,20 @@ void MainWindow::draw() {
         // Handle scrollwheel
         int wheel = ImGui::GetIO().MouseWheel;
         if (wheel != 0 && (gui::waterfall.mouseInFFT || gui::waterfall.mouseInWaterfall)) {
-            // Select factor depending on modifier keys
-            double interval;
-            if (ImGui::IsKeyDown(ImGuiKey_LeftShift)) {
-                interval = vfo->snapInterval * 10.0;
-            }
-            else if (ImGui::IsKeyDown(ImGuiKey_LeftAlt)) {
-                interval = vfo->snapInterval * 0.1;
-            }
-            else {
-                interval = vfo->snapInterval;
-            }
-
             double nfreq;
             if (vfo != NULL) {
+                // Select factor depending on modifier keys
+                double interval;
+                if (ImGui::IsKeyDown(ImGuiKey_LeftShift)) {
+                    interval = vfo->snapInterval * 10.0;
+                }
+                else if (ImGui::IsKeyDown(ImGuiKey_LeftAlt)) {
+                    interval = vfo->snapInterval * 0.1;
+                }
+                else {
+                    interval = vfo->snapInterval;
+                }
+
                 nfreq = gui::waterfall.getCenterFrequency() + vfo->generalOffset + (interval * wheel);
                 nfreq = roundl(nfreq / interval) * interval;
             }

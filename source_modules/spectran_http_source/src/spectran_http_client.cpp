@@ -11,12 +11,15 @@ SpectranHTTPClient::SpectranHTTPClient(std::string host, int port, dsp::stream<d
     sock = net::connect(host, port);
     http = net::http::Client(sock);
 
-    // Make request
+    // Send sttream request
     net::http::RequestHeader rqhdr(net::http::METHOD_GET, "/stream?format=float32", host);
     http.sendRequestHeader(rqhdr);
+
+    // Receive for response
     net::http::ResponseHeader rshdr;
     http.recvResponseHeader(rshdr, 5000);
 
+    // Check the status
     if (rshdr.getStatusCode() != net::http::STATUS_CODE_OK) {
         flog::error("HTTP request did not return ok: {}", rshdr.getStatusString());
         throw std::runtime_error("HTTP request did not return ok");
@@ -48,20 +51,29 @@ void SpectranHTTPClient::setCenterFrequency(uint64_t freq) {
     auto controlSock = net::connect(host, port);
     auto controlHttp = net::http::Client(controlSock);
 
-    // Make request
-    net::http::RequestHeader rqhdr(net::http::METHOD_PUT, "/control", host);
+    // Encode request body
+    net::http::RequestHeader rqhdr(net::http::METHOD_PUT, "/remoteconfig", host);
     char buf[1024];
-    sprintf(buf, "{\"frequencyCenter\":%" PRIu64 ",\"frequencySpan\":%" PRIu64 ",\"type\":\"capture\"}", freq, _samplerate);
+    sprintf(buf, "{\"receiverName\": \"Block_IQDemodulator_0\", \"simpleconfig\": {\"main\": {\"centerfreq\": %" PRIu64 ", \"samplerate\": %" PRIu64 ", \"spanfreq\": %" PRIu64 "}}}", freq, _samplerate, _samplerate);
     std::string data = buf;
     char lenBuf[16];
     sprintf(lenBuf, "%" PRIu64, (uint64_t)data.size());
+
+    // Setup request headers
     rqhdr.setField("Content-Length", lenBuf);
+
+    // Send request
     controlHttp.sendRequestHeader(rqhdr);
     controlSock->sendstr(data);
+
+    // Receive response
     net::http::ResponseHeader rshdr;
     controlHttp.recvResponseHeader(rshdr, 5000);
 
-    flog::debug("Response: {}", rshdr.getStatusString());
+    // Log error if there is one
+    if (rshdr.getStatusCode() < 200 || rshdr.getStatusCode() >= 300) {
+        flog::debug("Response: {}", rshdr.getStatusString());
+    }
 }
 
 void SpectranHTTPClient::worker() {
@@ -101,11 +113,10 @@ void SpectranHTTPClient::worker() {
             auto sampleFreqEnd = jsonData.find(',', sampleFreqBegin);
             std::string sampleFreqStr = jsonData.substr(sampleFreqBegin + 18, sampleFreqEnd - sampleFreqBegin - 18);
             sampleFreq = std::stoll(sampleFreqStr);
-            //flog::debug("{}", jsonData);
         }
         
         // Calculate and update center freq
-        int64_t samplerate = /* sampleFreqReceived ? sampleFreq :  */(endFreq - startFreq);
+        int64_t samplerate = sampleFreqReceived ? sampleFreq : (endFreq - startFreq);
         int64_t centerFreq = round(((double)endFreq + (double)startFreq) / 2.0);
         if (centerFreq != _centerFreq) {
             flog::debug("New center freq: {}", centerFreq);

@@ -19,7 +19,7 @@ public:
 
     void init(dsp::stream<dsp::complex_t>* in, double samplerate, double baudrate) {
         // Save settings
-        // TODO
+        _samplerate = samplerate;
 
         // Configure blocks
         demod.init(NULL, -4500.0, samplerate);
@@ -44,8 +44,12 @@ public:
         return count;
     }
 
-    void detune() {
-        recov.setOmega(9.99);
+    void setBaudrate(double baudrate) {
+        assert(base_type::_block_init);
+        std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
+        base_type::tempStop();
+        
+        base_type::tempStart();
     }
 
     int run() {
@@ -68,4 +72,5 @@ private:
     dsp::filter::FIR<float, float> fir;
     dsp::clock_recovery::MM<float> recov;
 
+    double _samplerate;
 };
