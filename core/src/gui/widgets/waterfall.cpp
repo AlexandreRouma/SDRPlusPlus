@@ -717,23 +717,18 @@ namespace ImGui {
     void WaterFall::onResize() {
         std::lock_guard<std::recursive_mutex> lck(latestFFTMtx);
         std::lock_guard<std::mutex> lck2(smoothingBufMtx);
+        // return if widget is too small
+        if (widgetSize.x < 100 || widgetSize.y < 100) {
+            return;
+        }
 
-        // Check if the size is valid. This is because some settings might be changed before being first displayed.
-        if (widgetSize.x < 1.0f || widgetSize.y < 1.0f) { return; }
-
-        // Set a minimim size
-        widgetSize.x = std::max<float>(widgetSize.x, 100.0f*style::uiScale);
-        widgetSize.y = std::max<float>(widgetSize.y, 100.0f*style::uiScale);
-
-        // Save last height
         int lastWaterfallHeight = waterfallHeight;
 
-        // Compute sizes
         if (waterfallVisible) {
             FFTAreaHeight = std::min<int>(FFTAreaHeight, widgetSize.y - (50.0f * style::uiScale));
             newFFTAreaHeight = FFTAreaHeight;
             fftHeight = FFTAreaHeight - (50.0f * style::uiScale);
-            waterfallHeight = std::max<int>(1, widgetSize.y - fftHeight - (50.0f * style::uiScale) - 2);
+            waterfallHeight = widgetSize.y - fftHeight - (50.0f * style::uiScale) - 2;
         }
         else {
             fftHeight = widgetSize.y - (50.0f * style::uiScale);
