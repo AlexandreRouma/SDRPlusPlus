@@ -41,10 +41,10 @@ namespace dsp::filter {
 
             // Move existing data to make transition seemless
             if (_taps.size < oldTC) {
-                memcpy(buffer, &buffer[oldTC - _taps.size], (_taps.size - 1) * sizeof(D));
+                memmove(buffer, &buffer[oldTC - _taps.size], (_taps.size - 1) * sizeof(D));
             }
             else if (_taps.size > oldTC) {
-                memcpy(&buffer[_taps.size - oldTC], buffer, (oldTC - 1) * sizeof(D));
+                memmove(&buffer[_taps.size - oldTC], buffer, (oldTC - 1) * sizeof(D));
                 buffer::clear<D>(buffer, _taps.size - oldTC);
             }
             
