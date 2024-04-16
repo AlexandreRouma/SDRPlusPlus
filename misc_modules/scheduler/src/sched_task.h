@@ -52,7 +52,7 @@ public:
             }
         }
 
-        if (ImGui::BeginTable("scheduler_task_triggers", 1, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, 100))) {
+        if (ImGui::BeginTable("scheduler_task_triggers", 1, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, 100.0f * style::uiScale))) {
             ImGui::TableSetupColumn("Triggers");
             ImGui::TableSetupScrollFreeze(1, 1);
             ImGui::TableHeadersRow();
@@ -65,7 +65,7 @@ public:
             ImGui::EndTable();
         }
 
-        if (ImGui::BeginTable("scheduler_task_actions", 1, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, 100))) {
+        if (ImGui::BeginTable("scheduler_task_actions", 1, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, 100.0f * style::uiScale))) {
             ImGui::TableSetupColumn("Actions");
             ImGui::TableSetupScrollFreeze(1, 1);
             ImGui::TableHeadersRow();
