@@ -41,6 +41,7 @@ namespace sdrpp_credits {
         "CaribouLabs",
         "Ettus Research",
         "Howard Su",
+        "MicroPhase",
         "MyriadRF",
         "Nuand",
         "RFspace",
@@ -54,6 +55,7 @@ namespace sdrpp_credits {
         "Croccydile",
         "Dale L Puckett (K0HYD)",
         "Daniele D'Agnelli",
+        "David Taylor (GM8ARV)",
         "D. Jones",
         "Dexruus",
         "EB3FRN",
@@ -81,6 +83,7 @@ namespace sdrpp_credits {
         "Syne Ardwin (WI9SYN)",
         "W4IPA",
         "William Arcand (W1WRA)",
+        "William Pitchford",
         "Yves Rougy",
         "Zipper"
     };

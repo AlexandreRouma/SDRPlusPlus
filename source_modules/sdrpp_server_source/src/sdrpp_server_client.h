@@ -71,6 +71,11 @@ namespace server {
         std::mutex handledMtx;
     };
 
+    enum ConnectionError {
+        CONN_ERR_TIMEOUT    = -1,
+        CONN_ERR_BUSY       = -2
+    };
+
     class Client {
     public:
         Client(std::shared_ptr<net::Socket> sock, dsp::stream<dsp::complex_t>* out);

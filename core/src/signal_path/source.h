@@ -35,7 +35,7 @@ public:
     void tune(double freq);
     void setTuningOffset(double offset);
     void setTuningMode(TuningMode mode);
-    void setPanadpterIF(double freq);
+    void setPanadapterIF(double freq);
 
     std::vector<std::string> getSourceNames();
 

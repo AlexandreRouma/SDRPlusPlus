@@ -408,9 +408,9 @@ private:
         if (!_this->enabled) { ImGui::EndDisabled(); }
     }
 
-    void setMode(Mode newMode, bool fromDisabled = false) {
+    void setMode(Mode newMode, bool forceSet = false) {
         // If there is no mode to change, do nothing
-        if (!fromDisabled && mode == newMode) { return; }
+        if (!forceSet && mode == newMode) { return; }
 
         // Stop the DSP
         reshape.stop();
@@ -421,14 +421,13 @@ private:
             sigpath::vfoManager.deleteVFO(vfo);
             vfo = NULL;
         }
-        if (mode == MODE_BASEBAND && !fromDisabled) {
+        if (streamBound) {
             sigpath::iqFrontEnd.unbindIQStream(&iqStream);
+            streamBound = false;
         }
 
         // If the mode was none, we're done
-        if (newMode == MODE_NONE) {
-            return;
-        }
+        if (newMode == MODE_NONE) { return; }
 
         // Create VFO or bind IQ stream
         if (newMode == MODE_VFO) {
@@ -441,6 +440,7 @@ private:
         else {
             // Bind IQ stream
             sigpath::iqFrontEnd.bindIQStream(&iqStream);
+            streamBound = true;
 
             // Set its output as the input to the DSP
             reshape.setInput(&iqStream);
@@ -509,7 +509,7 @@ private:
             size = sizeof(int16_t)*2;
             break;
         case SAMPLE_TYPE_INT32:
-            volk_32f_s32f_convert_32i((int32_t*)_this->buffer, (float*)data, (float)2147483647.0f, count*2);
+            volk_32f_s32f_convert_32i((int32_t*)_this->buffer, (float*)data, 2147483647.0f, count*2);
             size = sizeof(int32_t)*2;
             break;
         case SAMPLE_TYPE_FLOAT32:
@@ -555,6 +555,7 @@ private:
     OptionList<int, int> packetSizes;
 
     VFOManager::VFO* vfo = NULL;
+    bool streamBound = false;
     dsp::stream<dsp::complex_t> iqStream;
     dsp::buffer::Reshaper<dsp::complex_t> reshape;
     dsp::sink::Handler<dsp::complex_t> handler;
@@ -570,7 +571,7 @@ private:
 MOD_EXPORT void _INIT_() {
     json def = json({});
     std::string root = (std::string)core::args["root"];
-    config.setPath(root + "/iq_exporter_config_config.json");
+    config.setPath(root + "/iq_exporter_config.json");
     config.load(def);
     config.enableAutoSave();
 }

@@ -485,7 +485,7 @@ private:
         }
 
         // Bookmark list
-        if (ImGui::BeginTable(("freq_manager_bkm_table" + _this->name).c_str(), 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, 200))) {
+        if (ImGui::BeginTable(("freq_manager_bkm_table" + _this->name).c_str(), 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, 200.0f * style::uiScale))) {
             ImGui::TableSetupColumn("Name");
             ImGui::TableSetupColumn("Bookmark");
             ImGui::TableSetupScrollFreeze(2, 1);

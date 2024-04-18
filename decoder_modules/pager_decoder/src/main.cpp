@@ -36,7 +36,7 @@ public:
 
         // Define protocols
         protocols.define("POCSAG", PROTOCOL_POCSAG);
-        protocols.define("FLEX", PROTOCOL_FLEX);
+        //protocols.define("FLEX", PROTOCOL_FLEX);
 
         // Initialize VFO with default values
         vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 12500, 24000, 12500, 12500, true);

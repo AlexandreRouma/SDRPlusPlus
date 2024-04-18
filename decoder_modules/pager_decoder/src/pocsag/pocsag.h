@@ -23,6 +23,8 @@ namespace pocsag {
 
     class Decoder {
     public:
+        Decoder();
+
         void process(uint8_t* symbols, int count);
 
         NewEvent<Address, MessageType, const std::string&> onMessage;
@@ -43,6 +45,7 @@ namespace pocsag {
         MessageType msgType;
         std::string msg;
 
-        uint32_t lastMsgData;
+        char currChar = 0;
+        int currOffset = 0;
     };
 }

@@ -30,7 +30,7 @@ namespace server {
         dctx = ZSTD_createDCtx();
 
         // Initialize DSP
-        decompIn.setBufferSize((sizeof(dsp::complex_t) * STREAM_BUFFER_SIZE) + 8);
+        decompIn.setBufferSize(STREAM_BUFFER_SIZE*sizeof(dsp::complex_t) + 8);
         decompIn.clearWriteStop();
         decomp.init(&decompIn);
         link.init(&decomp.out, output);
@@ -42,8 +42,20 @@ namespace server {
 
         // Ask for a UI
         int res = getUI();
-        if (res == -1) { throw std::runtime_error("Timed out"); }
-        else if (res == -2) { throw std::runtime_error("Server busy"); }
+        if (res < 0) {
+            // Close client
+            close();
+
+            // Throw error
+            switch (res) {
+            case CONN_ERR_TIMEOUT:
+                throw std::runtime_error("Timed out");
+            case CONN_ERR_BUSY:
+                throw std::runtime_error("Server busy");
+            default:
+                throw std::runtime_error("Unknown error");
+            }
+        }
     }
 
     Client::~Client() {
@@ -209,7 +221,7 @@ namespace server {
                 if (!decompIn.swap(r_pkt_hdr->size - sizeof(PacketHeader))) { break; }
             }
             else if (r_pkt_hdr->type == PACKET_TYPE_BASEBAND_COMPRESSED) {
-                size_t outCount = ZSTD_decompressDCtx(dctx, decompIn.writeBuf, STREAM_BUFFER_SIZE, r_pkt_data, r_pkt_hdr->size - sizeof(PacketHeader));
+                size_t outCount = ZSTD_decompressDCtx(dctx, decompIn.writeBuf, STREAM_BUFFER_SIZE*sizeof(dsp::complex_t)+8, r_pkt_data, r_pkt_hdr->size - sizeof(PacketHeader));
                 if (outCount) {
                     if (!decompIn.swap(outCount)) { break; }
                 };
@@ -234,7 +246,7 @@ namespace server {
         else {
             if (!serverBusy) { flog::error("Timeout out after asking for UI"); };
             waiter->handled();
-            return serverBusy ? -2 : -1;
+            return serverBusy ? CONN_ERR_BUSY : CONN_ERR_TIMEOUT;
         }
         waiter->handled();
         return 0;

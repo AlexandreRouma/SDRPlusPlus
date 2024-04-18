@@ -5,6 +5,7 @@
 #define POCSAG_FRAME_SYNC_CODEWORD  ((uint32_t)(0b01111100110100100001010111011000))
 #define POCSAG_IDLE_CODEWORD_DATA   ((uint32_t)(0b011110101100100111000))
 #define POCSAG_BATCH_BIT_COUNT      (POCSAG_BATCH_CODEWORD_COUNT*32)
+#define POCSAG_DATA_BITS_PER_CW     20
 
 #define POCSAG_GEN_POLY             ((uint32_t)(0b11101101001))
 
@@ -27,6 +28,11 @@ namespace pocsag {
         ']',
         '['
     };
+
+    Decoder::Decoder() {
+        // Zero out batch
+        memset(batch, 0, sizeof(batch));
+    }
 
     void Decoder::process(uint8_t* symbols, int count) {
         for (int i = 0; i < count; i++) {
@@ -78,8 +84,26 @@ namespace pocsag {
 
     void Decoder::flushMessage() {
         if (!msg.empty()) {
+            // Send out message
             onMessage(addr, msgType, msg);
+
+            // Reset state
             msg.clear();
+            currChar = 0;
+            currOffset = 0;
+        }
+    }
+
+    void printbin(uint32_t cw) {
+        for (int i = 31; i >= 0; i--) {
+            printf("%c", ((cw >> i) & 1) ? '1':'0');
+        }
+    }
+
+    void bitswapChar(char in, char& out) {
+        out = 0;
+        for (int i = 0; i < 7; i++) {
+            out |= ((in >> (6-i)) & 1) << i;
         }
     }
 
@@ -102,14 +126,14 @@ namespace pocsag {
             if (type == CODEWORD_TYPE_IDLE) {
                 // If a non-empty message is available, send it out and clear
                 flushMessage();
-                flog::debug("[{}:{}]: IDLE", (i >> 1), i&1);
             }
             else if (type == CODEWORD_TYPE_ADDRESS) {
                 // If a non-empty message is available, send it out and clear
                 flushMessage();
 
                 // Decode message type
-                msgType = (MessageType)((cw >> 11) & 0b11);
+                msgType = MESSAGE_TYPE_ALPHANUMERIC;
+                // msgType = (MessageType)((cw >> 11) & 0b11);
 
                 // Decode address and append lower 8 bits from position
                 addr = ((cw >> 13) & 0b111111111111111111) << 3;
@@ -129,11 +153,20 @@ namespace pocsag {
                     msg += NUMERIC_CHARSET[data & 0b1111];
                 }
                 else if (msgType == MESSAGE_TYPE_ALPHANUMERIC) {
-                    
-                }
+                    // Unpack ascii bits 7 at a time (TODO: could be more efficient)
+                    for (int i = 19; i >= 0; i--) {
+                        // Append bit to char
+                        currChar |= ((data >> i) & 1) << (currOffset++);
 
-                // Save last data
-                lastMsgData = data;
+                        // When the char is full, append to message
+                        if (currOffset >= 7) {
+                            // TODO: maybe replace with std::isprint
+                            if (currChar) { msg += currChar; }
+                            currChar = 0;
+                            currOffset = 0;
+                        }
+                    }
+                }
             }
         }
     }

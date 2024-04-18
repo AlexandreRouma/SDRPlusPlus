@@ -78,6 +78,10 @@ public:
             std::string serial = devAddr["serial"];
             std::string model = devAddr.has_key("product") ? devAddr["product"] : devAddr["type"];
             sprintf(buf, "USRP %s [%s]", model.c_str(), serial.c_str());
+
+            // Work-around for UHD sometimes reporting the same device twice
+            if (devices.keyExists(serial)) { continue; }
+
             devices.define(serial, buf, devAddr);
         }
     }
@@ -107,7 +111,7 @@ public:
         channels.clear();
         auto subdevs = dev->get_rx_subdev_spec();
         for (int i = 0; i < subdevs.size(); i++) {
-            std::string slot = subdevs[i].db_name;
+            std::string slot = subdevs[i].db_name + ',' + subdevs[i].sd_name;
             sprintf(buf, "%s [%s]", dev->get_rx_subdev_name(i).c_str(), slot.c_str());
             channels.define(buf, buf, buf);
         }

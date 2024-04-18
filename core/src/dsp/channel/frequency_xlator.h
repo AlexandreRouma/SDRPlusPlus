@@ -41,7 +41,11 @@ namespace dsp::channel {
         }
 
         inline int process(int count, const complex_t* in, complex_t* out) {
+#if VOLK_VERSION >= 030100
+            volk_32fc_s32fc_x2_rotator2_32fc((lv_32fc_t*)out, (lv_32fc_t*)in, &phaseDelta, &phase, count);
+#else
             volk_32fc_s32fc_x2_rotator_32fc((lv_32fc_t*)out, (lv_32fc_t*)in, phaseDelta, &phase, count);
+#endif
             return count;
         }
 

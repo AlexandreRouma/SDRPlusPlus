@@ -139,18 +139,19 @@ class ATVDecoderModule : public ModuleManager::Instance {
         _this->pll.process(720, _this->fir.out.writeBuf, _this->pll.out.writeBuf, ((_this->ypos%2)==1) ^ _this->evenFrame);
 
         // Render line to the image without color
-        //int lypos = _this->ypos - 1;
-        //if (lypos < 0) { lypos = 624; }
-        //uint32_t* lastLine = &((uint32_t *)_this->img.buffer)[(lypos < 313) ? (lypos*720*2) : ((((lypos - 313)*2)+1)*720) ];
-        //uint32_t* currentLine = &((uint32_t *)_this->img.buffer)[(_this->ypos < 313) ? (_this->ypos*720*2) : ((((_this->ypos - 313)*2)+1)*720) ];
+        int lypos = _this->ypos - 1;
+        if (lypos < 0) { lypos = 624; }
+        uint32_t* lastLine = &((uint32_t *)_this->img.buffer)[(lypos < 313) ? (lypos*720*2) : ((((lypos - 313)*2)+1)*720) ];
+        uint32_t* currentLine = &((uint32_t *)_this->img.buffer)[(_this->ypos < 313) ? (_this->ypos*720*2) : ((((_this->ypos - 313)*2)+1)*720) ];
 
-        uint32_t* currentLine = &((uint32_t *)_this->img.buffer)[_this->ypos*720];
+        //uint32_t* currentLine = &((uint32_t *)_this->img.buffer)[_this->ypos*720];
 
         for (int i = 0; i < count; i++) {
-            //float imval = std::clamp<float>((data[i] - _this->minLvl) * 255.0 / _this->spanLvl, 0, 255);
-            uint32_t re = std::clamp<float>((_this->pll.out.writeBuf[i].re - _this->minLvl) * 255.0 / _this->spanLvl, 0, 255);
-            uint32_t im = std::clamp<float>((_this->pll.out.writeBuf[i].im - _this->minLvl) * 255.0 / _this->spanLvl, 0, 255);
-            currentLine[i] = 0xFF000000 | (im << 8) | re;
+            int imval = std::clamp<float>((data[i] - _this->minLvl) * 255.0 / _this->spanLvl, 0, 255);
+            // uint32_t re = std::clamp<float>((_this->pll.out.writeBuf[i].re - _this->minLvl) * 255.0 / _this->spanLvl, 0, 255);
+            // uint32_t im = std::clamp<float>((_this->pll.out.writeBuf[i].im - _this->minLvl) * 255.0 / _this->spanLvl, 0, 255);
+            // currentLine[i] = 0xFF000000 | (im << 8) | re;
+            currentLine[i] = 0xFF000000 | (imval << 16) | (imval << 8) | imval;
         }
     
         // Vertical scan logic

@@ -39,7 +39,7 @@ namespace module_manager_menu {
         ImVec2 btnSize = ImVec2(lheight, lheight - 1);
         ImVec2 textOff = ImVec2(3.0f * style::uiScale, -5.0f * style::uiScale);
 
-        if (ImGui::BeginTable("Module Manager Table", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, 200))) {
+        if (ImGui::BeginTable("Module Manager Table", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, 200.0f * style::uiScale))) {
             ImGui::TableSetupColumn("Name");
             ImGui::TableSetupColumn("Type");
             ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, cellWidth);

@@ -19,18 +19,16 @@ public:
 
     void init(dsp::stream<dsp::complex_t>* in, double samplerate, double baudrate) {
         // Save settings
-        // TODO
+        _samplerate = samplerate;
 
         // Configure blocks
         demod.init(NULL, -4500.0, samplerate);
-        dcBlock.init(NULL, 0.001);
         float taps[] = { 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f };
         shape = dsp::taps::fromArray<float>(10, taps);
         fir.init(NULL, shape);
-        recov.init(NULL, samplerate/baudrate, 1e5, 0.1, 0.05);
+        recov.init(NULL, samplerate/baudrate, 1e-4, 1.0, 0.05);
 
         // Free useless buffers
-        dcBlock.out.free();
         fir.out.free();
         recov.out.free();
 
@@ -40,11 +38,18 @@ public:
 
     int process(int count, dsp::complex_t* in, float* softOut, uint8_t* out) {
         count = demod.process(count, in, demod.out.readBuf);
-        count = dcBlock.process(count, demod.out.readBuf, demod.out.readBuf);
         count = fir.process(count, demod.out.readBuf, demod.out.readBuf);
         count = recov.process(count, demod.out.readBuf, softOut);
         dsp::digital::BinarySlicer::process(count, softOut, out);
         return count;
+    }
+
+    void setBaudrate(double baudrate) {
+        assert(base_type::_block_init);
+        std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
+        base_type::tempStop();
+        
+        base_type::tempStart();
     }
 
     int run() {
@@ -55,7 +60,7 @@ public:
 
         base_type::_in->flush();
         if (!base_type::out.swap(count)) { return -1; }
-        if (!soft.swap(count)) { return -1; }
+        if (count) { if (!soft.swap(count)) { return -1; } }
         return count;
     }
 
@@ -63,9 +68,9 @@ public:
 
 private:
     dsp::demod::Quadrature demod;
-    dsp::correction::DCBlocker<float> dcBlock;
     dsp::tap<float> shape;
     dsp::filter::FIR<float, float> fir;
     dsp::clock_recovery::MM<float> recov;
 
+    double _samplerate;
 };
