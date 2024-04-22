@@ -597,14 +597,16 @@ private:
 
     static void moduleInterfaceHandler(int code, void* in, void* out, void* ctx) {
         RadioModule* _this = (RadioModule*)ctx;
-        if (!_this->enabled || !_this->selectedDemod) { return; }
+
+        // If no demod is selected, reject the command
+        if (!_this->selectedDemod) { return; }
 
         // Execute commands
         if (code == RADIO_IFACE_CMD_GET_MODE && out) {
             int* _out = (int*)out;
             *_out = _this->selectedDemodID;
         }
-        else if (code == RADIO_IFACE_CMD_SET_MODE && in) {
+        else if (code == RADIO_IFACE_CMD_SET_MODE && in && _this->enabled) {
             int* _in = (int*)in;
             _this->selectDemodByID((DemodID)*_in);
         }
@@ -612,7 +614,7 @@ private:
             float* _out = (float*)out;
             *_out = _this->bandwidth;
         }
-        else if (code == RADIO_IFACE_CMD_SET_BANDWIDTH && in) {
+        else if (code == RADIO_IFACE_CMD_SET_BANDWIDTH && in && _this->enabled) {
             float* _in = (float*)in;
             if (_this->bandwidthLocked) { return; }
             _this->setBandwidth(*_in);
@@ -621,7 +623,7 @@ private:
             bool* _out = (bool*)out;
             *_out = _this->squelchEnabled;
         }
-        else if (code == RADIO_IFACE_CMD_SET_SQUELCH_ENABLED && in) {
+        else if (code == RADIO_IFACE_CMD_SET_SQUELCH_ENABLED && in && _this->enabled) {
             bool* _in = (bool*)in;
             _this->setSquelchEnabled(*_in);
         }
@@ -629,7 +631,7 @@ private:
             float* _out = (float*)out;
             *_out = _this->squelchLevel;
         }
-        else if (code == RADIO_IFACE_CMD_SET_SQUELCH_LEVEL && in) {
+        else if (code == RADIO_IFACE_CMD_SET_SQUELCH_LEVEL && in && _this->enabled) {
             float* _in = (float*)in;
             _this->setSquelchLevel(*_in);
         }
