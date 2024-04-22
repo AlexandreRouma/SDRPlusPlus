@@ -42,6 +42,7 @@ public:
 
     class Instance {
     public:
+        virtual ~Instance() {}
         virtual void postInit() = 0;
         virtual void enable() = 0;
         virtual void disable() = 0;

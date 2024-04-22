@@ -10,6 +10,8 @@ namespace dsp {
 
         Operator(stream<A>* a, stream<B>* b) { init(a, b); }
 
+        virtual ~Operator() {}
+
         virtual void init(stream<A>* a, stream<B>* b) {
             _a = a;
             _b = b;
