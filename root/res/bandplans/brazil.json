@@ -1,0 +1,645 @@
+{
+    "name": "Brazilian Ham Bands",
+    "country_name": "Brazil",
+    "country_code": "BR",
+    "author_name": "Rafael Beraldo",
+    "author_url": "https://github.com/rberaldo/",
+    "bands": [
+        {
+            "start": 135700,
+            "end": 137800,
+            "type": "amateur",
+            "name": "2200m Ham Band CW, Digital"
+        },
+        {
+            "start": 472000,
+            "end": 479000,
+            "type": "amateur",
+            "name": "635m Ham Band CW, Digital"
+        },
+        {
+            "start": 1800000,
+            "end": 1810000,
+            "type": "amateur",
+            "name": "|160m Ham Band CW, Digital"
+        },
+        {
+            "start": 1810000,
+            "end": 1839000,
+            "type": "amateur1",
+            "name": "CW"
+        },
+        {
+            "start": 1839000,
+            "end": 1840000,
+            "type": "amateur",
+            "name": "CW, Digital"
+        },
+        {
+            "start": 1840000,
+            "end": 1843000,
+            "type": "amateur1",
+            "name": "CW, SSB, Digital"
+        },
+        {
+            "start": 1843000,
+            "end": 1850000,
+            "type": "amateur",
+            "name": "CW, SSB"
+        },
+        {
+            "start": 1850000,
+            "end": 2000000,
+            "type": "amateur1",
+            "name": "CW, SSB, AM, DV, Digital 160 Ham Band|"
+        },
+        {
+            "start": 3500000,
+            "end": 3570000,
+            "type": "amateur",
+            "name": "|80m Ham Band CW"
+        },
+        {
+            "start": 3570000,
+            "end": 3590000,
+            "type": "amateur1",
+            "name": "CW, Digital"
+        },
+        {
+            "start": 3590000,
+            "end": 3600000,
+            "type": "amateur",
+            "name": "CW, SSD, AM, Digital"
+        },
+        {
+            "start": 3600000,
+            "end": 3775000,
+            "type": "amateur1",
+            "name": "CW, SSD, AM, DV, Digital"
+        },
+        {
+            "start": 3775000,
+            "end": 3875000,
+            "type": "amateur",
+            "name": "CW, SSD, DV, Digital"
+        },
+        {
+            "start": 3775000,
+            "end": 3875000,
+            "type": "amateur1",
+            "name": "CW, SSD, DV, Digital"
+        },
+        {
+            "start": 3875000,
+            "end": 4000000,
+            "type": "amateur",
+            "name": "CW, SSD, AM, DV, Digital, 80m Ham Band|"
+        },
+        {
+            "start": 5351500,
+            "end": 5354000,
+            "type": "amateur",
+            "name": "|60m Ham Band CW, Digital"
+        },
+        {
+            "start": 5354000,
+            "end": 5366000,
+            "type": "amateur1",
+            "name": "CW, SSB, DV, Digital"
+        },
+        {
+            "start": 5366000,
+            "end": 5366500,
+            "type": "amateur",
+            "name": "CW, Digital 60m Ham Band|"
+        },
+        {
+            "start": 7000000,
+            "end": 7040000,
+            "type": "amateur",
+            "name": "|40m Ham Band CW"
+        },
+        {
+            "start": 7040000,
+            "end": 7047000,
+            "type": "amateur1",
+            "name": "CW, Digital"
+        },
+        {
+            "start": 7047000,
+            "end": 7050000,
+            "type": "amateur",
+            "name": "CW, SSB, Digital"
+        },
+        {
+            "start": 7050000,
+            "end": 7100000,
+            "type": "amateur1",
+            "name": "CW, SSB, DV, Digital"
+        },
+        {
+            "start": 7100000,
+            "end": 7300000,
+            "type": "amateur",
+            "name": "CW, SSB, AM, DV, Digital 40m Ham Band|"
+        },
+        {
+            "start": 10100000,
+            "end": 10130000,
+            "type": "amateur",
+            "name": "|30m Ham Band"
+        },
+        {
+            "start": 10130000,
+            "end": 10150000,
+            "type": "amateur1",
+            "name": "CW, Digital 30m Ham Band|"
+        },
+        {
+            "start": 14000000,
+            "end": 14070000,
+            "type": "amateur",
+            "name": "|20m Ham Band CW"
+        },
+        {
+            "start": 14070000,
+            "end": 14099000,
+            "type": "amateur1",
+            "name": "CW, Digital"
+        },
+        {
+            "start": 14099000,
+            "end": 14101000,
+            "type": "amateur",
+            "name": "CW IBP"
+        },
+        {
+            "start": 14101000,
+            "end": 14282000,
+            "type": "amateur1",
+            "name": "CW, SSB, DV, Digital"
+        },
+        {
+            "start": 14285000,
+            "end": 14350000,
+            "type": "amateur",
+            "name": "CW, SSB, AM, DV, Digital 20m Ham Band|"
+        },
+        {
+            "start": 18068000,
+            "end": 18095000,
+            "type": "amateur",
+            "name": "|17m Ham Band CW"
+        },
+        {
+            "start": 18095000,
+            "end": 18109000,
+            "type": "amateur1",
+            "name": "CW, Digital"
+        },
+        {
+            "start": 18109000,
+            "end": 18111000,
+            "type": "amateur",
+            "name": "CW IBP"
+        },
+        {
+            "start": 18111000,
+            "end": 18168000,
+            "type": "amateur1",
+            "name": "CW, SSB, DV, Digital 17m Ham Band|"
+        },
+        {
+            "start": 21000000,
+            "end": 21070000,
+            "type": "amateur",
+            "name": "|15m Ham Band CW"
+        },
+        {
+            "start": 21070000,
+            "end": 21149000,
+            "type": "amateur1",
+            "name": "CW, Digital"
+        },
+        {
+            "start": 21149000,
+            "end": 21151000,
+            "type": "amateur",
+            "name": "CW, IBP"
+        },
+        {
+            "start": 21151000,
+            "end": 21380000,
+            "type": "amateur1",
+            "name": "CW, SSB, DV, Digital"
+        },
+        {
+            "start": 21380000,
+            "end": 21450000,
+            "type": "amateur",
+            "name": "CW, SSB, AM, DV, Digital 15m Ham Band|"
+        },
+        {
+            "start": 24890000,
+            "end": 24915000,
+            "type": "amateur",
+            "name": "|12m Ham Band CW"
+        },
+        {
+            "start": 24915000,
+            "end": 24929000,
+            "type": "amateur1",
+            "name": "CW, Digital"
+        },
+        {
+            "start": 24929000,
+            "end": 24931000,
+            "type": "amateur",
+            "name": "CW IBP"
+        },
+        {
+            "start": 24931000,
+            "end": 24990000,
+            "type": "amateur1",
+            "name": "CW, SSB, DV, Digital 12m Ham Band|"
+        },
+        {
+            "start": 28000000,
+            "end": 28070000,
+            "type": "amateur",
+            "name": "|10m Ham Band CW"
+        },
+        {
+            "start": 28070000,
+            "end": 28190000,
+            "type": "amateur1",
+            "name": "CW, Digital"
+        },
+        {
+            "start": 28190000,
+            "end": 28199000,
+            "type": "amateur",
+            "name": "CW - Pilot Emissions"
+        },
+        {
+            "start": 28199000,
+            "end": 28201000,
+            "type": "amateur1",
+            "name": "CW IBP"
+        },
+        {
+            "start": 28201000,
+            "end": 28225000,
+            "type": "amateur",
+            "name": "CW - Pilot Emissions"
+        },
+        {
+            "start": 28225000,
+            "end": 28300000,
+            "type": "amateur1",
+            "name": "CW, Digital - Pilot Emissions"
+        },
+        {
+            "start": 28300000,
+            "end": 29000000,
+            "type": "amateur",
+            "name": "CW, SSB, DV, Digital"
+        },
+        {
+            "start": 29000000,
+            "end": 29300000,
+            "type": "amateur1",
+            "name": "All Modes"
+        },
+        {
+            "start": 29300000,
+            "end": 29510000,
+            "type": "amateur",
+            "name": "All Modes - Satellites"
+        },
+        {
+            "start": 29510000,
+            "end": 29520000,
+            "type": "amateur1",
+            "name": "All Modes"
+        },
+        {
+            "start": 29520000,
+            "end": 29590000,
+            "type": "amateur",
+            "name": "FM, DV - Repeater input"
+        },
+        {
+            "start": 29590000,
+            "end": 29620000,
+            "type": "amateur1",
+            "name": "CW, FM, DV - FM calling freq: 29.600 kHz"
+        },
+        {
+            "start": 29620000,
+            "end": 29700000,
+            "type": "amateur",
+            "name": "FM, DV - Repeater output 10m Ham Band|"
+        },
+        {
+            "start": 50000000,
+            "end": 54000000,
+            "type": "amateur",
+            "name": "6m Ham Band"
+        },
+        {
+            "start": 144000000,
+            "end": 144025000,
+            "type": "amateur",
+            "name": "|2m Ham Band All Modes - Satellites"
+        },
+        {
+            "start": 144025000,
+            "end": 144110000,
+            "type": "amateur1",
+            "name": "CW - EME"
+        },
+        {
+            "start": 144110000,
+            "end": 144150000,
+            "type": "amateur",
+            "name": "CW, Digital - EME"
+        },
+        {
+            "start": 144150000,
+            "end": 144180000,
+            "type": "amateur1",
+            "name": "CW, SSB, Digital"
+        },
+        {
+            "start": 144180000,
+            "end": 144275000,
+            "type": "amateur",
+            "name": "CW, SSB - Calling freq: 144.2 MHz"
+        },
+        {
+            "start": 144275000,
+            "end": 144300000,
+            "type": "amateur1",
+            "name": "CW - Pilot Emissions"
+        },
+        {
+            "start": 144300000,
+            "end": 144360000,
+            "type": "amateur",
+            "name": "CW, SSB - Calling freq: 144.2 MHz"
+        },
+        {
+            "start": 144360000,
+            "end": 144400000,
+            "type": "amateur1",
+            "name": "CW, SSB, Digital"
+        },
+        {
+            "start": 144400000,
+            "end": 144600000,
+            "type": "amateur",
+            "name": "All Modes"
+        },
+        {
+            "start": 144600000,
+            "end": 144900000,
+            "type": "amateur1",
+            "name": "FM, DV - Repeater input"
+        },
+        {
+            "start": 144900000,
+            "end": 145000000,
+            "type": "amateur",
+            "name": "CW, FM, DV, Digital"
+        },
+        {
+            "start": 145000000,
+            "end": 145200000,
+            "type": "amateur1",
+            "name": "All Modes, IVG"
+        },
+        {
+            "start": 145200000,
+            "end": 145500000,
+            "type": "amateur",
+            "name": "FM, DV - Repeater output"
+        },
+        {
+            "start": 145500000,
+            "end": 145565000,
+            "type": "amateur1",
+            "name": "All Modes"
+        },
+        {
+            "start": 145565000,
+            "end": 145575000,
+            "type": "amateur",
+            "name": "APRS"
+        },
+        {
+            "start": 145575000,
+            "end": 145790000,
+            "type": "amateur1",
+            "name": "All Modes"
+        },
+        {
+            "start": 145790000,
+            "end": 145800000,
+            "type": "amateur",
+            "name": "Guard Band"
+        },
+        {
+            "start": 145800000,
+            "end": 146000000,
+            "type": "amateur1",
+            "name": "All Modes - Satellites"
+        },
+        {
+            "start": 146000000,
+            "end": 146390000,
+            "type": "amateur",
+            "name": "FM, DV - Repeater input"
+        },
+        {
+            "start": 146390000,
+            "end": 146600000,
+            "type": "amateur1",
+            "name": "CW, FM, DV - Calling freq: 146.52 MHz"
+        },
+        {
+            "start": 146600000,
+            "end": 146990000,
+            "type": "amateur",
+            "name": "FM, DV - Repeater output"
+        },
+        {
+            "start": 146990000,
+            "end": 147400000,
+            "type": "amateur1",
+            "name": "FM, DV - Repeater input"
+        },
+        {
+            "start": 147400000,
+            "end": 147590000,
+            "type": "amateur",
+            "name": "CW, FM, DV"
+        },
+        {
+            "start": 147590000,
+            "end": 148000000,
+            "type": "amateur1",
+            "name": "FM, DV - Repeater output 2m Ham Band|"
+        },
+        {
+            "start": 220000000,
+            "end": 225000000,
+            "type": "amateur",
+            "name": "1.3m Ham Band"
+        },
+        {
+            "start": 430000000,
+            "end": 432000000,
+            "type": "amateur",
+            "name": "|70cm Ham Band All Modes"
+        },
+        {
+            "start": 432000000,
+            "end": 432025000,
+            "type": "amateur1",
+            "name": "CW - EME"
+        },
+        {
+            "start": 432025000,
+            "end": 432100000,
+            "type": "amateur",
+            "name": "CW, Digital - EME"
+        },
+        {
+            "start": 432100000,
+            "end": 432300000,
+            "type": "amateur1",
+            "name": "CW, SSB - Calling freq: 432.1 MHz"
+        },
+        {
+            "start": 432300000,
+            "end": 432400000,
+            "type": "amateur",
+            "name": "CW - Pilot Emissions"
+        },
+        {
+            "start": 432400000,
+            "end": 432420000,
+            "type": "amateur1",
+            "name": "CW, Digital - Pilot Emissions"
+        },
+        {
+            "start": 432420000,
+            "end": 433000000,
+            "type": "amateur",
+            "name": "CW, SSB, Digital"
+        },
+        {
+            "start": 433000000,
+            "end": 433050000,
+            "type": "amateur1",
+            "name": "CW, Digital"
+        },
+        {
+            "start": 433050000,
+            "end": 434000000,
+            "type": "amateur",
+            "name": "All Modes"
+        },
+        {
+            "start": 434000000,
+            "end": 435000000,
+            "type": "amateur1",
+            "name": "Fm, DV - Repeater input"
+        },
+        {
+            "start": 435000000,
+            "end": 438000000,
+            "type": "amateur",
+            "name": "All Modes - Satellites"
+        },
+        {
+            "start": 438000000,
+            "end": 439000000,
+            "type": "amateur1",
+            "name": "All Modes"
+        },
+        {
+            "start": 439000000,
+            "end": 440000000,
+            "type": "amateur",
+            "name": "FM, DV - Repeater output 70cm Ham Band|"
+        },
+        {
+            "start": 902000000,
+            "end": 928000000,
+            "type": "amateur",
+            "name": "33cm Ham Band"
+        },
+        {
+            "start": 1240000000,
+            "end": 1300000000,
+            "type": "amateur",
+            "name": "23cm Ham Band"
+        },
+        {
+            "start": 2330000000,
+            "end": 2450000000,
+            "type": "amateur",
+            "name": "13cm Ham Band"
+        },
+        {
+            "start": 3400000000,
+            "end": 3500000000,
+            "type": "amateur",
+            "name": "9cm Ham Band"
+        },
+        {
+            "start": 5650000000,
+            "end": 5925000000,
+            "type": "amateur",
+            "name": "5cm Ham Band"
+        },
+        {
+            "start": 10000000000,
+            "end": 10500000000,
+            "type": "amateur",
+            "name": "3cm Ham Band"
+        },
+        {
+            "start": 24000000000,
+            "end": 24250000000,
+            "type": "amateur",
+            "name": "1.2cm Ham Band"
+        },
+        {
+            "start": 47000000000,
+            "end": 47200000000,
+            "type": "amateur",
+            "name": "6mm Ham Band"
+        },
+        {
+            "start": 122250000000,
+            "end": 123000000000,
+            "type": "amateur",
+            "name": "2.5mm Ham Band"
+        },
+        {
+            "start": 134000000000,
+            "end": 141000000000,
+            "type": "amateur",
+            "name": "2mm Ham Band"
+        },
+        {
+            "start": 241000000000,
+            "end": 250000000000,
+            "type": "amateur",
+            "name": "1mm Ham Band"
+        }
+    ]
+}
