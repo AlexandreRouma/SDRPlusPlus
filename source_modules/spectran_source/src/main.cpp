@@ -9,7 +9,12 @@
 #include <gui/smgui.h>
 #include <utils/optionlist.h>
 #include <codecvt>
+#include <locale>
 #include <aaroniartsaapi.h>
+
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
