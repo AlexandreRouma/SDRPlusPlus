@@ -20,6 +20,7 @@ option(OPT_BUILD_LIMESDR_SOURCE "Build LimeSDR Source Module (Dependencies: libl
 option(OPT_BUILD_NETWORK_SOURCE "Build Network Source Module (no dependencies required)" ON)
 option(OPT_BUILD_PERSEUS_SOURCE "Build Perseus Source Module (Dependencies: libperseus-sdr)" OFF)
 option(OPT_BUILD_PLUTOSDR_SOURCE "Build PlutoSDR Source Module (Dependencies: libiio, libad9361)" ON)
+option(OPT_BUILD_RFNM_SOURCE "Build RFNM Source Module (Dependencies: librfnm)" OFF)
 option(OPT_BUILD_RFSPACE_SOURCE "Build RFspace Source Module (no dependencies required)" ON)
 option(OPT_BUILD_RTL_SDR_SOURCE "Build RTL-SDR Source Module (Dependencies: librtlsdr)" ON)
 option(OPT_BUILD_RTL_TCP_SOURCE "Build RTL-TCP Source Module (no dependencies required)" ON)
@@ -156,6 +157,10 @@ endif (OPT_BUILD_PERSEUS_SOURCE)
 if (OPT_BUILD_PLUTOSDR_SOURCE)
 add_subdirectory("source_modules/plutosdr_source")
 endif (OPT_BUILD_PLUTOSDR_SOURCE)
+
+if (OPT_BUILD_RFNM_SOURCE)
+add_subdirectory("source_modules/rfnm_source")
+endif (OPT_BUILD_RFNM_SOURCE)
 
 if (OPT_BUILD_RFSPACE_SOURCE)
 add_subdirectory("source_modules/rfspace_source")
