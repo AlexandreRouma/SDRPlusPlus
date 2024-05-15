@@ -22,7 +22,7 @@ public:
     RFNMSourceModule(std::string name) {
         this->name = name;
 
-        sampleRate = 122880000.0;
+        sampleRate = 61440000.0;
 
         handler.ctx = this;
         handler.selectHandler = menuSelected;
@@ -89,13 +89,34 @@ private:
             select(devices.key(0));
         }
 
+        // // Open the device
+        // librfnm* dev = new librfnm(librfnm_transport::LIBRFNM_TRANSPORT_USB, serial);
+
+        // Define bandwidths
+        bandwidths.clear();
+        bandwidths.define(-1, "Auto", -1);
+        for (int i = 1; i <= 100; i++) {
+            char buf[128];
+            sprintf(buf, "%d MHz", i);
+            bandwidths.define(i, buf, i);
+        }
+
+        // Get gain range
+        gainMin = -30;//dev->librfnm_s->rx.ch[0].gain_range.min;
+        gainMax = 60;//dev->librfnm_s->rx.ch[0].gain_range.max;
+
+        // // Close device
+        // delete dev;
+
         // Define samplerates
         samplerates.clear();
         samplerates.define(61440000, "61.44 MHz", 2);
         samplerates.define(122880000, "122.88 MHz", 1);
 
-        // Load options
+        // TODO: Load options
         srId = samplerates.keyId(61440000);
+        bwId = bandwidths.nameId("Auto");
+        gain = 0;
 
         // Update samplerate
         sampleRate = samplerates.key(srId);
@@ -127,8 +148,9 @@ private:
         _this->openDev->librfnm_s->rx.ch[0].enable = RFNM_CH_ON;
         _this->openDev->librfnm_s->rx.ch[0].samp_freq_div_n = _this->samplerates[_this->srId];
         _this->openDev->librfnm_s->rx.ch[0].freq = _this->freq;
-        _this->openDev->librfnm_s->rx.ch[0].gain = 50;
-        _this->openDev->librfnm_s->rx.ch[0].iq_lpf_bw = 100;
+        _this->openDev->librfnm_s->rx.ch[0].gain = _this->gain;
+        _this->openDev->librfnm_s->rx.ch[0].rfic_lpf_bw = 100;
+        _this->openDev->librfnm_s->rx.ch[0].fm_notch = _this->fmNotch ? rfnm_fm_notch::RFNM_FM_NOTCH_ON : rfnm_fm_notch::RFNM_FM_NOTCH_OFF;
         _this->openDev->librfnm_s->rx.ch[0].path = _this->openDev->librfnm_s->rx.ch[0].path_preferred;
         rfnm_api_failcode fail = _this->openDev->set(LIBRFNM_APPLY_CH0_RX);
         if (fail != rfnm_api_failcode::RFNM_API_OK) {
@@ -197,6 +219,8 @@ private:
     static void menuHandler(void* ctx) {
         RFNMSourceModule* _this = (RFNMSourceModule*)ctx;
         
+        if (_this->running) { SmGui::BeginDisabled(); }
+
         SmGui::FillWidth();
         SmGui::ForceSync();
         if (SmGui::Combo(CONCAT("##_rfnm_dev_sel_", _this->name), &_this->devId, _this->devices.txt)) {
@@ -216,6 +240,32 @@ private:
         if (SmGui::Button(CONCAT("Refresh##_rfnm_refr_", _this->name))) {
             _this->refresh();
             _this->select(_this->selectedSerial);
+        }
+
+        if (_this->running) { SmGui::EndDisabled(); }
+
+        SmGui::LeftLabel("Bandwidth");
+        SmGui::FillWidth();
+        if (SmGui::Combo(CONCAT("##_rfnm_bw_sel_", _this->name), &_this->bwId, _this->bandwidths.txt)) {
+            // TODO: Save
+        }
+
+        SmGui::LeftLabel("Gain");
+        SmGui::FillWidth();
+        if (SmGui::SliderInt(CONCAT("##_rfnm_gain_", _this->name), &_this->gain, _this->gainMin, _this->gainMax)) {
+            if (_this->running) {
+                _this->openDev->librfnm_s->rx.ch[0].gain = _this->gain;
+                rfnm_api_failcode fail = _this->openDev->set(LIBRFNM_APPLY_CH0_RX);
+            }
+            // TODO: Save
+        }
+
+        if (SmGui::Checkbox(CONCAT("FM Notch##_rfnm_", _this->name), &_this->fmNotch)) {
+            if (_this->running) {
+                _this->openDev->librfnm_s->rx.ch[0].fm_notch = _this->fmNotch ? rfnm_fm_notch::RFNM_FM_NOTCH_ON : rfnm_fm_notch::RFNM_FM_NOTCH_OFF;
+                rfnm_api_failcode fail = _this->openDev->set(LIBRFNM_APPLY_CH0_RX);
+            }
+            // TODO: Save
         }
     }
 
@@ -256,10 +306,16 @@ private:
     double freq;
 
     OptionList<std::string, std::string> devices;
+    OptionList<int, int> bandwidths;
     OptionList<int, int> samplerates;
+    int gainMin = 0;
+    int gainMax = 0;
 
     int devId = 0;
     int srId = 0;
+    int bwId = 0;
+    int gain = 0;
+    bool fmNotch = false;
     std::string selectedSerial;
     librfnm* openDev;
     int bufferSize = -1;
