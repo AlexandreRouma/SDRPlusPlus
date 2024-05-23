@@ -44,6 +44,7 @@ namespace sdrpp_credits {
         "MicroPhase",
         "MyriadRF",
         "Nuand",
+        "RFNM",
         "RFspace",
         "RTL-SDRblog",
         "SDRplay"
