@@ -244,9 +244,6 @@ private:
             bwId = 0;
             bandwidth = bandwidths.value(bwId);
         }
-        
-        // Update core samplerate
-        core::setInputSampleRate(samplerate);
     }
 
     static void menuSelected(void* ctx) {
@@ -351,6 +348,7 @@ private:
         SmGui::ForceSync();
         if (SmGui::Combo("##plutosdr_dev_sel", &_this->devId, _this->devices.txt)) {
             _this->select(_this->devices.key(_this->devId));
+            core::setInputSampleRate(_this->samplerate);
             config.acquire();
             config.conf["device"] = _this->devices.key(_this->devId);
             config.release(true);
@@ -373,7 +371,7 @@ private:
         if (SmGui::Button(CONCAT("Refresh##_pluto_refr_", _this->name))) {
             _this->refresh();
             _this->select(_this->devDesc);
-
+            core::setInputSampleRate(_this->samplerate);
         }
         if (_this->running) { SmGui::EndDisabled(); }
 

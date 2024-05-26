@@ -304,6 +304,7 @@ private:
         SmGui::ForceSync();
         if (SmGui::Combo(CONCAT("##_hackrf_dev_sel_", _this->name), &_this->devId, _this->devListTxt.c_str())) {
             _this->selectBySerial(_this->devList[_this->devId]);
+            core::setInputSampleRate(_this->sampleRate);
             config.acquire();
             config.conf["device"] = _this->selectedSerial;
             config.release(true);

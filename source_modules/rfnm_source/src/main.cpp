@@ -120,7 +120,6 @@ private:
 
         // Update samplerate
         sampleRate = samplerates.key(srId);
-        core::setInputSampleRate(sampleRate);
 
         // Save serial number
         selectedSerial = serial;
@@ -226,6 +225,7 @@ private:
         if (SmGui::Combo(CONCAT("##_rfnm_dev_sel_", _this->name), &_this->devId, _this->devices.txt)) {
             // TODO: Select
             // TODO: Save
+            core::setInputSampleRate(_this->sampleRate);
         }
 
         if (SmGui::Combo(CONCAT("##_rfnm_sr_sel_", _this->name), &_this->srId, _this->samplerates.txt)) {
@@ -240,6 +240,7 @@ private:
         if (SmGui::Button(CONCAT("Refresh##_rfnm_refr_", _this->name))) {
             _this->refresh();
             _this->select(_this->selectedSerial);
+            core::setInputSampleRate(_this->sampleRate);
         }
 
         if (_this->running) { SmGui::EndDisabled(); }

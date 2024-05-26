@@ -210,7 +210,6 @@ public:
 
         // Update samplerate
         sampleRate = srList[srId];
-        core::setInputSampleRate(sampleRate);
 
         // Close device
         perseus_close(dev);
@@ -329,6 +328,7 @@ private:
         if (SmGui::Combo(CONCAT("##_airspyhf_dev_sel_", _this->name), &_this->devId, _this->devList.txt)) {
             std::string serial = _this->devList.key(_this->devId);
             _this->select(serial);
+            core::setInputSampleRate(_this->sampleRate);
             config.acquire();
             config.conf["device"] = serial;
             config.release(true);

@@ -411,8 +411,6 @@ public:
             agcSetPoint = config.conf["devices"][selectedName]["agcSetPoint"];
         }
 
-        core::setInputSampleRate(sampleRate);
-
         // Per device options
         if (openDev.hwVer == SDRPLAY_RSP1_ID) {
             // No config to load
@@ -688,6 +686,7 @@ private:
         SmGui::ForceSync();
         if (SmGui::Combo(CONCAT("##sdrplay_dev", _this->name), &_this->devId, _this->devListTxt.c_str())) {
             _this->selectById(_this->devId);
+            core::setInputSampleRate(_this->sampleRate);
             config.acquire();
             config.conf["device"] = _this->devNameList[_this->devId];
             config.release(true);
@@ -711,6 +710,7 @@ private:
             if (SmGui::Button(CONCAT("Refresh##sdrplay_refresh", _this->name))) {
                 _this->refresh();
                 _this->selectByName(_this->selectedName);
+                core::setInputSampleRate(_this->sampleRate);
             }
 
             SmGui::LeftLabel("Bandwidth");

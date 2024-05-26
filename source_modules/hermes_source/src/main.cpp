@@ -118,7 +118,6 @@ private:
 
         // Update host samplerate
         sampleRate = samplerates.key(srId);
-        core::setInputSampleRate(sampleRate);
     }
 
     static void menuSelected(void* ctx) {
@@ -199,6 +198,7 @@ private:
         SmGui::ForceSync();
         if (SmGui::Combo(CONCAT("##_hermes_dev_sel_", _this->name), &_this->devId, _this->devices.txt)) {
             _this->selectMac(_this->devices.key(_this->devId));
+            core::setInputSampleRate(_this->sampleRate);
             if (!_this->selectedMac.empty()) {
                 config.acquire();
                 config.conf["device"] = _this->devices.key(_this->devId);
@@ -225,6 +225,7 @@ private:
             std::string mac = config.conf["device"];
             config.release();
             _this->selectMac(mac);
+            core::setInputSampleRate(_this->sampleRate);
         }
 
         if (_this->running) { SmGui::EndDisabled(); }

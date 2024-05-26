@@ -211,7 +211,6 @@ public:
 
         // Apply samplerate
         sampleRate = samplerates.key(srId);
-        core::setInputSampleRate(sampleRate);
     }
 
     void setBandwidth(double bw) {
@@ -335,6 +334,7 @@ private:
         SmGui::ForceSync();
         if (SmGui::Combo(CONCAT("##_usrp_dev_sel_", _this->name), &_this->devId, _this->devices.txt)) {
             _this->select(_this->devices.key(_this->devId));
+            core::setInputSampleRate(_this->sampleRate);
             if (!_this->selectedSer.empty()) {
                 config.acquire();
                 config.conf["device"] = _this->devices.key(_this->devId);
@@ -357,10 +357,8 @@ private:
         SmGui::ForceSync();
         if (SmGui::Button(CONCAT("Refresh##_usrp_refr_", _this->name))) {
             _this->refresh();
-            config.acquire();
-            std::string ser = config.conf["device"];
-            config.release();
-            _this->select(ser);
+            _this->select(_this->selectedSer);
+            core::setInputSampleRate(_this->sampleRate);
         }
 
         if (_this->channels.size() > 1) {
