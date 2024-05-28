@@ -8,7 +8,7 @@ mkdir sdrpp_debian_amd64/DEBIAN
 # Create package info
 echo Create package info
 echo Package: sdrpp >> sdrpp_debian_amd64/DEBIAN/control
-echo Version: 1.1.0$BUILD_NO >> sdrpp_debian_amd64/DEBIAN/control
+echo Version: 1.2.0$BUILD_NO >> sdrpp_debian_amd64/DEBIAN/control
 echo Maintainer: Ryzerth >> sdrpp_debian_amd64/DEBIAN/control
 echo Architecture: all >> sdrpp_debian_amd64/DEBIAN/control
 echo Description: Bloat-free SDR receiver software >> sdrpp_debian_amd64/DEBIAN/control
