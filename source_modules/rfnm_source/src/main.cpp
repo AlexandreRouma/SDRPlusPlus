@@ -87,6 +87,7 @@ private:
         // If the serial was not found, select the first available serial
         if (!devices.keyExists(serial)) {
             select(devices.key(0));
+            return;
         }
 
         // // Open the device
@@ -223,9 +224,9 @@ private:
         SmGui::FillWidth();
         SmGui::ForceSync();
         if (SmGui::Combo(CONCAT("##_rfnm_dev_sel_", _this->name), &_this->devId, _this->devices.txt)) {
-            // TODO: Select
-            // TODO: Save
+            _this->select(_this->devices.key(_this->devId));
             core::setInputSampleRate(_this->sampleRate);
+            // TODO: Save
         }
 
         if (SmGui::Combo(CONCAT("##_rfnm_sr_sel_", _this->name), &_this->srId, _this->samplerates.txt)) {

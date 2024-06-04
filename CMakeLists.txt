@@ -12,6 +12,7 @@ option(OPT_OVERRIDE_STD_FILESYSTEM "Use a local version of std::filesystem on sy
 option(OPT_BUILD_AIRSPY_SOURCE "Build Airspy Source Module (Dependencies: libairspy)" ON)
 option(OPT_BUILD_AIRSPYHF_SOURCE "Build Airspy HF+ Source Module (Dependencies: libairspyhf)" ON)
 option(OPT_BUILD_AUDIO_SOURCE "Build Audio Source Module (Dependencies: rtaudio)" ON)
+option(OPT_BUILD_BADGESDR_SOURCE "Build BadgeSDR Source Module (Dependencies: libusb)" ON)
 option(OPT_BUILD_BLADERF_SOURCE "Build BladeRF Source Module (Dependencies: libbladeRF)" OFF)
 option(OPT_BUILD_FILE_SOURCE "Wav file source" ON)
 option(OPT_BUILD_HACKRF_SOURCE "Build HackRF Source Module (Dependencies: libhackrf)" ON)
@@ -125,6 +126,10 @@ endif (OPT_BUILD_AIRSPYHF_SOURCE)
 if (OPT_BUILD_AUDIO_SOURCE)
 add_subdirectory("source_modules/audio_source")
 endif (OPT_BUILD_AUDIO_SOURCE)
+
+if (OPT_BUILD_BADGESDR_SOURCE)
+add_subdirectory("source_modules/badgesdr_source")
+endif (OPT_BUILD_BADGESDR_SOURCE)
 
 if (OPT_BUILD_BLADERF_SOURCE)
 add_subdirectory("source_modules/bladerf_source")
@@ -348,3 +353,5 @@ endif ()
 # Create uninstall target
 configure_file(${CMAKE_SOURCE_DIR}/cmake_uninstall.cmake ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake @ONLY)
 add_custom_target(uninstall ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+
+# Create headers target
