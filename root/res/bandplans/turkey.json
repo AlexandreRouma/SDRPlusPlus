@@ -1,0 +1,285 @@
+{
+  "name": "Turkey",
+  "country_name": "Turkey",
+  "country_code": "TR",
+  "author_name": "Yunus TA2PEA",
+  "author_url": "https://github.com/ycanerol",
+  "bands": [
+    {
+      "name": "LW",
+      "type": "amateur",
+      "start": 135700,
+      "end": 137800
+    },
+    {
+      "name": "630m",
+      "type": "amateur",
+      "start": 472000,
+      "end": 479000
+    },
+    {
+      "name": "160m",
+      "type": "amateur",
+      "start": 1810000,
+      "end": 1850000
+    },
+    {
+      "name": "80m",
+      "type": "amateur",
+      "start": 3500000,
+      "end": 3800000
+    },
+    {
+      "name": "60m",
+      "type": "amateur",
+      "start": 5351500,
+      "end": 5366500
+    },
+    {
+      "name": "40m",
+      "type": "amateur",
+      "start": 7000000,
+      "end": 7200000
+    },
+    {
+      "name": "30m",
+      "type": "amateur",
+      "start": 10100000,
+      "end": 10150000
+    },
+    {
+      "name": "20m",
+      "type": "amateur",
+      "start": 14000000,
+      "end": 14350000
+    },
+    {
+      "name": "17m",
+      "type": "amateur",
+      "start": 18068000,
+      "end": 18168000
+    },
+    {
+      "name": "15m",
+      "type": "amateur",
+      "start": 21000000,
+      "end": 21450000
+    },
+    {
+      "name": "12m",
+      "type": "amateur",
+      "start": 24890000,
+      "end": 24990000
+    },
+    {
+      "name": "CB",
+      "type": "other",
+      "start": 26565000,
+      "end": 27405000
+    },
+    {
+      "name": "Pagers",
+      "type": "amateur",
+      "start": 27750000,
+      "end": 28000000
+    },
+    {
+      "name": "10m",
+      "type": "amateur",
+      "start": 28000000,
+      "end": 29700000
+    },
+    {
+      "name": "6m",
+      "type": "amateur",
+      "start": 50030000,
+      "end": 51000000
+    },
+    {
+      "name": "FM",
+      "type": "broadcast",
+      "start": 87500000,
+      "end": 108000000
+    },
+    {
+      "name": "Airband VOR/ILS",
+      "type": "aviation",
+      "start": 108000000,
+      "end": 117975000
+    },
+    {
+      "name": "Airband Voice",
+      "type": "aviation",
+      "start": 117975000,
+      "end": 137000000
+    },
+    {
+      "name": "2m",
+      "type": "amateur",
+      "start": 144000000,
+      "end": 146000000
+    },
+    {
+      "name": "Sayac Okuma",
+      "type": "other",
+      "start": 169400000,
+      "end": 169475000
+    },
+    {
+      "name": "Pagers",
+      "type": "other",
+      "start": 167000000,
+      "end": 167100000
+    },
+    {
+      "name": "Public announcement systems",
+      "type": "other",
+      "start": 173882500,
+      "end": 174000000
+    },
+    {
+      "name": "DVB-T",
+      "type": "broadcast",
+      "start": 174000000,
+      "end": 216000000
+    },
+    {
+      "name": "T-DAB",
+      "type": "broadcast",
+      "start": 216000000,
+      "end": 233000000
+    },
+    {
+      "name": "ILS-Glide Path",
+      "type": "aviation",
+      "start": 328600000,
+      "end": 335400000
+    },
+    {
+      "name": "Public Safety/Emergency",
+      "type": "other",
+      "start": 380000000,
+      "end": 385000000
+    },
+    {
+      "name": "Public Safety/Emergency",
+      "type": "other",
+      "start": 390000000,
+      "end": 395000000
+    },
+    {
+      "name": "70cm",
+      "type": "amateur",
+      "start": 430200000,
+      "end": 430700000
+    },
+    {
+      "name": "70cm-RepeaterRX",
+      "type": "amateur",
+      "start": 431550000,
+      "end": 431825000
+    },
+    {
+      "name": "70cm",
+      "type": "amateur",
+      "start": 432000000,
+      "end": 432975000
+    },
+    {
+      "name": "70cm",
+      "type": "amateur",
+      "start": 433400000,
+      "end": 434000000
+    },
+    {
+      "name": "70cm",
+      "type": "amateur",
+      "start": 435000000,
+      "end": 438000000
+    },
+    {
+      "name": "70cm-RepeaterTX",
+      "type": "amateur",
+      "start": 439150000,
+      "end": 439425000
+    },
+    {
+      "name": "Public announcement systems",
+      "type": "other",
+      "start": 445250000,
+      "end": 445462500
+    },
+    {
+      "name": "PMR446",
+      "type": "other",
+      "start": 446006250,
+      "end": 446196875
+    },
+    {
+      "name": "RFID",
+      "type": "other",
+      "start": 865000000,
+      "end": 868000000
+    },
+    {
+      "name": "RFID",
+      "type": "other",
+      "start": 916100000,
+      "end": 918900000
+    },
+    {
+      "name": "23cm",
+      "type": "amateur",
+      "start": 1240000000,
+      "end": 1300000000
+    },
+    {
+      "name": "DECT",
+      "type": "other",
+      "start": 1880000000,
+      "end": 1900000000
+    },
+    {
+      "name": "5GHz",
+      "type": "amateur",
+      "start": 5650000000,
+      "end": 5670000000
+    },
+    {
+      "name": "5GHz",
+      "type": "amateur",
+      "start": 5820000000,
+      "end": 5850000000
+    },
+    {
+      "name": "3cm",
+      "type": "amateur",
+      "start": 104500000000,
+      "end": 104520000000
+    },
+    {
+      "name": "24GHz",
+      "type": "amateur",
+      "start": 24000000000,
+      "end": 24050000000
+    },
+    {
+      "name": "47GHz",
+      "type": "amateur",
+      "start": 47000000000,
+      "end": 47200000000
+    },
+    {
+      "name": "75GHz",
+      "type": "amateur",
+      "start": 75500000000,
+      "end": 7600000000
+    },
+    {
+      "name": "134GHz",
+      "type": "amateur",
+      "start": 134000000000,
+      "end": 142000000000
+    }
+  ]
+}
