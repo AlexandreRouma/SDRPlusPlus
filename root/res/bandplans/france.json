@@ -2,10 +2,8 @@
     "name": "France",
     "country_name": "France",
     "country_code": "FR",
-    "author_name": "Fred F4EED",
-    "author_url": "http://f4eed.wordpress.com",
-    "author_name": "Armand31",
-    "author_url": "https://github.com/Armand31"
+    "author_name": "Fred F4EED, Armand31",
+    "author_url": "http://f4eed.wordpress.com, https://github.com/Armand31",
     "bands": [
         {
             "name": "137KHz - Radioamateur",
