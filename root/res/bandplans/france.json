@@ -2,8 +2,8 @@
     "name": "France",
     "country_name": "France",
     "country_code": "FR",
-    "author_name": "Fred F4EED",
-    "author_url": "http://f4eed.wordpress.com",
+    "author_name": "Fred F4EED, Armand31",
+    "author_url": "http://f4eed.wordpress.com, https://github.com/Armand31",
     "bands": [
         {
             "name": "137KHz - Radioamateur",
@@ -420,6 +420,12 @@
             "start": 446000000,
             "end": 446200000
         },
+	{
+	    "name": "TNT (DVB-T)",
+	    "type": "broadcast",
+	    "start": 470000000,
+	    "end": 694000000
+	}
         {
             "name": "23cm - Radioamateur",
             "type": "amateur",
