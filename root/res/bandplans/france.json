@@ -425,7 +425,7 @@
 	    "type": "broadcast",
 	    "start": 470000000,
 	    "end": 694000000
-	}
+	},
         {
             "name": "23cm - Radioamateur",
             "type": "amateur",
