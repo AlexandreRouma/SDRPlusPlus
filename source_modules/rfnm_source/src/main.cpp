@@ -61,7 +61,8 @@ public:
     }
 
 private:
-    void refresh() {
+    void refresh() {   
+#ifndef __ANDROID__
         devices.clear();
         auto list = librfnm::find(librfnm_transport::LIBRFNM_TRANSPORT_USB);
         for (const auto& info : list) {
@@ -75,6 +76,16 @@ private:
             // Save device
             devices.define((char*)info.motherboard.serial_number, devName, (char*)info.motherboard.serial_number);
         }
+#else
+        // Check for device presence
+        int vid, pid;
+        devFd = backend::getDeviceFD(vid, pid, backend::RFNM_VIDPIDS);
+        if (devFd < 0) { return; }
+
+        // Get device info
+        std::string fakeName = "RFNM USB";
+        devices.define(fakeName, fakeName, fakeName);
+#endif
     }
 
     void select(const std::string& serial) {
@@ -142,7 +153,11 @@ private:
         if (_this->running) { return; }
 
         // Open the device
+#ifndef __ANDROID__
         _this->openDev = new librfnm(librfnm_transport::LIBRFNM_TRANSPORT_USB, _this->selectedSerial);
+#else
+        _this->openDev = new librfnm(_this->devFd);
+#endif
 
         // Configure the device
         _this->openDev->librfnm_s->rx.ch[0].enable = RFNM_CH_ON;
@@ -322,6 +337,10 @@ private:
     librfnm* openDev;
     int bufferSize = -1;
     librfnm_rx_buf rxBuf[LIBRFNM_MIN_RX_BUFCNT];
+
+#ifdef __ANDROID__
+    int devFd = 0;
+#endif
 
     std::thread workerThread;
 };

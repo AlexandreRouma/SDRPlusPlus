@@ -8,14 +8,14 @@
 #include "dsp.h"
 #include "pocsag.h"
 
-#define BAUDRATE    2400
-#define SAMPLERATE  (BAUDRATE*10)
-
 class POCSAGDecoder : public Decoder {
 public:
-    POCSAGDecoder(const std::string& name, VFOManager::VFO* vfo) : diag(0.6, BAUDRATE) {
+    POCSAGDecoder(const std::string& name, VFOManager::VFO* vfo) : diag(0.6, 2400) {
         this->name = name;
         this->vfo = vfo;
+
+        // Default baudrate (TODO: Load from config)
+        baudrate = 2400;
 
         // Define baudrate options
         baudrates.define(512, "512 Baud", 512);
@@ -24,9 +24,9 @@ public:
 
         // Init DSP
         vfo->setBandwidthLimits(12500, 12500, true);
-        vfo->setSampleRate(SAMPLERATE, 12500);
-        dsp.init(vfo->output, SAMPLERATE, BAUDRATE);
-        reshape.init(&dsp.soft, BAUDRATE, (BAUDRATE / 30.0) - BAUDRATE);
+        vfo->setSampleRate(baudrate*10.0, 12500);
+        dsp.init(vfo->output, baudrate*10.0, baudrate);
+        reshape.init(&dsp.soft, baudrate, (baudrate / 30.0) - baudrate);
         dataHandler.init(&dsp.out, _dataHandler, this);
         diagHandler.init(&reshape.out, _diagHandler, this);
 
@@ -42,7 +42,7 @@ public:
         ImGui::LeftLabel("Baudrate");
         ImGui::FillWidth();
         if (ImGui::Combo(("##pager_decoder_pocsag_br_" + name).c_str(), &brId, baudrates.txt)) {
-            // TODO
+            setBaudrate(baudrates.value(brId));
         }
 
         ImGui::FillWidth();
@@ -79,12 +79,22 @@ private:
     static void _diagHandler(float* data, int count, void* ctx) {
         POCSAGDecoder* _this = (POCSAGDecoder*)ctx;
         float* buf = _this->diag.acquireBuffer();
-        memcpy(buf, data, count * sizeof(float));
+        int maxCount = std::min<int>(count, _this->diag.getCount());
+        memcpy(buf, data, maxCount * sizeof(float));
         _this->diag.releaseBuffer();
     }
 
     void messageHandler(pocsag::Address addr, pocsag::MessageType type, const std::string& msg) {
         flog::debug("[{}]: '{}'", (uint32_t)addr, msg);
+    }
+
+    void setBaudrate(double baudrate) {
+        vfo->setSampleRate(baudrate*10.0, 12500);
+        stop();
+        reshape.setKeep(baudrate);
+        reshape.setSkip((baudrate / 30.0) - baudrate);
+        diag.setCount(baudrate);
+        start();
     }
 
     std::string name;
@@ -100,6 +110,7 @@ private:
     ImGui::SymbolDiagram diag;
 
     int brId = 2;
+    double baudrate = 2400;
 
     OptionList<int, int> baudrates;
 };

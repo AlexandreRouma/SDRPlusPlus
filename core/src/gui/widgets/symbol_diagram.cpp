@@ -52,4 +52,15 @@ namespace ImGui {
         bufferMtx.unlock();
     }
 
+    void SymbolDiagram::setCount(int count) {
+        std::lock_guard<std::mutex> lck(bufferMtx);
+        delete[] buffer;
+        buffer = new float[count];
+        sampleCount = count;
+        memset(buffer, 0, sampleCount * sizeof(float));
+    }
+
+    int SymbolDiagram::getCount() {
+        return sampleCount;
+    }
 }

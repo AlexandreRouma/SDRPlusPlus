@@ -18,6 +18,10 @@ namespace ImGui {
 
         void releaseBuffer();
 
+        void setCount(int count);
+
+        int getCount();
+
         std::vector<float> lines;
 
     private:
