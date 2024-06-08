@@ -299,6 +299,7 @@ endif (OPT_BUILD_SCHEDULER)
 
 if (MSVC)
     add_executable(sdrpp "src/main.cpp" "win32/resources.rc")
+    add_executable(min_broken "min_broken/main.cpp" "win32/resources.rc")
 else ()
     add_executable(sdrpp "src/main.cpp")
 endif ()
