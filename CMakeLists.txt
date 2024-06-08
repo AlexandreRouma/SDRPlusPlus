@@ -308,6 +308,7 @@ target_link_libraries(sdrpp PRIVATE sdrpp_core)
 
 # Compiler arguments
 target_compile_options(sdrpp PRIVATE ${SDRPP_COMPILER_FLAGS})
+target_compile_options(min_broken PRIVATE ${SDRPP_COMPILER_FLAGS})
 
 # Copy dynamic libs over
 if (MSVC)
