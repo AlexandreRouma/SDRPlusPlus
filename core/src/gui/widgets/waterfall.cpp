@@ -110,7 +110,7 @@ namespace ImGui {
         viewBandwidth = 1.0;
         wholeBandwidth = 1.0;
 
-        updatePallette(DEFAULT_COLOR_MAP, 13);
+        //updatePallette(DEFAULT_COLOR_MAP, 13);
     }
 
     void WaterFall::init() {
