@@ -355,7 +355,7 @@
             "end": 54000000
         },
         {
-            "name": "Bande FM - Radiodif.",
+            "name": "Radiodiffusion - Bande FM",
             "type": "broadcast",
             "start": 80000000,
             "end": 108000000
@@ -396,6 +396,12 @@
             "start": 162362500,
             "end": 162587500
         },
+	{
+	    "name": "Radiodiffusion - Bande DAB",
+	    "type": "broadcast",
+	    "start": 174000000,
+	    "end": 223000000
+	},
         {
             "name": "Military Aviation",
             "type": "military",
@@ -408,6 +414,12 @@
             "start": 240000000,
             "end": 270000000
         },
+	{
+	    "name": "Police (TETRAPOL)",
+	    "type": "military",
+ 	    "start": 380000000,
+	    "end": 400000000
+	},
         {
             "name": "70cm - Radioamateur",
             "type": "amateur",
@@ -432,6 +444,12 @@
             "start": 1240000000,
             "end": 1300000000
         },
+	{
+	    "name": "Radiodiffusion - Bande DAB",
+	    "type": "broadcast",
+	    "start": 1452000000,
+	    "end": 1492000000
+	},
         {
             "name": "13cm - Radioamateur",
             "type": "amateur",
