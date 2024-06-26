@@ -63,6 +63,7 @@ option(OPT_BUILD_SCHEDULER "Build the scheduler" OFF)
 # Other options
 option(USE_INTERNAL_LIBCORRECT "Use an internal version of libcorrect" ON)
 option(USE_BUNDLE_DEFAULTS "Set the default resource and module directories to the right ones for a MacOS .app" OFF)
+option(COPY_MSVC_REDISTRIBUTABLES "Copy over the Visual C++ Redistributable" OFF)
 
 # Module cmake path
 set(SDRPP_MODULE_CMAKE "${CMAKE_SOURCE_DIR}/sdrpp_module.cmake")
@@ -312,6 +313,21 @@ target_compile_options(sdrpp PRIVATE ${SDRPP_COMPILER_FLAGS})
 if (MSVC)
     add_custom_target(do_always ALL xcopy /s \"$<TARGET_FILE_DIR:sdrpp_core>\\*.dll\" \"$<TARGET_FILE_DIR:sdrpp>\" /Y)
     add_custom_target(do_always_volk ALL xcopy /s \"C:/Program Files/PothosSDR/bin\\volk.dll\" \"$<TARGET_FILE_DIR:sdrpp>\" /Y)
+
+    if (COPY_MSVC_REDISTRIBUTABLES)
+        # Get the list of Visual C++ runtime DLLs
+        set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP True)
+        include(InstallRequiredSystemLibraries)
+
+        # Create a space sperated list
+        set(REDIST_DLLS_STR "")
+        foreach(DLL IN LISTS CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS)
+            set(REDIST_DLLS_STR COMMAND xcopy /F \"${DLL}\" \"$<TARGET_FILE_DIR:sdrpp>\" /Y ${REDIST_DLLS_STR})
+        endforeach()
+        
+        # Create target
+        add_custom_target(do_always_msvc ALL ${REDIST_DLLS_STR})
+    endif ()
 endif ()
 
 
