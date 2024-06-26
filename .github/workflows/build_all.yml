@@ -74,6 +74,10 @@ jobs:
           working-directory: ${{runner.workspace}}/build
           run: cmake --build . --config Debug --verbose
 
+        - name: Run tests
+          working-directory: ${{runner.workspace}}/build
+          run: ./Debug/min_broken.exe
+
         - name: Create Archive
           working-directory: ${{runner.workspace}}
           run: '&($Env:GITHUB_WORKSPACE + "/make_windows_package.ps1") ./build ($Env:GITHUB_WORKSPACE + "/root")'
