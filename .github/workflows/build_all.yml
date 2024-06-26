@@ -41,7 +41,7 @@ jobs:
 
         - name: Patch Pothos with newer librtlsdr version
           working-directory: ${{runner.workspace}}
-          run: 7z x rtl-sdr.zip ; rm "C:/Program Files/PothosSDR/bin/librtlsdr.dll" ; cp "rtl-sdr-64bit-20240623/librtlsdr.dll" "C:/Program Files/PothosSDR/bin/"
+          run: 7z x rtl-sdr.zip ; rm "C:/Program Files/PothosSDR/bin/rtlsdr.dll" ; cp "rtl-sdr-64bit-20240623/librtlsdr.dll" "C:/Program Files/PothosSDR/bin/rtlsdr.dll"
 
         - name: Download SDRPlay API
           run: Invoke-WebRequest -Uri "https://www.sdrpp.org/SDRplay.zip" -OutFile ${{runner.workspace}}/SDRplay.zip
