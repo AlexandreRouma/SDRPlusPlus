@@ -319,6 +319,9 @@ if (MSVC)
     if (COPY_MSVC_REDISTRIBUTABLES)
         # Get the list of Visual C++ runtime DLLs
         set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP True)
+        if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
+            set(CMAKE_INSTALL_DEBUG_LIBRARIES_ONLY True)
+        endif ()
         include(InstallRequiredSystemLibraries)
 
         # Create a space sperated list
