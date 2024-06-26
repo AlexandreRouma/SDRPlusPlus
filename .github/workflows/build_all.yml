@@ -61,14 +61,14 @@ jobs:
           run: vcpkg install fftw3:x64-windows glfw3:x64-windows portaudio:x64-windows zstd:x64-windows libusb:x64-windows
 
         - name: Install rtaudio
-          run: git clone https://github.com/thestk/rtaudio ; cd rtaudio ; git checkout 2f2fca4502d506abc50f6d4473b2836d24cfb1e3 ; mkdir build ; cd build ; cmake -G "Visual Studio 16 2019" .. ; cmake --build . --config Release ; cmake --install .
+          run: git clone https://github.com/thestk/rtaudio ; cd rtaudio ; git checkout 2f2fca4502d506abc50f6d4473b2836d24cfb1e3 ; mkdir build ; cd build ; cmake .. ; cmake --build . --config Release ; cmake --install .
 
         - name: Install libperseus-sdr
-          run: git clone https://github.com/AlexandreRouma/libperseus-sdr ; cd libperseus-sdr ; mkdir build ; cd build ; cmake -G "Visual Studio 16 2019" "-DLIBUSB_LIBRARIES=C:/Program Files/PothosSDR/lib/libusb-1.0.lib" "-DLIBUSB_INCLUDE_DIRS=C:/Program Files/PothosSDR/include/libusb-1.0" .. "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake" ; cmake --build . --config Release  ; mkdir "C:/Program Files/PothosSDR/include/perseus-sdr" ; cp Release/perseus-sdr.dll "C:/Program Files/PothosSDR/bin" ; cp Release/perseus-sdr.lib "C:/Program Files/PothosSDR/bin" ; cd .. ; xcopy "src" "C:/Program Files/PothosSDR/include/perseus-sdr"
+          run: git clone https://github.com/AlexandreRouma/libperseus-sdr ; cd libperseus-sdr ; mkdir build ; cd build ; cmake "-DLIBUSB_LIBRARIES=C:/Program Files/PothosSDR/lib/libusb-1.0.lib" "-DLIBUSB_INCLUDE_DIRS=C:/Program Files/PothosSDR/include/libusb-1.0" .. "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake" ; cmake --build . --config Release  ; mkdir "C:/Program Files/PothosSDR/include/perseus-sdr" ; cp Release/perseus-sdr.dll "C:/Program Files/PothosSDR/bin" ; cp Release/perseus-sdr.lib "C:/Program Files/PothosSDR/bin" ; cd .. ; xcopy "src" "C:/Program Files/PothosSDR/include/perseus-sdr"
 
         - name: Prepare CMake
           working-directory: ${{runner.workspace}}/build
-          run: cmake -G "Visual Studio 16 2019" "$Env:GITHUB_WORKSPACE" "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_BUILD_TYPE=Debug -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_PERSEUS_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON
+          run: cmake "$Env:GITHUB_WORKSPACE" "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_BUILD_TYPE=Debug -DCOPY_MSVC_REDISTRIBUTABLES=ON -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_PERSEUS_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON
 
         - name: Build
           working-directory: ${{runner.workspace}}/build
