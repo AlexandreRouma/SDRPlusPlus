@@ -47,7 +47,7 @@ Then, use apt to install it:
 sudo apt install path/to/the/sdrpp_debian_amd64.deb
 ```
 
-IMPORTANT: You must install the drivers for your SDR. Follow instructions from your manufacturer as to how to do this on your particular distro.
+**IMPORTANT: You must install the drivers for your SDR. Follow instructions from your manufacturer as to how to do this on your particular distro.**
 
 ### Arch-based
 
