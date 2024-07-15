@@ -183,6 +183,8 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["moduleInstances"]["PlutoSDR Source"]["enabled"] = true;
     defConfig["moduleInstances"]["PerseusSDR Source"]["module"] = "perseus_source";
     defConfig["moduleInstances"]["PerseusSDR Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["RFNM Source"]["module"] = "rfnm_source";
+    defConfig["moduleInstances"]["RFNM Source"]["enabled"] = true;
     defConfig["moduleInstances"]["RFspace Source"]["module"] = "rfspace_source";
     defConfig["moduleInstances"]["RFspace Source"]["enabled"] = true;
     defConfig["moduleInstances"]["RTL-SDR Source"]["module"] = "rtl_sdr_source";
