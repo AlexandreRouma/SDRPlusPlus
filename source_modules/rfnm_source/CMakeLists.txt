@@ -5,6 +5,6 @@ file(GLOB SRC "src/*.cpp")
 
 include(${SDRPP_MODULE_CMAKE})
 
-target_include_directories(rfnm_source PRIVATE "C:/Users/ryzerth/Documents/Code/librfnm/include/librfnm")
-target_link_directories(rfnm_source PRIVATE "C:/Users/ryzerth/Documents/Code/librfnm/build/Release")
-target_link_libraries(rfnm_source PRIVATE librfnm)
+target_include_directories(rfnm_source PRIVATE "C:/Program Files/RFNM/include")
+target_link_directories(rfnm_source PRIVATE "C:/Program Files/RFNM/lib")
+target_link_libraries(rfnm_source PRIVATE rfnm)

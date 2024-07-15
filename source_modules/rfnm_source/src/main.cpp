@@ -3,7 +3,7 @@
 #include <gui/gui.h>
 #include <gui/smgui.h>
 #include <signal_path/signal_path.h>
-#include <librfnm.h>
+#include <librfnm/librfnm.h>
 #include <core.h>
 #include <utils/optionlist.h>
 
@@ -145,13 +145,13 @@ private:
         _this->openDev = new librfnm(librfnm_transport::LIBRFNM_TRANSPORT_USB, _this->selectedSerial);
 
         // Configure the device
-        _this->openDev->librfnm_s->rx.ch[0].enable = RFNM_CH_ON;
-        _this->openDev->librfnm_s->rx.ch[0].samp_freq_div_n = _this->samplerates[_this->srId];
-        _this->openDev->librfnm_s->rx.ch[0].freq = _this->freq;
-        _this->openDev->librfnm_s->rx.ch[0].gain = _this->gain;
-        _this->openDev->librfnm_s->rx.ch[0].rfic_lpf_bw = 100;
-        _this->openDev->librfnm_s->rx.ch[0].fm_notch = _this->fmNotch ? rfnm_fm_notch::RFNM_FM_NOTCH_ON : rfnm_fm_notch::RFNM_FM_NOTCH_OFF;
-        _this->openDev->librfnm_s->rx.ch[0].path = _this->openDev->librfnm_s->rx.ch[0].path_preferred;
+        _this->openDev->s->rx.ch[0].enable = RFNM_CH_ON;
+        _this->openDev->s->rx.ch[0].samp_freq_div_n = _this->samplerates[_this->srId];
+        _this->openDev->s->rx.ch[0].freq = _this->freq;
+        _this->openDev->s->rx.ch[0].gain = _this->gain;
+        _this->openDev->s->rx.ch[0].rfic_lpf_bw = 100;
+        _this->openDev->s->rx.ch[0].fm_notch = _this->fmNotch ? rfnm_fm_notch::RFNM_FM_NOTCH_ON : rfnm_fm_notch::RFNM_FM_NOTCH_OFF;
+        _this->openDev->s->rx.ch[0].path = _this->openDev->s->rx.ch[0].path_preferred;
         rfnm_api_failcode fail = _this->openDev->set(LIBRFNM_APPLY_CH0_RX);
         if (fail != rfnm_api_failcode::RFNM_API_OK) {
             flog::error("Failed to configure device: {}", (int)fail);
@@ -189,7 +189,7 @@ private:
         _this->stream.clearWriteStop();
 
         // Disable channel
-        _this->openDev->librfnm_s->rx.ch[0].enable = RFNM_CH_ON;
+        _this->openDev->s->rx.ch[0].enable = RFNM_CH_ON;
         _this->openDev->set(LIBRFNM_APPLY_CH0_RX);
 
         // Close device
@@ -206,7 +206,7 @@ private:
     static void tune(double freq, void* ctx) {
         RFNMSourceModule* _this = (RFNMSourceModule*)ctx;
         if (_this->running) {
-            _this->openDev->librfnm_s->rx.ch[0].freq = freq;
+            _this->openDev->s->rx.ch[0].freq = freq;
             rfnm_api_failcode fail = _this->openDev->set(LIBRFNM_APPLY_CH0_RX);
             if (fail != rfnm_api_failcode::RFNM_API_OK) {
                 flog::error("Failed to tune: {}", (int)fail);
@@ -256,7 +256,7 @@ private:
         SmGui::FillWidth();
         if (SmGui::SliderInt(CONCAT("##_rfnm_gain_", _this->name), &_this->gain, _this->gainMin, _this->gainMax)) {
             if (_this->running) {
-                _this->openDev->librfnm_s->rx.ch[0].gain = _this->gain;
+                _this->openDev->s->rx.ch[0].gain = _this->gain;
                 rfnm_api_failcode fail = _this->openDev->set(LIBRFNM_APPLY_CH0_RX);
             }
             // TODO: Save
@@ -264,7 +264,7 @@ private:
 
         if (SmGui::Checkbox(CONCAT("FM Notch##_rfnm_", _this->name), &_this->fmNotch)) {
             if (_this->running) {
-                _this->openDev->librfnm_s->rx.ch[0].fm_notch = _this->fmNotch ? rfnm_fm_notch::RFNM_FM_NOTCH_ON : rfnm_fm_notch::RFNM_FM_NOTCH_OFF;
+                _this->openDev->s->rx.ch[0].fm_notch = _this->fmNotch ? rfnm_fm_notch::RFNM_FM_NOTCH_ON : rfnm_fm_notch::RFNM_FM_NOTCH_OFF;
                 rfnm_api_failcode fail = _this->openDev->set(LIBRFNM_APPLY_CH0_RX);
             }
             // TODO: Save
