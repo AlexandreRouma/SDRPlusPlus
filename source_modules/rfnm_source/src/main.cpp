@@ -90,9 +90,6 @@ private:
             return;
         }
 
-        // // Open the device
-        // librfnm* dev = new librfnm(librfnm_transport::LIBRFNM_TRANSPORT_USB, serial);
-
         // Define bandwidths
         bandwidths.clear();
         bandwidths.define(-1, "Auto", -1);
@@ -105,9 +102,6 @@ private:
         // Get gain range
         gainMin = -30;//dev->librfnm_s->rx.ch[0].gain_range.min;
         gainMax = 60;//dev->librfnm_s->rx.ch[0].gain_range.max;
-
-        // // Close device
-        // delete dev;
 
         // Define samplerates
         samplerates.clear();
