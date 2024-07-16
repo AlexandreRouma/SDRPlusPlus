@@ -198,7 +198,7 @@ jobs:
 
         - name: Save Archive
           uses: actions/upload-artifact@v4
-          with:-
+          with:
               name: sdrpp_macos_arm
               path: ${{runner.workspace}}/sdrpp_macos_arm.zip
 
