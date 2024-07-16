@@ -6,7 +6,7 @@ cd /root
 apt update
 apt install -y build-essential cmake git libfftw3-dev libglfw3-dev libvolk2-dev libzstd-dev libairspyhf-dev libairspy-dev \
             libiio-dev libad9361-dev librtaudio-dev libhackrf-dev librtlsdr-dev libbladerf-dev liblimesuite-dev p7zip-full wget portaudio19-dev \
-            libcodec2-dev autoconf libtool xxd
+            libcodec2-dev autoconf libtool xxd libspdlog-dev
 
 # Install SDRPlay libraries
 wget https://www.sdrplay.com/software/SDRplay_RSP_API-Linux-3.15.1.run
@@ -24,6 +24,15 @@ make
 make install
 ldconfig
 cd ..
+
+# Install librfnm
+git clone https://github.com/AlexandreRouma/librfnm
+cd librfnm
+mkdir build
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+make -j2
+make install
 
 cd SDRPlusPlus
 mkdir build

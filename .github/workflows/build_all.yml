@@ -124,6 +124,9 @@ jobs:
         - name: Install libperseus
           run: git clone https://github.com/Microtelecom/libperseus-sdr && cd libperseus-sdr && autoreconf -i && ./configure --prefix=/usr/local && make && make install && cd ..
 
+        - name: Install librfnm
+          run: git clone https://github.com/AlexandreRouma/librfnm && cd librfnm && mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && make && make install && cd ..
+
         - name: Install more recent librtlsdr
           run: git clone https://github.com/osmocom/rtl-sdr && cd rtl-sdr && mkdir build && cd build && cmake -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_BUILD_TYPE=Release .. && make -j3 LIBRARY_PATH=$(pkg-config --libs-only-L libusb-1.0 | sed 's/\-L//') && sudo make install && cd ../../
 
