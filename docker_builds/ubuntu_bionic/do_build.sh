@@ -59,7 +59,7 @@ cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
 make -j2
 make install
-cd ..
+cd ../../
 
 # Fix missing .pc file for codec2
 echo 'prefix=/usr/' >> /usr/share/pkgconfig/codec2.pc
