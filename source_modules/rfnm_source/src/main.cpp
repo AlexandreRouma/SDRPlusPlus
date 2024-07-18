@@ -188,6 +188,7 @@ private:
             // Set this channel as the channel of its prefered path (cursed af but lazy)
             const PathConfig& pc = paths.value(paths.valueId(preferred_pc));
             ((PathConfig*)&pc)->chId = offset + i;
+            ((PathConfig*)&pc)->appliesCh = (uint16_t)(1 << (offset + i + 8));
         }
 
         // Dump antenna paths
