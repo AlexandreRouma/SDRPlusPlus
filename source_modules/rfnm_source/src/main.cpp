@@ -249,19 +249,6 @@ private:
         // Open the device
         _this->openDev = new librfnm(librfnm_transport::LIBRFNM_TRANSPORT_USB, _this->selectedSerial);
 
-        // Configure the device
-        _this->openDev->s->rx.ch[_this->currentPath.chId].enable = RFNM_CH_ON;
-        _this->openDev->s->rx.ch[_this->currentPath.chId].samp_freq_div_n = _this->samplerates[_this->srId];
-        _this->openDev->s->rx.ch[_this->currentPath.chId].freq = _this->freq;
-        _this->openDev->s->rx.ch[_this->currentPath.chId].gain = _this->gain;
-        _this->openDev->s->rx.ch[_this->currentPath.chId].rfic_lpf_bw = 100;
-        _this->openDev->s->rx.ch[_this->currentPath.chId].fm_notch = _this->fmNotch ? rfnm_fm_notch::RFNM_FM_NOTCH_ON : rfnm_fm_notch::RFNM_FM_NOTCH_OFF;
-        _this->openDev->s->rx.ch[_this->currentPath.chId].path = _this->currentPath.path;
-        rfnm_api_failcode fail = _this->openDev->set(_this->currentPath.appliesCh);
-        if (fail != rfnm_api_failcode::RFNM_API_OK) {
-            flog::error("Failed to configure device: {}", (int)fail);
-        }
-
         // Configure the stream
         _this->bufferSize = -1;
         _this->openDev->rx_stream(librfnm_stream_format::LIBRFNM_STREAM_FORMAT_CS16, &_this->bufferSize);
@@ -274,6 +261,22 @@ private:
         for (int i = 0; i < LIBRFNM_MIN_RX_BUFCNT; i++) {
             _this->rxBuf[i].buf = dsp::buffer::alloc<uint8_t>(_this->bufferSize);
             _this->openDev->rx_qbuf(&_this->rxBuf[i]);
+        }
+
+        // Flush buffers
+        _this->openDev->rx_flush();
+
+        // Configure the device
+        _this->openDev->s->rx.ch[_this->currentPath.chId].enable = RFNM_CH_ON;
+        _this->openDev->s->rx.ch[_this->currentPath.chId].samp_freq_div_n = _this->samplerates[_this->srId];
+        _this->openDev->s->rx.ch[_this->currentPath.chId].freq = _this->freq;
+        _this->openDev->s->rx.ch[_this->currentPath.chId].gain = _this->gain;
+        _this->openDev->s->rx.ch[_this->currentPath.chId].rfic_lpf_bw = 100;
+        _this->openDev->s->rx.ch[_this->currentPath.chId].fm_notch = _this->fmNotch ? rfnm_fm_notch::RFNM_FM_NOTCH_ON : rfnm_fm_notch::RFNM_FM_NOTCH_OFF;
+        _this->openDev->s->rx.ch[_this->currentPath.chId].path = _this->currentPath.path;
+        rfnm_api_failcode fail = _this->openDev->set(_this->currentPath.appliesCh);
+        if (fail != rfnm_api_failcode::RFNM_API_OK) {
+            flog::error("Failed to configure device: {}", (int)fail);
         }
 
         // Start worker
@@ -295,12 +298,15 @@ private:
         if (_this->workerThread.joinable()) { _this->workerThread.join(); }
         _this->stream.clearWriteStop();
 
+        // Stop the RX streaming
+        _this->openDev->rx_stream_stop();
+
         // Disable channel
         _this->openDev->s->rx.ch[_this->currentPath.chId].enable = RFNM_CH_OFF;
         _this->openDev->set(_this->currentPath.appliesCh);
 
-        // Stop the RX streaming
-        _this->openDev->rx_stream_stop();
+        // Flush buffers
+        _this->openDev->rx_flush();
 
         // Close device
         delete _this->openDev;
@@ -423,8 +429,13 @@ private:
         int sampCount = bufferSize/4;
         uint8_t ch = (1 << currentPath.chId);
 
-        // TODO: Define number of buffers per swap to maintain 200 fps
+        // Define number of buffers per swap to maintain 200 fps
+        int maxBufCount = STREAM_BUFFER_SIZE / sampCount;
+        int bufCount = (sampleRate / sampCount) / 200;
+        if (bufCount <= 0) { bufCount = 1; }
+        if (bufCount > maxBufCount) { bufCount = maxBufCount; }
 
+        int count = 0;
         while (run) {
             // Receive a buffer
             auto fail = openDev->rx_dqbuf(&lrxbuf, ch, 1000);
@@ -435,13 +446,17 @@ private:
             else if (fail) { break; }
 
             // Convert buffer to CF32
-            volk_16i_s32f_convert_32f((float*)stream.writeBuf, (int16_t*)lrxbuf->buf, 32768.0f, sampCount * 2);
+            volk_16i_s32f_convert_32f((float*)&stream.writeBuf[(count++)*sampCount], (int16_t*)lrxbuf->buf, 32768.0f, sampCount * 2);
 
             // Reque buffer
             openDev->rx_qbuf(lrxbuf);
 
             // Swap data
-            if (!stream.swap(sampCount)) { break; }
+            if (count >= bufCount) {
+                if (!stream.swap(count*sampCount)) { break; }
+                count = 0;
+            }
+            
         }
 
         flog::debug("Worker exiting");

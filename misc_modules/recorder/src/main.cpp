@@ -249,7 +249,6 @@ private:
         }
         ImGui::Columns(1, CONCAT("EndRecorderModeColumns##_", _this->name), false);
         ImGui::EndGroup();
-        if (_this->recording) { style::endDisabled(); }
 
         // Recording path
         if (_this->folderSelect.render("##_recorder_fold_" + _this->name)) {
@@ -284,8 +283,11 @@ private:
             config.release(true);
         }
 
+        if (_this->recording) { style::endDisabled(); }
+
         // Show additional audio options
         if (_this->recMode == RECORDER_MODE_AUDIO) {
+            if (_this->recording) { style::beginDisabled(); }
             ImGui::LeftLabel("Stream");
             ImGui::FillWidth();
             if (ImGui::Combo(CONCAT("##_recorder_stream_", _this->name), &_this->streamId, _this->audioStreams.txt)) {
@@ -294,6 +296,7 @@ private:
                 config.conf[_this->name]["audioStream"] = _this->audioStreams.key(_this->streamId);
                 config.release(true);
             }
+            if (_this->recording) { style::endDisabled(); }
 
             _this->updateAudioMeter(_this->audioLvl);
             ImGui::FillWidth();
