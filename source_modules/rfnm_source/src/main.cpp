@@ -168,7 +168,7 @@ private:
                 if (path == RFNM_PATH_NULL) { continue; }
 
                 // Get the path
-                PathConfig pc = { path, offset + i, (1 << (offset + i + 8))};
+                PathConfig pc = { path, offset + i, (uint16_t)(1 << (offset + i + 8))};
                 
                 // If it's not in the list, add it
                 if (!paths.valueExists(pc)) {
