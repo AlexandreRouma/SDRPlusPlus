@@ -190,6 +190,11 @@ private:
             ((PathConfig*)&pc)->chId = offset + i;
         }
 
+        // Dump antenna paths
+        for (int i = 0; i < paths.size(); i++) {
+            flog::debug("PATH[{}]: Name={}, Ch={}, Path={}", i, paths.name(i), paths.value(i).chId, (int)paths.value(i).path);
+        }
+
         // Load configuration (TODO)
         selectedPath = paths.key(0);
 
