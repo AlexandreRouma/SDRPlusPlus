@@ -6,6 +6,7 @@
 #include <librfnm/librfnm.h>
 #include <core.h>
 #include <utils/optionlist.h>
+#include <atomic>
 
 SDRPP_MOD_INFO{
     /* Name:            */ "rfnm_source",
@@ -90,6 +91,126 @@ private:
             return;
         }
 
+        // Open the device
+        librfnm* dev = new librfnm(librfnm_transport::LIBRFNM_TRANSPORT_USB, serial);
+
+        // Define samplerates
+        samplerates.clear();
+        samplerates.define(61440000, "61.44 MHz", 2);
+        samplerates.define(122880000, "122.88 MHz", 1);
+
+        // Define daughterboards
+        daughterboards.clear();
+        for (int i = 0; i < 2; i++) {
+            // If not present, skip
+            if (!dev->s->hwinfo.daughterboard[i].board_id) { continue; }
+
+            // Format the daughterboard name
+            std::string name = (i ? "[SEC] " : "[PRI] ") + std::string(dev->s->hwinfo.daughterboard[i].user_readable_name);
+
+            // Add the daughterboard to the list
+            daughterboards.define(name, name, i);
+        }
+
+        // Load options (TODO)
+        srId = samplerates.keyId(61440000);
+        dgbId = 0;
+
+        // Select the daughterboard
+        selectDaughterboard(dev, 0);
+
+        // Update samplerate
+        sampleRate = samplerates.key(srId);
+
+        // Close device
+        delete dev;
+
+        // Save serial number
+        selectedSerial = serial;
+    }
+
+    struct PathConfig {
+        rfnm_rf_path path;
+        int chId;
+        uint16_t appliesCh;
+
+        bool operator==(const PathConfig& b) const {
+            return b.path == path;
+        }
+    };
+    
+    void selectDaughterboard(librfnm* dev, int id) {
+        // If no daugherboard is populated, give up
+        if (!dev->s->hwinfo.daughterboard[0].board_id && !dev->s->hwinfo.daughterboard[1].board_id) {
+            flog::error("The selected device has no daughterboards");
+            return;
+        }
+
+        // If the ID is not populated, select the other one
+        if (id >= 2 || !dev->s->hwinfo.daughterboard[id].board_id) {
+            selectDaughterboard(dev, 1 - id);
+        }
+
+        // Compute the channel offset
+        int offset = 0;
+        for (int i = 0; i < id; i++) {
+            offset += dev->s->hwinfo.daughterboard[i].rx_ch_cnt;
+        }
+
+        // Define antenna paths by going through all channels
+        paths.clear();
+        int count = dev->s->hwinfo.daughterboard[id].rx_ch_cnt;
+        for (int i = 0; i < count; i++) {
+            // Go through each possible path
+            for (int j = 0; j < 10; j++) {
+                // If it's the null path, stop searching
+                rfnm_rf_path path = dev->s->rx.ch[offset + i].path_possible[j];
+                if (path == RFNM_PATH_NULL) { continue; }
+
+                // Get the path
+                PathConfig pc = { path, offset + i, (1 << (offset + i + 8))};
+                
+                // If it's not in the list, add it
+                if (!paths.valueExists(pc)) {
+                    std::string name = librfnm::rf_path_to_string(pc.path);
+                    std::string capName = name;
+                    if (std::islower(capName[0])) { capName[0] = std::toupper(capName[0]); }
+                    paths.define(name, capName, pc);
+                }
+            }
+
+            // Get the preferred path
+            PathConfig preferred_pc = { dev->s->rx.ch[offset + i].path_preferred, 0, 0 };
+
+            // Make sure the path is accessible or give up
+            if (!paths.valueExists(preferred_pc)) { continue; }
+            
+            // Set this channel as the channel of its prefered path (cursed af but lazy)
+            const PathConfig& pc = paths.value(paths.valueId(preferred_pc));
+            ((PathConfig*)&pc)->chId = offset + i;
+        }
+
+        // Load configuration (TODO)
+        selectedPath = paths.key(0);
+
+        // Select antenna path
+        selectPath(dev, id, selectedPath);
+
+        // Save selected daughterboard
+        dgbId = id;
+    }
+
+    void selectPath(librfnm* dev, int dgbId, const std::string& path) {
+        // If the path doesn't exist, select the first path
+        if (!paths.keyExists(path)) {
+            selectPath(dev, dgbId, paths.key(0));
+        }
+
+        // Save selected path
+        selectedPath = path;
+        pathId = paths.keyId(path);
+        currentPath = paths.value(pathId);
+
         // Define bandwidths
         bandwidths.clear();
         bandwidths.define(-1, "Auto", -1);
@@ -100,24 +221,8 @@ private:
         }
 
         // Get gain range
-        gainMin = -30;//dev->librfnm_s->rx.ch[0].gain_range.min;
-        gainMax = 60;//dev->librfnm_s->rx.ch[0].gain_range.max;
-
-        // Define samplerates
-        samplerates.clear();
-        samplerates.define(61440000, "61.44 MHz", 2);
-        samplerates.define(122880000, "122.88 MHz", 1);
-
-        // TODO: Load options
-        srId = samplerates.keyId(61440000);
-        bwId = bandwidths.nameId("Auto");
-        gain = 0;
-
-        // Update samplerate
-        sampleRate = samplerates.key(srId);
-
-        // Save serial number
-        selectedSerial = serial;
+        gainMin = dev->s->rx.ch[currentPath.chId].gain_range.min;
+        gainMax = dev->s->rx.ch[currentPath.chId].gain_range.max;
     }
 
     static void menuSelected(void* ctx) {
@@ -139,14 +244,14 @@ private:
         _this->openDev = new librfnm(librfnm_transport::LIBRFNM_TRANSPORT_USB, _this->selectedSerial);
 
         // Configure the device
-        _this->openDev->s->rx.ch[0].enable = RFNM_CH_ON;
-        _this->openDev->s->rx.ch[0].samp_freq_div_n = _this->samplerates[_this->srId];
-        _this->openDev->s->rx.ch[0].freq = _this->freq;
-        _this->openDev->s->rx.ch[0].gain = _this->gain;
-        _this->openDev->s->rx.ch[0].rfic_lpf_bw = 100;
-        _this->openDev->s->rx.ch[0].fm_notch = _this->fmNotch ? rfnm_fm_notch::RFNM_FM_NOTCH_ON : rfnm_fm_notch::RFNM_FM_NOTCH_OFF;
-        _this->openDev->s->rx.ch[0].path = _this->openDev->s->rx.ch[0].path_preferred;
-        rfnm_api_failcode fail = _this->openDev->set(LIBRFNM_APPLY_CH0_RX);
+        _this->openDev->s->rx.ch[_this->currentPath.chId].enable = RFNM_CH_ON;
+        _this->openDev->s->rx.ch[_this->currentPath.chId].samp_freq_div_n = _this->samplerates[_this->srId];
+        _this->openDev->s->rx.ch[_this->currentPath.chId].freq = _this->freq;
+        _this->openDev->s->rx.ch[_this->currentPath.chId].gain = _this->gain;
+        _this->openDev->s->rx.ch[_this->currentPath.chId].rfic_lpf_bw = 100;
+        _this->openDev->s->rx.ch[_this->currentPath.chId].fm_notch = _this->fmNotch ? rfnm_fm_notch::RFNM_FM_NOTCH_ON : rfnm_fm_notch::RFNM_FM_NOTCH_OFF;
+        _this->openDev->s->rx.ch[_this->currentPath.chId].path = _this->currentPath.path;
+        rfnm_api_failcode fail = _this->openDev->set(_this->currentPath.appliesCh);
         if (fail != rfnm_api_failcode::RFNM_API_OK) {
             flog::error("Failed to configure device: {}", (int)fail);
         }
@@ -166,6 +271,7 @@ private:
         }
 
         // Start worker
+        _this->run = true;
         _this->workerThread = std::thread(&RFNMSourceModule::worker, _this);
         
         _this->running = true;
@@ -178,13 +284,17 @@ private:
         _this->running = false;
         
         // Stop worker
+        _this->run = false;
         _this->stream.stopWriter();
         if (_this->workerThread.joinable()) { _this->workerThread.join(); }
         _this->stream.clearWriteStop();
 
         // Disable channel
-        _this->openDev->s->rx.ch[0].enable = RFNM_CH_ON;
-        _this->openDev->set(LIBRFNM_APPLY_CH0_RX);
+        _this->openDev->s->rx.ch[_this->currentPath.chId].enable = RFNM_CH_OFF;
+        _this->openDev->set(_this->currentPath.appliesCh);
+
+        // Stop the RX streaming
+        _this->openDev->rx_stream_stop();
 
         // Close device
         delete _this->openDev;
@@ -200,8 +310,8 @@ private:
     static void tune(double freq, void* ctx) {
         RFNMSourceModule* _this = (RFNMSourceModule*)ctx;
         if (_this->running) {
-            _this->openDev->s->rx.ch[0].freq = freq;
-            rfnm_api_failcode fail = _this->openDev->set(LIBRFNM_APPLY_CH0_RX);
+            _this->openDev->s->rx.ch[_this->currentPath.chId].freq = freq;
+            rfnm_api_failcode fail = _this->openDev->set(_this->currentPath.appliesCh);
             if (fail != rfnm_api_failcode::RFNM_API_OK) {
                 flog::error("Failed to tune: {}", (int)fail);
             }
@@ -238,11 +348,48 @@ private:
             core::setInputSampleRate(_this->sampleRate);
         }
 
+        if (_this->daughterboards.size() > 1) {
+            SmGui::LeftLabel("Daughterboard");
+            SmGui::FillWidth();
+            if (SmGui::Combo(CONCAT("##_rfnm_dgb_sel_", _this->name), &_this->dgbId, _this->daughterboards.txt)) {
+                // Open the device
+                librfnm* dev = new librfnm(librfnm_transport::LIBRFNM_TRANSPORT_USB, _this->selectedSerial);
+
+                // Select the daughterboard
+                _this->selectDaughterboard(dev, _this->dgbId);
+
+                // Close device
+                delete dev;
+
+                // TODO: Save
+            }
+        }
+        
+        if (_this->paths.size() > 1) {
+            SmGui::LeftLabel("Antenna Path");
+            SmGui::FillWidth();
+            if (SmGui::Combo(CONCAT("##_rfnm_path_sel_", _this->name), &_this->pathId, _this->paths.txt)) {
+                // Open the device
+                librfnm* dev = new librfnm(librfnm_transport::LIBRFNM_TRANSPORT_USB, _this->selectedSerial);
+
+                // Select the atennna path
+                _this->selectPath(dev, _this->dgbId, _this->paths.key(_this->pathId));
+
+                // Close device
+                delete dev;
+
+                // TODO: Save
+            }
+        }
+
         if (_this->running) { SmGui::EndDisabled(); }
 
         SmGui::LeftLabel("Bandwidth");
         SmGui::FillWidth();
         if (SmGui::Combo(CONCAT("##_rfnm_bw_sel_", _this->name), &_this->bwId, _this->bandwidths.txt)) {
+            if (_this->running) {
+                // TODO: Set
+            }
             // TODO: Save
         }
 
@@ -250,16 +397,16 @@ private:
         SmGui::FillWidth();
         if (SmGui::SliderInt(CONCAT("##_rfnm_gain_", _this->name), &_this->gain, _this->gainMin, _this->gainMax)) {
             if (_this->running) {
-                _this->openDev->s->rx.ch[0].gain = _this->gain;
-                rfnm_api_failcode fail = _this->openDev->set(LIBRFNM_APPLY_CH0_RX);
+                _this->openDev->s->rx.ch[_this->currentPath.chId].gain = _this->gain;
+                rfnm_api_failcode fail = _this->openDev->set(_this->currentPath.appliesCh);
             }
             // TODO: Save
         }
 
         if (SmGui::Checkbox(CONCAT("FM Notch##_rfnm_", _this->name), &_this->fmNotch)) {
             if (_this->running) {
-                _this->openDev->s->rx.ch[0].fm_notch = _this->fmNotch ? rfnm_fm_notch::RFNM_FM_NOTCH_ON : rfnm_fm_notch::RFNM_FM_NOTCH_OFF;
-                rfnm_api_failcode fail = _this->openDev->set(LIBRFNM_APPLY_CH0_RX);
+                _this->openDev->s->rx.ch[_this->currentPath.chId].fm_notch = _this->fmNotch ? rfnm_fm_notch::RFNM_FM_NOTCH_ON : rfnm_fm_notch::RFNM_FM_NOTCH_OFF;
+                rfnm_api_failcode fail = _this->openDev->set(_this->currentPath.appliesCh);
             }
             // TODO: Save
         }
@@ -268,12 +415,13 @@ private:
     void worker() {
         librfnm_rx_buf* lrxbuf;
         int sampCount = bufferSize/4;
+        uint8_t ch = (1 << currentPath.chId);
 
         // TODO: Define number of buffers per swap to maintain 200 fps
 
-        while (true) {
+        while (run) {
             // Receive a buffer
-            auto fail = openDev->rx_dqbuf(&lrxbuf, LIBRFNM_CH0, 1000);
+            auto fail = openDev->rx_dqbuf(&lrxbuf, ch, 1000);
             if (fail == rfnm_api_failcode::RFNM_API_DQBUF_NO_DATA) {
                 flog::error("Dequeue buffer didn't have any data");
                 continue;
@@ -302,12 +450,15 @@ private:
     double freq;
 
     OptionList<std::string, std::string> devices;
+    OptionList<std::string, int> daughterboards;
+    OptionList<std::string, PathConfig> paths;
     OptionList<int, int> bandwidths;
     OptionList<int, int> samplerates;
     int gainMin = 0;
     int gainMax = 0;
-
     int devId = 0;
+    int dgbId = 0;
+    int pathId = 0;
     int srId = 0;
     int bwId = 0;
     int gain = 0;
@@ -315,8 +466,11 @@ private:
     std::string selectedSerial;
     librfnm* openDev;
     int bufferSize = -1;
+    std::string selectedPath;
+    PathConfig currentPath;
     librfnm_rx_buf rxBuf[LIBRFNM_MIN_RX_BUFCNT];
 
+    std::atomic<bool> run = false;
     std::thread workerThread;
 };
 
