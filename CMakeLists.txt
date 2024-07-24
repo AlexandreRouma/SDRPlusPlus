@@ -48,6 +48,7 @@ option(OPT_BUILD_M17_DECODER "Build the M17 decoder module (Dependencies: codec2
 option(OPT_BUILD_METEOR_DEMODULATOR "Build the meteor demodulator module (no dependencies required)" ON)
 option(OPT_BUILD_PAGER_DECODER "Build the pager decoder module (no dependencies required)" ON)
 option(OPT_BUILD_RADIO "Main audio modulation decoder (AM, FM, SSB, etc...)" ON)
+option(OPT_BUILD_RYFI_DECODER "RyFi data link decoder" OFF)
 option(OPT_BUILD_WEATHER_SAT_DECODER "Build the HRPT decoder module (no dependencies required)" OFF)
 
 # Misc
@@ -259,6 +260,10 @@ endif (OPT_BUILD_PAGER_DECODER)
 if (OPT_BUILD_RADIO)
 add_subdirectory("decoder_modules/radio")
 endif (OPT_BUILD_RADIO)
+
+if (OPT_BUILD_RYFI_DECODER)
+add_subdirectory("decoder_modules/ryfi_decoder")
+endif (OPT_BUILD_RYFI_DECODER)
 
 if (OPT_BUILD_WEATHER_SAT_DECODER)
 add_subdirectory("decoder_modules/weather_sat_decoder")
