@@ -1,5 +1,6 @@
 #pragma once
 #include <volk/volk.h>
+#include "../buffer/buffer.h"
 
 namespace dsp {
     template<class T>
