@@ -33,10 +33,13 @@ public:
     SpectranSourceModule(std::string name) {
         this->name = name;
 
-        if (AARTSAAPI_Init(AARTSAAPI_MEMORY_MEDIUM) != AARTSAAPI_OK) {
+        AARTSAAPI_Result res;
+        if ((res = AARTSAAPI_Init(AARTSAAPI_MEMORY_MEDIUM)) != AARTSAAPI_OK) {
+            flog::error("Failed to initialize the RTSAAPI: {}", (uint32_t)res);
             return;
         }
-        if (AARTSAAPI_Open(&api) != AARTSAAPI_OK) {
+        if ((res = AARTSAAPI_Open(&api)) != AARTSAAPI_OK) {
+            flog::error("Failed to open the RTSAAPI: {}", (uint32_t)res);
             return;
         }
 
@@ -452,13 +455,16 @@ private:
 
     void updateRef() {
         // Get and update bounds
-        AARTSAAPI_Config config;
-        AARTSAAPI_ConfigInfo refInfo;
-        AARTSAAPI_ConfigFind(&dev, &croot, &config, L"main/reflevel");
-        AARTSAAPI_ConfigGetInfo(&dev, &config, &refInfo);
+        AARTSAAPI_Config config = {};
+        AARTSAAPI_ConfigInfo refInfo = {};
+        auto res = AARTSAAPI_ConfigFind(&dev, &croot, &config, L"main/reflevel");
+        flog::debug("Res A: {}", res);
+        res = AARTSAAPI_ConfigGetInfo(&dev, &config, &refInfo);
+        flog::debug("Res B: {}", res);
         minRef = refInfo.minValue;
         maxRef = refInfo.maxValue;
         refStep = refInfo.stepValue;
+        flog::debug("Gain: {} -> {}", refInfo.minValue, refInfo.maxValue);
         refLevel = std::clamp<float>(refLevel, minRef, maxRef);
 
         // Apply new ref level

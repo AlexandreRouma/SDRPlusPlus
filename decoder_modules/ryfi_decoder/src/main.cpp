@@ -23,9 +23,9 @@ SDRPP_MOD_INFO{
     /* Max instances    */ -1
 };
 
-#define INPUT_BANDWIDTH     800000
-#define INPUT_SAMPLE_RATE   1500000
-#define INPUT_BAUDRATE      720000
+#define INPUT_BANDWIDTH     138e3
+#define INPUT_SAMPLE_RATE   250e3
+#define INPUT_BAUDRATE      125e3
 
 #define SYMBOL_DIAG_RATE    30
 #define SYMBOL_DIAG_COUNT   1024

@@ -93,7 +93,7 @@ namespace ryfi {
             // If the frames aren't consecutive
             int frameRead = 0;
             if (frame.counter != expectedCounter) {
-                //flog::warn("Lost at least {} frames", ((int)frame.counter - (int)expectedCounter + 0x10000) % 0x10000);
+                flog::warn("Lost at least {} frames", ((int)frame.counter - (int)expectedCounter + 0x10000) % 0x10000);
 
                 // Cancel the partial packet if there was one
                 pktExpected = 0;
