@@ -10,7 +10,7 @@
 
 SDRPP_MOD_INFO{
     /* Name:            */ "harogic_source",
-    /* Description:     */ "RFNM Source Module",
+    /* Description:     */ "harogic Source Module",
     /* Author:          */ "Ryzerth",
     /* Version:         */ 0, 1, 0,
     /* Max instances    */ -1
@@ -77,14 +77,11 @@ private:
         for (int i = 0; i < 128; i++) {
             // Attempt to open the device with the given ID
             int ret = Device_Open(&dev, i, &profile, &binfo);
-            if (ret < 0) {
-                flog::debug("Done searching: {}", ret);
-                break;
-            }
+            if (ret < 0) { break; }
 
             // Create serial string
-            char serial[1024];
-            sprintf(serial, "%016X", binfo.DeviceInfo.DeviceUID);
+            char serial[64];
+            sprintf(serial, "%" PRIX64, binfo.DeviceInfo.DeviceUID);
             
             // Add the device to the list
             devices.define(serial, serial, i);
@@ -140,11 +137,43 @@ private:
             samplerates.define(1 << i, buf, sr);
         }
 
+        // Define RX ports
+        rxPorts.clear();
+        rxPorts.define("external", "External", ExternalPort);
+        rxPorts.define("internal", "Internal", InternalPort);
+        rxPorts.define("ant", "ANT", ANT_Port);
+        rxPorts.define("tr", "T/R", TR_Port);
+        rxPorts.define("swr", "SWR", SWR_Port);
+        rxPorts.define("int", "INT", INT_Port);
+
+        // Define gain strategies
+        gainStategies.clear();
+        gainStategies.define("lowNoise", "Low Noise", LowNoisePreferred);
+        gainStategies.define("highLinearity", "High Linearity", HighLinearityPreferred);
+
+        // Define preamplifier modes
+        preampModes.clear();
+        preampModes.define("auto", "Auto", AutoOn);
+        preampModes.define("off", "Off", ForcedOff);
+
+        // Define LO modes
+        loModes.clear();
+        loModes.define("auto", "Auto", LOOpt_Auto);
+        loModes.define("speed", "Speed", LOOpt_Speed);
+        loModes.define("spurs", "Spurs", LOOpt_Spur);
+        loModes.define("phaseNoise", "Phase Noise", LOOpt_PhaseNoise);
+
         // Close the device
         Device_Close(&dev);
 
         // TODO: Load configuration
         sampleRate = samplerates.value(0);
+        refLvl = 0;
+        portId = rxPorts.valueId(ExternalPort);
+        gainStratId = gainStategies.valueId(LowNoisePreferred);
+        preampModeId = preampModes.valueId(AutoOn);
+        ifAgc = false;
+        loModeId = loModes.valueId(LOOpt_Auto);
 
         // Update the samplerate
         core::setInputSampleRate(sampleRate);
@@ -190,16 +219,25 @@ private:
         // Decide to use either 8 or 16bit samples
         _this->sampsInt8 = (_this->sampleRate > 64e6);
 
-        // Configure the IQ stream
+        // Get the default configuration
         IQS_ProfileDeInit(&_this->openDev, &_this->profile);
-        _this->profile.CenterFreq_Hz = _this->freq;
-        _this->profile.RefLevel_dBm = -30;
-        _this->profile.DecimateFactor = dec;
-        _this->profile.RxPort = ExternalPort;
+        
+        // Automatic configuration
+        _this->profile.Atten = -1;
         _this->profile.BusTimeout_ms = 100;
         _this->profile.TriggerSource = Bus; 
         _this->profile.TriggerMode = Adaptive;
         _this->profile.DataFormat = _this->sampsInt8 ? Complex8bit : Complex16bit;
+
+        // User selectable config
+        _this->profile.CenterFreq_Hz = _this->freq;
+        _this->profile.RefLevel_dBm = _this->refLvl;
+        _this->profile.DecimateFactor = dec;
+        _this->profile.RxPort = _this->rxPorts.value(_this->portId);
+        _this->profile.GainStrategy = _this->gainStategies.value(_this->gainStratId);
+        _this->profile.Preamplifier = _this->preampModes.value(_this->preampModeId);
+        _this->profile.EnableIFAGC = _this->ifAgc;
+        _this->profile.LOOptimization = _this->loModes.value(_this->loModeId);
 
         // Apply the configuration
         IQS_StreamInfo_TypeDef info;
@@ -253,25 +291,9 @@ private:
     static void tune(double freq, void* ctx) {
         HarogicSourceModule* _this = (HarogicSourceModule*)ctx;
         if (_this->running) {
-            // Acquire device
-            std::lock_guard<std::mutex> lck(_this->devMtx);
-            
             // Update the frequency in the configuration
             _this->profile.CenterFreq_Hz = freq;
-
-            // Configure the device
-            IQS_StreamInfo_TypeDef info;
-            int ret = IQS_Configuration(&_this->openDev, &_this->profile, &_this->profile, &info);
-            if (ret < 0) {
-                flog::error("Failed to apply tuning config: {}", ret);
-            }
-
-
-            // Re-trigger the stream
-            ret = IQS_BusTriggerStart(&_this->openDev);
-            if (ret < 0) {
-                flog::error("Could not start stream: {}", ret);
-            }
+            _this->applyProfile();
         }
         _this->freq = freq;
         flog::info("HarogicSourceModule '{0}': Tune: {1}!", _this->name, freq);
@@ -284,13 +306,13 @@ private:
 
         SmGui::FillWidth();
         SmGui::ForceSync();
-        if (SmGui::Combo(CONCAT("##_rfnm_dev_sel_", _this->name), &_this->devId, _this->devices.txt)) {
+        if (SmGui::Combo(CONCAT("##_harogic_dev_sel_", _this->name), &_this->devId, _this->devices.txt)) {
             _this->select(_this->devices.key(_this->devId));
             core::setInputSampleRate(_this->sampleRate);
             // TODO: Save
         }
 
-        if (SmGui::Combo(CONCAT("##_rfnm_sr_sel_", _this->name), &_this->srId, _this->samplerates.txt)) {
+        if (SmGui::Combo(CONCAT("##_harogic_sr_sel_", _this->name), &_this->srId, _this->samplerates.txt)) {
             _this->sampleRate = _this->samplerates.value(_this->srId);
             core::setInputSampleRate(_this->sampleRate);
             // TODO: Save
@@ -299,13 +321,89 @@ private:
         SmGui::SameLine();
         SmGui::FillWidth();
         SmGui::ForceSync();
-        if (SmGui::Button(CONCAT("Refresh##_rfnm_refr_", _this->name))) {
+        if (SmGui::Button(CONCAT("Refresh##_harogic_refr_", _this->name))) {
             _this->refresh();
             _this->select(_this->selectedSerial);
             core::setInputSampleRate(_this->sampleRate);
         }
 
         if (_this->running) { SmGui::EndDisabled(); }
+
+        SmGui::LeftLabel("RX Port");
+        SmGui::FillWidth();
+        if (SmGui::Combo(CONCAT("##_harogic_port_", _this->name), &_this->portId, _this->rxPorts.txt)) {
+            if (_this->running) {
+                _this->profile.RxPort = _this->rxPorts.value(_this->portId);
+                _this->applyProfile();
+            }
+            // TODO: Save
+        }
+
+        SmGui::LeftLabel("LO Mode");
+        SmGui::FillWidth();
+        if (SmGui::Combo(CONCAT("##_lo_mode_", _this->name), &_this->loModeId, _this->loModes.txt)) {
+            if (_this->running) {
+                _this->profile.LOOptimization = _this->loModes.value(_this->loModeId);
+                _this->applyProfile();
+            }
+            // TODO: Save
+        }
+
+        SmGui::LeftLabel("Gain Mode");
+        SmGui::FillWidth();
+        if (SmGui::Combo(CONCAT("##_harogic_gain_mode_", _this->name), &_this->gainStratId, _this->gainStategies.txt)) {
+            if (_this->running) {
+                _this->profile.GainStrategy = _this->gainStategies.value(_this->gainStratId);
+                _this->applyProfile();
+            }
+            // TODO: Save
+        }
+
+        SmGui::LeftLabel("Preamp Mode");
+        SmGui::FillWidth();
+        if (SmGui::Combo(CONCAT("##_harogic_preamp_mode_", _this->name), &_this->preampModeId, _this->preampModes.txt)) {
+            if (_this->running) {
+                _this->profile.Preamplifier = _this->preampModes.value(_this->preampModeId);
+                _this->applyProfile();
+            }
+            // TODO: Save
+        }
+
+        SmGui::LeftLabel("Reference");
+        SmGui::FillWidth();
+        if (SmGui::SliderInt(CONCAT("##_harogic_ref_", _this->name), &_this->refLvl, _this->minRef, _this->maxRef)) {
+            if (_this->running) {
+                _this->profile.RefLevel_dBm = _this->refLvl;
+                _this->applyProfile();
+            }
+            // TODO: Save
+        }
+
+        if (SmGui::Checkbox(CONCAT("IF AGC##_harogic_if_agc_", _this->name), &_this->ifAgc)) {
+            if (_this->running) {
+                _this->profile.EnableIFAGC = _this->ifAgc;
+                _this->applyProfile();
+            }
+            // TODO: Save
+        }
+    }
+
+    void applyProfile() {
+        // Acquire device
+        std::lock_guard<std::mutex> lck(devMtx);
+
+        // Configure the device
+        IQS_StreamInfo_TypeDef info;
+        int ret = IQS_Configuration(&openDev, &profile, &profile, &info);
+        if (ret < 0) {
+            flog::error("Failed to apply tuning config: {}", ret);
+        }
+
+        // Re-trigger the stream
+        ret = IQS_BusTriggerStart(&openDev);
+        if (ret < 0) {
+            flog::error("Could not start stream: {}", ret);
+        }
     }
 
     void worker() {
@@ -368,8 +466,20 @@ private:
 
     OptionList<std::string, int> devices;
     OptionList<int, double> samplerates;
+    OptionList<std::string, RxPort_TypeDef> rxPorts;
+    OptionList<std::string, GainStrategy_TypeDef> gainStategies;
+    OptionList<std::string, PreamplifierState_TypeDef> preampModes;
+    OptionList<std::string, LOOptimization_TypeDef> loModes;
     int devId = 0;
     int srId = 0;
+    int refLvl = -30;
+    int minRef = -100;
+    int maxRef = 7;
+    int portId = 0;
+    int gainStratId = 0;
+    int preampModeId = 0;
+    int loModeId = 0;
+    bool ifAgc = false;
     std::string selectedSerial;
     int selectedDevIndex;
 
