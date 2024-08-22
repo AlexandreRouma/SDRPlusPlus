@@ -77,7 +77,10 @@ private:
         for (int i = 0; i < 128; i++) {
             // Attempt to open the device with the given ID
             int ret = Device_Open(&dev, i, &profile, &binfo);
-            if (ret < 0) { break; }
+            if (ret < 0) {
+                flog::debug("Done searching: {}", ret);
+                break;
+            }
 
             // Create serial string
             char serial[1024];
