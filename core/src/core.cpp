@@ -250,7 +250,7 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["lockMenuOrder"] = false;
 #endif
 
-#if define(__ANDROID__)
+#ifdef __ANDROID__
     defConfig["modulesDirectory"] = root + SDRPP_MODULES_LOAD_DIR;
     defConfig["resourcesDirectory"] = root + SDRPP_RES_LOAD_DIR;
 #else
