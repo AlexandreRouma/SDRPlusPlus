@@ -18,6 +18,10 @@ if (MSVC)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif ()
 
+# Add compiler definitions for the directories
+add_definitions(-DSDRPP_MODULES_LOAD_DIR=${SDRPP_MODULES_LOAD_DIR})
+add_definitions(-DSDRPP_RES_LOAD_DIR=${SDRPP_RES_LOAD_DIR})
+
 # Configure backend sources
 if (OPT_BACKEND_GLFW)
     file(GLOB_RECURSE BACKEND_SRC "backends/glfw/*.cpp" "backends/glfw/*.c")
@@ -32,9 +36,6 @@ add_library(sdrpp_core SHARED ${SRC} ${BACKEND_SRC})
 
 # Set compiler options
 target_compile_options(sdrpp_core PRIVATE ${SDRPP_COMPILER_FLAGS})
-
-# Set the install prefix
-target_compile_definitions(sdrpp_core PUBLIC INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}")
 
 # Include core headers
 target_include_directories(sdrpp_core PUBLIC "src/")
@@ -167,4 +168,4 @@ set(CORE_FILES ${RUNTIME_OUTPUT_DIRECTORY} PARENT_SCOPE)
 # cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake"
 
 # Install directives
-install(TARGETS sdrpp_core DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(TARGETS sdrpp_core DESTINATION ${SDRPP_LIB_INSTALL_DIR})

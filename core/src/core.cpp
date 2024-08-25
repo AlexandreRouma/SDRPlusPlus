@@ -24,13 +24,15 @@
 #include <Windows.h>
 #endif
 
-#ifndef INSTALL_PREFIX
-#ifdef __APPLE__
-#define INSTALL_PREFIX "/usr/local"
-#else
-#define INSTALL_PREFIX "/usr"
+
+// Default install dirs to make the IDE happy
+#ifndef SDRPP_MODULES_LOAD_DIR
+#define SDRPP_MODULES_LOAD_DIR ""
 #endif
+#ifndef SDRPP_RES_LOAD_DIR
+#define SDRPP_RES_LOAD_DIR ""
 #endif
+
 
 namespace core {
     ConfigManager configManager;
@@ -248,19 +250,14 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["lockMenuOrder"] = false;
 #endif
 
-#if defined(_WIN32)
-    defConfig["modulesDirectory"] = "./modules";
-    defConfig["resourcesDirectory"] = "./res";
-#elif defined(IS_MACOS_BUNDLE)
-    defConfig["modulesDirectory"] = "../Plugins";
-    defConfig["resourcesDirectory"] = "../Resources";
-#elif defined(__ANDROID__)
-    defConfig["modulesDirectory"] = root + "/modules";
-    defConfig["resourcesDirectory"] = root + "/res";
+#if define(__ANDROID__)
+    defConfig["modulesDirectory"] = root + SDRPP_MODULES_LOAD_DIR;
+    defConfig["resourcesDirectory"] = root + SDRPP_RES_LOAD_DIR;
 #else
-    defConfig["modulesDirectory"] = INSTALL_PREFIX "/lib/sdrpp/plugins";
-    defConfig["resourcesDirectory"] = INSTALL_PREFIX "/share/sdrpp";
+    defConfig["modulesDirectory"] = SDRPP_MODULES_LOAD_DIR;
+    defConfig["resourcesDirectory"] = SDRPP_RES_LOAD_DIR;
 #endif
+    
 
     // Load config
     flog::info("Loading config");
