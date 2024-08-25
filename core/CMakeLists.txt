@@ -167,4 +167,4 @@ set(CORE_FILES ${RUNTIME_OUTPUT_DIRECTORY} PARENT_SCOPE)
 # cmake .. "-DCMAKE_TOOLCHAIN_FILE=C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake"
 
 # Install directives
-install(TARGETS sdrpp_core DESTINATION lib)
+install(TARGETS sdrpp_core DESTINATION ${CMAKE_INSTALL_LIBDIR})

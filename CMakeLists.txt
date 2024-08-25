@@ -97,11 +97,23 @@ set(SDRPP_MODULE_COMPILER_FLAGS ${SDRPP_COMPILER_FLAGS})
 
 # Set a default install prefix
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    if (MSVC)
+        set(CMAKE_INSTALL_PREFIX "C:/Program Files/SDR++/" CACHE PATH "..." FORCE)
+    elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "..." FORCE)
     else()
         set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "..." FORCE)
     endif()
+endif()
+
+# Set up the standard install directories
+if (MSVC)
+    set(CMAKE_INSTALL_BINDIR "/")
+    set(CMAKE_INSTALL_LIBDIR "/")
+    set(CMAKE_INSTALL_INCLUDEDIR "include")
+    set(CMAKE_INSTALL_DATAROOTDIR "/")
+else()
+    include(GNUInstallDirs)
 endif()
 
 # Configure toolchain for android
@@ -364,16 +376,16 @@ endif ()
 configure_file(${CMAKE_SOURCE_DIR}/sdrpp_module.cmake ${CMAKE_CURRENT_BINARY_DIR}/sdrpp_module.cmake @ONLY)
 
 # Install directives
-install(TARGETS sdrpp DESTINATION bin)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/bandplans DESTINATION share/sdrpp)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/colormaps DESTINATION share/sdrpp)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/fonts DESTINATION share/sdrpp)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/icons DESTINATION share/sdrpp)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/themes DESTINATION share/sdrpp)
+install(TARGETS sdrpp DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/bandplans DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/sdrpp)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/colormaps DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/sdrpp)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/fonts DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/sdrpp)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/icons DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/sdrpp)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/root/res/themes DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/sdrpp)
 configure_file(${CMAKE_SOURCE_DIR}/sdrpp.desktop ${CMAKE_CURRENT_BINARY_DIR}/sdrpp.desktop @ONLY)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/sdrpp.desktop DESTINATION share/applications)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/sdrpp.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
 endif ()
 
 # Create uninstall target
