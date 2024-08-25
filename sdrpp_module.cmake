@@ -7,8 +7,8 @@ if (NOT SDRPP_MODULE_COMPILER_FLAGS)
 endif ()
 
 # Add compiler definitions for the directories
-add_definitions(-DSDRPP_MODULES_LOAD_DIR=${SDRPP_MODULES_LOAD_DIR})
-add_definitions(-DSDRPP_RES_LOAD_DIR=${SDRPP_RES_LOAD_DIR})
+add_definitions(-DSDRPP_MODULES_LOAD_DIR="${SDRPP_MODULES_LOAD_DIR}")
+add_definitions(-DSDRPP_RES_LOAD_DIR="${SDRPP_RES_LOAD_DIR}")
 
 # Created shared lib and link to core
 add_library(${PROJECT_NAME} SHARED ${SRC})
