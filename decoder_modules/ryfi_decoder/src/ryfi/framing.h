@@ -1,6 +1,7 @@
 #pragma once
 #include "dsp/processor.h"
 #include <stdint.h>
+#include <stddef.h>
 
 namespace ryfi {
     // Synchronization word.

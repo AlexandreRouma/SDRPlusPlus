@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <stddef.h>
 #include "dsp/processor.h"
 
 extern "C" {
