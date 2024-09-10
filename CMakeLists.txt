@@ -43,6 +43,7 @@ option(OPT_BUILD_PORTAUDIO_SINK "Build PortAudio Sink Module (Dependencies: port
 
 # Decoders
 option(OPT_BUILD_ATV_DECODER "Build ATV decoder (no dependencies required)" OFF)
+option(OPT_BUILD_DAB_DECODER "Build the DAB/DAB+ decoder (no dependencies required)" OFF)
 option(OPT_BUILD_FALCON9_DECODER "Build the falcon9 live decoder (Dependencies: ffplay)" OFF)
 option(OPT_BUILD_KG_SSTV_DECODER "Build the KG SSTV (KG-STV) decoder module (no dependencies required)" OFF)
 option(OPT_BUILD_M17_DECODER "Build the M17 decoder module (Dependencies: codec2)" OFF)
@@ -241,6 +242,10 @@ endif (OPT_BUILD_NEW_PORTAUDIO_SINK)
 if (OPT_BUILD_ATV_DECODER)
 add_subdirectory("decoder_modules/atv_decoder")
 endif (OPT_BUILD_ATV_DECODER)
+
+if (OPT_BUILD_DAB_DECODER)
+add_subdirectory("decoder_modules/dab_decoder")
+endif (OPT_BUILD_DAB_DECODER)
 
 if (OPT_BUILD_FALCON9_DECODER)
 add_subdirectory("decoder_modules/falcon9_decoder")
