@@ -72,6 +72,7 @@ namespace ryfi {
         uint8_t* pktBuffer = new uint8_t[Packet::MAX_CONTENT_SIZE];
         int pktExpected = 0;
         int pktRead = 0;
+        int valid = 0;
 
         while (true) {
             // Read a frame
@@ -80,6 +81,7 @@ namespace ryfi {
 
             // Deserialize the frame
             Frame::deserialize(rs.out.readBuf, frame);
+            valid++;
 
             // Flush the stream
             rs.out.flush();
@@ -93,11 +95,12 @@ namespace ryfi {
             // If the frames aren't consecutive
             int frameRead = 0;
             if (frame.counter != expectedCounter) {
-                flog::warn("Lost at least {} frames", ((int)frame.counter - (int)expectedCounter + 0x10000) % 0x10000);
+                flog::warn("Lost at least {} frames after {} valid frames", ((int)frame.counter - (int)expectedCounter + 0x10000) % 0x10000, valid);
 
                 // Cancel the partial packet if there was one
                 pktExpected = 0;
                 pktRead = 0;
+                valid = 1;
 
                 // If this frame is not an idle frame or continuation frame
                 if (frame.firstPacket != PKT_OFFS_NONE) {

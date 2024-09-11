@@ -217,14 +217,19 @@ private:
     }
 
     void startServer() {
-        if (modeId == SINK_MODE_TCP) {
-            listener = net::listen(hostname, port);
-            if (listener) {
-                listener->acceptAsync(clientHandler, this);
+        try {
+            if (modeId == SINK_MODE_TCP) {
+                listener = net::listen(hostname, port);
+                if (listener) {
+                    listener->acceptAsync(clientHandler, this);
+                }
+            }
+            else {
+                conn = net::openUDP("0.0.0.0", port, hostname, port, false);
             }
         }
-        else {
-            conn = net::openUDP("0.0.0.0", port, hostname, port, false);
+        catch (const std::exception& e) {
+            flog::error("Failed to open socket: {}", e.what());
         }
     }
 
