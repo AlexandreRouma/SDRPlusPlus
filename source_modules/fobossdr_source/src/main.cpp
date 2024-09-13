@@ -16,7 +16,15 @@ SDRPP_MOD_INFO{
     /* Max instances    */ -1
 };
 
+ConfigManager config;
+
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
+
+// Work around for the fobos API not including
+#define FOBOS_LNA_GAIN_MIN  1
+#define FOBOS_LNA_GAIN_MAX  3
+#define FOBOS_VGA_GAIN_MIN  0
+#define FOBOS_VGA_GAIN_MAX  31
 
 class FobosSDRSourceModule : public ModuleManager::Instance {
 public:
@@ -25,6 +33,9 @@ public:
 
         sampleRate = 50000000.0;
 
+        // Initialize the DDC
+        ddc.init(&ddcIn, 50e6, 50e6, 50e6, 0.0);
+
         handler.ctx = this;
         handler.selectHandler = menuSelected;
         handler.deselectHandler = menuDeselected;
@@ -32,19 +43,22 @@ public:
         handler.startHandler = start;
         handler.stopHandler = stop;
         handler.tuneHandler = tune;
-        handler.stream = &stream;
+        handler.stream = &ddc.out;
 
         // Refresh devices
         refresh();
 
-        // Select first (TODO: Select from config)
-        select("");
+        // Select device from config
+        config.acquire();
+        std::string devSerial = config.conf["device"];
+        config.release();
+        select(devSerial);
 
         sigpath::sourceManager.registerSource("FobosSDR", &handler);
     }
 
     ~FobosSDRSourceModule() {
-        
+        // Nothing to do
     }
 
     void postInit() {}
@@ -160,6 +174,11 @@ private:
             samplerates.define(srList[i], str, srList[i]);
         }
 
+        // Add some custom samplerates
+        samplerates.define(5e6, "5.0MHz", 5e6);
+        samplerates.define(2.5e6, "2.5MHz", 2.5e6);
+        samplerates.define(1.25e6, "1.25MHz", 1.25e6);
+
         // Define the ports
         ports.clear();
         ports.define("rf", "RF", PORT_RF);
@@ -174,12 +193,51 @@ private:
         // Close the device
         fobos_rx_close(dev);
 
-        // Update the samplerate
-        core::setInputSampleRate(sampleRate);
-
         // Save serial number
         selectedSerial = serial;
         devId = id;
+
+        // Load default options
+        sampleRate = 50e6;
+        srId = samplerates.valueId(sampleRate);
+        port = PORT_RF;
+        portId = ports.valueId(port);
+        clkSrcId = clockSources.nameId("Internal");
+        lnaGain = 0;
+        vgaGain = 0;
+
+        // Load config
+        config.acquire();
+        if (config.conf["devices"][selectedSerial].contains("samplerate")) {
+            int desiredSr = config.conf["devices"][selectedSerial]["samplerate"];
+            if (samplerates.keyExists(desiredSr)) {
+                srId = samplerates.keyId(desiredSr);
+                sampleRate = samplerates[srId];
+            }
+        }
+        if (config.conf["devices"][selectedSerial].contains("port")) {
+            std::string desiredPort = config.conf["devices"][selectedSerial]["port"];
+            if (ports.keyExists(desiredPort)) {
+                portId = ports.keyId(desiredPort);
+                port = ports[portId];
+            }
+        }
+        if (config.conf["devices"][selectedSerial].contains("clkSrc")) {
+            std::string desiredClkSrc = config.conf["devices"][selectedSerial]["clkSrc"];
+            if (clockSources.keyExists(desiredClkSrc)) {
+                clkSrcId = clockSources.keyId(desiredClkSrc);
+            }
+        }
+        if (config.conf["devices"][selectedSerial].contains("lnaGain")) {
+            lnaGain = std::clamp<int>(config.conf["devices"][selectedSerial]["lnaGain"], FOBOS_LNA_GAIN_MIN, FOBOS_LNA_GAIN_MAX);
+        }
+        if (config.conf["devices"][selectedSerial].contains("vgaGain")) {
+            vgaGain = std::clamp<int>(config.conf["devices"][selectedSerial]["vgaGain"], FOBOS_VGA_GAIN_MIN, FOBOS_VGA_GAIN_MAX);
+        }
+        config.release();
+
+        // Update the samplerate
+        core::setInputSampleRate(sampleRate);
     }
 
     static void menuSelected(void* ctx) {
@@ -209,15 +267,38 @@ private:
 
         // Configure the device
         double actualSr, actualFreq;
-        fobos_rx_set_samplerate(_this->openDev, _this->sampleRate, &actualSr);
+        fobos_rx_set_samplerate(_this->openDev, (_this->sampleRate >= 50e6) ? _this->sampleRate : 50e6, &actualSr);
         fobos_rx_set_frequency(_this->openDev, _this->freq, &actualFreq);
         fobos_rx_set_direct_sampling(_this->openDev, _this->port != PORT_RF);
         fobos_rx_set_clk_source(_this->openDev, _this->clockSources[_this->clkSrcId]);
         fobos_rx_set_lna_gain(_this->openDev, _this->lnaGain);
         fobos_rx_set_vga_gain(_this->openDev, _this->vgaGain);
 
-        // Compute buffer size
-        _this->bufferSize = _this->sampleRate / 200.0;
+        // Configure the DDC
+        if (_this->port == PORT_RF && _this->sampleRate >= 50e6) {
+            // Set the frequency
+            fobos_rx_set_frequency(_this->openDev, _this->freq, &actualFreq);
+        }
+        else if (_this->port == PORT_RF) {
+            // Set the frequency
+            fobos_rx_set_frequency(_this->openDev, _this->freq, &actualFreq);
+
+            // Configure and start the DDC for decimation only
+            _this->ddc.setInSamplerate(actualSr);
+            _this->ddc.setOutSamplerate(_this->sampleRate, _this->sampleRate);
+            _this->ddc.setOffset(0.0);
+            _this->ddc.start();
+        }
+        else {
+            // Configure and start the DDC
+            _this->ddc.setInSamplerate(actualSr);
+            _this->ddc.setOutSamplerate(_this->sampleRate, _this->sampleRate);
+            _this->ddc.setOffset(_this->freq);
+            _this->ddc.start();
+        }
+
+        // Compute buffer size (Lower than usual, but it's a workaround for their API having broken streaming)
+        _this->bufferSize = _this->sampleRate / 400.0;
 
         // Start streaming
         err = fobos_rx_start_sync(_this->openDev, _this->bufferSize);
@@ -241,12 +322,22 @@ private:
 
         // Stop worker
         _this->run = false;
-        _this->stream.stopWriter();
-        if (_this->workerThread.joinable()) { _this->workerThread.join(); }
-        _this->stream.clearWriteStop();
+        if (_this->port == PORT_RF && _this->sampleRate >= 50e6) {
+            _this->ddc.out.stopWriter();
+            if (_this->workerThread.joinable()) { _this->workerThread.join(); }
+            _this->ddc.out.clearWriteStop();
+        }
+        else {
+            _this->ddcIn.stopWriter();
+            if (_this->workerThread.joinable()) { _this->workerThread.join(); }
+            _this->ddcIn.clearWriteStop();
+        }
 
         // Stop streaming
         fobos_rx_stop_sync(_this->openDev);
+
+        // Stop the DDC
+        _this->ddc.stop();
 
         // Close the device
         fobos_rx_close(_this->openDev);
@@ -257,8 +348,13 @@ private:
     static void tune(double freq, void* ctx) {
         FobosSDRSourceModule* _this = (FobosSDRSourceModule*)ctx;
         if (_this->running) {
-            double actual; // Dummy, don't care
-            fobos_rx_set_frequency(_this->openDev, freq, &actual);
+            if (_this->port == PORT_RF) {
+                double actual; // Dummy, don't care
+                fobos_rx_set_frequency(_this->openDev, freq, &actual);
+            }
+            else {
+                _this->ddc.setOffset(freq);
+            }
         }
         _this->freq = freq;
         flog::info("FobosSDRSourceModule '{0}': Tune: {1}!", _this->name, freq);
@@ -274,13 +370,19 @@ private:
         if (SmGui::Combo(CONCAT("##_fobossdr_dev_sel_", _this->name), &_this->devId, _this->devices.txt)) {
             _this->select(_this->devices.key(_this->devId));
             core::setInputSampleRate(_this->sampleRate);
-            // TODO: Save
+            config.acquire();
+            config.conf["device"] = _this->selectedSerial;
+            config.release(true);
         }
 
         if (SmGui::Combo(CONCAT("##_fobossdr_sr_sel_", _this->name), &_this->srId, _this->samplerates.txt)) {
             _this->sampleRate = _this->samplerates.value(_this->srId);
             core::setInputSampleRate(_this->sampleRate);
-            // TODO: Save
+            if (!_this->selectedSerial.empty()) {
+                config.acquire();
+                config.conf["devices"][_this->selectedSerial]["samplerate"] = _this->samplerates.key(_this->srId);
+                config.release(true);
+            }
         }
 
         SmGui::SameLine();
@@ -294,50 +396,118 @@ private:
 
         SmGui::LeftLabel("Antenna Port");
         SmGui::FillWidth();
-        if (SmGui::Combo(CONCAT("##_fobossdr_port_", _this->name), &_this->portId, _this->ports.txt));
+        if (SmGui::Combo(CONCAT("##_fobossdr_port_", _this->name), &_this->portId, _this->ports.txt)) {
+            if (!_this->selectedSerial.empty()) {
+                config.acquire();
+                config.conf["devices"][_this->selectedSerial]["port"] = _this->ports.key(_this->portId);
+                config.release(true);
+            }
+        }
 
         if (_this->running) { SmGui::EndDisabled(); }
 
         SmGui::LeftLabel("Clock Source");
         SmGui::FillWidth();
-        if (SmGui::Combo(CONCAT("##_fobossdr_clk_", _this->name), &_this->clkSrcId, _this->clockSources.txt));
+        if (SmGui::Combo(CONCAT("##_fobossdr_clk_", _this->name), &_this->clkSrcId, _this->clockSources.txt)) {
+            if (_this->running) {
+                fobos_rx_set_clk_source(_this->openDev, _this->clockSources[_this->clkSrcId]);
+            }
+            if (!_this->selectedSerial.empty()) {
+                config.acquire();
+                config.conf["devices"][_this->selectedSerial]["clkSrc"] = _this->clockSources.key(_this->clkSrcId);
+                config.release(true);
+            }
+        }
 
         if (_this->port == PORT_RF) {
             SmGui::LeftLabel("LNA Gain");
             SmGui::FillWidth();
-            if (SmGui::SliderInt(CONCAT("##_fobossdr_lna_gain_", _this->name), &_this->lnaGain, 0, 2)) {
+            if (SmGui::SliderInt(CONCAT("##_fobossdr_lna_gain_", _this->name), &_this->lnaGain, FOBOS_LNA_GAIN_MIN, FOBOS_LNA_GAIN_MAX)) {
                 if (_this->running) {
                     fobos_rx_set_lna_gain(_this->openDev, _this->lnaGain);
                 }
-                // TODO: Save
+                if (!_this->selectedSerial.empty()) {
+                    config.acquire();
+                    config.conf["devices"][_this->selectedSerial]["lnaGain"] = _this->lnaGain;
+                    config.release(true);
+                }
             }
 
             SmGui::LeftLabel("VGA Gain");
             SmGui::FillWidth();
-            if (SmGui::SliderInt(CONCAT("##_fobossdr_vga_gain_", _this->name), &_this->vgaGain, 0, 15)) {
+            if (SmGui::SliderInt(CONCAT("##_fobossdr_vga_gain_", _this->name), &_this->vgaGain, FOBOS_VGA_GAIN_MIN, FOBOS_VGA_GAIN_MAX)) {
                 if (_this->running) {
                     fobos_rx_set_vga_gain(_this->openDev, _this->vgaGain);
                 }
-                // TODO: Save
+                if (!_this->selectedSerial.empty()) {
+                    config.acquire();
+                    config.conf["devices"][_this->selectedSerial]["vgaGain"] = _this->vgaGain;
+                    config.release(true);
+                }
             }
         }
     }
 
     void worker() {
-        // Worker loop
-        while (run) {
-            // Read samples
-            unsigned int sampCount = 0;
-            int err = fobos_rx_read_sync(openDev, (float*)stream.writeBuf, &sampCount);
-            
-            // TODO: Send to DSP
-            if (!stream.swap(sampCount)) { break; }
+        // Select different processing depending on the mode
+        if (port == PORT_RF && sampleRate >= 50e6) {
+            while (run) {
+                // Read samples
+                unsigned int sampCount = 0;
+                int err = fobos_rx_read_sync(openDev, (float*)ddc.out.writeBuf, &sampCount);
+                if (err) { break; }
+                
+                // Send out samples to the core
+                if (!ddc.out.swap(sampCount)) { break; }
+            }
+        }
+        else if (port == PORT_RF) {
+            while (run) {
+                // Read samples
+                unsigned int sampCount = 0;
+                int err = fobos_rx_read_sync(openDev, (float*)ddcIn.writeBuf, &sampCount);
+                if (err) { break; }
+                
+                // Send samples to the DDC
+                if (!ddcIn.swap(sampCount)) { break; }
+            }
+        }
+        else if (port == PORT_HF1) {
+            while (run) {
+                // Read samples
+                unsigned int sampCount = 0;
+                int err = fobos_rx_read_sync(openDev, (float*)ddcIn.writeBuf, &sampCount);
+                if (err) { break; }
+
+                // Null out the HF2 samples
+                for (int i = 0; i < sampCount; i++) {
+                    ddcIn.writeBuf[i].im = 0.0f;
+                }
+                
+                // Send samples to the DDC
+                if (!ddcIn.swap(sampCount)) { break; }
+            }
+        }
+        else if (port == PORT_HF2) {
+            while (run) {
+                // Read samples
+                unsigned int sampCount = 0;
+                int err = fobos_rx_read_sync(openDev, (float*)ddcIn.writeBuf, &sampCount);
+                if (err) { break; }
+
+                // Null out the HF2 samples
+                for (int i = 0; i < sampCount; i++) {
+                    ddcIn.writeBuf[i].re = 0.0f;
+                }
+                
+                // Send samples to the DDC
+                if (!ddcIn.swap(sampCount)) { break; }
+            }
         }
     }
 
     std::string name;
     bool enabled = true;
-    dsp::stream<dsp::complex_t> stream;
     double sampleRate;
     SourceManager::SourceHandler handler;
     bool running = false;
@@ -362,10 +532,18 @@ private:
     int bufferSize;
     std::thread workerThread;
     std::atomic<bool> run = false;
+
+    dsp::stream<dsp::complex_t> ddcIn;
+    dsp::channel::RxVFO ddc;
 };
 
 MOD_EXPORT void _INIT_() {
-    // Nothing here
+    json def = json({});
+    def["devices"] = json({});
+    def["device"] = "";
+    config.setPath(core::args["root"].s() + "/fobossdr_config.json");
+    config.load(def);
+    config.enableAutoSave();
 }
 
 MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
@@ -377,5 +555,6 @@ MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
 }
 
 MOD_EXPORT void _END_() {
-    // Nothing here
+    config.disableAutoSave();
+    config.save();
 }

@@ -50,6 +50,7 @@ namespace sdrpp_credits {
         "Nuand",
         "RFNM",
         "RFspace",
+        "RigExpert",
         "RTL-SDRblog",
         "SDRplay"
     };

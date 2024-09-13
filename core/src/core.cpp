@@ -173,16 +173,20 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["moduleInstances"]["BladeRF Source"]["enabled"] = true;
     defConfig["moduleInstances"]["File Source"]["module"] = "file_source";
     defConfig["moduleInstances"]["File Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["FobosSDR Source"]["module"] = "fobossdr_source";
+    defConfig["moduleInstances"]["FobosSDR Source"]["enabled"] = true;
     defConfig["moduleInstances"]["HackRF Source"]["module"] = "hackrf_source";
     defConfig["moduleInstances"]["HackRF Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["Harogic Source"]["module"] = "harogic_source";
+    defConfig["moduleInstances"]["Harogic Source"]["enabled"] = true;
     defConfig["moduleInstances"]["Hermes Source"]["module"] = "hermes_source";
     defConfig["moduleInstances"]["Hermes Source"]["enabled"] = true;
     defConfig["moduleInstances"]["LimeSDR Source"]["module"] = "limesdr_source";
     defConfig["moduleInstances"]["LimeSDR Source"]["enabled"] = true;
-    defConfig["moduleInstances"]["PlutoSDR Source"]["module"] = "plutosdr_source";
-    defConfig["moduleInstances"]["PlutoSDR Source"]["enabled"] = true;
     defConfig["moduleInstances"]["PerseusSDR Source"]["module"] = "perseus_source";
     defConfig["moduleInstances"]["PerseusSDR Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["PlutoSDR Source"]["module"] = "plutosdr_source";
+    defConfig["moduleInstances"]["PlutoSDR Source"]["enabled"] = true;
     defConfig["moduleInstances"]["RFNM Source"]["module"] = "rfnm_source";
     defConfig["moduleInstances"]["RFNM Source"]["enabled"] = true;
     defConfig["moduleInstances"]["RFspace Source"]["module"] = "rfspace_source";
@@ -195,8 +199,12 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["moduleInstances"]["SDRplay Source"]["enabled"] = true;
     defConfig["moduleInstances"]["SDR++ Server Source"]["module"] = "sdrpp_server_source";
     defConfig["moduleInstances"]["SDR++ Server Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["Spectran HTTP Source"]["module"] = "spectran_http_source";
+    defConfig["moduleInstances"]["Spectran HTTP Source"]["enabled"] = true;
     defConfig["moduleInstances"]["SpyServer Source"]["module"] = "spyserver_source";
     defConfig["moduleInstances"]["SpyServer Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["USRP Source"]["module"] = "usrp_source";
+    defConfig["moduleInstances"]["USRP Source"]["enabled"] = true;
 
     defConfig["moduleInstances"]["Audio Sink"] = "audio_sink";
     defConfig["moduleInstances"]["Network Sink"] = "network_sink";
