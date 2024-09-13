@@ -11,5 +11,11 @@ if (MSVC)
     target_include_directories(fobossdr_source PRIVATE "C:/Program Files/libfobos/include/")
     target_link_libraries(fobossdr_source PRIVATE fobos)
 else (MSVC)
-    # TODO
+    find_package(PkgConfig)
+
+    pkg_check_modules(LIBHACKRF REQUIRED libfobos)
+
+    target_include_directories(fobossdr_source PRIVATE ${LIBFOBOS_INCLUDE_DIRS})
+    target_link_directories(fobossdr_source PRIVATE ${LIBFOBOS_LIBRARY_DIRS})
+    target_link_libraries(fobossdr_source PRIVATE ${LIBFOBOS_LIBRARIES})
 endif ()
