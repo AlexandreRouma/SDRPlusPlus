@@ -62,7 +62,7 @@ make install
 cd ../../
 
 # Install libfobos
-git clone https://github.com/rigexpert/libfobos
+git clone https://github.com/AlexandreRouma/libfobos
 cd libfobos
 mkdir build
 cd build
