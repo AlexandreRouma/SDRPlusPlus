@@ -7,8 +7,8 @@ include(${SDRPP_MODULE_CMAKE})
 
 if (MSVC)
     # Lib path
-    target_link_directories(fobossdr_source PRIVATE "C:/Program Files/libfobos/lib/")
-    target_include_directories(fobossdr_source PRIVATE "C:/Program Files/libfobos/include/")
+    target_link_directories(fobossdr_source PRIVATE "C:/Program Files/RigExpert/Fobos/lib/")
+    target_include_directories(fobossdr_source PRIVATE "C:/Program Files/RigExpert/Fobos/include/")
     target_link_libraries(fobossdr_source PRIVATE fobos)
 else (MSVC)
     find_package(PkgConfig)
