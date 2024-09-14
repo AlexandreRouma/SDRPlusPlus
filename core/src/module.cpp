@@ -99,7 +99,7 @@ int ModuleManager::createInstance(std::string name, std::string module) {
     }
     Instance_t inst;
     inst.module = modules[module];
-    inst.instance = inst.module.createInstance(name);
+    inst.instance = inst.module.createInstance(name);  
     instances[name] = inst;
     onInstanceCreated.emit(name);
     return 0;

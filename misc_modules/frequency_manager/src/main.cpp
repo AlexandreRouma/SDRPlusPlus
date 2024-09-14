@@ -77,10 +77,13 @@ public:
         fftRedrawHandler.handler = fftRedraw;
         inputHandler.ctx = this;
         inputHandler.handler = fftInput;
+        addBookmarkHandler.ctx = this;
+        addBookmarkHandler.handler = addBookmark;
 
         gui::menu.registerEntry(name, menuHandler, this, NULL);
         gui::waterfall.onFFTRedraw.bindHandler(&fftRedrawHandler);
         gui::waterfall.onInputProcess.bindHandler(&inputHandler);
+        gui::waterfall.onAddBookmark.bindHandler(&addBookmarkHandler);
     }
 
     ~FrequencyManagerModule() {
@@ -133,7 +136,11 @@ private:
         char nameBuf[1024];
         strcpy(nameBuf, editedBookmarkName.c_str());
 
-        if (ImGui::BeginPopup(id.c_str(), ImGuiWindowFlags_NoResize)) {
+        ImVec2 mousePos = ImGui::GetMousePos();
+        ImGui::SetNextWindowPos(ImVec2(mousePos.x + 10, mousePos.y + 10), ImGuiCond_Appearing); // Offset to place it near the mouse
+        
+        if (ImGui::BeginPopupModal(id.c_str(), NULL, ImGuiWindowFlags_NoResize)) {
+            
             ImGui::BeginTable(("freq_manager_edit_table" + name).c_str(), 2);
 
             ImGui::TableNextRow();
@@ -171,7 +178,7 @@ private:
 
             bool applyDisabled = (strlen(nameBuf) == 0) || (bookmarks.find(editedBookmarkName) != bookmarks.end() && editedBookmarkName != firstEditedBookmarkName);
             if (applyDisabled) { style::beginDisabled(); }
-            if (ImGui::Button("Apply")) {
+            if (ImGui::Button("Apply") || ImGui::IsKeyPressed(ImGuiKey_Enter)) {
                 open = false;
 
                 // If editing, delete the original one
@@ -184,7 +191,7 @@ private:
             }
             if (applyDisabled) { style::endDisabled(); }
             ImGui::SameLine();
-            if (ImGui::Button("Cancel")) {
+            if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
                 open = false;
             }
             ImGui::EndPopup();
@@ -346,6 +353,32 @@ private:
         config.release(true);
     }
 
+    static void addBookmark(double centerFreq, void* ctx) {
+        flog::info("Adding bookmark at {0}", centerFreq);
+        FrequencyManagerModule* _this = (FrequencyManagerModule*)ctx;
+
+        _this->editedBookmark.frequency = centerFreq;
+        _this->editedBookmark.bandwidth = 0;
+        _this->editedBookmark.mode = 7;
+
+        _this->editedBookmark.selected = false;
+
+        _this->createOpen = true;
+        // Find new unique default name
+        if (_this->bookmarks.find("New Bookmark") == _this->bookmarks.end()) {
+            _this->editedBookmarkName = "New Bookmark";
+        }
+        else {
+            char buf[64];
+            for (int i = 1; i < 1000; i++) {
+                sprintf(buf, "New Bookmark (%d)", i);
+                if (_this->bookmarks.find(buf) == _this->bookmarks.end()) { break; }
+            }
+            _this->editedBookmarkName = buf;
+        }
+
+    }
+
     static void menuHandler(void* ctx) {
         FrequencyManagerModule* _this = (FrequencyManagerModule*)ctx;
         float menuWidth = ImGui::GetContentRegionAvail().x;
@@ -427,7 +460,7 @@ private:
                 _this->editedBookmark.frequency = gui::waterfall.getCenterFrequency();
                 _this->editedBookmark.bandwidth = 0;
                 _this->editedBookmark.mode = 7;
-            }
+        }
             else {
                 _this->editedBookmark.frequency = gui::waterfall.getCenterFrequency() + sigpath::vfoManager.getOffset(gui::waterfall.selectedVFO);
                 _this->editedBookmark.bandwidth = sigpath::vfoManager.getBandwidth(gui::waterfall.selectedVFO);
@@ -804,7 +837,7 @@ private:
 
     EventHandler<ImGui::WaterFall::FFTRedrawArgs> fftRedrawHandler;
     EventHandler<ImGui::WaterFall::InputHandlerArgs> inputHandler;
-
+    EventHandler<double> addBookmarkHandler;
     std::map<std::string, FrequencyBookmark> bookmarks;
 
     std::string editedBookmarkName = "";

@@ -169,6 +169,9 @@ namespace ImGui {
         std::string selectedVFO = "";
         bool selectedVFOChanged = false;
 
+        Event<double> onAddBookmark;
+
+
         struct FFTRedrawArgs {
             ImVec2 min;
             ImVec2 max;

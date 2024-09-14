@@ -260,6 +260,9 @@ namespace ImGui {
         bool mouseClicked = ImGui::ButtonBehavior(ImRect(fftAreaMin, wfMax), GetID("WaterfallID"), &mouseHovered, &mouseHeld,
                                                   ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_PressedOnClick);
 
+        bool mouseRClicked = ImGui::ButtonBehavior(ImRect(fftAreaMin, wfMax), GetID("WaterfallID"), &mouseHovered, &mouseHeld,
+                                                  ImGuiButtonFlags_MouseButtonRight | ImGuiButtonFlags_PressedOnClick);
+
         mouseInFFTResize = (dragOrigin.x > widgetPos.x && dragOrigin.x < widgetPos.x + widgetSize.x && dragOrigin.y >= widgetPos.y + newFFTAreaHeight - (2.0f * style::uiScale) && dragOrigin.y <= widgetPos.y + newFFTAreaHeight + (2.0f * style::uiScale));
         mouseInFreq = IS_IN_AREA(dragOrigin, freqAreaMin, freqAreaMax);
         mouseInFFT = IS_IN_AREA(dragOrigin, fftAreaMin, fftAreaMax);
@@ -305,7 +308,19 @@ namespace ImGui {
         }
 
         // If mouse was clicked inside the central part, check what was clicked
-        if (mouseClicked && !targetFound) {
+        if (mouseRClicked && !targetFound) {
+            for (auto const& [name, _vfo] : vfos) {
+                if (mouseInFFT || mouseInFreq) {
+                    int refCenter = mousePos.x - fftAreaMin.x;
+                    if (refCenter >= 0 && refCenter < dataWidth) {
+                        double off = ((((double)refCenter / ((double)dataWidth / 2.0)) - 1.0) * (viewBandwidth / 2.0)) + viewOffset;
+                        off += centerFreq;
+                        onAddBookmark.emit(off);
+                    }
+                }
+            }
+        }
+        else if (mouseClicked && !targetFound) {
             mouseDownPos = mousePos;
 
             // First, check if a VFO border was selected
@@ -366,8 +381,10 @@ namespace ImGui {
                 hzDist *= 2.0;
             }
             hzDist = std::clamp<double>(hzDist, relatedVfo->minBandwidth, relatedVfo->maxBandwidth);
-            relatedVfo->setBandwidth(hzDist);
-            relatedVfo->onUserChangedBandwidth.emit(hzDist);
+            if (hzDist != relatedVfo->bandwidth) {
+                relatedVfo->setBandwidth(hzDist);
+                relatedVfo->onUserChangedBandwidth.emit(hzDist);
+            }
             return;
         }
 
