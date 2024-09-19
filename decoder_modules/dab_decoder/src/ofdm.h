@@ -6,46 +6,38 @@
 #include <dsp/math/step.h>
 
 namespace dsp::ofdm {
-    class MM : public Processor<complex_t, complex_t> {
+    class CyclicTimeSync : public Processor<complex_t, complex_t> {
         using base_type = Processor<complex_t, complex_t> ;
     public:
-        MM() {}
+        CyclicTimeSync() {}
 
-        MM(stream<complex_t>* in, double omega, double omegaGain, double muGain, double omegaRelLimit, int interpPhaseCount = 128, int interpTapCount = 8) { init(in, omega, omegaGain, muGain, omegaRelLimit, interpPhaseCount, interpTapCount); }
+        CyclicTimeSync(stream<complex_t>* in, int fftSize, double usefulSymbolTime, double cyclicPrefixRatio, double samplerate,
+                        double omegaGain, double muGain, double omegaRelLimit, int interpPhaseCount = 128, int interpTapCount = 8) {
+            init(in, fftSize, usefulSymbolTime, cyclicPrefixRatio, samplerate, omegaGain, muGain, omegaRelLimit, interpPhaseCount, interpTapCount);
+        }
 
-        ~MM() {
+        ~CyclicTimeSync() {
             if (!base_type::_block_init) { return; }
             base_type::stop();
             dsp::multirate::freePolyphaseBank(interpBank);
             buffer::free(buffer);
         }
 
-        void init(stream<complex_t>* in, double omega, double omegaGain, double muGain, double omegaRelLimit, int interpPhaseCount = 128, int interpTapCount = 8) {
-            _omega = omega;
+        void init(stream<complex_t>* in, int fftSize, double usefulSymbolTime, double cyclicPrefixRatio, double samplerate,
+                    double omegaGain, double muGain, double omegaRelLimit, int interpPhaseCount = 128, int interpTapCount = 8) {
+            omega = 0; // TODO
             _omegaGain = omegaGain;
             _muGain = muGain;
             _omegaRelLimit = omegaRelLimit;
             _interpPhaseCount = interpPhaseCount;
             _interpTapCount = interpTapCount;
 
-            pcl.init(_muGain, _omegaGain, 0.0, 0.0, 1.0, _omega, _omega * (1.0 - omegaRelLimit), _omega * (1.0 + omegaRelLimit));
+            pcl.init(_muGain, _omegaGain, 0.0, 0.0, 1.0, omega, omega * (1.0 - omegaRelLimit), omega * (1.0 + omegaRelLimit));
             generateInterpTaps();
             buffer = buffer::alloc<complex_t>(STREAM_BUFFER_SIZE + _interpTapCount);
             bufStart = &buffer[_interpTapCount - 1];
         
             base_type::init(in);
-        }
-
-        void setOmega(double omega) {
-            assert(base_type::_block_init);
-            std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
-            base_type::tempStop();
-            _omega = omega;
-            offset = 0;
-            pcl.phase = 0.0f;
-            pcl.freq = _omega;
-            pcl.setFreqLimits(_omega * (1.0 - _omegaRelLimit), _omega * (1.0 + _omegaRelLimit));
-            base_type::tempStart();
         }
 
         void setOmegaGain(double omegaGain) {
@@ -66,7 +58,7 @@ namespace dsp::ofdm {
             assert(base_type::_block_init);
             std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
             _omegaRelLimit = omegaRelLimit;
-            pcl.setFreqLimits(_omega * (1.0 - _omegaRelLimit), _omega * (1.0 + _omegaRelLimit));
+            pcl.setFreqLimits(omega * (1.0 - _omegaRelLimit), omega * (1.0 + _omegaRelLimit));
         }
 
         void setInterpParams(int interpPhaseCount, int interpTapCount) {
@@ -89,7 +81,7 @@ namespace dsp::ofdm {
             base_type::tempStop();
             offset = 0;
             pcl.phase = 0.0f;
-            pcl.freq = _omega;
+            pcl.freq = omega;
             base_type::tempStart();
         }
 
@@ -100,20 +92,60 @@ namespace dsp::ofdm {
             // Process all samples
             int outCount = 0;
             while (offset < count) {
-                float error = 0; // TODO
-                complex_t outVal;
-
-                // Calculate new output value
+                // Compute the interpolated sample
+                complex_t sample;
                 int phase = std::clamp<int>(floorf(pcl.phase * (float)_interpPhaseCount), 0, _interpPhaseCount - 1);
-                volk_32fc_32f_dot_prod_32fc((lv_32fc_t*)&outVal, (lv_32fc_t*)&buffer[offset], interpBank.phases[phase], _interpTapCount);
-                out[outCount++] = outVal;
+                volk_32fc_32f_dot_prod_32fc((lv_32fc_t*)&sample, (lv_32fc_t*)&buffer[offset], interpBank.phases[phase], _interpTapCount);
 
-                // Advance symbol offset and phase
-                pcl.advance(error);
+                // Update autocorrelation
+
+                // Compute the correlation level
+                float corrLvl = corr.amplitude();
+
+                // Detect peak in autocorrelation
+                if (0/*TODO*/) {
+                    // Save the current correlation as the peak
+                    corrPeak = corrLvl;
+
+                    // Save the value of the previous correlation as the left side of the peak
+                    corrPeakL = corrLastLvl;
+
+                    // Save the symbol period
+                    measuredSymbolPeriod = sampCount;
+
+                    // Reset the sample count
+                    sampCount = 0;
+
+                    // TODO: Maybe save the error to apply it at the end of the frame? (will  cause issues with the longer null symbol in DAB)
+                }
+
+                // Write the sample to the frame if within it
+                if (sampCount < symbolSize) {
+                    symbol[sampCount++] = sample;
+                }
+
+                // When the end of the symbol is reached
+                if (sampCount == symbolSize) {
+                    // Send out the symbol
+                    // TODO
+                }
+
+                // TODO: limit how much the sample count can grow otherwise otherflows will trigger a false frame detection
+
+                // Run the control loop
+                //pcl.advance(error); // TODO
+                pcl.advancePhase();
+
+                // Update the offset and phase
                 float delta = floorf(pcl.phase);
                 offset += delta;
                 pcl.phase -= delta;
+
+                // Update the last correlation level
+                corrLastLvl = corrLvl;
             }
+
+            // Prepare offset for next buffer of samples
             offset -= count;
 
             // Update delay buffer
@@ -144,18 +176,35 @@ namespace dsp::ofdm {
             taps::free(lp);
         }
 
+        // Interpolator
         dsp::multirate::PolyphaseBank<float> interpBank;
+        int _interpPhaseCount;
+        int _interpTapCount;
+        int offset = 0;
+        complex_t* buffer = NULL;
+        complex_t* bufStart;
+        
+        // Control loop
         loop::PhaseControlLoop<float, false> pcl;
-
-        double _omega;
+        double omega;
         double _omegaGain;
         double _muGain;
         double _omegaRelLimit;
-        int _interpPhaseCount;
-        int _interpTapCount;
+        
+        // Autocorrelator
+        complex_t corr;
+        complex_t* corrProducts = NULL;
+        float corrAgcRate;
+        float corrAgcInvRate;
+        float corrLastLvl = 0;
+        float corrPeakR = 0;
+        float corrPeak = 0;
+        float corrPeakL = 0;
 
-        int offset = 0;
-        complex_t* buffer;
-        complex_t* bufStart;
+        // Symbol
+        complex_t* symbol; // TODO: Will use output stream buffer instead
+        int symbolSize;
+        int sampCount = 0;
+        int measuredSymbolPeriod = 0;
     };
 };
