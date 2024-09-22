@@ -14,6 +14,7 @@
 #include <chrono>
 #include "dab_dsp.h"
 #include <gui/widgets/constellation_diagram.h>
+#include "ofdm.h"
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -35,7 +36,7 @@ public:
     M17DecoderModule(std::string name)  {
         this->name = name;
 
-        file = std::ofstream("sync4.f32", std::ios::out | std::ios::binary);
+        file = std::ofstream("sync5.f32", std::ios::out | std::ios::binary);
 
         // Load config
         config.acquire();
@@ -47,7 +48,7 @@ public:
         vfo->setSnapInterval(250);
 
         // Initialize DSP here
-        csync.init(vfo->output, 1e-3, 246e-6, INPUT_SAMPLE_RATE);
+        csync.init(vfo->output, 2048, 504, 1e-3, INPUT_SAMPLE_RATE, 1e-6, 0.01, 0.005);
         ffsync.init(&csync.out);
         ns.init(&ffsync.out, handler, this);
 
@@ -131,8 +132,9 @@ private:
     std::string name;
     bool enabled = true;
 
-    dab::CyclicSync csync;
+    //dab::CyclicSync csync;
     dab::FrameFreqSync ffsync;
+    dsp::ofdm::CyclicTimeSync csync;
     dsp::sink::Handler<dsp::complex_t> ns;
 
     ImGui::ConstellationDiagram constDiagram;

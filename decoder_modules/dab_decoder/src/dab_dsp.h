@@ -5,139 +5,139 @@
 #include "dab_phase_sym.h"
 
 namespace dab {
-    class CyclicSync : public dsp::Processor<dsp::complex_t, dsp::complex_t> {
-        using base_type = dsp::Processor<dsp::complex_t, dsp::complex_t>;
-    public:
-        CyclicSync() {}
+    // class CyclicSync : public dsp::Processor<dsp::complex_t, dsp::complex_t> {
+    //     using base_type = dsp::Processor<dsp::complex_t, dsp::complex_t>;
+    // public:
+    //     CyclicSync() {}
 
-        // TODO: The default AGC rate is probably way too fast, plot out the avgCorr to see how much it moves
-        CyclicSync(dsp::stream<dsp::complex_t>* in, double symbolLength, double cyclicPrefixLength, double samplerate, float agcRate = 1e-3) { init(in, symbolLength, cyclicPrefixLength, samplerate, agcRate); }
+    //     // TODO: The default AGC rate is probably way too fast, plot out the avgCorr to see how much it moves
+    //     CyclicSync(dsp::stream<dsp::complex_t>* in, double symbolLength, double cyclicPrefixLength, double samplerate, float agcRate = 1e-3) { init(in, symbolLength, cyclicPrefixLength, samplerate, agcRate); }
 
-        void init(dsp::stream<dsp::complex_t>* in, double symbolLength, double cyclicPrefixLength, double samplerate, float agcRate = 1e-3) {
-            // Computer the number of samples for the symbol and its cyclic prefix
-            symbolSamps = round(samplerate * symbolLength);
-            prefixSamps = round(samplerate * cyclicPrefixLength);
+    //     void init(dsp::stream<dsp::complex_t>* in, double symbolLength, double cyclicPrefixLength, double samplerate, float agcRate = 1e-3) {
+    //         // Computer the number of samples for the symbol and its cyclic prefix
+    //         symbolSamps = round(samplerate * symbolLength);
+    //         prefixSamps = round(samplerate * cyclicPrefixLength);
 
-            // Allocate and clear the delay buffer
-            delayBuf = dsp::buffer::alloc<dsp::complex_t>(STREAM_BUFFER_SIZE + 64000);
-            dsp::buffer::clear(delayBuf, symbolSamps);
+    //         // Allocate and clear the delay buffer
+    //         delayBuf = dsp::buffer::alloc<dsp::complex_t>(STREAM_BUFFER_SIZE + 64000);
+    //         dsp::buffer::clear(delayBuf, symbolSamps);
 
-            // Allocate and clear the history buffer
-            histBuf = dsp::buffer::alloc<dsp::complex_t>(prefixSamps);
-            dsp::buffer::clear(histBuf, prefixSamps);
+    //         // Allocate and clear the history buffer
+    //         histBuf = dsp::buffer::alloc<dsp::complex_t>(prefixSamps);
+    //         dsp::buffer::clear(histBuf, prefixSamps);
 
-            // Compute the delay input addresses
-            delayBufInput = &delayBuf[symbolSamps];
+    //         // Compute the delay input addresses
+    //         delayBufInput = &delayBuf[symbolSamps];
 
-            // Compute the correlation AGC configuration
-            this->agcRate = agcRate;
-            agcRateInv = 1.0f - agcRate;
+    //         // Compute the correlation AGC configuration
+    //         this->agcRate = agcRate;
+    //         agcRateInv = 1.0f - agcRate;
             
-            base_type::init(in);
-        }
+    //         base_type::init(in);
+    //     }
 
-        void reset() {
-            assert(base_type::_block_init);
-            std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
-            base_type::tempStop();
+    //     void reset() {
+    //         assert(base_type::_block_init);
+    //         std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
+    //         base_type::tempStop();
             
-            base_type::tempStart();
-        }
+    //         base_type::tempStart();
+    //     }
 
-        int run() {
-            int count = base_type::_in->read();
-            if (count < 0) { return -1; }
+    //     int run() {
+    //         int count = base_type::_in->read();
+    //         if (count < 0) { return -1; }
 
-            // Copy the data into the normal delay buffer
-            memcpy(delayBufInput, base_type::_in->readBuf, count * sizeof(dsp::complex_t));
+    //         // Copy the data into the normal delay buffer
+    //         memcpy(delayBufInput, base_type::_in->readBuf, count * sizeof(dsp::complex_t));
 
-            // Flush the input stream
-            base_type::_in->flush();
+    //         // Flush the input stream
+    //         base_type::_in->flush();
 
-            // Do cross-correlation
-            for (int i = 0; i < count; i++) {
-                // Get the current history slot
-                dsp::complex_t* slot = &histBuf[histId++];
+    //         // Do cross-correlation
+    //         for (int i = 0; i < count; i++) {
+    //             // Get the current history slot
+    //             dsp::complex_t* slot = &histBuf[histId++];
 
-                // Wrap around the history slot index (TODO: Check that the history buffer's length is correct)
-                histId %= prefixSamps;
+    //             // Wrap around the history slot index (TODO: Check that the history buffer's length is correct)
+    //             histId %= prefixSamps;
 
-                // Kick out last value from the correlation
-                corr -= *slot;
+    //             // Kick out last value from the correlation
+    //             corr -= *slot;
 
-                // Save input value and compute the new prodct
-                dsp::complex_t val = delayBuf[i];
-                dsp::complex_t prod = val.conj()*delayBuf[i+symbolSamps];
+    //             // Save input value and compute the new prodct
+    //             dsp::complex_t val = delayBuf[i];
+    //             dsp::complex_t prod = val.conj()*delayBuf[i+symbolSamps];
 
-                // Add the new value to the correlation
-                *slot = prod;
+    //             // Add the new value to the correlation
+    //             *slot = prod;
 
-                // Add the new value to the history buffer
-                corr += prod;
+    //             // Add the new value to the history buffer
+    //             corr += prod;
 
-                // Compute sample amplitude
-                float rcorr = corr.amplitude();
+    //             // Compute sample amplitude
+    //             float rcorr = corr.amplitude();
 
-                // If a high enough peak is reached, reset the symbol counter
-                if (rcorr > avgCorr && rcorr > peakCorr) { // Note keeping an average level might not be needed
-                    peakCorr = rcorr;
-                    peakLCorr = lastCorr;
-                    samplesSincePeak = 0;
-                }
+    //             // If a high enough peak is reached, reset the symbol counter
+    //             if (rcorr > avgCorr && rcorr > peakCorr) { // Note keeping an average level might not be needed
+    //                 peakCorr = rcorr;
+    //                 peakLCorr = lastCorr;
+    //                 samplesSincePeak = 0;
+    //             }
 
-                // If this is the sample right after the peak, save it
-                if (samplesSincePeak == 1) {
-                    peakRCorr = rcorr;
-                }
+    //             // If this is the sample right after the peak, save it
+    //             if (samplesSincePeak == 1) {
+    //                 peakRCorr = rcorr;
+    //             }
 
-                // Write the sample to the output
-                out.writeBuf[samplesSincePeak++] = val;
+    //             // Write the sample to the output
+    //             out.writeBuf[samplesSincePeak++] = val;
 
-                // If the end of the symbol is reached, send it off
-                if (samplesSincePeak >= symbolSamps) {
-                    if (!out.swap(symbolSamps)) {
-                        return -1;
-                    }
-                    samplesSincePeak = 0;
-                    peakCorr = 0;
-                }
+    //             // If the end of the symbol is reached, send it off
+    //             if (samplesSincePeak >= symbolSamps) {
+    //                 if (!out.swap(symbolSamps)) {
+    //                     return -1;
+    //                 }
+    //                 samplesSincePeak = 0;
+    //                 peakCorr = 0;
+    //             }
 
-                // Update the average correlation
-                lastCorr = rcorr;
+    //             // Update the average correlation
+    //             lastCorr = rcorr;
 
-                // Update the average correlation value
-                avgCorr = agcRate*rcorr + agcRateInv*avgCorr;
-            }
+    //             // Update the average correlation value
+    //             avgCorr = agcRate*rcorr + agcRateInv*avgCorr;
+    //         }
 
-            // Move unused data
-            memmove(delayBuf, &delayBuf[count], symbolSamps * sizeof(dsp::complex_t));
+    //         // Move unused data
+    //         memmove(delayBuf, &delayBuf[count], symbolSamps * sizeof(dsp::complex_t));
 
-            return count;
-        }
+    //         return count;
+    //     }
 
-    protected:
-        int symbolSamps;
-        int prefixSamps;
+    // protected:
+    //     int symbolSamps;
+    //     int prefixSamps;
 
-        int histId = 0;
-        dsp::complex_t* histBuf;
+    //     int histId = 0;
+    //     dsp::complex_t* histBuf;
 
-        dsp::complex_t* delayBuf;
-        dsp::complex_t* delayBufInput;
+    //     dsp::complex_t* delayBuf;
+    //     dsp::complex_t* delayBufInput;
 
-        dsp::complex_t corr = { 0.0f, 0.0f };
+    //     dsp::complex_t corr = { 0.0f, 0.0f };
 
-        int samplesSincePeak = 0;
-        float lastCorr = 0.0f;
-        float peakCorr = 0.0f;
-        float peakLCorr = 0.0f;
-        float peakRCorr = 0.0f;
+    //     int samplesSincePeak = 0;
+    //     float lastCorr = 0.0f;
+    //     float peakCorr = 0.0f;
+    //     float peakLCorr = 0.0f;
+    //     float peakRCorr = 0.0f;
 
-        // Note only required for DAB
-        float avgCorr = 0.0f;
-        float agcRate;
-        float agcRateInv;
-    };
+    //     // Note only required for DAB
+    //     float avgCorr = 0.0f;
+    //     float agcRate;
+    //     float agcRateInv;
+    // };
 
     class FrameFreqSync : public dsp::Processor<dsp::complex_t, dsp::complex_t> {
         using base_type = dsp::Processor<dsp::complex_t, dsp::complex_t>;
