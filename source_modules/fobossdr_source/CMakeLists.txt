@@ -13,7 +13,7 @@ if (MSVC)
 else (MSVC)
     find_package(PkgConfig)
 
-    pkg_check_modules(LIBHACKRF REQUIRED libfobos)
+    pkg_check_modules(LIBFOBOS REQUIRED libfobos)
 
     target_include_directories(fobossdr_source PRIVATE ${LIBFOBOS_INCLUDE_DIRS})
     target_link_directories(fobossdr_source PRIVATE ${LIBFOBOS_LIBRARY_DIRS})
