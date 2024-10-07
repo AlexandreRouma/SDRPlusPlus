@@ -23,6 +23,12 @@ SDRPP_MOD_INFO{
 
 ConfigManager config;
 
+const std::vector<const char*> deviceWhiteList = {
+    "PlutoSDR",
+    "ANTSDR",
+    "LibreSDR"
+};
+
 class PlutoSDRSourceModule : public ModuleManager::Instance {
 public:
     PlutoSDRSourceModule(std::string name) {
@@ -130,7 +136,14 @@ private:
             std::string duri = iio_context_info_get_uri(info);
 
             // If the device is not a plutosdr, don't include it
-            if (desc.find("PlutoSDR") == std::string::npos) {
+            bool isPluto = false;
+            for (const auto type : deviceWhiteList) {
+                if (desc.find(type) != std::string::npos) {
+                    isPluto = true;
+                    break;
+                }
+            }
+            if (!isPluto) {
                 flog::warn("Ignored IIO device: [{}] {}", duri, desc);
                 continue;
             }
