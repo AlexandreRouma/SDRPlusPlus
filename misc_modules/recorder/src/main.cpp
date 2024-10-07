@@ -168,10 +168,9 @@ public:
         writer.setSamplerate(samplerate);
 
         // Open file
-        std::string type = (recMode == RECORDER_MODE_AUDIO) ? "audio" : "baseband";
         std::string vfoName = (recMode == RECORDER_MODE_AUDIO) ? selectedStreamName : "";
         std::string extension = ".wav";
-        std::string expandedPath = expandString(folderSelect.path + "/" + genFileName(nameTemplate, type, vfoName) + extension);
+        std::string expandedPath = expandString(folderSelect.path + "/" + genFileName(nameTemplate, recMode, vfoName) + extension);
         if (!writer.open(expandedPath)) {
             flog::error("Failed to open file for recording: {0}", expandedPath);
             return;
@@ -452,7 +451,7 @@ private:
         { RADIO_IFACE_MODE_RAW, "RAW" }
     };
 
-    std::string genFileName(std::string templ, std::string type, std::string name) {
+    std::string genFileName(std::string templ, int mode, std::string name) {
         // Get data
         time_t now = time(0);
         tm* ltm = localtime(&now);
@@ -462,6 +461,9 @@ private:
             freq += gui::waterfall.vfos[name]->generalOffset;
         }
 
+        // Select the recording type string
+        std::string type = (recMode == RECORDER_MODE_AUDIO) ? "audio" : "baseband";
+
         // Format to string
         char freqStr[128];
         char hourStr[128];
@@ -470,7 +472,7 @@ private:
         char dayStr[128];
         char monStr[128];
         char yearStr[128];
-        const char* modeStr = "Unknown";
+        const char* modeStr = (recMode == RECORDER_MODE_AUDIO) ? "Unknown" : "IQ";
         sprintf(freqStr, "%.0lfHz", freq);
         sprintf(hourStr, "%02d", ltm->tm_hour);
         sprintf(minStr, "%02d", ltm->tm_min);
