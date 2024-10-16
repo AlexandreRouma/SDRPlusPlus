@@ -70,6 +70,9 @@ namespace hrfreq {
             // If isn't numeric, skip it
             if (!isNumeric(c)) { continue; }
 
+            // If it's a comma, skip it for now. This enforces a dot as a decimal point
+            if (c == ',') { continue; }
+
             // Add the character to the numeric string
             numeric += c;
         }
