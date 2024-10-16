@@ -28,10 +28,14 @@ namespace hrfreq {
         char numBuf[128];
         int numLen = sprintf(numBuf, "%0.*lf", maxDecimals, freq);
 
-        // Remove the useless zeros
-        for (int i = numLen-1; i >= 0; i--) {
-            if (numBuf[i] != '0' && numBuf[i] != '.') { break; }
-            numBuf[i] = 0;
+        // If there is a decimal point, remove the useless zeros
+        if (maxDecimals) {
+            for (int i = numLen-1; i >= 0; i--) {
+                bool dot = (numBuf[i] == '.');
+                if (numBuf[i] != '0' && !dot) { break; }
+                numBuf[i] = 0;
+                if (dot) { break; }
+            }
         }
 
         // Concat the suffix
