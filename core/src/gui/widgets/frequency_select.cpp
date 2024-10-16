@@ -3,6 +3,7 @@
 #include <gui/style.h>
 #include <gui/gui.h>
 #include <backend.h>
+#include <utils/hrfreq.h>
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -90,6 +91,7 @@ void FrequencySelect::moveCursorToDigit(int i) {
 
 void FrequencySelect::draw() {
     auto window = ImGui::GetCurrentWindow();
+    auto io = ImGui::GetIO();
     widgetPos = ImGui::GetWindowContentRegionMin();
     ImVec2 cursorPos = ImGui::GetCursorPos();
     widgetPos.x += window->Pos.x + cursorPos.x;
@@ -132,7 +134,7 @@ void FrequencySelect::draw() {
         ImVec2 mousePos = ImGui::GetMousePos();
         bool leftClick = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
         bool rightClick = ImGui::IsMouseClicked(ImGuiMouseButton_Right);
-        int mw = ImGui::GetIO().MouseWheel;
+        int mw = io.MouseWheel;
         bool onDigit = false;
         bool hovered = false;
 
@@ -174,7 +176,7 @@ void FrequencySelect::draw() {
                     moveCursorToDigit(i + 1);
                 }
 
-                auto chars = ImGui::GetIO().InputQueueCharacters;
+                auto chars = io.InputQueueCharacters;
 
                 // For each keyboard characters, type it
                 for (int j = 0; j < chars.Size; j++) {
@@ -194,6 +196,34 @@ void FrequencySelect::draw() {
             }
         }
         digitHovered = hovered;
+
+        if (isInArea(mousePos, digitTopMins[0], digitBottomMaxs[11])) {
+            bool shortcutKey = io.ConfigMacOSXBehaviors ? (io.KeyMods == ImGuiKeyModFlags_Super) : (io.KeyMods == ImGuiKeyModFlags_Ctrl);
+            bool ctrlOnly = (io.KeyMods == ImGuiKeyModFlags_Ctrl);
+            bool shiftOnly = (io.KeyMods == ImGuiKeyModFlags_Shift);
+            bool copy  = ((shortcutKey && ImGui::IsKeyPressed(ImGuiKey_C)) || (ctrlOnly  && ImGui::IsKeyPressed(ImGuiKey_Insert)));
+            bool paste = ((shortcutKey && ImGui::IsKeyPressed(ImGuiKey_V)) || (shiftOnly && ImGui::IsKeyPressed(ImGuiKey_Insert)));
+            if (copy) {
+                // Convert the freqency to a string
+                std::string freqStr = hrfreq::toString(frequency);
+
+                // Write it to the clipboard
+                ImGui::SetClipboardText(freqStr.c_str());
+            }
+            if (paste) {
+                // Attempt to parse the clipboard as a number
+                const char* clip = ImGui::GetClipboardText();
+
+                // If the clipboard is not empty, attempt to parse it
+                if (clip) {
+                    double newFreq;
+                    if (hrfreq::fromString(clip, newFreq)) {
+                        setFrequency(abs(newFreq));
+                        frequencyChanged = true;
+                    }
+                }
+            }
+        }
     }
 
     uint64_t freq = 0;
