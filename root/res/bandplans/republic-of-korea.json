@@ -481,7 +481,7 @@
         },
         {
             "name": "Amateur Station",
-            "type": "fixed",
+            "type": "amateur",
             "start": 144000000,
             "end": 146000000
         },
