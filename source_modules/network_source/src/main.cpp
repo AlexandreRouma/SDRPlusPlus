@@ -36,10 +36,10 @@ enum SampleType {
 };
 
 const size_t SAMPLE_TYPE_SIZE[] {
-    sizeof(int8_t)*2,
-    sizeof(int16_t)*2,
-    sizeof(int32_t)*2,
-    sizeof(float)*2,
+    2*sizeof(int8_t),
+    2*sizeof(int16_t),
+    2*sizeof(int32_t),
+    2*sizeof(float),
 };
 
 class NetworkSourceModule : public ModuleManager::Instance {
@@ -58,20 +58,6 @@ public:
         handler.tuneHandler = tune;
         handler.stream = &stream;
 
-        // Define samplerates
-        for (int i = 3000; i <= 192000; i <<= 1) {
-            samplerates.define(i, getSrScaled(i), i);
-        }
-        for (int i = 250000; i < 1000000; i += 250000) {
-            samplerates.define(i, getSrScaled(i), i);
-        }
-        for (int i = 1000000; i < 10000000; i += 500000) {
-            samplerates.define(i, getSrScaled(i), i);
-        }
-        for (int i = 10000000; i <= 100000000; i += 5000000) {
-            samplerates.define(i, getSrScaled(i), i);
-        }
-
         // Define protocols
         // protocols.define("TCP (Server)", PROTOCOL_TCP_SERVER);
         protocols.define("TCP (Client)", PROTOCOL_TCP_CLIENT);
@@ -86,8 +72,8 @@ public:
         // Load config
         config.acquire();
         if (config.conf[name].contains("samplerate")) {
-            int sr = config.conf[name]["samplerate"];
-            if (samplerates.keyExists(sr)) { samplerate = samplerates.value(samplerates.keyId(sr)); }
+            samplerate = config.conf[name]["samplerate"];
+            tempSamplerate = samplerate;
         }
         if (config.conf[name].contains("protocol")) {
             std::string protoStr = config.conf[name]["protocol"];
@@ -108,7 +94,6 @@ public:
         config.release();
 
         // Set menu IDs
-        srId = samplerates.valueId(samplerate);
         protoId = protocols.valueId(proto);
         sampTypeId = sampleTypes.valueId(sampType);
 
@@ -228,35 +213,24 @@ private:
         if (_this->running) { SmGui::BeginDisabled(); }
 
         // Hostname and port field
-        if (ImGui::InputText(("##iq_exporter_host_" + _this->name).c_str(), _this->hostname, sizeof(_this->hostname))) {
+        if (SmGui::InputText(("##network_source_host_" + _this->name).c_str(), _this->hostname, sizeof(_this->hostname))) {
             config.acquire();
             config.conf[_this->name]["host"] = _this->hostname;
             config.release(true);
         }
-        ImGui::SameLine();
-        ImGui::FillWidth();
-        if (ImGui::InputInt(("##iq_exporter_port_" + _this->name).c_str(), &_this->port, 0, 0)) {
+        SmGui::SameLine();
+        SmGui::FillWidth();
+        if (SmGui::InputInt(("##network_source_port_" + _this->name).c_str(), &_this->port, 0, 0)) {
             _this->port = std::clamp<int>(_this->port, 1, 65535);
             config.acquire();
             config.conf[_this->name]["port"] = _this->port;
             config.release(true);
         }
 
-        // Samplerate selector
-        ImGui::LeftLabel("Samplerate");
-        ImGui::FillWidth();
-        if (ImGui::Combo(("##iq_exporter_sr_" + _this->name).c_str(), &_this->srId, _this->samplerates.txt)) {
-            _this->samplerate = _this->samplerates.value(_this->srId);
-            core::setInputSampleRate(_this->samplerate);
-            config.acquire();
-            config.conf[_this->name]["samplerate"] = _this->samplerates.key(_this->srId);
-            config.release(true);
-        }
-
         // Mode protocol selector
-        ImGui::LeftLabel("Protocol");
-        ImGui::FillWidth();
-        if (ImGui::Combo(("##iq_exporter_proto_" + _this->name).c_str(), &_this->protoId, _this->protocols.txt)) {
+        SmGui::LeftLabel("Protocol");
+        SmGui::FillWidth();
+        if (SmGui::Combo(("##network_source_proto_" + _this->name).c_str(), &_this->protoId, _this->protocols.txt)) {
             _this->proto = _this->protocols.value(_this->protoId);
             config.acquire();
             config.conf[_this->name]["protocol"] = _this->protocols.key(_this->protoId);
@@ -264,13 +238,33 @@ private:
         }
 
         // Sample type selector
-        ImGui::LeftLabel("Sample type");
-        ImGui::FillWidth();
-        if (ImGui::Combo(("##iq_exporter_samp_" + _this->name).c_str(), &_this->sampTypeId, _this->sampleTypes.txt)) {
+        SmGui::LeftLabel("Sample type");
+        SmGui::FillWidth();
+        if (SmGui::Combo(("##network_source_samp_" + _this->name).c_str(), &_this->sampTypeId, _this->sampleTypes.txt)) {
             _this->sampType = _this->sampleTypes.value(_this->sampTypeId);
             config.acquire();
             config.conf[_this->name]["sampleType"] = _this->sampleTypes.key(_this->sampTypeId);
             config.release(true);
+        }
+
+        // Samplerate selector
+        SmGui::LeftLabel("Samplerate");
+        SmGui::FillWidth();
+        SmGui::InputInt(("##network_source_sr_" + _this->name).c_str(), &_this->tempSamplerate);
+        bool applyEn = (!_this->running && _this->tempSamplerate != _this->samplerate);
+        if (!applyEn) { SmGui::BeginDisabled(); }
+        SmGui::FillWidth();
+        if (SmGui::Button(("Apply##network_source_apply_" + _this->name).c_str())) {
+            _this->samplerate = _this->tempSamplerate;
+            core::setInputSampleRate(_this->samplerate);
+            config.acquire();
+            config.conf[_this->name]["samplerate"] = _this->samplerate;
+            config.release(true);
+        }
+        if (!applyEn) { SmGui::EndDisabled(); }
+
+        if (_this->tempSamplerate != _this->samplerate) {
+            SmGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Warning: Samplerate not applied yet");
         }
 
         if (_this->running) { SmGui::EndDisabled(); }
@@ -280,14 +274,17 @@ private:
         // Compute sizes
         int blockSize = samplerate / 200;
         int sampleSize = SAMPLE_TYPE_SIZE[sampType];
-        int frameSize = blockSize*sampleSize;
+
+        // Chose amount of bytes to attempt to read
+        bool forceSize = (proto != PROTOCOL_UDP);
+        int frameSize = sampleSize * (forceSize ? blockSize : STREAM_BUFFER_SIZE);
 
         // Allocate receive buffer
         uint8_t* buffer = dsp::buffer::alloc<uint8_t>(frameSize);
 
         while (true) {
             // Read samples from socket
-            int bytes = sock->recv(buffer, frameSize, true);
+            int bytes = sock->recv(buffer, frameSize, forceSize);
             if (bytes <= 0) { break; }
 
             // Convert to CF32 (note: problem if partial sample)
@@ -325,7 +322,7 @@ private:
     double freq;
     
     int samplerate = 1000000;
-    int srId;
+    int tempSamplerate = 1000000;
     Protocol proto = PROTOCOL_UDP;
     int protoId;
     SampleType sampType = SAMPLE_TYPE_INT16;
@@ -333,7 +330,6 @@ private:
     char hostname[1024] = "localhost";
     int port = 1234;
 
-    OptionList<int, int> samplerates;
     OptionList<std::string, Protocol> protocols;
     OptionList<std::string, SampleType> sampleTypes;
 
