@@ -1,0 +1,549 @@
+{
+    "name": "Republic of Korea",
+    "country_name": "Republic of Korea",
+    "country_code": "KR",
+    "author_name": "SeoyeonBae",
+    "author_url": "https://github.com/bsy0317",
+    "bands": [
+        {
+            "name": "Radio Navigation",
+            "type": "aviation",
+            "start": 8300,
+            "end": 14000
+        },
+        {
+            "name": "Coastal Telegraph",
+            "type": "marine",
+            "start": 14000,
+            "end": 19950
+        },
+        {
+            "name": "Standard Frequency Time Signal",
+            "type": "utility",
+            "start": 19950,
+            "end": 20250
+        },
+        {
+            "name": "Coastal Telegraph",
+            "type": "marine",
+            "start": 20250,
+            "end": 70000
+        },
+        {
+            "name": "Radio Navigation",
+            "type": "navigation",
+            "start": 70000,
+            "end": 160000
+        },
+        {
+            "name": "Aviation Radio Navigation",
+            "type": "aviation",
+            "start": 160000,
+            "end": 285000
+        },
+        {
+            "name": "Aviation Maritime Radiobeacon",
+            "type": "aviation",
+            "start": 285000,
+            "end": 325000
+        },
+        {
+            "name": "Aviation Radio Navigation",
+            "type": "aviation",
+            "start": 325000,
+            "end": 472000
+        },
+        {
+            "name": "Amateur",
+            "type": "amateur",
+            "start": 472000,
+            "end": 479000
+        },
+        {
+            "name": "International Distress Safety Call",
+            "type": "marine",
+            "start": 479000,
+            "end": 505000
+        },
+        {
+            "name": "Maritime Telegraph",
+            "type": "marine",
+            "start": 505000,
+            "end": 526500
+        },
+        {
+            "name": "Standard Broadcast",
+            "type": "broadcast",
+            "start": 526500,
+            "end": 1606500
+        },
+        {
+            "name": "Radiobuoy",
+            "type": "navigation",
+            "start": 1606500,
+            "end": 1800000
+        },
+        {
+            "name": "Amateur Station",
+            "type": "amateur",
+            "start": 1800000,
+            "end": 1825000
+        },
+        {
+            "name": "Radiobuoy Control LORAN",
+            "type": "radiolocation",
+            "start": 1825000,
+            "end": 2000000
+        },
+        {
+            "name": "Radiobuoy",
+            "type": "fixed",
+            "start": 2000000,
+            "end": 2065000
+        },
+        {
+            "name": "Distress Call",
+            "type": "marine",
+            "start": 2065000,
+            "end": 2107000
+        },
+        {
+            "name": "International Distress Search and Rescue",
+            "type": "mobile",
+            "start": 2173500,
+            "end": 2190500
+        },
+        {
+            "name": "Road Management",
+            "type": "fixed",
+            "start": 2194000,
+            "end": 2495000
+        },
+        {
+            "name": "Standard Frequency Time Signal",
+            "type": "utility",
+            "start": 2495000,
+            "end": 2505000
+        },
+        {
+            "name": "Ship Station Telephone",
+            "type": "fixed",
+            "start": 2505000,
+            "end": 2850000
+        },
+        {
+            "name": "Aviation Mobile R",
+            "type": "aviation",
+            "start": 2850000,
+            "end": 3025000
+        },
+        {
+            "name": "Aviation Mobile OR",
+            "type": "aviation",
+            "start": 3025000,
+            "end": 3155000
+        },
+        {
+            "name": "Aviation Mobile R",
+            "type": "aviation",
+            "start": 3400000,
+            "end": 3500000
+        },
+        {
+            "name": "Amateur Station",
+            "type": "amateur",
+            "start": 3500000,
+            "end": 3550000
+        },
+        {
+            "name": "Experimental Station",
+            "type": "fixed",
+            "start": 3550000,
+            "end": 3790000
+        },
+        {
+            "name": "Amateur Station",
+            "type": "amateur",
+            "start": 3790000,
+            "end": 3800000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 3900000,
+            "end": 3950000
+        },
+        {
+            "name": "Standard Frequency Time Signal",
+            "type": "utility",
+            "start": 3995000,
+            "end": 4005000
+        },
+        {
+            "name": "Ship Station Telephone",
+            "type": "marine",
+            "start": 4005000,
+            "end": 4063000
+        },
+        {
+            "name": "Oceanographic Data",
+            "type": "marine",
+            "start": 4063000,
+            "end": 4065000
+        },
+        {
+            "name": "Ship Station Duplex Telephone",
+            "type": "marine",
+            "start": 4065000,
+            "end": 4146000
+        },
+        {
+            "name": "Ship Station Simplex Telephone",
+            "type": "marine",
+            "start": 4146000,
+            "end": 4152000
+        },
+        {
+            "name": "Ship Station Wideband Telegraph Fax",
+            "type": "marine",
+            "start": 4152000,
+            "end": 4172000
+        },
+        {
+            "name": "Ship Station Narrowband",
+            "type": "marine",
+            "start": 4172000,
+            "end": 4181750
+        },
+        {
+            "name": "Ship Station A1A Morse Code Communication",
+            "type": "marine",
+            "start": 4186750,
+            "end": 4202250
+        },
+        {
+            "name": "Radiolocation",
+            "type": "radiolocation",
+            "start": 4438000,
+            "end": 4488000
+        },
+        {
+            "name": "Calling Response",
+            "type": "fixed",
+            "start": 4488000,
+            "end": 4650000
+        },
+        {
+            "name": "Aviation Mobile R",
+            "type": "aviation",
+            "start": 4650000,
+            "end": 4850000
+        },
+        {
+            "name": "Standard Frequency Time Signal",
+            "type": "utility",
+            "start": 4995000,
+            "end": 5005000
+        },
+        {
+            "name": "Search Rescue",
+            "type": "aviation",
+            "start": 5480000,
+            "end": 5730000
+        },
+        {
+            "name": "Broadcast",
+            "type": "broadcast",
+            "start": 5900000,
+            "end": 5950000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 5950000,
+            "end": 6200000
+        },
+        {
+            "name": "Amateur Station",
+            "type": "amateur",
+            "start": 7000000,
+            "end": 7100000
+        },
+        {
+            "name": "Amateur Station",
+            "type": "amateur",
+            "start": 7100000,
+            "end": 7200000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 7200000,
+            "end": 7450000
+        },
+        {
+            "name": "Standard Frequency Time Signal",
+            "type": "utility",
+            "start": 7995000,
+            "end": 8005000
+        },
+        {
+            "name": "Broadcast",
+            "type": "broadcast",
+            "start": 9400000,
+            "end": 9500000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 9500000,
+            "end": 9900000
+        },
+        {
+            "name": "Standard Frequency Time Signal",
+            "type": "utility",
+            "start": 9995000,
+            "end": 10005000
+        },
+        {
+            "name": "Amateur Station",
+            "type": "amateur",
+            "start": 10100000,
+            "end": 10150000
+        },
+        {
+            "name": "Aviation Mobile",
+            "type": "aviation",
+            "start": 10150000,
+            "end": 11600000
+        },
+        {
+            "name": "Broadcast",
+            "type": "broadcast",
+            "start": 11600000,
+            "end": 11650000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 11650000,
+            "end": 12050000
+        },
+        {
+            "name": "Broadcast",
+            "type": "broadcast",
+            "start": 12050000,
+            "end": 12100000
+        },
+        {
+            "name": "Aviation Mobile",
+            "type": "aviation",
+            "start": 13260000,
+            "end": 13360000
+        },
+        {
+            "name": "Radio Astronomy",
+            "type": "astronomy",
+            "start": 13360000,
+            "end": 13410000
+        },
+        {
+            "name": "Broadcast",
+            "type": "broadcast",
+            "start": 13570000,
+            "end": 13600000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 13600000,
+            "end": 13800000
+        },
+        {
+            "name": "Broadcast",
+            "type": "broadcast",
+            "start": 13800000,
+            "end": 13870000
+        },
+        {
+            "name": "Amateur Station",
+            "type": "amateur",
+            "start": 14000000,
+            "end": 14350000
+        },
+        {
+            "name": "Aviation Mobile",
+            "type": "aviation",
+            "start": 15010000,
+            "end": 15100000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 15100000,
+            "end": 15600000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 15600000,
+            "end": 15800000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 15800000,
+            "end": 15995000
+        },
+        {
+            "name": "Standard Frequency Time Signal",
+            "type": "utility",
+            "start": 15995000,
+            "end": 16005000
+        },
+        {
+            "name": "Broadcast",
+            "type": "broadcast",
+            "start": 18900000,
+            "end": 19020000
+        },
+        {
+            "name": "Amateur Station",
+            "type": "amateur",
+            "start": 21000000,
+            "end": 21450000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 21450000,
+            "end": 21850000
+        },
+        {
+            "name": "Amateur Station",
+            "type": "amateur",
+            "start": 24890000,
+            "end": 24990000
+        },
+        {
+            "name": "Shortwave Broadcast",
+            "type": "broadcast",
+            "start": 25670000,
+            "end": 26100000
+        },
+        {
+            "name": "Amateur Station",
+            "type": "amateur",
+            "start": 28000000,
+            "end": 29700000
+        },
+        {
+            "name": "Amateur Station",
+            "type": "amateur",
+            "start": 50000000,
+            "end": 54000000
+        },
+        {
+            "name": "TV Broadcast",
+            "type": "broadcast",
+            "start": 54000000,
+            "end": 72000000
+        },
+        {
+            "name": "Flood Warning",
+            "type": "broadcast",
+            "start": 72000000,
+            "end": 74800000
+        },
+        {
+            "name": "TV Broadcast",
+            "type": "broadcast",
+            "start": 76000000,
+            "end": 88000000
+        },
+        {
+            "name": "FM Broadcast",
+            "type": "broadcast",
+            "start": 88000000,
+            "end": 100000000
+        },
+        {
+            "name": "FM Broadcast",
+            "type": "broadcast",
+            "start": 100000000,
+            "end": 108000000
+        },
+        {
+            "name": "ILS Localizer VOR",
+            "type": "fixed",
+            "start": 108000000,
+            "end": 117975000
+        },
+        {
+            "name": "Amateur Station",
+            "type": "amateur",
+            "start": 144000000,
+            "end": 146000000
+        },
+        {
+            "name": "General Communication",
+            "type": "fixed",
+            "start": 146000000,
+            "end": 148000000
+        },
+        {
+            "name": "Low Power Device",
+            "type": "fixed",
+            "start": 162037500,
+            "end": 174000000
+        },
+        {
+            "name": "TV Broadcast",
+            "type": "broadcast",
+            "start": 174000000,
+            "end": 216000000
+        },
+        {
+            "name": "Low Power Device",
+            "type": "fixed",
+            "start": 216000000,
+            "end": 230000000
+        },
+        {
+            "name": "Low Power Device",
+            "type": "fixed",
+            "start": 273000000,
+            "end": 322000000
+        },
+        {
+            "name": "Personal Radio",
+            "type": "fixed",
+            "start": 420000000,
+            "end": 470000000
+        },
+        {
+            "name": "Public Network",
+            "type": "broadcast",
+            "start": 698000000,
+            "end": 806000000
+        },
+        {
+            "name": "Low Power Device",
+            "type": "fixed",
+            "start": 942000000,
+            "end": 960000000
+        },
+        {
+            "name": "Satellite Mobile Communication",
+            "type": "fixed",
+            "start": 15250000000,
+            "end": 16605000000
+        },
+        {
+            "name": "Mobile Communication",
+            "type": "mobile",
+            "start": 25000000000,
+            "end": 37000000000
+        }
+    ]
+}
