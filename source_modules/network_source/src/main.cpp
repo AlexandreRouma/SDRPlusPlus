@@ -250,7 +250,10 @@ private:
         // Samplerate selector
         SmGui::LeftLabel("Samplerate");
         SmGui::FillWidth();
-        SmGui::InputInt(("##network_source_sr_" + _this->name).c_str(), &_this->tempSamplerate);
+        if (SmGui::InputInt(("##network_source_sr_" + _this->name).c_str(), &_this->tempSamplerate)) {
+            // Prevent silly values from silly users
+            _this->tempSamplerate = std::max<int>(_this->tempSamplerate, 1000);
+        }
         bool applyEn = (!_this->running && _this->tempSamplerate != _this->samplerate);
         if (!applyEn) { SmGui::BeginDisabled(); }
         SmGui::FillWidth();
