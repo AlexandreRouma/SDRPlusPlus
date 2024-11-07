@@ -5,113 +5,120 @@
 #include <gui/main_window.h>
 #include <gui/style.h>
 #include <signal_path/signal_path.h>
+#include <utils/optionlist.h>
+#include <gui/dialogs/dialog_box.h>
 
 namespace sourcemenu {
-    int offsetMode = 0;
     int sourceId = 0;
-    double customOffset = 0.0;
-    double effectiveOffset = 0.0;
-    int decimationPower = 0;
+    EventHandler<std::string> sourcesChangedHandler;
+    EventHandler<std::string> sourceUnregisterHandler;
+    OptionList<std::string, std::string> sources;
+    std::string selectedSource;
+
+    int decimId = 0;
+    OptionList<int, int> decimations;
+
     bool iqCorrection = false;
     bool invertIQ = false;
 
-    EventHandler<std::string> sourceRegisteredHandler;
-    EventHandler<std::string> sourceUnregisterHandler;
-    EventHandler<std::string> sourceUnregisteredHandler;
+    int offsetId = 0;
+    double manualOffset = 0.0;
+    std::string selectedOffset;
+    double effectiveOffset = 0.0;
+    OptionList<std::string, double> offsets;
+    std::map<std::string, double> namedOffsets;
 
-    std::vector<std::string> sourceNames;
-    std::string sourceNamesTxt;
-    std::string selectedSource;
+    bool showAddOffsetDialog = false;
+    char newOffsetName[1024];
+    double newOffset = 0.0;
 
+    bool showDelOffsetDialog = false;
+    std::string delOffsetName = "";
+
+    // Offset IDs
     enum {
-        OFFSET_MODE_NONE,
-        OFFSET_MODE_CUSTOM,
-        OFFSET_MODE_SPYVERTER,
-        OFFSET_MODE_HAM_IT_UP,
-        OFFSET_MODE_MMDS_SB_1998,
-        OFFSET_MODE_DK5AV_XB,
-        OFFSET_MODE_KU_LNB_9750,
-        OFFSET_MODE_KU_LNB_10700,
-        _OFFSET_MODE_COUNT
+        OFFSET_ID_NONE,
+        OFFSET_ID_MANUAL,
+        OFFSET_ID_CUSTOM_BASE
     };
 
-    const char* offsetModesTxt = "None\0"
-                                 "Custom\0"
-                                 "SpyVerter\0"
-                                 "Ham-It-Up\0"
-                                 "MMDS S-band (1998MHz)\0"
-                                 "DK5AV X-Band\0"
-                                 "Ku LNB (9750MHz)\0"
-                                 "Ku LNB (10700MHz)\0";
-
-    const char* decimationStages = "None\0"
-                                   "2\0"
-                                   "4\0"
-                                   "8\0"
-                                   "16\0"
-                                   "32\0"
-                                   "64\0";
-
     void updateOffset() {
-        if (offsetMode == OFFSET_MODE_CUSTOM) { effectiveOffset = customOffset; }
-        else if (offsetMode == OFFSET_MODE_SPYVERTER) {
-            effectiveOffset = 120000000;
-        } // 120MHz Up-conversion
-        else if (offsetMode == OFFSET_MODE_HAM_IT_UP) {
-            effectiveOffset = 125000000;
-        } // 125MHz Up-conversion
-        else if (offsetMode == OFFSET_MODE_MMDS_SB_1998) {
-            effectiveOffset = -1998000000;
-        } // 1.998GHz Down-conversion
-        else if (offsetMode == OFFSET_MODE_DK5AV_XB) {
-            effectiveOffset = -6800000000;
-        } // 6.8GHz Down-conversion
-        else if (offsetMode == OFFSET_MODE_KU_LNB_9750) {
-            effectiveOffset = -9750000000;
-        } // 9.750GHz Down-conversion
-        else if (offsetMode == OFFSET_MODE_KU_LNB_10700) {
-            effectiveOffset = -10700000000;
-        } // 10.7GHz Down-conversion
-        else {
+        // Compute the effective offset
+        switch (offsetId) {
+        case OFFSET_ID_NONE:
             effectiveOffset = 0;
+            break;
+        case OFFSET_ID_MANUAL:
+            effectiveOffset = manualOffset;
+            break;
+        default:
+            effectiveOffset = namedOffsets[offsets.name(offsetId)];
+            break;
         }
+
+        // Apply it
         sigpath::sourceManager.setTuningOffset(effectiveOffset);
     }
 
+    void selectOffsetById(int id) {
+        // Update the offset mode
+        offsetId = id;
+        selectedOffset = offsets.name(id);
+
+        // Update the offset
+        updateOffset();
+    }
+
+    void selectOffsetByName(const std::string& name) {
+        // If the name doesn't exist, select 'None'
+        if (!offsets.nameExists(name)) {
+            selectOffsetById(OFFSET_ID_NONE);
+            return;
+        }
+
+        // Select using the ID associated with the name
+        selectOffsetById(offsets.nameId(name));
+    }
+
     void refreshSources() {
-        sourceNames = sigpath::sourceManager.getSourceNames();
-        sourceNamesTxt.clear();
+        // Get sources
+        auto sourceNames = sigpath::sourceManager.getSourceNames();
+
+        // Define source options
+        sources.clear();
         for (auto name : sourceNames) {
-            sourceNamesTxt += name;
-            sourceNamesTxt += '\0';
+            sources.define(name, name, name);
         }
     }
 
     void selectSource(std::string name) {
-        if (sourceNames.empty()) {
+        // If there is no source, give up
+        if (sources.empty()) {
+            sourceId = 0;
             selectedSource.clear();
             return;
         }
-        auto it = std::find(sourceNames.begin(), sourceNames.end(), name);
-        if (it == sourceNames.end()) {
-            selectSource(sourceNames[0]);
+
+        // If a source with the given name doesn't exist, select the first source instead
+        if (!sources.valueExists(name)) {
+            selectSource(sources.value(0));
             return;
         }
-        sourceId = std::distance(sourceNames.begin(), it);
-        selectedSource = sourceNames[sourceId];
-        sigpath::sourceManager.selectSource(sourceNames[sourceId]);
+
+        // Update the GUI variables
+        sourceId = sources.valueId(name);
+        selectedSource = name;
+
+        // Select the source module
+        sigpath::sourceManager.selectSource(name);
     }
 
-    void onSourceRegistered(std::string name, void* ctx) {
+    void onSourcesChanged(std::string name, void* ctx) {
+        // Update the source list
         refreshSources();
 
-        if (selectedSource.empty()) {
-            sourceId = 0;
-            selectSource(sourceNames[0]);
-            return;
-        }
-
-        sourceId = std::distance(sourceNames.begin(), std::find(sourceNames.begin(), sourceNames.end(), selectedSource));
+        // Reselect the current source
+        selectSource(selectedSource);
     }
 
     void onSourceUnregister(std::string name, void* ctx) {
@@ -120,60 +127,173 @@ namespace sourcemenu {
         // TODO: Stop everything
     }
 
-    void onSourceUnregistered(std::string name, void* ctx) {
-        refreshSources();
+    void reloadOffsets() {
+        // Clear list
+        offsets.clear();
+        namedOffsets.clear();
 
-        if (sourceNames.empty()) {
-            selectedSource = "";
-            return;
+        // Define special offset modes
+        offsets.define("None", OFFSET_ID_NONE);
+        offsets.define("Manual", OFFSET_ID_MANUAL);
+
+        // Acquire the config file
+        core::configManager.acquire();
+
+        // Load custom offsets
+        auto ofs = core::configManager.conf["offsets"].items();
+        for (auto& o : ofs) {
+            namedOffsets[o.key()] = (double)o.value();
         }
 
-        if (name == selectedSource) {
-            sourceId = std::clamp<int>(sourceId, 0, sourceNames.size() - 1);
-            selectSource(sourceNames[sourceId]);
-            return;
+        // Define custom offsets
+        for (auto& [name, offset] : namedOffsets) {
+            offsets.define(name, offsets.size());
         }
 
-        sourceId = std::distance(sourceNames.begin(), std::find(sourceNames.begin(), sourceNames.end(), selectedSource));
+        // Release the config file
+        core::configManager.release();
     }
 
     void init() {
+        // Load offset modes
+        reloadOffsets();
+
+        // Define decimation values
+        decimations.define(1, "None", 1);
+        decimations.define(2, "2x", 2);
+        decimations.define(4, "4x", 4);
+        decimations.define(8, "8x", 8);
+        decimations.define(16, "16x", 16);
+        decimations.define(32, "32x", 32);
+        decimations.define(64, "64x", 64);
+
+        // Acquire the config file
         core::configManager.acquire();
-        std::string selected = core::configManager.conf["source"];
-        customOffset = core::configManager.conf["offset"];
-        offsetMode = core::configManager.conf["offsetMode"];
-        decimationPower = core::configManager.conf["decimationPower"];
+
+        // Load other settings
+        std::string selectedSource = core::configManager.conf["source"];
+        manualOffset = core::configManager.conf["manualOffset"];
+        std::string selectedOffset = core::configManager.conf["selectedOffset"];
         iqCorrection = core::configManager.conf["iqCorrection"];
         invertIQ = core::configManager.conf["invertIQ"];
+        int decimation = core::configManager.conf["decimation"];
+        if (decimations.keyExists(decimation)) {
+            decimId = decimations.keyId(decimation);
+        }
+
+        // Release the config file
+        core::configManager.release();
+
+        // Select the source module
+        refreshSources();
+        selectSource(selectedSource);
+
+        // Update frontend settings
         sigpath::iqFrontEnd.setDCBlocking(iqCorrection);
         sigpath::iqFrontEnd.setInvertIQ(invertIQ);
-        updateOffset();
+        sigpath::iqFrontEnd.setDecimation(decimations.value(decimId));
+        selectOffsetByName(selectedOffset);
 
-        refreshSources();
-        selectSource(selected);
-        sigpath::iqFrontEnd.setDecimation(1 << decimationPower);
-
-        sourceRegisteredHandler.handler = onSourceRegistered;
+        // Register handlers
+        sourcesChangedHandler.handler = onSourcesChanged;
         sourceUnregisterHandler.handler = onSourceUnregister;
-        sourceUnregisteredHandler.handler = onSourceUnregistered;
-        sigpath::sourceManager.onSourceRegistered.bindHandler(&sourceRegisteredHandler);
+        sigpath::sourceManager.onSourceRegistered.bindHandler(&sourcesChangedHandler);
         sigpath::sourceManager.onSourceUnregister.bindHandler(&sourceUnregisterHandler);
-        sigpath::sourceManager.onSourceUnregistered.bindHandler(&sourceUnregisteredHandler);
+        sigpath::sourceManager.onSourceUnregistered.bindHandler(&sourcesChangedHandler);
+    }
 
-        core::configManager.release();
+    void addOffset(const std::string& name, double offset) {
+        // Acquire the config file
+        core::configManager.acquire();
+
+        // Define a new offset
+        core::configManager.conf["offsets"][name] = offset;
+
+        // Acquire the config file
+        core::configManager.release(true);
+
+        // Reload the offsets
+        reloadOffsets();
+
+        // Attempt to re-select the same one
+        selectOffsetByName(selectedOffset);
+    }
+
+    void delOffset(const std::string& name) {
+        // Acquire the config file
+        core::configManager.acquire();
+
+        // Define a new offset
+        core::configManager.conf["offsets"].erase(name);
+
+        // Acquire the config file
+        core::configManager.release(true);
+
+        // Reload the offsets
+        reloadOffsets();
+
+        // Attempt to re-select the same one
+        selectOffsetByName(selectedOffset);
+    }
+
+    bool addOffsetDialog() {
+        bool open = true;
+        gui::mainWindow.lockWaterfallControls = true;
+
+        float menuWidth = ImGui::GetContentRegionAvail().x;
+
+        const char* id = "Add offset##sdrpp_add_offset_dialog_";
+        ImGui::OpenPopup(id);
+
+        if (ImGui::BeginPopup(id, ImGuiWindowFlags_NoResize)) {
+            ImGui::LeftLabel("Name");
+            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+            ImGui::InputText("##sdrpp_add_offset_name", newOffsetName, 1023);
+
+            ImGui::LeftLabel("Offset");
+            ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+            ImGui::InputDouble("##sdrpp_add_offset_offset", &newOffset);
+
+            bool nameExists = offsets.nameExists(newOffsetName);
+            bool reservedName = !strcmp(newOffsetName, "None") || !strcmp(newOffsetName, "Manual");
+            bool denyApply = !newOffsetName[0] || nameExists || reservedName;
+
+            if (nameExists) {
+                ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "An offset with the given name already exists.");
+            }
+            else if (reservedName) {
+                ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "The given name is reserved.");
+            }
+
+            if (denyApply) { style::beginDisabled(); }
+            if (ImGui::Button("Apply")) {
+                addOffset(newOffsetName, newOffset);
+                open = false;
+            }
+            if (denyApply) { style::endDisabled(); }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel")) {
+                open = false;
+            }
+            ImGui::EndPopup();
+        }
+        return open;
     }
 
     void draw(void* ctx) {
         float itemWidth = ImGui::GetContentRegionAvail().x;
+        float lineHeight = ImGui::GetTextLineHeightWithSpacing();
+        float spacing = lineHeight - ImGui::GetTextLineHeight();
         bool running = gui::mainWindow.sdrIsRunning();
 
         if (running) { style::beginDisabled(); }
 
         ImGui::SetNextItemWidth(itemWidth);
-        if (ImGui::Combo("##source", &sourceId, sourceNamesTxt.c_str())) {
-            selectSource(sourceNames[sourceId]);
+        if (ImGui::Combo("##source", &sourceId, sources.txt)) {
+            std::string newSource = sources.value(sourceId);
+            selectSource(newSource);
             core::configManager.acquire();
-            core::configManager.conf["source"] = sourceNames[sourceId];
+            core::configManager.conf["source"] = newSource;
             core::configManager.release(true);
         }
 
@@ -196,21 +316,45 @@ namespace sourcemenu {
         }
 
         ImGui::LeftLabel("Offset mode");
-        ImGui::SetNextItemWidth(itemWidth - ImGui::GetCursorPosX());
-        if (ImGui::Combo("##_sdrpp_offset_mode", &offsetMode, offsetModesTxt)) {
-            updateOffset();
+        ImGui::SetNextItemWidth(itemWidth - ImGui::GetCursorPosX() - 2.0f*(lineHeight + 1.5f*spacing));
+        if (ImGui::Combo("##_sdrpp_offset", &offsetId, offsets.txt)) {
+            selectOffsetById(offsetId);
             core::configManager.acquire();
-            core::configManager.conf["offsetMode"] = offsetMode;
+            core::configManager.conf["selectedOffset"] = offsets.key(offsetId);
             core::configManager.release(true);
         }
+        ImGui::SameLine();
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() - spacing);
+        if (offsetId < OFFSET_ID_CUSTOM_BASE) { ImGui::BeginDisabled(); }
+        if (ImGui::Button("-##_sdrpp_offset_del_", ImVec2(lineHeight + 0.5f*spacing, 0))) {
+            delOffsetName = selectedOffset;
+            showDelOffsetDialog = true;
+        }
+        if (offsetId < OFFSET_ID_CUSTOM_BASE) { ImGui::EndDisabled(); }
+        ImGui::SameLine();
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() - spacing);
+        if (ImGui::Button("+##_sdrpp_offset_add_", ImVec2(lineHeight + 0.5f*spacing, 0))) {
+            strcpy(newOffsetName, "New Offset");
+            showAddOffsetDialog = true;
+        }
+
+        // Offset delete confirmation
+        if (ImGui::GenericDialog("sdrpp_del_offset_confirm", showDelOffsetDialog, GENERIC_DIALOG_BUTTONS_YES_NO, []() {
+            ImGui::Text("Deleting offset named \"%s\". Are you sure?", delOffsetName.c_str());
+        }) == GENERIC_DIALOG_BUTTON_YES) {
+            delOffset(delOffsetName);
+        }
+
+        // Offset add diaglog
+        if (showAddOffsetDialog) { showAddOffsetDialog = addOffsetDialog(); }
 
         ImGui::LeftLabel("Offset");
-        ImGui::SetNextItemWidth(itemWidth - ImGui::GetCursorPosX());
-        if (offsetMode == OFFSET_MODE_CUSTOM) {
-            if (ImGui::InputDouble("##freq_offset", &customOffset, 1.0, 100.0)) {
+        ImGui::FillWidth();
+        if (offsetId == OFFSET_ID_MANUAL) {
+            if (ImGui::InputDouble("##freq_offset", &manualOffset, 1.0, 100.0)) {
                 updateOffset();
                 core::configManager.acquire();
-                core::configManager.conf["offset"] = customOffset;
+                core::configManager.conf["manualOffset"] = manualOffset;
                 core::configManager.release(true);
             }
         }
@@ -222,11 +366,11 @@ namespace sourcemenu {
 
         if (running) { style::beginDisabled(); }
         ImGui::LeftLabel("Decimation");
-        ImGui::SetNextItemWidth(itemWidth - ImGui::GetCursorPosX());
-        if (ImGui::Combo("##source_decim", &decimationPower, decimationStages)) {
-            sigpath::iqFrontEnd.setDecimation(1 << decimationPower);
+        ImGui::FillWidth();
+        if (ImGui::Combo("##source_decim", &decimId, decimations.txt)) {
+            sigpath::iqFrontEnd.setDecimation(decimations.value(decimId));
             core::configManager.acquire();
-            core::configManager.conf["decimationPower"] = decimationPower;
+            core::configManager.conf["decimation"] = decimations.key(decimId);
             core::configManager.release(true);
         }
         if (running) { style::endDisabled(); }

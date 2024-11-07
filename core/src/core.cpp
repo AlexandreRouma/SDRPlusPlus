@@ -232,12 +232,19 @@ int sdrpp_main(int argc, char* argv[]) {
 
     defConfig["modules"] = json::array();
 
-    defConfig["offsetMode"] = (int)0; // Off
-    defConfig["offset"] = 0.0;
+    defConfig["offsets"]["SpyVerter"] = 120000000.0;
+    defConfig["offsets"]["Ham-It-Up"] = 125000000.0;
+    defConfig["offsets"]["MMDS S-band (1998MHz)"] = -1998000000.0;
+    defConfig["offsets"]["DK5AV X-Band"] = -6800000000.0;
+    defConfig["offsets"]["Ku LNB (9750MHz)"] = -9750000000.0;
+    defConfig["offsets"]["Ku LNB (10700MHz)"] = -10700000000.0;
+
+    defConfig["selectedOffset"] = "None";
+    defConfig["manualOffset"] = 0.0;
     defConfig["showMenu"] = true;
     defConfig["showWaterfall"] = true;
     defConfig["source"] = "";
-    defConfig["decimationPower"] = 0;
+    defConfig["decimation"] = 1;
     defConfig["iqCorrection"] = false;
     defConfig["invertIQ"] = false;
 
@@ -318,11 +325,17 @@ int sdrpp_main(int argc, char* argv[]) {
 
     // Remove unused elements
     auto items = core::configManager.conf.items();
+    auto newConf = core::configManager.conf;
+    bool configCorrected = false;
     for (auto const& item : items) {
         if (!defConfig.contains(item.key())) {
             flog::info("Unused key in config {0}, repairing", item.key());
-            core::configManager.conf.erase(item.key());
+            newConf.erase(item.key());
+            configCorrected = true;
         }
+    }
+    if (configCorrected) {
+        core::configManager.conf = newConf;
     }
 
     // Update to new module representation in config if needed
