@@ -24,6 +24,12 @@
             "end": 1602000
         },
         {
+            "name": "160m ham band",
+            "type": "amateur",
+            "start": 1810000,
+            "end": 2000000
+        },
+        {
             "name": "120m SW broadcast",
             "type": "broadcast",
             "start": 2300000,
@@ -34,6 +40,12 @@
             "type": "broadcast",
             "start": 3200000,
             "end": 3400000
+        },
+        {
+            "name": "80m ham band",
+            "type": "amateur",
+            "start": 3500000,
+            "end": 3800000
         },
         {
             "name": "75m SW Broadcast",
@@ -48,10 +60,22 @@
             "end": 5060000
         },
         {
+            "name": "60m ham band",
+            "type": "amateur",
+            "start": 5351500,
+            "end": 5366500
+        },
+        {
             "name": "49m SW Broadcast",
             "type": "broadcast",
             "start": 5900000,
             "end": 6200000
+        },
+        {
+            "name": "40m ham band",
+            "type": "amateur",
+            "start": 7000000,
+            "end": 7200000
         },
         {
             "name": "40m SW Broadcast",
@@ -66,6 +90,12 @@
             "end": 9900000
         },
         {
+            "name": "30m ham band",
+            "type": "amateur",
+            "start": 10100000,
+            "end": 10150000
+        },
+        {
             "name": "25m SW Broadcast",
             "type": "broadcast",
             "start": 11600000,
@@ -78,10 +108,22 @@
             "end": 13870000
         },
         {
+            "name": "20m ham band",
+            "type": "amateur",
+            "start": 14000000,
+            "end": 14350000
+        },
+        {
             "name": "19m SW Broadcast",
             "type": "broadcast",
             "start": 15100000,
             "end": 15800000
+        },
+        {
+            "name": "17m ham band",
+            "type": "amateur",
+            "start": 18068000,
+            "end": 18168000
         },
         {
             "name": "16m SW Broadcast",
@@ -96,10 +138,22 @@
             "end": 19020000
         },
         {
+            "name": "15m ham band",
+            "type": "amateur",
+            "start": 21000000,
+            "end": 21450000
+        },
+        {
             "name": "13m SW Broadcast",
             "type": "broadcast",
             "start": 21450000,
             "end": 21850000
+        },
+        {
+            "name": "12m ham band",
+            "type": "amateur",
+            "start": 24890000,
+            "end": 24990000
         },
         {
             "name": "11m SW Broadcast",
@@ -108,10 +162,40 @@
             "end": 26100000
         },
         {
+            "name": "10m ham band",
+            "type": "amateur",
+            "start": 28000000,
+            "end": 29700000
+        },
+        {
             "name": "FM Broadcast",
             "type": "broadcast",
             "start": 87500000,
             "end": 108000000
+        },
+        {
+            "name": "6m ham band",
+            "type": "amateur",
+            "start": 50000000,
+            "end": 52000000
+        },
+        {
+            "name": "4m ham band",
+            "type": "amateur",
+            "start": 70000000,
+            "end": 70500000
+        },
+        {
+            "name": "2m ham band",
+            "type": "amateur",
+            "start": 144000000,
+            "end": 146000000
+        },
+        {
+            "name": "70cm ham band",
+            "type": "amateur",
+            "start": 430000000,
+            "end": 440000000
         }
     ]
 }
