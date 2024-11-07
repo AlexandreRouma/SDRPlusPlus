@@ -140,7 +140,12 @@ namespace sourcemenu {
         core::configManager.acquire();
 
         // Load custom offsets
-        namedOffsets = (std::map<std::string, double>)core::configManager.conf["offsets"];
+        auto ofs = core::configManager.conf["offsets"].items();
+        for (auto& o : ofs) {
+            namedOffsets[o.key()] = (double)o.value();
+        }
+
+        // Define custom offsets
         for (auto& [name, offset] : namedOffsets) {
             offsets.define(name, offsets.size());
         }
@@ -349,7 +354,7 @@ namespace sourcemenu {
             if (ImGui::InputDouble("##freq_offset", &manualOffset, 1.0, 100.0)) {
                 updateOffset();
                 core::configManager.acquire();
-                core::configManager.conf["offset"] = manualOffset;
+                core::configManager.conf["manualOffset"] = manualOffset;
                 core::configManager.release(true);
             }
         }
