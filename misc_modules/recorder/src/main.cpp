@@ -52,9 +52,22 @@ public:
         sampleTypes.define(wav::SAMP_TYPE_INT32, "Int32", wav::SAMP_TYPE_INT32);
         sampleTypes.define(wav::SAMP_TYPE_FLOAT32, "Float32", wav::SAMP_TYPE_FLOAT32);
 
+        // Define retroactive buffer sizes
+        retroBufSizes.define(0, "None", 0);
+        retroBufSizes.define(1 << 18, "256MB", 1 << 18);
+        retroBufSizes.define(1 << 19, "512MB", 1 << 19);
+        retroBufSizes.define(1 << 20, "1GB", 1 << 20);
+        retroBufSizes.define(1 << 21, "2GB", 1 << 21);
+        retroBufSizes.define(1 << 22, "4GB", 1 << 22);
+        retroBufSizes.define(1 << 23, "8GB", 1 << 23);
+        retroBufSizes.define(1 << 24, "16GB", 1 << 24);
+        retroBufSizes.define(1 << 25, "32GB", 1 << 25);
+        retroBufSizes.define(1 << 26, "64GB", 1 << 26);
+
         // Load default config for option lists
         containerId = containers.valueId(wav::FORMAT_WAV);
         sampleTypeId = sampleTypes.valueId(wav::SAMP_TYPE_INT16);
+        retroBufSizeId = retroBufSizes.nameId("None");
 
         // Load config
         config.acquire();
@@ -69,6 +82,9 @@ public:
         }
         if (config.conf[name].contains("sampleType") && sampleTypes.keyExists(config.conf[name]["sampleType"])) {
             sampleTypeId = sampleTypes.keyId(config.conf[name]["sampleType"]);
+        }
+        if (config.conf[name].contains("retroBufferSize") && retroBufSizes.keyExists(config.conf[name]["retroBufferSize"])) {
+            retroBufSizeId = retroBufSizes.keyId(config.conf[name]["retroBufferSize"]);
         }
         if (config.conf[name].contains("audioStream")) {
             selectedStreamName = config.conf[name]["audioStream"];
@@ -279,6 +295,14 @@ private:
         if (ImGui::Combo(CONCAT("##_recorder_st_", _this->name), &_this->sampleTypeId, _this->sampleTypes.txt)) {
             config.acquire();
             config.conf[_this->name]["sampleType"] = _this->sampleTypes.key(_this->sampleTypeId);
+            config.release(true);
+        }
+
+        ImGui::LeftLabel("Retroactive buffer");
+        ImGui::FillWidth();
+        if (ImGui::Combo(CONCAT("##_recorder_retro_buf_size_", _this->name), &_this->retroBufSizeId, _this->retroBufSizes.txt)) {
+            config.acquire();
+            config.conf[_this->name]["retroBufferSize"] = _this->retroBufSizes.key(_this->retroBufSizeId);
             config.release(true);
         }
 
@@ -566,11 +590,13 @@ private:
 
     OptionList<std::string, wav::Format> containers;
     OptionList<int, wav::SampleType> sampleTypes;
+    OptionList<int64_t, int64_t> retroBufSizes;
     FolderSelect folderSelect;
 
     int recMode = RECORDER_MODE_AUDIO;
     int containerId;
     int sampleTypeId;
+    int retroBufSizeId;
     bool stereo = true;
     std::string selectedStreamName = "";
     float audioVolume = 1.0f;
