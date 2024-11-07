@@ -232,22 +232,15 @@ int sdrpp_main(int argc, char* argv[]) {
 
     defConfig["modules"] = json::array();
 
-    defConfig["offsets"] = json::array();
-    defConfig["offsets"][0]["name"] = "SpyVerter";
-    defConfig["offsets"][0]["offset"] = 120000000;
-    defConfig["offsets"][1]["name"] = "Ham-It-Up";
-    defConfig["offsets"][1]["offset"] = 125000000;
-    defConfig["offsets"][2]["name"] = "MMDS S-band (1998MHz)";
-    defConfig["offsets"][2]["offset"] = -1998000000;
-    defConfig["offsets"][3]["name"] = "DK5AV X-Band";
-    defConfig["offsets"][3]["offset"] = -6800000000;
-    defConfig["offsets"][4]["name"] = "Ku LNB (9750MHz)";
-    defConfig["offsets"][4]["offset"] = -9750000000;
-    defConfig["offsets"][5]["name"] = "Ku LNB (10700MHz)";
-    defConfig["offsets"][5]["offset"] = -10700000000;
+    defConfig["offsets"]["SpyVerter"] = 120000000.0;
+    defConfig["offsets"]["Ham-It-Up"] = 125000000.0;
+    defConfig["offsets"]["MMDS S-band (1998MHz)"] = -1998000000.0;
+    defConfig["offsets"]["DK5AV X-Band"] = -6800000000.0;
+    defConfig["offsets"]["Ku LNB (9750MHz)"] = -9750000000.0;
+    defConfig["offsets"]["Ku LNB (10700MHz)"] = -10700000000.0;
 
-    defConfig["offsetMode"] = (int)0; // Off
-    defConfig["offset"] = 0.0;
+    defConfig["selectedOffset"] = "None";
+    defConfig["manualOffset"] = 0.0;
     defConfig["showMenu"] = true;
     defConfig["showWaterfall"] = true;
     defConfig["source"] = "";
@@ -332,11 +325,17 @@ int sdrpp_main(int argc, char* argv[]) {
 
     // Remove unused elements
     auto items = core::configManager.conf.items();
+    auto newConf = core::configManager.conf;
+    bool configCorrected = false;
     for (auto const& item : items) {
         if (!defConfig.contains(item.key())) {
             flog::info("Unused key in config {0}, repairing", item.key());
-            core::configManager.conf.erase(item.key());
+            newConf.erase(item.key());
+            configCorrected = true;
         }
+    }
+    if (configCorrected) {
+        core::configManager.conf = newConf;
     }
 
     // Update to new module representation in config if needed

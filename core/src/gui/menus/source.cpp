@@ -9,22 +9,24 @@
 #include <gui/dialogs/dialog_box.h>
 
 namespace sourcemenu {
-    int offsetMode = 0;
     int sourceId = 0;
-    double customOffset = 0.0;
-    double effectiveOffset = 0.0;
+    EventHandler<std::string> sourcesChangedHandler;
+    EventHandler<std::string> sourceUnregisterHandler;
+    OptionList<std::string, std::string> sources;
+    std::string selectedSource;
+
     int decimId = 0;
+    OptionList<int, int> decimations;
+
     bool iqCorrection = false;
     bool invertIQ = false;
 
-    EventHandler<std::string> sourcesChangedHandler;
-    EventHandler<std::string> sourceUnregisterHandler;
-
-    OptionList<std::string, std::string> sources;
-    std::string selectedSource;
-    OptionList<std::string, int> offsets;
-    std::vector<double> customOffsets;
-    OptionList<int, int> decimations;
+    int offsetId = 0;
+    double manualOffset = 0.0;
+    std::string selectedOffset;
+    double effectiveOffset = 0.0;
+    OptionList<std::string, double> offsets;
+    std::map<std::string, double> namedOffsets;
 
     bool showAddOffsetDialog = false;
     char newOffsetName[1024];
@@ -33,28 +35,49 @@ namespace sourcemenu {
     bool showDelOffsetDialog = false;
     std::string delOffsetName = "";
 
+    // Offset IDs
     enum {
-        OFFSET_MODE_NONE,
-        OFFSET_MODE_MANUAL,
-        OFFSET_MODE_CUSTOM_BASE
+        OFFSET_ID_NONE,
+        OFFSET_ID_MANUAL,
+        OFFSET_ID_CUSTOM_BASE
     };
 
     void updateOffset() {
         // Compute the effective offset
-        switch (offsetMode) {
-        case OFFSET_MODE_NONE:
+        switch (offsetId) {
+        case OFFSET_ID_NONE:
             effectiveOffset = 0;
             break;
-        case OFFSET_MODE_MANUAL:
-            effectiveOffset = customOffset;
+        case OFFSET_ID_MANUAL:
+            effectiveOffset = manualOffset;
             break;
         default:
-            effectiveOffset = customOffsets[offsetMode - OFFSET_MODE_CUSTOM_BASE];
+            effectiveOffset = namedOffsets[offsets.name(offsetId)];
             break;
         }
 
         // Apply it
         sigpath::sourceManager.setTuningOffset(effectiveOffset);
+    }
+
+    void selectOffsetById(int id) {
+        // Update the offset mode
+        offsetId = id;
+        selectedOffset = offsets.name(id);
+
+        // Update the offset
+        updateOffset();
+    }
+
+    void selectOffsetByName(const std::string& name) {
+        // If the name doesn't exist, select 'None'
+        if (!offsets.nameExists(name)) {
+            selectOffsetById(OFFSET_ID_NONE);
+            return;
+        }
+
+        // Select using the ID associated with the name
+        selectOffsetById(offsets.nameId(name));
     }
 
     void refreshSources() {
@@ -83,7 +106,7 @@ namespace sourcemenu {
         }
 
         // Update the GUI variables
-        sourceId = sources.valueExists(name);
+        sourceId = sources.valueId(name);
         selectedSource = name;
 
         // Select the source module
@@ -104,23 +127,22 @@ namespace sourcemenu {
         // TODO: Stop everything
     }
 
-    void loadOffsets() {
+    void reloadOffsets() {
         // Clear list
         offsets.clear();
-        customOffsets.clear();
+        namedOffsets.clear();
 
         // Define special offset modes
-        offsets.define("None", 0);
-        offsets.define("Manual", 1);
+        offsets.define("None", OFFSET_ID_NONE);
+        offsets.define("Manual", OFFSET_ID_MANUAL);
 
         // Acquire the config file
         core::configManager.acquire();
 
         // Load custom offsets
-        std::vector<json> offsetList = core::configManager.conf["offsets"];
-        for (auto& o : offsetList) {
-            customOffsets.push_back(o["offset"]);
-            offsets.define(o["name"], offsets.size());
+        namedOffsets = (std::map<std::string, double>)core::configManager.conf["offsets"];
+        for (auto& [name, offset] : namedOffsets) {
+            offsets.define(name, offsets.size());
         }
 
         // Release the config file
@@ -129,7 +151,7 @@ namespace sourcemenu {
 
     void init() {
         // Load offset modes
-        loadOffsets();
+        reloadOffsets();
 
         // Define decimation values
         decimations.define(1, "None", 1);
@@ -144,9 +166,9 @@ namespace sourcemenu {
         core::configManager.acquire();
 
         // Load other settings
-        std::string selected = core::configManager.conf["source"];
-        customOffset = core::configManager.conf["offset"];
-        offsetMode = core::configManager.conf["offsetMode"];
+        std::string selectedSource = core::configManager.conf["source"];
+        manualOffset = core::configManager.conf["manualOffset"];
+        std::string selectedOffset = core::configManager.conf["selectedOffset"];
         iqCorrection = core::configManager.conf["iqCorrection"];
         invertIQ = core::configManager.conf["invertIQ"];
         int decimation = core::configManager.conf["decimation"];
@@ -159,13 +181,13 @@ namespace sourcemenu {
 
         // Select the source module
         refreshSources();
-        selectSource(selected);
+        selectSource(selectedSource);
 
         // Update frontend settings
         sigpath::iqFrontEnd.setDCBlocking(iqCorrection);
         sigpath::iqFrontEnd.setInvertIQ(invertIQ);
-        updateOffset();
         sigpath::iqFrontEnd.setDecimation(decimations.value(decimId));
+        selectOffsetByName(selectedOffset);
 
         // Register handlers
         sourcesChangedHandler.handler = onSourcesChanged;
@@ -180,23 +202,33 @@ namespace sourcemenu {
         core::configManager.acquire();
 
         // Define a new offset
-        auto newOffsetObj = json::object();
-        newOffsetObj["name"] = newOffsetName;
-        newOffsetObj["offset"] = newOffset;
-        core::configManager.conf["offsets"].push_back(newOffsetObj);
+        core::configManager.conf["offsets"][name] = offset;
 
         // Acquire the config file
         core::configManager.release(true);
 
         // Reload the offsets
-        loadOffsets();
+        reloadOffsets();
 
-        // Re-select the same one
-        // TODO: Switch from an array to a map, because two can't have the same name anyway and it'll just make things easier...+
+        // Attempt to re-select the same one
+        selectOffsetByName(selectedOffset);
     }
 
     void delOffset(const std::string& name) {
-        
+        // Acquire the config file
+        core::configManager.acquire();
+
+        // Define a new offset
+        core::configManager.conf["offsets"].erase(name);
+
+        // Acquire the config file
+        core::configManager.release(true);
+
+        // Reload the offsets
+        reloadOffsets();
+
+        // Attempt to re-select the same one
+        selectOffsetByName(selectedOffset);
     }
 
     bool addOffsetDialog() {
@@ -217,7 +249,16 @@ namespace sourcemenu {
             ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
             ImGui::InputDouble("##sdrpp_add_offset_offset", &newOffset);
 
-            bool denyApply = !newOffsetName[0] || offsets.nameExists(newOffsetName);
+            bool nameExists = offsets.nameExists(newOffsetName);
+            bool reservedName = !strcmp(newOffsetName, "None") || !strcmp(newOffsetName, "Manual");
+            bool denyApply = !newOffsetName[0] || nameExists || reservedName;
+
+            if (nameExists) {
+                ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "An offset with the given name already exists.");
+            }
+            else if (reservedName) {
+                ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "The given name is reserved.");
+            }
 
             if (denyApply) { style::beginDisabled(); }
             if (ImGui::Button("Apply")) {
@@ -271,20 +312,20 @@ namespace sourcemenu {
 
         ImGui::LeftLabel("Offset mode");
         ImGui::SetNextItemWidth(itemWidth - ImGui::GetCursorPosX() - 2.0f*(lineHeight + 1.5f*spacing));
-        if (ImGui::Combo("##_sdrpp_offset_mode", &offsetMode, offsets.txt)) {
-            updateOffset();
+        if (ImGui::Combo("##_sdrpp_offset", &offsetId, offsets.txt)) {
+            selectOffsetById(offsetId);
             core::configManager.acquire();
-            core::configManager.conf["offsetMode"] = offsetMode;
+            core::configManager.conf["selectedOffset"] = offsets.key(offsetId);
             core::configManager.release(true);
         }
         ImGui::SameLine();
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() - spacing);
-        if (offsetMode < OFFSET_MODE_CUSTOM_BASE) { ImGui::BeginDisabled(); }
+        if (offsetId < OFFSET_ID_CUSTOM_BASE) { ImGui::BeginDisabled(); }
         if (ImGui::Button("-##_sdrpp_offset_del_", ImVec2(lineHeight + 0.5f*spacing, 0))) {
-            delOffsetName = "TEST";
+            delOffsetName = selectedOffset;
             showDelOffsetDialog = true;
         }
-        if (offsetMode < OFFSET_MODE_CUSTOM_BASE) { ImGui::EndDisabled(); }
+        if (offsetId < OFFSET_ID_CUSTOM_BASE) { ImGui::EndDisabled(); }
         ImGui::SameLine();
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() - spacing);
         if (ImGui::Button("+##_sdrpp_offset_add_", ImVec2(lineHeight + 0.5f*spacing, 0))) {
@@ -294,7 +335,7 @@ namespace sourcemenu {
 
         // Offset delete confirmation
         if (ImGui::GenericDialog("sdrpp_del_offset_confirm", showDelOffsetDialog, GENERIC_DIALOG_BUTTONS_YES_NO, []() {
-            ImGui::Text("Deleting offset named \"%s\". Are you sure?", delOffsetName);
+            ImGui::Text("Deleting offset named \"%s\". Are you sure?", delOffsetName.c_str());
         }) == GENERIC_DIALOG_BUTTON_YES) {
             delOffset(delOffsetName);
         }
@@ -304,11 +345,11 @@ namespace sourcemenu {
 
         ImGui::LeftLabel("Offset");
         ImGui::FillWidth();
-        if (offsetMode == OFFSET_MODE_MANUAL) {
-            if (ImGui::InputDouble("##freq_offset", &customOffset, 1.0, 100.0)) {
+        if (offsetId == OFFSET_ID_MANUAL) {
+            if (ImGui::InputDouble("##freq_offset", &manualOffset, 1.0, 100.0)) {
                 updateOffset();
                 core::configManager.acquire();
-                core::configManager.conf["offset"] = customOffset;
+                core::configManager.conf["offset"] = manualOffset;
                 core::configManager.release(true);
             }
         }
