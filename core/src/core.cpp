@@ -232,12 +232,26 @@ int sdrpp_main(int argc, char* argv[]) {
 
     defConfig["modules"] = json::array();
 
+    defConfig["offsets"] = json::array();
+    defConfig["offsets"][0]["name"] = "SpyVerter";
+    defConfig["offsets"][0]["offset"] = 120000000;
+    defConfig["offsets"][1]["name"] = "Ham-It-Up";
+    defConfig["offsets"][1]["offset"] = 125000000;
+    defConfig["offsets"][2]["name"] = "MMDS S-band (1998MHz)";
+    defConfig["offsets"][2]["offset"] = -1998000000;
+    defConfig["offsets"][3]["name"] = "DK5AV X-Band";
+    defConfig["offsets"][3]["offset"] = -6800000000;
+    defConfig["offsets"][4]["name"] = "Ku LNB (9750MHz)";
+    defConfig["offsets"][4]["offset"] = -9750000000;
+    defConfig["offsets"][5]["name"] = "Ku LNB (10700MHz)";
+    defConfig["offsets"][5]["offset"] = -10700000000;
+
     defConfig["offsetMode"] = (int)0; // Off
     defConfig["offset"] = 0.0;
     defConfig["showMenu"] = true;
     defConfig["showWaterfall"] = true;
     defConfig["source"] = "";
-    defConfig["decimationPower"] = 0;
+    defConfig["decimation"] = 1;
     defConfig["iqCorrection"] = false;
     defConfig["invertIQ"] = false;
 
