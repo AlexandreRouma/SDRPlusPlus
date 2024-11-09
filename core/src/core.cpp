@@ -147,11 +147,11 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["menuElements"][3]["name"] = "Sinks";
     defConfig["menuElements"][3]["open"] = true;
 
-    defConfig["menuElements"][3]["name"] = "Frequency Manager";
-    defConfig["menuElements"][3]["open"] = true;
-
-    defConfig["menuElements"][4]["name"] = "VFO Color";
+    defConfig["menuElements"][4]["name"] = "Frequency Manager";
     defConfig["menuElements"][4]["open"] = true;
+
+    defConfig["menuElements"][5]["name"] = "VFO Color";
+    defConfig["menuElements"][5]["open"] = true;
 
     defConfig["menuElements"][6]["name"] = "Band Plan";
     defConfig["menuElements"][6]["open"] = true;
