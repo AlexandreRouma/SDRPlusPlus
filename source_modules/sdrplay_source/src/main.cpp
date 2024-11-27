@@ -8,6 +8,7 @@
 #include <config.h>
 #include <sdrplay_api.h>
 #include <gui/smgui.h>
+#include <utils/optionlist.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -15,7 +16,7 @@ SDRPP_MOD_INFO{
     /* Name:            */ "sdrplay_source",
     /* Description:     */ "SDRplay source module for SDR++",
     /* Author:          */ "Ryzerth",
-    /* Version:         */ 0, 1, 0,
+    /* Version:         */ 0, 2, 0,
     /* Max instances    */ 1
 };
 
@@ -208,6 +209,11 @@ public:
                 name += devArr[i].SerNo;
                 name += ')';
                 break;
+            case SDRPLAY_RSP1B_ID:
+                name = "RSP1B (";
+                name += devArr[i].SerNo;
+                name += ')';
+                break;
             case SDRPLAY_RSP2_ID:
                 name = "RSP2 (";
                 name += devArr[i].SerNo;
@@ -220,6 +226,11 @@ public:
                 break;
             case SDRPLAY_RSPdx_ID:
                 name = "RSPdx (";
+                name += devArr[i].SerNo;
+                name += ')';
+                break;
+            case SDRPLAY_RSPdxR2_ID:
+                name = "RSPdx-R2 (";
                 name += devArr[i].SerNo;
                 name += ')';
                 break;
@@ -290,6 +301,29 @@ public:
             return;
         }
 
+        // Define the valid samplerates
+        samplerates.clear();
+        samplerates.define(2e6, "2MHz", 2e6);
+        samplerates.define(3e6, "3MHz", 3e6);
+        samplerates.define(4e6, "4MHz", 4e6);
+        samplerates.define(5e6, "5MHz", 5e6);
+        samplerates.define(6e6, "6MHz", 6e6);
+        samplerates.define(7e6, "7MHz", 7e6);
+        samplerates.define(8e6, "8MHz", 8e6);
+        samplerates.define(9e6, "9MHz", 9e6);
+        samplerates.define(10e6, "10MHz", 10e6);
+
+        // Define the valid bandwidths
+        bandwidths.define(0, "Auto", sdrplay_api_BW_Undefined);
+        bandwidths.define(200e3, "200KHz", sdrplay_api_BW_0_200);
+        bandwidths.define(300e3, "300KHz", sdrplay_api_BW_0_300);
+        bandwidths.define(600e3, "600KHz", sdrplay_api_BW_0_600);
+        bandwidths.define(1.536e6, "1.536MHz", sdrplay_api_BW_1_536);
+        bandwidths.define(5e6, "5MHz", sdrplay_api_BW_5_000);
+        bandwidths.define(6e6, "6MHz", sdrplay_api_BW_6_000);
+        bandwidths.define(7e6, "7MHz", sdrplay_api_BW_7_000);
+        bandwidths.define(8e6, "8MHz", sdrplay_api_BW_8_000);
+
         channelParams = openDevParams->rxChannelA;
 
         selectedName = devNameList[id];
@@ -297,7 +331,7 @@ public:
         if (openDev.hwVer == SDRPLAY_RSP1_ID) {
             lnaSteps = 4;
         }
-        else if (openDev.hwVer == SDRPLAY_RSP1A_ID) {
+        else if (openDev.hwVer == SDRPLAY_RSP1A_ID || openDev.hwVer == SDRPLAY_RSP1B_ID) {
             lnaSteps = 10;
         }
         else if (openDev.hwVer == SDRPLAY_RSP2_ID) {
@@ -306,7 +340,7 @@ public:
         else if (openDev.hwVer == SDRPLAY_RSPduo_ID) {
             lnaSteps = 10;
         }
-        else if (openDev.hwVer == SDRPLAY_RSPdx_ID) {
+        else if (openDev.hwVer == SDRPLAY_RSP1A_ID || openDev.hwVer == SDRPLAY_RSPdxR2_ID) {
             lnaSteps = 28;
         }
 
@@ -331,7 +365,7 @@ public:
             if (openDev.hwVer == SDRPLAY_RSP1_ID) {
                 // No config to load
             }
-            else if (openDev.hwVer == SDRPLAY_RSP1A_ID) {
+            else if (openDev.hwVer == SDRPLAY_RSP1A_ID || openDev.hwVer == SDRPLAY_RSP1B_ID) {
                 config.conf["devices"][selectedName]["fmmwNotch"] = false;
                 config.conf["devices"][selectedName]["dabNotch"] = false;
                 config.conf["devices"][selectedName]["biast"] = false;
@@ -347,7 +381,7 @@ public:
                 config.conf["devices"][selectedName]["dabNotch"] = false;
                 config.conf["devices"][selectedName]["biast"] = false;
             }
-            else if (openDev.hwVer == SDRPLAY_RSPdx_ID) {
+            else if (openDev.hwVer == SDRPLAY_RSP1A_ID || openDev.hwVer == SDRPLAY_RSPdxR2_ID) {
                 config.conf["devices"][selectedName]["antenna"] = 0;
                 config.conf["devices"][selectedName]["fmmwNotch"] = false;
                 config.conf["devices"][selectedName]["dabNotch"] = false;
@@ -415,7 +449,7 @@ public:
         if (openDev.hwVer == SDRPLAY_RSP1_ID) {
             // No config to load
         }
-        else if (openDev.hwVer == SDRPLAY_RSP1A_ID) {
+        else if (openDev.hwVer == SDRPLAY_RSP1A_ID || openDev.hwVer == SDRPLAY_RSP1B_ID) {
             if (config.conf["devices"][selectedName].contains("fmmwNotch")) {
                 rsp1a_fmmwNotch = config.conf["devices"][selectedName]["fmmwNotch"];
             }
@@ -451,7 +485,7 @@ public:
                 rspduo_biasT = config.conf["devices"][selectedName]["biast"];
             }
         }
-        else if (openDev.hwVer == SDRPLAY_RSPdx_ID) {
+        else if (openDev.hwVer == SDRPLAY_RSP1A_ID || openDev.hwVer == SDRPLAY_RSPdxR2_ID) {
             if (config.conf["devices"][selectedName].contains("antenna")) {
                 rspdx_antennaPort = config.conf["devices"][selectedName]["antenna"];
             }
@@ -854,6 +888,7 @@ private:
                 _this->RSP1Menu();
                 break;
             case SDRPLAY_RSP1A_ID:
+            case SDRPLAY_RSP1B_ID:
                 _this->RSP1AMenu();
                 break;
             case SDRPLAY_RSP2_ID:
@@ -863,6 +898,7 @@ private:
                 _this->RSPduoMenu();
                 break;
             case SDRPLAY_RSPdx_ID:
+            case SDRPLAY_RSPdxR2_ID:
                 _this->RSPdxMenu();
                 break;
             default:
@@ -1201,6 +1237,9 @@ private:
     std::string devListTxt;
     std::vector<std::string> devNameList;
     std::string selectedName;
+
+    OptionList<int, int> samplerates;
+    OptionList<int, sdrplay_api_Bw_MHzT> bandwidths;
 };
 
 MOD_EXPORT void _INIT_() {
