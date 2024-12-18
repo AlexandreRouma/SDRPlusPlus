@@ -342,28 +342,6 @@ jobs:
           with:
               name: sdrpp_ubuntu_jammy_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
-    
-    build_ubuntu_oracular:
-        runs-on: ubuntu-latest
-
-        steps:
-        - uses: actions/checkout@v4
-        
-        - name: Create Docker Image
-          run: cd $GITHUB_WORKSPACE/docker_builds/ubuntu_oracular && docker build . --tag sdrpp_build
-
-        - name: Run Container
-          run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
-
-        - name: Recover Deb Archive
-          working-directory: ${{runner.workspace}}
-          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
-
-        - name: Save Deb Archive
-          uses: actions/upload-artifact@v4
-          with:
-              name: sdrpp_ubuntu_oracular_amd64
-              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
     build_ubuntu_noble:
         runs-on: ubuntu-latest
