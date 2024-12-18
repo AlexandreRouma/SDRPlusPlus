@@ -296,7 +296,7 @@ public:
         else if (openDev.hwVer == SDRPLAY_RSPduo_ID) {
             lnaSteps = 10;
         }
-        else if (openDev.hwVer == SDRPLAY_RSP1A_ID || openDev.hwVer == SDRPLAY_RSPdxR2_ID) {
+        else if (openDev.hwVer == SDRPLAY_RSPdx_ID || openDev.hwVer == SDRPLAY_RSPdxR2_ID) {
             lnaSteps = 28;
         }
 
@@ -384,7 +384,7 @@ public:
                 rspduo_biasT = config.conf["devices"][selectedName]["biast"];
             }
         }
-        else if (openDev.hwVer == SDRPLAY_RSP1A_ID || openDev.hwVer == SDRPLAY_RSPdxR2_ID) {
+        else if (openDev.hwVer == SDRPLAY_RSPdx_ID || openDev.hwVer == SDRPLAY_RSPdxR2_ID) {
             if (config.conf["devices"][selectedName].contains("antenna")) {
                 rspdx_antennaPort = config.conf["devices"][selectedName]["antenna"];
             }
