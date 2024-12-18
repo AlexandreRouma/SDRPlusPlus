@@ -98,7 +98,7 @@ jobs:
               path: ${{runner.workspace}}/sdrpp_windows_x64.zip
 
     build_macos_intel:
-        runs-on: macos-12
+        runs-on: macos-13
 
         steps:
         - uses: actions/checkout@v4
