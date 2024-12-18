@@ -18,7 +18,7 @@ SDRPP_MOD_INFO{
     /* Name:            */ "rigctl_server",
     /* Description:     */ "My fancy new module",
     /* Author:          */ "Ryzerth",
-    /* Version:         */ 0, 1, 0,
+    /* Version:         */ 0, 1, 1,
     /* Max instances    */ -1
 };
 
@@ -153,21 +153,16 @@ private:
             }
         }
 
-        ImGui::BeginTable(CONCAT("Stop##_rigctl_srv_tbl_", _this->name), 2);
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
         if (ImGui::Checkbox(CONCAT("Tuning##_rigctl_srv_tune_ena_", _this->name), &_this->tuningEnabled)) {
             config.acquire();
             config.conf[_this->name]["tuning"] = _this->tuningEnabled;
             config.release(true);
         }
-        ImGui::TableSetColumnIndex(1);
         if (ImGui::Checkbox(CONCAT("Recording##_rigctl_srv_tune_ena_", _this->name), &_this->recordingEnabled)) {
             config.acquire();
             config.conf[_this->name]["recording"] = _this->recordingEnabled;
             config.release(true);
         }
-        ImGui::EndTable();
 
         if (ImGui::Checkbox(CONCAT("Listen on startup##_rigctl_srv_auto_lst_", _this->name), &_this->autoStart)) {
             config.acquire();

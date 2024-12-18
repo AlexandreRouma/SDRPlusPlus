@@ -10,22 +10,53 @@
 #include <config.h>
 #include <cctype>
 #include <radio_interface.h>
+#include <utils/optionlist.h>
+#include <atomic>
+
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
 SDRPP_MOD_INFO{
     /* Name:            */ "rigctl_client",
     /* Description:     */ "Client for the RigCTL protocol",
     /* Author:          */ "Ryzerth",
-    /* Version:         */ 0, 1, 0,
+    /* Version:         */ 0, 2, 0,
     /* Max instances    */ 1
 };
 
 ConfigManager config;
 
+enum Mode {
+    MODE_PANADAPTER,
+    MODE_MIRROR
+};
+
+enum Priority {
+    PRIOR_SDR,
+    PRIOR_RIGCTL
+};
+
+const std::map<int, net::rigctl::Mode> RADIO_TO_RIGCTL = {
+    { RADIO_IFACE_MODE_NFM, net::rigctl::MODE_FM  },
+    { RADIO_IFACE_MODE_WFM, net::rigctl::MODE_WFM },
+    { RADIO_IFACE_MODE_AM , net::rigctl::MODE_AM  },
+    { RADIO_IFACE_MODE_DSB, net::rigctl::MODE_DSB },
+    { RADIO_IFACE_MODE_USB, net::rigctl::MODE_USB },
+    { RADIO_IFACE_MODE_CW , net::rigctl::MODE_CW  },
+    { RADIO_IFACE_MODE_LSB, net::rigctl::MODE_LSB }
+};
+
 class RigctlClientModule : public ModuleManager::Instance {
 public:
     RigctlClientModule(std::string name) {
         this->name = name;
+
+        // Define the operation modes
+        modes.define("panadapter", "Pandapter", MODE_PANADAPTER);
+        modes.define("mirror", "Mirror", MODE_MIRROR);
+
+        // Define the priority modes
+        priorities.define("sdr", "SDR", PRIOR_SDR);
+        priorities.define("rigctl", "RigCTL", PRIOR_RIGCTL);
 
         // Load default
         strcpy(host, "127.0.0.1");
@@ -40,13 +71,28 @@ public:
             port = config.conf[name]["port"];
             port = std::clamp<int>(port, 1, 65535);
         }
+        if (config.conf[name].contains("mode")) {
+            std::string modeStr = config.conf[name]["mode"];
+            if (modes.keyExists(modeStr)) { modeId = modes.keyId(modeStr); }
+        }
+        if (config.conf[name].contains("priority")) {
+            std::string priorityStr = config.conf[name]["priority"];
+            if (priorities.keyExists(priorityStr)) { priorityId = modes.keyId(priorityStr); }
+        }
+        if (config.conf[name].contains("interval")) {
+            interval = config.conf[name]["interval"];
+            interval = std::clamp<int>(interval, 100, 1000);
+        }
         if (config.conf[name].contains("ifFreq")) {
             ifFreq = config.conf[name]["ifFreq"];
         }
+        if (config.conf[name].contains("vfo")) {
+            selectedVFO = config.conf[name]["vfo"];
+        }
         config.release();
 
-        _retuneHandler.ctx = this;
-        _retuneHandler.handler = retuneHandler;
+        // Refresh VFOs
+        refreshVFOs();
 
         gui::menu.registerEntry(name, menuHandler, this, NULL);
     }
@@ -85,10 +131,20 @@ public:
             return;
         }
 
-        // Switch source to panadapter mode
-        sigpath::sourceManager.setPanadapterIF(ifFreq);
-        sigpath::sourceManager.setTuningMode(SourceManager::TuningMode::PANADAPTER);
-        sigpath::sourceManager.onRetune.bindHandler(&_retuneHandler);
+        if (mode == MODE_PANADAPTER) {
+            // Switch source to panadapter mode
+            sigpath::sourceManager.setPanadapterIF(ifFreq);
+            sigpath::sourceManager.setTuningMode(SourceManager::TuningMode::PANADAPTER);
+        }
+
+        // Start the worker thread
+        run = true;
+        if (mode == MODE_PANADAPTER) {
+            workerThread = std::thread(&RigctlClientModule::panadapterWorker, this);
+        }
+        else if (mode == MODE_MIRROR) {
+            workerThread = std::thread(&RigctlClientModule::mirrorWorker, this);
+        }
 
         running = true;
     }
@@ -97,9 +153,15 @@ public:
         std::lock_guard<std::recursive_mutex> lck(mtx);
         if (!running) { return; }
 
-        // Switch source back to normal mode
-        sigpath::sourceManager.onRetune.unbindHandler(&_retuneHandler);
-        sigpath::sourceManager.setTuningMode(SourceManager::TuningMode::NORMAL);
+        // Stop the worker thread
+        run = false;
+        if (workerThread.joinable()) { workerThread.join(); }
+
+        if (mode == MODE_PANADAPTER) {
+            // Switch source back to normal mode
+            sigpath::sourceManager.onRetune.unbindHandler(&_retuneHandler);
+            sigpath::sourceManager.setTuningMode(SourceManager::TuningMode::NORMAL);
+        }
 
         // Disconnect from rigctl server
         client->close();
@@ -125,19 +187,70 @@ private:
             config.conf[_this->name]["port"] = _this->port;
             config.release(true);
         }
-        if (_this->running) { style::endDisabled(); }
 
-        ImGui::LeftLabel("IF Frequency");
+        ImGui::LeftLabel("Mode");
         ImGui::FillWidth();
-        if (ImGui::InputDouble(CONCAT("##_rigctl_if_freq_", _this->name), &_this->ifFreq, 100.0, 100000.0, "%.0f")) {
-            if (_this->running) {
-                sigpath::sourceManager.setPanadapterIF(_this->ifFreq);
-            }
+        if (ImGui::Combo(CONCAT("##_rigctl_cli_mode_", _this->name), &_this->modeId, _this->modes.txt)) {
+            _this->mode = _this->modes[_this->modeId];
             config.acquire();
-            config.conf[_this->name]["ifFreq"] = _this->ifFreq;
+            config.conf[_this->name]["mode"] = _this->modes.key(_this->modeId);
             config.release(true);
         }
 
+        ImGui::LeftLabel("Priority");
+        ImGui::FillWidth();
+        if (ImGui::Combo(CONCAT("##_rigctl_cli_priority_", _this->name), &_this->priorityId, _this->priorities.txt)) {
+            _this->priority = _this->priorities[_this->priorityId];
+            config.acquire();
+            config.conf[_this->name]["priority"] = _this->priorities.key(_this->priorityId);
+            config.release(true);
+        }
+
+        ImGui::LeftLabel("Interval");
+        ImGui::FillWidth();
+        if (ImGui::InputInt(CONCAT("##_rigctl_cli_interval_", _this->name), &_this->interval, 10, 100)) {
+            _this->interval = std::clamp<int>(_this->interval, 100, 1000);
+            config.acquire();
+            config.conf[_this->name]["interval"] = _this->interval;
+            config.release(true);
+        }
+
+        if (_this->mode == MODE_PANADAPTER) {
+            ImGui::LeftLabel("IF Frequency");
+            ImGui::FillWidth();
+            if (ImGui::InputDouble(CONCAT("##_rigctl_if_freq_", _this->name), &_this->ifFreq, 100.0, 100000.0, "%.0f")) {
+                if (_this->running) {
+                    sigpath::sourceManager.setPanadapterIF(_this->ifFreq);
+                }
+                config.acquire();
+                config.conf[_this->name]["ifFreq"] = _this->ifFreq;
+                config.release(true);
+            }
+        }
+        else if (_this->mode == MODE_MIRROR) {
+            ImGui::LeftLabel("Controlled VFO");
+            ImGui::FillWidth();
+            if (ImGui::Combo(CONCAT("##_rigctl_cli_vfo_", _this->name), &_this->vfoId, _this->vfos.txt)) {
+                _this->selectedVFO = _this->vfos[_this->vfoId];
+                config.acquire();
+                config.conf[_this->name]["vfo"] = _this->vfos.key(_this->vfoId);
+                config.release(true);
+            }
+
+            ImGui::Checkbox(CONCAT("Sync Frequency##_rigctl_sync_freq_", _this->name), &_this->syncFrequency);
+            if (_this->vfoIsRadio) {
+                ImGui::Checkbox(CONCAT("Sync Mode##_rigctl_sync_freq_", _this->name), &_this->syncMode);
+            }
+            else {
+                bool dummy = false;
+                if (!_this->running) { style::beginDisabled(); }
+                ImGui::Checkbox(CONCAT("Sync Mode##_rigctl_sync_freq_", _this->name), &dummy);
+                if (!_this->running) { style::endDisabled(); }
+            }
+        }
+
+        if (_this->running) { style::endDisabled(); }
+        
         ImGui::FillWidth();
         if (_this->running && ImGui::Button(CONCAT("Stop##_rigctl_cli_stop_", _this->name), ImVec2(menuWidth, 0))) {
             _this->stop();
@@ -159,11 +272,120 @@ private:
         }
     }
 
-    static void retuneHandler(double freq, void* ctx) {
-        RigctlClientModule* _this = (RigctlClientModule*)ctx;
-        if (!_this->client || !_this->client->isOpen()) { return; }
-        if (_this->client->setFreq(freq)) {
-            flog::error("Could not set frequency");
+    void selectVFO(const std::string& vfoName) {
+        // If no vfo is available, deselect
+        if (vfos.empty()) {
+            selectedVFO.clear();
+            vfoIsRadio = false;
+            return;
+        }
+
+        // If a vfo with that name isn't found, select the first VFO in the list
+        if (!vfos.keyExists(vfoName)) {
+            selectVFO(vfos.key(0));
+            return;
+        }
+
+        // Check if the VFO is from a radio module
+        vfoIsRadio = (core::moduleManager.getInstanceModuleName(vfoName) == "radio");
+
+        // Update the selected VFO
+        selectedVFO = vfoName;
+        vfoId = vfos.keyId(vfoName);
+    }
+
+    void refreshVFOs() {
+        // Clear the list
+        vfos.clear();
+
+        // Define using the VFO list from the waterfall
+        for (auto const& [_name, vfo] : gui::waterfall.vfos) {
+            vfos.define(_name, _name, _name);
+        }
+        
+        // Reselect the current VFO
+        selectVFO(selectedVFO);
+    }
+
+    void panadapterWorker() {
+        int64_t lastRigctlFreq = -1;
+        int64_t lastCenterFreq = -1;
+        int64_t rigctlFreq;
+        int64_t centerFreq;
+
+        while (run) {
+            // Query the current modes
+            try {
+                // Get the current rigctl frequency
+                rigctlFreq = (int64_t)client->getFreq();
+
+                // Get the current center frequency
+                centerFreq = (int64_t)gui::waterfall.getCenterFrequency();
+            }
+            catch (const std::exception& e) {
+                flog::error("Error while getting frequencies: {}", e.what());
+            }
+
+            // Update frequencies depending on the priority
+            if (priority == PRIOR_SDR) {
+                
+            }
+            else if (priority == PRIOR_RIGCTL) {
+
+            }
+
+            // Wait for the time interval
+            std::this_thread::sleep_for(std::chrono::milliseconds(interval));
+        }
+    }
+
+    void mirrorWorker() {
+        int64_t lastRigctlFreq = -1;
+        int64_t lastCenterFreq = -1;
+        int64_t lastVFOFreq = -1;
+        int64_t rigctlFreq;
+        int64_t centerFreq;
+        int64_t vfoFreq;
+        int lastRigctlMode = -1;
+        int lastVFOMode = -1;
+        int rigctlMode;
+        int vfoMode;
+
+        while (run) {
+            // Query the current modes
+            try {
+                // Get the current rigctl frequency
+                rigctlFreq = (int64_t)client->getFreq();
+
+                // Get the current center frequency
+                centerFreq = (int64_t)gui::waterfall.getCenterFrequency();
+
+                // Get the current VFO frequency if there is a VFO
+                // TODO
+
+                // Get the rigctl and VFO modes
+                if (!selectedVFO.empty() && syncMode && vfoIsRadio) {
+                    // Get the current rigctl mode
+                    // rigctlMode = client->getMode();
+
+                    // Get the current VFO mode
+                    core::modComManager.callInterface(selectedVFO, RADIO_IFACE_CMD_GET_MODE, NULL, &vfoMode);
+                }
+            }
+            catch (const std::exception& e) {
+                flog::error("Error while getting frequencies: {}", e.what());
+            }
+
+            // Update frequencies depending on the priority
+            if (priority == PRIOR_SDR) {
+                
+            }
+            else if (priority == PRIOR_RIGCTL) {
+
+            }
+
+            // Wait for the time interval
+            std::this_thread::sleep_for(std::chrono::milliseconds(interval));
         }
     }
 
@@ -176,9 +398,31 @@ private:
     int port = 4532;
     std::shared_ptr<net::rigctl::Client> client;
 
+    Mode mode = MODE_PANADAPTER;
+    int modeId = 0;
+
+    Priority priority = PRIOR_SDR;
+    int priorityId = 0;
+
+    int interval = 100;
+
     double ifFreq = 8830000.0;
 
+    bool syncFrequency = true;
+    bool syncMode = true;
+    bool vfoIsRadio = false;
+
     EventHandler<double> _retuneHandler;
+
+    OptionList<std::string, Mode> modes;
+    OptionList<std::string, Priority> priorities;
+
+    std::string selectedVFO = "";
+    int vfoId = 0;
+    OptionList<std::string, std::string> vfos;
+
+    std::atomic_bool run;
+    std::thread workerThread;
 };
 
 MOD_EXPORT void _INIT_() {
