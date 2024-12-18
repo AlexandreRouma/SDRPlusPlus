@@ -8,6 +8,7 @@
 #include <config.h>
 #include <sdrplay_api.h>
 #include <gui/smgui.h>
+#include <utils/optionlist.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -15,56 +16,11 @@ SDRPP_MOD_INFO{
     /* Name:            */ "sdrplay_source",
     /* Description:     */ "SDRplay source module for SDR++",
     /* Author:          */ "Ryzerth",
-    /* Version:         */ 0, 1, 0,
+    /* Version:         */ 0, 2, 0,
     /* Max instances    */ 1
 };
 
 ConfigManager config;
-
-unsigned int sampleRates[] = {
-    2000000,
-    3000000,
-    4000000,
-    5000000,
-    6000000,
-    7000000,
-    8000000,
-    9000000,
-    10000000
-};
-
-const char* sampleRatesTxt =
-    "2MHz\0"
-    "3MHz\0"
-    "4MHz\0"
-    "5MHz\0"
-    "6MHz\0"
-    "7MHz\0"
-    "8MHz\0"
-    "9MHz\0"
-    "10MHz\0";
-
-sdrplay_api_Bw_MHzT bandwidths[] = {
-    sdrplay_api_BW_0_200,
-    sdrplay_api_BW_0_300,
-    sdrplay_api_BW_0_600,
-    sdrplay_api_BW_1_536,
-    sdrplay_api_BW_5_000,
-    sdrplay_api_BW_6_000,
-    sdrplay_api_BW_7_000,
-    sdrplay_api_BW_8_000,
-};
-
-const char* bandwidthsTxt =
-    "200KHz\0"
-    "300KHz\0"
-    "600KHz\0"
-    "1.536MHz\0"
-    "5MHz\0"
-    "6MHz\0"
-    "7MHz\0"
-    "8MHz\0"
-    "Auto\0";
 
 sdrplay_api_Bw_MHzT preferedBandwidth[] = {
     sdrplay_api_BW_5_000,
@@ -208,6 +164,11 @@ public:
                 name += devArr[i].SerNo;
                 name += ')';
                 break;
+            case SDRPLAY_RSP1B_ID:
+                name = "RSP1B (";
+                name += devArr[i].SerNo;
+                name += ')';
+                break;
             case SDRPLAY_RSP2_ID:
                 name = "RSP2 (";
                 name += devArr[i].SerNo;
@@ -220,6 +181,11 @@ public:
                 break;
             case SDRPLAY_RSPdx_ID:
                 name = "RSPdx (";
+                name += devArr[i].SerNo;
+                name += ')';
+                break;
+            case SDRPLAY_RSPdxR2_ID:
+                name = "RSPdx-R2 (";
                 name += devArr[i].SerNo;
                 name += ')';
                 break;
@@ -290,6 +256,30 @@ public:
             return;
         }
 
+        // Define the valid samplerates
+        samplerates.clear();
+        samplerates.define(2e6, "2MHz", 2e6);
+        samplerates.define(3e6, "3MHz", 3e6);
+        samplerates.define(4e6, "4MHz", 4e6);
+        samplerates.define(5e6, "5MHz", 5e6);
+        samplerates.define(6e6, "6MHz", 6e6);
+        samplerates.define(7e6, "7MHz", 7e6);
+        samplerates.define(8e6, "8MHz", 8e6);
+        samplerates.define(9e6, "9MHz", 9e6);
+        samplerates.define(10e6, "10MHz", 10e6);
+
+        // Define the valid bandwidths
+        bandwidths.clear();
+        bandwidths.define(200e3, "200KHz", sdrplay_api_BW_0_200);
+        bandwidths.define(300e3, "300KHz", sdrplay_api_BW_0_300);
+        bandwidths.define(600e3, "600KHz", sdrplay_api_BW_0_600);
+        bandwidths.define(1.536e6, "1.536MHz", sdrplay_api_BW_1_536);
+        bandwidths.define(5e6, "5MHz", sdrplay_api_BW_5_000);
+        bandwidths.define(6e6, "6MHz", sdrplay_api_BW_6_000);
+        bandwidths.define(7e6, "7MHz", sdrplay_api_BW_7_000);
+        bandwidths.define(8e6, "8MHz", sdrplay_api_BW_8_000);
+        bandwidths.define(0, "Auto", sdrplay_api_BW_Undefined);
+
         channelParams = openDevParams->rxChannelA;
 
         selectedName = devNameList[id];
@@ -297,7 +287,7 @@ public:
         if (openDev.hwVer == SDRPLAY_RSP1_ID) {
             lnaSteps = 4;
         }
-        else if (openDev.hwVer == SDRPLAY_RSP1A_ID) {
+        else if (openDev.hwVer == SDRPLAY_RSP1A_ID || openDev.hwVer == SDRPLAY_RSP1B_ID) {
             lnaSteps = 10;
         }
         else if (openDev.hwVer == SDRPLAY_RSP2_ID) {
@@ -306,78 +296,54 @@ public:
         else if (openDev.hwVer == SDRPLAY_RSPduo_ID) {
             lnaSteps = 10;
         }
-        else if (openDev.hwVer == SDRPLAY_RSPdx_ID) {
+        else if (openDev.hwVer == SDRPLAY_RSPdx_ID || openDev.hwVer == SDRPLAY_RSPdxR2_ID) {
             lnaSteps = 28;
         }
 
-        bool created = false;
+        // Select default settings
+        srId = 0;
+        sampleRate = samplerates.value(0);
+        bandwidthId = 8;
+        lnaGain = lnaSteps - 1;
+        gain = 59;
+        agc = false;
+        agcAttack = 500;
+        agcDecay = 500;
+        agcDecayDelay = 200;
+        agcDecayThreshold = 5;
+        agcSetPoint = -30;
+        ifModeId = 0;
+        rsp1a_fmmwNotch = false;
+        rsp2_fmmwNotch = false;
+        rspdx_fmmwNotch = false;
+        rspduo_fmmwNotch = false;
+        rsp1a_dabNotch = false;
+        rspdx_dabNotch = false;
+        rspduo_dabNotch = false;
+        rsp1a_biasT = false;
+        rsp2_biasT = false;
+        rspdx_biasT = false;
+        rspduo_biasT = false;
+        rsp2_antennaPort = 0;
+        rspdx_antennaPort = 0;
+        rspduo_antennaPort = 0;
+
         config.acquire();
-        if (!config.conf["devices"].contains(selectedName)) {
-            created = true;
-            config.conf["devices"][selectedName]["sampleRate"] = sampleRates[0];
-            config.conf["devices"][selectedName]["bwMode"] = 8; // Auto
-            config.conf["devices"][selectedName]["lnaGain"] = lnaSteps - 1;
-            config.conf["devices"][selectedName]["ifGain"] = 59;
-            config.conf["devices"][selectedName]["agc"] = false;
-
-            config.conf["devices"][selectedName]["agcAttack"] = 500;
-            config.conf["devices"][selectedName]["agcDecay"] = 500;
-            config.conf["devices"][selectedName]["agcDecayDelay"] = 200;
-            config.conf["devices"][selectedName]["agcDecayThreshold"] = 5;
-            config.conf["devices"][selectedName]["agcSetPoint"] = -30;
-
-            config.conf["devices"][selectedName]["ifModeId"] = 0;
-
-            if (openDev.hwVer == SDRPLAY_RSP1_ID) {
-                // No config to load
-            }
-            else if (openDev.hwVer == SDRPLAY_RSP1A_ID) {
-                config.conf["devices"][selectedName]["fmmwNotch"] = false;
-                config.conf["devices"][selectedName]["dabNotch"] = false;
-                config.conf["devices"][selectedName]["biast"] = false;
-            }
-            else if (openDev.hwVer == SDRPLAY_RSP2_ID) {
-                config.conf["devices"][selectedName]["antenna"] = 0;
-                config.conf["devices"][selectedName]["fmmwNotch"] = false;
-                config.conf["devices"][selectedName]["biast"] = false;
-            }
-            else if (openDev.hwVer == SDRPLAY_RSPduo_ID) {
-                config.conf["devices"][selectedName]["antenna"] = 0;
-                config.conf["devices"][selectedName]["fmmwNotch"] = false;
-                config.conf["devices"][selectedName]["dabNotch"] = false;
-                config.conf["devices"][selectedName]["biast"] = false;
-            }
-            else if (openDev.hwVer == SDRPLAY_RSPdx_ID) {
-                config.conf["devices"][selectedName]["antenna"] = 0;
-                config.conf["devices"][selectedName]["fmmwNotch"] = false;
-                config.conf["devices"][selectedName]["dabNotch"] = false;
-                config.conf["devices"][selectedName]["biast"] = false;
-            }
-        }
 
         // General options
-        if (config.conf["devices"][selectedName].contains("sampleRate")) {
-            sampleRate = config.conf["devices"][selectedName]["sampleRate"];
-            bool found = false;
-            for (int i = 0; i < 9; i++) {
-                if (sampleRates[i] == sampleRate) {
-                    srId = i;
-                    found = true;
-                }
-            }
-            if (!found) {
-                sampleRate = sampleRates[0];
-                srId = 0;
+        if (config.conf["devices"][selectedName].contains("samplerate")) {
+            int sr = config.conf["devices"][selectedName]["samplerate"];
+            if (samplerates.keyExists(sr)) {
+                srId = samplerates.keyId(sr);
+                sampleRate = samplerates[srId];
             }
         }
-
         if (config.conf["devices"][selectedName].contains("ifModeId")) {
             ifModeId = config.conf["devices"][selectedName]["ifModeId"];
             if (ifModeId != 0) {
                 sampleRate = ifModes[ifModeId].effectiveSamplerate;
             }
         }
-
         if (config.conf["devices"][selectedName].contains("bwMode")) {
             bandwidthId = config.conf["devices"][selectedName]["bwMode"];
         }
@@ -388,11 +354,6 @@ public:
             gain = config.conf["devices"][selectedName]["ifGain"];
         }
         if (config.conf["devices"][selectedName].contains("agc")) {
-            if (!config.conf["devices"][selectedName]["agc"].is_boolean()) {
-                int oldMode = config.conf["devices"][selectedName]["agc"];
-                config.conf["devices"][selectedName]["agc"] = (bool)(oldMode != 0);
-                created = true;
-            }
             agc = config.conf["devices"][selectedName]["agc"];
         }
         if (config.conf["devices"][selectedName].contains("agcAttack")) {
@@ -415,7 +376,7 @@ public:
         if (openDev.hwVer == SDRPLAY_RSP1_ID) {
             // No config to load
         }
-        else if (openDev.hwVer == SDRPLAY_RSP1A_ID) {
+        else if (openDev.hwVer == SDRPLAY_RSP1A_ID || openDev.hwVer == SDRPLAY_RSP1B_ID) {
             if (config.conf["devices"][selectedName].contains("fmmwNotch")) {
                 rsp1a_fmmwNotch = config.conf["devices"][selectedName]["fmmwNotch"];
             }
@@ -451,7 +412,7 @@ public:
                 rspduo_biasT = config.conf["devices"][selectedName]["biast"];
             }
         }
-        else if (openDev.hwVer == SDRPLAY_RSPdx_ID) {
+        else if (openDev.hwVer == SDRPLAY_RSPdx_ID || openDev.hwVer == SDRPLAY_RSPdxR2_ID) {
             if (config.conf["devices"][selectedName].contains("antenna")) {
                 rspdx_antennaPort = config.conf["devices"][selectedName]["antenna"];
             }
@@ -466,7 +427,7 @@ public:
             }
         }
 
-        config.release(created);
+        config.release();
 
         if (lnaGain >= lnaSteps) { lnaGain = lnaSteps - 1; }
 
@@ -614,7 +575,7 @@ private:
 
         // General options
         if (_this->ifModeId == 0) {
-            _this->bandwidth = (_this->bandwidthId == 8) ? preferedBandwidth[_this->srId] : bandwidths[_this->bandwidthId];
+            _this->bandwidth = (_this->bandwidthId == 8) ? preferedBandwidth[_this->srId] : _this->bandwidths[_this->bandwidthId];
             _this->openDevParams->devParams->fsFreq.fsHz = _this->sampleRate;
             _this->channelParams->tunerParams.bwType = _this->bandwidth;
         }
@@ -693,14 +654,14 @@ private:
         }
 
         if (_this->ifModeId == 0) {
-            if (SmGui::Combo(CONCAT("##sdrplay_sr", _this->name), &_this->srId, sampleRatesTxt)) {
-                _this->sampleRate = sampleRates[_this->srId];
+            if (SmGui::Combo(CONCAT("##sdrplay_sr", _this->name), &_this->srId, _this->samplerates.txt)) {
+                _this->sampleRate = _this->samplerates[_this->srId];
                 if (_this->bandwidthId == 8) {
                     _this->bandwidth = preferedBandwidth[_this->srId];
                 }
                 core::setInputSampleRate(_this->sampleRate);
                 config.acquire();
-                config.conf["devices"][_this->selectedName]["sampleRate"] = _this->sampleRate;
+                config.conf["devices"][_this->selectedName]["samplerate"] = _this->samplerates.key(_this->srId);
                 config.release(true);
             }
 
@@ -715,8 +676,8 @@ private:
 
             SmGui::LeftLabel("Bandwidth");
             SmGui::FillWidth();
-            if (SmGui::Combo(CONCAT("##sdrplay_bw", _this->name), &_this->bandwidthId, bandwidthsTxt)) {
-                _this->bandwidth = (_this->bandwidthId == 8) ? preferedBandwidth[_this->srId] : bandwidths[_this->bandwidthId];
+            if (SmGui::Combo(CONCAT("##sdrplay_bw", _this->name), &_this->bandwidthId, _this->bandwidths.txt)) {
+                _this->bandwidth = (_this->bandwidthId == 8) ? preferedBandwidth[_this->srId] : _this->bandwidths[_this->bandwidthId];
                 if (_this->running) {
                     _this->channelParams->tunerParams.bwType = _this->bandwidth;
                     sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_Tuner_BwType, sdrplay_api_Update_Ext1_None);
@@ -745,10 +706,28 @@ private:
             }
             else {
                 config.acquire();
-                _this->sampleRate = config.conf["devices"][_this->selectedName]["sampleRate"];
-                _this->bandwidthId = config.conf["devices"][_this->selectedName]["bwMode"];
-                config.release(false);
-                _this->bandwidth = (_this->bandwidthId == 8) ? preferedBandwidth[_this->srId] : bandwidths[_this->bandwidthId];
+                // Reload samplerate
+                if (config.conf["devices"][_this->selectedName].contains("samplerate")) {
+                    int sr = config.conf["devices"][_this->selectedName]["samplerate"];
+                    if (_this->samplerates.keyExists(sr)) {
+                        _this->srId = _this->samplerates.keyId(sr);
+                    }
+                }
+                else {
+                    _this->srId = 0;
+                }
+
+                // Reload bandwidth
+                if (config.conf["devices"][_this->selectedName].contains("bwMode")) {
+                    _this->bandwidthId = config.conf["devices"][_this->selectedName]["bwMode"];
+                }
+                else {
+                    // Auto
+                    _this->bandwidthId = 8;
+                }
+                _this->sampleRate = _this->samplerates[_this->srId];
+                config.release();
+                _this->bandwidth = (_this->bandwidthId == 8) ? preferedBandwidth[_this->srId] : _this->bandwidths[_this->bandwidthId];
             }
             core::setInputSampleRate(_this->sampleRate);
             config.acquire();
@@ -854,6 +833,7 @@ private:
                 _this->RSP1Menu();
                 break;
             case SDRPLAY_RSP1A_ID:
+            case SDRPLAY_RSP1B_ID:
                 _this->RSP1AMenu();
                 break;
             case SDRPLAY_RSP2_ID:
@@ -863,6 +843,7 @@ private:
                 _this->RSPduoMenu();
                 break;
             case SDRPLAY_RSPdx_ID:
+            case SDRPLAY_RSPdxR2_ID:
                 _this->RSPdxMenu();
                 break;
             default:
@@ -1146,7 +1127,7 @@ private:
     sdrplay_api_RxChannelParamsT* channelParams;
 
     sdrplay_api_Bw_MHzT bandwidth;
-    int bandwidthId = 0;
+    int bandwidthId = 8; // Auto
 
     int devId = 0;
     int srId = 0;
@@ -1201,6 +1182,9 @@ private:
     std::string devListTxt;
     std::vector<std::string> devNameList;
     std::string selectedName;
+
+    OptionList<int, int> samplerates;
+    OptionList<int, sdrplay_api_Bw_MHzT> bandwidths;
 };
 
 MOD_EXPORT void _INIT_() {
