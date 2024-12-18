@@ -300,6 +300,34 @@ public:
             lnaSteps = 28;
         }
 
+        // Select default settings
+        srId = 0;
+        sampleRate = samplerates.value(0);
+        bandwidthId = 8;
+        lnaGain = lnaSteps - 1;
+        gain = 59;
+        agc = false;
+        agcAttack = 500;
+        agcDecay = 500;
+        agcDecayDelay = 200;
+        agcDecayThreshold = 5;
+        agcSetPoint = -30;
+        ifModeId = 0;
+        rsp1a_fmmwNotch = false;
+        rsp2_fmmwNotch = false;
+        rspdx_fmmwNotch = false;
+        rspduo_fmmwNotch = false;
+        rsp1a_dabNotch = false;
+        rspdx_dabNotch = false;
+        rspduo_dabNotch = false;
+        rsp1a_biasT = false;
+        rsp2_biasT = false;
+        rspdx_biasT = false;
+        rspduo_biasT = false;
+        rsp2_antennaPort = 0;
+        rspdx_antennaPort = 0;
+        rspduo_antennaPort = 0;
+
         config.acquire();
 
         // General options
@@ -678,12 +706,26 @@ private:
             }
             else {
                 config.acquire();
-                int sr = config.conf["devices"][_this->selectedName]["samplerate"];
-                if (_this->samplerates.keyExists(sr)) {
-                    _this->srId = _this->samplerates.keyId(sr);
-                    _this->sampleRate = _this->samplerates[_this->srId];
+                // Reload samplerate
+                if (config.conf["devices"][_this->selectedName].contains("samplerate")) {
+                    int sr = config.conf["devices"][_this->selectedName]["samplerate"];
+                    if (_this->samplerates.keyExists(sr)) {
+                        _this->srId = _this->samplerates.keyId(sr);
+                    }
                 }
-                _this->bandwidthId = config.conf["devices"][_this->selectedName]["bwMode"];
+                else {
+                    _this->srId = 0;
+                }
+
+                // Reload bandwidth
+                if (config.conf["devices"][_this->selectedName].contains("bwMode")) {
+                    _this->bandwidthId = config.conf["devices"][_this->selectedName]["bwMode"];
+                }
+                else {
+                    // Auto
+                    _this->bandwidthId = 8;
+                }
+                _this->sampleRate = _this->samplerates[_this->srId];
                 config.release();
                 _this->bandwidth = (_this->bandwidthId == 8) ? preferedBandwidth[_this->srId] : _this->bandwidths[_this->bandwidthId];
             }
@@ -1085,7 +1127,7 @@ private:
     sdrplay_api_RxChannelParamsT* channelParams;
 
     sdrplay_api_Bw_MHzT bandwidth;
-    int bandwidthId = 0;
+    int bandwidthId = 8; // Auto
 
     int devId = 0;
     int srId = 0;
