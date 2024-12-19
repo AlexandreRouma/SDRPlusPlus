@@ -78,6 +78,8 @@ const char* ifModeTxt =
 
 const char* rspduo_antennaPortsTxt = "Tuner 1 (50Ohm)\0Tuner 1 (Hi-Z)\0Tuner 2 (50Ohm)\0";
 
+#define MAX_DEV_COUNT   16
+
 class SDRPlaySourceModule : public ModuleManager::Instance {
 public:
     SDRPlaySourceModule(std::string name) {
@@ -146,9 +148,9 @@ public:
         devNameList.clear();
         devListTxt = "";
 
-        sdrplay_api_DeviceT devArr[128];
+        sdrplay_api_DeviceT devArr[MAX_DEV_COUNT];
         unsigned int numDev = 0;
-        sdrplay_api_GetDevices(devArr, &numDev, 128);
+        sdrplay_api_GetDevices(devArr, &numDev, MAX_DEV_COUNT);
 
         for (unsigned int i = 0; i < numDev; i++) {
             devList.push_back(devArr[i]);
@@ -532,7 +534,7 @@ private:
         _this->bufferSize = (float)_this->sampleRate / 200.0f;
 
         // RSP1A Options
-        if (_this->openDev.hwVer == SDRPLAY_RSP1A_ID) {
+        if (_this->openDev.hwVer == SDRPLAY_RSP1A_ID || _this->openDev.hwVer == SDRPLAY_RSP1B_ID) {
             _this->openDevParams->devParams->rsp1aParams.rfNotchEnable = _this->rsp1a_fmmwNotch;
             _this->openDevParams->devParams->rsp1aParams.rfDabNotchEnable = _this->rsp1a_dabNotch;
             _this->channelParams->rsp1aTunerParams.biasTEnable = _this->rsp1a_biasT;
@@ -562,7 +564,7 @@ private:
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_RspDuo_RfDabNotchControl, sdrplay_api_Update_Ext1_None);
             sdrplay_api_Update(_this->openDev.dev, _this->openDev.tuner, sdrplay_api_Update_RspDuo_Tuner1AmNotchControl, sdrplay_api_Update_Ext1_None);
         }
-        else if (_this->openDev.hwVer == SDRPLAY_RSPdx_ID) {
+        else if (_this->openDev.hwVer == SDRPLAY_RSPdx_ID || _this->openDev.hwVer == SDRPLAY_RSPdxR2_ID) {
             _this->openDevParams->devParams->rspDxParams.rfNotchEnable = _this->rspdx_fmmwNotch;
             _this->openDevParams->devParams->rspDxParams.rfDabNotchEnable = _this->rspdx_dabNotch;
             _this->openDevParams->devParams->rspDxParams.biasTEnable = _this->rspdx_biasT;
