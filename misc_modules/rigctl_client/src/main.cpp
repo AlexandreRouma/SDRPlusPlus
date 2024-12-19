@@ -334,6 +334,10 @@ private:
 
             }
 
+            // Save frequencies
+            lastRigctlFreq = rigctlFreq;
+            lastCenterFreq = centerFreq;
+
             // Wait for the time interval
             std::this_thread::sleep_for(std::chrono::milliseconds(interval));
         }
@@ -341,11 +345,9 @@ private:
 
     void mirrorWorker() {
         int64_t lastRigctlFreq = -1;
-        int64_t lastCenterFreq = -1;
-        int64_t lastVFOFreq = -1;
+        int64_t lastFreq = -1;
         int64_t rigctlFreq;
-        int64_t centerFreq;
-        int64_t vfoFreq;
+        int64_t freq;
         int lastRigctlMode = -1;
         int lastVFOMode = -1;
         int rigctlMode;
@@ -357,19 +359,22 @@ private:
                 // Get the current rigctl frequency
                 rigctlFreq = (int64_t)client->getFreq();
 
-                // Get the current center frequency
-                centerFreq = (int64_t)gui::waterfall.getCenterFrequency();
-
-                // Get the current VFO frequency if there is a VFO
-                // TODO
-
                 // Get the rigctl and VFO modes
-                if (!selectedVFO.empty() && syncMode && vfoIsRadio) {
-                    // Get the current rigctl mode
-                    // rigctlMode = client->getMode();
+                if (selectedVFO.empty()) {
+                    // Get the VFO frequency
+                    // TODO
 
-                    // Get the current VFO mode
-                    core::modComManager.callInterface(selectedVFO, RADIO_IFACE_CMD_GET_MODE, NULL, &vfoMode);
+                    // Get the mode if needed
+                    if (syncMode && vfoIsRadio) {
+                        // Get the current rigctl mode
+                        // rigctlMode = client->getMode();
+
+                        // Get the current VFO mode
+                        core::modComManager.callInterface(selectedVFO, RADIO_IFACE_CMD_GET_MODE, NULL, &vfoMode);
+                    }
+                }
+                else {
+                    freq = (int64_t)gui::waterfall.getCenterFrequency();
                 }
             }
             catch (const std::exception& e) {
@@ -383,6 +388,12 @@ private:
             else if (priority == PRIOR_RIGCTL) {
 
             }
+
+            // Save modes and frequencies
+            lastRigctlFreq = rigctlFreq;
+            lastFreq = freq;
+            lastRigctlMode = rigctlMode;
+            lastVFOMode = vfoMode;
 
             // Wait for the time interval
             std::this_thread::sleep_for(std::chrono::milliseconds(interval));
