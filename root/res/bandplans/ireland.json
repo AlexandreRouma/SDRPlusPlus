@@ -162,6 +162,12 @@
             "end": 26100000
         },
         {
+            "name": "CB",
+            "type": "amateur",
+            "start": 26965000,
+            "end": 27405000
+        },
+        {
             "name": "10m ham band",
             "type": "amateur",
             "start": 28000000,
@@ -172,6 +178,24 @@
             "type": "broadcast",
             "start": 87500000,
             "end": 108000000
+        },
+        {
+            "name": "Airband VOR/ILS",
+            "type": "aviation",
+            "start": 108000000,
+            "end": 117900000
+        },
+        {
+            "name": "Airband Voice",
+            "type": "aviation",
+            "start": 118000000,
+            "end": 137000000
+        },
+        {
+            "name": "Polar orbiting satellites",
+            "type": "satellite",
+            "start": 137000000,
+            "end": 138000000
         },
         {
             "name": "6m ham band",
@@ -196,6 +220,12 @@
             "type": "amateur",
             "start": 430000000,
             "end": 440000000
+        },
+        {
+            "name": "ADS-B",
+            "type": "aviation",
+            "start": 1089000000,
+            "end": 1091000000
         }
     ]
 }
