@@ -70,6 +70,7 @@ namespace sdrpp_credits {
         "Flinger Films",
         "Frank Werner (HB9FXQ)",
         "gringogrigio",
+        "Jandro",
         "Jeff Moe",
         "Joe Cupano",
         "KD1SQ",

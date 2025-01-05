@@ -440,6 +440,7 @@ For code changes, please create a feature request instead.
 * Flinger Films
 * [Frank Werner (HB9FXQ)](https://twitter.com/HB9FXQ)
 * gringogrigio
+* Jandro
 * Jeff Moe
 * Joe Cupano
 * KD1SQ
