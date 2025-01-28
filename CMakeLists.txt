@@ -53,7 +53,7 @@ option(OPT_BUILD_METEOR_DEMODULATOR "Build the meteor demodulator module (no dep
 option(OPT_BUILD_PAGER_DECODER "Build the pager decoder module (no dependencies required)" ON)
 option(OPT_BUILD_RADIO "Main audio modulation decoder (AM, FM, SSB, etc...)" ON)
 option(OPT_BUILD_RYFI_DECODER "RyFi data link decoder" OFF)
-option(OPT_BUILD_VOR_RECEIVER "VOR beacon receiver" ON)
+option(OPT_BUILD_VOR_RECEIVER "VOR beacon receiver" OFF)
 option(OPT_BUILD_WEATHER_SAT_DECODER "Build the HRPT decoder module (no dependencies required)" OFF)
 
 # Misc
