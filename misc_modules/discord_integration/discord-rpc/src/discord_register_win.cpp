@@ -27,7 +27,7 @@ static HRESULT StringCbPrintfW(LPWSTR pszDest, size_t cbDest, LPCWSTR pszFormat,
     va_list va;
     va_start(va, pszFormat);
     cbDest /= 2; // Size is divided by 2 to convert from bytes to wide characters - causes segfault
-                 // othervise
+                 // otherwise
     ret = vsnwprintf(pszDest, cbDest, pszFormat, va);
     pszDest[cbDest - 1] = 0; // Terminate the string in case a buffer overflow; -1 will be returned
     va_end(va);

@@ -292,7 +292,7 @@
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // UTF8-Everywhere is the original behaviour of ghc::filesystem. But since v1.5 the windows
 // version defaults to std::wstring storage backend. Still all std::string will be interpreted
-// as UTF-8 encoded. With this define you can enfoce the old behavior on Windows, using
+// as UTF-8 encoded. With this define you can enforce the old behavior on Windows, using
 // std::string as backend and for fs::path::native() and char for fs::path::c_str(). This
 // needs more conversions so it is (an was before v1.5) slower, bot might help keeping source
 // homogeneous in a multi platform project.

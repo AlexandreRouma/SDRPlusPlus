@@ -171,7 +171,7 @@
 
     By defining this preprocessor symbol to \c 1, \ref rapidjson::GenericValue object
     members are stored in a \c std::multimap for faster lookup and deletion times, a
-    trade off with a slightly slower insertion time and a small object allocat(or)ed
+    trade off with a slightly slower insertion time and a small object allocate(or)ed
     memory overhead.
 
     \hideinitializer

@@ -68,7 +68,7 @@ static MsgQueue<QueuedMessage, MessageQueueSize> SendQueue;
 static MsgQueue<User, JoinQueueSize> JoinAskQueue;
 static User connectedUser;
 
-// We want to auto connect, and retry on failure, but not as fast as possible. This does expoential
+// We want to auto connect, and retry on failure, but not as fast as possible. This does exponential
 // backoff from 0.5 seconds to 1 minute
 static Backoff ReconnectTimeMs(500, 60 * 1000);
 static auto NextConnect = std::chrono::system_clock::now();

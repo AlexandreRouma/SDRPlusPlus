@@ -39,7 +39,7 @@ namespace dsp::filter {
             // Update start of buffer
             bufStart = &buffer[_taps.size - 1];
 
-            // Move existing data to make transition seemless
+            // Move existing data to make transition seamless
             if (_taps.size < oldTC) {
                 memmove(buffer, &buffer[oldTC - _taps.size], (_taps.size - 1) * sizeof(D));
             }

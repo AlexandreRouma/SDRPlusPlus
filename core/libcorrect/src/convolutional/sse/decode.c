@@ -198,7 +198,7 @@ static void convolutional_sse_decode_inner(correct_convolutional_sse *sse_conv, 
                 //      error
                 __m128i hist = _mm_cmpgt_epi16(low_error, min_error);
                 // pack the bits down from 16-bit wide to 8-bit wide to
-                // accomodate history table
+                // accommodate history table
                 hist = _mm_shuffle_epi8(hist, hist_mask);
 
                 __m128i hist0 = _mm_cmpgt_epi16(low_error0, min_error0);

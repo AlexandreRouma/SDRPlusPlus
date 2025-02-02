@@ -137,7 +137,7 @@ field_element_t polynomial_eval_log_lut(field_t field, polynomial_t poly_log, co
     //   precomputed
     if (val_exp[0] == 0) {
         if (poly_log.coeff[0] == 0) {
-            // special case for the non-existant log case
+            // special case for the non-existent log case
             return 0;
         }
         return field.exp[poly_log.coeff[0]];

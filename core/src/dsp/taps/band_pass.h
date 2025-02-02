@@ -18,7 +18,7 @@ namespace dsp::taps {
                 return 2.0f * cosf(offsetOmega * (float)n) * window::nuttall(n, N);
             }
             if constexpr (std::is_same_v<T, complex_t>) {
-                // The offset is negative to flip the taps. Complex bandpass are asymetric
+                // The offset is negative to flip the taps. Complex bandpass are asymmetric
                 return math::phasor(-offsetOmega * (float)n) * window::nuttall(n, N);
             }
         });

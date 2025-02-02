@@ -204,7 +204,7 @@ void FrequencySelect::draw() {
             bool copy  = ((shortcutKey && ImGui::IsKeyPressed(ImGuiKey_C)) || (ctrlOnly  && ImGui::IsKeyPressed(ImGuiKey_Insert)));
             bool paste = ((shortcutKey && ImGui::IsKeyPressed(ImGuiKey_V)) || (shiftOnly && ImGui::IsKeyPressed(ImGuiKey_Insert)));
             if (copy) {
-                // Convert the freqency to a string
+                // Convert the frequency to a string
                 std::string freqStr = hrfreq::toString(frequency);
 
                 // Write it to the clipboard

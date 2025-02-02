@@ -254,7 +254,7 @@ void IQFrontEnd::handler(dsp::complex_t* data, int count, void* ctx) {
     // Execute FFT
     fftwf_execute(_this->fftwPlan);
 
-    // Aquire buffer
+    // Acquire buffer
     float* fftBuf = _this->_acquireFFTBuffer(_this->_fftCtx);
 
     // Convert the complex output of the FFT to dB amplitude

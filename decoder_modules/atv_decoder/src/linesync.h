@@ -106,7 +106,7 @@ public:
             volk_32f_x2_dot_prod_32f(&outVal, &buffer[offset], interpBank.phases[phase], _interpTapCount);
             base_type::out.writeBuf[outCount++] = outVal;
 
-            // If the end of the line is reached, process it and determin error
+            // If the end of the line is reached, process it and determine error
             float error = 0;
             if (outCount >= 720) {
                 // Compute averages.

@@ -3342,7 +3342,7 @@
             "end": 15350000000
         },
         {
-            "name": "Digital network (poit to point)",
+            "name": "Digital network (point to point)",
             "type": "utility",
             "start": 17100000000,
             "end": 19300000000

@@ -609,7 +609,7 @@ private:
                 "0.000000 10000000000.000000 0x2ef -1 -1 0x1 0x0\n"
                 /* End of RX frequency ranges. */
                 "0 0 0 0 0 0 0\n"
-                /* End of TX frequency ranges. The SDR++ is reciver only. */
+                /* End of TX frequency ranges. The SDR++ is receiver only. */
                 "0 0 0 0 0 0 0\n"
                 /* Tuning steps: modes, tuning_step */
                 "0xef 1\n"

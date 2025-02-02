@@ -185,7 +185,7 @@ private:
             // Make sure the path is accessible or give up
             if (!paths.valueExists(preferred_pc)) { continue; }
             
-            // Set this channel as the channel of its prefered path (cursed af but lazy)
+            // Set this channel as the channel of its preferred path (cursed af but lazy)
             const PathConfig& pc = paths.value(paths.valueId(preferred_pc));
             ((PathConfig*)&pc)->chId = offset + i;
             ((PathConfig*)&pc)->appliesCh = (uint16_t)(1 << (offset + i + 8));

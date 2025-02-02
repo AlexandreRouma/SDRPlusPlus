@@ -84,7 +84,7 @@ namespace dsp::multirate {
                 // Increment phase
                 phase += _decim;
 
-                // Branchless phase advance if phase wrap arround occurs
+                // Branchless phase advance if phase wrap around occurs
                 offset += phase / _interp;
 
                 // Wrap around if needed

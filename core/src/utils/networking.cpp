@@ -44,7 +44,7 @@ namespace net {
 #endif
         }
 
-        // Wait for the theads to terminate
+        // Wait for the threads to terminate
         if (readWorkerThread.joinable()) { readWorkerThread.join(); }
         if (writeWorkerThread.joinable()) { writeWorkerThread.join(); }
 

@@ -151,7 +151,7 @@ namespace rds {
             // Save block while correcting errors (NOT YET) <- idk why the "not yet is here", TODO: find why
             blocks[type] = correctErrors(shiftReg, type, blockAvail[type]);
 
-            // If block type is A, decode it directly, otherwise, update continous count
+            // If block type is A, decode it directly, otherwise, update continuous count
             if (type == BLOCK_TYPE_A) {
                 decodeBlockA();
             }
@@ -396,7 +396,7 @@ namespace rds {
     }
 
     std::string Decoder::base26ToCall(uint16_t pi) {
-        // Determin first better based on offset
+        // Determine first better based on offset
         bool w = (pi >= 21672);
         std::string callsign(w ? "W" : "K");
 

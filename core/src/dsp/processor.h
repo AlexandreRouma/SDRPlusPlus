@@ -1,7 +1,7 @@
 #pragma once
 #include "block.h"
 
-// These macros define a run() function using a specic expression for processing
+// These macros define a run() function using a specific expression for processing
 // This is needed because not all process functions have the same arguments
 
 #define OVERRIDE_PROC_RUN(exp)\
