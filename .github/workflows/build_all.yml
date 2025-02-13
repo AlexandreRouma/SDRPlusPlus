@@ -211,7 +211,7 @@ jobs:
               name: sdrpp_macos_arm
               path: ${{runner.workspace}}/sdrpp_macos_arm.zip
 
-    build_debian_buster:
+    build_debian_buster_amd64:
         runs-on: ubuntu-latest
 
         steps:
@@ -233,7 +233,29 @@ jobs:
               name: sdrpp_debian_buster_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    build_debian_bullseye:
+    build_debian_buster_aarch64:
+        runs-on: ubuntu-24.04-arm
+
+        steps:
+        - uses: actions/checkout@v4
+
+        - name: Create Docker Image
+          run: cd $GITHUB_WORKSPACE/docker_builds/debian_buster && docker build . --tag sdrpp_build
+
+        - name: Run Container
+          run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
+
+        - name: Recover Deb Archive
+          working-directory: ${{runner.workspace}}
+          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
+
+        - name: Save Deb Archive
+          uses: actions/upload-artifact@v4
+          with:
+              name: sdrpp_debian_buster_aarch64
+              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
+
+    build_debian_bullseye_amd64:
         runs-on: ubuntu-latest
 
         steps:
@@ -255,7 +277,29 @@ jobs:
               name: sdrpp_debian_bullseye_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    build_debian_bookworm:
+    build_debian_bullseye_aarch64:
+        runs-on: ubuntu-24.04-arm
+
+        steps:
+        - uses: actions/checkout@v4
+        
+        - name: Create Docker Image
+          run: cd $GITHUB_WORKSPACE/docker_builds/debian_bullseye && docker build . --tag sdrpp_build
+
+        - name: Run Container
+          run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
+
+        - name: Recover Deb Archive
+          working-directory: ${{runner.workspace}}
+          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
+
+        - name: Save Deb Archive
+          uses: actions/upload-artifact@v4
+          with:
+              name: sdrpp_debian_bullseye_aarch64
+              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
+
+    build_debian_bookworm_amd64:
         runs-on: ubuntu-latest
 
         steps:
@@ -299,7 +343,7 @@ jobs:
               name: sdrpp_debian_bookworm_aarch64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    build_debian_sid:
+    build_debian_sid_amd64:
         runs-on: ubuntu-latest
 
         steps:
@@ -321,7 +365,29 @@ jobs:
               name: sdrpp_debian_sid_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    build_ubuntu_focal:
+    build_debian_sid_aarch64:
+        runs-on: ubuntu-24.04-arm
+
+        steps:
+        - uses: actions/checkout@v4
+        
+        - name: Create Docker Image
+          run: cd $GITHUB_WORKSPACE/docker_builds/debian_sid && docker build . --tag sdrpp_build
+
+        - name: Run Container
+          run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
+
+        - name: Recover Deb Archive
+          working-directory: ${{runner.workspace}}
+          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
+
+        - name: Save Deb Archive
+          uses: actions/upload-artifact@v4
+          with:
+              name: sdrpp_debian_sid_aarch64
+              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
+
+    build_ubuntu_focal_amd64:
         runs-on: ubuntu-latest
 
         steps:
@@ -343,7 +409,29 @@ jobs:
               name: sdrpp_ubuntu_focal_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    build_ubuntu_jammy:
+    build_ubuntu_focal_aarch64:
+        runs-on: ubuntu-24.04-arm
+
+        steps:
+        - uses: actions/checkout@v4
+        
+        - name: Create Docker Image
+          run: cd $GITHUB_WORKSPACE/docker_builds/ubuntu_focal && docker build . --tag sdrpp_build
+
+        - name: Run Container
+          run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
+
+        - name: Recover Deb Archive
+          working-directory: ${{runner.workspace}}
+          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
+
+        - name: Save Deb Archive
+          uses: actions/upload-artifact@v4
+          with:
+              name: sdrpp_ubuntu_focal_aarch64
+              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
+
+    build_ubuntu_jammy_amd64:
         runs-on: ubuntu-latest
 
         steps:
@@ -365,7 +453,29 @@ jobs:
               name: sdrpp_ubuntu_jammy_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    build_ubuntu_noble:
+    build_ubuntu_jammy_aarch64:
+        runs-on: ubuntu-24.04-arm
+
+        steps:
+        - uses: actions/checkout@v4
+        
+        - name: Create Docker Image
+          run: cd $GITHUB_WORKSPACE/docker_builds/ubuntu_jammy && docker build . --tag sdrpp_build
+
+        - name: Run Container
+          run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
+
+        - name: Recover Deb Archive
+          working-directory: ${{runner.workspace}}
+          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
+
+        - name: Save Deb Archive
+          uses: actions/upload-artifact@v4
+          with:
+              name: sdrpp_ubuntu_jammy_aarch64
+              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
+
+    build_ubuntu_noble_amd64:
         runs-on: ubuntu-latest
 
         steps:
@@ -387,7 +497,29 @@ jobs:
               name: sdrpp_ubuntu_noble_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    build_ubuntu_oracular:
+    build_ubuntu_noble_aarch64:
+        runs-on: ubuntu-24.04-arm
+
+        steps:
+        - uses: actions/checkout@v4
+        
+        - name: Create Docker Image
+          run: cd $GITHUB_WORKSPACE/docker_builds/ubuntu_noble && docker build . --tag sdrpp_build
+
+        - name: Run Container
+          run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
+
+        - name: Recover Deb Archive
+          working-directory: ${{runner.workspace}}
+          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
+
+        - name: Save Deb Archive
+          uses: actions/upload-artifact@v4
+          with:
+              name: sdrpp_ubuntu_noble_aarch64
+              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
+
+    build_ubuntu_oracular_amd64:
         runs-on: ubuntu-latest
 
         steps:
@@ -407,6 +539,28 @@ jobs:
           uses: actions/upload-artifact@v4
           with:
               name: sdrpp_ubuntu_oracular_amd64
+              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
+
+    build_ubuntu_oracular_aarch64:
+        runs-on: ubuntu-24.04-arm
+
+        steps:
+        - uses: actions/checkout@v4
+        
+        - name: Create Docker Image
+          run: cd $GITHUB_WORKSPACE/docker_builds/ubuntu_oracular && docker build . --tag sdrpp_build
+
+        - name: Run Container
+          run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
+
+        - name: Recover Deb Archive
+          working-directory: ${{runner.workspace}}
+          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
+
+        - name: Save Deb Archive
+          uses: actions/upload-artifact@v4
+          with:
+              name: sdrpp_ubuntu_oracular_aarch64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
     build_raspios_bullseye_armhf:
@@ -464,7 +618,29 @@ jobs:
               path: ${{runner.workspace}}/sdrpp.apk
 
     create_full_archive:
-        needs: ['build_windows', 'build_macos_intel', 'build_macos_arm', 'build_debian_buster', 'build_debian_bullseye', 'build_debian_bookworm', 'build_debian_sid', 'build_ubuntu_focal', 'build_ubuntu_jammy', 'build_ubuntu_noble', 'build_ubuntu_oracular', 'build_raspios_bullseye_armhf', 'build_android']
+        needs: [
+          'build_windows',
+          'build_macos_intel',
+          'build_macos_arm',
+          'build_debian_buster_amd64',
+          'build_debian_buster_aarch64',
+          'build_debian_bullseye_amd64',
+          'build_debian_bullseye_aarch64',
+          'build_debian_bookworm_amd64',
+          'build_debian_bookworm_aarch64',
+          'build_debian_sid_amd64',
+          'build_debian_sid_aarch64',
+          'build_ubuntu_focal_amd64',
+          'build_ubuntu_focal_aarch64',
+          'build_ubuntu_jammy_amd64',
+          'build_ubuntu_jammy_aarch64',
+          'build_ubuntu_noble_amd64',
+          'build_ubuntu_noble_aarch64',
+          'build_ubuntu_oracular_amd64',
+          'build_ubuntu_oracular_aarch64',
+          'build_raspios_bullseye_armhf',
+          'build_android'
+        ]
         runs-on: ubuntu-latest
 
         steps:
@@ -478,13 +654,21 @@ jobs:
             mv sdrpp_macos_intel/sdrpp_macos_intel.zip sdrpp_all/ && 
             mv sdrpp_macos_arm/sdrpp_macos_arm.zip sdrpp_all/ && 
             mv sdrpp_debian_buster_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_buster_amd64.deb && 
-            mv sdrpp_debian_bullseye_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bullseye_amd64.deb && 
+            mv sdrpp_debian_buster_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_buster_aarch64.deb && 
+            mv sdrpp_debian_bullseye_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bullseye_amd64.deb &&
+            mv sdrpp_debian_bullseye_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bullseye_aarch64.deb &&
             mv sdrpp_debian_bookworm_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bookworm_amd64.deb && 
+            mv sdrpp_debian_bookworm_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bookworm_aarch64.deb && 
             mv sdrpp_debian_sid_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_sid_amd64.deb && 
+            mv sdrpp_debian_sid_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_sid_aarch64.deb && 
             mv sdrpp_ubuntu_focal_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_focal_amd64.deb &&
+            mv sdrpp_ubuntu_focal_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_focal_aarch64.deb &&
             mv sdrpp_ubuntu_jammy_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_jammy_amd64.deb &&
+            mv sdrpp_ubuntu_jammy_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_jammy_aarch64.deb &&
             mv sdrpp_ubuntu_noble_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_noble_amd64.deb &&
+            mv sdrpp_ubuntu_noble_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_noble_aarch64.deb &&
             mv sdrpp_ubuntu_oracular_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_oracular_amd64.deb &&
+            mv sdrpp_ubuntu_oracular_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_oracular_aarch64.deb &&
             mv sdrpp_raspios_bullseye_armhf/sdrpp_debian_armhf.deb sdrpp_all/sdrpp_raspios_bullseye_armhf.deb &&
             mv sdrpp_android/sdrpp.apk sdrpp_all/sdrpp.apk
 
