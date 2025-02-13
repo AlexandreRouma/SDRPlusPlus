@@ -15,10 +15,11 @@ apt install -y build-essential cmake git libfftw3-dev libglfw3-dev libvolk1-dev 
             libcodec2-dev libudev-dev autoconf libtool xxd libspdlog-dev
 
 # Install SDRPlay libraries
+SDRPLAY_ARCH=$(dpkg --print-architecture)
 wget https://www.sdrplay.com/software/SDRplay_RSP_API-Linux-3.15.1.run
 7z x ./SDRplay_RSP_API-Linux-3.15.1.run
 7z x ./SDRplay_RSP_API-Linux-3.15.1
-cp x86_64/libsdrplay_api.so.3.15 /usr/lib/libsdrplay_api.so
+cp $SDRPLAY_ARCH/libsdrplay_api.so.3.15 /usr/lib/libsdrplay_api.so
 cp inc/* /usr/include/
 
 # Install a more recent libusb version
