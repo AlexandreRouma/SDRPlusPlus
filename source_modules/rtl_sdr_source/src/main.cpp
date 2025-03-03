@@ -199,8 +199,6 @@ public:
             config.conf["devices"][selectedDevName]["tunerAgc"] = tunerAgc;
             config.conf["devices"][selectedDevName]["gain"] = gainId;
         }
-        if (gainId >= gainList.size()) { gainId = gainList.size() - 1; }
-        updateGainTxt();
 
         // Load config
         if (config.conf["devices"][selectedDevName].contains("sampleRate")) {
@@ -240,8 +238,10 @@ public:
 
         if (config.conf["devices"][selectedDevName].contains("gain")) {
             gainId = config.conf["devices"][selectedDevName]["gain"];
-            updateGainTxt();
         }
+
+        if (gainId >= gainList.size()) { gainId = gainList.size() - 1; }
+        updateGainTxt();
 
         config.release(created);
 
