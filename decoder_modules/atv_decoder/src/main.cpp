@@ -20,6 +20,11 @@
 
 #include "chroma_pll.h"
 
+#include "linesync_old.h"
+#include "amplitude.h"
+#include <dsp/demod/am.h>
+#include <dsp/loop/fast_agc.h>
+
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
 SDRPP_MOD_INFO{/* Name:            */ "atv_decoder",
@@ -29,24 +34,24 @@ SDRPP_MOD_INFO{/* Name:            */ "atv_decoder",
                /* Max instances    */ -1
 };
 
-#define SAMPLE_RATE (625.0f * 720.0f * 25.0f)
+#define SAMPLE_RATE (625.0f * (float)LINE_SIZE * 25.0f)
 
 class ATVDecoderModule : public ModuleManager::Instance {
   public:
-    ATVDecoderModule(std::string name) : img(720, 625) {
+    ATVDecoderModule(std::string name) : img(768, 576) {
         this->name = name;
 
-        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 8000000.0f, SAMPLE_RATE, SAMPLE_RATE, SAMPLE_RATE, true);
+        vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 7000000.0f, SAMPLE_RATE, SAMPLE_RATE, SAMPLE_RATE, true);
 
-        demod.init(vfo->output, SAMPLE_RATE, SAMPLE_RATE / 2.0f);
+        agc.init(vfo->output, 1.0f, 1e6, 0.001f, 1.0f);
+        demod.init(&agc.out, SAMPLE_RATE, SAMPLE_RATE / 2.0f);
+        //demod.init(vfo->output, dsp::demod::AM<float>::CARRIER, 8000000.0f, 50.0 / SAMPLE_RATE, 50.0 / SAMPLE_RATE, 0.0f, SAMPLE_RATE);
         sync.init(&demod.out, 1.0f, 1e-6, 1.0, 0.05);
         sink.init(&sync.out, handler, this);
 
         r2c.init(NULL);
-        chromaTaps = dsp::taps::fromArray(CHROMA_FIR_SIZE, CHROMA_FIR);
-        fir.init(NULL, chromaTaps);
-        pll.init(NULL, 0.01, 0.0, dsp::math::hzToRads(4433618.75, SAMPLE_RATE), dsp::math::hzToRads(4433618.75*0.90, SAMPLE_RATE), dsp::math::hzToRads(4433618.75*1.1, SAMPLE_RATE));
 
+        agc.start();
         demod.start();
         sync.start();
         sink.start();
@@ -58,7 +63,10 @@ class ATVDecoderModule : public ModuleManager::Instance {
         if (vfo) {
             sigpath::vfoManager.deleteVFO(vfo);
         }
+        agc.stop();
         demod.stop();
+        sync.stop();
+        sink.stop();
         gui::menu.removeEntry(name);
     }
 
@@ -82,142 +90,146 @@ class ATVDecoderModule : public ModuleManager::Instance {
             style::beginDisabled();
         }
 
-        // Ideal width for testing: 750pixels
-
         ImGui::FillWidth();
         _this->img.draw();
 
-        ImGui::LeftLabel("Sync");
-        ImGui::FillWidth();
-        ImGui::SliderFloat("##syncLvl", &_this->sync_level, -2, 2);
-
-        ImGui::LeftLabel("Min");
-        ImGui::FillWidth();
-        ImGui::SliderFloat("##minLvl", &_this->minLvl, -1.0, 1.0);
-
-        ImGui::LeftLabel("Span");
-        ImGui::FillWidth();
-        ImGui::SliderFloat("##spanLvl", &_this->spanLvl, 0, 1.0);
-
-        ImGui::LeftLabel("Sync Bias");
-        ImGui::FillWidth();
-        ImGui::SliderFloat("##syncBias", &_this->sync.syncBias,-0.1, 0.1);
-
-        if (ImGui::Button("Test2")) {
-            _this->sync.test2 = true;
-        }
-
-        if (ImGui::Button("Switch frame")) {
-            std::lock_guard<std::mutex> lck(_this->evenFrameMtx);
-            _this->evenFrame = !_this->evenFrame;
-        }
-
-        if (_this->sync.locked) {
+        ImGui::TextUnformatted("Horizontal Sync:");
+        ImGui::SameLine();
+        if (_this->sync.locked > 750) {
             ImGui::TextColored(ImVec4(0, 1, 0, 1), "Locked");
         }
         else {
             ImGui::TextUnformatted("Not locked");
         }
 
-        ImGui::Checkbox("Force Lock", &_this->sync.forceLock);
+        ImGui::TextUnformatted("Vertical Sync:");
+        ImGui::SameLine();
+        if (_this->vlock > 15) {
+            ImGui::TextColored(ImVec4(0, 1, 0, 1), "Locked");
+        }
+        else {
+            ImGui::TextUnformatted("Not locked");
+        }
+
+        ImGui::Checkbox("Fast Lock", &_this->sync.fastLock);
+        ImGui::Checkbox("Color Mode", &_this->colorMode);
 
         if (!_this->enabled) {
             style::endDisabled();
         }
+
+        ImGui::Text("Gain: %f", _this->gain);
+        ImGui::Text("Offset: %f", _this->offset);
     }
 
     static void handler(float *data, int count, void *ctx) {
         ATVDecoderModule *_this = (ATVDecoderModule *)ctx;
 
-        // Convert line to complex
-        _this->r2c.process(720, data, _this->r2c.out.writeBuf);
+        // Correct the offset
+        volk_32f_s32f_add_32f(data, data, _this->offset, count);
 
-        // Isolate the chroma subcarrier
-        _this->fir.process(720, _this->r2c.out.writeBuf, _this->fir.out.writeBuf);
+        // Correct the gain
+        volk_32f_s32f_multiply_32f(data, data, _this->gain, count);
 
-        // Run chroma carrier through the PLL
-        _this->pll.process(720, _this->fir.out.writeBuf, _this->pll.out.writeBuf, ((_this->ypos%2)==1) ^ _this->evenFrame);
+        // Compute the sync levels
+        float syncLLevel = 0.0f;
+        float syncRLevel = 0.0f;
+        volk_32f_accumulator_s32f(&syncLLevel, data, EQUAL_LEN);
+        volk_32f_accumulator_s32f(&syncRLevel, &data[EQUAL_LEN], SYNC_LEN - EQUAL_LEN);
+        syncLLevel *= 1.0f / EQUAL_LEN;
+        syncRLevel *= 1.0f / (SYNC_LEN - EQUAL_LEN);
+        float syncLevel = (syncLLevel + syncRLevel) * 0.5f; // TODO: It's technically correct but if the sizes were different it wouldn't be
 
-        // Render line to the image without color
-        int lypos = _this->ypos - 1;
-        if (lypos < 0) { lypos = 624; }
-        uint32_t* lastLine = &((uint32_t *)_this->img.buffer)[(lypos < 313) ? (lypos*720*2) : ((((lypos - 313)*2)+1)*720) ];
-        uint32_t* currentLine = &((uint32_t *)_this->img.buffer)[(_this->ypos < 313) ? (_this->ypos*720*2) : ((((_this->ypos - 313)*2)+1)*720) ];
+        // Compute the blanking level
+        float blankLevel = 0.0f;
+        volk_32f_accumulator_s32f(&blankLevel, &data[HBLANK_START], HBLANK_LEN);
+        blankLevel /= (float)HBLANK_LEN;
 
-        //uint32_t* currentLine = &((uint32_t *)_this->img.buffer)[_this->ypos*720];
+        // Run the offset control loop
+        _this->offset -= (blankLevel / _this->gain)*0.001;
+        _this->offset = std::clamp<float>(_this->offset, -1.0f, 1.0f);
+        _this->gain -= (blankLevel - syncLevel + SYNC_LEVEL)*0.01f;
+        _this->gain = std::clamp<float>(_this->gain, 0.1f, 10.0f);
 
-        for (int i = 0; i < count; i++) {
-            int imval = std::clamp<float>((data[i] - _this->minLvl) * 255.0 / _this->spanLvl, 0, 255);
-            // uint32_t re = std::clamp<float>((_this->pll.out.writeBuf[i].re - _this->minLvl) * 255.0 / _this->spanLvl, 0, 255);
-            // uint32_t im = std::clamp<float>((_this->pll.out.writeBuf[i].im - _this->minLvl) * 255.0 / _this->spanLvl, 0, 255);
-            // currentLine[i] = 0xFF000000 | (im << 8) | re;
-            currentLine[i] = 0xFF000000 | (imval << 16) | (imval << 8) | imval;
-        }
-    
-        // Vertical scan logic
-        _this->ypos++;
-        bool rollover = _this->ypos >= 625;
-        if (rollover) {
-            {
-                std::lock_guard<std::mutex> lck(_this->evenFrameMtx);
-                _this->evenFrame = !_this->evenFrame;
+        // Detect the sync type
+        uint16_t shortSync = (syncLLevel < 0.5f*SYNC_LEVEL) && (syncRLevel > 0.5f*SYNC_LEVEL) && (blankLevel > 0.5f*SYNC_LEVEL);
+        uint16_t longSync = (syncLLevel < 0.5f*SYNC_LEVEL) && (syncRLevel < 0.5f*SYNC_LEVEL) && (blankLevel < 0.5f*SYNC_LEVEL);
+
+        // Save sync type to history
+        _this->syncHistory = (_this->syncHistory << 2) | (longSync << 1) | shortSync;
+
+        // Render the line if it's visible
+        if (_this->ypos >= 34 && _this->ypos <= 34+576-1) {
+            uint32_t* currentLine = &((uint32_t *)_this->img.buffer)[(_this->ypos - 34)*768];
+            for (int i = 155; i < (155+768); i++) {
+                int imval = std::clamp<float>(data[i] * 255.0f, 0, 255);
+                currentLine[i-155] = 0xFF000000 | (imval << 16) | (imval << 8) | imval;
             }
+        }
+
+        // Compute whether to rollover
+        bool rollToOdd = (_this->ypos == 624);
+        bool rollToEven = (_this->ypos == 623);
+
+        // Compute the field sync
+        bool syncToOdd = (_this->syncHistory == 0b0101011010010101);
+        bool syncToEven = (_this->syncHistory == 0b0001011010100101);
+
+        // Process the sync (NOTE: should start with 0b01, but for some reason I don't see a sync?)
+        if (rollToOdd || syncToOdd) {
+            // Update the vertical lock state
+            bool disagree = (rollToOdd ^ syncToOdd);
+            if (disagree && _this->vlock > 0) {
+                _this->vlock--;
+            }
+            else if (!disagree && _this->vlock < 20) {
+                _this->vlock++;
+            }
+
+            // Start the odd field
+            _this->ypos = 1;
+        }
+        else if (rollToEven || syncToEven) {
+            // Update the vertical lock state
+            bool disagree = (rollToEven ^ syncToEven);
+            if (disagree && _this->vlock > 0) {
+                _this->vlock--;
+            }
+            else if (!disagree && _this->vlock < 20) {
+                _this->vlock++;
+            }
+
+            // Start the even field
             _this->ypos = 0;
+
+            // Swap the video buffer
             _this->img.swap();
         }
-
-        // Measure vsync levels
-        float sync0 = 0.0f, sync1 = 0.0f;
-        for (int i = 0; i < 306; i++) {
-            sync0 += data[i];
-        }
-        for (int i = (720/2); i < ((720/2)+306); i++) {
-            sync1 += data[i];
-        }
-        sync0 *= (1.0f/305.0f);
-        sync1 *= (1.0f/305.0f);
-
-        // Save sync detection to history
-        _this->syncHistory >>= 2;
-        _this->syncHistory |= (((uint16_t)(sync1 < _this->sync_level)) << 9) | (((uint16_t)(sync0 < _this->sync_level)) << 8);
-
-        // Trigger vsync in case one is detected
-        // TODO: Also sync with odd field
-        if (!rollover && _this->syncHistory == 0b0000011111) {
-            {
-                std::lock_guard<std::mutex> lck(_this->evenFrameMtx);
-                _this->evenFrame = !_this->evenFrame;
-            }
-            _this->ypos = 0;
-            _this->img.swap();
+        else {
+            _this->ypos += 2;
         }
     }
+
+    // NEW SYNC:
+    float offset = 0.0f;
+    float gain = 1.0f;
+    uint16_t syncHistory = 0;
+    int ypos = 0;
+    int vlock = 0;
 
     std::string name;
     bool enabled = true;
 
     VFOManager::VFO *vfo = NULL;
-    dsp::demod::Quadrature demod;
+    //dsp::demod::Quadrature demod;
+    dsp::loop::FastAGC<dsp::complex_t> agc;
+    dsp::demod::Amplitude demod;
+    //dsp::demod::AM<float> demod;
     LineSync sync;
     dsp::sink::Handler<float> sink;
     dsp::convert::RealToComplex r2c;
-    dsp::tap<dsp::complex_t> chromaTaps;
-    dsp::filter::FIR<dsp::complex_t, dsp::complex_t> fir;
-    dsp::loop::ChromaPLL pll;
-    int ypos = 0;
 
-    bool evenFrame = false;
-    std::mutex evenFrameMtx;
-
-    float sync_level = -0.06f;
-    int sync_count = 0;
-    int short_sync = 0;
-
-    float minLvl = 0.0f;
-    float spanLvl = 1.0f;
-
-    bool lockedLines = 0;
-    uint16_t syncHistory = 0;
+    bool colorMode = false;
 
     ImGui::ImageDisplay img;
 };

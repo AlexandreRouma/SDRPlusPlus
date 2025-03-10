@@ -5,6 +5,25 @@
 #include <dsp/multirate/polyphase_bank.h>
 #include <dsp/math/step.h>
 
+#define LINE_SIZE       945
+
+#define SYNC_LEN        70
+#define SYNC_SIDE_LEN   17
+#define SYNC_L_START    (LINE_SIZE - SYNC_SIDE_LEN)
+#define SYNC_R_START    (SYNC_LEN/2)
+#define SYNC_R_END      (SYNC_R_START + (SYNC_LEN/2) + SYNC_SIDE_LEN)
+#define SYNC_HALF_LEN   ((SYNC_LEN/2) + SYNC_SIDE_LEN)
+
+#define EQUAL_LEN       35
+
+#define HBLANK_START    SYNC_LEN
+#define HBLANK_END      155
+#define HBLANK_LEN      (HBLANK_END - HBLANK_START + 1)
+
+#define SYNC_LEVEL      (-0.428)
+
+#define MAX_LOCK    1000
+
 class LineSync : public dsp::Processor<float, float> {
     using base_type = dsp::Processor<float, float>;
 public:
@@ -27,39 +46,15 @@ public:
         _interpPhaseCount = interpPhaseCount;
         _interpTapCount = interpTapCount;
 
-        pcl.init(_muGain, _omegaGain, 0.0, 0.0, 1.0, _omega, _omega * (1.0 - omegaRelLimit), _omega * (1.0 + omegaRelLimit));
         generateInterpTaps();
         buffer = dsp::buffer::alloc<float>(STREAM_BUFFER_SIZE + _interpTapCount);
         bufStart = &buffer[_interpTapCount - 1];
+
+        // TODO: Needs tuning, so do the gains
+        maxPeriod = (int32_t)(1.0001 * (float)(1 << 30));
+        minPeriod = (int32_t)(0.9999 * (float)(1 << 30));
     
         base_type::init(in);
-    }
-
-    void setOmegaGain(double omegaGain) {
-        assert(base_type::_block_init);
-        std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
-        _omegaGain = omegaGain;
-        pcl.setCoefficients(_muGain, _omegaGain);
-    }
-
-    void setMuGain(double muGain) {
-        assert(base_type::_block_init);
-        std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
-        _muGain = muGain;
-        pcl.setCoefficients(_muGain, _omegaGain);
-    }
-
-    void setOmegaRelLimit(double omegaRelLimit) {
-        assert(base_type::_block_init);
-        std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
-        _omegaRelLimit = omegaRelLimit;
-        pcl.setFreqLimits(_omega * (1.0 - _omegaRelLimit), _omega * (1.0 + _omegaRelLimit));
-    }
-
-    void setSyncLevel(float level) {
-        assert(base_type::_block_init);
-        std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
-        syncLevel = level;
     }
 
     void setInterpParams(int interpPhaseCount, int interpTapCount) {
@@ -81,8 +76,7 @@ public:
         std::lock_guard<std::recursive_mutex> lck(base_type::ctrlMtx);
         base_type::tempStop();
         offset = 0;
-        pcl.phase = 0.0f;
-        pcl.freq = _omega;
+        phase = 0;
         base_type::tempStart();
     }
 
@@ -93,61 +87,120 @@ public:
         // Copy data to work buffer
         memcpy(bufStart, base_type::_in->readBuf, count * sizeof(float));
 
-        if (test2) {
-            test2 = false;
-            offset += 5;
-        }
-
-        // Process all samples
+        // Process samples while they are available
         while (offset < count) {
-            // Calculate new output value
-            int phase = std::clamp<int>(floorf(pcl.phase * (float)_interpPhaseCount), 0, _interpPhaseCount - 1);
-            float outVal;
-            volk_32f_x2_dot_prod_32f(&outVal, &buffer[offset], interpBank.phases[phase], _interpTapCount);
-            base_type::out.writeBuf[outCount++] = outVal;
+            // While the offset is negative, out put zeros
+            while (offset < 0 && pixel < LINE_SIZE) {
+                // Output a zero
+                base_type::out.writeBuf[pixel++] = 0.0f;
 
-            // If the end of the line is reached, process it and determin error
-            float error = 0;
-            if (outCount >= 720) {
-                // Compute averages.
+                // Increment the phase
+                phase += period;
+                offset += (phase >> 30);
+                phase &= 0x3FFFFFFF;
+            }
+
+            // Process as much of a line as possible
+            while (offset < count && pixel < LINE_SIZE) {
+                // Compute the output sample
+                volk_32f_x2_dot_prod_32f(&base_type::out.writeBuf[pixel++], &buffer[offset], interpBank.phases[(phase >> 23) & 0x7F], _interpTapCount);
+                
+                // Increment the phase
+                phase += period;
+                offset += (phase >> 30);
+                phase &= 0x3FFFFFFF;
+            }
+
+            // If the line is done, process it
+            if (pixel == LINE_SIZE) {
+                // Compute averages. (TODO: Try faster method)
                 float left = 0.0f, right = 0.0f;
-                for (int i = (720-17); i < 720; i++) {
+                int lc = 0, rc = 0;
+                for (int i = SYNC_L_START; i < LINE_SIZE; i++) {
                     left += base_type::out.writeBuf[i];
+                    lc++;
                 }
-                for (int i = 0; i < 27; i++) {
+                for (int i = 0; i < SYNC_R_START; i++) {
                     left += base_type::out.writeBuf[i];
+                    lc++;
                 }
-                for (int i = 27; i < (54+17); i++) {
+                for (int i = SYNC_R_START; i < SYNC_R_END; i++) {
                     right += base_type::out.writeBuf[i];
-                }
-                left *= (1.0f/44.0f);
-                right *= (1.0f/44.0f);
-
-                // If the sync is present, compute error
-                if ((left < syncLevel && right < syncLevel) && !forceLock) {
-                    error = (left + syncBias - right);
-                    locked = true;
-                }
-                else {
-                    locked = false;
+                    rc++;
                 }
 
-                if (++counter >= 100) {
-                    counter = 0;
-                    //flog::warn("Left: {}, Right: {}, Error: {}, Freq: {}, Phase: {}", left, right, error, pcl.freq, pcl.phase);
+                // Compute the error
+                float error = (left - right) * (1.0f/((float)SYNC_HALF_LEN));
+
+                // Compute the change in phase and frequency due to the error
+                float periodDelta = error * _omegaGain;
+                float phaseDelta = error * _muGain;
+
+                // Normalize the phase delta (TODO: Make faster)
+                while (phaseDelta <= -1.0f) {
+                    phaseDelta += 1.0f;
+                    offset--;
+                }
+                while (phaseDelta >= 1.0f) {
+                    phaseDelta -= 1.0f;
+                    offset++;
+                }
+
+                // Update the period (TODO: Clamp error*omegaGain to prevent weird shit with corrupt samples)
+                period += (int32_t)(periodDelta * (float)(1 << 30));
+                period = std::clamp<uint32_t>(period, minPeriod, maxPeriod);
+
+                // Update the phase
+                phase += (int32_t)(phaseDelta * (float)(1 << 30));
+
+                // Normalize the phase
+                uint32_t overflow = phase >> 30;
+                if (overflow) {
+                    if (error < 0) {
+                        offset -= 4 - overflow;
+                    }
+                    else {
+                        offset += overflow;
+                    }
+                }
+                phase &= 0x3FFFFFFF;
+
+                // Find the lowest value
+                float lowest = INFINITY;
+                int lowestId = -1;
+                for (int i = 0; i < LINE_SIZE; i++) {
+                    float val =  base_type::out.writeBuf[i];
+                    if (val < lowest) {
+                        lowest = val;
+                        lowestId = i;
+                    }
+                }
+
+                // Check the the line is in lock
+                bool lineLocked = (lowestId < SYNC_R_END || lowestId >= SYNC_L_START);
+
+                // Update the lock status based on the line lock
+                if (!lineLocked && locked) {
+                    locked--;
+                }
+                else if (lineLocked && locked < MAX_LOCK) {
+                    locked++;
+                }
+
+                // If not locked, attempt to lock by forcing the sync to happen at the right spot
+                // TODO: This triggers waaaay too easily at low SNR
+                if (!locked && fastLock) {
+                    offset += lowestId - SYNC_R_START;
+                    locked = MAX_LOCK / 2;
                 }
 
                 // Output line
-                if (!base_type::out.swap(outCount)) { break; }
-                outCount = 0;
+                if (!base_type::out.swap(LINE_SIZE)) { break; }
+                pixel = 0;
             }
-
-            // Advance symbol offset and phase
-            pcl.advance(error);
-            float delta = floorf(pcl.phase);
-            offset += delta;
-            pcl.phase -= delta;
         }
+
+        // Get the offset ready for the next buffer
         offset -= count;
 
         // Update delay buffer
@@ -155,16 +208,15 @@ public:
 
         // Swap if some data was generated
         base_type::_in->flush();
-        return outCount;
+        return 0;
     }
 
-    bool locked = false;
-    bool test2 = false;
+    float syncBias = 0;
 
-    float syncBias = 0.0f;
-    bool forceLock = false;
+    uint32_t period = (0x800072F3 >> 1);//(1 << 31) + 1;
 
-    int counter = 0;
+    int locked = 0;
+    bool fastLock = true;
 
 protected:
     void generateInterpTaps() {
@@ -175,7 +227,6 @@ protected:
     }
 
     dsp::multirate::PolyphaseBank<float> interpBank;
-    dsp::loop::PhaseControlLoop<double, false> pcl;
 
     double _omega;
     double _omegaGain;
@@ -183,11 +234,14 @@ protected:
     double _omegaRelLimit;
     int _interpPhaseCount;
     int _interpTapCount;
-
-    int offset = 0;
-    int outCount = 0;
     float* buffer;
     float* bufStart;
-    
+
+    uint32_t phase = 0;
+    uint32_t maxPeriod;
+    uint32_t minPeriod;
     float syncLevel = -0.03f;
+
+    int offset = 0;
+    int pixel = 0;
 };
