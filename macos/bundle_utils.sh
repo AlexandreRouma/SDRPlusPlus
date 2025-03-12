@@ -28,6 +28,8 @@ bundle_is_not_to_be_installed() {
     if [ "$1" = "Security" ]; then echo 1; fi
     if [ "$1" = "AppleFSCompression" ]; then echo 1; fi
     if [ "$1" = "libsdrplay_api.so.3.14" ]; then echo 1; fi
+    if [ "$1" = "libsdrplay_api.so.3.15" ]; then echo 1; fi
+    if [ "$1" = "libxml2.2.dylib" ]; then echo 1; fi
 }
 
 # ========================= FOR INTERNAL USE ONLY =========================
