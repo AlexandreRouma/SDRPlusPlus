@@ -267,7 +267,7 @@ private:
 
         // Configure the device
         double actualSr, actualFreq;
-        fobos_rx_set_samplerate(_this->openDev, (_this->sampleRate >= 50e6) ? _this->sampleRate : 50e6, &actualSr);
+        fobos_rx_set_samplerate(_this->openDev, (_this->sampleRate <= 50e6) ? _this->sampleRate : 50e6, &actualSr);
         fobos_rx_set_frequency(_this->openDev, _this->freq, &actualFreq);
         fobos_rx_set_direct_sampling(_this->openDev, _this->port != PORT_RF);
         fobos_rx_set_clk_source(_this->openDev, _this->clockSources[_this->clkSrcId]);
