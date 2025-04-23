@@ -16,14 +16,13 @@
 #include <dsp/filter/fir.h>
 #include <dsp/taps/from_array.h>
 
-#include "chrominance_filter.h"
-
-#include "chroma_pll.h"
-
-#include "linesync_old.h"
 #include "amplitude.h"
 #include <dsp/demod/am.h>
 #include <dsp/loop/fast_agc.h>
+
+#include "filters.h"
+#include <dsp/math/normalize_phase.h>
+#include <fstream>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -50,6 +49,8 @@ class ATVDecoderModule : public ModuleManager::Instance {
         sink.init(&sync.out, handler, this);
 
         r2c.init(NULL);
+
+        file = std::ofstream("chromasub_diff.bin", std::ios::binary | std::ios::out);
 
         agc.start();
         demod.start();
@@ -81,6 +82,8 @@ class ATVDecoderModule : public ModuleManager::Instance {
     }
 
     bool isEnabled() { return enabled; }
+
+    std::ofstream file;
 
   private:
     static void menuHandler(void *ctx) {
@@ -118,9 +121,16 @@ class ATVDecoderModule : public ModuleManager::Instance {
             style::endDisabled();
         }
 
+        if (ImGui::Button("Close Debug")) {
+            _this->file.close();
+        }
+
         ImGui::Text("Gain: %f", _this->gain);
         ImGui::Text("Offset: %f", _this->offset);
+        ImGui::Text("Subcarrier: %f", _this->subcarrierFreq);
     }
+
+    uint32_t pp = 0;
 
     static void handler(float *data, int count, void *ctx) {
         ATVDecoderModule *_this = (ATVDecoderModule *)ctx;
@@ -158,12 +168,69 @@ class ATVDecoderModule : public ModuleManager::Instance {
         // Save sync type to history
         _this->syncHistory = (_this->syncHistory << 2) | (longSync << 1) | shortSync;
 
+        // If the line has a colorburst, decode it
+        dsp::complex_t* buf1 = _this->r2c.out.readBuf;
+        dsp::complex_t* buf2 = _this->r2c.out.writeBuf;
+        if (true) {
+            // Convert the line into complex
+            _this->r2c.process(count, data, buf1);
+
+            // Extract the chroma subcarrier (TODO: Optimise by running only where needed)
+            for (int i = COLORBURST_START; i < count-(CHROMA_BANDPASS_DELAY+1); i++) {
+                volk_32fc_x2_dot_prod_32fc((lv_32fc_t*)&buf2[i], (lv_32fc_t*)&buf1[i - CHROMA_BANDPASS_DELAY], (lv_32fc_t*)CHROMA_BANDPASS, CHROMA_BANDPASS_SIZE);
+            }
+
+            // Down convert the chroma subcarrier (TODO: Optimise by running only where needed)
+            lv_32fc_t startPhase = { 1.0f, 0.0f };
+            lv_32fc_t phaseDelta = { sinf(_this->subcarrierFreq), cosf(_this->subcarrierFreq) };
+#if VOLK_VERSION >= 030100
+            volk_32fc_s32fc_x2_rotator2_32fc((lv_32fc_t*)&buf2[COLORBURST_START], (lv_32fc_t*)&buf2[COLORBURST_START], &phaseDelta, &startPhase, count - COLORBURST_START);
+#else
+            volk_32fc_s32fc_x2_rotator_32fc((lv_32fc_t*)&buf2[COLORBURST_START], (lv_32fc_t*)&buf2[COLORBURST_START], phaseDelta, &startPhase, count - COLORBURST_START);
+#endif
+
+            // Compute the phase of the burst
+            dsp::complex_t burstAvg = { 0.0f, 0.0f };
+            volk_32fc_accumulator_s32fc((lv_32fc_t*)&burstAvg, (lv_32fc_t*)&buf2[COLORBURST_START], COLORBURST_LEN);
+            float burstAmp = burstAvg.amplitude();
+            if (burstAmp*(1.0f/(float)COLORBURST_LEN) < 0.02f) {
+                printf("%d\n", _this->line);
+            }
+            burstAvg *= (1.0f / (burstAmp*burstAmp));
+            burstAvg = burstAvg.conj();
+
+            // Normalize the chroma data (TODO: Optimise by running only where needed)
+            volk_32fc_s32fc_multiply_32fc((lv_32fc_t*)&buf2[COLORBURST_START], (lv_32fc_t*)&buf2[COLORBURST_START], *((lv_32fc_t*)&burstAvg), count - COLORBURST_START);
+
+            // Compute the frequency error of the burst
+            float phase = buf2[COLORBURST_START].phase();
+            float error = 0.0f;
+            for (int i = COLORBURST_START+1; i < COLORBURST_START+COLORBURST_LEN; i++) {
+                float cphase = buf2[i].phase();
+                error += dsp::math::normalizePhase(cphase - phase);
+                phase = cphase;
+            }
+            error *= (1.0f / (float)(COLORBURST_LEN-1));
+
+            // Update the subcarrier freq
+            _this->subcarrierFreq += error*0.0001f;
+        }
+
         // Render the line if it's visible
         if (_this->ypos >= 34 && _this->ypos <= 34+576-1) {
             uint32_t* currentLine = &((uint32_t *)_this->img.buffer)[(_this->ypos - 34)*768];
-            for (int i = 155; i < (155+768); i++) {
-                int imval = std::clamp<float>(data[i] * 255.0f, 0, 255);
-                currentLine[i-155] = 0xFF000000 | (imval << 16) | (imval << 8) | imval;
+            if (_this->colorMode) {
+                for (int i = 155; i < (155+768); i++) {
+                    int imval1 = std::clamp<float>(fabsf(buf2[i-155+COLORBURST_START].re*5.0f) * 255.0f, 0, 255);
+                    int imval2 = std::clamp<float>(fabsf(buf2[i-155+COLORBURST_START].im*5.0f) * 255.0f, 0, 255);
+                    currentLine[i-155] = 0xFF000000 | (imval2 << 8) | imval1;
+                }
+            }
+            else {
+                for (int i = 155; i < (155+768); i++) {
+                    int imval = std::clamp<float>(data[i-155+COLORBURST_START] * 255.0f, 0, 255);
+                    currentLine[i-155] = 0xFF000000 | (imval << 16) | (imval << 8) | imval;
+                }
             }
         }
 
@@ -188,6 +255,7 @@ class ATVDecoderModule : public ModuleManager::Instance {
 
             // Start the odd field
             _this->ypos = 1;
+            _this->line++;
         }
         else if (rollToEven || syncToEven) {
             // Update the vertical lock state
@@ -201,12 +269,14 @@ class ATVDecoderModule : public ModuleManager::Instance {
 
             // Start the even field
             _this->ypos = 0;
+            _this->line = 0;
 
             // Swap the video buffer
             _this->img.swap();
         }
         else {
             _this->ypos += 2;
+            _this->line++;
         }
     }
 
@@ -214,8 +284,10 @@ class ATVDecoderModule : public ModuleManager::Instance {
     float offset = 0.0f;
     float gain = 1.0f;
     uint16_t syncHistory = 0;
+    int line = 0;
     int ypos = 0;
     int vlock = 0;
+    float subcarrierFreq = 0.0f;
 
     std::string name;
     bool enabled = true;

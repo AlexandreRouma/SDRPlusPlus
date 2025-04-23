@@ -22,7 +22,15 @@
 
 #define SYNC_LEVEL      (-0.428)
 
+#define COLORBURST_START    84
+#define COLORBURST_LEN      33
+
 #define MAX_LOCK    1000
+
+dsp::complex_t PHASE_REF[2] = {
+    { -0.707106781186547f,  0.707106781186547f },
+    { -0.707106781186547f, -0.707106781186547f }
+};
 
 class LineSync : public dsp::Processor<float, float> {
     using base_type = dsp::Processor<float, float>;

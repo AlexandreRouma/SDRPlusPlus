@@ -3,6 +3,7 @@
 #include <gui/gui.h>
 #include <gui/style.h>
 #include <signal_path/signal_path.h>
+#include <chrono>
 
 SDRPP_MOD_INFO{
     /* Name:            */ "scanner",
