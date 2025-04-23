@@ -12,6 +12,7 @@
 #include <dsp/sink.h>
 #include <dsp/routing/stream_link.h>
 #include <zstd.h>
+#include <chrono>
 
 #define PROTOCOL_TIMEOUT_MS             10000
 
