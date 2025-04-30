@@ -80,6 +80,7 @@ namespace sdrpp_credits {
         "Lee (KD1SQ)",
         ".lozenge. (Hank Hill)",
         "Martin Herren (HB9FXX)",
+        "NeoVilsonWong",
         "Nitin (VU2JEK)",
         "ON4MU",
         "Passion-Radio.com",
