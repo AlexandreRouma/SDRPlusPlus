@@ -176,6 +176,9 @@ private:
             // Construct the device name
             std::string devName = '(' + backend + ") " + model + " [" + serial + ']';
 
+            // Skip duplicate devices
+            if (devices.keyExists(desc) || devices.nameExists(devName) || devices.valueExists(duri)) { continue; }
+
             // Save device
             devices.define(desc, devName, duri);
         }
