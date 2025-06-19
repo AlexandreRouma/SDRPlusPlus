@@ -19,6 +19,7 @@ option(OPT_BUILD_FOBOSSDR_SOURCE "Build FobosSDR Source Module (Dependencies: li
 option(OPT_BUILD_HACKRF_SOURCE "Build HackRF Source Module (Dependencies: libhackrf)" ON)
 option(OPT_BUILD_HAROGIC_SOURCE "Build Harogic Source Module (Dependencies: htra_api)" OFF)
 option(OPT_BUILD_HERMES_SOURCE "Build Hermes Source Module (no dependencies required)" ON)
+option(OPT_BUILD_HYDRASDR_SOURCE "Build HydraSDR Source Module (Dependencies: libhydrasdr)" OFF)
 option(OPT_BUILD_KCSDR_SOURCE "Build KCSDR Source Module (Dependencies: libkcsdr)" OFF)
 option(OPT_BUILD_LIMESDR_SOURCE "Build LimeSDR Source Module (Dependencies: liblimesuite)" OFF)
 option(OPT_BUILD_NETWORK_SOURCE "Build Network Source Module (no dependencies required)" ON)
@@ -161,6 +162,10 @@ endif (OPT_BUILD_HAROGIC_SOURCE)
 if (OPT_BUILD_HERMES_SOURCE)
 add_subdirectory("source_modules/hermes_source")
 endif (OPT_BUILD_HERMES_SOURCE)
+
+if (OPT_BUILD_HYDRASDR_SOURCE)
+add_subdirectory("source_modules/hydrasdr_source")
+endif (OPT_BUILD_HYDRASDR_SOURCE)
 
 if (OPT_BUILD_KCSDR_SOURCE)
 add_subdirectory("source_modules/kcsdr_source")

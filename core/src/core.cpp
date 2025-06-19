@@ -181,6 +181,8 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["moduleInstances"]["Harogic Source"]["enabled"] = true;
     defConfig["moduleInstances"]["Hermes Source"]["module"] = "hermes_source";
     defConfig["moduleInstances"]["Hermes Source"]["enabled"] = true;
+    defConfig["moduleInstances"]["HydraSDR Source"]["module"] = "hydrasdr_source";
+    defConfig["moduleInstances"]["HydraSDR Source"]["enabled"] = true;
     defConfig["moduleInstances"]["LimeSDR Source"]["module"] = "limesdr_source";
     defConfig["moduleInstances"]["LimeSDR Source"]["enabled"] = true;
     defConfig["moduleInstances"]["Network Source"]["module"] = "network_source";
