@@ -121,14 +121,23 @@ public:
 #ifndef __ANDROID__
         devCount = rtlsdr_get_device_count();
         char buf[1024];
-        char snBuf[1024];
+        char venBuf[256];
+        char prodBuf[256];
+        char snBuf[256];
         for (int i = 0; i < devCount; i++) {
             // Gather device info
             const char* devName = rtlsdr_get_device_name(i);
-            int snErr = rtlsdr_get_device_usb_strings(i, NULL, NULL, snBuf);
+            int snErr = rtlsdr_get_device_usb_strings(i, venBuf, prodBuf, snBuf);
 
             // Build name
-            sprintf(buf, "[%s] %s##%d", (!snErr && snBuf[0]) ? snBuf : "No Serial", devName, i);
+            if (venBuf[0] && prodBuf[0]) {
+                sprintf(buf, "%s %s [%s]##%d", venBuf, prodBuf, (!snErr && snBuf[0]) ? snBuf : "No Serial", i);
+            }
+            else {
+                sprintf(buf, "%s [%s]##%d", devName, (!snErr && snBuf[0]) ? snBuf : "No Serial", i);
+            }
+
+            // Add device to list
             devNames.push_back(buf);
             devListTxt += buf;
             devListTxt += '\0';
