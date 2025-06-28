@@ -22,7 +22,7 @@ cd $ORIG_DIR
 
 # Create package
 echo Create package
-dpkg-deb --build sdrpp_debian_amd64
+dpkg-deb --root-owner-group --build sdrpp_debian_amd64
 
 # Cleanup
 echo Cleanup
