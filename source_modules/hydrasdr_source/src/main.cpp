@@ -36,6 +36,9 @@ public:
         ports.define("rx1", "RX1", RF_PORT_RX1);
         ports.define("rx2", "RX2", RF_PORT_RX2);
 
+        regStr[0] = 0;
+        valStr[0] = 0;
+
         sampleRate = 10000000.0;
 
         handler.ctx = this;
@@ -567,7 +570,31 @@ private:
                 config.release(true);
             }
         }
+
+        SmGui::LeftLabel("Reg");
+        SmGui::FillWidth();
+        SmGui::InputText(CONCAT("##_badgesdr_reg_", _this->name), _this->regStr, 256);
+        SmGui::LeftLabel("Value");
+        SmGui::FillWidth();
+        SmGui::InputText(CONCAT("##_badgesdr_val_", _this->name), _this->valStr, 256);
+        SmGui::FillWidth();
+        if (ImGui::Button(CONCAT("Read##_badgesdr_rd_", _this->name))) {
+            if (_this->running) {
+                uint8_t val;
+                hydrasdr_r82x_read(_this->openDev, std::stoi(_this->regStr, NULL, 16), &val);
+                sprintf(_this->valStr, "%02X", val);
+            }
+        }
+        SmGui::FillWidth();
+        if (ImGui::Button(CONCAT("Write##_badgesdr_wr_", _this->name))) {
+            if (_this->running) {
+                hydrasdr_r82x_write(_this->openDev, std::stoi(_this->regStr, NULL, 16), std::stoi(_this->valStr, NULL, 16));
+            }
+        }
     }
+
+    char valStr[256];
+    char regStr[256];
 
     static int callback(hydrasdr_transfer_t* transfer) {
         HydraSDRSourceModule* _this = (HydraSDRSourceModule*)transfer->ctx;

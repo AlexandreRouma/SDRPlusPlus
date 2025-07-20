@@ -5,8 +5,6 @@ namespace dsp {
     template <class T>
     class Source : public block {
     public:
-        Source() {}
-
         Source() { init(); }
 
         virtual ~Source() {}
