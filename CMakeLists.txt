@@ -235,6 +235,8 @@ if (OPT_BUILD_USRP_SOURCE)
 add_subdirectory("source_modules/usrp_source")
 endif (OPT_BUILD_USRP_SOURCE)
 
+add_subdirectory("source_modules/dragonlabs_source")
+
 
 # Sink modules
 if (OPT_BUILD_ANDROID_AUDIO_SINK)

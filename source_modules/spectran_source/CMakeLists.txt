@@ -14,9 +14,9 @@ if (MSVC)
     target_link_libraries(spectran_source PRIVATE AaroniaRTSAAPI)
 else (MSVC)
     # Lib path
-    target_link_directories(spectran_source PRIVATE "~/Aaronia/RTSA/Aaronia-RTSA-Suite-PRO")
+    target_link_directories(spectran_source PRIVATE "/opt/aaronia-rtsa-suite/Aaronia-RTSA-Suite-PRO")
 
-    target_include_directories(spectran_source PUBLIC "~/Aaronia/RTSA/Aaronia-RTSA-Suite-PRO")
+    target_include_directories(spectran_source PUBLIC "/opt/aaronia-rtsa-suite/Aaronia-RTSA-Suite-PRO/sdk")
 
     target_link_libraries(spectran_source PRIVATE AaroniaRTSAAPI)
 endif ()
