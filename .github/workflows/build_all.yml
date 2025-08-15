@@ -136,6 +136,9 @@ jobs:
         - name: Install more recent librtlsdr
           run: git clone https://github.com/osmocom/rtl-sdr && cd rtl-sdr && mkdir build && cd build && cmake -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_BUILD_TYPE=Release .. && make -j3 LIBRARY_PATH=$(pkg-config --libs-only-L libusb-1.0 | sed 's/\-L//') && sudo make install && cd ../../
 
+        - name: Install libhydrasdr
+          run: git clone https://github.com/hydrasdr/rfone_host && cd rfone_host && mkdir build && cd build && cmake -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
+
         - name: Prepare CMake
           working-directory: ${{runner.workspace}}/build
           run: cmake -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 $GITHUB_WORKSPACE -DOPT_BUILD_PLUTOSDR_SOURCE=ON -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_AUDIO_SINK=OFF -DOPT_BUILD_PORTAUDIO_SINK=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON -DOPT_BUILD_PERSEUS_SOURCE=ON -DOPT_BUILD_AUDIO_SOURCE=OFF -DOPT_BUILD_RFNM_SOURCE=ON -DOPT_BUILD_FOBOSSDR_SOURCE=ON -DUSE_BUNDLE_DEFAULTS=ON -DCMAKE_BUILD_TYPE=Release
@@ -193,6 +196,9 @@ jobs:
         - name: Install more recent librtlsdr
           run: git clone https://github.com/osmocom/rtl-sdr && cd rtl-sdr && mkdir build && cd build && cmake -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_BUILD_TYPE=Release .. && make -j3 LIBRARY_PATH=$(pkg-config --libs-only-L libusb-1.0 | sed 's/\-L//') && sudo make install && cd ../../
 
+        - name: Install libhydrasdr
+          run: git clone https://github.com/hydrasdr/rfone_host && cd rfone_host && mkdir build && cd build && cmake -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
+
         - name: Prepare CMake
           working-directory: ${{runner.workspace}}/build
           run: cmake -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 $GITHUB_WORKSPACE -DOPT_BUILD_PLUTOSDR_SOURCE=ON -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_AUDIO_SINK=OFF -DOPT_BUILD_PORTAUDIO_SINK=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=OFF -DOPT_BUILD_PERSEUS_SOURCE=OFF -DOPT_BUILD_AUDIO_SOURCE=OFF -DOPT_BUILD_RFNM_SOURCE=ON -DOPT_BUILD_FOBOSSDR_SOURCE=ON -DUSE_BUNDLE_DEFAULTS=ON -DCMAKE_BUILD_TYPE=Release
@@ -210,50 +216,6 @@ jobs:
           with:
               name: sdrpp_macos_arm
               path: ${{runner.workspace}}/sdrpp_macos_arm.zip
-
-    build_debian_buster_amd64:
-        runs-on: ubuntu-latest
-
-        steps:
-        - uses: actions/checkout@v4
-
-        - name: Create Docker Image
-          run: cd $GITHUB_WORKSPACE/docker_builds/debian_buster && docker build . --tag sdrpp_build
-
-        - name: Run Container
-          run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
-
-        - name: Recover Deb Archive
-          working-directory: ${{runner.workspace}}
-          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
-
-        - name: Save Deb Archive
-          uses: actions/upload-artifact@v4
-          with:
-              name: sdrpp_debian_buster_amd64
-              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
-
-    build_debian_buster_aarch64:
-        runs-on: ubuntu-24.04-arm
-
-        steps:
-        - uses: actions/checkout@v4
-
-        - name: Create Docker Image
-          run: cd $GITHUB_WORKSPACE/docker_builds/debian_buster && docker build . --tag sdrpp_build
-
-        - name: Run Container
-          run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
-
-        - name: Recover Deb Archive
-          working-directory: ${{runner.workspace}}
-          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
-
-        - name: Save Deb Archive
-          uses: actions/upload-artifact@v4
-          with:
-              name: sdrpp_debian_buster_aarch64
-              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
     build_debian_bullseye_amd64:
         runs-on: ubuntu-latest
@@ -341,6 +303,50 @@ jobs:
           uses: actions/upload-artifact@v4
           with:
               name: sdrpp_debian_bookworm_aarch64
+              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
+
+    build_debian_trixie_amd64:
+        runs-on: ubuntu-latest
+
+        steps:
+        - uses: actions/checkout@v4
+        
+        - name: Create Docker Image
+          run: cd $GITHUB_WORKSPACE/docker_builds/debian_trixie && docker build . --tag sdrpp_build
+
+        - name: Run Container
+          run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
+
+        - name: Recover Deb Archive
+          working-directory: ${{runner.workspace}}
+          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
+
+        - name: Save Deb Archive
+          uses: actions/upload-artifact@v4
+          with:
+              name: sdrpp_debian_trixie_amd64
+              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
+
+    build_debian_trixie_aarch64:
+        runs-on: ubuntu-24.04-arm
+
+        steps:
+        - uses: actions/checkout@v4
+        
+        - name: Create Docker Image
+          run: cd $GITHUB_WORKSPACE/docker_builds/debian_trixie && docker build . --tag sdrpp_build
+
+        - name: Run Container
+          run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
+
+        - name: Recover Deb Archive
+          working-directory: ${{runner.workspace}}
+          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
+
+        - name: Save Deb Archive
+          uses: actions/upload-artifact@v4
+          with:
+              name: sdrpp_debian_trixie_aarch64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
     build_debian_sid_amd64:
@@ -595,12 +601,12 @@ jobs:
           'build_windows',
           'build_macos_intel',
           'build_macos_arm',
-          'build_debian_buster_amd64',
-          'build_debian_buster_aarch64',
           'build_debian_bullseye_amd64',
           'build_debian_bullseye_aarch64',
           'build_debian_bookworm_amd64',
           'build_debian_bookworm_aarch64',
+          'build_debian_trixie_amd64',
+          'build_debian_trixie_aarch64',
           'build_debian_sid_amd64',
           'build_debian_sid_aarch64',
           'build_ubuntu_focal_amd64',
@@ -625,12 +631,12 @@ jobs:
             mv sdrpp_windows_x64/sdrpp_windows_x64.zip sdrpp_all/ && 
             mv sdrpp_macos_intel/sdrpp_macos_intel.zip sdrpp_all/ && 
             mv sdrpp_macos_arm/sdrpp_macos_arm.zip sdrpp_all/ && 
-            mv sdrpp_debian_buster_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_buster_amd64.deb && 
-            mv sdrpp_debian_buster_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_buster_aarch64.deb && 
             mv sdrpp_debian_bullseye_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bullseye_amd64.deb &&
             mv sdrpp_debian_bullseye_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bullseye_aarch64.deb &&
             mv sdrpp_debian_bookworm_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bookworm_amd64.deb && 
             mv sdrpp_debian_bookworm_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bookworm_aarch64.deb && 
+            mv sdrpp_debian_trixie_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_trixie_amd64.deb && 
+            mv sdrpp_debian_trixie_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_trixie_aarch64.deb && 
             mv sdrpp_debian_sid_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_sid_amd64.deb && 
             mv sdrpp_debian_sid_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_sid_aarch64.deb && 
             mv sdrpp_ubuntu_focal_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_focal_amd64.deb &&

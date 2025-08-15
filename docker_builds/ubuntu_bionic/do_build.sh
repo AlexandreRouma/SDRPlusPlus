@@ -83,6 +83,16 @@ echo 'Version: 0.7' >> /usr/share/pkgconfig/codec2.pc
 echo 'Libs: -L/usr/include/x86_64-linux-gnu/ -lcodec2' >> /usr/share/pkgconfig/codec2.pc
 echo 'Cflags: -I/usr/include/codec2' >> /usr/share/pkgconfig/codec2.pc
 
+# Install libhydrasdr
+git clone https://github.com/hydrasdr/rfone_host
+cd rfone_host
+mkdir build
+cd build
+cmake ..
+make -j2
+make install
+cd ../../
+
 # Build SDR++ Itself
 cd SDRPlusPlus
 mkdir build
