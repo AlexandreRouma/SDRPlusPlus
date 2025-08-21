@@ -383,6 +383,36 @@ Modules in beta are still included in releases for the most part but not enabled
 | scanner             | Beta       | -            | OPT_BUILD_SCANNER           | ✅              | ✅               | ⛔                         |
 | scheduler           | Unfinished | -            | OPT_BUILD_SCHEDULER         | ⛔              | ⛔               | ⛔                         |
 
+## Scanner Module Features
+
+The Scanner module provides automated frequency scanning capabilities with the following features:
+
+### **Core Functionality**
+- **Frequency Range Scanning**: Automatically scans between configurable start and stop frequencies
+- **Signal Detection**: Detects signals above a configurable threshold level
+- **Automatic Tuning**: Automatically tunes to detected signals
+- **Configurable Parameters**: Adjustable scan interval, tuning time, and linger time
+
+### **Advanced Features**
+- **Frequency Blacklist**: Skip unwanted frequencies with configurable tolerance
+- **Settings Persistence**: All settings automatically save to `scanner_config.json`
+- **Reset Functionality**: Return to start frequency at any time
+- **Smart Frequency Wrapping**: Automatic handling of frequency range boundaries
+
+### **Configuration Options**
+- **Start/Stop Frequencies**: Define scan range in Hz
+- **Scan Interval**: Frequency step size between scans
+- **Tuning Time**: Time to wait after tuning to a frequency
+- **Linger Time**: Time to stay on a detected signal
+- **Signal Threshold**: Minimum signal level to trigger detection
+- **Blacklist Tolerance**: Frequency range around blacklisted frequencies to skip
+
+### **Usage Tips**
+- Use blacklist to avoid known interference sources
+- Adjust scan interval based on your needs (smaller = more thorough, larger = faster)
+- Set appropriate signal threshold to avoid false triggers
+- Use reset button if scanner gets stuck at range boundaries
+
 # Troubleshooting
 
 First, please make sure you're running the latest automated build. If your issue is linked to a bug it is likely that is has already been fixed in later releases

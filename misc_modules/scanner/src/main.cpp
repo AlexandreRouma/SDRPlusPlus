@@ -4,6 +4,9 @@
 #include <gui/style.h>
 #include <signal_path/signal_path.h>
 #include <chrono>
+#include <algorithm>
+#include <fstream> // Added for file operations
+#include <core.h>
 
 SDRPP_MOD_INFO{
     /* Name:            */ "scanner",
@@ -13,14 +16,18 @@ SDRPP_MOD_INFO{
     /* Max instances    */ 1
 };
 
+ConfigManager config;
+
 class ScannerModule : public ModuleManager::Instance {
 public:
     ScannerModule(std::string name) {
         this->name = name;
         gui::menu.registerEntry(name, menuHandler, this, NULL);
+        loadConfig();
     }
 
     ~ScannerModule() {
+        saveConfig();
         gui::menu.removeEntry(name);
         stop();
     }
@@ -39,6 +46,8 @@ public:
         return enabled;
     }
 
+
+
 private:
     static void menuHandler(void* ctx) {
         ScannerModule* _this = (ScannerModule*)ctx;
@@ -49,37 +58,92 @@ private:
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::InputDouble("##start_freq_scanner", &_this->startFreq, 100.0, 100000.0, "%0.0f")) {
             _this->startFreq = round(_this->startFreq);
+            _this->saveConfig();
         }
         ImGui::LeftLabel("Stop");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::InputDouble("##stop_freq_scanner", &_this->stopFreq, 100.0, 100000.0, "%0.0f")) {
             _this->stopFreq = round(_this->stopFreq);
+            _this->saveConfig();
         }
         ImGui::LeftLabel("Interval");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::InputDouble("##interval_scanner", &_this->interval, 100.0, 100000.0, "%0.0f")) {
             _this->interval = round(_this->interval);
+            _this->saveConfig();
         }
         ImGui::LeftLabel("Passband Ratio (%)");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::InputDouble("##pb_ratio_scanner", &_this->passbandRatio, 1.0, 10.0, "%0.0f")) {
             _this->passbandRatio = std::clamp<double>(round(_this->passbandRatio), 1.0, 100.0);
+            _this->saveConfig();
         }
         ImGui::LeftLabel("Tuning Time (ms)");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::InputInt("##tuning_time_scanner", &_this->tuningTime, 100, 1000)) {
             _this->tuningTime = std::clamp<int>(_this->tuningTime, 100, 10000.0);
+            _this->saveConfig();
         }
         ImGui::LeftLabel("Linger Time (ms)");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
         if (ImGui::InputInt("##linger_time_scanner", &_this->lingerTime, 100, 1000)) {
             _this->lingerTime = std::clamp<int>(_this->lingerTime, 100, 10000.0);
+            _this->saveConfig();
         }
         if (_this->running) { ImGui::EndDisabled(); }
 
         ImGui::LeftLabel("Level");
         ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
-        ImGui::SliderFloat("##scanner_level", &_this->level, -150.0, 0.0);
+        if (ImGui::SliderFloat("##scanner_level", &_this->level, -150.0, 0.0)) {
+            _this->saveConfig();
+        }
+
+        // Blacklist controls
+        ImGui::Separator();
+        ImGui::Text("Frequency Blacklist");
+        
+        // Add frequency to blacklist
+        static double newBlacklistFreq = 0.0;
+        ImGui::LeftLabel("Add Frequency (Hz)");
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::InputDouble("##new_blacklist_freq", &newBlacklistFreq, 1000.0, 100000.0, "%0.0f")) {
+            newBlacklistFreq = round(newBlacklistFreq);
+        }
+        if (ImGui::Button("Add to Blacklist##scanner_add_blacklist", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+            if (newBlacklistFreq > 0) {
+                _this->blacklistedFreqs.push_back(newBlacklistFreq);
+                newBlacklistFreq = 0.0;
+                _this->saveConfig();
+            }
+        }
+        
+        // Blacklist tolerance
+        ImGui::LeftLabel("Blacklist Tolerance (Hz)");
+        ImGui::SetNextItemWidth(menuWidth - ImGui::GetCursorPosX());
+        if (ImGui::InputDouble("##blacklist_tolerance", &_this->blacklistTolerance, 100.0, 10000.0, "%0.0f")) {
+            _this->blacklistTolerance = std::clamp<double>(round(_this->blacklistTolerance), 100.0, 100000.0);
+            _this->saveConfig();
+        }
+        
+        // List of blacklisted frequencies
+        if (!_this->blacklistedFreqs.empty()) {
+            ImGui::Text("Blacklisted Frequencies:");
+            for (size_t i = 0; i < _this->blacklistedFreqs.size(); i++) {
+                ImGui::SameLine();
+                if (ImGui::Button(("Remove##scanner_remove_blacklist_" + std::to_string(i)).c_str())) {
+                    _this->blacklistedFreqs.erase(_this->blacklistedFreqs.begin() + i);
+                    _this->saveConfig();
+                    break;
+                }
+                ImGui::SameLine();
+                ImGui::Text("%.0f Hz", _this->blacklistedFreqs[i]);
+            }
+            
+            if (ImGui::Button("Clear All Blacklisted##scanner_clear_blacklist", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+                _this->blacklistedFreqs.clear();
+                _this->saveConfig();
+            }
+        }
 
         ImGui::BeginTable(("scanner_bottom_btn_table" + _this->name).c_str(), 2);
         ImGui::TableNextRow();
@@ -106,9 +170,18 @@ private:
             ImGui::Text("Status: Idle");
         }
         else {
-            if (ImGui::Button("Stop##scanner_start", ImVec2(menuWidth, 0))) {
+            ImGui::BeginTable(("scanner_control_table" + _this->name).c_str(), 2);
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            if (ImGui::Button("Stop##scanner_start", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
                 _this->stop();
             }
+            ImGui::TableSetColumnIndex(1);
+            if (ImGui::Button("Reset##scanner_reset", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+                _this->reset();
+            }
+            ImGui::EndTable();
+            
             if (_this->receiving) {
                 ImGui::TextColored(ImVec4(0, 1, 0, 1), "Status: Receiving");
             }
@@ -136,6 +209,50 @@ private:
         }
     }
 
+    void reset() {
+        std::lock_guard<std::mutex> lck(scanMtx);
+        current = startFreq;
+        receiving = false;
+        tuning = false;
+        reverseLock = false;
+        flog::warn("Scanner: Reset to start frequency {:.0f} Hz", startFreq);
+    }
+
+    void saveConfig() {
+        config.acquire();
+        config.conf["startFreq"] = startFreq;
+        config.conf["stopFreq"] = stopFreq;
+        config.conf["interval"] = interval;
+        config.conf["passbandRatio"] = passbandRatio;
+        config.conf["tuningTime"] = tuningTime;
+        config.conf["lingerTime"] = lingerTime;
+        config.conf["level"] = level;
+        config.conf["blacklistTolerance"] = blacklistTolerance;
+        config.conf["blacklistedFreqs"] = blacklistedFreqs;
+        config.release(true);
+    }
+
+    void loadConfig() {
+        config.acquire();
+        startFreq = config.conf.value("startFreq", 88000000.0);
+        stopFreq = config.conf.value("stopFreq", 108000000.0);
+        interval = config.conf.value("interval", 100000.0);
+        passbandRatio = config.conf.value("passbandRatio", 10.0);
+        tuningTime = config.conf.value("tuningTime", 250);
+        lingerTime = config.conf.value("lingerTime", 1000.0);
+        level = config.conf.value("level", -50.0);
+        blacklistTolerance = config.conf.value("blacklistTolerance", 1000.0);
+        if (config.conf.contains("blacklistedFreqs")) {
+            blacklistedFreqs = config.conf["blacklistedFreqs"].get<std::vector<double>>();
+        }
+        config.release();
+        
+        // Ensure current frequency is within bounds
+        if (current < startFreq || current > stopFreq) {
+            current = startFreq;
+        }
+    }
+
     void worker() {
         // 10Hz scan loop
         while (running) {
@@ -149,6 +266,13 @@ private:
                     running = false;
                     return;
                 }
+                
+                // Ensure current frequency is within bounds
+                if (current < startFreq || current > stopFreq) {
+                    flog::warn("Scanner: Current frequency {:.0f} Hz out of bounds, resetting to start", current);
+                    current = startFreq;
+                }
+                
                 tuner::normalTuning(gui::waterfall.selectedVFO, current);
 
                 // Check if we are waiting for a tune
@@ -209,12 +333,23 @@ private:
                     // There is no signal on the visible spectrum, tune in scan direction and retry
                     if (scanUp) {
                         current = topLimit + interval;
-                        if (current > stopFreq) { current = startFreq; }
+                        // Ensure proper wrapping with bounds checking
+                        while (current > stopFreq) {
+                            current = startFreq + (current - stopFreq - interval);
+                        }
+                        if (current < startFreq) { current = startFreq; }
                     }
                     else {
                         current = bottomLimit - interval;
-                        if (current < startFreq) { current = stopFreq; }
+                        // Ensure proper wrapping with bounds checking
+                        while (current < startFreq) {
+                            current = stopFreq - (startFreq - current - interval);
+                        }
+                        if (current > stopFreq) { current = stopFreq; }
                     }
+                    
+                    // Add debug logging
+                    flog::warn("Scanner: Tuned to {:.0f} Hz (range: {:.0f} - {:.0f})", current, startFreq, stopFreq);
 
                     // If the new current frequency is outside the visible bandwidth, wait for retune
                     if (current - (vfoWidth/2.0) < wfStart || current + (vfoWidth/2.0) > wfEnd) {
@@ -232,13 +367,30 @@ private:
     bool findSignal(bool scanDir, double& bottomLimit, double& topLimit, double wfStart, double wfEnd, double wfWidth, double vfoWidth, float* data, int dataWidth) {
         bool found = false;
         double freq = current;
+        int maxIterations = 1000; // Prevent infinite loops
+        int iterations = 0;
+        
         for (freq += scanDir ? interval : -interval;
             scanDir ? (freq <= stopFreq) : (freq >= startFreq);
             freq += scanDir ? interval : -interval) {
+            
+            iterations++;
+            if (iterations > maxIterations) {
+                flog::warn("Scanner: Max iterations reached, forcing frequency wrap");
+                break;
+            }
 
             // Check if signal is within bounds
             if (freq - (vfoWidth/2.0) < wfStart) { break; }
             if (freq + (vfoWidth/2.0) > wfEnd) { break; }
+
+            // Check if frequency is blacklisted
+            if (std::any_of(blacklistedFreqs.begin(), blacklistedFreqs.end(),
+                            [freq, this](double blacklistedFreq) {
+                                return std::abs(freq - blacklistedFreq) < blacklistTolerance;
+                            })) {
+                continue;
+            }
 
             if (freq < bottomLimit) { bottomLimit = freq; }
             if (freq > topLimit) { topLimit = freq; }
@@ -288,10 +440,29 @@ private:
     std::chrono::time_point<std::chrono::high_resolution_clock> lastTuneTime;
     std::thread workerThread;
     std::mutex scanMtx;
+    
+    // Blacklist functionality
+    std::vector<double> blacklistedFreqs;
+    double blacklistTolerance = 1000.0; // Tolerance in Hz for blacklisted frequencies
+    
+
 };
 
 MOD_EXPORT void _INIT_() {
-    // Nothing here
+    json def = json({});
+    def["startFreq"] = 88000000.0;
+    def["stopFreq"] = 108000000.0;
+    def["interval"] = 100000.0;
+    def["passbandRatio"] = 10.0;
+    def["tuningTime"] = 250;
+    def["lingerTime"] = 1000.0;
+    def["level"] = -50.0;
+    def["blacklistTolerance"] = 1000.0;
+    def["blacklistedFreqs"] = json::array();
+
+    config.setPath(core::args["root"].s() + "/scanner_config.json");
+    config.load(def);
+    config.enableAutoSave();
 }
 
 MOD_EXPORT ModuleManager::Instance* _CREATE_INSTANCE_(std::string name) {
@@ -303,5 +474,6 @@ MOD_EXPORT void _DELETE_INSTANCE_(void* instance) {
 }
 
 MOD_EXPORT void _END_() {
-    // Nothing here
+    config.disableAutoSave();
+    config.save();
 }
