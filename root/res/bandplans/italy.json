@@ -14,7 +14,7 @@
             "name": "Radionavigazione",
             "type": "marine",
             "start": 11300,
-            "end": 135500
+            "end": 148500
         },
         {
             "name": "Radioamatori 137kHz",
@@ -47,7 +47,7 @@
             "end": 520000
         },
         {
-            "name": "Radioamatori 472 kHz",
+            "name": "Radioamatori 472kHz",
             "type": "amateur",
             "start": 472000,
             "end": 479000
@@ -65,7 +65,7 @@
             "end": 1830000
         },
         {
-            "name": "Radioamatori 160 m",
+            "name": "Radioamatori 160m",
             "type": "amateur",
             "start": 1830000,
             "end": 1850000
@@ -77,7 +77,7 @@
             "end": 2300000
         },
         {
-            "name": "Radiodiffusione OC 120 m",
+            "name": "Radiodiffusione OC 120m",
             "type": "broadcast",
             "start": 2300000,
             "end": 2500000
@@ -107,7 +107,7 @@
             "end": 3200000
         },
         {
-            "name": "Radiodiffusione OC 90 m",
+            "name": "Radiodiffusione OC 90m",
             "type": "broadcast",
             "start": 3200000,
             "end": 3400000
@@ -125,13 +125,13 @@
             "end": 3600000
         },
         {
-            "name": "Radioamatori 80 m",
+            "name": "Radioamatori 80m",
             "type": "amateur",
-            "start": 3600000,
+            "start": 3500000,
             "end": 3800000
         },
         {
-            "name": "Radiodiffusione OC 75 m",
+            "name": "Radiodiffusione OC 75m",
             "type": "broadcast",
             "start": 3900000,
             "end": 4000000
@@ -150,19 +150,19 @@
         },
 
         {
-            "name": "Radiodiffusione OC 60 m",
+            "name": "Radiodiffusione OC 60m",
             "type": "broadcast",
             "start": 4750000,
             "end": 4995000
         },
         {
-            "name": "Radiodiffusione OC 60 m",
+            "name": "Radiodiffusione OC 60m",
             "type": "broadcast",
             "start": 5005000,
             "end": 5060000
         },
         {
-            "name": "Radioamatori 60 m",
+            "name": "Radioamatori 60m",
             "type": "amateur",
             "start": 5351500,
             "end": 5366500
@@ -174,7 +174,7 @@
             "end": 5730000
         },
         {
-            "name": "Radiodiffusione OC 49 m",
+            "name": "Radiodiffusione OC 49m",
             "type": "broadcast",
             "start": 5900000,
             "end": 6200000
@@ -192,13 +192,13 @@
             "end": 6765000
         },
         {
-            "name": "Radioamatori 40 m",
+            "name": "Radioamatori 40m",
             "type": "amateur",
             "start": 7000000,
             "end": 7200000
         },
         {
-            "name": "Radiodiffusione OC 41 m",
+            "name": "Radiodiffusione OC 41m",
             "type": "broadcast",
             "start": 7200000,
             "end": 7450000
@@ -216,7 +216,7 @@
             "end": 9040000
         },
         {
-            "name": "Radiodiffusione OC 31 m",
+            "name": "Radiodiffusione OC 31m",
             "type": "broadcast",
             "start": 9400000,
             "end": 9900000
@@ -228,7 +228,7 @@
             "end": 10100000
         },
         {
-            "name": "30m - Radioamateur",
+            "name": "Radioamatori 30m",
             "type": "amateur",
             "start": 10100000,
             "end": 10150000
@@ -282,7 +282,7 @@
             "end": 15100000
         },
         {
-            "name": "Radiodiffusione OC 19 m",
+            "name": "Radiodiffusione OC 19m",
             "type": "broadcast",
             "start": 15100000,
             "end": 15800000
@@ -294,7 +294,7 @@
             "end": 17410000
         },
         {
-            "name": "Radiodiffusione OC 16 m",
+            "name": "Radiodiffusione OC 16m",
             "type": "broadcast",
             "start": 17480000,
             "end": 17900000
@@ -306,9 +306,9 @@
             "end": 18030000
         },
         {
-            "name": "Radioamatori 17 m",
+            "name": "Radioamatori 17m",
             "type": "amateur",
-            "start": 18068000,
+            "start": 18069000,
             "end": 18168000
         },
         {
@@ -318,7 +318,7 @@
             "end": 18900000
         },
         {
-            "name": "Radiodiffusione OC 15 m",
+            "name": "Radiodiffusione OC 15m",
             "type": "broadcast",
             "start": 18900000,
             "end": 19020000
@@ -336,13 +336,13 @@
             "end": 20010000
         },
         {
-            "name": "Radioamatori 15 m",
+            "name": "Radioamatori 15m",
             "type": "amateur",
             "start": 21000000,
             "end": 21450000
         },
         {
-            "name": "Radiodiffusione OC 13 m",
+            "name": "Radiodiffusione OC 13m",
             "type": "broadcast",
             "start": 21450000,
             "end": 21850000
@@ -366,7 +366,7 @@
             "end": 23350000
         },
         {
-            "name": "Radioamatori 12 m",
+            "name": "Radioamatori 12m",
             "type": "amateur",
             "start": 24890000,
             "end": 24990000
@@ -390,7 +390,7 @@
             "end": 25670000
         },
         {
-            "name": "Radiodiffusione OC 11 m",
+            "name": "Radiodiffusione OC 11m",
             "type": "broadcast",
             "start": 25670000,
             "end": 26100000
@@ -408,7 +408,7 @@
             "end": 27230000
         },
         {
-            "name": "Radioamatori 10 m",
+            "name": "Radioamatori 10m",
             "type": "amateur",
             "start": 28000000,
             "end": 29700000
@@ -420,10 +420,10 @@
             "end": 47000000
         },
         {
-            "name": "Radioamatori 9 m",
+            "name": "Radioamatori 6m",
             "type": "amateur",
-            "start": 47000000,
-            "end": 52500000
+            "start": 50000000,
+            "end": 51000000
         },
         {
             "name": "Wind profiler",
@@ -438,7 +438,7 @@
             "end": 74800000
         },
         {
-            "name": "Radiofari 75 MHz",
+            "name": "Radiofari 75MHz",
             "type": "aviation",
             "start": 74800000,
             "end": 75200000
@@ -446,19 +446,19 @@
         {
             "name": "Radiodiffusione FM",
             "type": "broadcast",
-            "start": 80000000,
+            "start": 87500000,
             "end": 108000000
         },
         {
             "name": "VOR/ILS",
             "type": "aviation",
             "start": 108000000,
-            "end": 118000000
+            "end": 117975000
         },
         {
             "name": "Mobile aeronautico",
             "type": "aviation",
-            "start": 118000000,
+            "start": 117975000,
             "end": 137000000
         },
         {
@@ -468,10 +468,10 @@
             "end": 138000000
         },
         {
-            "name": "Radioamatori 2 m",
+            "name": "Radioamatori 2m",
             "type": "amateur",
             "start": 144000000,
-            "end": 148000000
+            "end": 146000000
         },
         {
             "name": "Telefonia satellitare",
@@ -552,7 +552,7 @@
             "end": 430000000
         },
         {
-            "name": "Radioamatori 70 cm",
+            "name": "Radioamatori 70cm",
             "type": "amateur",
             "start": 430000000,
             "end": 434000000
@@ -564,10 +564,10 @@
             "end": 435000000
         },
         {
-            "name": "Radioamatori 70 cm",
+            "name": "Radioamatori 70cm",
             "type": "amateur",
             "start": 435000000,
-            "end": 436000000
+            "end": 438000000
         },
         {
             "name": "Mobile o fisso privato",
@@ -642,10 +642,16 @@
             "end": 124000000
         },
         {
-            "name": "Radioamatori 23 cm",
+            "name": "Radioamatori 23cm",
             "type": "amateur",
             "start": 1240000000,
-            "end": 1270000000
+            "end": 1245000000
+        },
+        {
+            "name": "Radioamatori 23cm",
+            "type": "amateur",
+            "start": 1267000000,
+            "end": 1298000000
         },
         {
             "name": "Wind profiler",
@@ -792,10 +798,10 @@
             "end": 2300000000
         },
         {
-            "name": "Radioamatori 13 cm",
+            "name": "Radioamatori 13cm",
             "type": "amateur",
             "start": 2300000000,
-            "end": 2400000000
+            "end": 2450000000
         },
         {
             "name": "ISM, SAP/SAB, 802.11",
@@ -828,12 +834,6 @@
             "end": 3400000000
         },
         {
-            "name": "Radioamatori 9 cm",
-            "type": "amateur",
-            "start": 3400000000,
-            "end": 3475000000
-        },
-        {
             "name": "Reti numeriche",
             "type": "comms",
             "start": 3475000000,
@@ -858,9 +858,21 @@
             "end": 5650000000
         },
         {
-            "name": "Radioamatori 6 cm",
+            "name": "Radioamatori 5cm",
             "type": "amateur",
             "start": 5650000000,
+            "end": 5670000000
+        },
+        {
+            "name": "Radioamatori 5cm",
+            "type": "amateur",
+            "start": 5760000000,
+            "end": 5770000000
+        },
+        {
+            "name": "Radioamatori 5cm",
+            "type": "amateur",
+            "start": 5830000000,
             "end": 5850000000
         },
         {
@@ -912,9 +924,9 @@
             "end": 10000000000
         },
         {
-            "name": "Radioamatori 3 cm",
+            "name": "Radioamatori 3cm",
             "type": "amateur",
-            "start": 10000000000,
+            "start": 10300000000,
             "end": 10500000000
         },
         {
@@ -1002,9 +1014,15 @@
             "end": 23338000000
         },
         {
+            "name": "Radioamatori 1,5cm",
+            "type": "amateur",
+            "start": 24000000000,
+            "end": 24050000000
+        },
+        {
             "name": "ISM, SRD e LPR",
             "type": "ism",
-            "start": 24000000000,
+            "start": 24050000000,
             "end": 24450000000
         },
         {
@@ -1086,7 +1104,7 @@
             "end": 43500000000
         },
         {
-            "name": "Radioamatori 6 mm",
+            "name": "Radioamatori 7mm",
             "type": "amateur",
             "start": 47000000000,
             "end": 47200000000
@@ -1128,9 +1146,9 @@
             "end": 76500000000
         },
         {
-            "name": "Radioamatori 4 mm",
+            "name": "Radioamatori 4mm",
             "type": "amateur",
-            "start": 76500000000,
+            "start": 75500000000,
             "end": 81500000000
         },
         {
@@ -1146,19 +1164,25 @@
             "end": 122250000000
         },
         {
-            "name": "Radioamatori 2,5 mm",
+            "name": "Radioamatori 2,4mm",
             "type": "amateur",
-            "start": 122250000000,
+            "start": 122500000000,
             "end": 123000000000
         },
         {
-            "name": "Radioamatori 2 mm",
+            "name": "Radioamatori 2,23mm",
             "type": "amateur",
             "start": 134000000000,
             "end": 141000000000
         },
         {
-            "name": "Radioamatori 1 mm",
+            "name": "Radioamatori 2,1mm",
+            "type": "amateur",
+            "start": 142000000000,
+            "end": 144000000000
+        },
+        {
+            "name": "Radioamatori 1mm",
             "type": "amateur",
             "start": 241000000000,
             "end": 250000000000
