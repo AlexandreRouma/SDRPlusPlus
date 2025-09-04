@@ -32,6 +32,9 @@ cp 'C:/Program Files/PothosSDR/bin/hackrf.dll' sdrpp_windows_x64/
 
 cp $build_dir/source_modules/hermes_source/Release/hermes_source.dll sdrpp_windows_x64/modules/
 
+cp $build_dir/source_modules/hydrasdr_source/Release/hydrasdr_source.dll sdrpp_windows_x64/modules/
+cp 'C:/Program Files (x86)/hydrasdr_all/bin/hydrasdr.dll' sdrpp_windows_x64/
+
 cp $build_dir/source_modules/limesdr_source/Release/limesdr_source.dll sdrpp_windows_x64/modules/
 cp 'C:/Program Files/PothosSDR/bin/LimeSuite.dll' sdrpp_windows_x64/
 
