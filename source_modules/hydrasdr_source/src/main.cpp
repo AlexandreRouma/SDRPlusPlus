@@ -100,9 +100,7 @@ public:
 
         // Get device info
         std::string fakeName = "HydraSDR USB";
-        devList.push_back(0xDEADBEEF);
-        devListTxt += fakeName;
-        devListTxt += '\0';
+        devices.define(fakeName, 0);
 #endif
     }
 
