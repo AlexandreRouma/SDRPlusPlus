@@ -279,13 +279,9 @@ Make sure to install portaudio as it'll be needed later.
 An example install command would be:
 
 ```sh
-brew install libusb fftw glfw airspy airspyhf portaudio hackrf rtl-sdr libbladerf codec2 zstd
+brew install libusb fftw glfw airspy airspyhf portaudio hackrf rtl-sdr libbladerf codec2 zstd volk
 pip3 install mako
 ```
-
-### Install volk
-
-You will need to install volk from source. Follow the instructions on their repository. On M1 there are a few more manipulations needed.
 
 ## Build
 
