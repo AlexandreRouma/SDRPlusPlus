@@ -11,4 +11,3 @@ file(GLOB_RECURSE ALL_SOURCE_FILES
 
 # add subdirs
 
-add_subdirectory(src)
