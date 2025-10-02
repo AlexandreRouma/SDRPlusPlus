@@ -101,7 +101,7 @@ jobs:
               path: ${{runner.workspace}}/sdrpp_windows_x64.zip
 
     build_macos_intel:
-        runs-on: macos-13
+        runs-on: macos-15-intel
 
         steps:
         - uses: actions/checkout@v4
@@ -161,7 +161,7 @@ jobs:
               path: ${{runner.workspace}}/sdrpp_macos_intel.zip
 
     build_macos_arm:
-        runs-on: macos-14
+        runs-on: macos-15
 
         steps:
         - uses: actions/checkout@v4
