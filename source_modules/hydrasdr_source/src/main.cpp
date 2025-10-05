@@ -95,7 +95,7 @@ public:
 #else
         // Check for device presence
         int vid, pid;
-        devFd = backend::getDeviceFD(vid, pid, backend::AIRSPY_VIDPIDS);
+        devFd = backend::getDeviceFD(vid, pid, backend::HYDRASDR_VIDPIDS);
         if (devFd < 0) { return; }
 
         // Get device info
