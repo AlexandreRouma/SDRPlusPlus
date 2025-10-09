@@ -44,7 +44,8 @@ class ATVDecoderModule : public ModuleManager::Instance {
 
         agc.init(vfo->output, 1.0f, 1e6, 0.001f, 1.0f);
         demod.init(&agc.out, SAMPLE_RATE, SAMPLE_RATE / 2.0f);
-        //demod.init(vfo->output, dsp::demod::AM<float>::CARRIER, 8000000.0f, 50.0 / SAMPLE_RATE, 50.0 / SAMPLE_RATE, 0.0f, SAMPLE_RATE);
+        // demod.init(vfo->output, dsp::demod::AM<float>::CARRIER, 8000000.0f, 50.0 / SAMPLE_RATE, 50.0 / SAMPLE_RATE, 0.0f, SAMPLE_RATE);
+        // demod.init(vfo->output, SAMPLE_RATE, SAMPLE_RATE / 2.0f);
         sync.init(&demod.out, 1.0f, 1e-6, 1.0, 0.05);
         sink.init(&sync.out, handler, this);
 
@@ -168,67 +169,67 @@ class ATVDecoderModule : public ModuleManager::Instance {
         // Save sync type to history
         _this->syncHistory = (_this->syncHistory << 2) | (longSync << 1) | shortSync;
 
-        // If the line has a colorburst, decode it
-        dsp::complex_t* buf1 = _this->r2c.out.readBuf;
-        dsp::complex_t* buf2 = _this->r2c.out.writeBuf;
-        if (true) {
-            // Convert the line into complex
-            _this->r2c.process(count, data, buf1);
+//         // If the line has a colorburst, decode it
+//         dsp::complex_t* buf1 = _this->r2c.out.readBuf;
+//         dsp::complex_t* buf2 = _this->r2c.out.writeBuf;
+//         if (true) {
+//             // Convert the line into complex
+//             _this->r2c.process(count, data, buf1);
 
-            // Extract the chroma subcarrier (TODO: Optimise by running only where needed)
-            for (int i = COLORBURST_START; i < count-(CHROMA_BANDPASS_DELAY+1); i++) {
-                volk_32fc_x2_dot_prod_32fc((lv_32fc_t*)&buf2[i], (lv_32fc_t*)&buf1[i - CHROMA_BANDPASS_DELAY], (lv_32fc_t*)CHROMA_BANDPASS, CHROMA_BANDPASS_SIZE);
-            }
+//             // Extract the chroma subcarrier (TODO: Optimise by running only where needed)
+//             for (int i = COLORBURST_START; i < count-(CHROMA_BANDPASS_DELAY+1); i++) {
+//                 volk_32fc_x2_dot_prod_32fc((lv_32fc_t*)&buf2[i], (lv_32fc_t*)&buf1[i - CHROMA_BANDPASS_DELAY], (lv_32fc_t*)CHROMA_BANDPASS, CHROMA_BANDPASS_SIZE);
+//             }
 
-            // Down convert the chroma subcarrier (TODO: Optimise by running only where needed)
-            lv_32fc_t startPhase = { 1.0f, 0.0f };
-            lv_32fc_t phaseDelta = { sinf(_this->subcarrierFreq), cosf(_this->subcarrierFreq) };
-#if VOLK_VERSION >= 030100
-            volk_32fc_s32fc_x2_rotator2_32fc((lv_32fc_t*)&buf2[COLORBURST_START], (lv_32fc_t*)&buf2[COLORBURST_START], &phaseDelta, &startPhase, count - COLORBURST_START);
-#else
-            volk_32fc_s32fc_x2_rotator_32fc((lv_32fc_t*)&buf2[COLORBURST_START], (lv_32fc_t*)&buf2[COLORBURST_START], phaseDelta, &startPhase, count - COLORBURST_START);
-#endif
+//             // Down convert the chroma subcarrier (TODO: Optimise by running only where needed)
+//             lv_32fc_t startPhase = { 1.0f, 0.0f };
+//             lv_32fc_t phaseDelta = { sinf(_this->subcarrierFreq), cosf(_this->subcarrierFreq) };
+// #if VOLK_VERSION >= 030100
+//             volk_32fc_s32fc_x2_rotator2_32fc((lv_32fc_t*)&buf2[COLORBURST_START], (lv_32fc_t*)&buf2[COLORBURST_START], &phaseDelta, &startPhase, count - COLORBURST_START);
+// #else
+//             volk_32fc_s32fc_x2_rotator_32fc((lv_32fc_t*)&buf2[COLORBURST_START], (lv_32fc_t*)&buf2[COLORBURST_START], phaseDelta, &startPhase, count - COLORBURST_START);
+// #endif
 
-            // Compute the phase of the burst
-            dsp::complex_t burstAvg = { 0.0f, 0.0f };
-            volk_32fc_accumulator_s32fc((lv_32fc_t*)&burstAvg, (lv_32fc_t*)&buf2[COLORBURST_START], COLORBURST_LEN);
-            float burstAmp = burstAvg.amplitude();
-            if (burstAmp*(1.0f/(float)COLORBURST_LEN) < 0.02f) {
-                printf("%d\n", _this->line);
-            }
-            burstAvg *= (1.0f / (burstAmp*burstAmp));
-            burstAvg = burstAvg.conj();
+//             // Compute the phase of the burst
+//             dsp::complex_t burstAvg = { 0.0f, 0.0f };
+//             volk_32fc_accumulator_s32fc((lv_32fc_t*)&burstAvg, (lv_32fc_t*)&buf2[COLORBURST_START], COLORBURST_LEN);
+//             float burstAmp = burstAvg.amplitude();
+//             if (burstAmp*(1.0f/(float)COLORBURST_LEN) < 0.02f) {
+//                 printf("%d\n", _this->line);
+//             }
+//             burstAvg *= (1.0f / (burstAmp*burstAmp));
+//             burstAvg = burstAvg.conj();
 
-            // Normalize the chroma data (TODO: Optimise by running only where needed)
-            volk_32fc_s32fc_multiply_32fc((lv_32fc_t*)&buf2[COLORBURST_START], (lv_32fc_t*)&buf2[COLORBURST_START], *((lv_32fc_t*)&burstAvg), count - COLORBURST_START);
+//             // Normalize the chroma data (TODO: Optimise by running only where needed)
+//             volk_32fc_s32fc_multiply_32fc((lv_32fc_t*)&buf2[COLORBURST_START], (lv_32fc_t*)&buf2[COLORBURST_START], *((lv_32fc_t*)&burstAvg), count - COLORBURST_START);
 
-            // Compute the frequency error of the burst
-            float phase = buf2[COLORBURST_START].phase();
-            float error = 0.0f;
-            for (int i = COLORBURST_START+1; i < COLORBURST_START+COLORBURST_LEN; i++) {
-                float cphase = buf2[i].phase();
-                error += dsp::math::normalizePhase(cphase - phase);
-                phase = cphase;
-            }
-            error *= (1.0f / (float)(COLORBURST_LEN-1));
+//             // Compute the frequency error of the burst
+//             float phase = buf2[COLORBURST_START].phase();
+//             float error = 0.0f;
+//             for (int i = COLORBURST_START+1; i < COLORBURST_START+COLORBURST_LEN; i++) {
+//                 float cphase = buf2[i].phase();
+//                 error += dsp::math::normalizePhase(cphase - phase);
+//                 phase = cphase;
+//             }
+//             error *= (1.0f / (float)(COLORBURST_LEN-1));
 
-            // Update the subcarrier freq
-            _this->subcarrierFreq += error*0.0001f;
-        }
+//             // Update the subcarrier freq
+//             _this->subcarrierFreq += error*0.0001f;
+//         }
 
         // Render the line if it's visible
         if (_this->ypos >= 34 && _this->ypos <= 34+576-1) {
             uint32_t* currentLine = &((uint32_t *)_this->img.buffer)[(_this->ypos - 34)*768];
             if (_this->colorMode) {
-                for (int i = 155; i < (155+768); i++) {
-                    int imval1 = std::clamp<float>(fabsf(buf2[i-155+COLORBURST_START].re*5.0f) * 255.0f, 0, 255);
-                    int imval2 = std::clamp<float>(fabsf(buf2[i-155+COLORBURST_START].im*5.0f) * 255.0f, 0, 255);
-                    currentLine[i-155] = 0xFF000000 | (imval2 << 8) | imval1;
-                }
+                // for (int i = 155; i < (155+768); i++) {
+                //     int imval1 = std::clamp<float>(fabsf(buf2[i-155+COLORBURST_START].re*5.0f) * 255.0f, 0, 255);
+                //     int imval2 = std::clamp<float>(fabsf(buf2[i-155+COLORBURST_START].im*5.0f) * 255.0f, 0, 255);
+                //     currentLine[i-155] = 0xFF000000 | (imval2 << 8) | imval1;
+                // }
             }
             else {
                 for (int i = 155; i < (155+768); i++) {
-                    int imval = std::clamp<float>(data[i-155+COLORBURST_START] * 255.0f, 0, 255);
+                    int imval = std::clamp<float>(data[i] * 255.0f, 0, 255);
                     currentLine[i-155] = 0xFF000000 | (imval << 16) | (imval << 8) | imval;
                 }
             }
@@ -293,7 +294,7 @@ class ATVDecoderModule : public ModuleManager::Instance {
     bool enabled = true;
 
     VFOManager::VFO *vfo = NULL;
-    //dsp::demod::Quadrature demod;
+    // dsp::demod::Quadrature demod;
     dsp::loop::FastAGC<dsp::complex_t> agc;
     dsp::demod::Amplitude demod;
     //dsp::demod::AM<float> demod;

@@ -38,6 +38,7 @@ namespace dsp::demod {
 
         inline int process(int count, complex_t* in, float* out) {
             volk_32fc_magnitude_32f(out, (lv_32fc_t*)in, count);
+            volk_32f_s32f_multiply_32f(out, out, -1.0f, count);
             return count;
         }
 
