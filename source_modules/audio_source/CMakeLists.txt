@@ -6,13 +6,8 @@ file(GLOB SRC "src/*.cpp")
 include(${SDRPP_MODULE_CMAKE})
 
 if (MSVC)
-    # Lib path
-    target_link_directories(audio_source PRIVATE "C:/Program Files (x86)/RtAudio/lib")
-
-    # Misc headers
-    target_include_directories(audio_source PRIVATE "C:/Program Files (x86)/RtAudio/include/rtaudio")
-
-    target_link_libraries(audio_source PRIVATE rtaudio)
+    find_package(RtAudio CONFIG REQUIRED)
+    target_link_libraries(audio_source PRIVATE RtAudio::rtaudio)
 else (MSVC)
     find_package(PkgConfig)
 

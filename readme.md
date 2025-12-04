@@ -76,12 +76,12 @@ The preferred IDE is [VS Code](https://code.visualstudio.com/) in order to have 
 * [cmake](https://cmake.org)
 * [vcpkg](https://vcpkg.io)
 * [PothosSDR](https://github.com/pothosware/PothosSDR) (This will install libraries for most SDRs. You have to install it in `C:/Program Files/PothosSDR`)
-* [RtAudio](https://www.music.mcgill.ca/~gary/rtaudio/) (You have to build and install it in `C:/Program Files (x86)/RtAudio/`)
 
 After this, install the following dependencies using vcpkg:
 
 * fftw3
 * glfw3
+* rtaudio
 * zstd
 
 You are probably going to build in 64 bit so make sure vcpkg installs the correct versions using `.\vcpkg.exe install <package>:x64-windows`
