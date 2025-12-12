@@ -129,7 +129,14 @@ class ATVDecoderModule : public ModuleManager::Instance {
         ATVDecoderModule *_this = (ATVDecoderModule *)ctx;
 
         // Correct the offset
+#if VOLK_VERSION_MAJOR > 2 || (VOLK_VERSION_MAJOR == 2 && VOLK_VERSION_MINOR >= 3)
         volk_32f_s32f_add_32f(data, data, _this->offset, count);
+#else
+        const float ofs = _this->offset;
+        for (int i = 0; i < count; i++) {
+            data[i] += ofs;
+        }
+#endif
 
         // Correct the gain
         volk_32f_s32f_multiply_32f(data, data, _this->gain, count);
