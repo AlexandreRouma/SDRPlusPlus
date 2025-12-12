@@ -51,8 +51,6 @@ class ATVDecoderModule : public ModuleManager::Instance {
 
         r2c.init(NULL);
 
-        file = std::ofstream("chromasub_diff.bin", std::ios::binary | std::ios::out);
-
         agc.start();
         demod.start();
         sync.start();
@@ -83,8 +81,6 @@ class ATVDecoderModule : public ModuleManager::Instance {
     }
 
     bool isEnabled() { return enabled; }
-
-    std::ofstream file;
 
   private:
     static void menuHandler(void *ctx) {
@@ -120,10 +116,6 @@ class ATVDecoderModule : public ModuleManager::Instance {
 
         if (!_this->enabled) {
             style::endDisabled();
-        }
-
-        if (ImGui::Button("Close Debug")) {
-            _this->file.close();
         }
 
         ImGui::Text("Gain: %f", _this->gain);
