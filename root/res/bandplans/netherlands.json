@@ -140,7 +140,7 @@
         {
             "start": 1625000,
             "end": 1635000,
-            "type": "aviation",
+            "type": "military",
             "name": "Radiolocation Beacons"
         },
         {
@@ -152,7 +152,7 @@
         {
             "start": 1800000,
             "end": 1810000,
-            "type": "aviation",
+            "type": "military",
             "name": "Radiolocation Beacons"
         },
         {
@@ -1074,10 +1074,10 @@
             "name": "Shortwave (22m) Broadcast"
         },
         {
-            "start": 13927000,
-            "end": 13930000,
-            "type": "marine",
-            "name": "MARS"
+            "start": 13870000,
+            "end": 14000000,
+            "type": "utility",
+            "name": "Fixed and Aero mobile"
         },
         {
             "start": 14000000,
@@ -1399,9 +1399,9 @@
         },
         {
             "start": 29520000,
-            "end": 29590000,
+            "end": 29600000,
             "type": "amateur",
-            "name": "All modes - FM repeater input (RH1 – RH8)"
+            "name": "All modes - FM repeater input (RH1 - RH8)"
         },
         {
             "start": 29600000,
@@ -1424,8 +1424,8 @@
         {
             "start": 29700000,
             "end": 40660000,
-            "type": "marine",
-            "name": "Fixed Mobile/ Maritime"
+            "type": "utility",
+            "name": "Military, microphones, radiocommands, PMR, medical implants"
         },
         {
             "start": 40660000,
@@ -1446,16 +1446,22 @@
             "name": "6m Ham Band"
         },
         {
-            "start": 54000000,
+            "start": 52000000,
             "end": 70000000,
-            "type": "broadcast",
-            "name": "Radiolocation/ Television VHF"
+            "type": "utility",
+            "name": "Land Military / PMR"
         },
         {
             "start": 70000000,
             "end": 70500000,
             "type": "amateur",
-            "name": "4m Ham Band (sec use)"
+            "name": "4m Ham Band (not NL)"
+        },
+        {
+            "start": 70500000,
+            "end": 73000000,
+            "type": "utility",
+            "name": "Miltary, PMR/PAMR"
         },
         {
             "start": 73000000,
@@ -1464,13 +1470,19 @@
             "name": "Radio Astronomy"
         },
         {
-            "start": 76000000,
-            "end": 88000000,
-            "type": "utility",
-            "name": "Radiolocation/ FM Broadcast"
+            "start": 74600000,
+            "end": 75200000,
+            "type": "aviation",
+            "name": "Radionavigation"
         },
         {
-            "start": 88000000,
+            "start": 75200000,
+            "end": 87500000,
+            "type": "utility",
+            "name": "Miltary, PMR/PAMR"
+        },
+        {
+            "start": 87500000,
             "end": 108000000,
             "type": "broadcast",
             "name": "FM Broadcast"
@@ -1521,7 +1533,7 @@
             "start": 136662500,
             "end": 136687500,
             "type": "aviation",
-            "name": "aviation"
+            "name": "Aviation"
         },
         {
             "start": 136687500,
@@ -1539,7 +1551,7 @@
             "start": 136737500,
             "end": 136762500,
             "type": "aviation",
-            "name": "aviation"
+            "name": "Aviation"
         },
         {
             "start": 136762500,
@@ -1563,7 +1575,7 @@
             "start": 136837500,
             "end": 136862500,
             "type": "aviation",
-            "name": "aviation"
+            "name": "Aviation"
         },
         {
             "start": 136862500,
@@ -1575,7 +1587,7 @@
             "start": 136887500,
             "end": 136962500,
             "type": "aviation",
-            "name": "aviation"
+            "name": "Aviation"
         },
         {
             "start": 136962500,
@@ -1587,7 +1599,13 @@
             "start": 136987500,
             "end": 137000000,
             "type": "aviation",
-            "name": "aviation"
+            "name": "Aviation"
+        },
+        {
+            "start": 137000000,
+            "end": 137040000,
+            "type": "satellite1",
+            "name": "Satellite"
         },
         {
             "start": 137040000,
@@ -1598,7 +1616,7 @@
         {
             "start": 137080000,
             "end": 137120000,
-            "type": "satellite1",
+            "type": "satellite",
             "name": "NOAA-19"
         },
         {
@@ -1608,34 +1626,28 @@
             "name": "METEOR |"
         },
         {
-            "start": 137333000,
+            "start": 137160000,
+            "end": 137175000,
+            "type": "satellite1",
+            "name": "Satellite"
+        },
+        {
+            "start": 137175000,
+            "end": 137327500,
+            "type": "satellite",
+            "name": "ORB. Seg. 1"
+        },
+        {
+            "start": 137327500,
             "end": 137367000,
             "type": "satellite1",
             "name": "DSB NOAA-15 and NOAA-18"
         },
         {
-            "start": 137600000,
-            "end": 137640000,
-            "type": "satellite",
-            "name": "NOAA-15"
-        },
-        {
-            "start": 137753000,
-            "end": 137787000,
+            "start": 137367000,
+            "end": 137422500,
             "type": "satellite1",
-            "name": "DSB NOAA-19"
-        },
-        {
-            "start": 137892500,
-            "end": 137932500,
-            "type": "satellite",
-            "name": "NOAA-18"
-        },
-        {
-            "start": 137175000,
-            "end": 137327500,
-            "type": "satellite1",
-            "name": "ORB. Seg. 1"
+            "name": "Satellite"
         },
         {
             "start": 137422500,
@@ -1644,10 +1656,34 @@
             "name": "ORB. Seg. 2"
         },
         {
+            "start": 137472500,
+            "end": 137535000,
+            "type": "satellite1",
+            "name": "Satellite"
+        },
+        {
             "start": 137535000,
             "end": 137585000,
-            "type": "satellite1",
+            "type": "satellite",
             "name": "Orbcomm Gateway"
+        },
+        {
+            "start": 137585000,
+            "end": 137600000,
+            "type": "satellite1",
+            "name": "Satellite"
+        },
+        {
+            "start": 137600000,
+            "end": 137640000,
+            "type": "satellite",
+            "name": "NOAA-15"
+        },
+        {
+            "start": 137640000,
+            "end": 137650000,
+            "type": "satellite1",
+            "name": "Satellite"
         },
         {
             "start": 137650000,
@@ -1656,10 +1692,52 @@
             "name": "ORB. Seg. 3"
         },
         {
+            "start": 137750000,
+            "end": 137753000,
+            "type": "satellite1",
+            "name": "Satellite"
+        },
+        {
+            "start": 137753000,
+            "end": 137787000,
+            "type": "satellite",
+            "name": "DSB NOAA-19"
+        },
+        {
+            "start": 137787000,
+            "end": 137787500,
+            "type": "satellite1",
+            "name": "Satellite"
+        },
+        {
             "start": 137787500,
             "end": 137812500,
-            "type": "satellite1",
+            "type": "satellite",
             "name": "ORB. Seg. 4"
+        },
+        {
+            "start": 137812500,
+            "end": 137892500,
+            "type": "satellite1",
+            "name": "Satellite"
+        },
+        {
+            "start": 137892500,
+            "end": 137932500,
+            "type": "satellite",
+            "name": "NOAA-18"
+        },
+        {
+            "start": 137932500,
+            "end": 138000000,
+            "type": "satellite1",
+            "name": "Satellite"
+        },
+        {
+            "start": 138000000,
+            "end": 144000000,
+            "type": "military",
+            "name": "Aeronautical Military Systems"
         },
         {
             "start": 144000000,
@@ -1695,13 +1773,13 @@
             "start": 144500000,
             "end": 144800000,
             "type": "amateur1",
-            "name": "Alle modes"
+            "name": "All modes"
         },
         {
             "start": 144800000,
             "end": 144990000,
             "type": "amateur",
-            "name": "Digitale comm"
+            "name": "Digital comm"
         },
         {
             "start": 144990000,
@@ -2262,6 +2340,12 @@
             "name": "7"
         },
         {
+            "start": 160962500,
+            "end": 161487500,
+            "type": "marine1",
+            "name": "Marine"
+        },
+        {
             "start": 161487500,
             "end": 161512500,
             "type": "marine1",
@@ -2413,20 +2497,56 @@
         },
         {
             "start": 174000000,
-            "end": 216000000,
+            "end": 230000000,
             "type": "broadcast",
-            "name": "Television VHF"
+            "name": "DAB+ radio"
         },
         {
-            "start": 216000000,
-            "end": 223000000,
+            "start": 230000000,
+            "end": 242950000,
+            "type": "military",
+            "name": "Defence Systems"
+        },
+        {
+            "start": 242950000,
+            "end": 243050000,
+            "type": "utility",
+            "name": "EPIRBs"
+        },
+        {
+            "start": 243050000,
+            "end": 322000000,
+            "type": "military",
+            "name": "Defence Systems"
+        },
+        {
+            "start": 322000000,
+            "end": 328600000,
+            "type": "utility",
+            "name": "Radio Astronomy / Defence"
+        },
+        {
+            "start": 328600000,
+            "end": 335400000,
             "type": "aviation",
-            "name": "Radiolocation/ Television VHF"
+            "name": "ILS Glide path"
+        },
+        {
+            "start": 335400000,
+            "end": 399900000,
+            "type": "military",
+            "name": "Defence Systems, PMR/PMAR/PPDR"
+        },
+        {
+            "start": 399900000,
+            "end": 400050000,
+            "type": "satellite",
+            "name": "MSS Earth stations"
         },
         {
             "start": 400050000,
             "end": 400150000,
-            "type": "utility",
+            "type": "satellite",
             "name": "Standard Frequency and Time Signal-Satellite Service"
         },
         {
@@ -2442,6 +2562,12 @@
             "name": "Earth Exploration Satellite"
         },
         {
+            "start": 403000000,
+            "end": 406000000,
+            "type": "utility",
+            "name": "Meteorological and Medical Aids"
+        },
+        {
             "start": 406000000,
             "end": 406100000,
             "type": "aviation",
@@ -2452,6 +2578,12 @@
             "end": 410000000,
             "type": "utility",
             "name": "Radio Astronomy"
+        },
+        {
+            "start": 410000000,
+            "end": 430000000,
+            "type": "military",
+            "name": "Land Maritime Military"
         },
         {
             "start": 430000000,
@@ -2562,6 +2694,12 @@
             "name": "70cm Ham Band|"
         },
         {
+            "start": 440000000,
+            "end": 446012500,
+            "type": "military",
+            "name": "Land Maritime Military"
+        },
+        {
             "start": 446000000,
             "end": 446012500,
             "type": "utility",
@@ -2658,16 +2796,34 @@
             "name": "PMR446 Ch. 16"
         },
         {
+            "start": 446187500,
+            "end": 450000000,
+            "type": "military",
+            "name": "Land Maritime Military"
+        },
+        {
+            "start": 450000000,
+            "end": 465986500,
+            "type": "utility",
+            "name": "Land Mobile, Paging, PMR/PAMR"
+        },
+        {
             "start": 465986500,
             "end": 465988500,
             "type": "satellite",
             "name": "Metops' DCP configuration control"
         },
         {
+            "start": 465988500,
+            "end": 470000000,
+            "type": "utility",
+            "name": "Land Mobile, Paging, PMR/PAMR"
+        },
+        {
             "start": 470000000,
             "end": 608000000,
             "type": "broadcast",
-            "name": "Television UHF"
+            "name": "DVB-T Television UHF"
         },
         {
             "start": 608000000,
@@ -2677,15 +2833,57 @@
         },
         {
             "start": 614000000,
-            "end": 806000000,
+            "end": 790000000,
             "type": "broadcast",
-            "name": "Television UHF"
+            "name": "DVB-T Television UHF"
         },
         {
-            "start": 902000000,
-            "end": 928000000,
+            "start": 790000000,
+            "end": 862000000,
             "type": "utility",
-            "name": "33cm ISM"
+            "name": "Mobile Communications"
+        },
+        {
+            "start": 862000000,
+            "end": 870000000,
+            "type": "utility1",
+            "name": "ISM Europe"
+        },
+        {
+            "start": 870000000,
+            "end": 876000000,
+            "type": "utility",
+            "name": "Mobile Communications"
+        },
+        {
+            "start": 876000000,
+            "end": 880000000,
+            "type": "utility1",
+            "name": "GSM-R (Train)"
+        },
+        {
+            "start": 880000000,
+            "end": 915000000,
+            "type": "utility",
+            "name": "GSM"
+        },
+        {
+            "start": 915000000,
+            "end": 921000000,
+            "type": "utility1",
+            "name": "Mobile radiolocation"
+        },
+        {
+            "start": 921000000,
+            "end": 925000000,
+            "type": "utility1",
+            "name": "GSM-R (Train)"
+        },
+        {
+            "start": 925000000,
+            "end": 960000000,
+            "type": "utility",
+            "name": "GSM"
         },
         {
             "start": 960000000,
@@ -2719,21 +2917,15 @@
         },
         {
             "start": 1164000000,
-            "end": 1189000000,
+            "end": 1191750000,
             "type": "satellite",
             "name": "GPS L5 and GALILEO E5a"
         },
         {
-            "start": 1189000000,
-            "end": 1214000000,
-            "type": "satellite1",
-            "name": "GALILEO E5a and GLONASS G3"
-        },
-        {
-            "start": 1214000000,
+            "start": 1191750000,
             "end": 1215000000,
-            "type": "satellite",
-            "name": "Radionavigation Satellite Service"
+            "type": "satellite1",
+            "name": "GALILEO E5b and GLONASS G3"
         },
         {
             "start": 1215000000,
@@ -2751,13 +2943,13 @@
             "start": 1239600000,
             "end": 1240000000,
             "type": "satellite1",
-            "name": "GLONASS G2"
+            "name": "GLONASS G2 (up to 1258 MHz)"
         },
         {
             "start": 1240000000,
             "end": 1267346500,
             "type": "amateur",
-            "name": "|23cm Ham Band"
+            "name": "|23cm Ham Band (+ GLONASS G2)"
         },
         {
             "start": 1267346500,
@@ -2769,7 +2961,7 @@
             "start": 1267371500,
             "end": 1295800000,
             "type": "amateur",
-            "name": "23cm Ham Band"
+            "name": "23cm Ham Band (+ GLONASS G2 and Galileo E6)"
         },
         {
             "start": 1295800000,
@@ -2781,13 +2973,13 @@
             "start": 1296080000,
             "end": 1300000000,
             "type": "amateur",
-            "name": "23cm Ham Band|"
+            "name": "23cm Ham Band (+ Galileo E6)|"
         },
         {
-            "start": 1390000000,
-            "end": 1395000000,
+            "start": 1300000000,
+            "end": 1400000000,
             "type": "utility",
-            "name": "Radio Astronomy (1390 - 1395 MHz Band)"
+            "name": "Radio Astronomy"
         },
         {
             "start": 1400000000,
@@ -2806,6 +2998,24 @@
             "end": 1427000000,
             "type": "satellite",
             "name": "Earth Exploration-Satellite/ Radio Astronomy"
+        },
+        {
+            "start": 1427000000,
+            "end": 1452000000,
+            "type": "utility",
+            "name": "Fixed Mobile"
+        },
+        {
+            "start": 1452000000,
+            "end": 1492000000,
+            "type": "broadcast",
+            "name": "T-DAB"
+        },
+        {
+            "start": 1492000000,
+            "end": 1525000000,
+            "type": "utility",
+            "name": "Fixed and Military"
         },
         {
             "start": 1525000000,
@@ -3066,10 +3276,58 @@
             "name": "Meteorological Satellite"
         },
         {
+            "start": 1710000000,
+            "end": 1785000000,
+            "type": "utility",
+            "name": "GSM"
+        },
+        {
+            "start": 1785000000,
+            "end": 1805000000,
+            "type": "utility1",
+            "name": "Fixed Mobile"
+        },
+        {
+            "start": 1805000000,
+            "end": 1880000000,
+            "type": "utility",
+            "name": "GSM"
+        },
+        {
+            "start": 1880000000,
+            "end": 1900000000,
+            "type": "utility",
+            "name": "DECT"
+        },
+        {
+            "start": 1900000000,
+            "end": 1980000000,
+            "type": "utility1",
+            "name": "Mobile"
+        },
+        {
+            "start": 1980000000,
+            "end": 2010000000,
+            "type": "satellite1",
+            "name": "Earth-to-Space and Space-to-Space Communications"
+        },
+        {
+            "start": 2010000000,
+            "end": 2025000000,
+            "type": "utility",
+            "name": "Mobile"
+        },
+        {
             "start": 2025000000,
             "end": 2110000000,
             "type": "satellite1",
             "name": "Earth-to-Space and Space-to-Space Communications"
+        },
+        {
+            "start": 2110000000,
+            "end": 2120000000,
+            "type": "satellite1",
+            "name": "Earth-to-Space (Deep space)"
         },
         {
             "start": 2290000000,
