@@ -251,7 +251,11 @@ private:
     std::string sampleRatesTxt;
     unsigned int sampleRate = 48000;
 
+#ifdef __linux__
+    RtAudio audio{RtAudio::Api::LINUX_PULSE};  // PipeWire's default ALSA emulation causes underruns, so use PulseAudio emulation
+#else
     RtAudio audio;
+#endif
 };
 
 class AudioSinkModule : public ModuleManager::Instance {
