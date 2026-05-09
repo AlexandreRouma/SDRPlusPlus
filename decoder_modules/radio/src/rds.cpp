@@ -154,7 +154,7 @@ namespace rds {
             }
             else {
                 // Assume the type is the one following the previous block
-                type = nextType[lastType + 1];
+                type = nextType[lastType];
             }
 
             // Save block while correcting errors (NOT YET) <- idk why the "not yet is here", TODO: find why
