@@ -297,6 +297,11 @@ namespace rds {
         if (blockAvail[BLOCK_TYPE_D]) {
             programServiceName[psOffset] = (blocks[BLOCK_TYPE_D] >> 18) & 0xFF;
             programServiceName[psOffset + 1] = (blocks[BLOCK_TYPE_D] >> 10) & 0xFF;
+
+            // Update the full version only when reaching the end
+            if (offset == 3) {
+                programServiceNameFullUpdate = programServiceName;
+            }
         }
 
         // Update timeout
@@ -313,9 +318,12 @@ namespace rds {
 
         // Clear text field if the A/B flag changed
         if (nAB != rtAB) {
+            radioTextFullUpdate = radioText;
             radioText = "                                                                ";
         }
         rtAB = nAB;
+
+        flog::debug("Group 2: {}, {}, {}", (int)groupVer, (int)nAB, offset);
 
         // Write char at offset in Radiotext
         if (groupVer == GROUP_VER_A) {
@@ -328,12 +336,22 @@ namespace rds {
                 radioText[rtOffset + 2] = (blocks[BLOCK_TYPE_D] >> 18) & 0xFF;
                 radioText[rtOffset + 3] = (blocks[BLOCK_TYPE_D] >> 10) & 0xFF;
             }
+
+            // If a carriage return was sent, update the full text
+            if (offset == 0xF || radioText[rtOffset] == 0x0D || radioText[rtOffset + 1] == 0x0D || radioText[rtOffset + 2] == 0x0D || radioText[rtOffset + 3] == 0x0D) {
+                radioTextFullUpdate = radioText;
+            }
         }
         else {
             uint8_t rtOffset = offset * 2;
             if (blockAvail[BLOCK_TYPE_D]) {
                 radioText[rtOffset] = (blocks[BLOCK_TYPE_D] >> 18) & 0xFF;
                 radioText[rtOffset + 1] = (blocks[BLOCK_TYPE_D] >> 10) & 0xFF;
+            }
+
+            // If a carriage return was sent, update the full text
+            if (offset == 0xF || radioText[rtOffset] == 0x0D || radioText[rtOffset + 1] == 0x0D) {
+                radioTextFullUpdate = radioText;
             }
         }
 

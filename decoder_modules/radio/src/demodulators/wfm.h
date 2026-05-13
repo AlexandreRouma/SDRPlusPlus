@@ -53,6 +53,9 @@ namespace demod {
             if (config->conf[name][getName()].contains("rds")) {
                 _rds = config->conf[name][getName()]["rds"];
             }
+            if (config->conf[name][getName()].contains("rdsIncremental")) {
+                _rdsIncremental = config->conf[name][getName()]["rdsIncremental"];
+            }
             if (config->conf[name][getName()].contains("rdsInfo")) {
                 _rdsInfo = config->conf[name][getName()]["rdsInfo"];
             }
@@ -120,22 +123,27 @@ namespace demod {
             }
 
             // TODO: This might break when the entire radio module is disabled
-            if (!_rds) { ImGui::BeginDisabled(); }
-            if (ImGui::Checkbox(("Advanced RDS Info##_radio_wfm_rds_info_" + name).c_str(), &_rdsInfo)) {
-                setAdvancedRds(_rdsInfo);
-                _config->acquire();
-                _config->conf[name][getName()]["rdsInfo"] = _rdsInfo;
-                _config->release(true);
+            if (_rds) {
+                if (ImGui::Checkbox(("RDS Incremental Update##_radio_wfm_rds_inc_" + name).c_str(), &_rdsIncremental)) {
+                    _config->acquire();
+                    _config->conf[name][getName()]["rdsIncremental"] = _rdsIncremental;
+                    _config->release(true);
+                }
+                if (ImGui::Checkbox(("Advanced RDS Info##_radio_wfm_rds_info_" + name).c_str(), &_rdsInfo)) {
+                    setAdvancedRds(_rdsInfo);
+                    _config->acquire();
+                    _config->conf[name][getName()]["rdsInfo"] = _rdsInfo;
+                    _config->release(true);
+                }
+                ImGui::SameLine();
+                ImGui::FillWidth();
+                if (ImGui::Combo(("##_radio_wfm_rds_region_" + name).c_str(), &rdsRegionId, rdsRegions.txt)) {
+                    rdsRegion = rdsRegions.value(rdsRegionId);
+                    _config->acquire();
+                    _config->conf[name][getName()]["rdsRegion"] = rdsRegions.key(rdsRegionId);
+                    _config->release(true);
+                }
             }
-            ImGui::SameLine();
-            ImGui::FillWidth();
-            if (ImGui::Combo(("##_radio_wfm_rds_region_" + name).c_str(), &rdsRegionId, rdsRegions.txt)) {
-                rdsRegion = rdsRegions.value(rdsRegionId);
-                _config->acquire();
-                _config->conf[name][getName()]["rdsRegion"] = rdsRegions.key(rdsRegionId);
-                _config->release(true);
-            }
-            if (!_rds) { ImGui::EndDisabled(); }
 
             float menuWidth = ImGui::GetContentRegionAvail().x;
 
@@ -306,13 +314,13 @@ namespace demod {
             // Generate string depending on RDS mode
             char buf[256];
             if (_this->rdsDecode.PSNameValid() && _this->rdsDecode.radioTextValid()) {
-                sprintf(buf, "RDS: %s - %s", _this->rdsDecode.getPSName().c_str(), _this->rdsDecode.getRadioText().c_str());
+                sprintf(buf, "RDS: %s - %s", _this->rdsDecode.getPSName(_this->_rdsIncremental).c_str(), _this->rdsDecode.getRadioText(_this->_rdsIncremental).c_str());
             }
             else if (_this->rdsDecode.PSNameValid()) {
-                sprintf(buf, "RDS: %s", _this->rdsDecode.getPSName().c_str());
+                sprintf(buf, "RDS: %s", _this->rdsDecode.getPSName(_this->_rdsIncremental).c_str());
             }
             else if (_this->rdsDecode.radioTextValid()) {
-                sprintf(buf, "RDS: %s", _this->rdsDecode.getRadioText().c_str());
+                sprintf(buf, "RDS: %s", _this->rdsDecode.getRadioText(_this->_rdsIncremental).c_str());
             }
             else {
                 return;
@@ -356,6 +364,7 @@ namespace demod {
         bool _lowPass = true;
         bool _rds = false;
         bool _rdsInfo = false;
+        bool _rdsIncremental = true;
         float muGain = 0.01;
         float omegaGain = (0.01*0.01)/4.0;
 

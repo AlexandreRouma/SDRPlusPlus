@@ -228,10 +228,10 @@ namespace rds {
         bool musicValid() { std::lock_guard<std::mutex> lck(group0Mtx); return group0Valid(); }
         bool getMusic() { std::lock_guard<std::mutex> lck(group0Mtx); return music; }
         bool PSNameValid() { std::lock_guard<std::mutex> lck(group0Mtx); return group0Valid(); }
-        std::string getPSName() { std::lock_guard<std::mutex> lck(group0Mtx); return programServiceName; }
+        std::string getPSName(bool incremental) { std::lock_guard<std::mutex> lck(group0Mtx); return (incremental ? programServiceName : programServiceNameFullUpdate); }
 
         bool radioTextValid() { std::lock_guard<std::mutex> lck(group2Mtx); return group2Valid(); }
-        std::string getRadioText() { std::lock_guard<std::mutex> lck(group2Mtx); return radioText; }
+        std::string getRadioText(bool incremental) { std::lock_guard<std::mutex> lck(group2Mtx); return (incremental ? radioText : radioTextFullUpdate); }
 
         bool programTypeNameValid() { std::lock_guard<std::mutex> lck(group10Mtx); return group10Valid(); }
         std::string getProgramTypeName() { std::lock_guard<std::mutex> lck(group10Mtx); return programTypeName; }
@@ -289,12 +289,14 @@ namespace rds {
         uint8_t decoderIdent;
         uint16_t alternateFrequency;
         std::string programServiceName = "        ";
+        std::string programServiceNameFullUpdate = "        ";
 
         // Group type 2
         std::mutex group2Mtx;
         std::chrono::time_point<std::chrono::high_resolution_clock> group2LastUpdate{};  // 1970-01-01
         bool rtAB = false;
         std::string radioText = "                                                                ";
+        std::string radioTextFullUpdate = "                                                                ";
 
         // Group type 10
         std::mutex group10Mtx;

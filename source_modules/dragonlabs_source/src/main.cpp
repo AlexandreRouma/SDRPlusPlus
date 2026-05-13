@@ -163,7 +163,8 @@ private:
         flog::debug("Device open");
 
         // Configure the device
-        dlcr_set_freq(_this->openDev, DLCR_CHAN_ALL, _this->freq, true);
+        dlcr_enable_channel(_this->openDev, DLCR_CHAN_ALL);
+        dlcr_set_freq(_this->openDev, DLCR_CHAN_ALL, _this->freq, _this->docal);
         dlcr_set_lna_gain(_this->openDev, DLCR_CHAN_ALL, _this->lnaGain);
         dlcr_set_mixer_gain(_this->openDev, DLCR_CHAN_ALL, _this->mixerGain);
         dlcr_set_vga_gain(_this->openDev, DLCR_CHAN_ALL, _this->vgaGain);
