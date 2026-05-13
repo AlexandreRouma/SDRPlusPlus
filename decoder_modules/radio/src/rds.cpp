@@ -323,8 +323,6 @@ namespace rds {
         }
         rtAB = nAB;
 
-        flog::debug("Group 2: {}, {}, {}", (int)groupVer, (int)nAB, offset);
-
         // Write char at offset in Radiotext
         if (groupVer == GROUP_VER_A) {
             uint8_t rtOffset = offset * 4;
