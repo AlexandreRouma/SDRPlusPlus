@@ -55,9 +55,15 @@
         },
         {
             "start": 78150,
-            "end": 135700,
+            "end": 123600,
             "type": "marine",
             "name": "Maritime Mobile Service"
+        },
+        {
+            "name": "RFID (LF)",
+            "type": "utility",
+            "start": 123600,
+            "end": 135700
         },
         {
             "start": 135700,
@@ -140,7 +146,7 @@
         {
             "start": 1625000,
             "end": 1635000,
-            "type": "aviation",
+            "type": "military",
             "name": "Radiolocation Beacons"
         },
         {
@@ -152,7 +158,7 @@
         {
             "start": 1800000,
             "end": 1810000,
-            "type": "aviation",
+            "type": "military",
             "name": "Radiolocation Beacons"
         },
         {
@@ -259,18 +265,6 @@
         },
         {
             "start": 3200000,
-            "end": 3329000,
-            "type": "broadcast",
-            "name": "Shortwave (Tropical Band 90m) Broadcast"
-        },
-        {
-            "start": 3329000,
-            "end": 3331000,
-            "type": "utility",
-            "name": "CHU Canada"
-        },
-        {
-            "start": 3331000,
             "end": 3400000,
             "type": "broadcast",
             "name": "Shortwave (Tropical Band 90m) Broadcast"
@@ -295,18 +289,6 @@
         },
         {
             "start": 3600000,
-            "end": 3754500,
-            "type": "amateur",
-            "name": "80m Ham Band"
-        },
-        {
-            "start": 3754500,
-            "end": 3757500,
-            "type": "utility",
-            "name": "The Pip (Night)"
-        },
-        {
-            "start": 3757500,
             "end": 3790000,
             "type": "amateur",
             "name": "80m Ham Band"
@@ -331,390 +313,12 @@
         },
         {
             "start": 4000000,
-            "end": 4063500,
-            "type": "marine",
-            "name": "(Ship TX) Maritime"
-        },
-        {
-            "start": 4063500,
-            "end": 4066500,
-            "type": "marine1",
-            "name": "ITU Ch. 401 (Ship TX)"
-        },
-        {
-            "start": 4066500,
-            "end": 4069500,
-            "type": "marine",
-            "name": "402"
-        },
-        {
-            "start": 4069500,
-            "end": 4072500,
-            "type": "marine1",
-            "name": "403"
-        },
-        {
-            "start": 4072500,
-            "end": 4075500,
-            "type": "marine",
-            "name": "404"
-        },
-        {
-            "start": 4075500,
-            "end": 4078500,
-            "type": "marine1",
-            "name": "405"
-        },
-        {
-            "start": 4078500,
-            "end": 4081500,
-            "type": "marine",
-            "name": "406"
-        },
-        {
-            "start": 4081500,
-            "end": 4084500,
-            "type": "marine1",
-            "name": "407"
-        },
-        {
-            "start": 4084500,
-            "end": 4087500,
-            "type": "marine",
-            "name": "408"
-        },
-        {
-            "start": 4087500,
-            "end": 4090500,
-            "type": "marine1",
-            "name": "409"
-        },
-        {
-            "start": 4090500,
-            "end": 4093500,
-            "type": "marine",
-            "name": "410"
-        },
-        {
-            "start": 4093500,
-            "end": 4096500,
-            "type": "marine1",
-            "name": "411"
-        },
-        {
-            "start": 4096500,
-            "end": 4099500,
-            "type": "marine",
-            "name": "412"
-        },
-        {
-            "start": 4099500,
-            "end": 4102500,
-            "type": "marine1",
-            "name": "413"
-        },
-        {
-            "start": 4102500,
-            "end": 4105500,
-            "type": "marine",
-            "name": "414"
-        },
-        {
-            "start": 4105500,
-            "end": 4108500,
-            "type": "marine1",
-            "name": "415"
-        },
-        {
-            "start": 4108500,
-            "end": 4111500,
-            "type": "marine",
-            "name": "416"
-        },
-        {
-            "start": 4111500,
-            "end": 4114500,
-            "type": "marine1",
-            "name": "417"
-        },
-        {
-            "start": 4114500,
-            "end": 4117500,
-            "type": "marine",
-            "name": "418"
-        },
-        {
-            "start": 4117500,
-            "end": 4120500,
-            "type": "marine1",
-            "name": "419"
-        },
-        {
-            "start": 4120500,
-            "end": 4123500,
-            "type": "marine",
-            "name": "420"
-        },
-        {
-            "start": 4123500,
-            "end": 4126500,
-            "type": "marine1",
-            "name": "421 (Distress/ Safety)"
-        },
-        {
-            "start": 4126500,
-            "end": 4129500,
-            "type": "marine",
-            "name": "422"
-        },
-        {
-            "start": 4129500,
-            "end": 4132500,
-            "type": "marine",
-            "name": "423"
-        },
-        {
-            "start": 4132500,
-            "end": 4135500,
-            "type": "marine1",
-            "name": "424"
-        },
-        {
-            "start": 4135500,
-            "end": 4138500,
-            "type": "marine",
-            "name": "425"
-        },
-        {
-            "start": 4138500,
-            "end": 4141500,
-            "type": "marine1",
-            "name": "426"
-        },
-        {
-            "start": 4141500,
-            "end": 4144500,
-            "type": "marine",
-            "name": "427"
-        },
-        {
-            "start": 4144500,
-            "end": 4348000,
-            "type": "marine1",
-            "name": "(Ship TX) Maritime"
-        },
-        {
-            "start": 4348000,
-            "end": 4349500,
-            "type": "marine1",
-            "name": "(Coast TX) Maritime"
-        },
-        {
-            "start": 4349500,
-            "end": 4352500,
-            "type": "marine",
-            "name": "ITU Ch. 428 (Coast TX)"
-        },
-        {
-            "start": 4352500,
-            "end": 4355500,
-            "type": "marine1",
-            "name": "429"
-        },
-        {
-            "start": 4355500,
-            "end": 4358500,
-            "type": "marine1",
-            "name": "401"
-        },
-        {
-            "start": 4358500,
-            "end": 4361500,
-            "type": "marine",
-            "name": "402"
-        },
-        {
-            "start": 4361500,
-            "end": 4364500,
-            "type": "marine1",
-            "name": "403"
-        },
-        {
-            "start": 4364500,
-            "end": 4367500,
-            "type": "marine",
-            "name": "404"
-        },
-        {
-            "start": 4367500,
-            "end": 4370500,
-            "type": "marine1",
-            "name": "405"
-        },
-        {
-            "start": 4370500,
-            "end": 4373500,
-            "type": "marine",
-            "name": "406"
-        },
-        {
-            "start": 4373500,
-            "end": 4376500,
-            "type": "marine1",
-            "name": "407"
-        },
-        {
-            "start": 4376500,
-            "end": 4379500,
-            "type": "marine",
-            "name": "408"
-        },
-        {
-            "start": 4379500,
-            "end": 4382500,
-            "type": "marine1",
-            "name": "409"
-        },
-        {
-            "start": 4382500,
-            "end": 4385500,
-            "type": "marine",
-            "name": "410"
-        },
-        {
-            "start": 4385500,
-            "end": 4388500,
-            "type": "marine1",
-            "name": "411"
-        },
-        {
-            "start": 4388500,
-            "end": 4391500,
-            "type": "marine",
-            "name": "412"
-        },
-        {
-            "start": 4391500,
-            "end": 4394500,
-            "type": "marine1",
-            "name": "413"
-        },
-        {
-            "start": 4394500,
-            "end": 4397500,
-            "type": "marine",
-            "name": "414"
-        },
-        {
-            "start": 4397500,
-            "end": 4400500,
-            "type": "marine1",
-            "name": "415"
-        },
-        {
-            "start": 4400500,
-            "end": 4403500,
-            "type": "marine",
-            "name": "416"
-        },
-        {
-            "start": 4403500,
-            "end": 4406500,
-            "type": "marine1",
-            "name": "417"
-        },
-        {
-            "start": 4406500,
-            "end": 4409500,
-            "type": "marine",
-            "name": "418"
-        },
-        {
-            "start": 4409500,
-            "end": 4412500,
-            "type": "marine1",
-            "name": "419"
-        },
-        {
-            "start": 4412500,
-            "end": 4415500,
-            "type": "marine",
-            "name": "420"
-        },
-        {
-            "start": 4415500,
-            "end": 4418500,
-            "type": "marine1",
-            "name": "421"
-        },
-        {
-            "start": 4418500,
-            "end": 4421500,
-            "type": "marine",
-            "name": "422"
-        },
-        {
-            "start": 4421500,
-            "end": 4424500,
-            "type": "marine1",
-            "name": "423"
-        },
-        {
-            "start": 4424500,
-            "end": 4427500,
-            "type": "marine",
-            "name": "424"
-        },
-        {
-            "start": 4427500,
-            "end": 4430500,
-            "type": "marine1",
-            "name": "425"
-        },
-        {
-            "start": 4430500,
-            "end": 4433500,
-            "type": "marine",
-            "name": "426"
-        },
-        {
-            "start": 4433500,
-            "end": 4436500,
-            "type": "marine1",
-            "name": "427"
-        },
-        {
-            "start": 4436500,
-            "end": 4623500,
-            "type": "marine1",
-            "name": "(Coast TX) Maritime"
-        },
-        {
-            "start": 4623500,
-            "end": 4626500,
-            "type": "utility",
-            "name": "UVB-76 (Lower)"
-        },
-        {
-            "start": 4626500,
             "end": 4750000,
             "type": "marine1",
-            "name": "(Coast TX) Maritime"
+            "name": "Maritime"
         },
         {
             "start": 4750000,
-            "end": 4808500,
-            "type": "broadcast",
-            "name": "Shortwave (Tropical Band 60m) Broadcast"
-        },
-        {
-            "start": 4808500,
-            "end": 4811500,
-            "type": "utility",
-            "name": "UVB-76 (Upper)"
-        },
-        {
-            "start": 4811500,
             "end": 4995000,
             "type": "broadcast",
             "name": "Shortwave (Tropical Band 60m) Broadcast"
@@ -811,18 +415,6 @@
         },
         {
             "start": 5406400,
-            "end": 5446500,
-            "type": "aviation",
-            "name": "Aeronautical/ Maritime"
-        },
-        {
-            "start": 5446500,
-            "end": 5449500,
-            "type": "utility",
-            "name": "The Pip (Day)"
-        },
-        {
-            "start": 5449500,
             "end": 5900000,
             "type": "aviation",
             "name": "Aeronautical/ Maritime"
@@ -1074,10 +666,10 @@
             "name": "Shortwave (22m) Broadcast"
         },
         {
-            "start": 13927000,
-            "end": 13930000,
-            "type": "marine",
-            "name": "MARS"
+            "start": 13870000,
+            "end": 14000000,
+            "type": "utility",
+            "name": "Fixed and Aero mobile"
         },
         {
             "start": 14000000,
@@ -1165,18 +757,6 @@
         },
         {
             "start": 15800000,
-            "end": 16418750,
-            "type": "marine",
-            "name": "(Ship/Shore) Maritime"
-        },
-        {
-            "start": 16418750,
-            "end": 16421250,
-            "type": "marine1",
-            "name": "Distress"
-        },
-        {
-            "start": 16421250,
             "end": 17480000,
             "type": "marine",
             "name": "(Ship/Shore) Maritime"
@@ -1399,9 +979,9 @@
         },
         {
             "start": 29520000,
-            "end": 29590000,
+            "end": 29600000,
             "type": "amateur",
-            "name": "All modes - FM repeater input (RH1 – RH8)"
+            "name": "All modes - FM repeater input (RH1 - RH8)"
         },
         {
             "start": 29600000,
@@ -1424,8 +1004,8 @@
         {
             "start": 29700000,
             "end": 40660000,
-            "type": "marine",
-            "name": "Fixed Mobile/ Maritime"
+            "type": "utility",
+            "name": "Military, microphones, radiocommands, PMR, medical implants"
         },
         {
             "start": 40660000,
@@ -1446,16 +1026,22 @@
             "name": "6m Ham Band"
         },
         {
-            "start": 54000000,
+            "start": 52000000,
             "end": 70000000,
-            "type": "broadcast",
-            "name": "Radiolocation/ Television VHF"
+            "type": "utility",
+            "name": "Land Military / PMR"
         },
         {
             "start": 70000000,
             "end": 70500000,
             "type": "amateur",
-            "name": "4m Ham Band (sec use)"
+            "name": "4m Ham Band (not NL)"
+        },
+        {
+            "start": 70500000,
+            "end": 73000000,
+            "type": "utility",
+            "name": "Miltary, PMR/PAMR"
         },
         {
             "start": 73000000,
@@ -1464,13 +1050,19 @@
             "name": "Radio Astronomy"
         },
         {
-            "start": 76000000,
-            "end": 88000000,
-            "type": "utility",
-            "name": "Radiolocation/ FM Broadcast"
+            "start": 74600000,
+            "end": 75200000,
+            "type": "aviation",
+            "name": "Radionavigation"
         },
         {
-            "start": 88000000,
+            "start": 75200000,
+            "end": 87500000,
+            "type": "utility",
+            "name": "Miltary, PMR/PAMR"
+        },
+        {
+            "start": 87500000,
             "end": 108000000,
             "type": "broadcast",
             "name": "FM Broadcast"
@@ -1507,159 +1099,21 @@
         },
         {
             "start": 131555000,
-            "end": 136637500,
-            "type": "aviation",
-            "name": "Air Band Voice"
-        },
-        {
-            "start": 136637500,
-            "end": 136662500,
-            "type": "aviation",
-            "name": "VDL-M2 (US)"
-        },
-        {
-            "start": 136662500,
-            "end": 136687500,
-            "type": "aviation",
-            "name": "aviation"
-        },
-        {
-            "start": 136687500,
-            "end": 136712500,
-            "type": "aviation",
-            "name": "VDL-M2 (US)"
-        },
-        {
-            "start": 136712500,
-            "end": 136737500,
-            "type": "aviation",
-            "name": "VDL-M2 (EU)"
-        },
-        {
-            "start": 136737500,
-            "end": 136762500,
-            "type": "aviation",
-            "name": "aviation"
-        },
-        {
-            "start": 136762500,
-            "end": 136787500,
-            "type": "aviation",
-            "name": "VDL-M2 (EU)"
-        },
-        {
-            "start": 136787500,
-            "end": 136812500,
-            "type": "aviation",
-            "name": "VDL-M2 (US)"
-        },
-        {
-            "start": 136812500,
-            "end": 136837500,
-            "type": "aviation",
-            "name": "VDL-M2 (EU)"
-        },
-        {
-            "start": 136837500,
-            "end": 136862500,
-            "type": "aviation",
-            "name": "aviation"
-        },
-        {
-            "start": 136862500,
-            "end": 136887500,
-            "type": "aviation",
-            "name": "VDL-M2 (EU)"
-        },
-        {
-            "start": 136887500,
-            "end": 136962500,
-            "type": "aviation",
-            "name": "aviation"
-        },
-        {
-            "start": 136962500,
-            "end": 136987500,
-            "type": "aviation",
-            "name": "Worldwide VDL-M2"
-        },
-        {
-            "start": 136987500,
             "end": 137000000,
             "type": "aviation",
-            "name": "aviation"
+            "name": "Aviation"
         },
         {
-            "start": 137040000,
-            "end": 137080000,
-            "type": "satellite",
-            "name": "| METEOR"
-        },
-        {
-            "start": 137080000,
-            "end": 137120000,
+            "start": 137000000,
+            "end": 138000000,
             "type": "satellite1",
-            "name": "NOAA-19"
+            "name": "Satellite"
         },
         {
-            "start": 137120000,
-            "end": 137160000,
-            "type": "satellite",
-            "name": "METEOR |"
-        },
-        {
-            "start": 137333000,
-            "end": 137367000,
-            "type": "satellite1",
-            "name": "DSB NOAA-15 and NOAA-18"
-        },
-        {
-            "start": 137600000,
-            "end": 137640000,
-            "type": "satellite",
-            "name": "NOAA-15"
-        },
-        {
-            "start": 137753000,
-            "end": 137787000,
-            "type": "satellite1",
-            "name": "DSB NOAA-19"
-        },
-        {
-            "start": 137892500,
-            "end": 137932500,
-            "type": "satellite",
-            "name": "NOAA-18"
-        },
-        {
-            "start": 137175000,
-            "end": 137327500,
-            "type": "satellite1",
-            "name": "ORB. Seg. 1"
-        },
-        {
-            "start": 137422500,
-            "end": 137472500,
-            "type": "satellite",
-            "name": "ORB. Seg. 2"
-        },
-        {
-            "start": 137535000,
-            "end": 137585000,
-            "type": "satellite1",
-            "name": "Orbcomm Gateway"
-        },
-        {
-            "start": 137650000,
-            "end": 137750000,
-            "type": "satellite",
-            "name": "ORB. Seg. 3"
-        },
-        {
-            "start": 137787500,
-            "end": 137812500,
-            "type": "satellite1",
-            "name": "ORB. Seg. 4"
+            "start": 138000000,
+            "end": 144000000,
+            "type": "military",
+            "name": "Aeronautical Military Systems"
         },
         {
             "start": 144000000,
@@ -1695,13 +1149,13 @@
             "start": 144500000,
             "end": 144800000,
             "type": "amateur1",
-            "name": "Alle modes"
+            "name": "All modes"
         },
         {
             "start": 144800000,
             "end": 144990000,
             "type": "amateur",
-            "name": "Digitale comm"
+            "name": "Digital comm"
         },
         {
             "start": 144990000,
@@ -1723,81 +1177,9 @@
         },
         {
             "start": 145810000,
-            "end": 145815000,
-            "type": "satellite1",
-            "name": "Satellites"
-        },
-        {
-            "start": 145815000,
-            "end": 145835000,
-            "type": "satellite",
-            "name": "ISS VHF Packet U/D"
-        },
-        {
-            "start": 145835000,
-            "end": 145845000,
-            "type": "satellite1",
-            "name": "Satellites"
-        },
-        {
-            "start": 145845000,
-            "end": 145855000,
-            "type": "satellite",
-            "name": "SO-50 Uplink"
-        },
-        {
-            "start": 145855000,
-            "end": 145870000,
-            "type": "satellite1",
-            "name": "Satellites"
-        },
-        {
-            "start": 145870000,
-            "end": 145890000,
-            "type": "satellite",
-            "name": "AO-92 Downlink"
-        },
-        {
-            "start": 145890000,
-            "end": 145895000,
-            "type": "satellite1",
-            "name": "Satellites"
-        },
-        {
-            "start": 145895000,
-            "end": 145905000,
-            "type": "satellite",
-            "name": "PO-101 Downlink"
-        },
-        {
-            "start": 145905000,
-            "end": 145950000,
-            "type": "satellite1",
-            "name": "Satellites"
-        },
-        {
-            "start": 145950000,
-            "end": 145970000,
-            "type": "satellite",
-            "name": "AO-91 Downlink"
-        },
-        {
-            "start": 145970000,
-            "end": 145980000,
-            "type": "satellite1",
-            "name": "AO-85 Downlink"
-        },
-        {
-            "start": 145980000,
-            "end": 145990000,
-            "type": "satellite",
-            "name": "AO-85 Downlink and ISS Repeater Uplink"
-        },
-        {
-            "start": 145990000,
             "end": 146000000,
             "type": "satellite1",
-            "name": "ISS U/V Repeater Uplink 2m Ham Band|"
+            "name": "Satellite in 2m Ham Band|"
         },
         {
             "start": 146000000,
@@ -1807,626 +1189,68 @@
         },
         {
             "start": 148000000,
-            "end": 150000000,
-            "type": "satellite",
-            "name": "Orbcomm Uplink"
-        },
-        {
-            "start": 150000000,
             "end": 155987500,
             "type": "marine",
             "name": "Fixed Mobile"
         },
         {
             "start": 155987500,
-            "end": 156012500,
-            "type": "marine",
-            "name": "0"
-        },
-        {
-            "start": 156012500,
-            "end": 156037500,
-            "type": "marine1",
-            "name": "60"
-        },
-        {
-            "start": 156037500,
-            "end": 156062500,
-            "type": "marine",
-            "name": "1"
-        },
-        {
-            "start": 156062500,
-            "end": 156087500,
-            "type": "marine1",
-            "name": "61"
-        },
-        {
-            "start": 156087500,
-            "end": 156112500,
-            "type": "marine",
-            "name": "2"
-        },
-        {
-            "start": 156112500,
-            "end": 156137500,
-            "type": "marine1",
-            "name": "62"
-        },
-        {
-            "start": 156137500,
-            "end": 156162500,
-            "type": "marine",
-            "name": "3"
-        },
-        {
-            "start": 156162500,
-            "end": 156187500,
-            "type": "marine1",
-            "name": "63"
-        },
-        {
-            "start": 156187500,
-            "end": 156212500,
-            "type": "marine",
-            "name": "4"
-        },
-        {
-            "start": 156212500,
-            "end": 156237500,
-            "type": "marine1",
-            "name": "64"
-        },
-        {
-            "start": 156237500,
-            "end": 156262500,
-            "type": "marine",
-            "name": "5"
-        },
-        {
-            "start": 156262500,
-            "end": 156287500,
-            "type": "marine1",
-            "name": "65"
-        },
-        {
-            "start": 156287500,
-            "end": 156312500,
-            "type": "marine",
-            "name": "6 (Splx)"
-        },
-        {
-            "start": 156312500,
-            "end": 156337500,
-            "type": "marine1",
-            "name": "66"
-        },
-        {
-            "start": 156337500,
-            "end": 156362500,
-            "type": "marine",
-            "name": "7"
-        },
-        {
-            "start": 156362500,
-            "end": 156387500,
-            "type": "marine1",
-            "name": "67 (Splx)"
-        },
-        {
-            "start": 156387500,
-            "end": 156412500,
-            "type": "marine",
-            "name": "8 (Splx)"
-        },
-        {
-            "start": 156412500,
-            "end": 156437500,
-            "type": "marine1",
-            "name": "68 (Splx)"
-        },
-        {
-            "start": 156437500,
-            "end": 156462500,
-            "type": "marine",
-            "name": "9 (Splx)"
-        },
-        {
-            "start": 156462500,
-            "end": 156487500,
-            "type": "marine1",
-            "name": "69 (Splx)"
-        },
-        {
-            "start": 156487500,
-            "end": 156512500,
-            "type": "marine",
-            "name": "10 (Splx)"
-        },
-        {
-            "start": 156512500,
-            "end": 156537500,
-            "type": "marine1",
-            "name": "70 (Splx)"
-        },
-        {
-            "start": 156537500,
-            "end": 156562500,
-            "type": "marine",
-            "name": "11 (Splx)"
-        },
-        {
-            "start": 156562500,
-            "end": 156587500,
-            "type": "marine1",
-            "name": "71 (Splx)"
-        },
-        {
-            "start": 156587500,
-            "end": 156612500,
-            "type": "marine",
-            "name": "12 (Splx)"
-        },
-        {
-            "start": 156612500,
-            "end": 156637500,
-            "type": "marine1",
-            "name": "72 (Splx)"
-        },
-        {
-            "start": 156637500,
-            "end": 156662500,
-            "type": "marine",
-            "name": "13 (Splx)"
-        },
-        {
-            "start": 156662500,
-            "end": 156687500,
-            "type": "marine1",
-            "name": "73 (Splx)"
-        },
-        {
-            "start": 156687500,
-            "end": 156712500,
-            "type": "marine",
-            "name": "14 (Splx)"
-        },
-        {
-            "start": 156712500,
-            "end": 156737500,
-            "type": "marine1",
-            "name": "74 (Splx)"
-        },
-        {
-            "start": 156737500,
-            "end": 156762500,
-            "type": "marine",
-            "name": "15 (Splx)"
-        },
-        {
-            "start": 156762500,
-            "end": 156787500,
-            "type": "marine1",
-            "name": "75 (Splx)"
-        },
-        {
-            "start": 156787500,
-            "end": 156812500,
-            "type": "aviation",
-            "name": "International Distress (Ch. 16)"
-        },
-        {
-            "start": 156812500,
-            "end": 156837500,
-            "type": "marine1",
-            "name": "76 (Splx)"
-        },
-        {
-            "start": 156837500,
-            "end": 156862500,
-            "type": "marine",
-            "name": "17 (Splx)"
-        },
-        {
-            "start": 156862500,
-            "end": 156887500,
-            "type": "marine1",
-            "name": "77 (Splx)"
-        },
-        {
-            "start": 156887500,
-            "end": 156912500,
-            "type": "marine",
-            "name": "18"
-        },
-        {
-            "start": 156912500,
-            "end": 156937500,
-            "type": "marine1",
-            "name": "78"
-        },
-        {
-            "start": 156937500,
-            "end": 156962500,
-            "type": "marine",
-            "name": "19"
-        },
-        {
-            "start": 156962500,
-            "end": 156987500,
-            "type": "marine1",
-            "name": "79"
-        },
-        {
-            "start": 156987500,
-            "end": 157012500,
-            "type": "marine",
-            "name": "20"
-        },
-        {
-            "start": 157012500,
-            "end": 157037500,
-            "type": "marine1",
-            "name": "80"
-        },
-        {
-            "start": 157037500,
-            "end": 157062500,
-            "type": "marine",
-            "name": "21"
-        },
-        {
-            "start": 157062500,
-            "end": 157087500,
-            "type": "marine1",
-            "name": "81"
-        },
-        {
-            "start": 157087500,
-            "end": 157112500,
-            "type": "marine",
-            "name": "22"
-        },
-        {
-            "start": 157112500,
-            "end": 157137500,
-            "type": "marine1",
-            "name": "82"
-        },
-        {
-            "start": 157137500,
-            "end": 157162500,
-            "type": "marine",
-            "name": "23"
-        },
-        {
-            "start": 157162500,
-            "end": 157187500,
-            "type": "marine1",
-            "name": "83"
-        },
-        {
-            "start": 157187500,
-            "end": 157212500,
-            "type": "marine",
-            "name": "24"
-        },
-        {
-            "start": 157212500,
-            "end": 157237500,
-            "type": "marine1",
-            "name": "84"
-        },
-        {
-            "start": 157237500,
-            "end": 157262500,
-            "type": "marine",
-            "name": "25"
-        },
-        {
-            "start": 157262500,
-            "end": 157287500,
-            "type": "marine1",
-            "name": "85"
-        },
-        {
-            "start": 157287500,
-            "end": 157312500,
-            "type": "marine",
-            "name": "26"
-        },
-        {
-            "start": 157312500,
-            "end": 157337500,
-            "type": "marine1",
-            "name": "86"
-        },
-        {
-            "start": 157337500,
-            "end": 157362500,
-            "type": "marine",
-            "name": "27"
-        },
-        {
-            "start": 157362500,
-            "end": 157387500,
-            "type": "marine1",
-            "name": "87 (Splx)"
-        },
-        {
-            "start": 157387500,
-            "end": 157412500,
-            "type": "marine",
-            "name": "28"
-        },
-        {
-            "start": 157412500,
-            "end": 157437500,
-            "type": "marine1",
-            "name": "88 (Splx)"
-        },
-        {
-            "start": 157437500,
-            "end": 160587500,
-            "type": "marine1",
-            "name": "Marine"
-        },
-        {
-            "start": 160587500,
-            "end": 160612500,
-            "type": "marine",
-            "name": "Marine VHF Ch. 0 (Coast Stations)"
-        },
-        {
-            "start": 160612500,
-            "end": 160637500,
-            "type": "marine1",
-            "name": "60"
-        },
-        {
-            "start": 160637500,
-            "end": 160662500,
-            "type": "marine",
-            "name": "1"
-        },
-        {
-            "start": 160662500,
-            "end": 160687500,
-            "type": "marine1",
-            "name": "61"
-        },
-        {
-            "start": 160687500,
-            "end": 160712500,
-            "type": "marine",
-            "name": "2"
-        },
-        {
-            "start": 160712500,
-            "end": 160737500,
-            "type": "marine1",
-            "name": "62"
-        },
-        {
-            "start": 160737500,
-            "end": 160762500,
-            "type": "marine",
-            "name": "3"
-        },
-        {
-            "start": 160762500,
-            "end": 160787500,
-            "type": "marine1",
-            "name": "63"
-        },
-        {
-            "start": 160787500,
-            "end": 160812500,
-            "type": "marine",
-            "name": "4"
-        },
-        {
-            "start": 160812500,
-            "end": 160837500,
-            "type": "marine1",
-            "name": "64"
-        },
-        {
-            "start": 160837500,
-            "end": 160862500,
-            "type": "marine",
-            "name": "5"
-        },
-        {
-            "start": 160862500,
-            "end": 160887500,
-            "type": "marine1",
-            "name": "65"
-        },
-        {
-            "start": 160887500,
-            "end": 160912500,
-            "type": "marine",
-            "name": "Marine"
-        },
-        {
-            "start": 160912500,
-            "end": 160937500,
-            "type": "marine1",
-            "name": "66"
-        },
-        {
-            "start": 160937500,
-            "end": 160962500,
-            "type": "marine",
-            "name": "7"
-        },
-        {
-            "start": 161487500,
-            "end": 161512500,
-            "type": "marine1",
-            "name": "18"
-        },
-        {
-            "start": 161512500,
-            "end": 161537500,
-            "type": "marine",
-            "name": "78"
-        },
-        {
-            "start": 161537500,
-            "end": 161562500,
-            "type": "marine1",
-            "name": "19"
-        },
-        {
-            "start": 161562500,
-            "end": 161587500,
-            "type": "marine",
-            "name": "79"
-        },
-        {
-            "start": 161587500,
-            "end": 161612500,
-            "type": "marine1",
-            "name": "20"
-        },
-        {
-            "start": 161612500,
-            "end": 161637500,
-            "type": "marine",
-            "name": "80"
-        },
-        {
-            "start": 161637500,
-            "end": 161662500,
-            "type": "marine1",
-            "name": "21"
-        },
-        {
-            "start": 161662500,
-            "end": 161687500,
-            "type": "marine",
-            "name": "81"
-        },
-        {
-            "start": 161687500,
-            "end": 161712500,
-            "type": "marine1",
-            "name": "22"
-        },
-        {
-            "start": 161712500,
-            "end": 161737500,
-            "type": "marine",
-            "name": "82"
-        },
-        {
-            "start": 161737500,
-            "end": 161762500,
-            "type": "marine1",
-            "name": "23"
-        },
-        {
-            "start": 161762500,
-            "end": 161787500,
-            "type": "marine",
-            "name": "83"
-        },
-        {
-            "start": 161787500,
-            "end": 161812500,
-            "type": "marine1",
-            "name": "24"
-        },
-        {
-            "start": 161812500,
-            "end": 161837500,
-            "type": "marine",
-            "name": "84"
-        },
-        {
-            "start": 161837500,
-            "end": 161862500,
-            "type": "marine1",
-            "name": "25"
-        },
-        {
-            "start": 161862500,
-            "end": 161887500,
-            "type": "marine",
-            "name": "85"
-        },
-        {
-            "start": 161887500,
-            "end": 161912500,
-            "type": "marine1",
-            "name": "26"
-        },
-        {
-            "start": 161912500,
-            "end": 161937500,
-            "type": "marine",
-            "name": "86"
-        },
-        {
-            "start": 161937500,
-            "end": 161962500,
-            "type": "marine1",
-            "name": "27"
-        },
-        {
-            "start": 161962500,
-            "end": 161987500,
-            "type": "marine",
-            "name": "AIS Ch. A (87B)"
-        },
-        {
-            "start": 161987500,
-            "end": 162012500,
-            "type": "marine1",
-            "name": "88B/ 28"
-        },
-        {
-            "start": 162012500,
-            "end": 162037500,
-            "type": "marine",
-            "name": "AIS Ch. B"
-        },
-        {
-            "start": 162037500,
-            "end": 162137500,
-            "type": "marine1",
-            "name": "Marine"
-        },
-        {
-            "start": 162137500,
-            "end": 162162500,
-            "type": "marine",
-            "name": "31"
-        },
-        {
-            "start": 162162500,
             "end": 174000000,
             "type": "marine1",
             "name": "Fixed Mobile/ Marine"
         },
         {
             "start": 174000000,
-            "end": 216000000,
+            "end": 230000000,
             "type": "broadcast",
-            "name": "Television VHF"
+            "name": "DAB+ radio"
         },
         {
-            "start": 216000000,
-            "end": 223000000,
+            "start": 230000000,
+            "end": 242950000,
+            "type": "military",
+            "name": "Defence Systems"
+        },
+        {
+            "start": 242950000,
+            "end": 243050000,
+            "type": "utility",
+            "name": "EPIRBs"
+        },
+        {
+            "start": 243050000,
+            "end": 322000000,
+            "type": "military",
+            "name": "Defence Systems"
+        },
+        {
+            "start": 322000000,
+            "end": 328600000,
+            "type": "utility",
+            "name": "Radio Astronomy / Defence"
+        },
+        {
+            "start": 328600000,
+            "end": 335400000,
             "type": "aviation",
-            "name": "Radiolocation/ Television VHF"
+            "name": "ILS Glide path"
+        },
+        {
+            "start": 335400000,
+            "end": 399900000,
+            "type": "military",
+            "name": "Defence Systems, PMR/PMAR/PPDR"
+        },
+        {
+            "start": 399900000,
+            "end": 400050000,
+            "type": "satellite",
+            "name": "MSS Earth stations"
         },
         {
             "start": 400050000,
             "end": 400150000,
-            "type": "utility",
+            "type": "satellite",
             "name": "Standard Frequency and Time Signal-Satellite Service"
         },
         {
@@ -2442,6 +1266,12 @@
             "name": "Earth Exploration Satellite"
         },
         {
+            "start": 403000000,
+            "end": 406000000,
+            "type": "utility",
+            "name": "Meteorological and Medical Aids"
+        },
+        {
             "start": 406000000,
             "end": 406100000,
             "type": "aviation",
@@ -2452,6 +1282,12 @@
             "end": 410000000,
             "type": "utility",
             "name": "Radio Astronomy"
+        },
+        {
+            "start": 410000000,
+            "end": 430000000,
+            "type": "military",
+            "name": "Land Maritime Military"
         },
         {
             "start": 430000000,
@@ -2467,93 +1303,9 @@
         },
         {
             "start": 434790000,
-            "end": 435172000,
-            "type": "amateur",
-            "name": "70cm Ham Band"
-        },
-        {
-            "start": 435172000,
-            "end": 435192000,
-            "type": "amateur1",
-            "name": "AO-85 Uplink"
-        },
-        {
-            "start": 435192000,
-            "end": 435240000,
-            "type": "amateur",
-            "name": "Satellite"
-        },
-        {
-            "start": 435240000,
-            "end": 435260000,
-            "type": "amateur1",
-            "name": "AO-91 Uplink"
-        },
-        {
-            "start": 435260000,
-            "end": 435340000,
-            "type": "amateur",
-            "name": "Satellite"
-        },
-        {
-            "start": 435340000,
-            "end": 435360000,
-            "type": "satellite1",
-            "name": "AO-92 Uplink"
-        },
-        {
-            "start": 435360000,
-            "end": 436785000,
-            "type": "satellite",
-            "name": "Satellite"
-        },
-        {
-            "start": 436785000,
-            "end": 436805000,
-            "type": "satellite1",
-            "name": "SO-50 Downlink"
-        },
-        {
-            "start": 436805000,
-            "end": 437490000,
-            "type": "satellite",
-            "name": "Satellite"
-        },
-        {
-            "start": 437490000,
-            "end": 437510000,
-            "type": "satellite1",
-            "name": "PO-101 Uplink"
-        },
-        {
-            "start": 437510000,
-            "end": 437540000,
-            "type": "satellite",
-            "name": "Satellite"
-        },
-        {
-            "start": 437540000,
-            "end": 437560000,
-            "type": "satellite1",
-            "name": "ISS UHF Packet U/D"
-        },
-        {
-            "start": 437560000,
-            "end": 437790000,
-            "type": "satellite",
-            "name": "Satellite"
-        },
-        {
-            "start": 437790000,
-            "end": 437810000,
-            "type": "satellite1",
-            "name": "ISS U/V Repeater Downlink"
-        },
-        {
-            "start": 437810000,
             "end": 438000000,
             "type": "satellite",
-            "name": "Satellite"
+            "name": "Satellite in 70cm Ham Band"
         },
         {
             "start": 438000000,
@@ -2562,100 +1314,28 @@
             "name": "70cm Ham Band|"
         },
         {
-            "start": 446000000,
+            "start": 440000000,
             "end": 446012500,
-            "type": "utility",
-            "name": "PMR446 Ch. 1"
+            "type": "military",
+            "name": "Land Maritime Military"
         },
         {
-            "start": 446012500,
-            "end": 446025000,
+            "start": 446000000,
+            "end": 446200000,
             "type": "utility1",
-            "name": "2"
-        },
-        {
-            "start": 446025000,
-            "end": 446037500,
-            "type": "utility",
-            "name": "3"
-        },
-        {
-            "start": 446037500,
-            "end": 446050000,
-            "type": "utility1",
-            "name": "4"
-        },
-        {
-            "start": 446050000,
-            "end": 446062500,
-            "type": "utility",
-            "name": "5"
-        },
-        {
-            "start": 446062500,
-            "end": 446075000,
-            "type": "utility1",
-            "name": "6"
-        },
-        {
-            "start": 446075000,
-            "end": 446087500,
-            "type": "utility",
-            "name": "7"
-        },
-        {
-            "start": 446087500,
-            "end": 446100000,
-            "type": "utility1",
-            "name": "8"
-        },
-        {
-            "start": 446100000,
-            "end": 446112500,
-            "type": "utility",
-            "name": "9"
-        },
-        {
-            "start": 446112500,
-            "end": 446125000,
-            "type": "utility1",
-            "name": "10"
-        },
-        {
-            "start": 446125000,
-            "end": 446137500,
-            "type": "utility",
-            "name": "11"
-        },
-        {
-            "start": 446137500,
-            "end": 446150000,
-            "type": "utility1",
-            "name": "12"
-        },
-        {
-            "start": 446150000,
-            "end": 446162500,
-            "type": "utility",
-            "name": "13"
-        },
-        {
-            "start": 446162500,
-            "end": 446175000,
-            "type": "utility1",
-            "name": "14"
-        },
-        {
-            "start": 446175000,
-            "end": 446187500,
-            "type": "utility",
-            "name": "15"
+            "name": "PMR446"
         },
         {
             "start": 446187500,
-            "end": 446200000,
-            "type": "utility1",
-            "name": "PMR446 Ch. 16"
+            "end": 450000000,
+            "type": "military",
+            "name": "Land Maritime Military"
+        },
+        {
+            "start": 450000000,
+            "end": 465986500,
+            "type": "utility",
+            "name": "Land Mobile, Paging, PMR/PAMR"
         },
         {
             "start": 465986500,
@@ -2664,10 +1344,16 @@
             "name": "Metops' DCP configuration control"
         },
         {
+            "start": 465988500,
+            "end": 470000000,
+            "type": "utility",
+            "name": "Land Mobile, Paging, PMR/PAMR"
+        },
+        {
             "start": 470000000,
             "end": 608000000,
             "type": "broadcast",
-            "name": "Television UHF"
+            "name": "DVB-T Television UHF"
         },
         {
             "start": 608000000,
@@ -2677,117 +1363,81 @@
         },
         {
             "start": 614000000,
-            "end": 806000000,
+            "end": 790000000,
             "type": "broadcast",
-            "name": "Television UHF"
+            "name": "DVB-T Television UHF"
         },
         {
-            "start": 902000000,
-            "end": 928000000,
+            "start": 790000000,
+            "end": 862000000,
             "type": "utility",
-            "name": "33cm ISM"
+            "name": "Mobile Communications"
+        },
+        {
+            "start": 862000000,
+            "end": 870000000,
+            "type": "utility1",
+            "name": "ISM Europe"
+        },
+        {
+            "start": 870000000,
+            "end": 876000000,
+            "type": "utility",
+            "name": "Mobile Communications"
+        },
+        {
+            "start": 876000000,
+            "end": 880000000,
+            "type": "utility1",
+            "name": "GSM-R (Train)"
+        },
+        {
+            "start": 880000000,
+            "end": 915000000,
+            "type": "utility",
+            "name": "GSM"
+        },
+        {
+            "start": 915000000,
+            "end": 921000000,
+            "type": "utility1",
+            "name": "Mobile radiolocation"
+        },
+        {
+            "start": 921000000,
+            "end": 925000000,
+            "type": "utility1",
+            "name": "GSM-R (Train)"
+        },
+        {
+            "start": 925000000,
+            "end": 960000000,
+            "type": "utility",
+            "name": "GSM"
         },
         {
             "start": 960000000,
-            "end": 977300000,
-            "type": "aviation",
-            "name": "Aviation"
-        },
-        {
-            "start": 977300000,
-            "end": 978700000,
-            "type": "aviation",
-            "name": "ADSB 978"
-        },
-        {
-            "start": 978700000,
-            "end": 1089950000,
-            "type": "aviation",
-            "name": "Aviation"
-        },
-        {
-            "start": 1089950000,
-            "end": 1090050000,
-            "type": "aviation",
-            "name": "ADSB"
-        },
-        {
-            "start": 1090050000,
             "end": 1164000000,
             "type": "aviation",
             "name": "Aviation"
         },
         {
             "start": 1164000000,
-            "end": 1189000000,
-            "type": "satellite",
-            "name": "GPS L5 and GALILEO E5a"
-        },
-        {
-            "start": 1189000000,
-            "end": 1214000000,
-            "type": "satellite1",
-            "name": "GALILEO E5a and GLONASS G3"
-        },
-        {
-            "start": 1214000000,
-            "end": 1215000000,
-            "type": "satellite",
-            "name": "Radionavigation Satellite Service"
-        },
-        {
-            "start": 1215000000,
-            "end": 1237000000,
-            "type": "satellite1",
-            "name": "GPS L2"
-        },
-        {
-            "start": 1237000000,
-            "end": 1239600000,
-            "type": "satellite",
-            "name": "GPS L2 and GLONASS G2"
-        },
-        {
-            "start": 1239600000,
             "end": 1240000000,
             "type": "satellite1",
-            "name": "GLONASS G2"
+            "name": "Satellite"
         },
         {
             "start": 1240000000,
-            "end": 1267346500,
-            "type": "amateur",
-            "name": "|23cm Ham Band"
-        },
-        {
-            "start": 1267346500,
-            "end": 1267371500,
-            "type": "satellite",
-            "name": "AO-92 Uplink"
-        },
-        {
-            "start": 1267371500,
-            "end": 1295800000,
+            "end": 1300000000,
             "type": "amateur",
             "name": "23cm Ham Band"
         },
         {
-            "start": 1295800000,
-            "end": 1296080000,
-            "type": "amateur1",
-            "name": "EME"
-        },
-        {
-            "start": 1296080000,
-            "end": 1300000000,
-            "type": "amateur",
-            "name": "23cm Ham Band|"
-        },
-        {
-            "start": 1390000000,
-            "end": 1395000000,
+            "start": 1300000000,
+            "end": 1400000000,
             "type": "utility",
-            "name": "Radio Astronomy (1390 - 1395 MHz Band)"
+            "name": "Radio Astronomy"
         },
         {
             "start": 1400000000,
@@ -2808,148 +1458,28 @@
             "name": "Earth Exploration-Satellite/ Radio Astronomy"
         },
         {
+            "start": 1427000000,
+            "end": 1452000000,
+            "type": "utility",
+            "name": "Fixed Mobile"
+        },
+        {
+            "start": 1452000000,
+            "end": 1492000000,
+            "type": "broadcast",
+            "name": "T-DAB"
+        },
+        {
+            "start": 1492000000,
+            "end": 1525000000,
+            "type": "utility",
+            "name": "Fixed and Military"
+        },
+        {
             "start": 1525000000,
-            "end": 1544000000,
-            "type": "satellite",
-            "name": "Inmarsat Satellites"
-        },
-        {
-            "start": 1544000000,
-            "end": 1545000000,
-            "type": "satellite",
-            "name": "GALILEO SAR Downlink"
-        },
-        {
-            "start": 1545000000,
-            "end": 1559000000,
-            "type": "satellite1",
-            "name": "Inmarsat Satellites"
-        },
-        {
-            "start": 1559000000,
-            "end": 1563000000,
-            "type": "satellite",
-            "name": "GALILEO E1"
-        },
-        {
-            "start": 1563000000,
-            "end": 1587000000,
-            "type": "satellite1",
-            "name": "GPS L1 and GALILEO E1"
-        },
-        {
-            "start": 1587000000,
-            "end": 1591000000,
-            "type": "satellite",
-            "name": "GALILEO E1"
-        },
-        {
-            "start": 1591000000,
-            "end": 1593000000,
-            "type": "satellite1",
-            "name": "Radionavigation Satellite Service"
-        },
-        {
-            "start": 1593000000,
-            "end": 1610000000,
-            "type": "satellite",
-            "name": "GLONASS G1"
-        },
-        {
-            "start": 1610000000,
-            "end": 1610600000,
-            "type": "aviation",
-            "name": "Aviation Service, and the Mobile Satellite Service (MSS)"
-        },
-        {
-            "start": 1610600000,
-            "end": 1616000000,
-            "type": "satellite",
-            "name": "Mobile Satellite Service (MSS)"
-        },
-        {
-            "start": 1616000000,
-            "end": 1626000833,
-            "type": "satellite1",
-            "name": "Iridium Satellites"
-        },
-        {
-            "start": 1626000833,
-            "end": 1626040833,
-            "type": "satellite",
-            "name": "Ch.1 Guard Channel (Iridium)"
-        },
-        {
-            "start": 1626042500,
-            "end": 1626082500,
-            "type": "satellite1",
-            "name": "2 Guard Channel"
-        },
-        {
-            "start": 1626084167,
-            "end": 1626124167,
-            "type": "satellite",
-            "name": "3 Quaternary Messaging"
-        },
-        {
-            "start": 1626125833,
-            "end": 1626165833,
-            "type": "satellite1",
-            "name": "4 Tertiary Messaging"
-        },
-        {
-            "start": 1626167500,
-            "end": 1626207500,
-            "type": "satellite",
-            "name": "5 Guard Channel"
-        },
-        {
-            "start": 1626209167,
-            "end": 1626249167,
-            "type": "satellite1",
-            "name": "6 Guard Channel"
-        },
-        {
-            "start": 1626250833,
-            "end": 1626290833,
-            "type": "satellite",
-            "name": "7 Ring Alert"
-        },
-        {
-            "start": 1626292500,
-            "end": 1626332500,
-            "type": "satellite1",
-            "name": "8 Guard Channel"
-        },
-        {
-            "start": 1626334167,
-            "end": 1626374167,
-            "type": "satellite",
-            "name": "9 Guard Channel"
-        },
-        {
-            "start": 1626375833,
-            "end": 1626415833,
-            "type": "satellite1",
-            "name": "10 Secondary Messaging"
-        },
-        {
-            "start": 1626417500,
-            "end": 1626457500,
-            "type": "satellite",
-            "name": "11 Primary Messaging"
-        },
-        {
-            "start": 1626459167,
-            "end": 1626499167,
-            "type": "satellite1",
-            "name": "12 Guard Channel |Iridium"
-        },
-        {
-            "start": 1626500000,
             "end": 1660500000,
             "type": "satellite",
-            "name": "Inmarsat Satellites"
+            "name": "Satellite"
         },
         {
             "start": 1660500000,
@@ -2977,99 +1507,63 @@
         },
         {
             "start": 1696500000,
-            "end": 1697750000,
-            "type": "satellite",
-            "name": "HRPT Shared"
-        },
-        {
-            "start": 1697750000,
-            "end": 1698250000,
-            "type": "satellite1",
-            "name": "NOAA-19 Center"
-        },
-        {
-            "start": 1698250000,
-            "end": 1699750000,
-            "type": "satellite",
-            "name": "Shared"
-        },
-        {
-            "start": 1699750000,
-            "end": 1700250000,
-            "type": "satellite1",
-            "name": "METEOR M2 Center"
-        },
-        {
-            "start": 1700250000,
-            "end": 1701050000,
-            "type": "satellite",
-            "name": "Shared"
-        },
-        {
-            "start": 1701050000,
-            "end": 1701550000,
-            "type": "satellite1",
-            "name": "Metop-A, Metop-B, FY-3C Center"
-        },
-        {
-            "start": 1701550000,
-            "end": 1702250000,
-            "type": "satellite",
-            "name": "Shared"
-        },
-        {
-            "start": 1702250000,
-            "end": 1702750000,
-            "type": "satellite1",
-            "name": "NOAA-15 Center"
-        },
-        {
-            "start": 1702750000,
-            "end": 1704250000,
-            "type": "satellite",
-            "name": "Shared"
-        },
-        {
-            "start": 1704250000,
-            "end": 1704750000,
-            "type": "satellite1",
-            "name": "FY-3A, FY-3B Center"
-        },
-        {
-            "start": 1704750000,
-            "end": 1705250000,
-            "type": "satellite",
-            "name": "METEOR M2-2 Center"
-        },
-        {
-            "start": 1705250000,
-            "end": 1706750000,
-            "type": "satellite1",
-            "name": "Shared"
-        },
-        {
-            "start": 1706750000,
-            "end": 1707250000,
-            "type": "satellite",
-            "name": "NOAA-18, Metop-C Center"
-        },
-        {
-            "start": 1707250000,
-            "end": 1708500000,
-            "type": "satellite1",
-            "name": "HRPT Shared"
-        },
-        {
-            "start": 1708500000,
             "end": 1710000000,
             "type": "satellite",
             "name": "Meteorological Satellite"
+        },
+        {
+            "start": 1710000000,
+            "end": 1785000000,
+            "type": "utility",
+            "name": "GSM"
+        },
+        {
+            "start": 1785000000,
+            "end": 1805000000,
+            "type": "utility1",
+            "name": "Fixed Mobile"
+        },
+        {
+            "start": 1805000000,
+            "end": 1880000000,
+            "type": "utility",
+            "name": "GSM"
+        },
+        {
+            "start": 1880000000,
+            "end": 1900000000,
+            "type": "utility",
+            "name": "DECT"
+        },
+        {
+            "start": 1900000000,
+            "end": 1980000000,
+            "type": "utility1",
+            "name": "Mobile"
+        },
+        {
+            "start": 1980000000,
+            "end": 2010000000,
+            "type": "satellite1",
+            "name": "Earth-to-Space and Space-to-Space Communications"
+        },
+        {
+            "start": 2010000000,
+            "end": 2025000000,
+            "type": "utility",
+            "name": "Mobile"
         },
         {
             "start": 2025000000,
             "end": 2110000000,
             "type": "satellite1",
             "name": "Earth-to-Space and Space-to-Space Communications"
+        },
+        {
+            "start": 2110000000,
+            "end": 2120000000,
+            "type": "satellite1",
+            "name": "Earth-to-Space (Deep space)"
         },
         {
             "start": 2290000000,
@@ -3079,15 +1573,9 @@
         },
         {
             "start": 2320000000,
-            "end": 2332500000,
-            "type": "amateur",
-            "name": "|13cm Ham Band Satellite  Digital Audio Radio Service (SDARS)"
-        },
-        {
-            "start": 2332500000,
             "end": 2345000000,
-            "type": "satellite",
-            "name": "SiriusXM Satellites"
+            "type": "amateur1",
+            "name": "13 cm Ham Band"
         },
         {
             "start": 2345000000,
@@ -3109,78 +1597,6 @@
         },
         {
             "start": 2400000000,
-            "end": 2401000000,
-            "type": "utility",
-            "name": "Shared Satellite, 13cm ISM and Ham"
-        },
-        {
-            "start": 2401000000,
-            "end": 2410000000,
-            "type": "utility",
-            "name": "WiFi shared with Satellite, 13cm ISM and Ham"
-        },
-        {
-            "start": 2410000000,
-            "end": 2411900000,
-            "type": "utility",
-            "name": "WiFi shared with Broadband Modes, 13cm ISM and Ham"
-        },
-        {
-            "start": 2411900000,
-            "end": 2412100000,
-            "type": "utility",
-            "name": "WiFi Ch. 1 (Center)"
-        },
-        {
-            "start": 2412100000,
-            "end": 2450000000,
-            "type": "amateur",
-            "name": "WiFi shared with Broadband Modes 13cm ISM, 13cm Ham Band|"
-        },
-        {
-            "start": 2450000000,
-            "end": 2451900000,
-            "type": "utility",
-            "name": "WiFi shared with ISM Band (13cm)"
-        },
-        {
-            "start": 2451900000,
-            "end": 2452100000,
-            "type": "utility",
-            "name": "WiFi Ch. 9"
-        },
-        {
-            "start": 2452100000,
-            "end": 2456900000,
-            "type": "utility",
-            "name": "WiFi shared with ISM Band (13cm)"
-        },
-        {
-            "start": 2456900000,
-            "end": 2457100000,
-            "type": "utility",
-            "name": "WiFi Ch. 10"
-        },
-        {
-            "start": 2457100000,
-            "end": 2461900000,
-            "type": "utility",
-            "name": "WiFi shared with ISM Band (13cm)"
-        },
-        {
-            "start": 2461900000,
-            "end": 2462100000,
-            "type": "utility",
-            "name": "WiFi Ch. 11"
-        },
-        {
-            "start": 2462100000,
-            "end": 2473000000,
-            "type": "utility",
-            "name": "WiFi shared with ISM Band (13cm)"
-        },
-        {
-            "start": 2473000000,
             "end": 2500000000,
             "type": "utility",
             "name": "ISM Band (13cm)"
