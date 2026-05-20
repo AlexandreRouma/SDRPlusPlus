@@ -37,12 +37,21 @@ SDRPP_MOD_INFO{
 
 ConfigManager config;
 
+enum TimeZone {
+    TIME_ZONE_LOCAL,
+    TIME_ZONE_UTC
+};
+
 class RecorderModule : public ModuleManager::Instance {
 public:
     RecorderModule(std::string name) : folderSelect("%ROOT%/recordings") {
         this->name = name;
         root = (std::string)core::args["root"];
         strcpy(nameTemplate, "$t_$f_$h-$m-$s_$d-$M-$y");
+
+        // Define the time zones
+        timezones.define("local", "Local", TIME_ZONE_LOCAL);
+        timezones.define("utc", "UTC", TIME_ZONE_UTC);
 
         // Define option lists
         containers.define("WAV", wav::FORMAT_WAV);
@@ -53,6 +62,7 @@ public:
         sampleTypes.define(wav::SAMP_TYPE_FLOAT32, "Float32", wav::SAMP_TYPE_FLOAT32);
 
         // Load default config for option lists
+        timezoneId = timezones.valueId(TIME_ZONE_LOCAL);
         containerId = containers.valueId(wav::FORMAT_WAV);
         sampleTypeId = sampleTypes.valueId(wav::SAMP_TYPE_INT16);
 
@@ -63,6 +73,9 @@ public:
         }
         if (config.conf[name].contains("recPath")) {
             folderSelect.setPath(config.conf[name]["recPath"]);
+        }
+        if (config.conf[name].contains("timezone") && timezones.keyExists(config.conf[name]["timezone"])) {
+            timezoneId = timezones.keyId(config.conf[name]["timezone"]);
         }
         if (config.conf[name].contains("container") && containers.keyExists(config.conf[name]["container"])) {
             containerId = containers.keyId(config.conf[name]["container"]);
@@ -266,6 +279,14 @@ private:
             config.release(true);
         }
 
+        ImGui::LeftLabel("Time zone");
+        ImGui::FillWidth();
+        if (ImGui::Combo(CONCAT("##_recorder_timezone_", _this->name), &_this->timezoneId, _this->timezones.txt)) {
+            config.acquire();
+            config.conf[_this->name]["timezone"] = _this->timezones.key(_this->timezoneId);
+            config.release(true);
+        }
+
         ImGui::LeftLabel("Container");
         ImGui::FillWidth();
         if (ImGui::Combo(CONCAT("##_recorder_container_", _this->name), &_this->containerId, _this->containers.txt)) {
@@ -454,7 +475,7 @@ private:
     std::string genFileName(std::string templ, int mode, std::string name) {
         // Get data
         time_t now = time(0);
-        tm* ltm = localtime(&now);
+        tm* ltm = (timezones[timezoneId] == TIME_ZONE_UTC) ? gmtime(&now) : localtime(&now);
         char buf[1024];
         double freq = gui::waterfall.getCenterFrequency();
         if (gui::waterfall.vfos.find(name) != gui::waterfall.vfos.end()) {
@@ -564,11 +585,13 @@ private:
     std::string root;
     char nameTemplate[1024];
 
+    OptionList<std::string, TimeZone> timezones;
     OptionList<std::string, wav::Format> containers;
     OptionList<int, wav::SampleType> sampleTypes;
     FolderSelect folderSelect;
 
     int recMode = RECORDER_MODE_AUDIO;
+    int timezoneId;
     int containerId;
     int sampleTypeId;
     bool stereo = true;
