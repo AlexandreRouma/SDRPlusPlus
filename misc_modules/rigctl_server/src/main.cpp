@@ -480,18 +480,22 @@ private:
             std::lock_guard lck(vfoMtx);
             resp = "RAW\n";
 
+            // Replace raw with the mode if there is an active VFO and it belongs to a radio
             if (!selectedVfo.empty() && core::modComManager.getModuleName(selectedVfo) == "radio") {
                 int mode;
                 core::modComManager.callInterface(selectedVfo, RADIO_IFACE_CMD_GET_MODE, NULL, &mode);
                 resp = std::string(radioModeToString[mode]) + "\n";
             }
-            else if (!selectedVfo.empty()) {
+
+            // Append the bandwidth of the VFO if there is one
+            if (!selectedVfo.empty()) {
                 resp += std::to_string((int)sigpath::vfoManager.getBandwidth(selectedVfo)) + "\n";
             }
             else {
                 resp += "0\n";
             }
 
+            // Send baack the response
             client->write(resp.size(), (uint8_t*)resp.c_str());
         }
         else if (parts[0] == "V" || parts[0] == "\\set_vfo") {
