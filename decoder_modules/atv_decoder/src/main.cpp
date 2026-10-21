@@ -60,24 +60,50 @@ class ATVDecoderModule : public ModuleManager::Instance {
     }
 
     ~ATVDecoderModule() {
-        if (vfo) {
-            sigpath::vfoManager.deleteVFO(vfo);
-        }
         agc.stop();
         demod.stop();
         sync.stop();
         sink.stop();
+        if (vfo) {
+            sigpath::vfoManager.deleteVFO(vfo);
+        }
         gui::menu.removeEntry(name);
     }
 
     void postInit() {}
 
     void enable() {
+        // Set the enabled flag
         enabled = true;
+
+        // Get a new VFO if needed
+        if (!vfo) {
+            vfo = sigpath::vfoManager.createVFO(name, ImGui::WaterfallVFO::REF_CENTER, 0, 7000000.0f, SAMPLE_RATE, SAMPLE_RATE, SAMPLE_RATE, true);
+            agc.setInput(vfo->output);
+        }
+
+        // Start the DSP
+        agc.start();
+        demod.start();
+        sync.start();
+        sink.start();
     }
 
     void disable() {
+        // Clear the enabled flag
         enabled = false;
+
+        // Stop the DSP
+        agc.stop();
+        demod.stop();
+        sync.stop();
+        sink.stop();
+
+        // Remove the VFO is there is one
+        if (vfo) {
+            sigpath::vfoManager.deleteVFO(vfo);
+            vfo = NULL;
+        }
     }
 
     bool isEnabled() { return enabled; }
