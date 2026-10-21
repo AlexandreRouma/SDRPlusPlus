@@ -3,6 +3,7 @@
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
 #include <signal_path/sink.h>
+#include <dsp/sink/null_sink.h>
 #include <dsp/buffer/packer.h>
 #include <dsp/convert/stereo_to_mono.h>
 #include <utils/flog.h>
@@ -27,6 +28,7 @@ public:
     AudioSink(SinkManager::Stream* stream, std::string streamName) {
         _stream = stream;
         _streamName = streamName;
+        ns.init(_stream->sinkOut);
         s2m.init(_stream->sinkOut);
         monoPacker.init(&s2m.out, 512);
         stereoPacker.init(_stream->sinkOut, 512);
@@ -36,15 +38,29 @@ public:
 #endif
 
         bool created = false;
-        std::string device = "";
         config.acquire();
         if (!config.conf.contains(_streamName)) {
             created = true;
             config.conf[_streamName]["device"] = "";
             config.conf[_streamName]["devices"] = json({});
         }
-        device = config.conf[_streamName]["device"];
+        selectedDevName = config.conf[_streamName]["device"];
         config.release(created);
+
+        // Refresh available devices which also selects from the device name
+        refresh();
+    }
+
+    ~AudioSink() {
+        // Stop the sink
+        stop();
+    }
+
+    void refresh() {
+        // Clear the current list
+        devList.clear();
+        deviceIds.clear();
+        txtDevList.clear();
 
         RtAudio::DeviceInfo info;
 #if RTAUDIO_VERSION_MAJOR >= 6
@@ -69,11 +85,9 @@ public:
                 flog::error("AudioSinkModule Error getting audio device ({}) info: {}", i, e.what());
             }
         }
-        selectByName(device);
-    }
 
-    ~AudioSink() {
-        stop();
+        // Reselect the device using its name
+        selectByName(selectedDevName);
     }
 
     void start() {
@@ -102,14 +116,22 @@ public:
     }
 
     void selectById(int id) {
+        // If no devices are available, give up
+        if (devList.empty()) {
+            selectedDevName = "";
+            devId = -1;
+            return;
+        }
+
         devId = id;
         bool created = false;
         config.acquire();
-        if (!config.conf[_streamName]["devices"].contains(devList[id].name)) {
+        selectedDevName = devList[id].name;
+        if (!config.conf[_streamName]["devices"].contains(selectedDevName)) {
             created = true;
-            config.conf[_streamName]["devices"][devList[id].name] = devList[id].preferredSampleRate;
+            config.conf[_streamName]["devices"][selectedDevName] = devList[id].preferredSampleRate;
         }
-        sampleRate = config.conf[_streamName]["devices"][devList[id].name];
+        sampleRate = config.conf[_streamName]["devices"][selectedDevName];
         config.release(created);
 
         sampleRates = devList[id].sampleRates;
@@ -147,9 +169,16 @@ public:
         ImGui::SetNextItemWidth(menuWidth);
         if (ImGui::Combo(("##_audio_sink_dev_" + _streamName).c_str(), &devId, txtDevList.c_str())) {
             selectById(devId);
-            config.acquire();
-            config.conf[_streamName]["device"] = devList[devId].name;
-            config.release(true);
+
+            if (!selectedDevName.empty()) {
+                config.acquire();
+                config.conf[_streamName]["device"] = selectedDevName;
+                config.release(true);
+            }
+        }
+
+        if (ImGui::Button(CONCAT("Refresh##_audio_sink_refresh_", _streamName), ImVec2(menuWidth, 0))) {
+            refresh();
         }
 
         ImGui::SetNextItemWidth(menuWidth);
@@ -160,9 +189,11 @@ public:
                 doStop();
                 doStart();
             }
-            config.acquire();
-            config.conf[_streamName]["devices"][devList[devId].name] = sampleRate;
-            config.release(true);
+            if (!selectedDevName.empty()) {
+                config.acquire();
+                config.conf[_streamName]["devices"][selectedDevName] = sampleRate;
+                config.release(true);
+            }
         }
     }
 
@@ -184,6 +215,13 @@ public:
 
 private:
     bool doStart() {
+        // If no device is selected, just start the null sink
+        if (devId < 0) {
+            ns.start();
+            return true;
+        }
+
+        // Configure the stream
         RtAudio::StreamParameters parameters;
         parameters.deviceId = deviceIds[devId];
         parameters.nChannels = 2;
@@ -192,6 +230,7 @@ private:
         opts.flags = RTAUDIO_MINIMIZE_LATENCY;
         opts.streamName = _streamName;
 
+        // Start the stream
         try {
             audio.openStream(&parameters, NULL, RTAUDIO_FLOAT32, sampleRate, &bufferFrames, &callback, this, &opts);
             stereoPacker.setSampleCount(bufferFrames);
@@ -208,13 +247,14 @@ private:
     }
 
     void doStop() {
+        ns.stop();
         s2m.stop();
         monoPacker.stop();
         stereoPacker.stop();
         monoPacker.out.stopReader();
         stereoPacker.out.stopReader();
-        audio.stopStream();
-        audio.closeStream();
+        if (audio.isStreamRunning()) { audio.stopStream(); }
+        if (audio.isStreamOpen()) { audio.closeStream(); }
         monoPacker.out.clearReadStop();
         stereoPacker.out.clearReadStop();
     }
@@ -233,12 +273,14 @@ private:
     dsp::convert::StereoToMono s2m;
     dsp::buffer::Packer<float> monoPacker;
     dsp::buffer::Packer<dsp::stereo_t> stereoPacker;
+    dsp::sink::Null<dsp::stereo_t> ns;
 
+    std::string selectedDevName;
     std::string _streamName;
 
     int srId = 0;
     int devCount;
-    int devId = 0;
+    int devId = -1;
     bool running = false;
 
     unsigned int defaultDevId = 0;
