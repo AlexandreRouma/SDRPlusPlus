@@ -24,9 +24,9 @@ SDRPP_MOD_INFO{
 ConfigManager config;
 
 const std::vector<const char*> deviceWhiteList = {
-    "PlutoSDR",
+    "PLUTO",
     "ANTSDR",
-    "LibreSDR"
+    "LIBRESDR"
 };
 
 class PlutoSDRSourceModule : public ModuleManager::Instance {
@@ -135,10 +135,15 @@ private:
             std::string desc = iio_context_info_get_description(info);
             std::string duri = iio_context_info_get_uri(info);
 
+            // Compute an upper case version of the desc for device detection
+            std::string upperDesc;
+            upperDesc.reserve(desc.size());
+            for (char c : desc) { desc += std::toupper(c); }
+
             // If the device is not a plutosdr, don't include it
             bool isPluto = false;
             for (const auto type : deviceWhiteList) {
-                if (desc.find(type) != std::string::npos) {
+                if (upperDesc.find(type) != std::string::npos) {
                     isPluto = true;
                     break;
                 }

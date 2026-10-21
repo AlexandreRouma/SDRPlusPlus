@@ -440,6 +440,7 @@ private:
                 uhd::rx_metadata_t meta;
                 void* ptr[] = { stream.writeBuf };
                 uhd::rx_streamer::buffs_type buffers(ptr, 1);
+                // TODO: Should pass `buffers` no?
                 int len = streamer->recv(stream.writeBuf, bufferSize, meta, 1.0);
                 if (len < 0) { break; }
                 if (len != bufferSize) {

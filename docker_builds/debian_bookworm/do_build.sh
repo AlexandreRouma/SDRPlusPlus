@@ -10,7 +10,7 @@ apt install -y build-essential cmake git libfftw3-dev libglfw3-dev libvolk2-dev 
 
 # Install SDRPlay libraries
 SDRPLAY_ARCH=$(dpkg --print-architecture)
-wget https://www.sdrplay.com/software/SDRplay_RSP_API-Linux-3.15.2.run
+wget https://www.sdrpp.org/ci/SDRplay_RSP_API-Linux-3.15.2.run
 7z x ./SDRplay_RSP_API-Linux-3.15.2.run
 7z x ./SDRplay_RSP_API-Linux-3.15.2
 cp $SDRPLAY_ARCH/libsdrplay_api.so.3.15 /usr/lib/libsdrplay_api.so
