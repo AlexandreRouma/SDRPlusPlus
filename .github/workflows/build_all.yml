@@ -226,50 +226,6 @@ jobs:
               name: sdrpp_macos_arm
               path: ${{runner.workspace}}/sdrpp_macos_arm.zip
 
-    build_debian_bullseye_amd64:
-        runs-on: ubuntu-latest
-
-        steps:
-        - uses: actions/checkout@v4
-        
-        - name: Create Docker Image
-          run: cd $GITHUB_WORKSPACE/docker_builds/debian_bullseye && docker build . --tag sdrpp_build
-
-        - name: Run Container
-          run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
-
-        - name: Recover Deb Archive
-          working-directory: ${{runner.workspace}}
-          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
-
-        - name: Save Deb Archive
-          uses: actions/upload-artifact@v4
-          with:
-              name: sdrpp_debian_bullseye_amd64
-              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
-
-    build_debian_bullseye_aarch64:
-        runs-on: ubuntu-24.04-arm
-
-        steps:
-        - uses: actions/checkout@v4
-        
-        - name: Create Docker Image
-          run: cd $GITHUB_WORKSPACE/docker_builds/debian_bullseye && docker build . --tag sdrpp_build
-
-        - name: Run Container
-          run: docker run --name build -v $GITHUB_WORKSPACE:/root/SDRPlusPlus --env BUILD_NO="-$GITHUB_RUN_NUMBER" sdrpp_build /root/do_build.sh
-
-        - name: Recover Deb Archive
-          working-directory: ${{runner.workspace}}
-          run: docker cp build:/root/SDRPlusPlus/sdrpp_debian_amd64.deb ./
-
-        - name: Save Deb Archive
-          uses: actions/upload-artifact@v4
-          with:
-              name: sdrpp_debian_bullseye_aarch64
-              path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
-
     build_debian_bookworm_amd64:
         runs-on: ubuntu-latest
 
@@ -613,8 +569,6 @@ jobs:
           'build_windows',
           'build_macos_intel',
           'build_macos_arm',
-          'build_debian_bullseye_amd64',
-          'build_debian_bullseye_aarch64',
           'build_debian_bookworm_amd64',
           'build_debian_bookworm_aarch64',
           'build_debian_trixie_amd64',
@@ -643,8 +597,6 @@ jobs:
             mv sdrpp_windows_x64/sdrpp_windows_x64.zip sdrpp_all/ && 
             mv sdrpp_macos_intel/sdrpp_macos_intel.zip sdrpp_all/ && 
             mv sdrpp_macos_arm/sdrpp_macos_arm.zip sdrpp_all/ && 
-            mv sdrpp_debian_bullseye_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bullseye_amd64.deb &&
-            mv sdrpp_debian_bullseye_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bullseye_aarch64.deb &&
             mv sdrpp_debian_bookworm_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bookworm_amd64.deb && 
             mv sdrpp_debian_bookworm_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bookworm_aarch64.deb && 
             mv sdrpp_debian_trixie_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_trixie_amd64.deb && 
