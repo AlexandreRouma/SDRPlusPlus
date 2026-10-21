@@ -1,0 +1,64 @@
+{
+  "name": "Indonesia",
+  "country_name": "Indonesia",
+  "country_code": "ID",
+  "author_name": "Angelo",
+  "author_url": "https://links.angelo.fyi",
+  "bands": [{
+      "name": "Radio Amatir (Magic Band; 6m)",
+      "type": "amateur",
+      "start": 50000000,
+      "end": 54000000
+    }, {
+      "name": "Radio FM",
+      "type": "broadcast",
+      "start": 87000000,
+      "end":  108000000
+    }, {
+      "name": "Penerbangan AM (VOR, ATC, ILS, ACARS)",
+      "type": "aviation",
+      "start": 108000000,
+      "end": 138000000
+    }, {
+      "name": "Radio trunking (Pemerintah)",
+      "type": "government",
+      "start": 137000000,
+      "end": 150000000
+    }, {
+      "name": "Radio Amatir (VHF; 2m)",
+      "type": "amateur",
+      "start": 144000000,
+      "end": 148000000
+    }, {
+      "name": "Maritim (DSC; Distress & Safety Ch. 16; AIS)",
+      "type": "marine",
+      "start": 156487500,
+      "end": 162037500
+    }, {
+      "name": "DAB+ (Digital Radio)",
+      "type": "broadcast",
+      "start": 174000000,
+      "end": 230000000
+    }, {
+      "name": "Penerbangan",
+      "type": "aviation",
+      "start": 223000000,
+      "end": 235000000
+    }, {
+      "name": "Penerbangan (ILS G/S)",
+      "type": "aviation",
+      "start": 328600000,
+      "end": 335400000
+    }, {
+      "name": "Radio Amatir (UHF; 70cm)",
+      "type": "amateur",
+      "start": 430000000,
+      "end": 440000000
+    }, {
+      "name": "Stasiun TV (UHF; Digital)",
+      "type": "broadcast",
+      "start": 478000000,
+      "end": 694000000
+    }
+  ]
+}
