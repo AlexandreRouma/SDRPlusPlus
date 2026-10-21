@@ -138,7 +138,7 @@ private:
             // Compute an upper case version of the desc for device detection
             std::string upperDesc;
             upperDesc.reserve(desc.size());
-            for (char c : desc) { desc += std::toupper(c); }
+            for (char c : desc) { upperDesc += std::toupper(c); }
 
             // If the device is not a plutosdr, don't include it
             bool isPluto = false;
