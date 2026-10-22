@@ -29,6 +29,7 @@ bundle_is_not_to_be_installed() {
     if [ "$1" = "AppleFSCompression" ]; then echo 1; fi
     if [ "$1" = "libsdrplay_api.so.3.14" ]; then echo 1; fi
     if [ "$1" = "libsdrplay_api.so.3.15" ]; then echo 1; fi
+    if [ "$1" = "libsdrplay_api.so.3" ]; then echo 1; fi
     if [ "$1" = "libxml2.2.dylib" ]; then echo 1; fi
 }
 
@@ -129,7 +130,7 @@ bundle_install_binary() {
     # Check if file exists
     if [ ! -f $3 ]; then
         echo "==NOT== Installing" $3
-        return
+        return -1
     fi
 
     # Get RPATHs
@@ -158,9 +159,9 @@ bundle_install_binary() {
 
         local DEP_PATH=$(bundle_find_full_path $DEP $RPATHS)
 
-        # If the dependency is not installed, install it
+        # If the dependency is not installed, install it, and if the install fails, skip
         if [ ! -f $1/Contents/Frameworks/$DEP_NAME ]; then
-            bundle_install_binary $1 $1/Contents/Frameworks $DEP_PATH
+            bundle_install_binary $1 $1/Contents/Frameworks $DEP_PATH || continue
         fi
 
         # Fix path
