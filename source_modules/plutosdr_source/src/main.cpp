@@ -319,8 +319,8 @@ private:
         iio_channel_attr_write_longlong(_this->rxLO, "frequency", round(_this->freq));                              // Freq
         iio_channel_attr_write_bool(_this->rxChan, "filter_fir_en", true);                                          // Digital filter
         iio_channel_attr_write_longlong(_this->rxChan, "sampling_frequency", round(_this->samplerate));             // Sample rate
-        iio_channel_attr_write_double(_this->rxChan, "hardwaregain", _this->gain);                                  // Gain
         iio_channel_attr_write(_this->rxChan, "gain_control_mode", _this->gainModes.value(_this->gmId).c_str());    // Gain mode
+        iio_channel_attr_write_double(_this->rxChan, "hardwaregain", _this->gain);                                  // Gain
         _this->setBandwidth(_this->bandwidth);
         
         // Configure the ADC filters
