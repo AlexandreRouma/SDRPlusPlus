@@ -106,6 +106,8 @@ cp $build_dir/misc_modules/scanner/Release/scanner.dll sdrpp_windows_x64/modules
 # Copy supporting libs
 cp 'C:/Program Files/PothosSDR/bin/libusb-1.0.dll' sdrpp_windows_x64/
 cp 'C:/Program Files/PothosSDR/bin/pthreadVC2.dll' sdrpp_windows_x64/
+cp 'C:/Program Files/PothosSDR/bin/libserialport-0.dll' sdrpp_windows_x64/
+cp 'C:/Program Files/PothosSDR/bin/libxml2.dll' sdrpp_windows_x64/
 
 Compress-Archive -Path sdrpp_windows_x64/ -DestinationPath sdrpp_windows_x64.zip
 
