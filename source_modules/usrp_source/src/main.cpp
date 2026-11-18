@@ -138,16 +138,30 @@ public:
         selectedChan = chan;
         chanId = channels.keyId(chan);
 
+        // Get the master clock rate list
+        auto mcr = dev->get_master_clock_rate_range();
+
         // List samplerates
         samplerates.clear();
-        auto srList = dev->get_rx_rates(chanId);
-        for (const auto& l : srList) {
-            double step = (l.step() == 0.0) ? 100e3 : l.step();
-            for (double f = l.start(); f <= l.stop(); f += step) {
+        if (mcr.size() == 1 && mcr[0].step() == 0.0 && mcr[0].start() < mcr[0].stop()) {
+            // Infinitely MCR device (B series), define list of common samplerates
+            samplerates.define(mcr[0].start(), utils::formatFreq(mcr[0].start()), mcr[0].start());
+            for (double f = 1e6; f <= 61.44e6; f += 1e6) {
                 samplerates.define(f, utils::formatFreq(f), f);
             }
+            samplerates.define(mcr[0].stop(), utils::formatFreq(mcr[0].stop()), mcr[0].stop());
         }
-
+        else {
+            // Other USRP devices, leave MCR alone and enumerate valid rates
+            auto srList = dev->get_rx_rates(chanId);
+            for (const auto& l : srList) {
+                double step = (l.step() == 0.0) ? 100e3 : l.step();
+                for (double f = l.start(); f <= l.stop(); f += step) {
+                    samplerates.define(f, utils::formatFreq(f), f);
+                }
+            }
+        }
+        
         // List antennas
         antennas.clear();
         auto ants = dev->get_rx_antennas(chanId);
