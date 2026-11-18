@@ -121,7 +121,7 @@ private:
         // Create parsing regexes
         std::regex backendRgx(".+(?=:)", std::regex::ECMAScript);
         std::regex modelRgx("\\(.+(?=\\),)", std::regex::ECMAScript);
-        std::regex serialRgx("serial=[0-9A-Za-z]+", std::regex::ECMAScript);
+        std::regex serialRgx("serial=[^ ]+", std::regex::ECMAScript);
 
         // Enumerate devices
         iio_context_info** ctxInfoList;
