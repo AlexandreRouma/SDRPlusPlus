@@ -11,6 +11,9 @@
 #include "dsp/compression/sample_stream_compressor.h"
 #include "dsp/sink/handler_sink.h"
 #include <zstd.h>
+#include <signal.h>
+#include <mutex>
+#include <condition_variable>
 
 namespace server {
     dsp::stream<dsp::complex_t> dummyInput;
@@ -45,6 +48,23 @@ namespace server {
     bool running = false;
     bool compression = false;
     double sampleRate = 1000000.0;
+
+    std::mutex runMtx;
+    std::condition_variable runCond;
+    bool run = true;
+    
+    void sigintHandler(int sig) {
+        {
+            // Acquire the run flag mutex
+            std::lock_guard<std::mutex> lck(runMtx);
+
+            // Clear the run flag
+            run = false;
+        }
+        
+        // Notify the main thread
+        runCond.notify_all();
+    }
 
     int main() {
         flog::info("=====| SERVER MODE |=====");
@@ -155,8 +175,18 @@ namespace server {
         listener->acceptAsync(_clientHandler, NULL);
 
         flog::info("Ready, listening on {0}:{1}", host, port);
-        while(1) { std::this_thread::sleep_for(std::chrono::milliseconds(100)); }
 
+        // Register the sigint handler
+        signal(SIGINT, sigintHandler);
+
+        // Wait for sigint
+        std::unique_lock<std::mutex> lck(runMtx);
+        while(run) { runCond.wait(lck); }
+
+        // Unregister the sigint handler
+        signal(SIGINT, NULL);
+
+        flog::info("Done.");
         return 0;
     }
 
